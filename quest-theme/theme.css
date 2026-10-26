@@ -195,6 +195,8 @@
 .ezik-treasure-theme .j-island-map .j-map-flag{font:700 19px KunuzPlex,Arial,sans-serif;fill:#fff;paint-order:stroke;stroke:#075763;stroke-width:2px;text-anchor:middle}
 .ezik-treasure-theme .j-island-map .j-island-marker{stroke:#e2fff2;stroke-width:3;filter:url(#journey-marker-shadow)}
 .ezik-treasure-theme .j-island-map .j-route-active{stroke:#fff3a9;stroke-width:5;animation:kunuz-journey-route 1s linear infinite}
+.ezik-treasure-theme .journey-app[data-game=harb] .j-actions.j-war-actions{gap:6px;align-items:stretch}
+.ezik-treasure-theme .journey-app[data-game=harb] .j-actions.j-war-actions>*{min-width:0;padding-inline:6px;font-size:14px;text-align:center}
 .ezik-treasure-theme .j-war-message{background:#073a45cc;border:1px solid #ffffff30;border-radius:16px;padding:12px;color:#d6efea;line-height:1.7;margin:10px 0}
 .ezik-treasure-theme .j-island-sheet{border-radius:27px;margin-top:15px}
 .ezik-treasure-theme .j-result-icon{width:94px;height:94px;margin:16px auto}
@@ -340,6 +342,8 @@
 /* Keep focused setup controls reachable above mobile keyboards and system gestures. */
 .ezik-treasure-theme .journey-app .j-actions{padding-bottom:max(14px,calc(env(safe-area-inset-bottom) + 14px))}
 .ezik-treasure-theme .journey-app.kfix-keyboard-open .j-content{min-height:0;scroll-padding-block:12px}
+.ezik-treasure-theme .journey-app.kfix-keyboard-open .j-content{padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))}
+.ezik-treasure-theme .journey-app.kfix-keyboard-open .j-content .j-actions{position:fixed;left:12px;right:12px;bottom:calc(var(--kfix-vv-bottom,0px) + env(safe-area-inset-bottom,0px) + 8px);z-index:1000;max-width:728px;margin:0 auto;padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px));border:1px solid var(--journey-gold);border-radius:16px;background:var(--journey-paper);color:var(--journey-ink);box-shadow:0 -8px 22px #0006}
 
 .ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-list{display:flex;flex-direction:column;gap:14px;min-width:0;width:100%}
 .ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-board-heading{margin:8px 0 2px}

@@ -17,12 +17,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: م ر س ة ط (أداة مستقيمة لقياس الأطوال ورسم الخطوط)",
       "choices": [
-        "مسطرة",
-        "عنوان",
-        "فرجار",
-        "صحيفة"
+        "أرومة",
+        "أسرية",
+        "أطمار",
+        "مسطرة"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "مسطرة: أداة مستقيمة لقياس الأطوال ورسم الخطوط.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -39,12 +39,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ر ج ا ف (أداة ذات ساقين لرسم الدوائر)",
       "choices": [
-        "صحيفة",
-        "رسالة",
-        "مسطرة",
-        "فرجار"
+        "أجفان",
+        "أدراج",
+        "فرجار",
+        "أترجة"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "فرجار: أداة ذات ساقين لرسم الدوائر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -62,12 +62,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ك ب ة ت م (مكان تجمع فيه المؤلفات للقراءة أو الاستعارة)",
       "choices": [
-        "بستان",
-        "جامعة",
+        "براكة",
         "مكتبة",
-        "حانوت"
+        "باكرة",
+        "بتولة"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "مكتبة: مكان تجمع فيه المؤلفات للقراءة أو الاستعارة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -84,12 +84,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة م ر س د (مكان يتلقى فيه التلاميذ التعليم)",
       "choices": [
-        "جامعة",
-        "بستان",
-        "ميناء",
-        "مدرسة"
+        "مدرسة",
+        "أرومة",
+        "أسرية",
+        "أمارة"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "مدرسة: مكان يتلقى فيه التلاميذ التعليم.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -106,12 +106,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ن خ ة ز (قطعة أثاث تحفظ فيها الملابس أو الأمتعة)",
       "choices": [
+        "أغنية",
         "خزانة",
-        "سجادة",
-        "مائدة",
-        "قنديل"
+        "أرنبة",
+        "أزمنة"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "خزانة: قطعة أثاث تحفظ فيها الملابس أو الأمتعة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -128,12 +128,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: غ ط ء ا (ما يوضع فوق الشيء لحجبه أو صونه)",
       "choices": [
-        "كرسي",
-        "ستار",
-        "غطاء",
-        "مرآة"
+        "أرغن",
+        "أصغر",
+        "أطلس",
+        "غطاء"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "غطاء: ما يوضع فوق الشيء لحجبه أو صونه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -150,12 +150,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر م ة آ (سطح مصقول تظهر فيه صورة الناظر)",
       "choices": [
-        "بساط",
-        "فتيل",
-        "ستار",
-        "مرآة"
+        "آجلة",
+        "مرآة",
+        "آثار",
+        "آجرة"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "مرآة: سطح مصقول تظهر فيه صورة الناظر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -173,9 +173,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: د ن ل ي ق (وعاء كان يستضاء بما فيه من زيت وفتيل)",
       "choices": [
         "قنديل",
-        "أريكة",
-        "مصباح",
-        "منضدة"
+        "آبدين",
+        "أقلية",
+        "ألقية"
       ],
       "answer": 0,
       "why": "قنديل: وعاء كان يستضاء بما فيه من زيت وفتيل.",
@@ -194,12 +194,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: م ن ة ض د (سطح مرتفع على أرجل توضع عليه الأشياء)",
       "choices": [
-        "مصباح",
-        "منضدة",
-        "مائدة",
-        "قنديل"
+        "أمنية",
+        "أنملة",
+        "جندية",
+        "منضدة"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "منضدة: سطح مرتفع على أرجل توضع عليه الأشياء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -216,12 +216,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ي ر أ ة ك (قطعة أثاث مبطنة تتسع للجلوس والاتكاء)",
       "choices": [
+        "أترجة",
+        "أثفية",
         "أريكة",
-        "وسادة",
-        "قنديل",
-        "خزانة"
+        "أبريل"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "أريكة: قطعة أثاث مبطنة تتسع للجلوس والاتكاء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -238,10 +238,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة ئ د م ا (سطح توضع عليه أطعمة الوجبة)",
       "choices": [
-        "منضدة",
+        "أمداح",
         "مائدة",
-        "مصباح",
-        "قنديل"
+        "أرومة",
+        "أغماد"
       ],
       "answer": 1,
       "why": "مائدة: سطح توضع عليه أطعمة الوجبة.",
@@ -260,12 +260,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ب ب (جزء متحرك يغلق مدخل المكان)",
       "choices": [
-        "بيت",
-        "قصر",
         "باب",
-        "سور"
+        "آبد",
+        "آجل",
+        "آخر"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "باب: جزء متحرك يغلق مدخل المكان.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -283,12 +283,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ذ ن ا ة ف (فتحة في الجدار يدخل منها الضوء والهواء)",
       "choices": [
-        "دعامة",
-        "دهليز",
-        "نافذة",
-        "ساقية"
+        "أثفية",
+        "أجفان",
+        "أذناب",
+        "نافذة"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "نافذة: فتحة في الجدار يدخل منها الضوء والهواء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -305,10 +305,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ط ح ئ (بناء رأسي يحيط بالمكان أو يفصله)",
       "choices": [
-        "مأوى",
+        "أطلس",
         "حائط",
-        "مدخل",
-        "منزل"
+        "أحاد",
+        "أضحى"
       ],
       "answer": 1,
       "why": "حائط: بناء رأسي يحيط بالمكان أو يفصله.",
@@ -327,12 +327,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: خ و ك (مسكن صغير بسيط من خشب أو قش)",
       "choices": [
-        "سور",
-        "سقف",
+        "أكل",
         "كوخ",
-        "سلم"
+        "آخر",
+        "أخت"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "كوخ: مسكن صغير بسيط من خشب أو قش.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -350,9 +350,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: م ة ي خ (مسكن متنقل يصنع من النسيج)",
       "choices": [
         "خيمة",
-        "مخزن",
-        "مدخل",
-        "شرفة"
+        "آخرة",
+        "آسية",
+        "أجمة"
       ],
       "answer": 0,
       "why": "خيمة: مسكن متنقل يصنع من النسيج.",
@@ -371,12 +371,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ز ن م خ (مكان تحفظ فيه السلع والأمتعة)",
       "choices": [
-        "درجة",
-        "حائط",
-        "قاعة",
-        "مخزن"
+        "مخزن",
+        "آنام",
+        "أخمص",
+        "أزمة"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "مخزن: مكان تحفظ فيه السلع والأمتعة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -393,12 +393,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ز ي ل ه د (ممر ضيق يصل المدخل بداخل الدار)",
       "choices": [
-        "نافذة",
-        "ساقية",
-        "دهليز",
-        "دعامة"
+        "أقلية",
+        "ألفية",
+        "ألقية",
+        "دهليز"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "دهليز: ممر ضيق يصل المدخل بداخل الدار.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -415,10 +415,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: خ ج ر م (الموضع الذي يغادر منه المكان)",
       "choices": [
-        "درجة",
-        "رصيف",
+        "آخرة",
+        "أترج",
         "مخرج",
-        "قاعة"
+        "آجرة"
       ],
       "answer": 2,
       "why": "مخرج: الموضع الذي يغادر منه المكان.",
@@ -438,12 +438,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ز ع ة م (أرض مخصصة للزراعة وتربية الماشية)",
       "choices": [
-        "حديقة",
-        "مدرسة",
+        "أمارة",
         "مزرعة",
-        "ميناء"
+        "أربعة",
+        "أزمنة"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "مزرعة: أرض مخصصة للزراعة وتربية الماشية.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -460,12 +460,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ق د ن خ (حفرة طويلة عميقة تحيط بموضع)",
       "choices": [
-        "خندق",
-        "منزل",
-        "رواق",
-        "خيمة"
+        "أردن",
+        "أنوق",
+        "بخنق",
+        "خندق"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "خندق: حفرة طويلة عميقة تحيط بموضع.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -482,12 +482,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: م ل ر (حبيبات صخرية دقيقة تتجمع على الشواطئ وفي الصحاري)",
       "choices": [
-        "رمل",
-        "حصى",
-        "قمر",
-        "أرض"
+        "آخر",
+        "آدم",
+        "آلة",
+        "رمل"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "رمل: حبيبات صخرية دقيقة تتجمع على الشواطئ وفي الصحاري.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -504,12 +504,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ى ح ص (قطع صغيرة من الحجارة)",
       "choices": [
-        "شمس",
-        "أرض",
-        "قمر",
-        "حصى"
+        "أحد",
+        "أصل",
+        "حصى",
+        "آية"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "حصى: قطع صغيرة من الحجارة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -526,10 +526,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: م ة ق (أعلى نقطة في الجبل أو المرتفع)",
       "choices": [
-        "شمس",
+        "آلة",
         "قمة",
-        "كهف",
-        "جمر"
+        "آدم",
+        "آفة"
       ],
       "answer": 1,
       "why": "قمة: أعلى نقطة في الجبل أو المرتفع.",
@@ -548,12 +548,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ض ى ح (وقت ارتفاع الشمس قبل الظهر)",
       "choices": [
-        "عام",
-        "ليل",
-        "ضحى",
-        "ظهر"
+        "آية",
+        "أحد",
+        "ألى",
+        "ضحى"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "ضحى: وقت ارتفاع الشمس قبل الظهر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -570,12 +570,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ل ل ي (الزمن الممتد بين غياب الشمس وطلوعها)",
       "choices": [
-        "ضحى",
-        "صيف",
+        "آية",
         "ليل",
-        "شفق"
+        "آجل",
+        "آلة"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "ليل: الزمن الممتد بين غياب الشمس وطلوعها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -593,12 +593,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ع ب س و أ (مدة تتألف من سبعة أيام)",
       "choices": [
-        "دقيقة",
         "أسبوع",
-        "ربيع",
-        "شتاء"
+        "آبنوس",
+        "آنسون",
+        "أبعاد"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "أسبوع: مدة تتألف من سبعة أيام.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -615,12 +615,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ي ق د ق ة (وحدة زمن تساوي ستين ثانية)",
       "choices": [
-        "مساء",
+        "ألقية",
+        "أوقية",
         "دقيقة",
-        "شتاء",
-        "أسبوع"
+        "أقلية"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "دقيقة: وحدة زمن تساوي ستين ثانية.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -637,12 +637,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ه ء و ا (مزيج الغازات المحيط بالأرض الذي نتنفسه)",
       "choices": [
-        "خليج",
         "هواء",
-        "نسيم",
-        "وادي"
+        "آجرة",
+        "آجلة",
+        "آخرة"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "هواء: مزيج الغازات المحيط بالأرض الذي نتنفسه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -659,12 +659,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ر إ ع ص (دوامة هوائية شديدة السرعة)",
       "choices": [
-        "بحيرة",
-        "إعصار",
-        "جزيرة",
-        "صحراء"
+        "أبزار",
+        "أبعاد",
+        "أتعاب",
+        "إعصار"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "إعصار: دوامة هوائية شديدة السرعة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -681,12 +681,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ذ ر ا ذ (قطرات ماء دقيقة جدا تسقط من السحاب)",
       "choices": [
-        "صقيع",
+        "آجرة",
+        "آخرة",
         "رذاذ",
-        "تراب",
-        "ساحل"
+        "آثار"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "رذاذ: قطرات ماء دقيقة جدا تسقط من السحاب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -703,12 +703,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ب ض ب (دقائق ماء معلقة قرب سطح الأرض تحجب الرؤية)",
       "choices": [
-        "رماد",
-        "ساحل",
-        "شاطئ",
-        "ضباب"
+        "أبجد",
+        "ضباب",
+        "آداب",
+        "أباز"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "ضباب: دقائق ماء معلقة قرب سطح الأرض تحجب الرؤية.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -725,12 +725,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ء د ف (حرارة معتدلة محببة في الجو أو المكان)",
       "choices": [
-        "ريح",
-        "رعد",
+        "آفة",
         "دفء",
-        "غيم"
+        "آبد",
+        "آدم"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "دفء: حرارة معتدلة محببة في الجو أو المكان.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -747,12 +747,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: و ء ض (ما يمكن العين من رؤية الأشياء)",
       "choices": [
-        "شمس",
-        "قمة",
-        "طين",
-        "ضوء"
+        "ضوء",
+        "أرض",
+        "أوت",
+        "أوج"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "ضوء: ما يمكن العين من رؤية الأشياء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -769,12 +769,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ر ش (أجزاء صغيرة متوهجة تتطاير من النار)",
       "choices": [
-        "حجر",
-        "دفء",
-        "لهب",
-        "شرر"
+        "أثر",
+        "أجر",
+        "شرر",
+        "آخر"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "شرر: أجزاء صغيرة متوهجة تتطاير من النار.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -791,12 +791,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ف م ح (مادة سوداء تستعمل وقودا)",
       "choices": [
-        "كهف",
-        "ريح",
+        "أحد",
         "فحم",
-        "رمل"
+        "آدم",
+        "آفة"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "فحم: مادة سوداء تستعمل وقودا.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -813,12 +813,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ى ر ب م (ثمار تطهى مع السكر حتى يغلظ قوامها)",
       "choices": [
-        "دقيق",
-        "مربى",
-        "حساء",
-        "حليب"
+        "أبهر",
+        "أثير",
+        "أخرى",
+        "مربى"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "مربى: ثمار تطهى مع السكر حتى يغلظ قوامها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -836,10 +836,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ز د ب (دهن يستخرج من خض اللبن)",
       "choices": [
-        "كعك",
+        "أحد",
         "زبد",
-        "دبس",
-        "لبن"
+        "آبد",
+        "آدم"
       ],
       "answer": 1,
       "why": "زبد: دهن يستخرج من خض اللبن.",
@@ -858,12 +858,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ي ت ز (سائل دهني يستخرج من الثمار أو البذور)",
       "choices": [
-        "كعك",
-        "لبن",
-        "زبد",
-        "زيت"
+        "زيت",
+        "آية",
+        "أخت",
+        "أرز"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "زيت: سائل دهني يستخرج من الثمار أو البذور.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -880,12 +880,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ق ي ص د (فلز لين يستعمل في الطلاء والسبائك)",
       "choices": [
+        "برقية",
         "قصدير",
-        "فخار",
-        "صابون",
-        "إسفنج"
+        "أرصاد",
+        "إبريق"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "قصدير: فلز لين يستعمل في الطلاء والسبائك.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -902,12 +902,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ب ز ة ك ر (نبات تستعمل أوراقه وبذوره في التتبيل)",
       "choices": [
-        "كمثرى",
+        "أراكة",
+        "أربعة",
         "كزبرة",
-        "سفرجل",
-        "فسيلة"
+        "أبزار"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "كزبرة: نبات تستعمل أوراقه وبذوره في التتبيل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -924,12 +924,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ا ل ب ت ق (فاكهة حمضية مستديرة ذات قشرة ملونة)",
       "choices": [
-        "برتقال",
-        "زعفران",
-        "زنجبيل",
-        "ياسمين"
+        "أرخبيل",
+        "أكتوبر",
+        "برازيل",
+        "برتقال"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "برتقال: فاكهة حمضية مستديرة ذات قشرة ملونة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -946,12 +946,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ن ة ل خ (شجرة طويلة تحمل ثمر التمر)",
       "choices": [
-        "زهرة",
+        "آخرة",
+        "آكلة",
         "نخلة",
-        "قشرة",
-        "نرجس"
+        "آجلة"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "نخلة: شجرة طويلة تحمل ثمر التمر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -968,12 +968,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ي و ت ز ن (شجر تستخرج من ثماره دهون غذائية)",
       "choices": [
-        "صفصاف",
-        "عنقود",
+        "برونز",
         "زيتون",
-        "يقطين"
+        "أوزون",
+        "إيوان"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "زيتون: شجر تستخرج من ثماره دهون غذائية.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -990,12 +990,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا س ن ي ي م (نبات متسلق ذو أزهار عطرة غالبا بيضاء)",
       "choices": [
-        "أقحوان",
-        "زعفران",
         "ياسمين",
-        "برتقال"
+        "أساطين",
+        "أكسجين",
+        "أنقليس"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "ياسمين: نبات متسلق ذو أزهار عطرة غالبا بيضاء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1012,12 +1012,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ء ح ل (الطبقة الخارجية التي تغطي جذع الشجرة)",
       "choices": [
-        "بطيخ",
-        "برعم",
-        "كمون",
-        "لحاء"
+        "لحاء",
+        "آجلة",
+        "آكلة",
+        "أثيل"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "لحاء: الطبقة الخارجية التي تغطي جذع الشجرة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1034,12 +1034,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: د ق ع ن و (مجموعة ثمار متصلة بساق واحدة كثمار الكرم)",
       "choices": [
+        "تعدين",
+        "دراقن",
         "عنقود",
-        "خرشوف",
-        "كمثرى",
-        "قرنفل"
+        "أقنوم"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "عنقود: مجموعة ثمار متصلة بساق واحدة كثمار الكرم.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1057,12 +1057,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ع ذ ج (الساق الرئيسة الغليظة للشجرة)",
       "choices": [
-        "عدس",
-        "غصن",
-        "سرو",
-        "جذع"
+        "أذن",
+        "جذع",
+        "آجل",
+        "أجر"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "جذع: الساق الرئيسة الغليظة للشجرة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1079,12 +1079,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ب ل ع ث (حيوان ذو ذيل كثيف يضرب به المثل في المكر)",
       "choices": [
+        "أخبث",
+        "أصبع",
         "ثعلب",
-        "ضفدع",
-        "نعجة",
-        "ريشة"
+        "أثيل"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "ثعلب: حيوان ذو ذيل كثيف يضرب به المثل في المكر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1103,9 +1103,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: ف ر ص ع و (طائر صغير مألوف حول البيوت والحدائق)",
       "choices": [
         "عصفور",
-        "شاهين",
-        "نعامة",
-        "ببغاء"
+        "إعصار",
+        "برعوم",
+        "بورصة"
       ],
       "answer": 0,
       "why": "عصفور: طائر صغير مألوف حول البيوت والحدائق.",
@@ -1124,12 +1124,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ب ا غ ء ب (طائر ملون يستطيع تقليد أصوات البشر)",
       "choices": [
-        "ببغاء",
-        "كتكوت",
-        "عصفور",
-        "طاووس"
+        "أسباب",
+        "أنبوب",
+        "بغداد",
+        "ببغاء"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "ببغاء: طائر ملون يستطيع تقليد أصوات البشر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1146,12 +1146,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ك ك ت ت و (الصغير من الدجاج بعد الفقس)",
       "choices": [
-        "نعامة",
-        "ببغاء",
-        "عصفور",
-        "كتكوت"
+        "تكتيك",
+        "كتكوت",
+        "تابوت",
+        "تروتة"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "كتكوت: الصغير من الدجاج بعد الفقس.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1168,12 +1168,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: و ح ل ز ن (حيوان رخو يحمل صدفة لولبية غالبا)",
       "choices": [
-        "ثعبان",
-        "جاموس",
-        "زرافة",
-        "حلزون"
+        "حلزون",
+        "أوزون",
+        "بالون",
+        "برونز"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "حلزون: حيوان رخو يحمل صدفة لولبية غالبا.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1190,9 +1190,9 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ن خ ء ا س ف (حشرة لها غمدان صلبان يغطيان جناحيها)",
       "choices": [
-        "عنكبوت",
-        "شرنقة",
-        "فراشة",
+        "إسبانخ",
+        "انتساخ",
+        "انتفاخ",
         "خنفساء"
       ],
       "answer": 3,
@@ -1212,12 +1212,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ص ر و ر ص (حشرة داكنة سريعة الحركة تنشط ليلا)",
       "choices": [
-        "جندب",
-        "فراشة",
-        "شرنقة",
-        "صرصور"
+        "جارور",
+        "دردور",
+        "صرصور",
+        "بورصة"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "صرصور: حشرة داكنة سريعة الحركة تنشط ليلا.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1234,12 +1234,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: د ة و د (حيوان صغير لين طويل الجسم بلا قوائم ظاهرة)",
       "choices": [
-        "عقرب",
-        "جندب",
-        "دودة",
-        "جراد"
+        "أخوة",
+        "أداة",
+        "أسوة",
+        "دودة"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "دودة: حيوان صغير لين طويل الجسم بلا قوائم ظاهرة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1256,12 +1256,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: خ م ب ل (ظفر قوي معقوف عند الجوارح والسباع)",
       "choices": [
-        "خروف",
-        "ثعلب",
         "مخلب",
-        "ماعز"
+        "أخبث",
+        "أخمص",
+        "أرمل"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "مخلب: ظفر قوي معقوف عند الجوارح والسباع.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1278,12 +1278,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر د ء ا (ما يلبس فوق الثياب)",
       "choices": [
+        "آخرة",
         "رداء",
-        "حذاء",
-        "عقال",
-        "قبعة"
+        "آثار",
+        "آجرة"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "رداء: ما يلبس فوق الثياب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1301,9 +1301,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: ب ا ء ة ع (كساء واسع مفتوح من أمام يلبس فوق الملابس)",
       "choices": [
         "عباءة",
-        "منديل",
-        "منشفة",
-        "قفطان"
+        "أبعاد",
+        "أتعاب",
+        "أربعة"
       ],
       "answer": 0,
       "why": "عباءة: كساء واسع مفتوح من أمام يلبس فوق الملابس.",
@@ -1322,12 +1322,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ع ط ف م (لباس خارجي طويل يتقى به البرد)",
       "choices": [
-        "معطف",
-        "حزام",
-        "حذاء",
-        "جورب"
+        "أطوم",
+        "أفعى",
+        "برعم",
+        "معطف"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "معطف: لباس خارجي طويل يتقى به البرد.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1344,12 +1344,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ف ط ق ن (ثوب طويل مفتوح من الأمام)",
       "choices": [
+        "أطراف",
         "قفطان",
-        "عمامة",
-        "عباءة",
-        "منديل"
+        "أجفان",
+        "أطباق"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "قفطان: ثوب طويل مفتوح من الأمام.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1366,12 +1366,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ز ا إ (نسيج يلف حول أسفل الجسم)",
       "choices": [
-        "خمار",
-        "معطف",
         "إزار",
-        "قميص"
+        "آثار",
+        "آجرة",
+        "آخرة"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "إزار: نسيج يلف حول أسفل الجسم.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1388,12 +1388,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ذ ا ء ح (ما يلبس في القدم لحمايتها)",
       "choices": [
-        "رداء",
-        "خمار",
-        "جورب",
-        "حذاء"
+        "أحاد",
+        "أضحى",
+        "حذاء",
+        "آذار"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "حذاء: ما يلبس في القدم لحمايتها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1411,12 +1411,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ن ش ف م ة (نسيج يمتص الماء لتجفيف الجسم)",
       "choices": [
-        "قفطان",
-        "عمامة",
-        "عباءة",
-        "منشفة"
+        "منشفة",
+        "أزمنة",
+        "أمنية",
+        "أنملة"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "منشفة: نسيج يمتص الماء لتجفيف الجسم.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1433,12 +1433,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ة ص (شيء يجمع في قطعة قماش وتربط أطرافها)",
       "choices": [
-        "دفة",
         "صرة",
-        "كفة",
-        "كيس"
+        "آخر",
+        "آفة",
+        "آلة"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "صرة: شيء يجمع في قطعة قماش وتربط أطرافها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1455,12 +1455,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ن د ص ق و (وعاء صلب له جوانب وغطاء لحفظ الأشياء)",
       "choices": [
-        "منشار",
-        "صحيفة",
-        "سندان",
-        "صندوق"
+        "دراقن",
+        "دقوقة",
+        "صندوق",
+        "أقنوم"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "صندوق: وعاء صلب له جوانب وغطاء لحفظ الأشياء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1477,12 +1477,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ق ب ر إ ي (إناء له مقبض وفم بارز لصب الماء)",
       "choices": [
-        "زجاجة",
         "إبريق",
-        "صينية",
-        "مغرفة"
+        "آبدين",
+        "أبريل",
+        "أبزار"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "إبريق: إناء له مقبض وفم بارز لصب الماء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1500,9 +1500,9 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ف ج ن ا ن (إناء صغير يقدم فيه مشروب ساخن)",
       "choices": [
-        "إبريق",
-        "غربال",
-        "صينية",
+        "آنسون",
+        "أجفان",
+        "أعنان",
         "فنجان"
       ],
       "answer": 3,
@@ -1522,12 +1522,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ي ن ي ص ة (لوح أو إناء مسطح تحمل عليه الأطعمة والأواني)",
       "choices": [
+        "بصيرة",
         "صينية",
-        "غربال",
-        "زجاجة",
-        "إبريق"
+        "أغنية",
+        "أمنية"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "صينية: لوح أو إناء مسطح تحمل عليه الأطعمة والأواني.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1544,9 +1544,9 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ف م ص ة (أداة مثقبة تفصل السائل عن الأجزاء الصلبة)",
       "choices": [
-        "مغرفة",
-        "قنينة",
-        "زجاجة",
+        "أثفية",
+        "أرومة",
+        "أزمنة",
         "مصفاة"
       ],
       "answer": 3,
@@ -1566,12 +1566,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ن و ا ن ك (إناء توضع فيه الجمرات للتدفئة)",
       "choices": [
-        "مغرفة",
-        "غربال",
-        "زجاجة",
-        "كانون"
+        "كانون",
+        "آبنوس",
+        "آنسون",
+        "أركان"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "كانون: إناء توضع فيه الجمرات للتدفئة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1589,10 +1589,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ي ل ز إ م (أداة حادة الطرف لنقر الخشب أو الحجر)",
       "choices": [
-        "محراث",
-        "ممحاة",
+        "أزمنة",
+        "أقلية",
         "إزميل",
-        "ميزان"
+        "أبريل"
       ],
       "answer": 2,
       "why": "إزميل: أداة حادة الطرف لنقر الخشب أو الحجر.",
@@ -1611,12 +1611,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة ل س ل س (حلقات معدنية تتصل بعضها ببعض)",
       "choices": [
-        "مسطرة",
-        "مسمار",
-        "رسالة",
-        "سلسلة"
+        "سلسلة",
+        "اللهم",
+        "بسملة",
+        "بهلول"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "سلسلة: حلقات معدنية تتصل بعضها ببعض.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1633,12 +1633,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ب ة و ل ص (أداة تدل إبرتها على جهة الشمال)",
       "choices": [
-        "منشار",
-        "رسالة",
+        "إبالة",
         "بوصلة",
-        "مذراة"
+        "أسلوب",
+        "ألهوة"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "بوصلة: أداة تدل إبرتها على جهة الشمال.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1656,9 +1656,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: ذ خ ة و (غطاء صلب يقي الرأس أثناء العمل)",
       "choices": [
         "خوذة",
-        "منجل",
-        "معول",
-        "مداد"
+        "آخرة",
+        "أخوة",
+        "أسوة"
       ],
       "answer": 0,
       "why": "خوذة: غطاء صلب يقي الرأس أثناء العمل.",
@@ -1677,12 +1677,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ب ن ب أ و (جسم مجوف طويل تمر فيه السوائل أو الغازات)",
       "choices": [
-        "مرساة",
-        "سندان",
-        "أنبوب",
-        "بوصلة"
+        "آبدين",
+        "آبنوس",
+        "آنسون",
+        "أنبوب"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "أنبوب: جسم مجوف طويل تمر فيه السوائل أو الغازات.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1700,12 +1700,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ق ن ن ي ة (وعاء صغير ضيق الرأس لحفظ السوائل)",
       "choices": [
-        "مبخرة",
-        "ملعقة",
+        "ألقية",
         "قنينة",
-        "غربال"
+        "أغنية",
+        "أقلية"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "قنينة: وعاء صغير ضيق الرأس لحفظ السوائل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1722,12 +1722,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: أ س ذ ا ت (من له منزلة علمية ويعلم غيره)",
       "choices": [
+        "أذناب",
+        "أسباب",
         "أستاذ",
-        "إسكاف",
-        "فخاري",
-        "صيدلي"
+        "أتعاب"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "أستاذ: من له منزلة علمية ويعلم غيره.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1744,10 +1744,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ن ء ب (من يقيم الجدران والمباني)",
       "choices": [
-        "مفتش",
+        "آنسة",
         "بناء",
-        "مدرس",
-        "نساج"
+        "آداب",
+        "آنام"
       ],
       "answer": 1,
       "why": "بناء: من يقيم الجدران والمباني.",
@@ -1767,9 +1767,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: س ئ ا ق (من يقود مركبة في الطريق)",
       "choices": [
         "سائق",
-        "دهان",
-        "ناظر",
-        "صحفي"
+        "آسيا",
+        "آسية",
+        "آنسة"
       ],
       "answer": 0,
       "why": "سائق: من يقود مركبة في الطريق.",
@@ -1788,12 +1788,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ء ق س (من يحمل الماء ويبيعه أو يوزعه)",
       "choices": [
-        "ناظر",
-        "صراف",
-        "سقاء",
-        "خزاف"
+        "آسيا",
+        "آسية",
+        "آنسة",
+        "سقاء"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "سقاء: من يحمل الماء ويبيعه أو يوزعه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1810,10 +1810,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ن و م ب د (من يبعث ممثلا لجهة في مهمة)",
       "choices": [
-        "مراقب",
+        "أقنوم",
         "مندوب",
-        "بيطار",
-        "إسكاف"
+        "آبدين",
+        "آبنوس"
       ],
       "answer": 1,
       "why": "مندوب: من يبعث ممثلا لجهة في مهمة.",
@@ -1832,12 +1832,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ص و م ر (من يلتقط الصور بأداة بصرية)",
       "choices": [
-        "حمال",
-        "حداد",
+        "أرمل",
         "مصور",
-        "دهان"
+        "آصرة",
+        "أخمص"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "مصور: من يلتقط الصور بأداة بصرية.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1855,9 +1855,9 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ت ف م ش (من يفحص الأعمال لاكتشاف الخلل)",
       "choices": [
-        "كاتب",
-        "مدير",
-        "خزاف",
+        "تتمة",
+        "تحفة",
+        "تخمة",
         "مفتش"
       ],
       "answer": 3,
@@ -1877,12 +1877,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: م ف ي ض (من يستقبل الزائر في منزله ويكرمه)",
       "choices": [
-        "رفيق",
-        "حفيد",
-        "قطيع",
-        "مضيف"
+        "أفعى",
+        "مضيف",
+        "أديم",
+        "أضحى"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "مضيف: من يستقبل الزائر في منزله ويكرمه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1899,10 +1899,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: م ع ة (أخت الأب)",
       "choices": [
-        "نفر",
-        "حشد",
+        "آفة",
+        "آلة",
         "عمة",
-        "فتى"
+        "آدم"
       ],
       "answer": 2,
       "why": "عمة: أخت الأب.",
@@ -1921,12 +1921,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة أ س ر (جماعة تربطها القرابة وتعيش معا غالبا)",
       "choices": [
-        "رعيل",
-        "قريب",
-        "رضيع",
-        "أسرة"
+        "أسرة",
+        "آثار",
+        "آجرة",
+        "آجلة"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "أسرة: جماعة تربطها القرابة وتعيش معا غالبا.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1943,12 +1943,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: د ش ح (جمع كبير من الناس في موضع واحد)",
       "choices": [
-        "شاب",
-        "ركب",
-        "حشد",
-        "فتى"
+        "آبد",
+        "آدم",
+        "أسد",
+        "حشد"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "حشد: جمع كبير من الناس في موضع واحد.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1966,9 +1966,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: ل ر ع ي (جماعة متقدمة من القوم)",
       "choices": [
         "رعيل",
-        "حفيد",
-        "فريق",
-        "رضيع"
+        "أثير",
+        "أثيل",
+        "أخرى"
       ],
       "answer": 0,
       "why": "رعيل: جماعة متقدمة من القوم.",
@@ -1987,12 +1987,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: س إ ا ن ن (الكائن البشري الذي يفكر ويتكلم)",
       "choices": [
-        "قافلة",
-        "إنسان",
-        "جماعة",
-        "رعيل"
+        "آبنوس",
+        "آنسون",
+        "أجفان",
+        "إنسان"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "إنسان: الكائن البشري الذي يفكر ويتكلم.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2009,12 +2009,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ى ت ف (شاب في أول قوته)",
       "choices": [
-        "كهل",
-        "شاب",
-        "فرد",
-        "فتى"
+        "أخت",
+        "فتى",
+        "آفة",
+        "آية"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "فتى: شاب في أول قوته.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2031,9 +2031,9 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ح ض ل (ما قل عمقه من الماء)",
       "choices": [
-        "يقظ",
-        "دسم",
-        "فطن",
+        "آجل",
+        "آلة",
+        "أثل",
         "ضحل"
       ],
       "answer": 3,
@@ -2054,12 +2054,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ظ م م ل (ما كان شديد السواد قليل الضوء)",
       "choices": [
-        "عتيق",
-        "مظلم",
-        "منيع",
-        "صحيح"
+        "أرمل",
+        "إمام",
+        "بلسم",
+        "مظلم"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "مظلم: ما كان شديد السواد قليل الضوء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2076,12 +2076,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ي ف و (من يثبت على العهد ويحفظ الود)",
       "choices": [
-        "ضيق",
-        "طري",
         "وفي",
-        "مرح"
+        "آفة",
+        "آية",
+        "أفق"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "وفي: من يثبت على العهد ويحفظ الود.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2098,12 +2098,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ب ص و (من يحتمل المشقة ولا يجزع)",
       "choices": [
-        "رقيق",
-        "صبور",
-        "نبيه",
-        "كريم"
+        "آصرة",
+        "أبهر",
+        "أربة",
+        "صبور"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "صبور: من يحتمل المشقة ولا يجزع.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2120,12 +2120,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ك ذ ي (سريع الفهم وحسن الإدراك)",
       "choices": [
+        "أكل",
         "ذكي",
-        "ضحل",
-        "دسم",
-        "مرح"
+        "آية",
+        "أذن"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "ذكي: سريع الفهم وحسن الإدراك.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2142,10 +2142,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: غ ظ ل (خشونة وشدة في الطبع أو الملمس)",
       "choices": [
-        "عكر",
+        "أثل",
         "غلظ",
-        "غني",
-        "حار"
+        "آجل",
+        "آلة"
       ],
       "answer": 1,
       "why": "غلظ: خشونة وشدة في الطبع أو الملمس.",
@@ -2165,12 +2165,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: و د د و (من يظهر المحبة والمودة لغيره)",
       "choices": [
-        "معقد",
-        "بعيد",
-        "أملس",
-        "ودود"
+        "ودود",
+        "أوحد",
+        "برود",
+        "جدجد"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "ودود: من يظهر المحبة والمودة لغيره.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2187,12 +2187,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ل ق ق (مضطرب النفس غير مطمئن)",
       "choices": [
-        "قلق",
-        "حلو",
-        "صعب",
-        "ضحل"
+        "آجل",
+        "آلة",
+        "أثل",
+        "قلق"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "قلق: مضطرب النفس غير مطمئن.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2209,12 +2209,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ي ق و (من يملك طاقة على العمل)",
       "choices": [
+        "ألى",
         "قوي",
-        "وفي",
-        "غني",
-        "ذكي"
+        "آية",
+        "أفق"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "قوي: من يملك طاقة على العمل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2232,12 +2232,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ز ج ط (ما كان حديث الإعداد أو القطف)",
       "choices": [
-        "مربع",
-        "ثقيل",
-        "طويل",
-        "طازج"
+        "طازج",
+        "آجرة",
+        "آجلة",
+        "آزفة"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "طازج: ما كان حديث الإعداد أو القطف.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2254,12 +2254,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ع ب ذ (ماء طيب خال من الملوحة المستكرهة)",
       "choices": [
+        "أذن",
+        "أرب",
         "عذب",
-        "صعب",
-        "فطن",
-        "ضيق"
+        "آبد"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "عذب: ماء طيب خال من الملوحة المستكرهة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2276,12 +2276,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ث ث ل م (شكل مغلق ذو ثلاثة أضلاع)",
       "choices": [
-        "كريم",
-        "شجاع",
+        "أرمل",
         "مثلث",
-        "يسير"
+        "أثاث",
+        "أثيل"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "مثلث: شكل مغلق ذو ثلاثة أضلاع.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2298,12 +2298,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ك ذ ا ة (قدرة الذهن على حفظ المعلومات واسترجاعها)",
       "choices": [
+        "أراكة",
+        "أربعة",
         "ذاكرة",
-        "تفكير",
-        "مجموع",
-        "تدبر"
+        "أترجة"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "ذاكرة: قدرة الذهن على حفظ المعلومات واسترجاعها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2320,12 +2320,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ظ ح ف (ضبط الشيء في الذهن وصونه من الضياع)",
       "choices": [
+        "أفق",
         "حفظ",
-        "فكر",
-        "وعي",
-        "عقل"
+        "آفة",
+        "أحد"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "حفظ: ضبط الشيء في الذهن وصونه من الضياع.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2342,12 +2342,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ق م ة س (توزيع مقدار على أجزاء أو حصص)",
       "choices": [
+        "آنسة",
+        "أجمة",
         "قسمة",
-        "تأمل",
-        "تدبر",
-        "قياس"
+        "آسية"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "قسمة: توزيع مقدار على أجزاء أو حصص.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2364,12 +2364,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ع و م ج م (نتيجة ضم المقادير بعضها إلى بعض)",
       "choices": [
+        "جاموس",
         "مجموع",
-        "تفكير",
-        "ذاكرة",
-        "تصور"
+        "برعوم",
+        "جاثوم"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "مجموع: نتيجة ضم المقادير بعضها إلى بعض.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2386,12 +2386,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ن و ق س ل ة (غطاء صغير للرأس)",
       "choices": [
-        "سراويل",
-        "عمامة",
-        "قلادة",
-        "قلنسوة"
+        "قلنسوة",
+        "أنقليس",
+        "أيقونة",
+        "بقدونس"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "قلنسوة: غطاء صغير للرأس.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2409,12 +2409,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: م ت ا ئ م ش (من يغلب على توقعه حدوث السوء)",
       "choices": [
-        "متشائم",
-        "عبقري",
-        "مستحيل",
-        "مصنوع"
+        "كمئيات",
+        "مرئيات",
+        "مشطيات",
+        "متشائم"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "متشائم: من يغلب على توقعه حدوث السوء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2431,12 +2431,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: و ة ق (قدرة مؤثرة تحرك الشيء أو تغير حاله)",
       "choices": [
-        "هدف",
-        "سمع",
-        "جني",
-        "قوة"
+        "آية",
+        "قوة",
+        "آفة",
+        "آلة"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "قوة: قدرة مؤثرة تحرك الشيء أو تغير حاله.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2453,12 +2453,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ز ا ت ز ه ا (حركة متكررة سريعة إلى جهتين متقابلتين)",
       "choices": [
-        "جاذبية",
-        "ارتفاع",
-        "عبقرية",
-        "اهتزاز"
+        "زحافات",
+        "زفزافة",
+        "اهتزاز",
+        "إلهيات"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "اهتزاز: حركة متكررة سريعة إلى جهتين متقابلتين.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2475,12 +2475,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: د و ع ص (حركة من موضع أسفل إلى أعلى)",
       "choices": [
-        "شفقة",
-        "صعود",
-        "سرور",
-        "تغير"
+        "أصبع",
+        "أصدة",
+        "أوحد",
+        "صعود"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "صعود: حركة من موضع أسفل إلى أعلى.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2497,12 +2497,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ص ق ن ن (صيرورة المقدار أقل مما كان)",
       "choices": [
-        "تواضع",
-        "قصارى",
-        "إسعاف",
-        "نقصان"
+        "أعنان",
+        "أفنون",
+        "نقصان",
+        "آنسون"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "نقصان: صيرورة المقدار أقل مما كان.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2519,12 +2519,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ض ن ج (تمام استواء الثمر أو الطعام)",
       "choices": [
-        "نقد",
-        "غرس",
-        "حجم",
-        "نضج"
+        "نضج",
+        "آجل",
+        "أجر",
+        "أذن"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "نضج: تمام استواء الثمر أو الطعام.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2541,12 +2541,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ز ا ة ع ر (تهيئة الأرض ووضع البذور فيها ورعايتها)",
       "choices": [
-        "موضوع",
-        "تضاعف",
-        "زراعة",
-        "جائزة"
+        "أبزار",
+        "أترجة",
+        "أراكة",
+        "زراعة"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "زراعة: تهيئة الأرض ووضع البذور فيها ورعايتها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2563,9 +2563,9 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ح ر ة ا (صفة تدل على سخونة الجسم أو الجو)",
       "choices": [
-        "صناعة",
-        "حلاقة",
-        "معونة",
+        "أترجة",
+        "أحجية",
+        "أراكة",
         "حرارة"
       ],
       "answer": 3,
@@ -2585,12 +2585,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ع ط (مادة طيبة الرائحة يتطيب بها)",
       "choices": [
-        "جير",
-        "خزف",
-        "صمغ",
-        "عطر"
+        "أجر",
+        "عطر",
+        "آخر",
+        "أثر"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "عطر: مادة طيبة الرائحة يتطيب بها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2608,12 +2608,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ف و ة ظ ي (عمل معلوم يتولاه الشخص في مؤسسة)",
       "choices": [
-        "رائحة",
-        "تشابه",
-        "بضاعة",
-        "وظيفة"
+        "وظيفة",
+        "أثفية",
+        "أروية",
+        "أفواه"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "وظيفة: عمل معلوم يتولاه الشخص في مؤسسة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2630,12 +2630,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ؤ م ة ل ي س و (تحمل تبعة عمل أو أمر يعهد إلى الشخص)",
       "choices": [
-        "إنسانية",
-        "استعارة",
-        "مسؤولية",
-        "طمأنينة"
+        "سمفونية",
+        "ليمونية",
+        "ناموسية",
+        "مسؤولية"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "مسؤولية: تحمل تبعة عمل أو أمر يعهد إلى الشخص.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2652,12 +2652,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة ب ج ر ت (اختبار الشيء عمليا لمعرفة حاله)",
       "choices": [
+        "أربعة",
+        "أرنبة",
         "تجربة",
-        "مضيعة",
-        "سعادة",
-        "حقيقة"
+        "أترجة"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "تجربة: اختبار الشيء عمليا لمعرفة حاله.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2674,12 +2674,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ب ث ح (تقص منظم للوصول إلى معرفة أو حقيقة)",
       "choices": [
-        "شوق",
-        "سبب",
-        "سوء",
-        "بحث"
+        "بحث",
+        "آبد",
+        "أثر",
+        "أثل"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "بحث: تقص منظم للوصول إلى معرفة أو حقيقة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2696,12 +2696,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ك ب ة ت ا (تسجيل الكلام بحروف مرسومة)",
       "choices": [
-        "وكالة",
-        "أمنية",
-        "كتابة",
-        "تقويم"
+        "أترجة",
+        "أتعاب",
+        "أراكة",
+        "كتابة"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "كتابة: تسجيل الكلام بحروف مرسومة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2718,12 +2718,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: إ ن ا ب ط (زيادة الكلام لفائدة في المعنى)",
       "choices": [
-        "نموذج",
-        "رائحة",
-        "ملكية",
-        "إطناب"
+        "أبزار",
+        "إطناب",
+        "آبدين",
+        "آبنوس"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "إطناب: زيادة الكلام لفائدة في المعنى.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2740,12 +2740,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ة م ش و (رأي يطلب من شخص للمساعدة على القرار)",
       "choices": [
-        "تجربة",
-        "مسألة",
-        "مشورة",
-        "إشارة"
+        "أرومة",
+        "أروية",
+        "أمارة",
+        "مشورة"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "مشورة: رأي يطلب من شخص للمساعدة على القرار.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2762,10 +2762,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: إ ن ع ل ا (إظهار أمر وإشاعته ليعلمه الناس)",
       "choices": [
-        "مسألة",
-        "مجموع",
+        "أتعاب",
+        "أثقال",
         "إعلان",
-        "سقاية"
+        "أبعاد"
       ],
       "answer": 2,
       "why": "إعلان: إظهار أمر وإشاعته ليعلمه الناس.",
@@ -2784,12 +2784,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ح ق ق ة ي (ما ثبت وكان موافقا للواقع)",
       "choices": [
-        "أمنية",
-        "مؤتمر",
-        "تفكير",
-        "حقيقة"
+        "ألقية",
+        "حقيقة",
+        "أحجية",
+        "أقلية"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "حقيقة: ما ثبت وكان موافقا للواقع.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2806,12 +2806,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ن و ذ ج م (صورة مصغرة أو مثال يمثل الأصل)",
       "choices": [
-        "أمنية",
-        "سهولة",
-        "نموذج",
-        "مضيعة"
+        "بانجو",
+        "برذون",
+        "جاثوم",
+        "نموذج"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "نموذج: صورة مصغرة أو مثال يمثل الأصل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2828,10 +2828,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة ر ا ش إ (حركة أو رمز يستدل به على معنى)",
       "choices": [
-        "أمانة",
-        "تمييز",
+        "أترجة",
+        "أخبار",
         "إشارة",
-        "تناظر"
+        "أبزار"
       ],
       "answer": 2,
       "why": "إشارة: حركة أو رمز يستدل به على معنى.",
@@ -2851,12 +2851,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ر ع ت ة س ا (استعمال لفظ في غير معناه لعلاقة المشابهة)",
       "choices": [
-        "ميزانية",
         "استعارة",
-        "إنسانية",
-        "طمأنينة"
+        "استعانة",
+        "بهاريات",
+        "رباعيات"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "استعارة: استعمال لفظ في غير معناه لعلاقة المشابهة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2873,12 +2873,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ح م ا ل ظ ة (انتباه مقصود إلى ظاهرة أو سلوك)",
       "choices": [
-        "اقتراح",
-        "امتحان",
         "ملاحظة",
-        "مراهقة"
+        "أحبولة",
+        "أمثولة",
+        "أملوحة"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "ملاحظة: انتباه مقصود إلى ظاهرة أو سلوك.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2895,12 +2895,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ر ة ض و (حاجة ملحة لا يستغنى عنها)",
       "choices": [
-        "تجربة",
-        "أخلاق",
         "ضرورة",
-        "حقيقة"
+        "أرومة",
+        "أروية",
+        "برودة"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "ضرورة: حاجة ملحة لا يستغنى عنها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2917,9 +2917,9 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ج ة ح (ما يفتقر إليه المرء في أمره)",
       "choices": [
-        "رحلة",
-        "نشاط",
-        "حاصل",
+        "آجرة",
+        "آجلة",
+        "آخرة",
         "حاجة"
       ],
       "answer": 3,
@@ -2940,10 +2940,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: غ ة ي ا (المقصد النهائي الذي يسعى إليه)",
       "choices": [
-        "بصمة",
-        "تبخر",
+        "آجلة",
+        "آخرة",
         "غاية",
-        "حياة"
+        "آجرة"
       ],
       "answer": 2,
       "why": "غاية: المقصد النهائي الذي يسعى إليه.",
@@ -2962,12 +2962,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ي ة ن (عزم باطني على فعل أمر)",
       "choices": [
-        "صوت",
-        "أذى",
-        "غضب",
-        "نية"
+        "آهة",
+        "نية",
+        "آفة",
+        "آلة"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "نية: عزم باطني على فعل أمر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2984,9 +2984,9 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر س و ر (شعور بالفرح والانشراح)",
       "choices": [
-        "تطور",
-        "قطعة",
-        "ذكاء",
+        "أسرة",
+        "أسوة",
+        "أوار",
         "سرور"
       ],
       "answer": 3,
@@ -3006,10 +3006,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ي أ ن ط ن ة م (سكون النفس وزوال الخوف عنها)",
       "choices": [
-        "استعارة",
+        "مطرانية",
         "طمأنينة",
-        "إنسانية",
-        "مسؤولية"
+        "إمكانية",
+        "سلطانية"
       ],
       "answer": 1,
       "why": "طمأنينة: سكون النفس وزوال الخوف عنها.",
@@ -3028,12 +3028,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ن و ى ج (حديث سري بين أشخاص)",
       "choices": [
-        "نجوى",
-        "وقار",
-        "راحة",
-        "وصية"
+        "أتون",
+        "أنثى",
+        "أنوق",
+        "نجوى"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "نجوى: حديث سري بين أشخاص.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3050,12 +3050,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة ح ي ص (صوت مرتفع يخرج فجأة)",
       "choices": [
+        "آصرة",
+        "أصدة",
         "صيحة",
-        "هدية",
-        "حاصل",
-        "عينة"
+        "آسية"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "صيحة: صوت مرتفع يخرج فجأة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3072,12 +3072,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ح ض ك (تعبير عن السرور قد يصاحبه صوت)",
       "choices": [
+        "أكل",
         "ضحك",
-        "فضل",
-        "شخص",
-        "قصد"
+        "أحد",
+        "أرض"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "ضحك: تعبير عن السرور قد يصاحبه صوت.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3095,9 +3095,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: ط ع ا ء (ما يبذل للغير أو يمنح له)",
       "choices": [
         "عطاء",
-        "صيحة",
-        "تغير",
-        "جفاف"
+        "أربع",
+        "أشعة",
+        "أصبع"
       ],
       "answer": 0,
       "why": "عطاء: ما يبذل للغير أو يمنح له.",
@@ -3116,12 +3116,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ب ة ه (ما يمنح للغير من غير عوض)",
       "choices": [
-        "لطف",
-        "جشع",
-        "هبة",
-        "سوء"
+        "آبد",
+        "آفة",
+        "آلة",
+        "هبة"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "هبة: ما يمنح للغير من غير عوض.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3139,12 +3139,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: د ي ة ه (ما يقدم إلى الغير إكراما ومودة)",
       "choices": [
-        "شعبة",
+        "أبهة",
+        "أداة",
         "هدية",
-        "تهمة",
-        "شباب"
+        "آسية"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "هدية: ما يقدم إلى الغير إكراما ومودة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3162,12 +3162,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة ن م أ ا (حفظ الحقوق وأداء ما عهد إلى المرء)",
       "choices": [
-        "موضوع",
-        "سقاية",
         "أمانة",
-        "علامة"
+        "أجفان",
+        "أحكام",
+        "أذناب"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "أمانة: حفظ الحقوق وأداء ما عهد إلى المرء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3184,12 +3184,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ح ب ة م (ميل القلب إلى شخص أو شيء)",
       "choices": [
-        "تغير",
-        "حماس",
+        "أربة",
         "محبة",
-        "بلاغ"
+        "أبهة",
+        "أجمة"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "محبة: ميل القلب إلى شخص أو شيء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3206,12 +3206,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ف إ س ع ا (تقديم المساعدة العاجلة إلى المصاب)",
       "choices": [
-        "أسلوب",
-        "تحليل",
+        "أثافي",
         "إسعاف",
-        "رائحة"
+        "أبعاد",
+        "أتعاب"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "إسعاف: تقديم المساعدة العاجلة إلى المصاب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3229,9 +3229,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: ء ا ك ذ (قوة الفهم وسرعة الإدراك)",
       "choices": [
         "ذكاء",
-        "قطاف",
-        "رحيل",
-        "حنين"
+        "آذار",
+        "آفكة",
+        "آكلة"
       ],
       "answer": 0,
       "why": "ذكاء: قوة الفهم وسرعة الإدراك.",
@@ -3251,12 +3251,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ن ه ة ب ا (يقظة وفهم سريع للأمور)",
       "choices": [
-        "حلاقة",
-        "زيادة",
-        "نباهة",
-        "زراعة"
+        "آبدين",
+        "آبنوس",
+        "أذناب",
+        "نباهة"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "نباهة: يقظة وفهم سريع للأمور.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3273,12 +3273,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ظ ق ي ة (حالة من الوعي والتنبه لما يجري)",
       "choices": [
-        "نفوذ",
-        "هراء",
-        "غاية",
-        "يقظة"
+        "أزقة",
+        "ألية",
+        "يقظة",
+        "آسية"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "يقظة: حالة من الوعي والتنبه لما يجري.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3295,12 +3295,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ث ن ء ا (ذكر المحاسن والإشادة بها)",
       "choices": [
-        "تمدد",
         "ثناء",
-        "حركة",
-        "حساب"
+        "آثار",
+        "آنام",
+        "آنسة"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "ثناء: ذكر المحاسن والإشادة بها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3318,12 +3318,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ي ء ش (كل موجود يمكن تصوره والإخبار عنه)",
       "choices": [
-        "درس",
-        "عمل",
+        "ألى",
         "شيء",
-        "غرس"
+        "آية",
+        "أشد"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "شيء: كل موجود يمكن تصوره والإخبار عنه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3340,12 +3340,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: خ ص ش (ذات بشرية مستقلة تدرك وجودها)",
       "choices": [
-        "رمز",
-        "عبء",
         "شخص",
-        "نبأ"
+        "آخر",
+        "أخت",
+        "أشد"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "شخص: ذات بشرية مستقلة تدرك وجودها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3362,12 +3362,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر آ خ (ما يقابل الأول في ترتيب الأشياء)",
       "choices": [
-        "حذر",
-        "يقظ",
-        "آخر",
-        "صعب"
+        "آبد",
+        "آجل",
+        "آدم",
+        "آخر"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "آخر: ما يقابل الأول في ترتيب الأشياء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3384,12 +3384,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: د ث ح (أمر وقع ولم يكن معتادا من قبل)",
       "choices": [
+        "أثل",
         "حدث",
-        "سعة",
-        "شوق",
-        "ضجة"
+        "آدم",
+        "أثر"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "حدث: أمر وقع ولم يكن معتادا من قبل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3407,12 +3407,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ي ا ح ة (ما يتميز به الكائن الحي من نمو وبقاء ونحوهما)",
       "choices": [
-        "نجوى",
-        "فضول",
-        "جفاف",
-        "حياة"
+        "حياة",
+        "آجرة",
+        "آجلة",
+        "آخرة"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "حياة: ما يتميز به الكائن الحي من نمو وبقاء ونحوهما.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3429,12 +3429,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ب س ب (ما يتوصل به إلى أمر آخر)",
       "choices": [
-        "خلل",
-        "شكل",
-        "سبب",
-        "سقي"
+        "أرب",
+        "أسد",
+        "أسس",
+        "سبب"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "سبب: ما يتوصل به إلى أمر آخر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3451,12 +3451,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ذ إ ن (إعلام بالسماح بفعل شيء والترخيص فيه)",
       "choices": [
+        "آجل",
+        "آخر",
         "إذن",
-        "سمع",
-        "ضجة",
-        "جزء"
+        "آبد"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "إذن: إعلام بالسماح بفعل شيء والترخيص فيه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3474,10 +3474,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ي ط ق ة ر (سيرة يسلكها المرء أو مذهب يتبعه)",
       "choices": [
-        "علامة",
+        "أسرية",
         "طريقة",
-        "تفكير",
-        "ملكية"
+        "أروية",
+        "أريكة"
       ],
       "answer": 1,
       "why": "طريقة: سيرة يسلكها المرء أو مذهب يتبعه.",
@@ -3496,12 +3496,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: س ئ ي ر (سيد القوم ومن يتقدمهم)",
       "choices": [
-        "مدير",
-        "عطار",
-        "وكيل",
-        "رئيس"
+        "آسية",
+        "أثير",
+        "رئيس",
+        "آسيا"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "رئيس: سيد القوم ومن يتقدمهم.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3518,12 +3518,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ث ا ل ث ة (العدد الذي يلي الاثنين ويسبق الأربعة)",
       "choices": [
-        "أربعة",
         "ثلاثة",
-        "خمسة",
-        "تسعة"
+        "أثفية",
+        "أثقال",
+        "أقلية"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "ثلاثة: العدد الذي يلي الاثنين ويسبق الأربعة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3540,12 +3540,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ء ز ج (قطعة من شيء يتكون الكل منها ومن غيرها)",
       "choices": [
-        "سمع",
-        "جزء",
-        "جود",
-        "قلة"
+        "آجل",
+        "أجر",
+        "أرز",
+        "جزء"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "جزء: قطعة من شيء يتكون الكل منها ومن غيرها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3562,12 +3562,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا م ء (سائل شفاف تقوم عليه حياة الكائنات)",
       "choices": [
-        "شمع",
         "ماء",
-        "صوف",
-        "قطن"
+        "آبد",
+        "آجل",
+        "آخر"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "ماء: سائل شفاف تقوم عليه حياة الكائنات.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3585,12 +3585,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ص ق ة (حكاية نثرية تستمد من الخيال أو الواقع)",
       "choices": [
-        "قصة",
-        "همس",
-        "عرض",
-        "فكر"
+        "آفة",
+        "آلة",
+        "آهة",
+        "قصة"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "قصة: حكاية نثرية تستمد من الخيال أو الواقع.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3607,10 +3607,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: س ا ل ؤ (ما يطلب من المتعلم أن يجيب عنه)",
       "choices": [
-        "قسمة",
+        "آسية",
         "سؤال",
-        "رحمة",
-        "نكتة"
+        "آجلة",
+        "آسيا"
       ],
       "answer": 1,
       "why": "سؤال: ما يطلب من المتعلم أن يجيب عنه.",
@@ -3629,12 +3629,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ء ش ا ع (الطعام الذي يؤكل في وقت المساء)",
       "choices": [
-        "غداء",
-        "رغيف",
-        "عشاء",
-        "قشدة"
+        "أربع",
+        "أشعة",
+        "أصبع",
+        "عشاء"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "عشاء: الطعام الذي يؤكل في وقت المساء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3651,10 +3651,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: و ع و ض م (المادة التي يبني عليها المتكلم كلامه)",
       "choices": [
-        "تدبير",
-        "رقابة",
+        "بعوضة",
+        "حوامض",
         "موضوع",
-        "نصيحة"
+        "برعوم"
       ],
       "answer": 2,
       "why": "موضوع: المادة التي يبني عليها المتكلم كلامه.",
@@ -3673,12 +3673,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ل ي ة م ع (مجموعة أعمال تحدث أثرا معينا)",
       "choices": [
-        "توقيع",
-        "مسألة",
-        "حثالة",
-        "عملية"
+        "ألقية",
+        "عملية",
+        "أقلية",
+        "ألفية"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "عملية: مجموعة أعمال تحدث أثرا معينا.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3695,12 +3695,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ة ظ ن (لمحة بالعين إلى شيء)",
       "choices": [
-        "منظر",
-        "لقطة",
-        "فجأة",
-        "نظرة"
+        "نظرة",
+        "آجرة",
+        "آخرة",
+        "آصرة"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "نظرة: لمحة بالعين إلى شيء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3717,12 +3717,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ظ ر ن (إدراك بالبصر أو إعمال للبصيرة)",
       "choices": [
-        "نية",
-        "نظر",
-        "عرض",
-        "سعة"
+        "آخر",
+        "أثر",
+        "أجر",
+        "نظر"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "نظر: إدراك بالبصر أو إعمال للبصيرة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3740,12 +3740,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة ط خ (أمر يعزم المرء على تنفيذه)",
       "choices": [
-        "خطة",
-        "جزء",
-        "صفح",
-        "حدث"
+        "آفة",
+        "آلة",
+        "آهة",
+        "خطة"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "خطة: أمر يعزم المرء على تنفيذه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3762,12 +3762,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر م ع ة ذ (حجة يقدمها المرء تبريرا لتصرفه)",
       "choices": [
+        "أرومة",
+        "أمارة",
         "معذرة",
-        "مسافة",
-        "مقدار",
-        "سكينة"
+        "أربعة"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "معذرة: حجة يقدمها المرء تبريرا لتصرفه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3784,12 +3784,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ل ح ة ر (ارتحال من مكان إلى آخر)",
       "choices": [
-        "رحلة",
-        "وقار",
-        "قطعة",
-        "شفقة"
+        "آجرة",
+        "آجلة",
+        "آخرة",
+        "رحلة"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "رحلة: ارتحال من مكان إلى آخر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3806,12 +3806,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: د د ع (مقدار ما يحصى من الأشياء)",
       "choices": [
-        "رأي",
         "عدد",
-        "فرق",
-        "همس"
+        "آبد",
+        "آدم",
+        "أحد"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "عدد: مقدار ما يحصى من الأشياء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3828,10 +3828,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ق م ئ ة ا (ورقة تقيد فيها أسماء أو أشياء في صف)",
       "choices": [
-        "مذكرة",
+        "أزمنة",
         "قائمة",
-        "عنوان",
-        "صحيفة"
+        "أرقام",
+        "أرومة"
       ],
       "answer": 1,
       "why": "قائمة: ورقة تقيد فيها أسماء أو أشياء في صف.",
@@ -3850,12 +3850,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ع ة أ ب ر (العدد الذي يلي الثلاثة ويسبق الخمسة)",
       "choices": [
-        "خمسة",
-        "ثلاثة",
         "أربعة",
-        "تسعة"
+        "أبزار",
+        "أبعاد",
+        "أترجة"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "أربعة: العدد الذي يلي الثلاثة ويسبق الخمسة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3872,12 +3872,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة ش خ ي ص (صفات تميز الإنسان من غيره)",
       "choices": [
-        "نظرية",
-        "تجربة",
-        "مقدمة",
-        "شخصية"
+        "حاشية",
+        "شخصية",
+        "بخشيش",
+        "بصيرة"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "شخصية: صفات تميز الإنسان من غيره.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3894,12 +3894,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ط ق ة ع (حصة منفصلة من شيء أكبر)",
       "choices": [
-        "بلاغ",
-        "راحة",
-        "خاطر",
-        "قطعة"
+        "قطعة",
+        "أزقة",
+        "أشعة",
+        "أعنة"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "قطعة: حصة منفصلة من شيء أكبر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3916,9 +3916,9 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: و و م ج د (ما كان ثابتا في الذهن أو في الخارج)",
       "choices": [
-        "مسكين",
-        "مشغول",
-        "عبقري",
+        "تلمود",
+        "جاثوم",
+        "جادوف",
         "موجود"
       ],
       "answer": 3,
@@ -3938,12 +3938,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة ح م م ك (هيئة تفصل في الخصومات ومكان انعقادها)",
       "choices": [
-        "مكتبة",
+        "تميمة",
+        "جمجمة",
         "محكمة",
-        "حديقة",
-        "مملكة"
+        "تكملة"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "محكمة: هيئة تفصل في الخصومات ومكان انعقادها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3961,9 +3961,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: م ى ن ب (ما شيد من منشآت على الأرض)",
       "choices": [
         "مبنى",
-        "مخرج",
-        "أساس",
-        "مدخل"
+        "آنام",
+        "أرنب",
+        "أمية"
       ],
       "answer": 0,
       "why": "مبنى: ما شيد من منشآت على الأرض.",
@@ -3982,10 +3982,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ف و ه م م (معنى كلي توضحه مجموعة من الصفات)",
       "choices": [
-        "تدبير",
-        "كناية",
+        "أفواه",
+        "تميمة",
         "مفهوم",
-        "مقدار"
+        "أرومة"
       ],
       "answer": 2,
       "why": "مفهوم: معنى كلي توضحه مجموعة من الصفات.",
@@ -4004,10 +4004,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: م ة أ س ل (قضية علمية تحتاج إلى برهان أو حل)",
       "choices": [
-        "مجموع",
+        "أسرية",
         "مسألة",
-        "تكاثف",
-        "تركيب"
+        "أرومة",
+        "أزمنة"
       ],
       "answer": 1,
       "why": "مسألة: قضية علمية تحتاج إلى برهان أو حل.",
@@ -4027,9 +4027,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: و ء س (ما يقبح أو يغم الإنسان)",
       "choices": [
         "سوء",
-        "هبة",
-        "تلو",
-        "قصة"
+        "أسد",
+        "أسس",
+        "أسل"
       ],
       "answer": 0,
       "why": "سوء: ما يقبح أو يغم الإنسان.",
@@ -4048,12 +4048,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: س د س م (شكل هندسي له ستة أضلاع متساوية)",
       "choices": [
-        "كرة",
-        "زاوية",
-        "مسدس",
-        "دائرة"
+        "أديم",
+        "أساس",
+        "إدام",
+        "مسدس"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "مسدس: شكل هندسي له ستة أضلاع متساوية.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4070,12 +4070,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ء غ ا د (وجبة الطعام التي تؤكل عند الظهيرة)",
       "choices": [
+        "أبجد",
+        "أجدل",
         "غداء",
-        "عشاء",
-        "قهوة",
-        "فطير"
+        "آداب"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "غداء: وجبة الطعام التي تؤكل عند الظهيرة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4092,12 +4092,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ف ض ى و (حال قوم لا يجمعهم رئيس أو نظام)",
       "choices": [
-        "جفاف",
-        "مقطع",
+        "أيون",
         "فوضى",
-        "تبسم"
+        "أضحى",
+        "أفعى"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "فوضى: حال قوم لا يجمعهم رئيس أو نظام.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4114,12 +4114,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: خ ة ط و (المسافة بين القدمين عند المشي)",
       "choices": [
-        "تحقق",
-        "حاصل",
         "خطوة",
-        "مزاد"
+        "آخرة",
+        "أسوة",
+        "أطوم"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "خطوة: المسافة بين القدمين عند المشي.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4136,12 +4136,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ي ش ا (شراب يحضر بغلي أوراق نبات معروف)",
       "choices": [
-        "ملح",
-        "زاد",
-        "عسل",
-        "شاي"
+        "آخر",
+        "شاي",
+        "آبد",
+        "آجل"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "شاي: شراب يحضر بغلي أوراق نبات معروف.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4158,12 +4158,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: د ف ا ئ ة (ما يستفاد من علم أو عمل أو غيرهما)",
       "choices": [
-        "تماثل",
         "فائدة",
-        "مؤتمر",
-        "نهاية"
+        "أثفية",
+        "أفراد",
+        "أفواه"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "فائدة: ما يستفاد من علم أو عمل أو غيرهما.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4181,12 +4181,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ي ل و ة (بلاد يتولى أمرها وال معين)",
       "choices": [
-        "جامعة",
-        "مؤسسة",
-        "مدينة",
-        "ولاية"
+        "أثفية",
+        "أحجية",
+        "ولاية",
+        "أبريل"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "ولاية: بلاد يتولى أمرها وال معين.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4203,12 +4203,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ظ م م ع (أكثر الشيء وجله)",
       "choices": [
+        "بلعم",
         "معظم",
-        "خدعة",
-        "هراء",
-        "مقطع"
+        "إمام",
+        "برعم"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "معظم: أكثر الشيء وجله.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4225,12 +4225,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: أ ف ج ة (وقوع الأمر على غير انتظار)",
       "choices": [
-        "نجدة",
         "فجأة",
-        "سؤال",
-        "نكتة"
+        "آجرة",
+        "آجلة",
+        "آخرة"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "فجأة: وقوع الأمر على غير انتظار.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4247,9 +4247,9 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: د ء ب (أول كل شيء)",
       "choices": [
-        "ضغط",
-        "صدق",
-        "سعة",
+        "آبد",
+        "آدم",
+        "أرب",
         "بدء"
       ],
       "answer": 3,
@@ -4269,12 +4269,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ه ا ش د ة م (إدراك الشيء بإحدى الحواس)",
       "choices": [
+        "أنشودة",
+        "شاورمة",
         "مشاهدة",
-        "اقتراح",
-        "ملاحظة",
-        "برنامج"
+        "أقدمية"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "مشاهدة: إدراك الشيء بإحدى الحواس.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4291,12 +4291,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة آ ل (أداة تستعمل لإنجاز عمل)",
       "choices": [
-        "فأس",
-        "مشط",
+        "آخر",
         "آلة",
-        "صرة"
+        "آبد",
+        "آجل"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "آلة: أداة تستعمل لإنجاز عمل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4313,12 +4313,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ك ي ة ي ف (حال الشيء وصفته التي يكون عليها)",
       "choices": [
-        "رقابة",
-        "كيفية",
-        "تصريح",
-        "إبداع"
+        "أريكة",
+        "أفيكة",
+        "ألفية",
+        "كيفية"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "كيفية: حال الشيء وصفته التي يكون عليها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4335,12 +4335,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ح ط س (الجزء الأعلى الظاهر من الشيء)",
       "choices": [
-        "شكر",
-        "شخص",
+        "أسس",
         "سطح",
-        "جشع"
+        "أحد",
+        "أسد"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "سطح: الجزء الأعلى الظاهر من الشيء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4357,9 +4357,9 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ض ا ف ء (ما بين الأجرام السماوية من امتداد)",
       "choices": [
-        "وادي",
-        "غبار",
-        "خليج",
+        "آزفة",
+        "آفكة",
+        "أرضة",
         "فضاء"
       ],
       "answer": 3,
@@ -4379,12 +4379,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: م ل ؤ س و (من عهد إليه عمل يتحمل تبعته)",
       "choices": [
-        "صيدلي",
+        "ألماس",
+        "بسملة",
         "مسؤول",
-        "بيطار",
-        "مراقب"
+        "أسطول"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "مسؤول: من عهد إليه عمل يتحمل تبعته.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4401,12 +4401,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة م ي ق (قدر الشيء أو ثمن المتاع)",
       "choices": [
-        "قسمة",
-        "تهمة",
+        "أديم",
         "قيمة",
-        "شباب"
+        "آسية",
+        "أجمة"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "قيمة: قدر الشيء أو ثمن المتاع.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4423,12 +4423,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ي ج ت ة ن (ما تفضي إليه المقدمات من أثر)",
       "choices": [
-        "تكلفة",
-        "تناظر",
-        "تعاون",
-        "نتيجة"
+        "نتيجة",
+        "أترجة",
+        "أحجية",
+        "أغنية"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "نتيجة: ما تفضي إليه المقدمات من أثر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4445,9 +4445,9 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ش و ع ر م (أمر يهيأ للدراسة والتقرير)",
       "choices": [
-        "تناقص",
-        "أمنية",
-        "عاطفة",
+        "أرومة",
+        "أعشار",
+        "برشام",
         "مشروع"
       ],
       "answer": 3,
@@ -4467,12 +4467,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ب ة ي ط ع (سجية الشيء وصفته التي طبع عليها)",
       "choices": [
-        "مرحلة",
-        "طبيعة",
-        "تماثل",
-        "وكالة"
+        "أربعة",
+        "بادية",
+        "باطية",
+        "طبيعة"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "طبيعة: سجية الشيء وصفته التي طبع عليها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4490,10 +4490,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: س ف ا م ة (البعد الفاصل بين موضعين)",
       "choices": [
-        "شخصية",
-        "تضاعف",
+        "أرومة",
+        "أزمنة",
         "مسافة",
-        "بلاغة"
+        "أثفية"
       ],
       "answer": 2,
       "why": "مسافة: البعد الفاصل بين موضعين.",
@@ -4512,12 +4512,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ب ة ا و ب (مدخل كبير لبناء أو منشأة)",
       "choices": [
-        "دهليز",
-        "نافذة",
+        "أرنبة",
         "بوابة",
-        "ساقية"
+        "آبنوس",
+        "أربعة"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "بوابة: مدخل كبير لبناء أو منشأة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4534,12 +4534,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: و ل ش غ م (ما كان فيه مستخدم أو سكان فلم يعد شاغرا)",
       "choices": [
-        "ضروري",
-        "مشغول",
-        "مثالي",
-        "عبقري"
+        "بلشون",
+        "تلمود",
+        "جلمود",
+        "مشغول"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "مشغول: ما كان فيه مستخدم أو سكان فلم يعد شاغرا.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4556,12 +4556,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ص ق ص (رواية الأخبار والحكايات)",
       "choices": [
-        "بخل",
-        "عبء",
-        "بدء",
-        "قصص"
+        "أفق",
+        "إلق",
+        "قصص",
+        "أصل"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "قصص: رواية الأخبار والحكايات.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4579,12 +4579,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ق ع ة م ط ا (امتناع منظم عن التعامل مع جهة)",
       "choices": [
-        "أنانية",
-        "مقاطعة",
-        "امتحان",
-        "اعتبار"
+        "أقدمية",
+        "بقسماط",
+        "طواعية",
+        "مقاطعة"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "مقاطعة: امتناع منظم عن التعامل مع جهة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4601,9 +4601,9 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ء ا د و (ما يتعالج به من المرض)",
       "choices": [
-        "سائل",
-        "حرير",
-        "عنبر",
+        "آداب",
+        "أبجد",
+        "أتون",
         "دواء"
       ],
       "answer": 3,
@@ -4623,10 +4623,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: و ق د و (مادة يولد احتراقها طاقة حرارية)",
       "choices": [
-        "رصاص",
-        "زجاج",
+        "أوحد",
+        "برود",
         "وقود",
-        "قماش"
+        "أنوق"
       ],
       "answer": 2,
       "why": "وقود: مادة يولد احتراقها طاقة حرارية.",
@@ -4645,12 +4645,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ي ئ ة ه (الحال التي يكون عليها الشيء)",
       "choices": [
+        "ألية",
         "هيئة",
-        "مثال",
-        "عينة",
-        "راحة"
+        "آسية",
+        "أبهة"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "هيئة: الحال التي يكون عليها الشيء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4667,12 +4667,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر غ ص أ (ما قل مقداره بالقياس إلى غيره)",
       "choices": [
+        "آخرة",
         "أصغر",
-        "فقير",
-        "ودود",
-        "أمثل"
+        "آثار",
+        "آجرة"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "أصغر: ما قل مقداره بالقياس إلى غيره.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4689,12 +4689,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: خ ة ع د (حيلة يخدع بها الإنسان)",
       "choices": [
+        "أخوة",
+        "أداة",
         "خدعة",
-        "هيئة",
-        "قرار",
-        "حوار"
+        "آخرة"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "خدعة: حيلة يخدع بها الإنسان.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4711,12 +4711,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ر ي ض و (ما تمس إليه الحاجة ولا بد منه)",
       "choices": [
-        "موجود",
-        "مثالي",
-        "عبقري",
-        "ضروري"
+        "بيروت",
+        "ضروري",
+        "أروية",
+        "بويضة"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "ضروري: ما تمس إليه الحاجة ولا بد منه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4733,12 +4733,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ق ش ة ف (رحمة وحنان وخوف من حلول مكروه بالغير)",
       "choices": [
-        "نجدة",
-        "حركة",
-        "حياة",
-        "شفقة"
+        "آفكة",
+        "أزقة",
+        "شفقة",
+        "آزفة"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "شفقة: رحمة وحنان وخوف من حلول مكروه بالغير.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4755,12 +4755,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة ج ل س (حصة من الوقت يجتمع فيها مختصون للنظر في أمر)",
       "choices": [
-        "نظرة",
-        "تأمل",
+        "آسية",
         "جلسة",
-        "تحمل"
+        "آجرة",
+        "آجلة"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "جلسة: حصة من الوقت يجتمع فيها مختصون للنظر في أمر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4777,12 +4777,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ع ة س ت (العدد الواقع بعد الثمانية وقبل العشرة)",
       "choices": [
-        "خمسة",
-        "ثلاثة",
-        "أربعة",
-        "تسعة"
+        "تسعة",
+        "آسية",
+        "آنسة",
+        "أسرة"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "تسعة: العدد الواقع بعد الثمانية وقبل العشرة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4799,12 +4799,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ح ل ر (ما يوضع على ظهر البعير ليجلس عليه الراكب)",
       "choices": [
-        "رحل",
-        "كيس",
-        "قلم",
-        "آلة"
+        "آجل",
+        "آخر",
+        "آلة",
+        "رحل"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "رحل: ما يوضع على ظهر البعير ليجلس عليه الراكب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4822,12 +4822,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ل ج ة ن (جماعة يعهد إليها فحص أمر أو إنجاز عمل)",
       "choices": [
-        "حفيد",
-        "عروس",
+        "آكلة",
         "لجنة",
-        "توأم"
+        "آجرة",
+        "آجلة"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "لجنة: جماعة يعهد إليها فحص أمر أو إنجاز عمل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4844,12 +4844,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ج ة ه (جانب أو ناحية يتوجه إليها المرء)",
       "choices": [
-        "يمنى",
-        "جنوب",
-        "جهة",
-        "يسرى"
+        "آجل",
+        "آفة",
+        "آلة",
+        "جهة"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "جهة: جانب أو ناحية يتوجه إليها المرء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4866,12 +4866,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة ح ي (اسم يشمل أنواعا من الزواحف كالأفعى والثعبان)",
       "choices": [
-        "جدي",
-        "فرس",
-        "ظبي",
-        "حية"
+        "آلة",
+        "آية",
+        "حية",
+        "آفة"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "حية: اسم يشمل أنواعا من الزواحف كالأفعى والثعبان.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4888,12 +4888,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ذ ء غ (ما ينمو به الجسم ويقوم من طعام وشراب)",
       "choices": [
-        "وجبة",
-        "غذاء",
-        "عجين",
-        "دقيق"
+        "آذار",
+        "أرغن",
+        "أصغر",
+        "غذاء"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "غذاء: ما ينمو به الجسم ويقوم من طعام وشراب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4910,12 +4910,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ك م ر ة ذ (دفتر صغير يدون فيه ما يراد تذكره)",
       "choices": [
-        "بطاقة",
-        "خريطة",
-        "بوصلة",
-        "مذكرة"
+        "أرومة",
+        "أريكة",
+        "مذكرة",
+        "أراكة"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "مذكرة: دفتر صغير يدون فيه ما يراد تذكره.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4932,12 +4932,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: م ا ص ع ة (المدينة التي تكون قاعدة البلاد أو الإقليم)",
       "choices": [
+        "أزمنة",
         "عاصمة",
-        "محكمة",
-        "مدينة",
-        "مكتبة"
+        "أربعة",
+        "أرومة"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "عاصمة: المدينة التي تكون قاعدة البلاد أو الإقليم.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4954,12 +4954,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: م د ق م ة (أول الكتاب أو الكلام)",
       "choices": [
-        "أخلاق",
-        "تمييز",
         "مقدمة",
-        "براعة"
+        "تميمة",
+        "جمجمة",
+        "حديقة"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "مقدمة: أول الكتاب أو الكلام.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4976,12 +4976,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ض ي ة ر ا (حركات بدنية خاصة تكسب الجسم قوة ومرونة)",
       "choices": [
-        "تشبيه",
         "رياضة",
-        "تضامن",
-        "مضيعة"
+        "أبريل",
+        "أترجة",
+        "أثفية"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "رياضة: حركات بدنية خاصة تكسب الجسم قوة ومرونة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5000,12 +5000,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: س ة م ؤ س (تنظيم يرمي إلى الإنتاج أو المبادلة)",
       "choices": [
-        "حانوت",
+        "بسملة",
+        "خسيسة",
         "مؤسسة",
-        "مدرسة",
-        "منطقة"
+        "أمسية"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "مؤسسة: تنظيم يرمي إلى الإنتاج أو المبادلة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5022,12 +5022,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: د ر ط (ما يرسل من بضاعة أو أمتعة بواسطة البريد)",
       "choices": [
-        "ظرف",
-        "مقص",
-        "وتد",
-        "طرد"
+        "آدم",
+        "طرد",
+        "آبد",
+        "آخر"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "طرد: ما يرسل من بضاعة أو أمتعة بواسطة البريد.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5045,9 +5045,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: ذ م ب ن (جرم سماوي ذو ذيل غازي مضيء يدور حول الشمس)",
       "choices": [
         "مذنب",
-        "بركة",
-        "رذاذ",
-        "غبار"
+        "آنام",
+        "أرنب",
+        "ابنة"
       ],
       "answer": 0,
       "why": "مذنب: جرم سماوي ذو ذيل غازي مضيء يدور حول الشمس.",
@@ -5066,12 +5066,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة ر ذ ك ت (بطاقة يثبت فيها دفع أجرة ركوب أو دخول)",
       "choices": [
-        "دولاب",
-        "مرساة",
-        "تذكرة",
-        "محراث"
+        "أترجة",
+        "أراكة",
+        "أريكة",
+        "تذكرة"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "تذكرة: بطاقة يثبت فيها دفع أجرة ركوب أو دخول.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5088,10 +5088,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ي ة د ز (ما أضيف إلى الشيء فوق أصله)",
       "choices": [
-        "تكاتف",
+        "أحجية",
         "زيادة",
-        "سعادة",
-        "إبداع"
+        "آبدين",
+        "أثفية"
       ],
       "answer": 1,
       "why": "زيادة: ما أضيف إلى الشيء فوق أصله.",
@@ -5110,12 +5110,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: س ة ع (طاقة وقدرة وانفساح في الحال)",
       "choices": [
-        "فرق",
-        "سعة",
-        "جود",
-        "وعي"
+        "آفة",
+        "آلة",
+        "آهة",
+        "سعة"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "سعة: طاقة وقدرة وانفساح في الحال.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5132,12 +5132,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ة ك ث ر (نازلة عظيمة وشدة تحل بالناس)",
       "choices": [
-        "معونة",
+        "أراكة",
+        "أربعة",
         "كارثة",
-        "إبداع",
-        "رقابة"
+        "أترجة"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "كارثة: نازلة عظيمة وشدة تحل بالناس.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5154,10 +5154,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ف ر ط و (أول وجبة طعام يتناولها المرء في الصباح)",
       "choices": [
-        "عجين",
+        "إطار",
         "فطور",
-        "وجبة",
-        "حليب"
+        "أطوم",
+        "أوار"
       ],
       "answer": 1,
       "why": "فطور: أول وجبة طعام يتناولها المرء في الصباح.",
@@ -5176,12 +5176,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة ن أ م ي (بغية يتطلع الإنسان إلى تحققها)",
       "choices": [
-        "نتيجة",
         "أمنية",
-        "مرحلة",
-        "عاطفة"
+        "آبدين",
+        "أثفية",
+        "أحجية"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "أمنية: بغية يتطلع الإنسان إلى تحققها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5198,12 +5198,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ي ز م ة ر ك (نظام تتبع فيه الفروع مركزا رئيسا واحدا)",
       "choices": [
-        "احتكاك",
-        "مركزية",
-        "عبقرية",
-        "امتحان"
+        "أكثرية",
+        "أكرومة",
+        "أمريكا",
+        "مركزية"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "مركزية: نظام تتبع فيه الفروع مركزا رئيسا واحدا.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5220,12 +5220,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: أ و ل ب س (طريقة الكاتب في تعبيره)",
       "choices": [
-        "طريقة",
-        "نهاية",
-        "تحليل",
-        "أسلوب"
+        "آنسون",
+        "أبريل",
+        "أسلوب",
+        "آبنوس"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "أسلوب: طريقة الكاتب في تعبيره.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5243,10 +5243,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ي ر ح ص ت (إذن بعمل يصدر ممن يملك السماح به)",
       "choices": [
-        "أسلوب",
+        "بصيرة",
         "تصريح",
-        "إعلان",
-        "سلالة"
+        "بحرين",
+        "بحيرة"
       ],
       "answer": 1,
       "why": "تصريح: إذن بعمل يصدر ممن يملك السماح به.",
@@ -5265,12 +5265,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ؤ ت م م (مجتمع للتشاور والبحث في أمر)",
       "choices": [
-        "أمنية",
-        "مؤتمر",
-        "كتابة",
-        "تناقص"
+        "ترموس",
+        "تمراد",
+        "تميمة",
+        "مؤتمر"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "مؤتمر: مجتمع للتشاور والبحث في أمر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5287,12 +5287,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ظ ن م ر (ما يقع عليه النظر من الأشياء)",
       "choices": [
-        "عطاء",
-        "رحمة",
-        "شفقة",
-        "منظر"
+        "أرغن",
+        "منظر",
+        "آنام",
+        "أردن"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "منظر: ما يقع عليه النظر من الأشياء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5309,12 +5309,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ث ء ل ث ا ا (اليوم الذي يأتي بعد الاثنين وقبل الأربعاء)",
       "choices": [
-        "أسبوع",
-        "أربعاء",
         "ثلاثاء",
-        "دقيقة"
+        "اجتثاث",
+        "امتثال",
+        "انبثاث"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "ثلاثاء: اليوم الذي يأتي بعد الاثنين وقبل الأربعاء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5331,12 +5331,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: س ة ل ه و (خلو الكلام من التكلف والتعقيد)",
       "choices": [
-        "سهولة",
-        "تنفيذ",
-        "بلاغة",
-        "تسلسل"
+        "أسطول",
+        "أسلوب",
+        "ألهوة",
+        "سهولة"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "سهولة: خلو الكلام من التكلف والتعقيد.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5353,12 +5353,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ى ق ص أ (الأبعد في المكان أو المدى)",
       "choices": [
-        "مجوف",
+        "آسية",
+        "آصرة",
         "أقصى",
-        "يسير",
-        "حامض"
+        "آسيا"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "أقصى: الأبعد في المكان أو المدى.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5375,12 +5375,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ص ن ي ي (ما نسب إلى بلاد الصين)",
       "choices": [
+        "أيون",
         "صيني",
-        "بسيط",
-        "مظلم",
-        "موسر"
+        "أصيص",
+        "أنثى"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "صيني: ما نسب إلى بلاد الصين.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5397,12 +5397,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ل ة ك م م (دولة يحكمها صاحب لقب ملك)",
       "choices": [
-        "محكمة",
-        "مملكة",
-        "مؤسسة",
-        "عاصمة"
+        "أنملة",
+        "إمالة",
+        "اللهم",
+        "مملكة"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "مملكة: دولة يحكمها صاحب لقب ملك.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5419,12 +5419,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ب م و ه ة (استعداد فطري للبراعة في فن أو عمل)",
       "choices": [
+        "ألهوة",
+        "بتولة",
         "موهبة",
-        "مجموع",
-        "وزارة",
-        "طفولة"
+        "أرومة"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "موهبة: استعداد فطري للبراعة في فن أو عمل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5441,10 +5441,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة غ ط ل (مرة يقع فيها المرء في الخطأ)",
       "choices": [
-        "مودة",
+        "أطلس",
         "غلطة",
-        "منحة",
-        "ألفة"
+        "آجلة",
+        "أسلة"
       ],
       "answer": 1,
       "why": "غلطة: مرة يقع فيها المرء في الخطأ.",
@@ -5463,12 +5463,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ذ أ ى (ضرر غير جسيم يصيب المرء)",
       "choices": [
-        "أذى",
-        "عمق",
-        "نظر",
-        "رضا"
+        "آبد",
+        "آجل",
+        "آخر",
+        "أذى"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "أذى: ضرر غير جسيم يصيب المرء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5486,9 +5486,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: ت ن ذ ف ي (إجراء عملي لما صدر به قرار أو حكم)",
       "choices": [
         "تنفيذ",
-        "حلاقة",
-        "إطناب",
-        "معونة"
+        "أفيون",
+        "إسفين",
+        "تخليف"
       ],
       "answer": 0,
       "why": "تنفيذ: إجراء عملي لما صدر به قرار أو حكم.",
@@ -5507,12 +5507,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة م ت ه (ما ينسب إلى شخص من أمر يتهم به)",
       "choices": [
-        "قيمة",
-        "معظم",
-        "تهمة",
-        "هوية"
+        "أبهة",
+        "أجمة",
+        "أزمة",
+        "تهمة"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "تهمة: ما ينسب إلى شخص من أمر يتهم به.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5530,12 +5530,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: أ ة د ا (آلة صغيرة يستعان بها على عمل)",
       "choices": [
+        "آجلة",
         "أداة",
-        "إطار",
-        "مجهر",
-        "ملقط"
+        "آثار",
+        "آجرة"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "أداة: آلة صغيرة يستعان بها على عمل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5552,12 +5552,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ه ظ ر م (الصورة التي يبدو عليها الشيء)",
       "choices": [
-        "قياس",
         "مظهر",
-        "شهرة",
-        "حضرة"
+        "آجرة",
+        "آخرة",
+        "آصرة"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "مظهر: الصورة التي يبدو عليها الشيء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5574,12 +5574,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ف و ل ض (تدخل الإنسان فيما لا يعنيه)",
       "choices": [
-        "غاية",
-        "فضول",
-        "نفوذ",
-        "نجدة"
+        "ألفة",
+        "بلور",
+        "بلوط",
+        "فضول"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "فضول: تدخل الإنسان فيما لا يعنيه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5596,12 +5596,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ة س و أ ط (حكاية خيالية لا أصل لها)",
       "choices": [
-        "برنامج",
-        "ملاحظة",
-        "مراهقة",
-        "أسطورة"
+        "أطروحة",
+        "أسطورة",
+        "أرجوحة",
+        "أرجوزة"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "أسطورة: حكاية خيالية لا أصل لها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5618,12 +5618,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ب ذ ة ج ي ا (صفة يستميل بها صاحبها غيره)",
       "choices": [
+        "أعجوبة",
+        "أغلبية",
         "جاذبية",
-        "أنانية",
-        "مركزية",
-        "مقاطعة"
+        "أسبقية"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "جاذبية: صفة يستميل بها صاحبها غيره.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5640,12 +5640,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ه ى ق م (مكان عام تقدم فيه القهوة ونحوها من المشروبات)",
       "choices": [
-        "مشتل",
-        "زقاق",
-        "مخبأ",
-        "مقهى"
+        "مقهى",
+        "آسية",
+        "أجمة",
+        "أديم"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "مقهى: مكان عام تقدم فيه القهوة ونحوها من المشروبات.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5662,12 +5662,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة ب ئ ي (المكان والحال اللذان يحيطان بالإنسان)",
       "choices": [
-        "واقع",
-        "بيئة",
-        "بيان",
-        "ورطة"
+        "آسية",
+        "أبهة",
+        "أربة",
+        "بيئة"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "بيئة: المكان والحال اللذان يحيطان بالإنسان.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5686,9 +5686,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: ا ل ة ئ ح (مواد موضوعة لتنظيم العمل في مؤسسة)",
       "choices": [
         "لائحة",
-        "كيفية",
-        "سعادة",
-        "سلالة"
+        "أحجية",
+        "أقلية",
+        "ألفية"
       ],
       "answer": 0,
       "why": "لائحة: مواد موضوعة لتنظيم العمل في مؤسسة.",
@@ -5707,12 +5707,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: س ئ ا ل (حالة للمادة وسط بين الصلابة والغازية)",
       "choices": [
-        "حقنة",
-        "قماش",
-        "حرير",
-        "سائل"
+        "آسيا",
+        "آسية",
+        "سائل",
+        "آجلة"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "سائل: حالة للمادة وسط بين الصلابة والغازية.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5730,12 +5730,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ل ش غ (عمل يشغل المرء ويقابل الفراغ)",
       "choices": [
-        "خلل",
-        "كسر",
+        "أزل",
         "شغل",
-        "نية"
+        "آجل",
+        "أثل"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "شغل: عمل يشغل المرء ويقابل الفراغ.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5752,12 +5752,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: غ ز م ى (المقصد الذي يراد من الكلام)",
       "choices": [
-        "خدعة",
-        "ذكاء",
+        "أمية",
         "مغزى",
-        "حماس"
+        "أديم",
+        "أزمة"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "مغزى: المقصد الذي يراد من الكلام.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5774,9 +5774,9 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ث ة ل ح ا (الرديء المتبقي من الأشياء)",
       "choices": [
-        "ضوضاء",
-        "معيشة",
-        "تزايد",
+        "أثفية",
+        "أثقال",
+        "أحجية",
         "حثالة"
       ],
       "answer": 3,
@@ -5796,12 +5796,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: و ت ل (ما يأتي بعد الشيء ويتبعه)",
       "choices": [
+        "آلة",
+        "أثل",
         "تلو",
-        "حدث",
-        "شكل",
-        "صدى"
+        "آجل"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "تلو: ما يأتي بعد الشيء ويتبعه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5818,12 +5818,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: م ح ف ا ظ (من يتولى إدارة شؤون مؤسسة أو بلد)",
       "choices": [
-        "مهندس",
-        "تلميذ",
+        "تفاحة",
         "محافظ",
-        "إسكاف"
+        "أحكام",
+        "أمداح"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "محافظ: من يتولى إدارة شؤون مؤسسة أو بلد.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5840,12 +5840,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ي ب ك ر ه ا ئ (من يعنى مهنيا بتوصيل التيار وتركيب أجهزته)",
       "choices": [
-        "كيميائي",
-        "بستاني",
-        "مستشار",
-        "كهربائي"
+        "كهربائي",
+        "بنكرياس",
+        "بهاريات",
+        "رهبانية"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "كهربائي: من يعنى مهنيا بتوصيل التيار وتركيب أجهزته.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5862,12 +5862,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ك و ى ش (توجع من ألم أو بيان ما يؤذي المرء)",
       "choices": [
-        "رحلة",
-        "شكوى",
-        "غلطة",
-        "مقطع"
+        "أيكة",
+        "أيون",
+        "بجيش",
+        "شكوى"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "شكوى: توجع من ألم أو بيان ما يؤذي المرء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5884,12 +5884,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ي ئ ا ث ن (ما كان ذا شقين أو اشترك فيه طرفان)",
       "choices": [
+        "أثفية",
         "ثنائي",
-        "مسكين",
-        "مشغول",
-        "مثالي"
+        "آبدين",
+        "أثافي"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "ثنائي: ما كان ذا شقين أو اشترك فيه طرفان.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5906,12 +5906,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ض ل ف (إحسان يقدم إلى الغير بلا مقابل)",
       "choices": [
-        "فهم",
-        "حجة",
-        "درس",
-        "فضل"
+        "آفة",
+        "آلة",
+        "فضل",
+        "آجل"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "فضل: إحسان يقدم إلى الغير بلا مقابل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5928,12 +5928,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ط إ ر ا (ما يحيط بالشيء من خارجه)",
       "choices": [
-        "مغزل",
         "إطار",
-        "محور",
-        "مبرد"
+        "آثار",
+        "آجرة",
+        "آخرة"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "إطار: ما يحيط بالشيء من خارجه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5950,12 +5950,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ص م ح ة ل (منفعة وصلاح في أمر)",
       "choices": [
-        "نقصان",
-        "تكاثف",
-        "تسلسل",
-        "مصلحة"
+        "اللهم",
+        "مصلحة",
+        "أنملة",
+        "إمالة"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "مصلحة: منفعة وصلاح في أمر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5972,12 +5972,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ب و ن ز (من يشتري من تاجر بعينه)",
       "choices": [
+        "أتون",
+        "أرنب",
         "زبون",
-        "زميل",
-        "صديق",
-        "رعيل"
+        "أباز"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "زبون: من يشتري من تاجر بعينه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5994,12 +5994,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ئ د ا ز (ما كان أكثر من المقدار المذكور)",
       "choices": [
+        "أباز",
         "زائد",
-        "صحيح",
-        "شجاع",
-        "يسير"
+        "آداب",
+        "آزفة"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "زائد: ما كان أكثر من المقدار المذكور.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6016,12 +6016,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: م ة و ك (مجموعة أشياء ضم بعضها فوق بعض)",
       "choices": [
-        "وصية",
-        "نسبة",
-        "نجوى",
-        "كومة"
+        "آكلة",
+        "أجمة",
+        "كومة",
+        "آفكة"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "كومة: مجموعة أشياء ضم بعضها فوق بعض.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6038,12 +6038,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ق ي ع ب ة (صفة من فاق غيره في موهبته وقدرته)",
       "choices": [
-        "احتكاك",
-        "ملاحظة",
         "عبقرية",
-        "واقعية"
+        "أسبقية",
+        "بطارية",
+        "بغريرة"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "عبقرية: صفة من فاق غيره في موهبته وقدرته.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6060,12 +6060,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ح ة ظ ر ي (موضع محاط تأوي إليه الماشية)",
       "choices": [
-        "ساقية",
-        "حظيرة",
-        "بوابة",
-        "دعامة"
+        "أحجية",
+        "أروية",
+        "أريكة",
+        "حظيرة"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "حظيرة: موضع محاط تأوي إليه الماشية.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6083,9 +6083,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: ن ب ز ن ي (سائل يستخرج من البترول ويستعمل وقودا للمحركات)",
       "choices": [
         "بنزين",
-        "صابون",
-        "قصدير",
-        "إسفنج"
+        "آبدين",
+        "إبريز",
+        "إبزيم"
       ],
       "answer": 0,
       "why": "بنزين: سائل يستخرج من البترول ويستعمل وقودا للمحركات.",
@@ -6104,12 +6104,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ء ر أ ا ع ب (اليوم الذي يأتي بين الثلاثاء والخميس)",
       "choices": [
-        "أمسية",
-        "أربعاء",
-        "ثانية",
-        "ثلاثاء"
+        "أوروبا",
+        "إربيان",
+        "إضبارة",
+        "أربعاء"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "أربعاء: اليوم الذي يأتي بين الثلاثاء والخميس.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6126,10 +6126,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ف ك ل ت ة (ما ينفق لصنع شيء دون إضافة ربح)",
       "choices": [
-        "ذاكرة",
-        "تواضع",
+        "ألفية",
+        "بتولة",
         "تكلفة",
-        "نظرية"
+        "أفيكة"
       ],
       "answer": 2,
       "why": "تكلفة: ما ينفق لصنع شيء دون إضافة ربح.",
@@ -6148,12 +6148,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ض ة ج (جلبة وصياح مرتفع)",
       "choices": [
-        "هبة",
-        "لطف",
-        "حجم",
-        "ضجة"
+        "آلة",
+        "ضجة",
+        "آجل",
+        "آفة"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "ضجة: جلبة وصياح مرتفع.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6171,9 +6171,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: ة ئ ف (فرقة من الناس أو طائفة منهم)",
       "choices": [
         "فئة",
-        "بشر",
-        "شيخ",
-        "أخت"
+        "آفة",
+        "آلة",
+        "آهة"
       ],
       "answer": 0,
       "why": "فئة: فرقة من الناس أو طائفة منهم.",
@@ -6192,12 +6192,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ج ت (حلية توضع على رأس الملك من ذهب وجواهر)",
       "choices": [
-        "جبة",
-        "نعل",
-        "ثوب",
-        "تاج"
+        "آجل",
+        "آخر",
+        "تاج",
+        "آبد"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "تاج: حلية توضع على رأس الملك من ذهب وجواهر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6216,9 +6216,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: ق ا ص ر ى (غاية المرء وأقصى ما يستطيع بلوغه)",
       "choices": [
         "قصارى",
-        "تكاتف",
-        "كيفية",
-        "تمييز"
+        "أبريل",
+        "أرصاد",
+        "أرقام"
       ],
       "answer": 0,
       "why": "قصارى: غاية المرء وأقصى ما يستطيع بلوغه.",
@@ -6237,12 +6237,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ن إ ن ة س ي (جملة الصفات التي تميز البشر)",
       "choices": [
+        "أنسولين",
+        "إمكانية",
         "إنسانية",
-        "طمأنينة",
-        "ميزانية",
-        "مسؤولية"
+        "أسطوانة"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "إنسانية: جملة الصفات التي تميز البشر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6259,12 +6259,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة ي ج م ع (جماعة تتألف من أعضاء لغرض مشترك)",
       "choices": [
-        "قبيلة",
-        "إنسان",
-        "قافلة",
-        "جمعية"
+        "أمنية",
+        "جمعية",
+        "أحجية",
+        "أمسية"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "جمعية: جماعة تتألف من أعضاء لغرض مشترك.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6281,12 +6281,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: م ة ت ر ب (رتبة أو مقام يكون عليه الشخص)",
       "choices": [
-        "بضاعة",
-        "ترجمة",
-        "رائحة",
-        "مرتبة"
+        "مرتبة",
+        "أترجة",
+        "أربعة",
+        "أرنبة"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "مرتبة: رتبة أو مقام يكون عليه الشخص.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6303,12 +6303,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: م خ أ ب (مكان يلجأ إليه طلبا للوقاية)",
       "choices": [
-        "مخيم",
+        "آداب",
+        "آنام",
         "مخبأ",
-        "دكان",
-        "مشتل"
+        "آخرة"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "مخبأ: مكان يلجأ إليه طلبا للوقاية.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6325,12 +6325,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: أ ة م (جماعة يجمعها أصل أو مصالح وصفات مشتركة)",
       "choices": [
+        "آخر",
         "أمة",
-        "شيخ",
-        "فرد",
-        "سرب"
+        "آبد",
+        "آجل"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "أمة: جماعة يجمعها أصل أو مصالح وصفات مشتركة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6348,12 +6348,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ط ف ا ة ع (استعداد نفسي ينزع بالمرء إلى شعور معين)",
       "choices": [
-        "تفسير",
-        "رياضة",
-        "نقصان",
-        "عاطفة"
+        "أطراف",
+        "عاطفة",
+        "أثفية",
+        "أربعة"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "عاطفة: استعداد نفسي ينزع بالمرء إلى شعور معين.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6370,10 +6370,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: و ى ق ص (مؤنث الأبعد وتطلق على الغاية البعيدة)",
       "choices": [
-        "شجاع",
-        "مجيد",
+        "أنوق",
+        "أيون",
         "قصوى",
-        "حبيب"
+        "أصيص"
       ],
       "answer": 2,
       "why": "قصوى: مؤنث الأبعد وتطلق على الغاية البعيدة.",
@@ -6392,12 +6392,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ف و ن ذ (سلطان وقوة وقدرة على التأثير)",
       "choices": [
-        "معظم",
-        "غلطة",
-        "شباب",
-        "نفوذ"
+        "أنوق",
+        "نفوذ",
+        "أتون",
+        "أنفة"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "نفوذ: سلطان وقوة وقدرة على التأثير.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6414,9 +6414,9 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: م ز د ا (بيع يرسو على من يعرض أعلى ثمن)",
       "choices": [
-        "لقطة",
-        "خاطر",
-        "تعلم",
+        "آداب",
+        "آزفة",
+        "آنام",
         "مزاد"
       ],
       "answer": 3,
@@ -6436,12 +6436,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: م ق ر ة ه ا (الفترة من بلوغ الحلم إلى سن الرشد)",
       "choices": [
+        "إسقمري",
         "مراهقة",
-        "كيمياء",
-        "انصهار",
-        "احتكاك"
+        "أقدمية",
+        "أكرومة"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "مراهقة: الفترة من بلوغ الحلم إلى سن الرشد.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6458,12 +6458,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ي ة ب ض (ما تضعه أنثى الطير ويتكون منه صغيرها)",
       "choices": [
-        "نعجة",
         "بيضة",
-        "أرنب",
-        "بعير"
+        "آسية",
+        "أبهة",
+        "أبهر"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "بيضة: ما تضعه أنثى الطير ويتكون منه صغيرها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6480,9 +6480,9 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ل ل خ (فساد أو ضعف يدخل في الأمر)",
       "choices": [
-        "نقد",
-        "حلم",
-        "صمت",
+        "آجل",
+        "آلة",
+        "أثل",
         "خلل"
       ],
       "answer": 3,
@@ -6502,12 +6502,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: س ع م ت ن ق (أرض منخفضة يغمرها ماء راكد)",
       "choices": [
-        "بحيرة",
-        "صحراء",
-        "جزيرة",
-        "مستنقع"
+        "مستنقع",
+        "معدنوس",
+        "مقدونس",
+        "استماع"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "مستنقع: أرض منخفضة يغمرها ماء راكد.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6522,18 +6522,18 @@ KZV.register({
       "cat": "fmt-scramble",
       "type": "mcq",
       "fmt": "scramble",
-      "q": "رتّب الحروف لتكوّن كلمة: ن ب ج ا ن ا ذ (خضار أرجواني غالبا يؤكل مطبوخا)",
+      "q": "رتّب الحروف لتكوّن كلمة: ر ج ز (خضار جذري برتقالي يؤكل نيئًا أو مطبوخًا)",
       "choices": [
-        "ياسمين",
-        "أناناس",
-        "برتقال",
-        "باذنجان"
+        "آجل",
+        "آخر",
+        "أثر",
+        "جزر"
       ],
       "answer": 3,
-      "why": "باذنجان: خضار أرجواني غالبا يؤكل مطبوخا.",
+      "why": "عرّف مجمع اللغة العربية بالقاهرة الجزر بأنه عشب زراعي يؤكل جذره الوتدي البرتقالي.",
       "src": [
-        "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
-        "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل باذنجان — https://shamela.ws/book/7028/36"
+        "مجمع اللغة العربية بالقاهرة — معنى الجزر — https://www.arabicacademy.gov.eg/ar/%D9%85%D8%AD%D8%B1%D9%83-%D8%A7%D9%84%D8%A8%D8%AD%D8%AB/%D9%85%D8%B9%D8%AC%D9%85/dic-19/%D8%A7%D9%84%D8%AC%D8%B2%D8%B1",
+        "Arramooz — Arabic dictionary SQLite — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite"
       ],
       "level": 1,
       "status": "approved",
@@ -6546,10 +6546,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة ق ف م (حيوان بحري ثديي ذو أطراف تشبه الزعانف)",
       "choices": [
-        "سمك",
-        "قرش",
+        "آفكة",
+        "أزقة",
         "فقمة",
-        "حوت"
+        "آزفة"
       ],
       "answer": 2,
       "why": "فقمة: حيوان بحري ثديي ذو أطراف تشبه الزعانف.",
@@ -6569,9 +6569,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: و ا ق ر ة ر (إناء ضيق العنق يحفظ فيه سائل)",
       "choices": [
         "قارورة",
-        "غربال",
-        "مقلاة",
-        "مبخرة"
+        "أرجوحة",
+        "أسطورة",
+        "أطروحة"
       ],
       "answer": 0,
       "why": "قارورة: إناء ضيق العنق يحفظ فيه سائل.",
@@ -6590,12 +6590,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: س ت ى م ش ف (مكان للعلاج يجهز بالأطباء والأدوية والأسرة)",
       "choices": [
-        "ميناء",
-        "مستشفى",
-        "محكمة",
-        "حديقة"
+        "رسميات",
+        "سوفيات",
+        "سيفيات",
+        "مستشفى"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "مستشفى: مكان للعلاج يجهز بالأطباء والأدوية والأسرة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6612,12 +6612,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة ر ا ئ د (شكل جميع نقاط محيطه على بعد متساو من مركزه)",
       "choices": [
+        "أدراج",
+        "أراكة",
         "دائرة",
-        "منحرف",
-        "مسدس",
-        "زاوية"
+        "أترجة"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "دائرة: شكل جميع نقاط محيطه على بعد متساو من مركزه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6634,12 +6634,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة ا ي و ز (فرجة محصورة بين خطين متقاطعين)",
       "choices": [
-        "نقطة",
-        "منحرف",
-        "دائرة",
-        "زاوية"
+        "زاوية",
+        "أثفية",
+        "أحجية",
+        "أرومة"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "زاوية: فرجة محصورة بين خطين متقاطعين.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6656,12 +6656,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ل ر ج (الطرف الممتد من أصل الفخذ إلى القدم)",
       "choices": [
-        "كبد",
-        "وجه",
+        "آلة",
         "رجل",
-        "قلب"
+        "آجل",
+        "آخر"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "رجل: الطرف الممتد من أصل الفخذ إلى القدم.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6678,10 +6678,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ة ا ب م ا (منافسة رياضية بين فريقين أو شخصين)",
       "choices": [
-        "مراهقة",
-        "برنامج",
+        "أمريكا",
+        "أميرال",
         "مباراة",
-        "اقتراح"
+        "أكرومة"
       ],
       "answer": 2,
       "why": "مباراة: منافسة رياضية بين فريقين أو شخصين.",
@@ -6700,12 +6700,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ض ء ا ق (حكم وفصل في الخصومات بين الناس)",
       "choices": [
-        "شحنة",
-        "تمدد",
-        "ثناء",
-        "قضاء"
+        "قضاء",
+        "أرضة",
+        "أزقة",
+        "أسقف"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "قضاء: حكم وفصل في الخصومات بين الناس.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6722,12 +6722,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة و ف ا (موت)",
       "choices": [
-        "فلذة",
+        "آجلة",
+        "آزفة",
         "وفاة",
-        "أوان",
-        "والد"
+        "آجرة"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "وفاة: موت.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6744,12 +6744,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ش ء ن ا إ (فن التعبير عن المعاني بعبارات أدبية بليغة)",
       "choices": [
-        "إنشاء",
-        "جراحة",
-        "عصابة",
-        "ضغينة"
+        "أجفان",
+        "أذناب",
+        "أركان",
+        "إنشاء"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "إنشاء: فن التعبير عن المعاني بعبارات أدبية بليغة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6766,12 +6766,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: س د ن ة ه (علم يبحث في الخطوط والأبعاد والسطوح والزوايا)",
       "choices": [
-        "غوغاء",
+        "بديهة",
+        "جندية",
         "هندسة",
-        "تاريخ",
-        "كفاءة"
+        "أندلس"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "هندسة: علم يبحث في الخطوط والأبعاد والسطوح والزوايا.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6788,10 +6788,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ص إ ب ع (أحد أطراف الكف أو القدم)",
       "choices": [
-        "بؤبؤ",
+        "أباز",
         "إصبع",
-        "زئبق",
-        "جلطة"
+        "آداب",
+        "آصرة"
       ],
       "answer": 1,
       "why": "إصبع: أحد أطراف الكف أو القدم.",
@@ -6810,12 +6810,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ي ل ر ب م (وعاء من خشب)",
       "choices": [
-        "ملفوف",
         "برميل",
-        "إسطبل",
-        "ملاءة"
+        "أبريل",
+        "أمبير",
+        "إبريز"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "برميل: وعاء من خشب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6832,12 +6832,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: و ش ش م (غير مرتب)",
       "choices": [
-        "أرذل",
-        "لدود",
-        "مشوش",
-        "صماء"
+        "أطوم",
+        "تمور",
+        "تموز",
+        "مشوش"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "مشوش: غير مرتب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6854,12 +6854,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ي ل إ ا ص (سند بتسلم مال ونحوه)",
       "choices": [
+        "أثافي",
+        "أثقال",
         "إيصال",
-        "إنفاق",
-        "جراحة",
-        "ضغينة"
+        "أبريل"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "إيصال: سند بتسلم مال ونحوه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6876,12 +6876,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ل ل ش (تعطل حركة عضو أو وظيفته)",
       "choices": [
-        "إبط",
+        "آلة",
+        "أثل",
         "شلل",
-        "غنة",
-        "قيء"
+        "آجل"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "شلل: تعطل حركة عضو أو وظيفته.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6898,12 +6898,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ف ط ع م ن (منعرج الطريق)",
       "choices": [
+        "زعنفة",
         "منعطف",
-        "تاريخ",
-        "إعانة",
-        "صنيعة"
+        "أنعام",
+        "زعانف"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "منعطف: منعرج الطريق.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6920,9 +6920,9 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة ي ض غ ن (حقد شديد)",
       "choices": [
-        "مجنون",
-        "إعانة",
-        "قمامة",
+        "أغنية",
+        "أمنية",
+        "برنية",
         "ضغينة"
       ],
       "answer": 3,
@@ -6943,9 +6943,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: ر م ى م (هدف تصوب إليه الكرة)",
       "choices": [
         "مرمى",
-        "وطأة",
-        "بشرى",
-        "قطار"
+        "أثير",
+        "أخرى",
+        "أديم"
       ],
       "answer": 0,
       "why": "مرمى: هدف تصوب إليه الكرة.",
@@ -6964,12 +6964,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ن ف ذ م (ممر نافذ)",
       "choices": [
-        "عالم",
-        "حشية",
-        "منفذ",
-        "جهاز"
+        "آنام",
+        "أنفة",
+        "ثمان",
+        "منفذ"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "منفذ: ممر نافذ.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6986,10 +6986,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ء ا ك ف ة (قدرة على العمل وحسن تصريفه)",
       "choices": [
-        "غوغاء",
-        "إعانة",
+        "أراكة",
+        "أريكة",
         "كفاءة",
-        "شحناء"
+        "أثفية"
       ],
       "answer": 2,
       "why": "كفاءة: قدرة على العمل وحسن تصريفه.",
@@ -7008,12 +7008,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ع م ة ه ا د (اتفاق بين دول لتنظيم علاقاتها)",
       "choices": [
+        "مصانعة",
         "معاهدة",
-        "ديباجة",
-        "أضحوكة",
-        "أرجوزة"
+        "أقدمية",
+        "شمعدان"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "معاهدة: اتفاق بين دول لتنظيم علاقاتها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7030,12 +7030,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: م ؤ ف ل (كتاب يدون فيه علم أو أدب أو فن)",
       "choices": [
-        "مذود",
-        "مخلل",
-        "مؤلف",
-        "إناء"
+        "أرمل",
+        "امرؤ",
+        "بلسم",
+        "مؤلف"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "مؤلف: كتاب يدون فيه علم أو أدب أو فن.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7052,12 +7052,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ف ة ف ل س (دراسة المبادئ الأولى وتفسير المعرفة عقليا)",
       "choices": [
+        "بسملة",
+        "تكلفة",
         "فلسفة",
-        "منعطف",
-        "ضغينة",
-        "إيصال"
+        "ألفية"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "فلسفة: دراسة المبادئ الأولى وتفسير المعرفة عقليا.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7074,10 +7074,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ل ر ط (معيار يوزن به أو يكال)",
       "choices": [
-        "قرب",
+        "آلة",
         "رطل",
-        "همة",
-        "وطن"
+        "آجل",
+        "آخر"
       ],
       "answer": 1,
       "why": "رطل: معيار يوزن به أو يكال.",
@@ -7096,12 +7096,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ء ا ع ا د (توجيه طلب ضد الخصم أمام القضاء)",
       "choices": [
-        "رمضاء",
-        "سريرة",
         "ادعاء",
-        "ميلاد"
+        "أبعاد",
+        "أتعاب",
+        "أحداث"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "ادعاء: توجيه طلب ضد الخصم أمام القضاء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7118,12 +7118,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ل خ م ل (خيار أو زيتون يملح ثم يوضع عليه الخل)",
       "choices": [
-        "فوطة",
-        "مؤلف",
-        "مخلل",
-        "مرجل"
+        "أخمص",
+        "أرمل",
+        "بلسم",
+        "مخلل"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "مخلل: خيار أو زيتون يملح ثم يوضع عليه الخل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7140,10 +7140,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ل ف ف م و (ورق عنب يلف على حشو من الأرز واللحم)",
       "choices": [
-        "إسفين",
-        "مصبغة",
+        "تلمود",
+        "جلمود",
         "ملفوف",
-        "أوقية"
+        "تلفون"
       ],
       "answer": 2,
       "why": "ملفوف: ورق عنب يلف على حشو من الأرز واللحم.",
@@ -7162,12 +7162,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ء ل م (قدر ما يأخذه الإناء إذا امتلأ)",
       "choices": [
-        "كوة",
         "ملء",
-        "مرجل",
-        "سكة"
+        "آجل",
+        "آدم",
+        "آلة"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "ملء: قدر ما يأخذه الإناء إذا امتلأ.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7184,12 +7184,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: غ ي ل ب ة أ (كثرة)",
       "choices": [
-        "أضحوكة",
-        "أكذوبة",
-        "أغلبية",
-        "أحبولة"
+        "أبابيل",
+        "أحبولة",
+        "أرخبيل",
+        "أغلبية"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "أغلبية: كثرة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7206,12 +7206,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ح ي أ ة ج (لغز يتبارى الناس في حله)",
       "choices": [
-        "مليون",
+        "أثفية",
+        "أحاجي",
         "أحجية",
-        "إنشاء",
-        "ميلاد"
+        "أترجة"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "أحجية: لغز يتبارى الناس في حله.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7228,12 +7228,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر م ق ر (موضوعات يفرض دراستها على الطالب في مادة)",
       "choices": [
-        "مذود",
         "مقرر",
-        "خرقة",
-        "مرجل"
+        "أرمل",
+        "إمرة",
+        "امرؤ"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "مقرر: موضوعات يفرض دراستها على الطالب في مادة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7250,12 +7250,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ط ج ة ل (كتلة رخوة من الدم أو اللمف)",
       "choices": [
-        "إصبع",
-        "جلطة",
-        "جشأة",
-        "قامة"
+        "آجرة",
+        "آجلة",
+        "آكلة",
+        "جلطة"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "جلطة: كتلة رخوة من الدم أو اللمف.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7272,12 +7272,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: و ك ح أ ض ة (ما يضحك منه)",
       "choices": [
+        "أحدوثة",
+        "أرجوحة",
         "أضحوكة",
-        "أكذوبة",
-        "كهرباء",
-        "صوديوم"
+        "أحبولة"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "أضحوكة: ما يضحك منه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7294,12 +7294,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ث ر ك ة (نماء العدد)",
       "choices": [
-        "زوجة",
-        "حادث",
-        "صدمة",
-        "كثرة"
+        "آخرة",
+        "كثرة",
+        "آثار",
+        "آجرة"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "كثرة: نماء العدد.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7316,12 +7316,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ن ح ر ة ج (مجرى النفس في الرقبة)",
       "choices": [
-        "نقيصة",
-        "مرارة",
         "حنجرة",
-        "زعنفة"
+        "أترجة",
+        "أحجية",
+        "أرنبة"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "حنجرة: مجرى النفس في الرقبة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7338,9 +7338,9 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ب م ا ه إ (الإصبع الغليظة الخامسة من اليد والرجل)",
       "choices": [
-        "حنجرة",
-        "سبابة",
-        "ثؤلول",
+        "أبزار",
+        "أبعاد",
+        "أتعاب",
         "إبهام"
       ],
       "answer": 3,
@@ -7360,12 +7360,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ن م ا ط د (جهاز طائر من نسيج في أسفله سلة للركوب)",
       "choices": [
-        "ملفوف",
-        "أوقية",
-        "حافظة",
-        "منطاد"
+        "أزمنة",
+        "أطمار",
+        "منطاد",
+        "آبدين"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "منطاد: جهاز طائر من نسيج في أسفله سلة للركوب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7382,12 +7382,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ؤ ب س (مشقة وفقر)",
       "choices": [
-        "غرب",
-        "قبو",
-        "كذب",
-        "بؤس"
+        "بؤس",
+        "آبد",
+        "أرب",
+        "أسد"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "بؤس: مشقة وفقر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7404,12 +7404,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ح أ ة ج و (حبل معلق يقعد فيه الصبيان ويجيئون ويذهبون به)",
       "choices": [
-        "إضبارة",
-        "ناعورة",
-        "شمعدان",
-        "أرجوحة"
+        "أرجوان",
+        "أرجوحة",
+        "أحبولة",
+        "أحدوثة"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "أرجوحة: حبل معلق يقعد فيه الصبيان ويجيئون ويذهبون به.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7426,12 +7426,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ء ش غ ا (غطاء)",
       "choices": [
-        "مذود",
-        "مثوى",
-        "غشاء",
-        "خرقة"
+        "أرغن",
+        "أشعة",
+        "أصغر",
+        "غشاء"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "غشاء: غطاء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7448,12 +7448,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ي ش ة ئ م (إرادة)",
       "choices": [
-        "أصالة",
+        "أمنية",
+        "بريمة",
         "مشيئة",
-        "وشيجة",
-        "تاريخ"
+        "أمسية"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "مشيئة: إرادة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7470,12 +7470,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ف و س ل ف ي (عالم يبحث في فروع الفلسفة)",
       "choices": [
-        "مندوحة",
-        "أطروحة",
-        "أضحوكة",
-        "فيلسوف"
+        "سوفيات",
+        "فيلسوف",
+        "تلافيف",
+        "سراويل"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "فيلسوف: عالم يبحث في فروع الفلسفة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7493,9 +7493,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: س ا أ ط ن ة و (جسم ذو طرفين على هيئة دائرتين متساويتين)",
       "choices": [
         "أسطوانة",
-        "فسيفساء",
-        "سلطانية",
-        "أسطرلاب"
+        "أصطوانة",
+        "استعانة",
+        "انطلاقة"
       ],
       "answer": 0,
       "why": "أسطوانة: جسم ذو طرفين على هيئة دائرتين متساويتين.",
@@ -7514,12 +7514,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ص ء م (غدة ليس لإفرازها منفذ إلى خارج الجسم)",
       "choices": [
-        "أرذل",
-        "لدود",
-        "صماء",
-        "مشوش"
+        "آصرة",
+        "آنام",
+        "أجمة",
+        "صماء"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "صماء: غدة ليس لإفرازها منفذ إلى خارج الجسم.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7536,12 +7536,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: و ع ب ة أ ج (شيء يثير الدهشة)",
       "choices": [
-        "كهرباء",
-        "ديباجة",
-        "قرفصاء",
-        "أعجوبة"
+        "أرجوحة",
+        "أرجوزة",
+        "أعجوبة",
+        "أحبولة"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "أعجوبة: شيء يثير الدهشة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7558,12 +7558,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ت ي ف ن م ي ا (مادة عضوية في الأطعمة ضرورية لإتمام التغذية)",
       "choices": [
-        "محسوس",
         "فيتامين",
-        "سبابة",
-        "زعنفة"
+        "خمانيات",
+        "ديناميك",
+        "قنفذيات"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "فيتامين: مادة عضوية في الأطعمة ضرورية لإتمام التغذية.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7580,12 +7580,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ي ء ق (ما تقذفه المعدة)",
       "choices": [
-        "غنة",
+        "أفق",
+        "ألى",
         "قيء",
-        "غصة",
-        "عضد"
+        "آية"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "قيء: ما تقذفه المعدة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7602,12 +7602,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ض ة ن ه (وثبة في سبيل التقدم الاجتماعي)",
       "choices": [
+        "أرضة",
         "نهضة",
-        "نسخة",
-        "تحية",
-        "كلام"
+        "آنسة",
+        "أبهة"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "نهضة: وثبة في سبيل التقدم الاجتماعي.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7624,12 +7624,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ل ز ة م ن (مكانة ومرتبة)",
       "choices": [
-        "منزلة",
-        "منحنى",
-        "شحناء",
-        "دغدغة"
+        "أزمنة",
+        "أمنية",
+        "أنملة",
+        "منزلة"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "منزلة: مكانة ومرتبة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7646,12 +7646,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ء غ و غ ا (صوت وجلبة)",
       "choices": [
-        "إشعاع",
+        "بوغاز",
+        "رغاوى",
         "غوغاء",
-        "إنفاق",
-        "مجتمع"
+        "أغرود"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "غوغاء: صوت وجلبة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7668,12 +7668,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: إ ا ء ن (وعاء للطعام والشراب)",
       "choices": [
+        "آذار",
         "إناء",
-        "مثوى",
-        "مرجل",
-        "فوطة"
+        "آثار",
+        "آداب"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "إناء: وعاء للطعام والشراب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7691,9 +7691,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: ء ك ف (قادر قوي على تصريف العمل)",
       "choices": [
         "كفء",
-        "لدود",
-        "نيء",
-        "صماء"
+        "آفة",
+        "أفق",
+        "أكل"
       ],
       "answer": 0,
       "why": "كفء: قادر قوي على تصريف العمل.",
@@ -7712,12 +7712,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ط س ل إ ب (حظيرة الخيل)",
       "choices": [
-        "حافظة",
-        "لفافة",
-        "إسطبل",
-        "برميل"
+        "آبنوس",
+        "أبريل",
+        "أسباب",
+        "إسطبل"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "إسطبل: حظيرة الخيل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7734,12 +7734,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ق ة ر ف ع (صوت بين شيئين متضاربين)",
       "choices": [
-        "قائلة",
+        "بردعة",
+        "برذعة",
         "فرقعة",
-        "رمضاء",
-        "دراجة"
+        "أربعة"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "فرقعة: صوت بين شيئين متضاربين.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7756,12 +7756,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: م ق ي إ ل (جزء من الأرض تجمعه صفات طبيعية أو اجتماعية)",
       "choices": [
-        "آبنوس",
-        "ضاحية",
+        "أرقام",
         "إقليم",
-        "أخدود"
+        "أبريل",
+        "أخلاق"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "إقليم: جزء من الأرض تجمعه صفات طبيعية أو اجتماعية.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7778,12 +7778,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ب و ط أ ط خ (حيوان بحري له ثماني أرجل)",
       "choices": [
-        "حبارى",
-        "نملة",
-        "شحرور",
-        "أخطبوط"
+        "أخطبوط",
+        "خطاطيف",
+        "اختطاط",
+        "طوبائي"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "أخطبوط: حيوان بحري له ثماني أرجل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7800,9 +7800,9 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة ل ن م (حشرة تتخذ سكنها تحت الأرض وتعيش متعاونة)",
       "choices": [
-        "حدأة",
-        "شبل",
-        "لبؤة",
+        "آجلة",
+        "آكلة",
+        "آنام",
         "نملة"
       ],
       "answer": 3,
@@ -7822,10 +7822,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ل ف م ة ص (أداة من جزأين يثبت أحدهما في الباب والآخر في عضادته)",
       "choices": [
-        "قصاصة",
-        "إسطبل",
+        "أنملة",
+        "إمالة",
         "مفصلة",
-        "إسفين"
+        "ألفية"
       ],
       "answer": 2,
       "why": "مفصلة: أداة من جزأين يثبت أحدهما في الباب والآخر في عضادته.",
@@ -7844,12 +7844,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ص ص ة ق ا (ما يقص من الورق أو الشعر)",
       "choices": [
+        "أوقية",
         "قصاصة",
-        "منطاد",
-        "قطائف",
-        "أوقية"
+        "أقلية",
+        "ألقية"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "قصاصة: ما يقص من الورق أو الشعر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7866,12 +7866,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ض ف ن ة م (أداة لإزالة الغبار عن البسط)",
       "choices": [
-        "برميل",
         "منفضة",
-        "مطواة",
-        "حافظة"
+        "أزمنة",
+        "أمنية",
+        "أنملة"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "منفضة: أداة لإزالة الغبار عن البسط.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7888,12 +7888,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ي ح ش ة (زيادات وإيضاحات تعلق على كتاب)",
       "choices": [
-        "مصطبة",
-        "حاشية",
-        "مفصلة",
-        "سندرة"
+        "أثفية",
+        "أحاجي",
+        "أحجية",
+        "حاشية"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "حاشية: زيادات وإيضاحات تعلق على كتاب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7910,10 +7910,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ف ء ر ق ا ص (جلوس يضم فيه المرء فخذيه إلى بطنه)",
       "choices": [
-        "طواعية",
-        "مندوحة",
+        "صفارية",
+        "صقريات",
         "قرفصاء",
-        "أغلبية"
+        "تصاريف"
       ],
       "answer": 2,
       "why": "قرفصاء: جلوس يضم فيه المرء فخذيه إلى بطنه.",
@@ -7932,10 +7932,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ب س و آ ن (شجر خشبه أسود صلب)",
       "choices": [
-        "ضاحية",
+        "أذناب",
         "آبنوس",
-        "أخدود",
-        "إقليم"
+        "آبدين",
+        "آنسون"
       ],
       "answer": 1,
       "why": "آبنوس: شجر خشبه أسود صلب.",
@@ -7954,12 +7954,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: آ ة ص ر (صلة قرابة أو مصاهرة)",
       "choices": [
-        "خطاب",
-        "نشرة",
-        "مجلس",
-        "آصرة"
+        "آصرة",
+        "آثار",
+        "آجرة",
+        "آجلة"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "آصرة: صلة قرابة أو مصاهرة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7976,12 +7976,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: آ ة ف (ما يصيب الشيء فيفسده)",
       "choices": [
-        "هوة",
-        "لظى",
-        "آفة",
-        "طلل"
+        "آبد",
+        "آجل",
+        "آخر",
+        "آفة"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "آفة: ما يصيب الشيء فيفسده.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7998,12 +7998,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ح ة أ و د ث (ما يكثر الحديث فيه)",
       "choices": [
-        "كهرباء",
-        "إغفاءة",
-        "صوديوم",
-        "أحدوثة"
+        "أرجوحة",
+        "أصبوحة",
+        "أحدوثة",
+        "أحبولة"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "أحدوثة: ما يكثر الحديث فيه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8020,12 +8020,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: و خ أ د د (شق مستطيل في الأرض)",
       "choices": [
-        "إقليم",
-        "ضاحية",
-        "آبنوس",
-        "أخدود"
+        "إداوة",
+        "أخدود",
+        "أضداد",
+        "أغرود"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "أخدود: شق مستطيل في الأرض.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8042,12 +8042,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ط ب س أ ا ل ر (جهاز قديم لمعرفة الوقت وارتفاعات الأجرام السماوية)",
       "choices": [
-        "سلطانية",
-        "فسيفساء",
-        "أسطرلاب",
-        "أسطوانة"
+        "أسترالي",
+        "استبدال",
+        "استبراك",
+        "أسطرلاب"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "أسطرلاب: جهاز قديم لمعرفة الوقت وارتفاعات الأجرام السماوية.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8064,12 +8064,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ص ة أ ل (ابتكار في الأسلوب)",
       "choices": [
+        "أخلاق",
+        "أراكة",
         "أصالة",
-        "قمامة",
-        "إكليل",
-        "بغضاء"
+        "أثقال"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "أصالة: ابتكار في الأسلوب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8086,12 +8086,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: و ط ر ة ح أ (مسألة للنظر والبحث)",
       "choices": [
+        "أرجوحة",
         "أطروحة",
-        "معاهدة",
-        "مرافعة",
-        "أكذوبة"
+        "أحبولة",
+        "أحدوثة"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "أطروحة: مسألة للنظر والبحث.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8109,9 +8109,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: أ ة ص ص ق و (قصة قصيرة)",
       "choices": [
         "أقصوصة",
-        "إضبارة",
-        "أرجوحة",
-        "ناعورة"
+        "أصبوحة",
+        "أيقونة",
+        "بقلاوة"
       ],
       "answer": 0,
       "why": "أقصوصة: قصة قصيرة.",
@@ -8130,12 +8130,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: أ ذ و ك ة ب (خبر كاذب)",
       "choices": [
-        "عنصرية",
-        "أكذوبة",
+        "أحبولة",
+        "أصبوحة",
         "أضحوكة",
-        "فيلسوف"
+        "أكذوبة"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "أكذوبة: خبر كاذب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8152,12 +8152,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ب ط إ (باطن المنكب)",
       "choices": [
-        "قيء",
-        "إبط",
-        "غصة",
-        "رئة"
+        "آبد",
+        "آجل",
+        "آخر",
+        "إبط"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "إبط: باطن المنكب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8174,12 +8174,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة ت ا و إ (ما يؤخذ كرها)",
       "choices": [
-        "قائلة",
+        "أتعاب",
+        "أراكة",
         "إتاوة",
-        "سباحة",
-        "مشيئة"
+        "أترجة"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "إتاوة: ما يؤخذ كرها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8196,12 +8196,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: إ ا ج ر ة (أجرة على العمل)",
       "choices": [
+        "أجفان",
         "إجارة",
-        "شهادة",
-        "أناقة",
-        "إشكال"
+        "أبزار",
+        "أترجة"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "إجارة: أجرة على العمل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8219,9 +8219,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: إ ص ا ج (شجر حلو الثمر يطلق في الشام على الكمثرى)",
       "choices": [
         "إجاص",
-        "صواب",
-        "حشية",
-        "بشرى"
+        "آثار",
+        "آجرة",
+        "آجلة"
       ],
       "answer": 0,
       "why": "إجاص: شجر حلو الثمر يطلق في الشام على الكمثرى.",
@@ -8240,12 +8240,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: د إ م ا (ما يؤكل مع الخبز)",
       "choices": [
-        "إدام",
-        "قثاء",
-        "ضيعة",
-        "إهاب"
+        "آثار",
+        "آداب",
+        "آذار",
+        "إدام"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "إدام: ما يؤكل مع الخبز.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8262,10 +8262,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ف س ن ي إ (وتد لربط جسم بآخر)",
       "choices": [
-        "قصاصة",
-        "أوقية",
+        "آبنوس",
+        "آنسون",
         "إسفين",
-        "إبزيم"
+        "آبدين"
       ],
       "answer": 2,
       "why": "إسفين: وتد لربط جسم بآخر.",
@@ -8284,10 +8284,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا س ن د إ (ضم كلمة إلى أخرى على وجه يفيد معنى تاما)",
       "choices": [
-        "ميلاد",
+        "آنسون",
         "إسناد",
-        "طاولة",
-        "دراجة"
+        "آبدين",
+        "آبنوس"
       ],
       "answer": 1,
       "why": "إسناد: ضم كلمة إلى أخرى على وجه يفيد معنى تاما.",
@@ -8306,12 +8306,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ك إ ل ش ا (أمر يوجب التباسا في الفهم)",
       "choices": [
-        "كفاءة",
-        "إسناد",
         "إشكال",
-        "مجتمع"
+        "أثقال",
+        "أحكام",
+        "أخلاق"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "إشكال: أمر يوجب التباسا في الفهم.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8328,12 +8328,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة ن ا ع إ (منحة مالية تمنحها الدولة بعض المنشآت)",
       "choices": [
-        "إعانة",
-        "تاريخ",
-        "فضيلة",
-        "إيصال"
+        "أبعاد",
+        "أتعاب",
+        "أجفان",
+        "إعانة"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "إعانة: منحة مالية تمنحها الدولة بعض المنشآت.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8350,12 +8350,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ف ء ا ة إ غ (نومة خفيفة)",
       "choices": [
+        "اغتراف",
+        "اغتفار",
         "إغفاءة",
-        "تسريحة",
-        "أطروحة",
-        "صوديوم"
+        "أفاويه"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "إغفاءة: نومة خفيفة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8372,10 +8372,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ك ل ل ي إ (طاقة زهور على هيئة التاج)",
       "choices": [
-        "إعانة",
+        "أسلاك",
         "إكليل",
-        "إيصال",
-        "منعطف"
+        "أبريل",
+        "أريكة"
       ],
       "answer": 1,
       "why": "إكليل: طاقة زهور على هيئة التاج.",
@@ -8394,12 +8394,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: م إ ر ة ا (جزء من الأرض يحكمه أمير)",
       "choices": [
-        "قنصلية",
         "إمارة",
-        "جمهورية",
-        "سلطنة"
+        "أبزار",
+        "أترجة",
+        "أحكام"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "إمارة: جزء من الأرض يحكمه أمير.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8416,12 +8416,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ء ا ت س ق ا (تتبع الجزئيات للوصول إلى نتيجة كلية)",
       "choices": [
-        "استقراء",
-        "أغلبية",
-        "أحبولة",
-        "محاماة"
+        "سرمقيات",
+        "فقاريات",
+        "قاذورات",
+        "استقراء"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "استقراء: تتبع الجزئيات للوصول إلى نتيجة كلية.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8438,12 +8438,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ؤ ب ؤ ب (إنسان العين)",
       "choices": [
-        "قامة",
-        "جلطة",
-        "ثنية",
-        "بؤبؤ"
+        "بابا",
+        "بابل",
+        "بؤبؤ",
+        "بؤرة"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "بؤبؤ: إنسان العين.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8460,12 +8460,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ض غ ب ء (كراهية شديدة)",
       "choices": [
+        "بغداد",
         "بغضاء",
-        "ميلاد",
-        "دغدغة",
-        "منزلة"
+        "أضغاث",
+        "بضاعة"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "بغضاء: كراهية شديدة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8483,9 +8483,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: م ت ت ة (ما يكمل الشيء)",
       "choices": [
         "تتمة",
-        "نادي",
-        "غلاء",
-        "صدمة"
+        "أجمة",
+        "أزمة",
+        "أكمة"
       ],
       "answer": 0,
       "why": "تتمة: ما يكمل الشيء.",
@@ -8504,12 +8504,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ث ل و ل ؤ (نتوء صغير صلب مستدير يظهر على الجلد)",
       "choices": [
+        "بهلول",
+        "ثالوث",
         "ثؤلول",
-        "حنجرة",
-        "محسوس",
-        "سبابة"
+        "أيلول"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "ثؤلول: نتوء صغير صلب مستدير يظهر على الجلد.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8526,10 +8526,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ث ة ن ي (إحدى الأسنان الأربع في مقدم الفم)",
       "choices": [
-        "زئبق",
+        "أثير",
         "ثنية",
-        "جلطة",
-        "إصبع"
+        "آسية",
+        "آنسة"
       ],
       "answer": 1,
       "why": "ثنية: إحدى الأسنان الأربع في مقدم الفم.",
@@ -8548,12 +8548,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ب ى ح ر ا (طائر رمادي طويل العنق يشبه الإوزة)",
       "choices": [
-        "شحرور",
-        "لبؤة",
-        "أخطبوط",
-        "حبارى"
+        "أبريل",
+        "أبزار",
+        "حبارى",
+        "آبدين"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "حبارى: طائر رمادي طويل العنق يشبه الإوزة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8570,12 +8570,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ح ة د أ (طائر جارح ينقض على الجرذان والأطعمة)",
       "choices": [
-        "لبؤة",
-        "حبارى",
-        "نملة",
-        "حدأة"
+        "آخرة",
+        "حدأة",
+        "آجرة",
+        "آجلة"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "حدأة: طائر جارح ينقض على الجرذان والأطعمة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8592,12 +8592,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ن ح ء (شجر يتخذ من ورقه خضاب أحمر)",
       "choices": [
-        "قدرة",
-        "غلاء",
-        "نجاح",
-        "حناء"
+        "آنسة",
+        "أتان",
+        "حناء",
+        "آنام"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "حناء: شجر يتخذ من ورقه خضاب أحمر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8614,12 +8614,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ق خ ة (قطعة من ثوب ممزق)",
       "choices": [
-        "مقرر",
-        "مخلل",
+        "آصرة",
         "خرقة",
-        "إناء"
+        "آجرة",
+        "آخرة"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "خرقة: قطعة من ثوب ممزق.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8636,12 +8636,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ص خ ة ص ا (فقر وحاجة وسوء حال)",
       "choices": [
-        "ادعاء",
-        "منعطف",
-        "إنشاء",
-        "خصاصة"
+        "خصاصة",
+        "باخرة",
+        "حاصرة",
+        "حصادة"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "خصاصة: فقر وحاجة وسوء حال.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8658,12 +8658,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ل ق خ ة (فطرة)",
       "choices": [
-        "تخمة",
-        "خلقة",
-        "فضلة",
-        "كلية"
+        "آجلة",
+        "آخرة",
+        "آكلة",
+        "خلقة"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "خلقة: فطرة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8680,10 +8680,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: غ ة د غ د (حركة في نحو الإبط يحدث عنها انفعال)",
       "choices": [
-        "شحناء",
-        "أصالة",
+        "حدادة",
+        "حديدة",
         "دغدغة",
-        "أناقة"
+        "بغداد"
       ],
       "answer": 2,
       "why": "دغدغة: حركة في نحو الإبط يحدث عنها انفعال.",
@@ -8702,12 +8702,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ل ف د ى (نبات للزينة زهره كالورد الأحمر)",
       "choices": [
+        "أديم",
         "دفلى",
-        "شعلة",
-        "قدوم",
-        "بريد"
+        "أثيل",
+        "أجدل"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "دفلى: نبات للزينة زهره كالورد الأحمر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8724,12 +8724,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ج ي ة د ب (فاتحة الكتاب)",
       "choices": [
-        "أطروحة",
         "ديباجة",
-        "تسريحة",
-        "أكذوبة"
+        "أسبقية",
+        "أعجوبة",
+        "أغلبية"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "ديباجة: فاتحة الكتاب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8746,12 +8746,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ل ة ي ر ذ (خصلة ذميمة)",
       "choices": [
-        "منعطف",
-        "أحجية",
-        "رذيلة",
-        "إشعاع"
+        "أبريل",
+        "أروية",
+        "أريكة",
+        "رذيلة"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "رذيلة: خصلة ذميمة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8768,12 +8768,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ض م ء ر (أرض أو حجارة اشتدت حرارتها بالشمس)",
       "choices": [
-        "مليون",
-        "ضغينة",
-        "مجنون",
-        "رمضاء"
+        "أطمار",
+        "أمارة",
+        "رمضاء",
+        "أرقام"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "رمضاء: أرض أو حجارة اشتدت حرارتها بالشمس.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8790,12 +8790,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ة ف ز خ (تزيين بالنقش أو التطريز أو التطعيم)",
       "choices": [
-        "فضيلة",
-        "أصالة",
-        "فرقعة",
-        "زخرفة"
+        "بريزة",
+        "زخرفة",
+        "إفريز",
+        "باخرة"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "زخرفة: تزيين بالنقش أو التطريز أو التطعيم.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8812,9 +8812,9 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: س ا ب ة ب (الإصبع بين الإبهام والوسطى)",
       "choices": [
-        "مرارة",
-        "محسوس",
-        "ثؤلول",
+        "آبنوس",
+        "أربعة",
+        "أرنبة",
         "سبابة"
       ],
       "answer": 3,
@@ -8835,9 +8835,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: ر ة س ر ي (ما يكتم ويسر)",
       "choices": [
         "سريرة",
-        "أحجية",
-        "جراحة",
-        "عبارة"
+        "أروية",
+        "أريكة",
+        "أسرية"
       ],
       "answer": 0,
       "why": "سريرة: ما يكتم ويسر.",
@@ -8856,12 +8856,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ي ط ل س ا ة ن (وعاء من الخزف يؤكل فيه)",
       "choices": [
-        "أسطرلاب",
-        "فسيفساء",
-        "سلطانية",
-        "أسطوانة"
+        "أسطوانة",
+        "أنسولين",
+        "انطلاقة",
+        "سلطانية"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "سلطانية: وعاء من الخزف يؤكل فيه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8878,10 +8878,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ن ط ل س ة (مملكة السلطان)",
       "choices": [
-        "جمهورية",
-        "قنصلية",
+        "أندلس",
+        "أنملة",
         "سلطنة",
-        "إمارة"
+        "أسطول"
       ],
       "answer": 2,
       "why": "سلطنة: مملكة السلطان.",
@@ -8900,12 +8900,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة ا ش (واحدة الضأن والمعز)",
       "choices": [
+        "آخر",
         "شاة",
-        "شبل",
-        "نملة",
-        "لبؤة"
+        "آبد",
+        "آجل"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "شاة: واحدة الضأن والمعز.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8922,12 +8922,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ب ل ش (ولد الأسد)",
       "choices": [
-        "لبؤة",
-        "نملة",
         "شبل",
-        "شاة"
+        "آبد",
+        "آجل",
+        "آلة"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "شبل: ولد الأسد.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8944,12 +8944,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ش ر ح ر و (طائر غريد ذكره أسود)",
       "choices": [
-        "شحرور",
-        "حدأة",
-        "حبارى",
-        "أخطبوط"
+        "جارور",
+        "جاروش",
+        "جوارح",
+        "شحرور"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "شحرور: طائر غريد ذكره أسود.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8966,12 +8966,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ء ن ا ش ح (حقد وعداوة وبغضاء)",
       "choices": [
-        "تهنئة",
-        "حفيظة",
-        "إضافة",
-        "شحناء"
+        "جوانح",
+        "حاشية",
+        "شحناء",
+        "برشان"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "شحناء: حقد وعداوة وبغضاء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8988,12 +8988,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: م ش ن د ع ا (منارة يركز عليها الشمع للإضاءة)",
       "choices": [
+        "أنشودة",
         "شمعدان",
-        "ناعورة",
-        "أقصوصة",
-        "إضبارة"
+        "أخدعان",
+        "أقدمون"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "شمعدان: منارة يركز عليها الشمع للإضاءة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9010,12 +9010,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ض ي ة ح (ناحية ظاهرة خارج البلد)",
       "choices": [
-        "آبنوس",
+        "أحاجي",
+        "أحجية",
         "ضاحية",
-        "إقليم",
-        "أخدود"
+        "أثفية"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "ضاحية: ناحية ظاهرة خارج البلد.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9032,12 +9032,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة ض ي ع (أرض مغلة)",
       "choices": [
-        "إهاب",
-        "أجمة",
-        "فحوى",
-        "ضيعة"
+        "أعنة",
+        "ضيعة",
+        "آسية",
+        "أضحى"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "ضيعة: أرض مغلة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9054,9 +9054,9 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ع ة ز (قوة وغلبة)",
       "choices": [
-        "نحو",
-        "قدم",
-        "سجل",
+        "آفة",
+        "آلة",
+        "آهة",
         "عزة"
       ],
       "answer": 3,
@@ -9076,12 +9076,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ه د ة ع (أعيان موكول حفظها إلى مؤتمن مسؤول)",
       "choices": [
+        "أشعة",
         "عهدة",
-        "سبيل",
-        "نظام",
-        "عادة"
+        "أبهة",
+        "أداة"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "عهدة: أعيان موكول حفظها إلى مؤتمن مسؤول.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9098,12 +9098,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة غ ص (ما يعترض في الحلق من طعام أو شراب)",
       "choices": [
-        "غصة",
-        "رئة",
-        "شلل",
-        "غنة"
+        "آفة",
+        "آلة",
+        "آهة",
+        "غصة"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "غصة: ما يعترض في الحلق من طعام أو شراب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9120,10 +9120,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ء ا غ ل (ارتفاع السعر)",
       "choices": [
-        "تخمة",
-        "جذوة",
+        "آكلة",
+        "أثيل",
         "غلاء",
-        "والد"
+        "آجلة"
       ],
       "answer": 2,
       "why": "غلاء: ارتفاع السعر.",
@@ -9142,12 +9142,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ى ف ح و (مضمون القول ومرماه)",
       "choices": [
-        "إهاب",
-        "لؤلؤ",
         "فحوى",
-        "إدام"
+        "أضحى",
+        "أفعى",
+        "أوحد"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "فحوى: مضمون القول ومرماه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9164,12 +9164,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ف ض ة ل (ما يبقى من الشيء)",
       "choices": [
+        "آزفة",
+        "آفكة",
         "فضلة",
-        "أوان",
-        "عجلة",
-        "طابق"
+        "آجلة"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "فضلة: ما يبقى من الشيء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9186,12 +9186,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ف ة ل ذ (قطعة من كبد أو لحم أو ذهب أو فضة)",
       "choices": [
-        "هجعة",
-        "خلقة",
+        "آفكة",
         "فلذة",
-        "دماغ"
+        "آجلة",
+        "آزفة"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "فلذة: قطعة من كبد أو لحم أو ذهب أو فضة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9208,12 +9208,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ث ق ء (نبات يشبه الخيار لكنه أطول)",
       "choices": [
-        "أجمة",
-        "ضيعة",
-        "قثاء",
-        "شظية"
+        "آثار",
+        "أثاث",
+        "أثير",
+        "قثاء"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "قثاء: نبات يشبه الخيار لكنه أطول.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9230,12 +9230,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ئ ف ق ط (رقائق عجين تحشى وتقلى وتحلى بالسكر)",
       "choices": [
-        "ملاءة",
+        "أطراف",
+        "بطاقة",
         "قطائف",
-        "حافظة",
-        "إبزيم"
+        "أطباق"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "قطائف: رقائق عجين تحشى وتقلى وتحلى بالسكر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9252,12 +9252,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ق ي ف ة ط (نسيج صفيق أوبر للثياب والفرش)",
       "choices": [
+        "أقلية",
         "قطيفة",
-        "مطواة",
-        "لفافة",
-        "إبزيم"
+        "أثفية",
+        "أفيكة"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "قطيفة: نسيج صفيق أوبر للثياب والفرش.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9274,9 +9274,9 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: و ة ك (فتحة في الجدار)",
       "choices": [
-        "سكة",
-        "مخلل",
-        "ملء",
+        "آفة",
+        "آلة",
+        "آهة",
         "كوة"
       ],
       "answer": 3,
@@ -9296,12 +9296,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ل ة ب ؤ (أنثى الأسد)",
       "choices": [
-        "شحرور",
+        "آكلة",
+        "أبهة",
         "لبؤة",
-        "نملة",
-        "حدأة"
+        "آجلة"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "لبؤة: أنثى الأسد.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9318,9 +9318,9 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ى و ث م (منزل)",
       "choices": [
-        "إناء",
-        "مرجل",
-        "مخلل",
+        "أثير",
+        "أثيل",
+        "أديم",
         "مثوى"
       ],
       "answer": 3,
@@ -9340,10 +9340,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: و م ح س س (ما تدركه إحدى الحواس الخمس)",
       "choices": [
-        "حنجرة",
-        "نقيصة",
+        "تمساح",
+        "جاسوس",
         "محسوس",
-        "زعنفة"
+        "ترموس"
       ],
       "answer": 2,
       "why": "محسوس: ما تدركه إحدى الحواس الخمس.",
@@ -9362,12 +9362,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: م ر ض م خ (من أدرك عهدين)",
       "choices": [
-        "صماء",
-        "أرذل",
-        "مغشوش",
-        "مخضرم"
+        "خضارة",
+        "مخضرم",
+        "خرامة",
+        "خرطوم"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "مخضرم: من أدرك عهدين.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9384,10 +9384,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ج ل م (جهاز يولد البخار من الماء)",
       "choices": [
-        "خرقة",
-        "غشاء",
+        "آجلة",
+        "أترج",
         "مرجل",
-        "مذود"
+        "آجرة"
       ],
       "answer": 2,
       "why": "مرجل: جهاز يولد البخار من الماء.",
@@ -9406,10 +9406,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ء م ة و (آداب تحمل الإنسان على محاسن الأخلاق وجميل العادات)",
       "choices": [
-        "أناقة",
+        "أمارة",
         "مروءة",
-        "مشيئة",
-        "منحنى"
+        "أرومة",
+        "أروية"
       ],
       "answer": 1,
       "why": "مروءة: آداب تحمل الإنسان على محاسن الأخلاق وجميل العادات.",
@@ -9428,12 +9428,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة م ص ب غ (مكان يتخذ للصباغة)",
       "choices": [
-        "إبزيم",
-        "ملاءة",
-        "مطواة",
-        "مصبغة"
+        "مصبغة",
+        "برعمة",
+        "بريمة",
+        "بزيمة"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "مصبغة: مكان يتخذ للصباغة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9450,12 +9450,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ص ب ة م ط (بناء غير مرتفع يجلس عليه)",
       "choices": [
-        "مؤونة",
-        "مصطبة",
-        "قصاصة",
-        "منفضة"
+        "إصطبل",
+        "باطية",
+        "برعمة",
+        "مصطبة"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "مصطبة: بناء غير مرتفع يجلس عليه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9472,12 +9472,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ض ض م (كراهة وتألم)",
       "choices": [
+        "أرض",
+        "أمة",
         "مضض",
-        "غرب",
-        "ألف",
-        "زلة"
+        "آدم"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "مضض: كراهة وتألم.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9495,9 +9495,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: غ و م ش ش (غير خالص)",
       "choices": [
         "مغشوش",
-        "مخضرم",
-        "مشوش",
-        "أرذل"
+        "خيشوم",
+        "شاويش",
+        "شرشور"
       ],
       "answer": 0,
       "why": "مغشوش: غير خالص.",
@@ -9516,12 +9516,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ل م ء ا ة (ما يفرش على السرير)",
       "choices": [
-        "ملاءة",
-        "حاشية",
-        "برميل",
-        "مصبغة"
+        "أرومة",
+        "أزمنة",
+        "أقلية",
+        "ملاءة"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "ملاءة: ما يفرش على السرير.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9538,12 +9538,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ع ر و ن ة ا (دولاب ذو دلاء يرفع الماء إلى الحقل)",
       "choices": [
-        "أرجوحة",
-        "إضبارة",
         "ناعورة",
-        "شمعدان"
+        "أرجوان",
+        "أرجوحة",
+        "أرجوزة"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "ناعورة: دولاب ذو دلاء يرفع الماء إلى الحقل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9560,12 +9560,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ء ن ي (ما لم ينضج من طعام يحتاج إلى طبخ أو شي)",
       "choices": [
+        "أذن",
+        "ألى",
         "نيء",
-        "كفء",
-        "مشوش",
-        "لدود"
+        "آية"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "نيء: ما لم ينضج من طعام يحتاج إلى طبخ أو شي.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9582,12 +9582,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: و ة ه (حفرة بعيدة القعر)",
       "choices": [
-        "غرة",
-        "هوة",
         "آفة",
-        "طلل"
+        "آلة",
+        "آهة",
+        "هوة"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "هوة: حفرة بعيدة القعر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9604,12 +9604,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: إ ا ق غ ل (وقف رب العمل استغلال المنشأة)",
       "choices": [
+        "أخلاق",
         "إغلاق",
-        "فرقعة",
-        "قائلة",
-        "غوغاء"
+        "أثقال",
+        "أحقاد"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "إغلاق: وقف رب العمل استغلال المنشأة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9626,12 +9626,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ن ص ة ر ع ي (تعصب للجنس)",
       "choices": [
-        "محاماة",
-        "أعجوبة",
-        "عنصرية",
-        "أحدوثة"
+        "ترنيمة",
+        "تسعيرة",
+        "تعريفة",
+        "عنصرية"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "عنصرية: تعصب للجنس.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9648,12 +9648,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ق إ ف ن (بذل المال في وجه من وجوه الخير)",
       "choices": [
-        "كفاءة",
+        "أثقال",
+        "أجفان",
         "إنفاق",
-        "منزلة",
-        "إتاوة"
+        "أثافي"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "إنفاق: بذل المال في وجه من وجوه الخير.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9670,12 +9670,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ة غ (أول الشيء وأكرمه)",
       "choices": [
-        "طلل",
-        "لظى",
+        "آلة",
         "غرة",
-        "هوة"
+        "آخر",
+        "آفة"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "غرة: أول الشيء وأكرمه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9692,12 +9692,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ل ة ف ف (ما يلف على الرجل وغيرها)",
       "choices": [
-        "قنطرة",
         "لفافة",
-        "حافظة",
-        "برميل"
+        "أثفية",
+        "أفواه",
+        "أفيكة"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "لفافة: ما يلف على الرجل وغيرها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9714,12 +9714,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: د و د ل (شديد الخصومة)",
       "choices": [
-        "صماء",
+        "أوحد",
+        "بدلة",
         "لدود",
-        "مشوش",
-        "أرذل"
+        "أجدل"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "لدود: شديد الخصومة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9736,10 +9736,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ع ة و ا ط ي (طاعة)",
       "choices": [
-        "صوديوم",
+        "أعجوبة",
         "طواعية",
-        "معاهدة",
-        "أحدوثة"
+        "أسطورة",
+        "أطروحة"
       ],
       "answer": 1,
       "why": "طواعية: طاعة.",
@@ -9758,12 +9758,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: أ ب و ة ل ح (مصيدة)",
       "choices": [
-        "معاهدة",
-        "أرجوزة",
-        "أحبولة",
-        "ديباجة"
+        "أحدوثة",
+        "أرجوحة",
+        "أصبوحة",
+        "أحبولة"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "أحبولة: مصيدة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9780,12 +9780,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ز ر و أ ة ج (قصيدة من بحر الرجز)",
       "choices": [
-        "تسريحة",
+        "أرجوحة",
+        "أسطورة",
         "أرجوزة",
-        "مهاترة",
-        "طواعية"
+        "أرجوان"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "أرجوزة: قصيدة من بحر الرجز.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9802,12 +9802,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ذ ل ر أ (خسيس رديء)",
       "choices": [
-        "لدود",
-        "صماء",
+        "آجلة",
         "أرذل",
-        "مشوش"
+        "آثار",
+        "آجرة"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "أرذل: خسيس رديء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9824,12 +9824,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: إ ب ه ا (جلد الحيوان قبل الدبغ)",
       "choices": [
-        "إدام",
         "إهاب",
-        "سبخة",
-        "أجمة"
+        "آثار",
+        "آجرة",
+        "آجلة"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "إهاب: جلد الحيوان قبل الدبغ.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9846,12 +9846,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ش ى ب (خبر سار)",
       "choices": [
-        "قطار",
+        "أثير",
+        "أخرى",
         "بشرى",
-        "عربة",
-        "جمعة"
+        "أبهر"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "بشرى: خبر سار.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9868,10 +9868,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ة م ح م ا ا (حرفة الدفاع عن أحد الخصمين في القضاء)",
       "choices": [
-        "تسريحة",
+        "حامولة",
         "محاماة",
-        "طواعية",
-        "عنصرية"
+        "أملوحة",
+        "إضمامة"
       ],
       "answer": 1,
       "why": "محاماة: حرفة الدفاع عن أحد الخصمين في القضاء.",
@@ -9890,12 +9890,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: أ ة ن ا ق (حسن يثير الإعجاب)",
       "choices": [
-        "ميلاد",
         "أناقة",
-        "مجنون",
-        "دغدغة"
+        "أثقال",
+        "أجفان",
+        "أحقاد"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "أناقة: حسن يثير الإعجاب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9912,12 +9912,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ت ة ئ ن ه (مخاطبة المرء راجيا سروره بأمر)",
       "choices": [
-        "وشيجة",
-        "سريرة",
-        "تهنئة",
-        "إتاوة"
+        "بستنة",
+        "تقنية",
+        "تنجرة",
+        "تهنئة"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "تهنئة: مخاطبة المرء راجيا سروره بأمر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9934,12 +9934,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ط و أ ة (ضغطة وأخذة شديدة)",
       "choices": [
-        "حديث",
-        "فرقة",
+        "آخرة",
         "وطأة",
-        "نقطة"
+        "آجرة",
+        "آجلة"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "وطأة: ضغطة وأخذة شديدة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9956,12 +9956,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ظ ة ي ش (قطعة تتناثر من جسم صلب)",
       "choices": [
-        "سبخة",
         "شظية",
-        "أجمة",
-        "ضيعة"
+        "آسية",
+        "أشعة",
+        "ألية"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "شظية: قطعة تتناثر من جسم صلب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9978,9 +9978,9 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ص ن ي ل ق ة (مقر القنصل)",
       "choices": [
-        "إمارة",
-        "سلطنة",
-        "جمهورية",
+        "أنقليس",
+        "أيقونة",
+        "بندقية",
         "قنصلية"
       ],
       "answer": 3,
@@ -10000,12 +10000,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ل ش ف (إخفاق في العمل)",
       "choices": [
-        "ألف",
-        "ملف",
         "فشل",
-        "سجل"
+        "آجل",
+        "آفة",
+        "أثل"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "فشل: إخفاق في العمل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10022,12 +10022,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: م ع ظ أ (فخم الشيء وكبره)",
       "choices": [
-        "ألجأ",
+        "أجمة",
+        "أخمص",
         "أعظم",
-        "أعطى",
-        "أكرم"
+        "آنام"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "أعظم: فخم الشيء وكبره.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10044,10 +10044,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر خ أ ج (أبرز الشيء)",
       "choices": [
-        "أغلظ",
+        "آجلة",
         "أخرج",
-        "أعطى",
-        "أشعل"
+        "آثار",
+        "آجرة"
       ],
       "answer": 1,
       "why": "أخرج: أبرز الشيء.",
@@ -10066,12 +10066,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ء ا ج (أتى إلى مكان)",
       "choices": [
-        "حكى",
         "جاء",
-        "غطس",
-        "رمى"
+        "آبد",
+        "آجل",
+        "آخر"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "جاء: أتى إلى مكان.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10088,12 +10088,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: غ ل ق أ (أوثق الباب بالقفل)",
       "choices": [
-        "أخطأ",
-        "أغلظ",
-        "أغلق",
-        "أعطى"
+        "آجلة",
+        "آكلة",
+        "أثيل",
+        "أغلق"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "أغلق: أوثق الباب بالقفل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10110,12 +10110,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: د د ج (صير الشيء جديدا)",
       "choices": [
+        "آجل",
+        "آدم",
         "جدد",
-        "عاد",
-        "بنى",
-        "نام"
+        "آبد"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "جدد: صير الشيء جديدا.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10132,12 +10132,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ت س غ ق ا ر (استوعب الشيء)",
       "choices": [
-        "استذكر",
-        "استلقى",
-        "استصدر",
-        "استغرق"
+        "برتقال",
+        "استغرق",
+        "إسقمري",
+        "برتغال"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "استغرق: استوعب الشيء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10154,12 +10154,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: د د ح (عين ثمن سلعة)",
       "choices": [
-        "بنى",
-        "نهى",
         "حدد",
-        "خبث"
+        "آبد",
+        "آدم",
+        "أحد"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "حدد: عين ثمن سلعة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10176,12 +10176,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ع ش ل أ (أوقد النار)",
       "choices": [
-        "أعظم",
-        "أشعل",
-        "أغلظ",
-        "أحدث"
+        "آجلة",
+        "آكلة",
+        "أثيل",
+        "أشعل"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "أشعل: أوقد النار.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10198,12 +10198,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: أ خ أ ط (لم يصب الهدف)",
       "choices": [
-        "أغلظ",
+        "آخرة",
+        "آداب",
         "أخطأ",
-        "أكرم",
-        "أحدث"
+        "آثار"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "أخطأ: لم يصب الهدف.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10220,12 +10220,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ف ى خ أ (ستر الشيء وكتمه)",
       "choices": [
-        "أصغى",
-        "أخرج",
+        "آسيا",
         "أخفى",
-        "ألجأ"
+        "آخرة",
+        "آزفة"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "أخفى: ستر الشيء وكتمه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10242,12 +10242,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ط غ س (انغمس في الماء)",
       "choices": [
-        "كرر",
-        "بكى",
-        "رمى",
-        "غطس"
+        "غطس",
+        "أسد",
+        "أسس",
+        "أسل"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "غطس: انغمس في الماء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10264,12 +10264,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ر ر ك (أعاد الشيء مرة بعد أخرى)",
       "choices": [
-        "وقف",
+        "أثر",
+        "أجر",
         "كرر",
-        "عدا",
-        "عاد"
+        "آخر"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "كرر: أعاد الشيء مرة بعد أخرى.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10286,12 +10286,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ف ح أ م (أسكت الخصم بالحجة)",
       "choices": [
-        "أغلظ",
-        "أصغى",
+        "آنام",
         "أفحم",
-        "أخفى"
+        "آزفة",
+        "آفكة"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "أفحم: أسكت الخصم بالحجة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10308,12 +10308,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ع م أ ف (ملأ الإناء وأتم ملأه)",
       "choices": [
-        "أخرج",
-        "أشعل",
-        "أضاء",
-        "أفعم"
+        "أفعم",
+        "آزفة",
+        "آفكة",
+        "آنام"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "أفعم: ملأ الإناء وأتم ملأه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10330,12 +10330,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ج أ أ ل (اضطر شخصا إلى أمر)",
       "choices": [
-        "ألجأ",
-        "أعظم",
-        "أفعم",
-        "أغلق"
+        "آثار",
+        "آجرة",
+        "آجلة",
+        "ألجأ"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "ألجأ: اضطر شخصا إلى أمر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10352,10 +10352,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا س ج ر ت ع (استرد الشيء)",
       "choices": [
-        "استغرق",
-        "استشعر",
+        "تجاعيد",
+        "ترجمان",
         "استرجع",
-        "استذكر"
+        "بجعيات"
       ],
       "answer": 2,
       "why": "استرجع: استرد الشيء.",
@@ -10374,10 +10374,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: غ ظ ل أ (اشتد على غيره في القول)",
       "choices": [
-        "أخفى",
+        "أثيل",
         "أغلظ",
-        "أرسل",
-        "أفحم"
+        "آجلة",
+        "آكلة"
       ],
       "answer": 1,
       "why": "أغلظ: اشتد على غيره في القول.",
@@ -10397,9 +10397,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: م د ح ز ا (زحم القوم بعضهم بعضا)",
       "choices": [
         "ازدحم",
-        "استظل",
-        "اضطجع",
-        "اجتمع"
+        "أحداث",
+        "أحقاد",
+        "أحكام"
       ],
       "answer": 0,
       "why": "ازدحم: زحم القوم بعضهم بعضا.",
@@ -10418,12 +10418,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ش س ب ا ت ع (عد الشيء بشعا)",
       "choices": [
-        "استشكل",
-        "استذكر",
-        "استبشع",
-        "استقصى"
+        "بجعيات",
+        "تباشير",
+        "سابحات",
+        "استبشع"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "استبشع: عد الشيء بشعا.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10440,12 +10440,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ت س ا ذ ر ك (درس كتابا للحفظ)",
       "choices": [
-        "استغرق",
-        "استرشد",
-        "استزاد",
-        "استذكر"
+        "ترسانة",
+        "تضاريس",
+        "استذكر",
+        "أكتوبر"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "استذكر: درس كتابا للحفظ.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10462,12 +10462,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: س د ا ت ر ش (طلب من غيره أن يرشده)",
       "choices": [
+        "تضاريس",
         "استرشد",
-        "استلقى",
-        "استطلع",
-        "استعجب"
+        "تباشير",
+        "ترسانة"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "استرشد: طلب من غيره أن يرشده.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10485,9 +10485,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: ت ا س ز د ا (طلب من غيره زيادة)",
       "choices": [
         "استزاد",
-        "استصغر",
-        "استبشع",
-        "استشكل"
+        "رأسيات",
+        "رامسات",
+        "زحافات"
       ],
       "answer": 0,
       "why": "استزاد: طلب من غيره زيادة.",
@@ -10506,12 +10506,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ع س ر ش ا ت (أحس بالخوف)",
       "choices": [
-        "استشعر",
-        "استشكل",
-        "استزاد",
-        "استقصى"
+        "تباشير",
+        "ترسانة",
+        "تسعيرة",
+        "استشعر"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "استشعر: أحس بالخوف.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10528,10 +10528,10 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ش ل ت ك س ا (التبس الأمر)",
       "choices": [
-        "استعجب",
-        "استزاد",
+        "كشتبان",
+        "كلبيات",
         "استشكل",
-        "استلقى"
+        "تلسكوب"
       ],
       "answer": 2,
       "why": "استشكل: التبس الأمر.",
@@ -10550,12 +10550,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: س ص د ت ر ا (طلب إصدار أمر)",
       "choices": [
+        "تصاوير",
         "استصدر",
-        "استرشد",
-        "استطلع",
-        "استعجب"
+        "ترسانة",
+        "تصاريف"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "استصدر: طلب إصدار أمر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10573,9 +10573,9 @@ KZV.register({
       "q": "رتّب الحروف لتكوّن كلمة: غ س ص ت ا ر (عد الشيء صغيرا)",
       "choices": [
         "استصغر",
-        "استشعر",
-        "استعجب",
-        "استرجع"
+        "برتغال",
+        "ترسانة",
+        "تصاريف"
       ],
       "answer": 0,
       "why": "استصغر: عد الشيء صغيرا.",
@@ -10594,9 +10594,9 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: س ا ل ط ع ت (نظر في رأي غيره ليعرفه)",
       "choices": [
-        "استرجع",
-        "استزاد",
-        "استعجب",
+        "بلطيات",
+        "تقاطيع",
+        "سلطانة",
         "استطلع"
       ],
       "answer": 3,
@@ -10616,12 +10616,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ل س ت ظ (قعد في الظل)",
       "choices": [
+        "أسطول",
+        "أسلاك",
         "استظل",
-        "اشمأز",
-        "تراءى",
-        "اكتفى"
+        "أستاذ"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "استظل: قعد في الظل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10638,12 +10638,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ا ع س ب ج ت (اشتد تعجبه)",
       "choices": [
-        "استشكل",
-        "استزاد",
+        "تجاعيد",
         "استعجب",
-        "استلقى"
+        "أعجوبة",
+        "بجعيات"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "استعجب: اشتد تعجبه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10660,12 +10660,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: س ل ا ت غ ق (عسر فهم المسألة)",
       "choices": [
-        "استرجع",
         "استغلق",
-        "استذكر",
-        "استزاد"
+        "أنقليس",
+        "برتغال",
+        "برتقال"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "استغلق: عسر فهم المسألة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10682,9 +10682,9 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ى ق ص ت س ا (بلغ الغاية في البحث عن أمر)",
       "choices": [
-        "استصدر",
-        "استشكل",
-        "استلقى",
+        "أسبقية",
+        "أنقليس",
+        "إسقمري",
         "استقصى"
       ],
       "answer": 3,
@@ -10704,12 +10704,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ل ق ى س ت ا (نام على ظهره)",
       "choices": [
-        "استقصى",
+        "أنقليس",
+        "إسقمري",
         "استلقى",
-        "استصدر",
-        "استغرق"
+        "أسبقية"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "استلقى: نام على ظهره.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10726,12 +10726,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: أ ش م ز ا (نفر من الأمر كراهة)",
       "choices": [
-        "اقترح",
-        "اجتمع",
+        "أرقام",
         "اشمأز",
-        "ازدحم"
+        "أبزار",
+        "أحكام"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "اشمأز: نفر من الأمر كراهة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10748,12 +10748,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ك ط ا ص (ضرب شيئان أحدهما الآخر)",
       "choices": [
-        "اضطجع",
         "اصطك",
-        "تراءى",
-        "اكتفى"
+        "آصرة",
+        "آفكة",
+        "آكلة"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "اصطك: ضرب شيئان أحدهما الآخر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10770,12 +10770,12 @@ KZV.register({
       "fmt": "scramble",
       "q": "رتّب الحروف لتكوّن كلمة: ج ا ط ض ع (وضع جنبه على الأرض)",
       "choices": [
-        "ارتفع",
-        "اضطجع",
-        "انطلق",
-        "استظل"
+        "بضاعة",
+        "جامعة",
+        "جعابة",
+        "اضطجع"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "اضطجع: وضع جنبه على الأرض.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",

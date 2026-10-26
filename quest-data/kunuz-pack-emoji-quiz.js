@@ -76,26 +76,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "استدل من آلة الطباعة والكتب؛ أي مخترع هو المقصود؟",
+      "q": "الأرقام والمعادلات تذكّر بكتاب «الجبر والمقابلة»؛ من عالم الرياضيات المقصود؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🖨️📚",
+        "seq": "🔢➗📐",
         "basis": [
-          "طباعة",
-          "كتب"
+          "أرقام",
+          "معادلات",
+          "هندسة"
         ]
       },
       "choices": [
-        "يوهان غوتنبرغ",
-        "جيمس وات",
-        "ألكسندر غراهام بل",
-        "جورج ستيفنسون"
+        "محمد بن موسى الخوارزمي",
+        "الحسن بن الهيثم",
+        "أبو الريحان البيروني",
+        "يعقوب بن إسحاق الكندي"
       ],
       "answer": 0,
-      "why": "ترمز آلة الطباعة والكتب إلى غوتنبرغ المرتبط بتطوير تقنيات طباعة الكتب.",
+      "why": "ألّف الخوارزمي كتاباً في الجبر أسهم عنوانه في شيوع اسم هذا العلم.",
       "src": [
-        "Library of Congress — Gutenberg and printing — https://www.loc.gov/exhibits/bibles/the-gutenberg-bible.html",
-        "Gutenberg Museum Mainz — Historic printing press — https://mainz.de/en/microsite/gutenberg-museum/Programm/regelmaessige_termine"
+        "MacTutor History of Mathematics — Al-Khwarizmi — https://mathshistory.st-andrews.ac.uk/Biographies/Al-Khwarizmi/"
       ],
       "level": 2,
       "status": "approved",
@@ -106,26 +106,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "لمن تشير صورتا الهاتف بين المخترعين الآتين؟",
+      "q": "أي طبيب مسلم ألّف «القانون في الطب»، الموسوعة الطبية ذات الكتب الخمسة؟",
       "vis": {
         "kind": "emoji",
-        "seq": "☎️📞",
+        "seq": "📖🩺💊",
         "basis": [
-          "هاتف",
-          "سماعة هاتف"
+          "كتاب طبي",
+          "طب",
+          "دواء"
         ]
       },
       "choices": [
-        "ألكسندر غراهام بل",
-        "جيمس وات",
-        "يوهان غوتنبرغ",
-        "جورج ستيفنسون"
+        "أبو بكر الرازي",
+        "أبو القاسم الزهراوي",
+        "ابن النفيس",
+        "ابن سينا"
       ],
-      "answer": 0,
-      "why": "يرتبط ألكسندر غراهام بل بتطوير الهاتف وتجارب نقل الكلام كهربائيا.",
+      "answer": 3,
+      "why": "ألّف ابن سينا «القانون في الطب»، وظل مرجعاً طبياً مؤثراً قروناً.",
       "src": [
-        "Library of Congress — Bell as Inventor and Scientist — https://www.loc.gov/static/collections/alexander-graham-bell-papers/articles-and-essays/inventor-and-scientist/",
-        "Parks Canada — Bell Homestead — https://parks.canada.ca/culture/designation/lieu-site/maison-bell-homestead"
+        "Library of Congress — The Canon of Medicine — https://www.loc.gov/resource/gdcwdl.wdl_15436/"
       ],
       "level": 1,
       "status": "approved",
@@ -136,26 +136,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "اربط المقراب بالقمر؛ أي عالم من هؤلاء تمثله الرموز؟",
+      "q": "العين والضوء وتجربة الثقب الصغير تقود إلى صاحب «كتاب المناظر»؛ من هو؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🔭🌙",
+        "seq": "👁️💡📷",
         "basis": [
-          "مقراب",
-          "قمر"
+          "عين",
+          "ضوء",
+          "ثقب تصوير"
         ]
       },
       "choices": [
-        "يوهان غوتنبرغ",
-        "جابر بن حيان",
-        "غاليليو غاليلي",
-        "ألكسندر غراهام بل"
+        "يعقوب بن إسحاق الكندي",
+        "عمر الخيام",
+        "الحسن بن الهيثم",
+        "أبو الريحان البيروني"
       ],
       "answer": 2,
-      "why": "يشير المقراب والقمر إلى أعمال غاليليو في الرصد الفلكي بالمقاريب.",
+      "why": "بحث ابن الهيثم الضوء والرؤية وشرح مبدأ الحجرة ذات الثقب في أعماله البصرية.",
       "src": [
-        "NASA — Galileo’s Observations — https://science.nasa.gov/solar-system/galileos-observations-of-the-moon-jupiter-venus-and-the-sun/",
-        "Museo Galileo — Galileo’s New World — https://catalogue.museogalileo.it/room/RoomVIIBis.html"
+        "Journal of Medical Biography — Ibn Al-Haytham: Father of Modern Optics — https://pmc.ncbi.nlm.nih.gov/articles/PMC6074172/"
       ],
       "level": 2,
       "status": "approved",
@@ -166,26 +166,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "ما اسم المعجنات التي تمثلها الرموز مع المشروب الساخن؟",
+      "q": "أي طبيب مسلم كتب رسالة تميّز بين الجدري والحصبة؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🥐☕",
+        "seq": "🌡️🩺🔬",
         "basis": [
-          "معجنات هلالية",
-          "مشروب ساخن"
+          "حمى",
+          "طب",
+          "فحص"
         ]
       },
       "choices": [
-        "كرواسون",
-        "خبز باغيت",
-        "خبز بيغل",
-        "بريتزل"
+        "ابن زهر",
+        "أبو بكر الرازي",
+        "أبو القاسم الزهراوي",
+        "ابن النفيس"
       ],
-      "answer": 0,
-      "why": "شكل العجين الهلالي المورق يمثل الكرواسون، ويظهر معه مشروب ساخن.",
+      "answer": 1,
+      "why": "ألّف الرازي رسالة طبية وصف فيها الجدري والحصبة وميّز بين المرضين.",
       "src": [
-        "Merriam-Webster — Croissant — https://www.merriam-webster.com/dictionary/croissant",
-        "King Arthur Test Kitchen — Baker’s Croissants — https://www.kingarthurbaking.com/recipes/bakers-croissants-recipe"
+        "Wellcome Collection — A Treatise on the Small-pox and Measles — https://wellcomecollection.org/works/g87eufac"
       ],
       "level": 1,
       "status": "approved",
@@ -196,26 +196,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "شاهد رمزي الخبز؛ ما اسم الرغيف الطويل الظاهر؟",
+      "q": "فكّ الشفرات بتحليل تكرار الحروف؛ أي فيلسوف وعالم مسلم ارتبط بهذا الأسلوب؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🥖🍞",
+        "seq": "🔐🔡📊",
         "basis": [
-          "رغيف طويل",
-          "خبز"
+          "قفل",
+          "حروف",
+          "تحليل"
         ]
       },
       "choices": [
-        "خبز بيغل",
-        "خبز باغيت",
-        "بريتزل",
-        "فطائر بانكيك"
+        "يعقوب بن إسحاق الكندي",
+        "أبو نصر الفارابي",
+        "ابن رشد",
+        "أبو حامد الغزالي"
       ],
-      "answer": 1,
-      "why": "الباغيت رغيف خبز طويل ونحيل، وهو ما يظهر بجانب رمز الخبز العام.",
+      "answer": 0,
+      "why": "تنسب أقدم رسالة معروفة في علم التعمية إلى الكندي، وفيها تحليل لتواتر الحروف.",
       "src": [
-        "Merriam-Webster — Baguette — https://www.merriam-webster.com/dictionary/baguette",
-        "King Arthur Test Kitchen — Classic Baguettes — https://www.kingarthurbaking.com/recipes/classic-baguettes-recipe"
+        "Cryptologia — Origins of Cryptology: The Arab Contributions — https://www.tandfonline.com/doi/abs/10.1080/0161-119291866801"
       ],
       "level": 1,
       "status": "approved",
@@ -226,26 +226,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "أي مخبوز يجمع شكلا معقودا ورمز الملح هنا؟",
+      "q": "أي عالم مسلم درس الهند وكتب عنها، واشتهر أيضاً بأعماله الفلكية؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🥨🧂",
+        "seq": "🌍📚🔭",
         "basis": [
-          "عجين معقود",
-          "ملح"
+          "أرض",
+          "كتاب",
+          "رصد"
         ]
       },
       "choices": [
-        "خبز باغيت",
-        "بريتزل",
-        "كرواسون",
-        "خبز بيغل"
+        "عمر الخيام",
+        "نصير الدين الطوسي",
+        "أحمد الفرغاني",
+        "أبو الريحان البيروني"
       ],
-      "answer": 1,
-      "why": "البريتزل مخبوز معقود الشكل يضاف إليه الملح عادة.",
+      "answer": 3,
+      "why": "رافق البيروني رحلات إلى الهند وكتب دراسة واسعة عن ثقافتها وعلومها.",
       "src": [
-        "Merriam-Webster — Pretzel — https://www.merriam-webster.com/dictionary/pretzel",
-        "King Arthur Test Kitchen — Soft Pretzels — https://www.kingarthurbaking.com/recipes/hot-buttered-soft-pretzels-recipe"
+        "Biruni University — Who is Biruni? — https://www.biruni.edu.tr/en/university/who-is-biruni"
       ],
       "level": 2,
       "status": "approved",
@@ -256,26 +256,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "انظر إلى الرغيف الحلقي مع الخبز؛ أي اسم يطابقه؟",
+      "q": "أي فيلسوف مسلم ألّف «كتاب الموسيقى الكبير»؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🥯🍞",
+        "seq": "🎼📚🎻",
         "basis": [
-          "خبز حلقي",
-          "خبز"
+          "موسيقى",
+          "كتاب",
+          "آلة وترية"
         ]
       },
       "choices": [
-        "كرواسون",
-        "خبز باغيت",
-        "خبز بيغل",
-        "فطائر بانكيك"
+        "أبو حامد الغزالي",
+        "ابن طفيل",
+        "أبو نصر الفارابي",
+        "ابن رشد"
       ],
       "answer": 2,
-      "why": "البيغل خبز على هيئة حلقة ذات فتحة في الوسط.",
+      "why": "ألّف الفارابي كتاباً موسعاً في نظرية الموسيقى وفلسفتها.",
       "src": [
-        "Merriam-Webster — Bagel — https://www.merriam-webster.com/dictionary/bagel",
-        "King Arthur Test Kitchen — Bagels — https://www.kingarthurbaking.com/recipes/bagels-recipe"
+        "Stanford Encyclopedia of Philosophy — al-Farabi — https://plato.stanford.edu/entries/al-farabi/"
       ],
       "level": 2,
       "status": "approved",
@@ -286,26 +286,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "ترمز المعكرونة والطماطم إلى أي طبق من هذه الأطباق؟",
+      "q": "اشتهر بشرح مؤلفات أرسطو حتى لُقّب في أوروبا بالمعلّق الأكبر؛ من الفيلسوف الأندلسي؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍝🍅",
+        "seq": "📚🏛️⚖️",
         "basis": [
-          "معكرونة طويلة",
-          "طماطم"
+          "كتب",
+          "فلسفة",
+          "قضاء"
         ]
       },
       "choices": [
-        "حساء العدس",
-        "لازانيا بالخضراوات",
-        "سباغيتي بالطماطم",
-        "أرز بالكاري"
+        "ابن مسكويه",
+        "ابن رشد",
+        "أبو حامد الغزالي",
+        "ابن طفيل"
       ],
-      "answer": 2,
-      "why": "السباغيتي معكرونة طويلة رفيعة، والطماطم تشير إلى الصلصة المصاحبة.",
+      "answer": 1,
+      "why": "كتب ابن رشد شروحاً كثيرة لأرسطو وكان لها أثر واسع في التراثين اللاتيني والعبري.",
       "src": [
-        "Merriam-Webster — Spaghetti — https://www.merriam-webster.com/dictionary/spaghetti",
-        "La Cucina Italiana — Spaghetti with Tomato Sauce — https://www.lacucinaitaliana.com/recipe/pasta/spaghetti-with-tomato-sauce"
+        "Oxford Bibliographies — Ibn Rushd (Averroës) — https://academic.oup.com/reference/62361/reference-article-abstract/554578553"
       ],
       "level": 1,
       "status": "approved",
@@ -316,26 +316,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "حدد الطعام المرسوم مع العسل؛ ما اسمه؟",
+      "q": "أي مؤرخ وضع «المقدمة» ضمن مشروعه في كتاب العبر ودرس أحوال العمران؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🥞🍯",
+        "seq": "🏛️📜📈",
         "basis": [
-          "فطائر مسطحة",
-          "عسل"
+          "مجتمع",
+          "مخطوط",
+          "أنماط"
         ]
       },
       "choices": [
-        "بريتزل",
-        "خبز باغيت",
-        "خبز بيغل",
-        "فطائر بانكيك"
+        "ابن خلدون",
+        "المسعودي",
+        "الطبري",
+        "المقريزي"
       ],
-      "answer": 3,
-      "why": "الفطائر المسطحة المتراكبة هي البانكيك، ويجاورها رمز العسل.",
+      "answer": 0,
+      "why": "مقدمة ابن خلدون مدخل لكتابه التاريخي وتعرض تحليلاً للمجتمع والتاريخ.",
       "src": [
-        "Merriam-Webster — Pancake — https://www.merriam-webster.com/dictionary/pancake",
-        "King Arthur Test Kitchen — Simply Perfect Pancakes — https://www.kingarthurbaking.com/recipes/simply-perfect-pancakes-recipe"
+        "Edinburgh University Press via Oxford Academic — Ibn Khaldun: Life and Times — https://academic.oup.com/edinburgh-scholarship-online/book/22768"
       ],
       "level": 1,
       "status": "approved",
@@ -346,26 +346,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "إلى أي جبل معروف تشير القمة البيضاء مع البركان؟",
+      "q": "أي رحالة مغربي دوّن «الرحلة» بعد أسفار امتدت قرابة ثلاثين عاماً؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🗻🌋",
+        "seq": "🧳🗺️🧭",
         "basis": [
-          "جبل ذو قمة بيضاء",
-          "بركان"
+          "أمتعة",
+          "خريطة",
+          "اتجاه"
         ]
       },
       "choices": [
-        "جبل كليمنجارو",
-        "جبل فوجي",
-        "جبل إتنا",
-        "جبل فيزوف"
+        "أحمد بن فضلان",
+        "ابن جبير",
+        "المسعودي",
+        "ابن بطوطة"
       ],
-      "answer": 1,
-      "why": "يمثل الرمز ذو القمة البيضاء جبل فوجي، وهو جبل بركاني في اليابان.",
+      "answer": 3,
+      "why": "دوّن ابن بطوطة مشاهداته في كتاب الرحلة بعد تنقله الواسع في آسيا وأفريقيا وأوروبا.",
       "src": [
-        "UNESCO — Fujisan — https://whc.unesco.org/en/list/1418/",
-        "Japan National Tourism Organization — Mt. Fuji — https://www.japan.travel/en/spot/1308/"
+        "Library of Congress — Ibn Battuta’s Rihla — https://www.loc.gov/resource/gdcwdl.wdl_07470/"
       ],
       "level": 2,
       "status": "approved",
@@ -376,26 +376,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "أي برج تمثله صورة البرج مع إشارة الاتصالات؟",
+      "q": "أي عالم وشاعر وضع طريقة هندسية لحل بعض المعادلات التكعيبية وأسهم في إصلاح التقويم؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🗼📡",
+        "seq": "📐🔢🌌",
         "basis": [
-          "برج اتصالات",
-          "إرسال"
+          "هندسة",
+          "أرقام",
+          "سماء"
         ]
       },
       "choices": [
-        "برج طوكيو",
-        "برج إيفل",
-        "برج خليفة",
-        "برج بيزا"
+        "أحمد الفرغاني",
+        "محمد البتاني",
+        "عمر الخيام",
+        "نصير الدين الطوسي"
       ],
-      "answer": 0,
-      "why": "يظهر برج طوكيو بلونه البرتقالي والأبيض؛ ويرتبط رمزه بدوره في الاتصالات.",
+      "answer": 2,
+      "why": "جمع الخيام بين الرياضيات والفلك والشعر وأسهم في إصلاح التقويم الجلالي.",
       "src": [
-        "Japan National Tourism Organization — Tokyo Tower — https://www.japan.travel/en/spot/1709/",
-        "All-Japan Towers Federation — Tokyo Tower — https://www.japantowers.jp/en/tokyo_tower/"
+        "MacTutor History of Mathematics — Omar Khayyam — https://mathshistory.st-andrews.ac.uk/Biographies/Khayyam/"
       ],
       "level": 2,
       "status": "approved",
@@ -406,26 +406,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "تفاحة وشجرة تستحضران قصة علمية شهيرة؛ أي عالم ترتبط به؟",
+      "q": "أي فلكي ترأس المرصد الشهير في مراغة وكتب في الرياضيات والفلك؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍎🌳",
+        "seq": "🔭🪐🏛️",
         "basis": [
-          "تفاحة",
-          "شجرة"
+          "مرصد",
+          "كوكب",
+          "مبنى"
         ]
       },
       "choices": [
-        "روبرت بويل",
-        "ألساندرو فولتا",
-        "بليز باسكال",
-        "إسحاق نيوتن"
+        "ابن يونس",
+        "نصير الدين الطوسي",
+        "أحمد الفرغاني",
+        "محمد البتاني"
       ],
-      "answer": 3,
-      "why": "تروي المخطوطة المحفوظة قصة تأمل نيوتن سقوط تفاحة من شجرة وربطه بمسألة الجاذبية.",
+      "answer": 1,
+      "why": "قاد الطوسي عمل مرصد مراغة وجمع فيه فلكيين وكتب مؤلفات في الفلك والرياضيات.",
       "src": [
-        "Royal Society — Newton and the apple story — https://royalsociety.org/news/2010/apple-tree-gravity/",
-        "University of York — History of Newton's apple tree — https://www.york.ac.uk/media/physics-engineering-technology/about/newton-apple-tree/The%20history%20of%20Newtons%20apple%20tree%20by%20Richard%20G%20Keesing.pdf"
+        "Cambridge University Press — The Observatory in Maragha — https://www.cambridge.org/core/books/abs/astronomy-and-astrology-in-the-islamic-world/observatory-in-maragha/06B9C503746F498F59D0DD929A76CFDA"
       ],
       "level": 1,
       "status": "approved",
@@ -436,26 +436,26 @@ KZV.register({
       "cat": "inventions",
       "type": "mcq",
       "fmt": "text",
-      "q": "قاطرة وسكة حديد تقودان إلى رائد في تطوير السكك الحديدية؛ من هو؟",
+      "q": "أي طبيب أندلسي وضع موسوعة «التصريف» واشتهر بكتابه في الجراحة؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🚂🛤️",
+        "seq": "🩺✂️🛠️",
         "basis": [
-          "قاطرة بخارية",
-          "سكة حديد"
+          "طب",
+          "جراحة",
+          "أدوات"
         ]
       },
       "choices": [
-        "ألساندرو فولتا",
-        "جورج ستيفنسون",
-        "يوهان غوتنبرغ",
-        "ألكسندر غراهام بل"
+        "أبو القاسم الزهراوي",
+        "ابن النفيس",
+        "ابن زهر",
+        "ابن البيطار"
       ],
-      "answer": 1,
-      "why": "اشتهر ستيفنسون بتطوير القاطرات والعمل في إنشاء خطوط السكك الحديدية.",
+      "answer": 0,
+      "why": "ضمّ «التصريف» ثلاثين مقالة طبية، وكان إسهام الزهراوي بارزاً في الجراحة.",
       "src": [
-        "Science Museum Group — George Stephenson — https://collection.sciencemuseumgroup.org.uk/people/ap43/stephenson-george",
-        "Institution of Mechanical Engineers — George Stephenson — https://archives.imeche.org/archive/railways/stephenson/593808-1847-1848-george-stephenson"
+        "PubMed — Abu Al-Qasim Al-Zahrawi, Icon of Medieval Surgery — https://pubmed.ncbi.nlm.nih.gov/32736026/"
       ],
       "level": 2,
       "status": "approved",
@@ -466,26 +466,26 @@ KZV.register({
       "cat": "inventions",
       "type": "mcq",
       "fmt": "text",
-      "q": "بطارية وكهرباء تستحضران صاحب الكومة الكهربائية؛ أي عالم هو؟",
+      "q": "أي طبيب وصف مرور الدم عبر الرئتين بين جانبي القلب؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🔋⚡",
+        "seq": "🫀🫁🔬",
         "basis": [
-          "بطارية",
-          "كهرباء"
+          "قلب",
+          "رئتان",
+          "بحث"
         ]
       },
       "choices": [
-        "مايكل فاراداي",
-        "ألساندرو فولتا",
-        "جورج أوم",
-        "شارل كولوم"
+        "ابن زهر",
+        "ابن البيطار",
+        "ابن أبي أصيبعة",
+        "ابن النفيس"
       ],
-      "answer": 1,
-      "why": "ابتكر فولتا الكومة الكهربائية التي تعد سلف البطاريات الحديثة.",
+      "answer": 3,
+      "why": "وصف ابن النفيس الدورة الرئوية ورفض مرور الدم مباشرة عبر الحاجز القلبي.",
       "src": [
-        "Royal Institution — Alessandro Volta's voltaic pile — https://www.rigb.org/explore-science/explore/collection/alessandro-voltas-voltaic-pile",
-        "University of Pavia — Alessandro Volta — https://grandimaestri.unipv.it/maestri/volta/"
+        "PubMed — Ibn al-Nafis: the First Description of the Pulmonary Circulation — https://pubmed.ncbi.nlm.nih.gov/18481505/"
       ],
       "level": 2,
       "status": "approved",
@@ -496,26 +496,26 @@ KZV.register({
       "cat": "world-history",
       "type": "mcq",
       "fmt": "text",
-      "q": "أنبوب اختبار وإشارة إشعاع يمثلان أبحاث عالمة شاركت في عزل الراديوم؛ من هي؟",
+      "q": "أي طبيب أندلسي ألّف «كتاب التيسير» في العلاج والملاحظات السريرية؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🧪☢️",
+        "seq": "🩺🌡️📜",
         "basis": [
-          "تجربة كيميائية",
-          "نشاط إشعاعي"
+          "طبيب",
+          "مرض",
+          "كتاب"
         ]
       },
       "choices": [
-        "إيرين جوليو كوري",
-        "ليز مايتنر",
-        "روزاليند فرانكلين",
-        "ماري كوري"
+        "ابن أبي أصيبعة",
+        "ابن سينا",
+        "ابن زهر",
+        "ابن البيطار"
       ],
-      "answer": 3,
-      "why": "درست ماري كوري النشاط الإشعاعي، وشاركت في اكتشاف الراديوم والبولونيوم وعزلهما.",
+      "answer": 2,
+      "why": "كتاب ابن زهر «التيسير» يجمع إرشادات علاجية ووصفاً لحالات سريرية.",
       "src": [
-        "Nobel Foundation — Marie Curie biography — https://www.nobelprize.org/prizes/chemistry/1911/marie-curie/biographical/",
-        "Science History Institute — Marie Sklodowska Curie — https://www.sciencehistory.org/education/scientific-biographies/marie-sklodowska-curie/"
+        "PubMed — Ibn Zuhr (Avenzoar) on a Clinical Case — https://pubmed.ncbi.nlm.nih.gov/12776717/"
       ],
       "level": 2,
       "status": "approved",
@@ -557,26 +557,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "باذنجان وليمون يجتمعان في أي مقبل من هذه الخيارات؟",
+      "q": "أي عالم أندلسي صنّف أكثر من ألف مادة دوائية ونباتية في «الجامع»؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍆🍋",
+        "seq": "🌿🧪💊",
         "basis": [
-          "باذنجان",
-          "ليمون"
+          "نبات",
+          "بحث",
+          "دواء"
         ]
       },
       "choices": [
-        "غواكامولي",
-        "بابا غنوج",
-        "حمص بالطحينة",
-        "صلصة بيستو"
+        "أبو بكر الرازي",
+        "ابن البيطار",
+        "ابن أبي أصيبعة",
+        "ابن سينا"
       ],
       "answer": 1,
-      "why": "يعد بابا غنوج من الباذنجان المشوي، ويدخل عصير الليمون في تحضيره.",
+      "why": "جمع ابن البيطار في موسوعته أوصاف النباتات والأغذية والأدوية واستعمالاتها.",
       "src": [
-        "Good Food — Baba ganoush — https://www.bbcgoodfood.com/recipes/baba-ganoush",
-        "Serious Eats — Baba ganoush — https://www.seriouseats.com/the-best-baba-ganoush-recipe"
+        "Library of Congress — The Book of Medicinal and Nutritional Terms — https://www.loc.gov/item/2021666188/"
       ],
       "level": 1,
       "status": "approved",
@@ -587,26 +587,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "باذنجان وطماطم يرمزان إلى أي طبق خضراوات من هذه الأطباق؟",
+      "q": "أي فيلسوف أندلسي ألّف قصة «حي بن يقظان» عن المعرفة في جزيرة؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍆🍅",
+        "seq": "🏝️📖🧠",
         "basis": [
-          "باذنجان",
-          "طماطم"
+          "جزيرة",
+          "قصة",
+          "فكر"
         ]
       },
       "choices": [
-        "دال العدس",
-        "راتاتوي",
-        "غواكامولي",
-        "فلافل"
+        "ابن طفيل",
+        "ابن مسكويه",
+        "ابن خلدون",
+        "يعقوب بن إسحاق الكندي"
       ],
-      "answer": 1,
-      "why": "الباذنجان والطماطم من الخضراوات الأساسية في طبق الراتاتوي.",
+      "answer": 0,
+      "why": "اشتهر ابن طفيل برسالته الفلسفية «حي بن يقظان» التي وصلت إلى قراء أوروبيين بترجمات متعددة.",
       "src": [
-        "Good Food — Ratatouille — https://www.bbcgoodfood.com/recipes/ratatouille",
-        "Great British Chefs — Ratatouille — https://www.greatbritishchefs.com/recipes/ratatouille-recipe"
+        "Oxford Bibliographies — Ibn Tufayl — https://academic.oup.com/reference/62361/reference-article-abstract/554573383"
       ],
       "level": 2,
       "status": "approved",
@@ -617,27 +617,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "طماطم وجبن وأعشاب عطرية تشكل إشارات إلى أي سلطة إيطالية؟",
+      "q": "أي أديب عباسي اشتهر بكتاب «الحيوان»؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍅🧀🌿",
+        "seq": "🐦🦊📚",
         "basis": [
-          "طماطم",
-          "جبن",
-          "أعشاب"
+          "طيور",
+          "حيوان",
+          "كتاب"
         ]
       },
       "choices": [
-        "تبولة",
-        "كابريزي",
-        "فتوش",
-        "سلطة بطاطس"
+        "ابن قتيبة",
+        "ابن طفيل",
+        "ابن حزم",
+        "الجاحظ"
       ],
-      "answer": 1,
-      "why": "تجمع سلطة كابريزي بين الطماطم وجبن الموزاريلا والريحان؛ ويمثل الرمز العشبي الريحان هنا.",
+      "answer": 3,
+      "why": "كتاب الحيوان من أشهر مؤلفات الجاحظ، ويعرض معلومات وأخباراً عن الحيوانات.",
       "src": [
-        "La Cucina Italiana — Caprese — https://www.lacucinaitaliana.com/recipe/sides-and-vegetables/caprese",
-        "Great Italian Chefs — Caprese salad — https://www.greatitalianchefs.com/recipes/caprese-salad-recipe-anchovy-dressing"
+        "Google Arts & Culture — Al-Jahiz and the Book of Animals — https://artsandculture.google.com/story/iQXR7GSvFNVoLg?hl=en"
       ],
       "level": 2,
       "status": "approved",
@@ -648,27 +647,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "أعشاب خضراء مع طماطم وليمون تقود إلى أي سلطة بين الخيارات؟",
+      "q": "أي مؤرخ وجغرافي جمع أخبار البلدان في كتاب «مروج الذهب ومعادن الجوهر»؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍅🌿🍋",
+        "seq": "🌊🧭📜",
         "basis": [
-          "طماطم",
-          "أعشاب خضراء",
-          "ليمون"
+          "بحر",
+          "رحلات",
+          "تاريخ"
         ]
       },
       "choices": [
-        "سلطة بطاطس",
-        "سلطة جزر",
-        "تبولة",
-        "سلطة شمندر"
+        "المقريزي",
+        "ابن قتيبة",
+        "المسعودي",
+        "الطبري"
       ],
       "answer": 2,
-      "why": "البقدونس من أساس التبولة، وتضاف إليه الطماطم وعصير الليمون.",
+      "why": "جمع المسعودي التاريخ والجغرافيا ومشاهدات رحلاته في كتاب مروج الذهب.",
       "src": [
-        "Good Food — Tabbouleh — https://www.bbcgoodfood.com/recipes/tabbouleh",
-        "Serious Eats — Tabbouleh salad — https://www.seriouseats.com/tabbouleh-salad-recipe"
+        "Library of Congress — The Meadows of Gold and Mines of Gems — https://www.loc.gov/resource/gdcwdl.wdl_07441/"
       ],
       "level": 1,
       "status": "approved",
@@ -679,26 +677,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "طماطم وخيار يمثلان شوربة إسبانية تقدم باردة؛ أي شوربة هي؟",
+      "q": "أي مؤرخ ألّف «تاريخ الرسل والملوك» الذي يغطي أخباراً حتى القرن العاشر؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍅🥒",
+        "seq": "📜⏳🗺️",
         "basis": [
-          "طماطم",
-          "خيار"
+          "تاريخ",
+          "زمن",
+          "بلدان"
         ]
       },
       "choices": [
-        "غاسباتشو",
-        "مينستروني",
-        "شوربة عدس",
-        "شوربة بصل"
+        "اليعقوبي",
+        "الطبري",
+        "المقريزي",
+        "ابن قتيبة"
       ],
-      "answer": 0,
-      "why": "الغاسباتشو شوربة خضراوات إسبانية باردة أساسها الطماطم، ويستعمل الخيار فيها أو مع تقديمها.",
+      "answer": 1,
+      "why": "يعد تاريخ الطبري مصدراً واسعاً للأخبار منذ البدايات التاريخية حتى عصره.",
       "src": [
-        "Good Food — Gazpacho — https://www.bbcgoodfood.com/recipes/gazpacho",
-        "Spain national tourism office — Gazpacho recipe — https://www.spain.info/en/recipe/gazpacho/"
+        "Cambridge University Press — Sources of al-Tabari’s History — https://www.cambridge.org/core/books/abs/altabari/sources-of-altabaris-history-of-the-abbasid-caliphate/839071821815706182DE4CEAC3DD37F5"
       ],
       "level": 2,
       "status": "approved",
@@ -709,26 +707,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "كرات مقلية وأعشاب خضراء تشير إلى أي طعام من هذه الأطعمة؟",
+      "q": "أي عالم مسلم ألّف «إحياء علوم الدين» في أربعين كتاباً؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🧆🌿",
+        "seq": "📚🕯️🧠",
         "basis": [
-          "كرات مقلية",
-          "أعشاب"
+          "كتب",
+          "معرفة",
+          "فكر"
         ]
       },
       "choices": [
-        "دولمة",
-        "فلافل",
-        "سمبوسة خضراوات",
-        "فطائر سبانخ"
+        "أبو حامد الغزالي",
+        "جلال الدين السيوطي",
+        "يحيى بن شرف النووي",
+        "ابن حجر العسقلاني"
       ],
-      "answer": 1,
-      "why": "يمثل الرمز كرات الفلافل، وتدخل الأعشاب الخضراء كالبقدونس والكزبرة في تحضيرها.",
+      "answer": 0,
+      "why": "يُعد «الإحياء» أشهر مؤلفات الغزالي، ويتناول العبادة والأخلاق والسلوك.",
       "src": [
-        "Good Food — The best falafel — https://www.bbcgoodfood.com/recipes/the-best-falafel",
-        "The Mediterranean Dish — Authentic falafel — https://www.themediterraneandish.com/how-to-make-falafel/"
+        "Internet Encyclopedia of Philosophy — al-Ghazali — https://iep.utm.edu/al-ghazali/"
       ],
       "level": 1,
       "status": "approved",
@@ -739,26 +737,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "ليمون وثلج يدلان على أي مشروب بارد بين الخيارات؟",
+      "q": "أي شاعر ذاعت قصائده في مدح سيف الدولة الحمداني؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍋🧊",
+        "seq": "✍️📜🏇",
         "basis": [
-          "ليمون",
-          "ثلج"
+          "كتابة",
+          "قصيدة",
+          "مديح"
         ]
       },
       "choices": [
-        "قهوة مثلجة",
-        "شاي أخضر",
-        "عصير برتقال",
-        "ليمونادة"
+        "جلال الدين الرومي",
+        "نظامي الكنجوي",
+        "عمر الخيام",
+        "المتنبي"
       ],
       "answer": 3,
-      "why": "الليمونادة مشروب يصنع من الليمون والماء والتحلية، ويقدم مبردا أو مع الثلج.",
+      "why": "كتب المتنبي أشهر مدائحه خلال إقامته في بلاط سيف الدولة بحلب.",
       "src": [
-        "Simply Recipes — Perfect lemonade — https://www.simplyrecipes.com/recipes/perfect_lemonade/",
-        "Good Food — Homemade lemonade — https://www.bbcgoodfood.com/recipes/homemade-lemonade"
+        "Encyclopedia.com — Al-Mutanabbi — https://www.encyclopedia.com/history/news-wires-white-papers-and-books/al-mutanabbi"
       ],
       "level": 1,
       "status": "approved",
@@ -769,26 +767,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "لوح حلو وفنجان ساخن يجتمعان لتمثيل أي مشروب؟",
+      "q": "أي شاعر فارسي ألّف المثنوي المعروف باسم «المثنوي المعنوي»؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍫☕",
+        "seq": "📜🌀✨",
         "basis": [
-          "شوكولاتة",
-          "مشروب ساخن"
+          "شعر",
+          "دوران",
+          "إلهام"
         ]
       },
       "choices": [
-        "شاي بالنعناع",
-        "حليب بالزعفران",
-        "قهوة بالقرفة",
-        "شوكولاتة ساخنة"
+        "عمر الخيام",
+        "ابن حزم",
+        "جلال الدين الرومي",
+        "نظامي الكنجوي"
       ],
-      "answer": 3,
-      "why": "ترمز الشوكولاتة والفنجان إلى مشروب الشوكولاتة الساخنة الذي يحضر بإذابة الشوكولاتة في الحليب الساخن.",
+      "answer": 2,
+      "why": "المثنوي من أشهر أعمال الرومي الشعرية والفكرية.",
       "src": [
-        "King Arthur Test Kitchen — Cocoa blocks for hot chocolate — https://www.kingarthurbaking.com/recipes/cocoa-blocks-recipe",
-        "Good Food — Homemade hot chocolate — https://www.bbcgoodfood.com/recipes/homemade-hot-chocolate"
+        "Encyclopaedia Iranica — Rumi — https://www.iranicaonline.org/articles/rumi-jalal-al-din/"
       ],
       "level": 1,
       "status": "approved",
@@ -799,26 +797,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "شاي وأوراق عطرية يستحضران مشروبا مغاربيا معروفا؛ ما اسمه؟",
+      "q": "أي شاعر فارسي عُرف بخمسة مثنويات جُمعت تحت اسم «الخمسة»؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍵🌿",
+        "seq": "📜💎🌹",
         "basis": [
-          "شاي",
-          "أوراق عطرية"
+          "قصائد",
+          "كنوز",
+          "حكاية"
         ]
       },
       "choices": [
-        "شاي كرك",
-        "شاي بالنعناع",
-        "شاي بالورد",
-        "شاي بالقرفة"
+        "محمد إقبال",
+        "نظامي الكنجوي",
+        "عمر الخيام",
+        "ابن حزم"
       ],
       "answer": 1,
-      "why": "يشتهر في المغرب الشاي الأخضر الذي تضاف إليه أوراق النعناع الطازجة.",
+      "why": "تقوم شهرة نظامي الشعرية على خمس قصائد سردية عُرفت مجتمعة بالخمسة.",
       "src": [
-        "Claudia Roden, The New Book of Middle Eastern Food — Mint tea, via Epicurious — https://www.epicurious.com/recipes/food/views/moroccan-mint-tea-373653",
-        "Saveur Test Kitchen — Moroccan mint tea — https://www.saveur.com/article/Wine-and-Drink/Moroccan-Mint-Tea/"
+        "Persian Heritage Foundation — Niẓāmī Ganjavī — https://persian.packhum.org/author/0176"
       ],
       "level": 1,
       "status": "approved",
@@ -829,26 +827,26 @@ KZV.register({
       "cat": "inventions",
       "type": "mcq",
       "fmt": "text",
-      "q": "رسالة إلكترونية وحاسوب يستحضران رائد إرسال البريد بين حواسيب الشبكة؛ من هو؟",
+      "q": "أي روائي مصري فاز بنوبل للأدب واشتهر بثلاثية القاهرة؟",
       "vis": {
         "kind": "emoji",
-        "seq": "📧💻",
+        "seq": "📚🏙️🏆",
         "basis": [
-          "بريد إلكتروني",
-          "حاسوب"
+          "رواية",
+          "مدينة",
+          "جائزة"
         ]
       },
       "choices": [
-        "دوغلاس إنغلبارت",
-        "راي توملينسون",
-        "تشارلز باباج",
-        "جون لوجي بيرد"
+        "نجيب محفوظ",
+        "طه حسين",
+        "الجاحظ",
+        "ابن قتيبة"
       ],
-      "answer": 1,
-      "why": "طور توملينسون البريد الإلكتروني بين الحواسيب المتصلة بالشبكة، واختار علامة @ للفصل بين اسم المستخدم والحاسوب.",
+      "answer": 0,
+      "why": "محفوظ فاز بنوبل عام 1988، وتضم أعماله روايات عن أحياء القاهرة.",
       "src": [
-        "Internet Hall of Fame — Raymond Tomlinson — https://www.internethalloffame.org/inductee/raymond-tomlinson/",
-        "Computer History Museum — Networking and the Web — https://www.computerhistory.org/timeline/networking-the-web/"
+        "Nobel Prize — Literature 1988 Press Release — https://www.nobelprize.org/prizes/literature/1988/press-release/"
       ],
       "level": 3,
       "status": "approved",
@@ -859,26 +857,26 @@ KZV.register({
       "cat": "inventions",
       "type": "mcq",
       "fmt": "text",
-      "q": "مروحية وآلية هندسية توجهان إلى رائد المروحيات العملية ذات الدوار الرئيسي ودوار الذيل؛ من هو؟",
+      "q": "أي كيميائي مصري نال نوبل لأبحاثه التي تتبع التفاعلات على مقياس الفيمتوثانية؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🚁⚙️",
+        "seq": "🔬⚛️⏱️",
         "basis": [
-          "مروحية",
-          "آلية هندسية"
+          "مختبر",
+          "ذرات",
+          "زمن"
         ]
       },
       "choices": [
-        "صمويل لانغلي",
-        "أوتو ليلينتال",
-        "إيغور سيكورسكي",
-        "روبرت هاتشنغز غودارد"
+        "عبد السلام",
+        "أحمد الفرغاني",
+        "محمد البتاني",
+        "أحمد زويل"
       ],
-      "answer": 2,
-      "why": "طور سيكورسكي المروحية العملية VS-300 التي جمعت دوارًا رئيسيًا ودوارًا خلفيًا لمعادلة عزم الدوران.",
+      "answer": 3,
+      "why": "طوّر زويل أساليب ترصد انتقال الجزيئات خلال التفاعلات بسرعة الفيمتوثانية.",
       "src": [
-        "Sikorsky Historical Archives — VS-300 original account — https://sikorskyarchives.com/vs-300-the-first-practical-helicopter/",
-        "National Air and Space Museum — Vought-Sikorsky XR-4C — https://airandspace.si.edu/collection-objects/vought-sikorsky-xr-4c/nasm_A19600307000"
+        "Nobel Prize — Ahmed Zewail Facts — https://www.nobelprize.org/prizes/chemistry/1999/zewail/facts/"
       ],
       "level": 3,
       "status": "approved",
@@ -889,27 +887,26 @@ KZV.register({
       "cat": "world-history",
       "type": "mcq",
       "fmt": "text",
-      "q": "جسور وأداة هندسية تلمح إلى مسألة جسور كونيغسبرغ؛ من قدم حلها الرياضي؟",
+      "q": "أي فيزيائي باكستاني شارك في وضع نظرية توحيد التفاعل الكهرومغناطيسي والضعيف؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🌉🌉📐",
+        "seq": "⚛️📐🏅",
         "basis": [
-          "جسور",
-          "جسور",
-          "مسألة رياضية"
+          "جسيمات",
+          "فيزياء",
+          "جائزة"
         ]
       },
       "choices": [
-        "جوزيف لوي لاغرانج",
-        "بيير سيمون لابلاس",
-        "كارل فريدريش غاوس",
-        "ليونارد أويلر"
+        "محمد البتاني",
+        "ابن يونس",
+        "عبد السلام",
+        "أحمد الفرغاني"
       ],
-      "answer": 3,
-      "why": "أثبت أويلر استحالة عبور كل واحد من جسور كونيغسبرغ السبعة مرة واحدة في مسار واحد، ومهد لنظرية الرسوم البيانية.",
+      "answer": 2,
+      "why": "تقاسم عبد السلام نوبل الفيزياء عن إسهامه في نظرية التفاعل الكهروضعيف.",
       "src": [
-        "NRICH — A curious collection of bridges — https://nrich.maths.org/articles/curious-collection-bridges",
-        "Wolfram MathWorld — Koenigsberg Bridge Problem — https://mathworld.wolfram.com/KoenigsbergBridgeProblem.html"
+        "Nobel Prize — Abdus Salam Facts — https://www.nobelprize.org/prizes/physics/1979/salam/facts/"
       ],
       "level": 3,
       "status": "approved",
@@ -920,27 +917,26 @@ KZV.register({
       "cat": "astronomy",
       "type": "mcq",
       "fmt": "text",
-      "q": "مذنب وتلسكوب وتقويم تعبر عن التنبؤ بعودة مذنب دوري؛ أي فلكي تشير إليه؟",
+      "q": "أي بطل ملاكمة أولمبي أعلن اعتناقه الإسلام واتخذ اسم محمد علي؟",
       "vis": {
         "kind": "emoji",
-        "seq": "☄️🔭📅",
+        "seq": "🥊🏅🗣️",
         "basis": [
-          "مذنب",
-          "رصد فلكي",
-          "موعد عودة"
+          "ملاكمة",
+          "ميدالية",
+          "خطاب"
         ]
       },
       "choices": [
-        "إدموند هالي",
-        "إدوين باول هابل",
-        "ويليام هيرشل",
-        "جوزيبي بيازي"
+        "سوني ليستون",
+        "محمد علي",
+        "جو فريزر",
+        "جورج فورمان"
       ],
-      "answer": 0,
-      "why": "ربط هالي بين مشاهدات سابقة لمذنب واحد وتنبأ بعودته عام 1758، وهو المذنب الذي حمل اسمه.",
+      "answer": 1,
+      "why": "كان محمد علي بطلاً في الملاكمة، واعتنق الإسلام في ستينيات القرن العشرين.",
       "src": [
-        "MacTutor — Edmond Halley — https://mathshistory.st-andrews.ac.uk/Biographies/Halley/",
-        "NASA — 1P/Halley — https://science.nasa.gov/solar-system/comets/1p-halley/"
+        "Smithsonian National Museum of African American History and Culture — Float Like a Butterfly — https://nmaahc.si.edu/explore/stories/float-butterfly"
       ],
       "level": 2,
       "status": "approved",
@@ -951,27 +947,26 @@ KZV.register({
       "cat": "astronomy",
       "type": "mcq",
       "fmt": "text",
-      "q": "صاروخ ومعداد وقمر تذكر بحساب مسارات رحلات ناسا؛ أي عالمة رياضيات مقصودة؟",
+      "q": "أي ناشط أمريكي شارك أليكس هيلي في كتابة سيرته الذاتية؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🚀🧮🌙",
+        "seq": "✊🗣️📚",
         "basis": [
-          "رحلة فضائية",
-          "حسابات رياضية",
-          "القمر"
+          "حقوق",
+          "خطاب",
+          "سيرة"
         ]
       },
       "choices": [
-        "روزاليند فرانكلين",
-        "صوفيا كوفاليفسكايا",
-        "فلورنس نايتنغيل",
-        "كاثرين جونسون"
+        "مالكوم إكس",
+        "مارتن لوثر كينغ",
+        "روزا باركس",
+        "فريدريك دوغلاس"
       ],
-      "answer": 3,
-      "why": "عملت جونسون على حساب المسارات الفضائية في ناسا، ومن ذلك مسار رحلة أبولو 11 إلى القمر.",
+      "answer": 0,
+      "why": "نُشرت سيرة مالكوم إكس بعد وفاته وشارك الصحفي أليكس هيلي في إعدادها.",
       "src": [
-        "NASA — Katherine G. Johnson — https://www.nasa.gov/people-of-nasa/katherine-g-johnson/",
-        "Smithsonian — Women in STEAM Innovation — https://ssec.si.edu/sites/default/files/Women%20in%20STEAM%20Innovation%20250th-.pdf"
+        "U.S. National Park Service — Places of Malcolm X — https://www.nps.gov/articles/000/places-of-malcolm-x.htm"
       ],
       "level": 3,
       "status": "approved",
@@ -982,26 +977,26 @@ KZV.register({
       "cat": "world-history",
       "type": "mcq",
       "fmt": "text",
-      "q": "جزيء DNA وكاميرا تلمحان إلى الصورة 51 بالأشعة السينية؛ أي عالمة ترتبط بهذا العمل؟",
+      "q": "أي حاكم لإمبراطورية مالي اشتهرت رحلته إلى مكة بقافلة الذهب؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🧬📷",
+        "seq": "🐪🪙👑",
         "basis": [
-          "جزيء الحمض النووي",
-          "تصوير علمي"
+          "قافلة",
+          "ذهب",
+          "ملك"
         ]
       },
       "choices": [
-        "باربرا مكلينتوك",
-        "دوروثي ماري هودجكن",
-        "ليز مايتنر",
-        "روزاليند فرانكلين"
+        "صلاح الدين الأيوبي",
+        "سليمان القانوني",
+        "محمد الفاتح",
+        "مانسا موسى"
       ],
       "answer": 3,
-      "why": "أنتجت فرانكلين وطالبها ريموند غوسلينغ الصورة 51 لحيود الأشعة السينية للحمض النووي، وهي دليل مهم لدراسة بنيته.",
+      "why": "بلغت مالي ذروة قوتها في عهد مانسا موسى، وذاع خبر رحلته وثرائه.",
       "src": [
-        "King's College London — The story behind Photograph 51 — https://www.kcl.ac.uk/the-story-behind-photograph-51",
-        "Science History Institute — Photo 51 original annotated print — https://digital.sciencehistory.org/works/skau3rn"
+        "National Geographic Education — The Mali Empire — https://education.nationalgeographic.org/resource/mali-empire/"
       ],
       "level": 3,
       "status": "approved",
@@ -1012,27 +1007,26 @@ KZV.register({
       "cat": "world-history",
       "type": "mcq",
       "fmt": "text",
-      "q": "نباتان ورسم إحصائي يوحيان بتجارب البازلاء وقواعد انتقال الصفات؛ من أجراها؟",
+      "q": "أي قائد أسس قوة الدولة الأيوبية واشتهر بحروبه في بلاد الشام؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🌱🌱📊",
+        "seq": "🛡️🏰⚔️",
         "basis": [
-          "نباتات للتجارب",
-          "تهجين نباتي",
-          "إحصاء النتائج"
+          "درع",
+          "قلعة",
+          "حملة"
         ]
       },
       "choices": [
-        "ألكسندر فون هومبولت",
-        "كارل لينيوس",
-        "لويس باستور",
-        "غريغور مندل"
+        "محمد الفاتح",
+        "جلال الدين أكبر",
+        "صلاح الدين الأيوبي",
+        "سليمان القانوني"
       ],
-      "answer": 3,
-      "why": "أجرى مندل تجارب تهجين البازلاء وحلل نسب الصفات في الأجيال، مستخلصًا قواعد أساسية للوراثة.",
+      "answer": 2,
+      "why": "أسس صلاح الدين القوة السياسية للأيوبيين وقاد حروبهم ضد الصليبيين.",
       "src": [
-        "NHGRI — 1865: Mendel's Peas — https://www.genome.gov/25520230/online-education-kit-1865-mendels-peas",
-        "Mendel Museum — Gregor Johann Mendel — https://mendelmuseum.muni.cz/en/about-the-museum/gregor-johann-mendel"
+        "Encyclopaedia Iranica — Ayyubids — https://www.iranicaonline.org/articles/ayyubids/"
       ],
       "level": 2,
       "status": "approved",
@@ -1043,26 +1037,26 @@ KZV.register({
       "cat": "inventions",
       "type": "mcq",
       "fmt": "text",
-      "q": "سيارة وأدوات تشير إلى تطوير عربة البنزين الحاصلة على براءة عام 1886؛ من مهندسها؟",
+      "q": "أي سلطان عثماني لُقّب في تركيا بـ«القانوني» لإصلاحاته القانونية؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🚗🛠️",
+        "seq": "👑📜⚖️",
         "basis": [
-          "سيارة",
-          "تطوير هندسي"
+          "سلطان",
+          "قانون",
+          "حكم"
         ]
       },
       "choices": [
-        "كارل بنز",
-        "رودولف كريستيان ديزل",
-        "نيكولاوس أوتو",
-        "فرديناند بورشه"
+        "هارون الرشيد",
+        "سليمان القانوني",
+        "محمد الفاتح",
+        "جلال الدين أكبر"
       ],
-      "answer": 0,
-      "why": "طور بنز عربة البنزين التي دمجت المحرك والهيكل في مركبة واحدة، وسجل براءتها عام 1886.",
+      "answer": 1,
+      "why": "عرف سليمان في المصادر التركية بلقب القانوني بسبب جمعه وتنظيمه قوانين الدولة.",
       "src": [
-        "Mercedes-Benz — Benz Patent Motor Car — https://group.mercedes-benz.com/company/tradition/company-history/1885-1886.html",
-        "National Inventors Hall of Fame — Carl Benz — https://www.invent.org/inductees/carl-benz"
+        "PBS — Suleyman — https://www.pbs.org/empires/islam/profilessuleyman.html"
       ],
       "level": 2,
       "status": "approved",
@@ -1073,27 +1067,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "طبق إيطالي تمثله هذه الرموز الغذائية؛ أي الأسماء يطابقه؟",
+      "q": "أي سلطان عثماني دخل القسطنطينية عام 1453 ولُقّب بالفاتح؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍚🍄🧀",
+        "seq": "🏰💣🛡️",
         "basis": [
-          "أرز",
-          "فطر",
-          "جبن"
+          "أسوار",
+          "مدفع",
+          "حماية"
         ]
       },
       "choices": [
-        "لازانيا الخضراوات",
-        "ريزوتو الفطر",
-        "حساء المينيستروني",
-        "غراتان البطاطس"
+        "محمد الفاتح",
+        "جلال الدين أكبر",
+        "هارون الرشيد",
+        "نور الدين زنكي"
       ],
-      "answer": 1,
-      "why": "يجمع ريزوتو الفطر الأرز والفطر، ويستكمل عادة بجبن البارميزان، وهي المكونات التي تلمح إليها الرموز.",
+      "answer": 0,
+      "why": "دخل محمد الثاني القسطنطينية بعد حصار عام 1453 وأصبحت المدينة إسطنبول.",
       "src": [
-        "Good Food — Next level mushroom risotto — https://tollbit.bbcgoodfood.com/recipes/next-level-mushroom-risotto",
-        "Serious Eats — Mushroom risotto — https://www.seriouseats.com/pressure-cooker-mushroom-risotto-recipe"
+        "The Metropolitan Museum of Art — Constantinople after 1261 — https://www.metmuseum.org/ja/essays/constantinople-after-1261"
       ],
       "level": 2,
       "status": "approved",
@@ -1104,27 +1097,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "وجبة جانبية لينة توحي بها الرموز؛ ما اسمها؟",
+      "q": "أي إمبراطور مغولي حكم الهند قرابة نصف قرن ورعى الفنون والعمارة؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🥔🧈🥣",
+        "seq": "👑🏰🎨",
         "basis": [
-          "بطاطس",
-          "زبدة",
-          "طبق لين في وعاء"
+          "إمبراطور",
+          "قصر",
+          "فن"
         ]
       },
       "choices": [
-        "سلطة بطاطس باردة",
-        "بطاطس مقلية مقرمشة",
-        "بطاطس مهروسة",
-        "أقراص بطاطس مشوية"
+        "هارون الرشيد",
+        "نور الدين زنكي",
+        "الظاهر بيبرس",
+        "جلال الدين أكبر"
       ],
-      "answer": 2,
-      "why": "تصنع البطاطس المهروسة بطهو البطاطس ثم هرسها، وتضاف الزبدة لمنحها قوامًا غنيًا لينًا.",
+      "answer": 3,
+      "why": "حكم أكبر نحو تسعة وأربعين عاماً ورعى العمارة والفنون المغولية.",
       "src": [
-        "Good Food — Garlic mashed potatoes — https://tollbit.bbcgoodfood.com/recipes/garlic-mashed-potatoes",
-        "Serious Eats — Rich and creamy mashed potatoes — https://www.seriouseats.com/rich-and-creamy-mashed-potatoes-recipe"
+        "Encyclopaedia Iranica — Akbar I — https://www.iranicaonline.org/articles/akbar-i-mughal-india/"
       ],
       "level": 1,
       "status": "approved",
@@ -1135,28 +1127,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "سلطة متوسطية تستحضرها هذه المكونات المصورة؛ ما اسمها؟",
+      "q": "من هو الخليفة العباسي الخامس الذي حكم بين عامي 786 و809؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍅🥒🧀🥗",
+        "seq": "🏛️👑📜",
         "basis": [
-          "طماطم",
-          "خيار",
-          "جبن",
-          "سلطة"
+          "قصر",
+          "خلافة",
+          "تاريخ"
         ]
       },
       "choices": [
-        "سلطة كولسلو",
-        "السلطة اليونانية",
-        "سلطة والدورف الأمريكية",
-        "سلطة التبولة الشامية"
+        "المعتصم بالله",
+        "المتوكل على الله",
+        "هارون الرشيد",
+        "المأمون"
       ],
-      "answer": 1,
-      "why": "من المكونات الأساسية للسلطة اليونانية الطماطم والخيار وجبن الفيتا، ولذلك تناسبها الرموز.",
+      "answer": 2,
+      "why": "كان هارون الرشيد الخليفة العباسي الخامس، وحكم من 786 إلى 809.",
       "src": [
-        "Good Food — Greek salad — https://tollbit.bbcgoodfood.com/recipes/greek-salad",
-        "GialloZafferano — Greek salad — https://www.giallozafferano.com/recipes/Greek-salad.html"
+        "Encyclopaedia Iranica — Hārūn al-Rašīd — https://www.iranicaonline.org/articles/harun-al-rasid/"
       ],
       "level": 2,
       "status": "approved",
@@ -1167,27 +1157,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "على مائدة الشام، أي سلطة تطابق هذا الجمع من الرموز؟",
+      "q": "أي رحالة دوّن مشاهدات سفارة بغداد إلى البلغار على نهر الفولغا؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍞🍅🥬",
+        "seq": "🧭🛶📜",
         "basis": [
-          "خبز",
-          "طماطم",
-          "خس"
+          "اتجاه",
+          "نهر",
+          "رسالة"
         ]
       },
       "choices": [
-        "التبولة",
-        "سلطة الطحينة",
-        "سلطة والدورف",
-        "الفتوش"
+        "المقدسي",
+        "أحمد بن فضلان",
+        "ابن جبير",
+        "المسعودي"
       ],
-      "answer": 3,
-      "why": "يتميز الفتوش بقطع الخبز المقرمشة مع خضراوات مثل الطماطم والخس، خلافًا لسلطة التبولة القائمة على البقدونس.",
+      "answer": 1,
+      "why": "سرد ابن فضلان رحلة سفارة عباسية إلى ملك البلغار على الفولغا في القرن العاشر.",
       "src": [
-        "Maureen Abood — Lebanese Fattoush Salad — https://maureenabood.com/lebanese-fattoush-salad/",
-        "Good Food — Fattoush — https://tollbit.bbcgoodfood.com/recipes/fattoush"
+        "NYU Press via JSTOR — Mission to the Volga — https://www.jstor.org/stable/j.ctt1gk093h"
       ],
       "level": 1,
       "status": "approved",
@@ -1198,27 +1187,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "حلوى تايلندية شهيرة تلمح إليها الرموز مجتمعة؛ أي حلوى هي؟",
+      "q": "أي أديب أندلسي سجّل رحلة الحج من الأندلس إلى مكة في كتاب «الرحلة»؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍚🥭🥥",
+        "seq": "🧳🧭🌊",
         "basis": [
-          "أرز",
-          "مانجو",
-          "جوز هند"
+          "رحلة",
+          "اتجاه",
+          "بحر"
         ]
       },
       "choices": [
-        "بودينغ الخبز بالقرفة",
-        "كعكة جوز الهند بالكريمة",
-        "الأرز اللزج بالمانجو",
-        "مهلبية الفانيليا والمكسرات"
+        "ابن جبير",
+        "المسعودي",
+        "المقدسي",
+        "ياقوت الحموي"
       ],
-      "answer": 2,
-      "why": "تقدم حلوى الأرز اللزج التايلندية مع المانجو الطازجة، ويشرب الأرز شرابًا محلى من حليب جوز الهند.",
+      "answer": 0,
+      "why": "يصف كتاب ابن جبير مسار رحلته من الأندلس إلى مكة والمدن التي مر بها.",
       "src": [
-        "Hot Thai Kitchen — Mango sticky rice — https://hot-thai-kitchen.com/mango-sticky-rice/",
-        "Serious Eats — Thai mango sticky rice — https://www.seriouseats.com/thai-coconut-sticky-rice-mango-recipe"
+        "MIT Libraries — Ibn Jubayr: Riḥla — https://libguides.mit.edu/c.php?g=883344&p=6346961"
       ],
       "level": 2,
       "status": "approved",
@@ -1229,27 +1217,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "حلوى منزلية كريمية تستحضرها هذه الرموز؛ ما أقرب اسم لها؟",
+      "q": "أي مؤرخ مملوكي ألّف «الخطط» عن طبوغرافية مصر وتاريخ مدنها؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍚🥛🍬",
+        "seq": "🏙️📜📊",
         "basis": [
-          "أرز",
-          "حليب",
-          "حلاوة"
+          "مدينة",
+          "تاريخ",
+          "سجل"
         ]
       },
       "choices": [
-        "كريم كراميل",
-        "مهلبية الشوكولاتة",
-        "أرز بالحليب",
-        "بودينغ الخبز بالقرفة"
+        "ابن قتيبة",
+        "اليعقوبي",
+        "ابن مسكويه",
+        "المقريزي"
       ],
-      "answer": 2,
-      "why": "الأرز والحليب أساس حلوى الأرز بالحليب، بينما ترمز الحلوى الملفوفة إلى التحلية بالسكر.",
+      "answer": 3,
+      "why": "كتب المقريزي موسوعة عن تاريخ مصر وطبوغرافية البلاد عُرفت بكتاب الخطط.",
       "src": [
-        "Good Food — Classic rice pudding — https://tollbit.bbcgoodfood.com/recipes/baked-rice-pudding",
-        "King Arthur Baking — Vanilla rice pudding — https://www.kingarthurbaking.com/recipes/vanilla-rice-pudding-recipe"
+        "Encyclopaedia Iranica — Maqrizi — https://www.iranicaonline.org/articles/maqrizi-taqi-al-din-a%E1%B8%A5mad-b-%CA%BFali/"
       ],
       "level": 1,
       "status": "approved",
@@ -1260,26 +1247,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "اسم حلوى عالمية يجمع مدلولي الصورتين؛ أي خيار هو؟",
+      "q": "أي أميرال عثماني ألّف «كتاب البحرية» ورسم خرائط للسواحل؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🧀🍰",
+        "seq": "🗺️⛵🧭",
         "basis": [
-          "جبن",
-          "كعكة"
+          "خريطة",
+          "سفينة",
+          "ملاحة"
         ]
       },
       "choices": [
-        "كعكة الإسفنج",
-        "كعكة العسل",
-        "كعكة الغابة السوداء",
-        "كعكة الجبن"
+        "ابن حوقل",
+        "المقدسي",
+        "بيري ريس",
+        "الإصطخري"
       ],
-      "answer": 3,
-      "why": "تستعمل كعكة الجبن الجبن الكريمي في حشوتها، فتجتمع دلالة الجبن ودلالة الكعكة في اسمها.",
+      "answer": 2,
+      "why": "ألّف بيري ريس كتاباً في الملاحة ضم خرائط بحرية وسواحل العالم القديم.",
       "src": [
-        "King Arthur Baking — Easy cheesecake — https://www.kingarthurbaking.com/recipes/easy-cheesecake-recipe",
-        "Good Food — New York cheesecake — https://tollbit.bbcgoodfood.com/recipes/new-york-cheesecake"
+        "Library of Congress — Book on Navigation — https://www.loc.gov/item/2021667235/"
       ],
       "level": 1,
       "status": "approved",
@@ -1290,27 +1277,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "أي حلوى توحي بها الرموز وطريقة إنهاء سطحها باللهب؟",
+      "q": "أي معماري عثماني صمم مجمع السليمانية ومسجد السليمية؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍮🔥🍬",
+        "seq": "🏛️📐🏗️",
         "basis": [
-          "كاسترد",
-          "لهب لإنهاء السطح",
-          "سكر محمر"
+          "عمارة",
+          "قياس",
+          "بناء"
         ]
       },
       "choices": [
-        "كريم بروليه",
-        "باناكوتا الفانيليا",
-        "بودينغ الخبز",
-        "موس الشوكولاتة"
+        "معمار خير الدين",
+        "سنان المعماري",
+        "داود آغا",
+        "سدفكار محمد آغا"
       ],
-      "answer": 0,
-      "why": "الكريم بروليه كاسترد يرش سطحه بالسكر ثم يحمر باللهب لتكوين قشرة مقرمشة؛ وترمز الحلوى إلى السكر.",
+      "answer": 1,
+      "why": "كان سنان كبير معماريي الدولة العثمانية وصمم مجمع السليمانية والسليمية.",
       "src": [
-        "Sally's Baking — Easy creme brulee — https://sallysbakingaddiction.com/creme-brulee/",
-        "Good Food — Ultimate creme brulee — https://tollbit.bbcgoodfood.com/recipes/ultimate-creme-brulee"
+        "Oxford Bibliographies — Mimar Sinan — https://academic.oup.com/reference/62283/reference-article-abstract/551885544"
       ],
       "level": 2,
       "status": "approved",
@@ -1321,27 +1307,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "صلصة مكسيكية تستحضرها هذه المكونات المصورة؛ أي صلصة هي؟",
+      "q": "أي موسيقي انتقل من بغداد إلى قرطبة وأسهم في تشكيل الحياة الموسيقية بالأندلس؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍅🌶️🧅",
+        "seq": "🎶🎻🎼",
         "basis": [
-          "طماطم",
-          "فلفل حار",
-          "بصل"
+          "لحن",
+          "آلة وترية",
+          "موسيقى"
         ]
       },
       "choices": [
-        "صلصة السالسا",
-        "صلصة البشاميل",
-        "صلصة الترياكي",
-        "صلصة الغواكامولي"
+        "زرياب",
+        "أم كلثوم",
+        "محمد عبد الوهاب",
+        "عبد الحليم حافظ"
       ],
       "answer": 0,
-      "why": "تجمع سالسا الطماطم بين الطماطم والفلفل الحار والبصل؛ وتظهر هذه المكونات في صورها الطازجة أو المحمصة.",
+      "why": "انتقل زرياب إلى قرطبة في عهد عبد الرحمن الثاني ونقل إليها تقاليد موسيقية.",
       "src": [
-        "Simply Recipes — Fresh tomato salsa — https://www.simplyrecipes.com/recipes/fresh_tomato_salsa/",
-        "Good Food — Mexican cooking techniques — https://tollbit.bbcgoodfood.com/howto/guide/top-10-tips-healthy-mexican-cooking"
+        "Taylor & Francis — ʿAbd al-Raḥmān II and Ziryāb — https://www.taylorfrancis.com/chapters/oa-mono/10.4324/9780429281655-7/abd-al-ra%E1%B8%A5m%C4%81n-ii-ziry%C4%81b-822%E2%80%93852-dwight-reynolds"
       ],
       "level": 2,
       "status": "approved",
@@ -1352,26 +1337,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "فنجان ومثلجات يلمحان إلى حلوى إيطالية تقدم فور جمعهما؛ ما اسمها؟",
+      "q": "أي أديب مصري كتب سيرته الذاتية «الأيام» واشتهر بلقب عميد الأدب العربي؟",
       "vis": {
         "kind": "emoji",
-        "seq": "☕🍨",
+        "seq": "👓📖🖋️",
         "basis": [
-          "قهوة ساخنة",
-          "آيس كريم في وعاء"
+          "نظارة",
+          "كتاب",
+          "قلم"
         ]
       },
       "choices": [
-        "باناكوتا",
-        "كابتشينو",
-        "تيراميسو",
-        "أفوغاتو"
+        "الجاحظ",
+        "ابن قتيبة",
+        "ابن طفيل",
+        "طه حسين"
       ],
       "answer": 3,
-      "why": "الأفوغاتو الكلاسيكي آيس كريم تصب عليه قهوة الإسبريسو الساخنة مباشرة قبل التقديم.",
+      "why": "تعد «الأيام» أشهر سيرة ذاتية لطه حسين ومن أبرز كتب النثر العربي الحديث.",
       "src": [
-        "La Cucina Italiana — Affogato — https://www.lacucinaitaliana.com/glossary/affogato",
-        "Good Food — Affogato al caffe — https://tollbit.bbcgoodfood.com/recipes/affogato-al-caffe-vanilla-ice-cream-coffee/"
+        "Al-Ahram Weekly — A New Look at Taha Hussein — https://english.ahram.org.eg/NewsContentP/50/471159/AlAhram-Weekly/A-new-look-at-Taha-Hussein.aspx"
       ],
       "level": 2,
       "status": "approved",
@@ -1382,27 +1367,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "مرافق للفطور تفك شفرته هذه الصور؛ أي اسم يطابقه؟",
+      "q": "أي مطربة مصرية لُقّبت بكوكب الشرق؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍊🍬🍞",
+        "seq": "🎙️🎼✨",
         "basis": [
-          "برتقال",
-          "تحلية بالسكر",
-          "خبز للتقديم"
+          "غناء",
+          "موسيقى",
+          "نجمة"
         ]
       },
       "choices": [
-        "زبدة الفول السوداني",
-        "دبس التمر",
-        "معجون الزيتون",
-        "مربى البرتقال"
+        "عبد الحليم حافظ",
+        "وردة الجزائرية",
+        "أم كلثوم",
+        "صباح فخري"
       ],
-      "answer": 3,
-      "why": "تطهى الحمضيات مثل البرتقال مع السكر لصنع المربى، الذي يقدم على الخبز؛ ورمز الحلوى يدل على السكر.",
+      "answer": 2,
+      "why": "كانت أم كلثوم من أشهر مطربات العالم العربي وعُرفت بلقب كوكب الشرق.",
       "src": [
-        "Good Food — Seville orange marmalade — https://tollbit.bbcgoodfood.com/recipes/ultimate-seville-orange-marmalade",
-        "Cambridge Dictionary — Marmalade — https://dictionary.cambridge.org/dictionary/english/marmalade"
+        "British Museum — Discover the Arab World: Umm Kulthum — https://www.britishmuseum.org/sites/default/files/2019-09/Arab_World_Resource_Web.pdf"
       ],
       "level": 1,
       "status": "approved",
@@ -1413,26 +1397,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "منتج عطري يستعمل أيضًا في الطعام تستحضره الصورتان؛ ما هو؟",
+      "q": "أي فلكي ألّف «جوامع علم النجوم» الذي انتشر في أوروبا باسم Alfraganus؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🌹💧",
+        "seq": "🌌🪐📐",
         "basis": [
-          "ورد",
-          "ماء معطر"
+          "فضاء",
+          "كواكب",
+          "قياس"
         ]
       },
       "choices": [
-        "ماء الورد",
-        "خلاصة الفانيليا",
-        "ماء الزهر",
-        "زيت النعناع"
+        "أبو الوفاء البوزجاني",
+        "أحمد الفرغاني",
+        "محمد البتاني",
+        "ابن يونس"
       ],
-      "answer": 0,
-      "why": "ماء الورد سائل عطري يصنع من الورد ويستعمل في التعطير وإضافة النكهة، ويستخرج تقليديًا بالتقطير.",
+      "answer": 1,
+      "why": "انتشر موجز الفرغاني للفلك بترجمات لاتينية وقرأته جامعات أوروبا لقرون.",
       "src": [
-        "Saudipedia — How Taif rose water is made — https://saudipedia.com/en/how-is-taif-rose-water-made",
-        "Cambridge Dictionary — Rose water — https://dictionary.cambridge.org/dictionary/english/rose-water"
+        "Institute for the History of Science, MPIWG — Farghani — https://ismi.mpiwg-berlin.mpg.de/biography/Farghani_BEA.htm"
       ],
       "level": 1,
       "status": "approved",
@@ -1443,26 +1427,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "بهار مائدة سائل يرتبط بهاتين الصورتين؛ ما اسمه؟",
+      "q": "أي فلكي حسّن رصد مواقع الشمس والقمر والكواكب وأعد جداول فلكية؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍅🍟",
+        "seq": "🌙⭐📏",
         "basis": [
-          "طماطم",
-          "بطاطس مقلية للتقديم"
+          "قمر",
+          "نجوم",
+          "قياس"
         ]
       },
       "choices": [
-        "صلصة الطحينة",
-        "الكاتشب",
-        "المايونيز",
-        "الخردل"
+        "محمد البتاني",
+        "ابن يونس",
+        "أبو الوفاء البوزجاني",
+        "الخازني"
       ],
-      "answer": 1,
-      "why": "الكاتشب صلصة متبلة تصنع عادة من الطماطم، ومن طرق تقديمها المعروفة إضافتها إلى البطاطس المقلية.",
+      "answer": 0,
+      "why": "اشتهر البتاني بدقة أرصاده الفلكية وبالجداول التي استفاد منها فلكيون لاحقون.",
       "src": [
-        "Merriam-Webster — Ketchup — https://www.merriam-webster.com/dictionary/ketchup",
-        "Serious Eats — Homemade ketchup — https://www.seriouseats.com/homemade-ketchup-from-scratch-recipe"
+        "MacTutor History of Mathematics — Al-Battani — https://mathshistory.st-andrews.ac.uk/Biographies/Al-Battani/"
       ],
       "level": 1,
       "status": "approved",
@@ -1473,27 +1457,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "طبق سويسري يؤكل بالغمس تلمح إليه الرموز؛ أي اسم يطابقه؟",
+      "q": "أي فلكي مصري ألّف «الزيج الحاكمي الكبير» من الجداول والرصد؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🧀🍞🍲",
+        "seq": "🌙📜🔭",
         "basis": [
-          "جبن",
-          "خبز",
-          "وعاء تقديم ساخن"
+          "قمر",
+          "جداول",
+          "مرصد"
         ]
       },
       "choices": [
-        "فوندو الجبن",
-        "رافيولي السبانخ",
-        "غراتان البطاطس",
-        "سلطة كابريزي"
+        "أبو الوفاء البوزجاني",
+        "الخازني",
+        "أبو الريحان البيروني",
+        "ابن يونس"
       ],
-      "answer": 0,
-      "why": "يقدم فوندو الجبن في وعاء يحتوي جبنًا مذابًا، وتغمس فيه قطع الخبز، كما تصف الوصفتان.",
+      "answer": 3,
+      "why": "كان الزيج الحاكمي الكبير من أهم أعمال ابن يونس الفلكية ويضم مشاهدات وجداول.",
       "src": [
-        "Good Food — Classic cheese fondue — https://tollbit.bbcgoodfood.com/recipes/classic-cheese-fondue",
-        "Switzerland Tourism — Typical food — https://www.myswitzerland.com/en-ie/planning/about-switzerland/custom-and-tradition/typical-food-old/"
+        "MacTutor History of Mathematics — Ibn Yunus — https://mathshistory.st-andrews.ac.uk/Biographies/Yunus/"
       ],
       "level": 2,
       "status": "approved",
@@ -1504,27 +1487,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "حلوى إيطالية ذات طبقات توحي بها الرموز مجتمعة؛ أي حلوى هي؟",
+      "q": "أي رياضي وفلكي أعد جداول دقيقة للجيب والظل ودرس المثلثات؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍪☕🧀",
+        "seq": "📐🔺🧮",
         "basis": [
-          "بسكويت",
-          "قهوة",
-          "جبن كريمي"
+          "هندسة",
+          "مثلث",
+          "حساب"
         ]
       },
       "choices": [
-        "باناكوتا الفانيليا",
-        "تيراميسو",
-        "بودينغ الأرز",
-        "كعكة الغابة السوداء"
+        "الخازني",
+        "محمد بن موسى الخوارزمي",
+        "أبو الوفاء البوزجاني",
+        "أبو بكر الكرجي"
       ],
-      "answer": 1,
-      "why": "يتكون التيراميسو من طبقات بسكويت أصابع السيدة المشرب بالقهوة وكريمة جبن الماسكاربوني؛ ورمز البسكويت عام.",
+      "answer": 2,
+      "why": "طوّر أبو الوفاء حساب المثلثات ووضع جداول دقيقة للجيب والظل.",
       "src": [
-        "Good Food — Quick and easy tiramisu — https://tollbit.bbcgoodfood.com/recipes/quick-easy-tiramisu",
-        "Sally's Baking — Tiramisu — https://sallysbakingaddiction.com/tiramisu/"
+        "MacTutor History of Mathematics — Abu’l-Wafa — https://mathshistory.st-andrews.ac.uk/Biographies/Abul-Wafa/"
       ],
       "level": 2,
       "status": "approved",
@@ -1535,27 +1517,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "حلوى هندية كثيفة تشي بها الرموز؛ أي خيار يطابقها؟",
+      "q": "أي رياضي فصل عمليات الجبر عن التصوير الهندسي وطوّر حساب كثيرات الحدود؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🥥🥛🍬",
+        "seq": "🔢🧮📈",
         "basis": [
-          "جوز هند",
-          "حليب",
-          "حلاوة"
+          "أعداد",
+          "حساب",
+          "معادلات"
         ]
       },
       "choices": [
-        "كعكة الجبن بالتوت",
-        "بسبوسة السميد بالقشطة",
-        "بارفي جوز الهند",
-        "مهلبية الأرز"
+        "الحسن بن الهيثم",
+        "أبو بكر الكرجي",
+        "الخازني",
+        "محمد بن موسى الخوارزمي"
       ],
-      "answer": 2,
-      "why": "بارفي جوز الهند حلوى تصنع من جوز الهند والحليب والتحلية بالسكر أو الحليب المكثف؛ ورمز الحلوى يدل على التحلية.",
+      "answer": 1,
+      "why": "قدم الكرجي معالجة حسابية للجبر والحدود من دون الاعتماد على تمثيلها الهندسي.",
       "src": [
-        "Swasthi's Recipes — Coconut burfi — https://www.indianhealthyrecipes.com/coconut-burfi-recipe-coconut-barfi/",
-        "Dassana's Veg Recipes — Coconut burfi — https://www.vegrecipesofindia.com/coconut-barfi-recipe/"
+        "MacTutor History of Mathematics — al-Karaji — https://mathshistory.st-andrews.ac.uk/Biographies/Al-Karaji/"
       ],
       "level": 1,
       "status": "approved",
@@ -1566,27 +1547,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "وعاء كوري من الأرز والخضراوات تلمح إليه الرموز؛ ما اسمه؟",
+      "q": "أي عالم صمم «ميزان الحكمة» لدراسة الأوزان والكثافة؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍚🥬🌶️",
+        "seq": "⚖️🧪💧",
         "basis": [
-          "أرز",
-          "خضراوات",
-          "تتبيلة فلفل حار"
+          "ميزان",
+          "علم",
+          "ماء"
         ]
       },
       "choices": [
-        "بيبيمباب",
-        "ريزوتو",
-        "بولينتا",
-        "راتاتوي"
+        "الخازني",
+        "محمد بن موسى الخوارزمي",
+        "الحسن بن الهيثم",
+        "أبو الريحان البيروني"
       ],
       "answer": 0,
-      "why": "البيبيمباب طبق كوري يمزج الأرز بالخضراوات، ويقدم مع صلصة أو معجون الفلفل الأحمر.",
+      "why": "صمم الخازني ميزاناً دقيقاً وكتب في الفيزياء والميكانيكا في كتاب ميزان الحكمة.",
       "src": [
-        "Korea.net — Stone pot bibimbap — https://www.korea.net/NewsFocus/Culture/view?articleId=130922",
-        "Maangchi — Bibimbap — https://www.maangchi.com/recipe/bibimbap"
+        "Nuncius — Al-Khazini’s Balance of Wisdom — https://doi.org/10.1163/18253911-03503003"
       ],
       "level": 2,
       "status": "approved",
@@ -1597,26 +1577,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "حلوى يابانية على سيخ تشي بها الصورتان؛ ما اسمها؟",
+      "q": "أي مؤلف أندلسي وضع موسوعة «كتاب الفلاحة» في الزراعة والبستنة وتربية الحيوان؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍡🌾",
+        "seq": "🌾📖🌿",
         "basis": [
-          "حلوى كرات على سيخ",
-          "أرز"
+          "زراعة",
+          "كتاب",
+          "نبات"
         ]
       },
       "choices": [
-        "يوكان",
-        "دوراياكي",
-        "دانغو",
-        "تاياكي"
+        "أبو حنيفة الدينوري",
+        "ابن بصال",
+        "الطغنري",
+        "ابن العوام"
       ],
-      "answer": 2,
-      "why": "الدانغو كرات حلوة من دقيق الأرز تثبت على أسياخ؛ ومنها الشكل الملون الذي يمثله الرمز.",
+      "answer": 3,
+      "why": "جمع ابن العوام معارف الزراعة الأندلسية في كتاب الفلاحة الموسع.",
       "src": [
-        "Just One Cookbook — Hanami Dango — https://www.justonecookbook.com/hanami-dango/",
-        "Kikkoman — Mitarashi dango — https://www.kikkoman.com/en/culture/foodforum/recipe/traditional-37-2.html"
+        "British Library Archives — Kitāb al-filāḥah by Ibn al-ʿAwwām — https://searcharchives.bl.uk/catalog/032-002108259"
       ],
       "level": 3,
       "status": "approved",
@@ -1627,27 +1607,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "مقبل إيطالي مقرمش تفك رموزه هذا الاسم؛ أي الخيارات هو؟",
+      "q": "أي أديب عباسي عُرف بمؤلفاته في اللغة والأدب والتاريخ؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍅🍞🧄",
+        "seq": "📜📚🗣️",
         "basis": [
-          "طماطم",
-          "خبز",
-          "ثوم"
+          "أدب",
+          "كتب",
+          "لغة"
         ]
       },
       "choices": [
-        "غنوتشي بالجبن",
-        "ريزوتو بالفطر",
-        "بروسكيتا الطماطم",
-        "سلطة كابريزي"
+        "ابن حزم",
+        "المتنبي",
+        "ابن قتيبة",
+        "ابن طفيل"
       ],
       "answer": 2,
-      "why": "تصنع بروسكيتا الطماطم من شرائح خبز محمص تفرك بالثوم وتعلوها الطماطم المتبلة.",
+      "why": "كتب ابن قتيبة في اللغة والأدب والتاريخ، ومن أعماله «عيون الأخبار».",
       "src": [
-        "La Cucina Italiana — Bruschetta — https://www.lacucinaitaliana.com/glossary/bruschetta",
-        "GialloZafferano — Balsamic tomato bruschetta — https://www.giallozafferano.com/recipes/Balsamic-tomato-bruschetta.html"
+        "TDV İslâm Ansiklopedisi — İbn Kuteybe — https://islamansiklopedisi.org.tr/ibn-kuteybe"
       ],
       "level": 2,
       "status": "approved",
@@ -1658,27 +1637,26 @@ KZV.register({
       "cat": "geography",
       "type": "mcq",
       "fmt": "text",
-      "q": "متنزه أمريكي تشتهر أرضه بالينابيع الحارة والفوارات تلمح إليه الرموز؛ ما اسمه؟",
+      "q": "أي أديب أندلسي كتب «طوق الحمامة» عن الحب وأحواله؟",
       "vis": {
         "kind": "emoji",
-        "seq": "♨️🏞️💧",
+        "seq": "🕊️💌📜",
         "basis": [
-          "ينابيع حارة",
-          "متنزه طبيعي",
-          "ماء"
+          "حمامة",
+          "رسالة",
+          "أدب"
         ]
       },
       "choices": [
-        "متنزه يلوستون",
-        "متنزه يوسيميتي",
-        "متنزه إيفرغليدز",
-        "متنزه غراند كانيون"
+        "بدر شاكر السياب",
+        "ابن حزم",
+        "محمد إقبال",
+        "نزار قباني"
       ],
-      "answer": 0,
-      "why": "يحفظ يلوستون تجمعًا بارزًا من الينابيع الحارة والفوارات والسمات المائية الحرارية، فتجمع الرموز المتنزه والماء الساخن.",
+      "answer": 1,
+      "why": "كتب ابن حزم «طوق الحمامة» في الأندلس، وجمع فيه حكايات ونثراً وشعراً عن الحب.",
       "src": [
-        "UNESCO — Yellowstone National Park — https://whc.unesco.org/en/list/28/",
-        "National Park Service — Yellowstone hydrothermal features — https://www.nps.gov/yell/learn/nature/hydrothermal-features.htm"
+        "Library of Congress — The Dove’s Neck-Ring — https://www.loc.gov/item/2021666154/"
       ],
       "level": 2,
       "status": "approved",
@@ -1689,26 +1667,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "وجبة يابانية خفيفة يشير الرمز الأول إلى شكلها والثاني إلى أصلها؛ ما اسمها؟",
+      "q": "أي عالم مصري من أكثر مؤلفي التراث الإسلامي غزارة في الكتابة؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍙🌾",
+        "seq": "📚🖋️🧩",
         "basis": [
-          "كرة أرز ملفوفة بشريط أعشاب بحرية",
-          "أرز"
+          "علم",
+          "كتابة",
+          "معارف"
         ]
       },
       "choices": [
-        "يوكان",
-        "دانغو",
-        "أونيغيري",
-        "دوراياكي"
+        "جلال الدين السيوطي",
+        "يحيى بن شرف النووي",
+        "ابن حجر العسقلاني",
+        "ابن قتيبة"
       ],
-      "answer": 2,
-      "why": "الأونيغيري كرات أو مثلثات من الأرز المطهو، تلف غالبًا بأعشاب نوري البحرية كما يظهر في الرمز.",
+      "answer": 0,
+      "why": "عُرف السيوطي بغزارة التصنيف وكتب في علوم القرآن والحديث واللغة والتاريخ.",
       "src": [
-        "Just One Cookbook — Onigiri rice balls — https://www.justonecookbook.com/onigiri-rice-balls/",
-        "Kikkoman — Onigiri Japanese rice balls — https://www.kikkoman.com/en/cookbook/feature/0001.html"
+        "Institute for the History of Science, McGill — Suyuti — https://islamsci.mcgill.ca/RASI/BEA/Suyuti_BEA.htm"
       ],
       "level": 3,
       "status": "approved",
@@ -1719,27 +1697,26 @@ KZV.register({
       "cat": "world-history",
       "type": "mcq",
       "fmt": "text",
-      "q": "قطار وبرق وساعة تلمح إلى تجربة فكرية عن التزامن؛ أي عالم ارتبط بها؟",
+      "q": "أي فقيه ومحدّث ألّف كتاب «رياض الصالحين»؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🚄⚡🕰️",
+        "seq": "📚📘🖋️",
         "basis": [
-          "قطار متحرك",
-          "ومضات برق",
-          "الزمن والتزامن"
+          "كتاب",
+          "مؤلف",
+          "قلم"
         ]
       },
       "choices": [
-        "إسحاق نيوتن",
-        "ألبرت أينشتاين",
-        "ماكس بلانك",
-        "مايكل فاراداي"
+        "ابن حجر العسقلاني",
+        "ابن قتيبة",
+        "ابن رشد",
+        "يحيى بن شرف النووي"
       ],
-      "answer": 1,
-      "why": "استخدم أينشتاين تجربة القطار وومضات البرق لشرح أن الحكم على تزامن الأحداث يعتمد على إطار المراقب.",
+      "answer": 3,
+      "why": "ألّف النووي كتاب رياض الصالحين وجمع فيه أحاديث مرتبة في أبواب موضوعية.",
       "src": [
-        "AMNH — It's All Relative — https://www.amnh.org/explore/ology/physics/space-and-time2/its-all-relative",
-        "Einstein — Relativity: The Special and General Theory, IX — https://www.gutenberg.org/files/5001/5001-h/5001-h.htm#chap09"
+        "Google Books — Riyad as-Salihin by Imam Yahya ibn Sharaf an-Nawawi — https://books.google.com/books/about/Riyad_as_Salihin.html?id=UyD8DwAAQBAJ"
       ],
       "level": 2,
       "status": "approved",
@@ -1750,26 +1727,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "فاكهة إلى جوار ناطحات سحاب تلمح إلى لقب مدينة أمريكية شهيرة؛ ما المدينة؟",
+      "q": "أي محدّث مصري ألّف «فتح الباري» شرحاً لصحيح البخاري؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍎🏙️",
+        "seq": "📚🗝️🕰️",
         "basis": [
-          "التفاحة في لقب التفاحة الكبيرة",
-          "مدينة كبرى"
+          "شرح",
+          "كتاب",
+          "زمن"
         ]
       },
       "choices": [
-        "نيويورك",
-        "لوس أنجلوس",
-        "بوسطن",
-        "شيكاغو"
+        "ابن رشد",
+        "ابن خلدون",
+        "ابن حجر العسقلاني",
+        "ابن قتيبة"
       ],
-      "answer": 0,
-      "why": "تُلقّب نيويورك بالتفاحة الكبيرة؛ لذا تجتمع التفاحة مع رمز المدينة.",
+      "answer": 2,
+      "why": "فتح الباري هو شرح ابن حجر العسقلاني لصحيح البخاري.",
       "src": [
-        "NYC government — Big Apple Corner — https://www.nyc.gov/html/om/html/97/sp082-97.html",
-        "American Name Society — The Origin of NYC's Nickname The Big Apple — https://ans-names.pitt.edu/ans/article/view/1344"
+        "TDV İslâm Ansiklopedisi — Fethu’l-Bârî — https://islamansiklopedisi.org.tr/fethul-bari"
       ],
       "level": 1,
       "status": "approved",
@@ -1810,26 +1787,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "اجمع معنى المنزل مع اللون الظاهر؛ أي مدينة مغربية يحمل اسمها هذا المعنى؟",
+      "q": "أي جغرافي رحّالة ألّف «أحسن التقاسيم في معرفة الأقاليم»؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🏠⚪",
+        "seq": "🗺️🏘️🧭",
         "basis": [
-          "دار أو منزل",
-          "اللون الأبيض"
+          "خريطة",
+          "مدن",
+          "اتجاه"
         ]
       },
       "choices": [
-        "الرباط",
-        "مراكش",
-        "الدار البيضاء",
-        "طنجة"
+        "البكري",
+        "المقدسي",
+        "اليعقوبي",
+        "ياقوت الحموي"
       ],
-      "answer": 2,
-      "why": "اسم الدار البيضاء يطابق معنى المنزل الأبيض، ويقابله اسمها المعروف كازابلانكا.",
+      "answer": 1,
+      "why": "دوّن المقدسي مشاهدات أسفاره في كتاب موسع عن جغرافية الأقاليم والمدن.",
       "src": [
-        "Moroccan National Tourist Office — City breaks — https://www.visitmorocco.com/sites/default/files/atoms/files/maroc_city-break_20250729_pbi20251103-en.pdf",
-        "Casablanca — Name — https://en.wikipedia.org/wiki/Casablanca"
+        "Encyclopaedia Iranica — Aḥsan al-Taqāsīm — https://www.iranicaonline.org/articles/ahsan-al-taqasim-fi-marefat-al-aqalim-celebrated-geographical-work/"
       ],
       "level": 1,
       "status": "approved",
@@ -1931,26 +1908,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "مرساة وزهرة تلمحان إلى «مرفأ عطر»؛ أي مدينة آسيوية يعني اسمها هذا المعنى؟",
+      "q": "أي جغرافي من القرن التاسع ألّف «كتاب البلدان» عن مدن الدولة الإسلامية؟",
       "vis": {
         "kind": "emoji",
-        "seq": "⚓🌸",
+        "seq": "🗺️📍🏛️",
         "basis": [
-          "مرفأ يدل عليه رمز المرساة",
-          "عطر تدل عليه الزهرة"
+          "خريطة",
+          "موقع",
+          "بلدان"
         ]
       },
       "choices": [
-        "هونغ كونغ",
-        "بانكوك",
-        "سنغافورة",
-        "شنغهاي"
+        "اليعقوبي",
+        "ياقوت الحموي",
+        "البكري",
+        "ابن حوقل"
       ],
       "answer": 0,
-      "why": "يعني اسم هونغ كونغ المرفأ العطر؛ فالمرساة تشير إلى المرفأ والزهرة إلى الرائحة العطرة.",
+      "why": "يعرض كتاب البلدان لليعقوبي جغرافية المدن والأقاليم وإدارتها في الدولة الإسلامية.",
       "src": [
-        "HK Herbarium — Origin of the name of Hong Kong — https://www.herbarium.gov.hk/en/special-topics/botanical-nomenclature/botanical-nomenclature-detail/index-id-1.html",
-        "Hong Kong — Etymology — https://en.wikipedia.org/wiki/Hong_Kong"
+        "MIT Libraries — Yaʿqūbī: Kitāb al-Buldān — https://libguides.mit.edu/c.php?g=883344&p=6346961"
       ],
       "level": 2,
       "status": "approved",
@@ -2051,26 +2028,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "حوض وبخار يلمحان إلى مدينة إنجليزية اشتهرت بحمامات رومانية وينابيع حارة؛ ما اسمها؟",
+      "q": "أي مؤرخ وفيلسوف فارسي ألّف «تجارب الأمم» وكتاباً في تهذيب الأخلاق؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🛁♨️",
+        "seq": "📜🏺🧠",
         "basis": [
-          "استحمام",
-          "مياه طبيعية حارة"
+          "تاريخ",
+          "تجارب",
+          "فكر"
         ]
       },
       "choices": [
-        "يورك",
-        "باث",
-        "أكسفورد",
-        "كامبريدج"
+        "ابن أبي أصيبعة",
+        "ابن الأثير",
+        "ابن خلدون",
+        "ابن مسكويه"
       ],
-      "answer": 1,
-      "why": "نشأت باث حول ينابيع حارة استعملها الرومان في مجمع حماماتهم الذي اشتهرت به المدينة.",
+      "answer": 3,
+      "why": "اشتهر ابن مسكويه بكتابه التاريخي تجارب الأمم وبمؤلفاته في الفلسفة والأخلاق.",
       "src": [
-        "Roman Baths — Walkthrough — https://www.romanbaths.co.uk/walkthrough",
-        "UNESCO — City of Bath — https://whc.unesco.org/en/list/428/"
+        "Encyclopaedia Iranica — Meskawayh — https://www.iranicaonline.org/articles/meskavayh-abu-ali-ahmad/"
       ],
       "level": 2,
       "status": "approved",
@@ -2173,27 +2150,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "مطر وأشجار مدارية تلمح إلى غابات شهيرة في أمريكا الجنوبية؛ ما اسمها؟",
+      "q": "أي طبيب ومؤرخ ألّف موسوعة «عيون الأنباء في طبقات الأطباء»؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🌧️🌳🌴",
+        "seq": "🩺📜📚",
         "basis": [
-          "مناخ ممطر",
-          "غابات كثيفة",
-          "نباتات مدارية"
+          "طب",
+          "سير",
+          "كتب"
         ]
       },
       "choices": [
-        "غابات الأمازون",
-        "غابات سيبيريا",
-        "غابات الكونغو",
-        "الغابة السوداء"
+        "أبو بكر الرازي",
+        "أبو القاسم الزهراوي",
+        "ابن أبي أصيبعة",
+        "ابن سينا"
       ],
-      "answer": 0,
-      "why": "الأمازون غابات مطيرة مدارية واسعة في أمريكا الجنوبية، وهو ما تجمعه رموز المطر والأشجار.",
+      "answer": 2,
+      "why": "جمع ابن أبي أصيبعة تراجم الأطباء في كتاب عيون الأنباء.",
       "src": [
-        "WWF — Amazon — https://www.worldwildlife.org/places/amazon",
-        "Amazon rainforest — https://en.wikipedia.org/wiki/Amazon_rainforest"
+        "Library of Congress — Lives of the Physicians — https://www.loc.gov/item/2021666197/"
       ],
       "level": 1,
       "status": "approved",
@@ -2204,28 +2180,26 @@ KZV.register({
       "cat": "emoji-quiz",
       "type": "mcq",
       "fmt": "text",
-      "q": "قاعدة مخبوزة وطماطم وجبن وريحان تلمح إلى بيتزا إيطالية في صورتها التقليدية؛ ما اسمها؟",
+      "q": "أي مؤرخ جزري ألّف التاريخ العام «الكامل في التاريخ»؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍞🍅🧀🌿",
+        "seq": "📜🏛️⏳",
         "basis": [
-          "قاعدة من عجين مخبوز",
-          "طماطم",
-          "جبن موزاريلا",
-          "ريحان"
+          "تاريخ",
+          "دول",
+          "زمن"
         ]
       },
       "choices": [
-        "بيتزا بيانكا",
-        "بيتزا بالفطر",
-        "بيتزا مارغريتا",
-        "بيتزا مارينارا"
+        "الطبري",
+        "ابن الأثير",
+        "ابن خلدون",
+        "المسعودي"
       ],
-      "answer": 2,
-      "why": "تعلو بيتزا مارغريتا التقليدية الطماطم والموزاريلا والريحان فوق قاعدة العجين المخبوزة.",
+      "answer": 1,
+      "why": "غطى كتاب ابن الأثير الكامل في التاريخ أخبار العالم الإسلامي حتى عصر مؤلفه.",
       "src": [
-        "AVPN — International regulations — https://www.pizzanapoletana.org/en/ricetta_pizza_napoletana",
-        "Good Food — Very simple Margherita pizza — https://tollbit.bbcgoodfood.com/recipes/very-simple-margherita-pizza"
+        "Encyclopaedia Iranica — Ebn al-Aṯīr — https://www.iranicaonline.org/articles/ebn-al-air/"
       ],
       "level": 2,
       "status": "approved",
@@ -2236,27 +2210,26 @@ KZV.register({
       "cat": "cuisine",
       "type": "mcq",
       "fmt": "text",
-      "q": "معكرونة وجبن وطماطم تلمح إلى طبق تُرتّب رقائقه في طبقات وتُخبز؛ أي طبق؟",
+      "q": "أي جغرافي ألّف «معجم البلدان» الموسوعي عن المدن والأقاليم؟",
       "vis": {
         "kind": "emoji",
-        "seq": "🍝🧀🍅",
+        "seq": "🌍📚🗺️",
         "basis": [
-          "معكرونة بوصفها فئة غذائية",
-          "جبن",
-          "صلصة طماطم"
+          "بلدان",
+          "كتاب",
+          "خريطة"
         ]
       },
       "choices": [
-        "ريزوتو",
-        "رافيولي",
-        "لازانيا",
-        "نيوكي"
+        "ياقوت الحموي",
+        "البكري",
+        "ابن حوقل",
+        "الإصطخري"
       ],
-      "answer": 2,
-      "why": "تُرتّب رقائق المعكرونة مع صلصة الطماطم والجبن في طبقات ثم تُخبز في الفرن، وهو إعداد اللازانيا.",
+      "answer": 0,
+      "why": "جمع ياقوت الحموي في معجمه أسماء البلدان ومعلوماتها الجغرافية والتاريخية.",
       "src": [
-        "Jamie Oliver — Veggie lasagne — https://www.jamieoliver.com/recipes/pasta/veggie-lasagne/",
-        "British Nutrition Foundation — Vegetarian lasagne — https://www.foodafactoflife.org.uk/recipes/11-14-l2c/vegetarian-lasagne/"
+        "Library of Congress — The Dictionary of Countries — https://www.loc.gov/resource/gdcwdl.wdl_07444/"
       ],
       "level": 2,
       "status": "approved",

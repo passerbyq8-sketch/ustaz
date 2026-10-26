@@ -17,12 +17,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ك_اب (صفحات مجموعة بين غلافين تقرأ للاستفادة)",
       "choices": [
+        "ل",
+        "ذ",
         "ت",
-        "م",
-        "ه",
-        "و"
+        "ب"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "كتاب: صفحات مجموعة بين غلافين تقرأ للاستفادة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -39,10 +39,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: دف_ر (أوراق مجمعة يكتب فيها الطالب)",
       "choices": [
-        "ي",
+        "ن",
         "ت",
-        "أ",
-        "ح"
+        "ث",
+        "ب"
       ],
       "answer": 1,
       "why": "دفتر: أوراق مجمعة يكتب فيها الطالب.",
@@ -61,12 +61,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: و_ق (مادة رقيقة تصنع منها صفحات المطبوعات)",
       "choices": [
-        "ذ",
-        "ؤ",
         "ر",
-        "خ"
+        "ش",
+        "د",
+        "س"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "ورق: مادة رقيقة تصنع منها صفحات المطبوعات.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -83,12 +83,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ل_ح (قطعة عريضة مسطحة من خشب أو غيره)",
       "choices": [
+        "م",
+        "ق",
         "و",
-        "إ",
-        "غ",
-        "ى"
+        "ف"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "لوح: قطعة عريضة مسطحة من خشب أو غيره.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -106,9 +106,9 @@ KZV.register({
       "q": "أكمل الكلمة: صح_فة (ورقة مكتوبة أو مطبوعة تحمل الأخبار)",
       "choices": [
         "ي",
-        "أ",
-        "ح",
-        "س"
+        "ى",
+        "ن",
+        "ت"
       ],
       "answer": 0,
       "why": "صحيفة: ورقة مكتوبة أو مطبوعة تحمل الأخبار.",
@@ -127,12 +127,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ط_بع (قطعة صغيرة تلصق على المراسلات لدفع أجرتها)",
       "choices": [
-        "ء",
+        "إ",
+        "آ",
         "ا",
-        "ج",
-        "د"
+        "أ"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "طابع: قطعة صغيرة تلصق على المراسلات لدفع أجرتها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -149,10 +149,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: غل_ف (ما يحيط بالشيء ليحميه)",
       "choices": [
-        "و",
+        "آ",
         "ا",
-        "م",
-        "ش"
+        "أ",
+        "إ"
       ],
       "answer": 1,
       "why": "غلاف: ما يحيط بالشيء ليحميه.",
@@ -171,12 +171,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: صف_ة (أحد وجهي الورقة في المطبوع)",
       "choices": [
-        "ص",
         "ح",
-        "إ",
-        "ن"
+        "ق",
+        "و",
+        "ر"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "صفحة: أحد وجهي الورقة في المطبوع.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -193,12 +193,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ف_ل (جزء مستقل من أجزاء المؤلف المكتوب)",
       "choices": [
-        "ف",
-        "آ",
-        "ص",
-        "خ"
+        "أ",
+        "ج",
+        "ض",
+        "ص"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "فصل: جزء مستقل من أجزاء المؤلف المكتوب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -215,10 +215,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: جام_ة (مؤسسة للتعليم العالي تضم كليات)",
       "choices": [
-        "ج",
-        "آ",
+        "ح",
+        "ا",
         "ع",
-        "م"
+        "غ"
       ],
       "answer": 2,
       "why": "جامعة: مؤسسة للتعليم العالي تضم كليات.",
@@ -237,12 +237,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_عد (موضع مهيأ للجلوس)",
       "choices": [
-        "ة",
-        "ي",
-        "آ",
-        "ق"
+        "ج",
+        "ق",
+        "ص",
+        "ب"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "مقعد: موضع مهيأ للجلوس.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -259,12 +259,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: وسا_ة (كيس لين يوضع تحت الرأس عند النوم)",
       "choices": [
-        "ض",
+        "م",
+        "ذ",
         "د",
-        "ع",
-        "ا"
+        "ط"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "وسادة: كيس لين يوضع تحت الرأس عند النوم.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -281,12 +281,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: فر_ش (ما يبسط ليضطجع عليه النائم)",
       "choices": [
-        "ث",
-        "م",
-        "ف",
-        "ا"
+        "آ",
+        "ا",
+        "أ",
+        "إ"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "فراش: ما يبسط ليضطجع عليه النائم.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -303,12 +303,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ب_اط (نسيج يبسط على أرض المكان)",
       "choices": [
-        "ر",
-        "س",
-        "ك",
-        "أ"
+        "ل",
+        "ط",
+        "ش",
+        "س"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "بساط: نسيج يبسط على أرض المكان.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -326,9 +326,9 @@ KZV.register({
       "q": "أكمل الكلمة: م_باح (أداة يستضاء بها في الظلام)",
       "choices": [
         "س",
-        "د",
+        "ط",
         "ص",
-        "ت"
+        "ض"
       ],
       "answer": 2,
       "why": "مصباح: أداة يستضاء بها في الظلام.",
@@ -347,12 +347,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: س_اج (أداة إضاءة قديمة توقد بالزيت)",
       "choices": [
-        "ف",
-        "ك",
         "ر",
-        "غ"
+        "ي",
+        "ذ",
+        "م"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "سراج: أداة إضاءة قديمة توقد بالزيت.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -369,12 +369,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: دع_مة (ما يسند البناء ويقويه)",
       "choices": [
-        "س",
+        "إ",
+        "آ",
         "ا",
-        "ر",
-        "ى"
+        "أ"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "دعامة: ما يسند البناء ويقويه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -391,12 +391,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ش_فة (جزء بارز من المبنى يطل على الخارج)",
       "choices": [
-        "ض",
         "ر",
-        "ف",
-        "ه"
+        "أ",
+        "ع",
+        "ز"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "شرفة: جزء بارز من المبنى يطل على الخارج.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -413,12 +413,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: حج_ة (حيز مغلق من المنزل أو المبنى)",
       "choices": [
-        "ى",
-        "ض",
-        "غ",
-        "ر"
+        "ل",
+        "ب",
+        "ر",
+        "ز"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "حجرة: حيز مغلق من المنزل أو المبنى.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -435,10 +435,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: سا_ة (مساحة واسعة خالية بين الأبنية أو أمامها)",
       "choices": [
-        "ه",
+        "س",
         "ح",
-        "ض",
-        "و"
+        "ع",
+        "د"
       ],
       "answer": 1,
       "why": "ساحة: مساحة واسعة خالية بين الأبنية أو أمامها.",
@@ -458,9 +458,9 @@ KZV.register({
       "q": "أكمل الكلمة: ح_ش (فناء يحيط به سور)",
       "choices": [
         "و",
-        "ز",
-        "ج",
-        "ت"
+        "ب",
+        "ن",
+        "ر"
       ],
       "answer": 0,
       "why": "حوش: فناء يحيط به سور.",
@@ -479,12 +479,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ق_عة (بناء حصين مرتفع للدفاع والحماية)",
       "choices": [
-        "س",
-        "ج",
-        "أ",
-        "ل"
+        "ر",
+        "ص",
+        "ل",
+        "ب"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "قلعة: بناء حصين مرتفع للدفاع والحماية.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -501,12 +501,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ق_ر (مسكن كبير فخم واسع)",
       "choices": [
-        "ن",
-        "ل",
+        "ش",
         "ص",
-        "ى"
+        "ا",
+        "د"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "قصر: مسكن كبير فخم واسع.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -524,12 +524,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ر_اق (ممر مسقوف أمام حجرات البناء)",
       "choices": [
-        "و",
-        "إ",
-        "ء",
-        "خ"
+        "ح",
+        "ق",
+        "ز",
+        "و"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "رواق: ممر مسقوف أمام حجرات البناء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -546,12 +546,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مد_ل (الموضع الذي يؤتى منه إلى الداخل)",
       "choices": [
+        "ج",
+        "ح",
         "خ",
-        "و",
-        "ذ",
-        "ط"
+        "ل"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "مدخل: الموضع الذي يؤتى منه إلى الداخل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -569,9 +569,9 @@ KZV.register({
       "q": "أكمل الكلمة: شا_ع (طريق واسع بين المباني)",
       "choices": [
         "ر",
-        "ز",
-        "ا",
-        "ل"
+        "ف",
+        "ج",
+        "ن"
       ],
       "answer": 0,
       "why": "شارع: طريق واسع بين المباني.",
@@ -590,12 +590,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: د_ب (طريق أو مسلك يسير فيه الناس)",
       "choices": [
-        "د",
-        "ر",
-        "ذ",
-        "آ"
+        "ل",
+        "أ",
+        "ع",
+        "ر"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "درب: طريق أو مسلك يسير فيه الناس.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -612,12 +612,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ج_ر (بناء يعبر فوق نهر أو طريق)",
       "choices": [
-        "غ",
-        "ى",
-        "ط",
-        "س"
+        "د",
+        "ذ",
+        "س",
+        "ا"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "جسر: بناء يعبر فوق نهر أو طريق.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -634,12 +634,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_ناء (موضع ترسو فيه السفن)",
       "choices": [
-        "ث",
-        "ا",
         "ي",
-        "ذ"
+        "ى",
+        "ن",
+        "ت"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "ميناء: موضع ترسو فيه السفن.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -657,9 +657,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: رص_ف (طرف مرتفع بجانب الطريق يسير عليه المشاة)",
       "choices": [
-        "ث",
-        "ه",
-        "ع",
+        "ى",
+        "ن",
+        "ت",
         "ي"
       ],
       "answer": 3,
@@ -679,12 +679,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: س_ق (مكان يتبادل فيه الناس البيع والشراء)",
       "choices": [
-        "ذ",
+        "ج",
+        "ل",
         "و",
-        "د",
-        "ق"
+        "ب"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "سوق: مكان يتبادل فيه الناس البيع والشراء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -701,12 +701,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: بست_ن (أرض تحيط بها الأشجار وتزرع فيها الثمار)",
       "choices": [
-        "ظ",
-        "و",
         "ا",
-        "ح"
+        "أ",
+        "إ",
+        "آ"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "بستان: أرض تحيط بها الأشجار وتزرع فيها الثمار.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -723,12 +723,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ع_ن (موضع ينبع منه الماء من باطن الأرض)",
       "choices": [
-        "ء",
-        "ؤ",
-        "ح",
-        "ي"
+        "ي",
+        "د",
+        "ن",
+        "ج"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "عين: موضع ينبع منه الماء من باطن الأرض.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -746,9 +746,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ق_اة (مجرى يحفر لنقل الماء)",
       "choices": [
-        "خ",
-        "ؤ",
-        "أ",
+        "ذ",
+        "ط",
+        "ر",
         "ن"
       ],
       "answer": 3,
@@ -769,11 +769,11 @@ KZV.register({
       "q": "أكمل الكلمة: ساق_ة (مجرى صغير يحمل ماء الري إلى الزرع)",
       "choices": [
         "ن",
-        "ؤ",
-        "خ",
-        "ي"
+        "ت",
+        "ي",
+        "ى"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "ساقية: مجرى صغير يحمل ماء الري إلى الزرع.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -791,12 +791,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: س_ (بناء يقام لحجز المياه والتحكم فيها)",
       "choices": [
-        "ض",
-        "إ",
-        "ذ",
-        "د"
+        "ل",
+        "د",
+        "ت",
+        "ر"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "سد: بناء يقام لحجز المياه والتحكم فيها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -813,12 +813,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: _ل (مرتفع صغير من الأرض)",
       "choices": [
-        "ى",
-        "و",
-        "ر",
-        "ت"
+        "ت",
+        "خ",
+        "ذ",
+        "س"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "تل: مرتفع صغير من الأرض.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -835,12 +835,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: س_حل (اليابسة الممتدة بمحاذاة البحر)",
       "choices": [
-        "د",
+        "أ",
+        "إ",
         "ا",
-        "ل",
-        "ء"
+        "ب"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "ساحل: اليابسة الممتدة بمحاذاة البحر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -857,12 +857,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ش_طئ (حافة اليابسة التي تلامس الماء)",
       "choices": [
-        "ة",
-        "ط",
+        "آ",
         "ا",
-        "و"
+        "أ",
+        "إ"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "شاطئ: حافة اليابسة التي تلامس الماء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -879,12 +879,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مض_ق (ممر مائي ضيق يصل بين مسطحين مائيين)",
       "choices": [
-        "ن",
         "ي",
-        "أ",
-        "و"
+        "ى",
+        "ن",
+        "ت"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "مضيق: ممر مائي ضيق يصل بين مسطحين مائيين.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -901,12 +901,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ن_ر (مجرى طبيعي كبير للماء العذب)",
       "choices": [
-        "ئ",
+        "ب",
+        "س",
         "ه",
-        "ن",
-        "آ"
+        "ا"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "نهر: مجرى طبيعي كبير للماء العذب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -924,12 +924,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: صح_اء (أرض واسعة يغلب عليها الجفاف وقلة النبات)",
       "choices": [
-        "ف",
-        "م",
-        "ر",
-        "ز"
+        "ز",
+        "د",
+        "و",
+        "ر"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "صحراء: أرض واسعة يغلب عليها الجفاف وقلة النبات.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -946,12 +946,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ط_ن (تراب اختلط بالماء فأصبح لينا)",
       "choices": [
-        "إ",
         "ي",
-        "م",
-        "ز"
+        "ح",
+        "ع",
+        "ن"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "طين: تراب اختلط بالماء فأصبح لينا.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -968,12 +968,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: و_ل (طين رخو تزل فيه القدم)",
       "choices": [
-        "ا",
-        "ح",
-        "ت",
-        "ط"
+        "ث",
+        "ر",
+        "ص",
+        "ح"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "وحل: طين رخو تزل فيه القدم.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -990,12 +990,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: غ_ار (دقائق التراب المنتشرة في الهواء)",
       "choices": [
-        "ن",
-        "ئ",
-        "ط",
-        "ب"
+        "ض",
+        "م",
+        "ب",
+        "د"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "غبار: دقائق التراب المنتشرة في الهواء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1012,12 +1012,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ك_ف (تجويف طبيعي واسع في الجبل)",
       "choices": [
-        "ك",
-        "إ",
+        "ن",
         "ه",
-        "ء"
+        "ت",
+        "ف"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "كهف: تجويف طبيعي واسع في الجبل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1035,9 +1035,9 @@ KZV.register({
       "q": "أكمل الكلمة: س_ح (أسفل الجبل أو جانبه المنحدر)",
       "choices": [
         "ف",
-        "آ",
-        "ظ",
-        "ى"
+        "ط",
+        "ل",
+        "م"
       ],
       "answer": 0,
       "why": "سفح: أسفل الجبل أو جانبه المنحدر.",
@@ -1056,12 +1056,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: أ_ق (الخط الذي تبدو عنده السماء ملاقية للأرض)",
       "choices": [
-        "ئ",
-        "ف",
-        "ذ",
-        "ج"
+        "ح",
+        "ر",
+        "ل",
+        "ف"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "أفق: الخط الذي تبدو عنده السماء ملاقية للأرض.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1078,12 +1078,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: سم_ء (ما نراه فوقنا محيطا بالأرض)",
       "choices": [
-        "ط",
+        "إ",
+        "آ",
         "ا",
-        "ة",
-        "ي"
+        "أ"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "سماء: ما نراه فوقنا محيطا بالأرض.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1100,12 +1100,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ق_ر (الجرم الذي يدور حول الأرض ويضيء ليلا)",
       "choices": [
-        "ؤ",
-        "أ",
+        "ش",
         "م",
-        "ج"
+        "ا",
+        "د"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "قمر: الجرم الذي يدور حول الأرض ويضيء ليلا.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1122,12 +1122,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: هل_ل (شكل الجرم الليلي الرقيق المقوس في أول الشهر)",
       "choices": [
-        "ع",
-        "ا",
-        "م",
-        "ث"
+        "ه",
+        "أ",
+        "إ",
+        "ا"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "هلال: شكل الجرم الليلي الرقيق المقوس في أول الشهر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1144,12 +1144,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ب_ر (الجرم الليلي عند اكتمال استدارته)",
       "choices": [
-        "ي",
+        "ب",
+        "ح",
         "د",
-        "ء",
-        "ض"
+        "ئ"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "بدر: الجرم الليلي عند اكتمال استدارته.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1166,12 +1166,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ف_ر (أول ضوء يظهر قبل شروق الشمس)",
       "choices": [
-        "ؤ",
-        "ن",
-        "ي",
-        "ج"
+        "ز",
+        "ج",
+        "أ",
+        "ت"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "فجر: أول ضوء يظهر قبل شروق الشمس.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1189,12 +1189,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ص_ح (أول النهار بعد انقضاء الليل)",
       "choices": [
-        "ظ",
         "ب",
-        "ة",
-        "إ"
+        "ر",
+        "ف",
+        "ل"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "صبح: أول النهار بعد انقضاء الليل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1211,12 +1211,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ع_ر (الوقت المتأخر من النهار قبل الغروب)",
       "choices": [
-        "ة",
-        "ن",
-        "ص",
-        "د"
+        "ا",
+        "ذ",
+        "ش",
+        "ص"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "عصر: الوقت المتأخر من النهار قبل الغروب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1233,10 +1233,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مس_ء (آخر النهار وأول الليل)",
       "choices": [
-        "خ",
-        "ع",
+        "إ",
+        "آ",
         "ا",
-        "ك"
+        "أ"
       ],
       "answer": 2,
       "why": "مساء: آخر النهار وأول الليل.",
@@ -1255,12 +1255,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ش_ق (حمرة تظهر في الأفق بعد غياب الشمس)",
       "choices": [
+        "ب",
         "ف",
-        "ض",
-        "ع",
-        "ث"
+        "د",
+        "ا"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "شفق: حمرة تظهر في الأفق بعد غياب الشمس.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1277,12 +1277,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: س_عة (وحدة زمن تساوي ستين دقيقة)",
       "choices": [
-        "ى",
-        "س",
+        "ل",
         "ا",
-        "ع"
+        "ب",
+        "ج"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "ساعة: وحدة زمن تساوي ستين دقيقة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1299,9 +1299,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مو_م (وقت من السنة يختص بنشاط أو ظاهرة)",
       "choices": [
-        "ذ",
-        "ظ",
-        "ي",
+        "ر",
+        "ح",
+        "ش",
         "س"
       ],
       "answer": 3,
@@ -1321,10 +1321,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ر_يع (الفصل الذي تتفتح فيه الأزهار غالبا)",
       "choices": [
-        "ت",
-        "ث",
+        "ض",
+        "ف",
         "ب",
-        "ه"
+        "ج"
       ],
       "answer": 2,
       "why": "ربيع: الفصل الذي تتفتح فيه الأزهار غالبا.",
@@ -1343,12 +1343,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: خر_ف (الفصل الذي يلي الحر ويسبق البرد)",
       "choices": [
-        "ق",
         "ي",
-        "ت",
-        "ل"
+        "و",
+        "ا",
+        "ش"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "خريف: الفصل الذي يلي الحر ويسبق البرد.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1366,9 +1366,9 @@ KZV.register({
       "q": "أكمل الكلمة: غ_ث (ماء نازل من السماء ينفع الأرض والزرع)",
       "choices": [
         "ي",
-        "ح",
-        "ق",
-        "آ"
+        "و",
+        "ا",
+        "ى"
       ],
       "answer": 0,
       "why": "غيث: ماء نازل من السماء ينفع الأرض والزرع.",
@@ -1387,10 +1387,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ب_ق (وميض مضيء يظهر أثناء العاصفة)",
       "choices": [
-        "ى",
+        "س",
         "ر",
-        "م",
-        "ف"
+        "ل",
+        "ز"
       ],
       "answer": 1,
       "why": "برق: وميض مضيء يظهر أثناء العاصفة.",
@@ -1410,10 +1410,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ح_ (ارتفاع درجة حرارة الجو)",
       "choices": [
-        "غ",
-        "ا",
+        "ق",
+        "ك",
         "ر",
-        "ة"
+        "ب"
       ],
       "answer": 2,
       "why": "حر: ارتفاع درجة حرارة الجو.",
@@ -1432,12 +1432,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ظ_ام (غياب الإضاءة عن المكان)",
       "choices": [
-        "ج",
-        "ع",
         "ل",
-        "م"
+        "م",
+        "ك",
+        "ن"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "ظلام: غياب الإضاءة عن المكان.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1454,12 +1454,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: د_ان (غازات ودقائق تتصاعد من الاحتراق)",
       "choices": [
-        "ز",
+        "م",
+        "ي",
         "خ",
-        "ؤ",
-        "ض"
+        "ك"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "دخان: غازات ودقائق تتصاعد من الاحتراق.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1476,12 +1476,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: رم_د (ما يبقى من المادة بعد احتراقها)",
       "choices": [
+        "آ",
         "ا",
-        "ى",
-        "ض",
-        "ك"
+        "أ",
+        "إ"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "رماد: ما يبقى من المادة بعد احتراقها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1499,9 +1499,9 @@ KZV.register({
       "q": "أكمل الكلمة: ج_ر (قطع متقدة من الفحم أو الخشب)",
       "choices": [
         "م",
-        "ء",
-        "ط",
-        "إ"
+        "ا",
+        "د",
+        "ذ"
       ],
       "answer": 0,
       "why": "جمر: قطع متقدة من الفحم أو الخشب.",
@@ -1520,12 +1520,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: خ_ب (مادة صلبة تؤخذ من سيقان الأشجار)",
       "choices": [
-        "ش",
-        "ت",
-        "غ",
-        "ع"
+        "ب",
+        "ط",
+        "ل",
+        "ش"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "خشب: مادة صلبة تؤخذ من سيقان الأشجار.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1543,10 +1543,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ذ_ب (فلز نفيس أصفر اللون)",
       "choices": [
-        "ض",
+        "ن",
         "ه",
-        "إ",
-        "ذ"
+        "ؤ",
+        "ر"
       ],
       "answer": 1,
       "why": "ذهب: فلز نفيس أصفر اللون.",
@@ -1566,12 +1566,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ف_ة (فلز نفيس أبيض لامع)",
       "choices": [
-        "س",
-        "ص",
-        "أ",
-        "ض"
+        "ض",
+        "ئ",
+        "ت",
+        "ر"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "فضة: فلز نفيس أبيض لامع.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1588,12 +1588,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: فخ_ر (طين شكل ثم شوي بالنار حتى صلب)",
       "choices": [
-        "ص",
-        "ا",
-        "ث",
-        "ض"
+        "أ",
+        "إ",
+        "آ",
+        "ا"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "فخار: طين شكل ثم شوي بالنار حتى صلب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1610,10 +1610,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ق_اش (نسيج تصنع منه الملابس والستائر)",
       "choices": [
-        "و",
-        "أ",
+        "ب",
+        "ل",
         "م",
-        "ج"
+        "ن"
       ],
       "answer": 2,
       "why": "قماش: نسيج تصنع منه الملابس والستائر.",
@@ -1632,12 +1632,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ق_ن (ألياف نباتية بيضاء تصنع منها أنسجة ناعمة)",
       "choices": [
+        "ي",
         "ط",
-        "ج",
-        "خ",
-        "ق"
+        "ر",
+        "م"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "قطن: ألياف نباتية بيضاء تصنع منها أنسجة ناعمة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1655,12 +1655,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ص_ف (شعر الغنم الذي تنسج منه ملابس دافئة)",
       "choices": [
-        "ج",
-        "ه",
         "و",
-        "ق"
+        "د",
+        "ن",
+        "ي"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "صوف: شعر الغنم الذي تنسج منه ملابس دافئة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1677,12 +1677,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: كت_ن (نبات تؤخذ من ساقه ألياف لصنع النسيج)",
       "choices": [
-        "ق",
-        "ح",
-        "ا",
-        "ر"
+        "أ",
+        "إ",
+        "آ",
+        "ا"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "كتان: نبات تؤخذ من ساقه ألياف لصنع النسيج.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1699,12 +1699,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ش_ع (مادة تلين بالحرارة وتصنع منها أدوات للإضاءة)",
       "choices": [
-        "ء",
-        "أ",
-        "غ",
-        "م"
+        "ج",
+        "م",
+        "ر",
+        "ب"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "شمع: مادة تلين بالحرارة وتصنع منها أدوات للإضاءة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1721,12 +1721,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ص_غ (مادة لزجة تستعمل في اللصق)",
       "choices": [
-        "ج",
         "م",
-        "س",
-        "ل"
+        "ب",
+        "د",
+        "و"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "صمغ: مادة لزجة تستعمل في اللصق.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1743,12 +1743,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: غر_ء (مادة تستعمل لضم الأشياء ولصقها)",
       "choices": [
-        "د",
-        "ا",
-        "ء",
-        "ج"
+        "أ",
+        "إ",
+        "آ",
+        "ا"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "غراء: مادة تستعمل لضم الأشياء ولصقها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1765,12 +1765,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_ح (مادة بلورية بيضاء تضفي ملوحة على الطعام)",
       "choices": [
-        "ج",
-        "ط",
-        "أ",
-        "ل"
+        "ل",
+        "ص",
+        "د",
+        "ر"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "ملح: مادة بلورية بيضاء تضفي ملوحة على الطعام.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1787,10 +1787,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: عج_ن (خليط لين من الطحين والماء)",
       "choices": [
-        "ه",
         "ن",
+        "ت",
         "ي",
-        "ظ"
+        "ى"
       ],
       "answer": 2,
       "why": "عجين: خليط لين من الطحين والماء.",
@@ -1809,12 +1809,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ر_يف (قطعة مستديرة أو مستطيلة من المخبوز اليومي)",
       "choices": [
-        "ى",
-        "س",
-        "ظ",
-        "غ"
+        "ض",
+        "غ",
+        "د",
+        "ص"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "رغيف: قطعة مستديرة أو مستطيلة من المخبوز اليومي.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1831,12 +1831,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ح_وى (طعام غني بالمذاق السكري)",
       "choices": [
-        "ي",
         "م",
-        "ل",
-        "ط"
+        "ك",
+        "ن",
+        "ل"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "حلوى: طعام غني بالمذاق السكري.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1853,10 +1853,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: س_ن (دهن يستخرج من الزبد ويستعمل في الطبخ)",
       "choices": [
-        "ر",
+        "ن",
         "م",
-        "ز",
-        "ئ"
+        "ج",
+        "د"
       ],
       "answer": 1,
       "why": "سمن: دهن يستخرج من الزبد ويستعمل في الطبخ.",
@@ -1876,9 +1876,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ع_ود (دعامة قائمة يحمل عليها البناء)",
       "choices": [
-        "ة",
-        "إ",
-        "ح",
+        "ن",
+        "ق",
+        "ه",
         "م"
       ],
       "answer": 3,
@@ -1898,12 +1898,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ج_ل (ما علا من سطح الأرض وجاوز التل ارتفاعا)",
       "choices": [
-        "ط",
-        "س",
-        "ئ",
-        "ب"
+        "ذ",
+        "ز",
+        "ب",
+        "د"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "جبل: ما علا من سطح الأرض وجاوز التل ارتفاعا.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1920,12 +1920,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ق_ح (نبات حبّي يطحن لصناعة الطحين)",
       "choices": [
-        "ة",
-        "غ",
-        "ش",
-        "م"
+        "م",
+        "د",
+        "ز",
+        "ب"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "قمح: نبات حبّي يطحن لصناعة الطحين.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1943,12 +1943,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ع_س (حبوب صغيرة مفلطحة تطبخ في الحساء)",
       "choices": [
+        "ب",
+        "س",
         "د",
-        "أ",
-        "ش",
-        "ض"
+        "ر"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "عدس: حبوب صغيرة مفلطحة تطبخ في الحساء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -1966,9 +1966,9 @@ KZV.register({
       "q": "أكمل الكلمة: ح_ص (حبوب مستديرة تطبخ وتؤكل)",
       "choices": [
         "م",
-        "ؤ",
-        "ق",
-        "ل"
+        "ر",
+        "ف",
+        "ي"
       ],
       "answer": 0,
       "why": "حمص: حبوب مستديرة تطبخ وتؤكل.",
@@ -1987,12 +1987,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: كم_ن (بذور عطرية تستعمل تابلا في الطبخ)",
       "choices": [
-        "و",
-        "ق",
-        "ك",
-        "ع"
+        "ا",
+        "ؤ",
+        "ي",
+        "و"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "كمون: بذور عطرية تستعمل تابلا في الطبخ.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2009,12 +2009,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ف_فل (تابل قد يكون أسود اللون أو نباتا ذا ثمار حارة)",
       "choices": [
+        "ن",
         "ل",
-        "غ",
-        "ى",
-        "ط"
+        "م",
+        "ك"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "فلفل: تابل قد يكون أسود اللون أو نباتا ذا ثمار حارة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2031,12 +2031,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ري_ان (نبات عطري ذو أوراق طيبة الرائحة)",
       "choices": [
-        "م",
         "ح",
-        "ا",
-        "ئ"
+        "ع",
+        "ج",
+        "خ"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "ريحان: نبات عطري ذو أوراق طيبة الرائحة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2054,12 +2054,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: خ_ (نبات ورقي تؤكل أوراقه نيئة في السلطات)",
       "choices": [
-        "إ",
-        "س",
-        "ي",
-        "ض"
+        "د",
+        "ز",
+        "ش",
+        "س"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "خس: نبات ورقي تؤكل أوراقه نيئة في السلطات.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2076,12 +2076,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ك_اث (نبات قريب من البصل ذو أوراق طويلة)",
       "choices": [
-        "ج",
-        "ن",
+        "و",
         "ر",
-        "أ"
+        "ز",
+        "د"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "كراث: نبات قريب من البصل ذو أوراق طويلة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2098,12 +2098,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ع_ب (ثمر صغير ينمو في عناقيد ويؤكل طازجا)",
       "choices": [
+        "ج",
+        "ر",
         "ن",
-        "آ",
-        "ث",
-        "ه"
+        "ت"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "عنب: ثمر صغير ينمو في عناقيد ويؤكل طازجا.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2120,9 +2120,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ر_ب (ثمر النخيل الطري عند نضجه)",
       "choices": [
-        "ؤ",
-        "ل",
-        "ن",
+        "ج",
+        "ح",
+        "و",
         "ط"
       ],
       "answer": 3,
@@ -2142,12 +2142,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ب_ح (ثمر النخيل قبل أن يلين تماما)",
       "choices": [
-        "ت",
+        "ا",
+        "ج",
         "ل",
-        "ح",
-        "ق"
+        "و"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "بلح: ثمر النخيل قبل أن يلين تماما.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2164,12 +2164,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ج_ز (ثمر يؤكل ويستعمل خشب شجره في الأثاث)",
       "choices": [
-        "ق",
         "و",
-        "ح",
-        "ع"
+        "ا",
+        "ر",
+        "ز"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "جوز: ثمر يؤكل ويستعمل خشب شجره في الأثاث.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2187,9 +2187,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: صن_بر (شجر مخروطي تؤكل بذور بعض أنواعه)",
       "choices": [
-        "ظ",
-        "د",
-        "خ",
+        "ؤ",
+        "ي",
+        "ا",
         "و"
       ],
       "answer": 3,
@@ -2210,12 +2210,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: و_د (نبات زهري معروف بعبير أزهاره)",
       "choices": [
+        "غ",
+        "ل",
         "ر",
-        "ذ",
-        "ن",
-        "و"
+        "ت"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "ورد: نبات زهري معروف بعبير أزهاره.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2232,12 +2232,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ب_رة (جزء من النبات ينبت منه نبات جديد)",
       "choices": [
-        "ث",
-        "خ",
         "ذ",
-        "و"
+        "ؤ",
+        "ج",
+        "س"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "بذرة: جزء من النبات ينبت منه نبات جديد.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2254,12 +2254,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: غ_ن (فرع دقيق من فروع الشجرة)",
       "choices": [
+        "ب",
+        "س",
         "ص",
-        "أ",
-        "ز",
-        "ف"
+        "ض"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "غصن: فرع دقيق من فروع الشجرة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2276,12 +2276,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: قش_ة (الغلاف الخارجي للثمرة أو الجذع)",
       "choices": [
-        "ق",
-        "ر",
-        "س",
-        "آ"
+        "د",
+        "ل",
+        "ز",
+        "ر"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "قشرة: الغلاف الخارجي للثمرة أو الجذع.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2298,12 +2298,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: بر_م (جزء صغير ينمو ليصير ورقة أو زهرة)",
       "choices": [
+        "ش",
         "ع",
-        "ئ",
-        "ص",
-        "د"
+        "ي",
+        "ا"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "برعم: جزء صغير ينمو ليصير ورقة أو زهرة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2320,12 +2320,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ن_ر (حيوان مفترس أرقط من الفصيلة السنورية)",
       "choices": [
-        "أ",
-        "م",
-        "ى",
-        "ؤ"
+        "ا",
+        "ب",
+        "ف",
+        "م"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "نمر: حيوان مفترس أرقط من الفصيلة السنورية.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2342,12 +2342,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ض_ع (حيوان مفترس أكبر من الكلب وأقوى منه)",
       "choices": [
-        "ؤ",
         "ب",
-        "س",
-        "أ"
+        "ر",
+        "ل",
+        "ي"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "ضبع: حيوان مفترس أكبر من الكلب وأقوى منه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2365,12 +2365,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ف_ل (حيوان ضخم له خرطوم طويل)",
       "choices": [
-        "ه",
-        "خ",
-        "غ",
-        "ي"
+        "ض",
+        "ي",
+        "أ",
+        "ج"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "فيل: حيوان ضخم له خرطوم طويل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2388,12 +2388,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: غ_ال (ولد الظبية)",
       "choices": [
-        "ئ",
-        "ز",
-        "س",
-        "ك"
+        "ل",
+        "ف",
+        "ر",
+        "ز"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "غزال: ولد الظبية.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2410,12 +2410,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: سن_اب (حيوان قارض متسلق ذو ذيل كثيف)",
       "choices": [
-        "ث",
-        "س",
-        "ن",
-        "ج"
+        "خ",
+        "د",
+        "ج",
+        "ح"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "سنجاب: حيوان قارض متسلق ذو ذيل كثيف.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2432,12 +2432,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: خ_اش (حيوان ثديي يطير وينشط ليلا غالبا)",
       "choices": [
-        "ظ",
-        "آ",
+        "ب",
         "ف",
-        "ذ"
+        "ش",
+        "ق"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "خفاش: حيوان ثديي يطير وينشط ليلا غالبا.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2454,12 +2454,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ف_س (اسم يقع على الواحد من الخيل)",
       "choices": [
-        "ف",
-        "ى",
+        "ط",
         "ر",
-        "ز"
+        "أ",
+        "ل"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "فرس: اسم يقع على الواحد من الخيل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2476,12 +2476,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ج_ل (حيوان صحراوي له سنام ويستعمل للحمل)",
       "choices": [
-        "غ",
-        "ض",
-        "ء",
-        "م"
+        "م",
+        "ب",
+        "د",
+        "ذ"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "جمل: حيوان صحراوي له سنام ويستعمل للحمل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2498,12 +2498,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: نا_ة (أنثى الحيوان المعروف بسفينة الصحراء)",
       "choices": [
-        "أ",
-        "ق",
-        "خ",
-        "ع"
+        "م",
+        "ك",
+        "ف",
+        "ق"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "ناقة: أنثى الحيوان المعروف بسفينة الصحراء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2520,12 +2520,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ب_ير (واحد من الإبل يحمل الأثقال في الصحراء)",
       "choices": [
-        "ث",
-        "ب",
-        "خ",
-        "ع"
+        "ش",
+        "ص",
+        "ع",
+        "ط"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "بعير: واحد من الإبل يحمل الأثقال في الصحراء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2542,10 +2542,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ح_ار (حيوان يستعمل في حمل الأمتعة وله أذنان طويلتان)",
       "choices": [
-        "آ",
+        "ج",
         "م",
-        "ه",
-        "ئ"
+        "ب",
+        "ص"
       ],
       "answer": 1,
       "why": "حمار: حيوان يستعمل في حمل الأمتعة وله أذنان طويلتان.",
@@ -2565,12 +2565,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ب_ل (حيوان أهلي قوي يحمل الأثقال وينتج من تهجين معروف)",
       "choices": [
-        "ح",
-        "م",
-        "ء",
-        "غ"
+        "غ",
+        "ا",
+        "ع",
+        "ق"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "بغل: حيوان أهلي قوي يحمل الأثقال وينتج من تهجين معروف.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2587,12 +2587,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ث_ر (الذكر البالغ من البقر)",
       "choices": [
-        "و",
-        "ذ",
-        "س",
-        "ء"
+        "غ",
+        "م",
+        "أ",
+        "و"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "ثور: الذكر البالغ من البقر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2609,10 +2609,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: خ_وف (واحد من الغنم يكسوه الصوف)",
       "choices": [
-        "آ",
+        "ل",
         "ر",
-        "غ",
-        "ع"
+        "س",
+        "ش"
       ],
       "answer": 1,
       "why": "خروف: واحد من الغنم يكسوه الصوف.",
@@ -2631,12 +2631,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: نع_ة (أنثى الضأن)",
       "choices": [
-        "ح",
-        "د",
         "ج",
-        "ظ"
+        "ر",
+        "ل",
+        "م"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "نعجة: أنثى الضأن.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2653,12 +2653,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ك_ش (الذكر من الضأن)",
       "choices": [
-        "ب",
-        "ة",
-        "ى",
-        "ش"
+        "ر",
+        "م",
+        "ت",
+        "ب"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "كبش: الذكر من الضأن.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2675,12 +2675,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ما_ز (حيوان أهلي له شعر ولحية عند الذكر)",
       "choices": [
+        "ا",
         "ع",
-        "ق",
-        "ظ",
-        "آ"
+        "غ",
+        "ح"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "ماعز: حيوان أهلي له شعر ولحية عند الذكر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2697,12 +2697,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ظل_م (الذكر من النعام)",
       "choices": [
-        "ظ",
-        "ي",
-        "أ",
-        "م"
+        "ى",
+        "ن",
+        "ت",
+        "ي"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "ظليم: الذكر من النعام.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2719,12 +2719,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ن_امة (طائر ضخم طويل العنق لا يطير)",
       "choices": [
-        "أ",
-        "م",
-        "ث",
-        "ع"
+        "خ",
+        "د",
+        "ع",
+        "ج"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "نعامة: طائر ضخم طويل العنق لا يطير.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2741,10 +2741,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ن_ر (طائر جارح كبير يتغذى على الجيف غالبا)",
       "choices": [
-        "ر",
+        "ف",
         "س",
-        "ى",
-        "أ"
+        "ا",
+        "ب"
       ],
       "answer": 1,
       "why": "نسر: طائر جارح كبير يتغذى على الجيف غالبا.",
@@ -2764,9 +2764,9 @@ KZV.register({
       "q": "أكمل الكلمة: عق_ب (طائر جارح قوي المخالب واسع الجناحين)",
       "choices": [
         "ا",
-        "ء",
-        "ن",
-        "ف"
+        "ر",
+        "أ",
+        "إ"
       ],
       "answer": 0,
       "why": "عقاب: طائر جارح قوي المخالب واسع الجناحين.",
@@ -2785,12 +2785,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ص_ر (طائر جارح يدرب على الصيد)",
       "choices": [
-        "ق",
-        "ى",
-        "ص",
-        "س"
+        "ب",
+        "خ",
+        "ر",
+        "ق"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "صقر: طائر جارح يدرب على الصيد.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2807,12 +2807,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: غر_ب (طائر أسود يعرف بصوته الخشن)",
       "choices": [
+        "ي",
+        "أ",
         "ا",
-        "ض",
-        "ث",
-        "ط"
+        "و"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "غراب: طائر أسود يعرف بصوته الخشن.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2830,9 +2830,9 @@ KZV.register({
       "q": "أكمل الكلمة: بل_ل (طائر صغير حسن التغريد)",
       "choices": [
         "ب",
-        "ن",
-        "ة",
-        "و"
+        "ي",
+        "ت",
+        "ن"
       ],
       "answer": 0,
       "why": "بلبل: طائر صغير حسن التغريد.",
@@ -2851,12 +2851,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: د_ك (الذكر البالغ من الدجاج)",
       "choices": [
-        "ج",
-        "ؤ",
-        "ي",
-        "ط"
+        "ر",
+        "ل",
+        "ع",
+        "ي"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "ديك: الذكر البالغ من الدجاج.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2874,9 +2874,9 @@ KZV.register({
       "q": "أكمل الكلمة: ق_ش (سمكة بحرية كبيرة مفترسة)",
       "choices": [
         "ر",
-        "ق",
-        "ل",
-        "و"
+        "ف",
+        "ز",
+        "د"
       ],
       "answer": 0,
       "why": "قرش: سمكة بحرية كبيرة مفترسة.",
@@ -2895,12 +2895,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: تم_اح (زاحف مائي كبير طويل الفك والذيل)",
       "choices": [
-        "س",
-        "ل",
-        "ن",
-        "أ"
+        "ش",
+        "ص",
+        "ز",
+        "س"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "تمساح: زاحف مائي كبير طويل الفك والذيل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2918,12 +2918,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ثعب_ن (زاحف طويل الجسم لا قوائم له)",
       "choices": [
+        "إ",
+        "آ",
         "ا",
-        "ب",
-        "ز",
-        "ن"
+        "أ"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "ثعبان: زاحف طويل الجسم لا قوائم له.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2940,12 +2940,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ج_اح (عضو يستعين به الطائر على التحليق)",
       "choices": [
-        "ط",
-        "ح",
         "ن",
-        "ة"
+        "ر",
+        "ت",
+        "ث"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "جناح: عضو يستعين به الطائر على التحليق.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2962,12 +2962,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: من_ار (جزء صلب في مقدمة رأس الطائر يلتقط به غذاءه)",
       "choices": [
-        "ذ",
-        "ق",
-        "ة",
-        "ن"
+        "ظ",
+        "ش",
+        "ه",
+        "ق"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "منقار: جزء صلب في مقدمة رأس الطائر يلتقط به غذاءه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -2984,12 +2984,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ن_ب (سن طويل حاد عند بعض الحيوانات)",
       "choices": [
-        "م",
-        "ء",
-        "ئ",
-        "ا"
+        "ح",
+        "ا",
+        "ص",
+        "ج"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "ناب: سن طويل حاد عند بعض الحيوانات.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3007,12 +3007,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ث_ب (ما يلبسه الإنسان لستر جسمه)",
       "choices": [
-        "و",
-        "ك",
-        "ج",
-        "ص"
+        "ل",
+        "ي",
+        "ق",
+        "و"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "ثوب: ما يلبسه الإنسان لستر جسمه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3029,12 +3029,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ع_امة (نسيج يلف على الرأس)",
       "choices": [
-        "ي",
-        "غ",
-        "آ",
-        "م"
+        "ل",
+        "ن",
+        "م",
+        "و"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "عمامة: نسيج يلف على الرأس.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3051,12 +3051,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ح_ام (شريط يربط حول الخصر)",
       "choices": [
-        "ع",
-        "ة",
-        "ز",
-        "ق"
+        "ج",
+        "ر",
+        "س",
+        "ز"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "حزام: شريط يربط حول الخصر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3073,12 +3073,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: خ_ (ما يلبس في القدم ويصنع من الجلد غالبا)",
       "choices": [
-        "آ",
+        "ز",
+        "س",
         "ف",
-        "ة",
-        "ء"
+        "د"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "خف: ما يلبس في القدم ويصنع من الجلد غالبا.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3095,12 +3095,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ج_رب (لباس نسيجي يغطي القدم وجزءا من الساق)",
       "choices": [
-        "س",
-        "إ",
+        "ا",
         "و",
-        "ء"
+        "ؤ",
+        "ي"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "جورب: لباس نسيجي يغطي القدم وجزءا من الساق.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3118,12 +3118,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: خم_ر (ما تغطي به المرأة رأسها)",
       "choices": [
-        "ا",
-        "ق",
-        "س",
-        "ط"
+        "أ",
+        "إ",
+        "آ",
+        "ا"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "خمار: ما تغطي به المرأة رأسها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3140,12 +3140,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مغ_ل (أداة يفتل بها الصوف أو القطن إلى خيوط)",
       "choices": [
-        "ب",
-        "ل",
-        "ش",
-        "ز"
+        "ر",
+        "ز",
+        "س",
+        "ف"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "مغزل: أداة يفتل بها الصوف أو القطن إلى خيوط.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3163,9 +3163,9 @@ KZV.register({
       "q": "أكمل الكلمة: جر_ب (كيس يحفظ فيه شيء كالأداة أو الزاد)",
       "choices": [
         "ا",
-        "ض",
-        "ل",
-        "ط"
+        "أ",
+        "إ",
+        "آ"
       ],
       "answer": 0,
       "why": "جراب: كيس يحفظ فيه شيء كالأداة أو الزاد.",
@@ -3184,12 +3184,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ص_ن (إناء قليل العمق يقدم فيه الطعام)",
       "choices": [
-        "ل",
-        "أ",
-        "ذ",
-        "ح"
+        "ح",
+        "و",
+        "ا",
+        "ب"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "صحن: إناء قليل العمق يقدم فيه الطعام.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3206,10 +3206,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: وع_ء (ما يوضع فيه شيء فيحويه)",
       "choices": [
-        "ض",
-        "ي",
+        "إ",
+        "آ",
         "ا",
-        "ظ"
+        "أ"
       ],
       "answer": 2,
       "why": "وعاء: ما يوضع فيه شيء فيحويه.",
@@ -3229,9 +3229,9 @@ KZV.register({
       "q": "أكمل الكلمة: ح_ض (تجويف يجمع فيه الماء)",
       "choices": [
         "و",
-        "ى",
-        "ز",
-        "خ"
+        "ف",
+        "م",
+        "ي"
       ],
       "answer": 0,
       "why": "حوض: تجويف يجمع فيه الماء.",
@@ -3250,12 +3250,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مغر_ة (أداة ذات تجويف عميق لنقل السوائل والطعام)",
       "choices": [
-        "ز",
-        "ت",
-        "و",
-        "ف"
+        "ك",
+        "ف",
+        "ق",
+        "ب"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "مغرفة: أداة ذات تجويف عميق لنقل السوائل والطعام.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3272,12 +3272,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: س_ين (أداة ذات نصل حاد لتقطيع الطعام)",
       "choices": [
-        "ذ",
-        "ح",
-        "ث",
-        "ك"
+        "ك",
+        "ف",
+        "ج",
+        "خ"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "سكين: أداة ذات نصل حاد لتقطيع الطعام.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3294,12 +3294,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ه_ون (وعاء صلب تدق فيه المواد لتسحق)",
       "choices": [
-        "ا",
-        "ق",
-        "ز",
-        "ف"
+        "ت",
+        "أ",
+        "إ",
+        "ا"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "هاون: وعاء صلب تدق فيه المواد لتسحق.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3317,12 +3317,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ف_ن (حيز يسخن لإنضاج الطعام أو الخبز)",
       "choices": [
-        "ل",
-        "س",
-        "إ",
-        "ر"
+        "ت",
+        "ر",
+        "ن",
+        "ط"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "فرن: حيز يسخن لإنضاج الطعام أو الخبز.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3340,12 +3340,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مو_د (مكان أو جهاز تشعل فيه النار للطهي والتدفئة)",
       "choices": [
-        "غ",
         "ق",
-        "ى",
-        "ز"
+        "ر",
+        "ح",
+        "ط"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "موقد: مكان أو جهاز تشعل فيه النار للطهي والتدفئة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3362,9 +3362,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مك_سة (أداة لجمع الغبار والأوساخ من الأرض)",
       "choices": [
-        "و",
-        "ي",
-        "أ",
+        "ت",
+        "ث",
+        "ل",
         "ن"
       ],
       "answer": 3,
@@ -3384,12 +3384,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ص_بون (مادة منظفة ترغي عند استعمالها بالماء)",
       "choices": [
-        "ث",
-        "ة",
-        "ك",
-        "ا"
+        "إ",
+        "آ",
+        "ا",
+        "أ"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "صابون: مادة منظفة ترغي عند استعمالها بالماء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3406,12 +3406,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: منش_ر (أداة ذات أسنان حادة لقطع الخشب)",
       "choices": [
+        "إ",
         "ا",
-        "د",
-        "ى",
-        "ؤ"
+        "ط",
+        "أ"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "منشار: أداة ذات أسنان حادة لقطع الخشب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3428,12 +3428,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_رد (أداة ذات سطح خشن لتسوية المعادن أو الخشب)",
       "choices": [
-        "ء",
+        "س",
+        "و",
         "ب",
-        "ض",
-        "آ"
+        "ج"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "مبرد: أداة ذات سطح خشن لتسوية المعادن أو الخشب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3450,12 +3450,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_قاب (أداة تحدث ثقوبا في المواد الصلبة)",
       "choices": [
-        "ء",
-        "ح",
+        "ن",
         "ث",
-        "إ"
+        "ت",
+        "ذ"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "مثقاب: أداة تحدث ثقوبا في المواد الصلبة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3472,12 +3472,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_مار (قطعة معدنية دقيقة تدق لتثبيت الأشياء)",
       "choices": [
-        "ت",
-        "غ",
         "س",
-        "د"
+        "ز",
+        "ط",
+        "ع"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "مسمار: قطعة معدنية دقيقة تدق لتثبيت الأشياء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3494,10 +3494,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_قط (أداة يمسك بها الشيء الصغير بين طرفين)",
       "choices": [
-        "ط",
-        "ة",
+        "ر",
+        "ن",
         "ل",
-        "ب"
+        "س"
       ],
       "answer": 2,
       "why": "ملقط: أداة يمسك بها الشيء الصغير بين طرفين.",
@@ -3516,12 +3516,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مف_اح (أداة تفتح بها الأقفال)",
       "choices": [
+        "ن",
         "ت",
-        "ا",
-        "ذ",
-        "ض"
+        "ث",
+        "ب"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "مفتاح: أداة تفتح بها الأقفال.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3538,12 +3538,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ق_ل (آلة تغلق بها الأبواب والصناديق وتحكم)",
       "choices": [
-        "ط",
-        "ة",
         "ف",
-        "ر"
+        "ب",
+        "ت",
+        "م"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "قفل: آلة تغلق بها الأبواب والصناديق وتحكم.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3560,12 +3560,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مك_ال (أداة تقاس بها مقادير الحبوب ونحوها)",
       "choices": [
-        "ة",
-        "ي",
-        "ء",
-        "غ"
+        "ح",
+        "ى",
+        "ن",
+        "ي"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "مكيال: أداة تقاس بها مقادير الحبوب ونحوها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3582,12 +3582,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ش_كة (خيوط متداخلة تستعمل للصيد أو الحجز)",
       "choices": [
-        "ت",
-        "ث",
         "ب",
-        "ل"
+        "ر",
+        "و",
+        "ت"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "شبكة: خيوط متداخلة تستعمل للصيد أو الحجز.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3604,12 +3604,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ص_ارة (خطاف يعلق به الطعم لصيد السمك)",
       "choices": [
-        "ص",
-        "ن",
-        "ك",
-        "ز"
+        "ب",
+        "د",
+        "ر",
+        "ن"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "صنارة: خطاف يعلق به الطعم لصيد السمك.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3626,12 +3626,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ق_س (عود منحني يشد بين طرفيه وتر)",
       "choices": [
-        "إ",
+        "د",
+        "ل",
         "و",
-        "خ",
-        "ز"
+        "ب"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "قوس: عود منحني يشد بين طرفيه وتر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3648,12 +3648,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: را_عة (آلة ترفع الأحمال الثقيلة)",
       "choices": [
-        "ت",
-        "ط",
-        "س",
-        "ف"
+        "ف",
+        "ض",
+        "ق",
+        "ب"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "رافعة: آلة ترفع الأحمال الثقيلة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3670,9 +3670,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: د_لاب (آلة مستديرة تدور حول نفسها)",
       "choices": [
-        "ث",
-        "خ",
-        "ع",
+        "ؤ",
+        "ي",
+        "ا",
         "و"
       ],
       "answer": 3,
@@ -3693,12 +3693,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ق_ع (أداة واسعة من أعلى ضيقة من أسفل لصب السوائل)",
       "choices": [
+        "ب",
+        "ر",
         "م",
-        "ؤ",
-        "ي",
-        "ء"
+        "ا"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "قمع: أداة واسعة من أعلى ضيقة من أسفل لصب السوائل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3716,12 +3716,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_ظار (أداة تقرب الأجسام البعيدة إلى العين)",
       "choices": [
-        "ن",
-        "ج",
-        "ه",
-        "ش"
+        "ت",
+        "ث",
+        "ل",
+        "ن"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "منظار: أداة تقرب الأجسام البعيدة إلى العين.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3738,10 +3738,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مق_اس (أداة تقاس بها كمية أو درجة)",
       "choices": [
-        "إ",
-        "ظ",
+        "ن",
+        "ت",
         "ي",
-        "د"
+        "ى"
       ],
       "answer": 2,
       "why": "مقياس: أداة تقاس بها كمية أو درجة.",
@@ -3760,12 +3760,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ط_لب (من يتلقى العلم في مؤسسة تعليمية)",
       "choices": [
-        "ء",
-        "ى",
+        "إ",
         "ا",
-        "ط"
+        "ح",
+        "أ"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "طالب: من يتلقى العلم في مؤسسة تعليمية.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3782,12 +3782,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_لم (من يشرح الدروس وينقل المعرفة للمتعلمين)",
       "choices": [
-        "ة",
         "ع",
-        "ح",
-        "إ"
+        "ؤ",
+        "س",
+        "ظ"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "معلم: من يشرح الدروس وينقل المعرفة للمتعلمين.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3804,12 +3804,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_رس (من يمارس تعليم مادة دراسية)",
       "choices": [
-        "ذ",
-        "س",
-        "د",
-        "ى"
+        "ا",
+        "غ",
+        "ض",
+        "د"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "مدرس: من يمارس تعليم مادة دراسية.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3826,12 +3826,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ك_تب (من يصوغ النصوص ويؤلفها)",
       "choices": [
+        "إ",
+        "آ",
         "ا",
-        "ج",
-        "ص",
-        "ى"
+        "أ"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "كاتب: من يصوغ النصوص ويؤلفها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3849,12 +3849,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ش_عر (من ينظم الكلام الموزون المقفى)",
       "choices": [
-        "خ",
-        "ج",
-        "ة",
-        "ا"
+        "آ",
+        "ا",
+        "أ",
+        "إ"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "شاعر: من ينظم الكلام الموزون المقفى.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3871,12 +3871,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: صح_ي (من يجمع الأخبار ويكتبها للنشر)",
       "choices": [
-        "ء",
+        "ب",
+        "ك",
         "ف",
-        "ئ",
-        "د"
+        "ق"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "صحفي: من يجمع الأخبار ويكتبها للنشر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3893,12 +3893,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ن_شر (من يتولى إخراج الكتب وتوزيعها)",
       "choices": [
+        "آ",
         "ا",
-        "ظ",
-        "ل",
-        "ى"
+        "أ",
+        "إ"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "ناشر: من يتولى إخراج الكتب وتوزيعها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3915,12 +3915,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مم_ض (من يعتني بالمرضى ويساعد في علاجهم)",
       "choices": [
-        "أ",
-        "س",
-        "ت",
-        "ر"
+        "ر",
+        "ز",
+        "د",
+        "و"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "ممرض: من يعتني بالمرضى ويساعد في علاجهم.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -3937,10 +3937,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ن_ار (من يصنع الأشياء من الخشب)",
       "choices": [
-        "إ",
-        "ل",
+        "ط",
+        "ه",
         "ج",
-        "ى"
+        "ث"
       ],
       "answer": 2,
       "why": "نجار: من يصنع الأشياء من الخشب.",
@@ -3959,10 +3959,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: نس_ج (من يصنع الأقمشة بتشابك الخيوط)",
       "choices": [
-        "و",
+        "آ",
         "ا",
-        "ض",
-        "خ"
+        "أ",
+        "إ"
       ],
       "answer": 1,
       "why": "نساج: من يصنع الأقمشة بتشابك الخيوط.",
@@ -3982,9 +3982,9 @@ KZV.register({
       "q": "أكمل الكلمة: دب_غ (من يعالج جلود الحيوانات ليصلحها للاستعمال)",
       "choices": [
         "ا",
-        "ث",
-        "ح",
-        "ئ"
+        "أ",
+        "إ",
+        "آ"
       ],
       "answer": 0,
       "why": "دباغ: من يعالج جلود الحيوانات ليصلحها للاستعمال.",
@@ -4003,9 +4003,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ص_ئغ (من يشكل الحلي من المعادن النفيسة)",
       "choices": [
-        "س",
-        "خ",
-        "ز",
+        "أ",
+        "إ",
+        "آ",
         "ا"
       ],
       "answer": 3,
@@ -4025,12 +4025,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: خز_ف (من يصنع الأواني من الطين المحروق)",
       "choices": [
-        "ل",
-        "م",
-        "ه",
-        "ا"
+        "إ",
+        "آ",
+        "ا",
+        "أ"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "خزاف: من يصنع الأواني من الطين المحروق.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4047,12 +4047,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: حف_ر (من يشق الأرض ويعمل فيها الحفر)",
       "choices": [
-        "ل",
-        "ث",
-        "ا",
-        "س"
+        "أ",
+        "إ",
+        "آ",
+        "ا"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "حفار: من يشق الأرض ويعمل فيها الحفر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4069,12 +4069,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ده_ن (من يطلي الجدران ونحوها بالألوان)",
       "choices": [
-        "ع",
-        "ح",
-        "ه",
-        "ا"
+        "ق",
+        "أ",
+        "ا",
+        "و"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "دهان: من يطلي الجدران ونحوها بالألوان.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4091,12 +4091,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: لح_م (من يصل قطع المعدن بالحرارة)",
       "choices": [
+        "آ",
         "ا",
-        "ث",
-        "ص",
-        "خ"
+        "أ",
+        "إ"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "لحام: من يصل قطع المعدن بالحرارة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4114,9 +4114,9 @@ KZV.register({
       "q": "أكمل الكلمة: خ_از (من يصنع الأرغفة وينضجها في الموقد)",
       "choices": [
         "ب",
-        "ث",
-        "خ",
-        "ذ"
+        "ر",
+        "ت",
+        "ن"
       ],
       "answer": 0,
       "why": "خباز: من يصنع الأرغفة وينضجها في الموقد.",
@@ -4135,12 +4135,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: بق_ل (من يبيع مواد الطعام اليومية)",
       "choices": [
-        "ا",
-        "ص",
-        "ى",
-        "ت"
+        "أ",
+        "إ",
+        "آ",
+        "ا"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "بقال: من يبيع مواد الطعام اليومية.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4158,11 +4158,11 @@ KZV.register({
       "q": "أكمل الكلمة: تا_ر (من يشتري السلع ليبيعها بقصد الربح)",
       "choices": [
         "خ",
-        "آ",
-        "ص",
-        "ج"
+        "ج",
+        "م",
+        "ح"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "تاجر: من يشتري السلع ليبيعها بقصد الربح.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4180,9 +4180,9 @@ KZV.register({
       "q": "أكمل الكلمة: فل_ح (من يزرع الأرض ويعتني بالمحاصيل)",
       "choices": [
         "ا",
-        "ز",
-        "ج",
-        "ظ"
+        "ط",
+        "أ",
+        "إ"
       ],
       "answer": 0,
       "why": "فلاح: من يزرع الأرض ويعتني بالمحاصيل.",
@@ -4201,9 +4201,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: بستا_ي (من يعتني بالأشجار والأزهار في الحدائق)",
       "choices": [
-        "أ",
-        "خ",
-        "ص",
+        "ت",
+        "ث",
+        "ل",
         "ن"
       ],
       "answer": 3,
@@ -4223,12 +4223,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: حط_ب (من يجمع الخشب للوقود)",
       "choices": [
-        "ب",
+        "إ",
+        "آ",
         "ا",
-        "ه",
-        "ج"
+        "أ"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "حطاب: من يجمع الخشب للوقود.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4245,12 +4245,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: صي_د (من يمسك الحيوانات أو الأسماك بأدوات مخصصة)",
       "choices": [
+        "إ",
         "ا",
-        "ز",
-        "ن",
-        "ك"
+        "ه",
+        "أ"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "صياد: من يمسك الحيوانات أو الأسماك بأدوات مخصصة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4267,12 +4267,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: غو_ص (من ينزل تحت سطح الماء للعمل أو الاستكشاف)",
       "choices": [
-        "ش",
-        "ب",
         "ا",
-        "و"
+        "أ",
+        "إ",
+        "آ"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "غواص: من ينزل تحت سطح الماء للعمل أو الاستكشاف.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4289,12 +4289,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: رب_ن (من يقود السفينة ويتولى أمرها)",
       "choices": [
+        "إ",
+        "آ",
         "ا",
-        "ظ",
-        "د",
-        "ح"
+        "أ"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "ربان: من يقود السفينة ويتولى أمرها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4311,10 +4311,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مل_ح (من يعمل في قيادة السفن وتوجيهها)",
       "choices": [
-        "ء",
+        "أ",
         "ا",
-        "ة",
-        "ح"
+        "م",
+        "و"
       ],
       "answer": 1,
       "why": "ملاح: من يعمل في قيادة السفن وتوجيهها.",
@@ -4333,12 +4333,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ط_ار (من يقود مركبة تطير في الجو)",
       "choices": [
-        "ز",
         "ي",
-        "ف",
-        "آ"
+        "و",
+        "ه",
+        "ى"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "طيار: من يقود مركبة تطير في الجو.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4355,9 +4355,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: حم_ل (من ينقل الأحمال على ظهره أو بيديه)",
       "choices": [
-        "ذ",
-        "ش",
-        "ل",
+        "د",
+        "أ",
+        "إ",
         "ا"
       ],
       "answer": 3,
@@ -4377,10 +4377,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: عا_ل (من يؤدي عملا يدويا أو إنتاجيا)",
       "choices": [
-        "ح",
-        "ة",
+        "ج",
+        "د",
         "م",
-        "أ"
+        "ئ"
       ],
       "answer": 2,
       "why": "عامل: من يؤدي عملا يدويا أو إنتاجيا.",
@@ -4399,12 +4399,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_ير (من يتولى تنظيم العمل والإشراف عليه)",
       "choices": [
-        "ى",
-        "ب",
+        "ج",
         "د",
-        "ؤ"
+        "ص",
+        "ض"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "مدير: من يتولى تنظيم العمل والإشراف عليه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4423,12 +4423,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: أ_ين (من يحفظ ما عهد إليه ويرعاه)",
       "choices": [
-        "آ",
         "م",
-        "ئ",
-        "ص"
+        "ل",
+        "ن",
+        "ع"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "أمين: من يحفظ ما عهد إليه ويرعاه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4445,12 +4445,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: و_يل (من ينوب عن غيره في التصرف)",
       "choices": [
-        "ح",
-        "ك",
-        "ق",
-        "د"
+        "ص",
+        "ب",
+        "ث",
+        "ك"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "وكيل: من ينوب عن غيره في التصرف.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4467,10 +4467,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: صر_ف (من يبدل العملات بعضها ببعض)",
       "choices": [
-        "ص",
-        "ح",
+        "إ",
+        "آ",
         "ا",
-        "خ"
+        "أ"
       ],
       "answer": 2,
       "why": "صراف: من يبدل العملات بعضها ببعض.",
@@ -4489,12 +4489,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ح_م (من يفصل في خلاف بين طرفين)",
       "choices": [
-        "إ",
-        "ئ",
-        "ف",
-        "ك"
+        "ت",
+        "ك",
+        "ر",
+        "م"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "حكم: من يفصل في خلاف بين طرفين.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4512,9 +4512,9 @@ KZV.register({
       "q": "أكمل الكلمة: م_شد (من يدل غيره على ما ينفعه أو على وجهته)",
       "choices": [
         "ر",
-        "ق",
-        "ء",
-        "س"
+        "ن",
+        "ز",
+        "د"
       ],
       "answer": 0,
       "why": "مرشد: من يدل غيره على ما ينفعه أو على وجهته.",
@@ -4533,9 +4533,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: رس_م (من يصور الأشكال بالخطوط والألوان)",
       "choices": [
-        "ئ",
-        "ن",
-        "ك",
+        "أ",
+        "إ",
+        "آ",
         "ا"
       ],
       "answer": 3,
@@ -4555,10 +4555,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: نح_ت (من يشكل المواد الصلبة بالحفر والقطع)",
       "choices": [
-        "ح",
-        "ن",
+        "إ",
+        "آ",
         "ا",
-        "ج"
+        "أ"
       ],
       "answer": 2,
       "why": "نحات: من يشكل المواد الصلبة بالحفر والقطع.",
@@ -4577,10 +4577,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ح_جب (من ينظم الدخول إلى مجلس المسؤول)",
       "choices": [
-        "ن",
+        "آ",
         "ا",
-        "ز",
-        "ة"
+        "أ",
+        "إ"
       ],
       "answer": 1,
       "why": "حاجب: من ينظم الدخول إلى مجلس المسؤول.",
@@ -4599,12 +4599,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ر_ول (من يبعث لتبليغ خبر أو مهمة بين الناس)",
       "choices": [
-        "ؤ",
         "س",
-        "م",
-        "ط"
+        "ب",
+        "ش",
+        "ص"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "رسول: من يبعث لتبليغ خبر أو مهمة بين الناس.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4621,8 +4621,8 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: سف_ر (من يمثل بلده لدى بلد آخر)",
       "choices": [
-        "خ",
-        "غ",
+        "و",
+        "ى",
         "ن",
         "ي"
       ],
@@ -4643,10 +4643,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: نا_ر (من يشرف على مؤسسة أو عمل)",
       "choices": [
-        "ؤ",
-        "ا",
+        "ح",
+        "خ",
         "ظ",
-        "غ"
+        "ث"
       ],
       "answer": 2,
       "why": "ناظر: من يشرف على مؤسسة أو عمل.",
@@ -4665,10 +4665,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مر_قب (من يتابع العمل ليطمئن إلى سلامته)",
       "choices": [
-        "غ",
+        "آ",
         "ا",
-        "ض",
-        "ل"
+        "أ",
+        "إ"
       ],
       "answer": 1,
       "why": "مراقب: من يتابع العمل ليطمئن إلى سلامته.",
@@ -4687,12 +4687,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مس_شار (من يرجع إليه لطلب الرأي في أمر)",
       "choices": [
-        "خ",
-        "ذ",
         "ت",
-        "ع"
+        "ث",
+        "ب",
+        "ن"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "مستشار: من يرجع إليه لطلب الرأي في أمر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4709,9 +4709,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: صد_ق (صاحب صادق المودة)",
       "choices": [
-        "ل",
-        "ظ",
-        "ش",
+        "ى",
+        "ن",
+        "ت",
         "ي"
       ],
       "answer": 3,
@@ -4731,10 +4731,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ر_يق (من يصحبك في سفر أو عمل)",
       "choices": [
-        "ذ",
-        "ه",
+        "ق",
+        "ش",
         "ف",
-        "ر"
+        "ب"
       ],
       "answer": 2,
       "why": "رفيق: من يصحبك في سفر أو عمل.",
@@ -4753,12 +4753,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ج_ر (من يسكن بالقرب منك)",
       "choices": [
-        "ج",
-        "ت",
+        "ز",
         "ا",
-        "ك"
+        "د",
+        "ذ"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "جار: من يسكن بالقرب منك.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4776,9 +4776,9 @@ KZV.register({
       "q": "أكمل الكلمة: ض_ف (من ينزل عند غيره للزيارة أو الإقامة القصيرة)",
       "choices": [
         "ي",
-        "ه",
-        "م",
-        "ح"
+        "ع",
+        "ف",
+        "ى"
       ],
       "answer": 0,
       "why": "ضيف: من ينزل عند غيره للزيارة أو الإقامة القصيرة.",
@@ -4797,12 +4797,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ا_ن (الولد الذكر بالنسبة إلى والديه)",
       "choices": [
-        "ه",
-        "ت",
+        "ي",
         "ب",
-        "د"
+        "ت",
+        "ن"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "ابن: الولد الذكر بالنسبة إلى والديه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4821,9 +4821,9 @@ KZV.register({
       "q": "أكمل الكلمة: ب_ت (الوليدة الأنثى بالنسبة إلى والديها)",
       "choices": [
         "ن",
-        "ؤ",
-        "ص",
-        "ئ"
+        "خ",
+        "ي",
+        "ا"
       ],
       "answer": 0,
       "why": "بنت: الوليدة الأنثى بالنسبة إلى والديها.",
@@ -4842,12 +4842,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ج_ (والد الأب أو والد الأم)",
       "choices": [
-        "ئ",
+        "ش",
+        "ص",
         "د",
-        "ت",
-        "ا"
+        "ب"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "جد: والد الأب أو والد الأم.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4864,12 +4864,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: _م (أخو الأب)",
       "choices": [
-        "م",
-        "ظ",
-        "ؤ",
-        "ع"
+        "خ",
+        "ع",
+        "أ",
+        "ج"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "عم: أخو الأب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4886,12 +4886,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ج_اعة (عدد من الناس يجتمعون على غرض)",
       "choices": [
-        "ء",
+        "ب",
+        "ل",
         "م",
-        "ف",
-        "س"
+        "ن"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "جماعة: عدد من الناس يجتمعون على غرض.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4908,12 +4908,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: فر_ق (مجموعة تتعاون لتحقيق هدف)",
       "choices": [
+        "ت",
         "ي",
-        "ء",
-        "ش",
-        "آ"
+        "ى",
+        "ن"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "فريق: مجموعة تتعاون لتحقيق هدف.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4930,12 +4930,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: و_د (جماعة تزور جهة ممثلة لغيرها)",
       "choices": [
-        "ض",
         "ف",
-        "ئ",
-        "ز"
+        "ت",
+        "ر",
+        "غ"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "وفد: جماعة تزور جهة ممثلة لغيرها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4953,10 +4953,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: _ف (أشخاص أو أشياء مصطفة في خط واحد)",
       "choices": [
-        "ؤ",
-        "ئ",
+        "خ",
+        "د",
         "ص",
-        "ا"
+        "ت"
       ],
       "answer": 2,
       "why": "صف: أشخاص أو أشياء مصطفة في خط واحد.",
@@ -4975,12 +4975,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ر_ط (جماعة قليلة من الرجال دون العشرة غالبا)",
       "choices": [
-        "ض",
-        "و",
-        "ف",
-        "ه"
+        "ه",
+        "ق",
+        "ب",
+        "ة"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "رهط: جماعة قليلة من الرجال دون العشرة غالبا.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -4997,12 +4997,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ن_ر (جماعة صغيرة من الناس)",
       "choices": [
-        "ف",
-        "ن",
-        "ل",
-        "ة"
+        "ا",
+        "ب",
+        "س",
+        "ف"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "نفر: جماعة صغيرة من الناس.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5020,9 +5020,9 @@ KZV.register({
       "q": "أكمل الكلمة: ط_ل (من كان في بداية عمره قبل البلوغ)",
       "choices": [
         "ف",
-        "ظ",
-        "أ",
-        "د"
+        "ل",
+        "و",
+        "ب"
       ],
       "answer": 0,
       "why": "طفل: من كان في بداية عمره قبل البلوغ.",
@@ -5041,12 +5041,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ر_يع (صغير يتغذى من حليب أمه)",
       "choices": [
-        "ض",
-        "ن",
-        "ة",
-        "ئ"
+        "ب",
+        "ج",
+        "ف",
+        "ض"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "رضيع: صغير يتغذى من حليب أمه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5063,12 +5063,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ش_خ (من تقدم به العمر)",
       "choices": [
+        "ل",
         "ي",
-        "آ",
-        "ز",
-        "و"
+        "ر",
+        "م"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "شيخ: من تقدم به العمر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5085,12 +5085,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ك_ل (من جاوز الشباب ولم يبلغ الشيخوخة)",
       "choices": [
-        "و",
-        "ط",
-        "ض",
-        "ه"
+        "ه",
+        "ح",
+        "ف",
+        "ل"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "كهل: من جاوز الشباب ولم يبلغ الشيخوخة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5107,12 +5107,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ب_يد (ما طالت المسافة إليه)",
       "choices": [
-        "ق",
-        "م",
-        "ه",
-        "ع"
+        "ل",
+        "غ",
+        "ع",
+        "ر"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "بعيد: ما طالت المسافة إليه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5129,12 +5129,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ص_ب (ما يصعب ثنيه أو تغيير شكله)",
       "choices": [
-        "ش",
-        "س",
-        "ك",
-        "ل"
+        "و",
+        "ل",
+        "خ",
+        "ع"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "صلب: ما يصعب ثنيه أو تغيير شكله.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5151,10 +5151,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: أم_س (ما استوى سطحه وسهل ملمسه)",
       "choices": [
-        "ض",
-        "ط",
+        "م",
+        "ك",
         "ل",
-        "ن"
+        "و"
       ],
       "answer": 2,
       "why": "أملس: ما استوى سطحه وسهل ملمسه.",
@@ -5173,12 +5173,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ح_ر (ما ارتفعت حرارته)",
       "choices": [
-        "ء",
-        "ى",
+        "ض",
         "ا",
-        "خ"
+        "ب",
+        "ج"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "حار: ما ارتفعت حرارته.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5197,12 +5197,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ل_مع (ما ينعكس عنه الضوء بوضوح)",
       "choices": [
-        "غ",
         "ا",
-        "ق",
-        "ك"
+        "أ",
+        "إ",
+        "آ"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "لامع: ما ينعكس عنه الضوء بوضوح.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5219,9 +5219,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ع_ر (ما خالطته شوائب فأذهب صفاءه)",
       "choices": [
-        "ى",
-        "آ",
-        "ع",
+        "ا",
+        "ذ",
+        "ش",
         "ك"
       ],
       "answer": 3,
@@ -5241,12 +5241,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: أ_مر (لون الورد القاني والطماطم الناضجة)",
       "choices": [
-        "ى",
+        "ت",
+        "ث",
         "ح",
-        "آ",
-        "ب"
+        "ق"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "أحمر: لون الورد القاني والطماطم الناضجة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5264,9 +5264,9 @@ KZV.register({
       "q": "أكمل الكلمة: س_ي (كثير العطاء)",
       "choices": [
         "خ",
-        "ز",
-        "ظ",
-        "ث"
+        "ق",
+        "ب",
+        "د"
       ],
       "answer": 0,
       "why": "سخي: كثير العطاء.",
@@ -5285,12 +5285,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ش_اع (من يثبت عند المخاوف ولا يتهيب)",
       "choices": [
-        "ج",
-        "ظ",
-        "أ",
-        "ش"
+        "ر",
+        "ع",
+        "ب",
+        "ج"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "شجاع: من يثبت عند المخاوف ولا يتهيب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5307,12 +5307,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: جب_ن (من يكثر خوفه ويضعف عند الشدائد)",
       "choices": [
+        "إ",
+        "آ",
         "ا",
-        "ح",
-        "و",
-        "ذ"
+        "أ"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "جبان: من يكثر خوفه ويضعف عند الشدائد.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5329,12 +5329,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ص_دق (من يوافق كلامه الحقيقة)",
       "choices": [
-        "س",
-        "ر",
-        "ى",
-        "ا"
+        "آ",
+        "ا",
+        "أ",
+        "إ"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "صادق: من يوافق كلامه الحقيقة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5352,9 +5352,9 @@ KZV.register({
       "q": "أكمل الكلمة: عا_ل (من يدرك الأمور ويستعمل عقله)",
       "choices": [
         "ق",
-        "ة",
-        "ي",
-        "ء"
+        "ئ",
+        "ج",
+        "د"
       ],
       "answer": 0,
       "why": "عاقل: من يدرك الأمور ويستعمل عقله.",
@@ -5373,12 +5373,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ف_ن (من يدرك الأمور الخفية بسرعة)",
       "choices": [
-        "ط",
-        "ل",
-        "ب",
-        "م"
+        "ر",
+        "ن",
+        "ت",
+        "ط"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "فطن: من يدرك الأمور الخفية بسرعة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5395,12 +5395,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ي_ظ (منتبه لما حوله غير غافل)",
       "choices": [
-        "د",
-        "و",
-        "ء",
-        "ق"
+        "ف",
+        "غ",
+        "ق",
+        "ك"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "يقظ: منتبه لما حوله غير غافل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5417,12 +5417,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ح_ر (من يتيقظ لما يخشاه ويحترز منه)",
       "choices": [
+        "ض",
         "ذ",
-        "ئ",
-        "غ",
-        "ل"
+        "ب",
+        "ج"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "حذر: من يتيقظ لما يخشاه ويحترز منه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5439,12 +5439,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ر_يم (كثير الرحمة بالآخرين)",
       "choices": [
-        "ئ",
         "ح",
-        "ك",
-        "ض"
+        "ق",
+        "ث",
+        "ج"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "رحيم: كثير الرحمة بالآخرين.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5461,12 +5461,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_ح (من يبدو عليه النشاط والسرور)",
       "choices": [
-        "ء",
-        "ر",
-        "و",
-        "أ"
+        "ص",
+        "ل",
+        "د",
+        "ر"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "مرح: من يبدو عليه النشاط والسرور.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5483,12 +5483,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: فق_ر (من لا يملك ما يكفي حاجته)",
       "choices": [
+        "ت",
         "ي",
-        "إ",
-        "ز",
-        "ض"
+        "ى",
+        "ن"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "فقير: من لا يملك ما يكفي حاجته.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5505,12 +5505,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مو_ر (من تيسرت له سعة المال)",
       "choices": [
-        "ذ",
         "س",
-        "ث",
-        "أ"
+        "ق",
+        "ز",
+        "ع"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "موسر: من تيسرت له سعة المال.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5527,9 +5527,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مر_ض (من أصابه اعتلال في صحته)",
       "choices": [
-        "ن",
-        "ز",
-        "س",
+        "ب",
+        "ك",
+        "و",
         "ي"
       ],
       "answer": 3,
@@ -5549,12 +5549,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: غا_ض (ما خفي معناه وصعب فهمه)",
       "choices": [
+        "ن",
+        "ب",
         "م",
-        "ل",
-        "خ",
-        "س"
+        "ر"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "غامض: ما خفي معناه وصعب فهمه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5571,10 +5571,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ص_ب (ما يحتاج إلى جهد ومشقة)",
       "choices": [
-        "ص",
+        "و",
         "ع",
-        "ج",
-        "ى"
+        "خ",
+        "ل"
       ],
       "answer": 1,
       "why": "صعب: ما يحتاج إلى جهد ومشقة.",
@@ -5593,12 +5593,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مع_د (ما تشابكت أجزاؤه وصعب فهمه)",
       "choices": [
-        "إ",
         "ق",
-        "ر",
-        "ؤ"
+        "ب",
+        "ه",
+        "ا"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "معقد: ما تشابكت أجزاؤه وصعب فهمه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5615,12 +5615,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ق_يم (ما مضى على وجوده زمن طويل)",
       "choices": [
-        "د",
-        "ك",
-        "ه",
-        "ح"
+        "س",
+        "و",
+        "ذ",
+        "د"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "قديم: ما مضى على وجوده زمن طويل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5637,12 +5637,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ط_ي (لين غير يابس حديث النضارة)",
       "choices": [
-        "ج",
+        "ه",
+        "ل",
         "ر",
-        "غ",
-        "ص"
+        "ب"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "طري: لين غير يابس حديث النضارة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5659,12 +5659,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ح_و (ما كان طعمه شبيها بطعم السكر)",
       "choices": [
-        "ئ",
-        "أ",
-        "ع",
-        "ل"
+        "ذ",
+        "ل",
+        "م",
+        "ن"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "حلو: ما كان طعمه شبيها بطعم السكر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5703,9 +5703,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_يع (ما صعب الوصول إليه أو التغلب عليه)",
       "choices": [
-        "ى",
-        "أ",
-        "ؤ",
+        "ب",
+        "ذ",
+        "ر",
         "ن"
       ],
       "answer": 3,
@@ -5725,10 +5725,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: _ش (ما سهل كسره وتفتته)",
       "choices": [
-        "ي",
-        "ث",
+        "خ",
+        "د",
         "ه",
-        "ظ"
+        "ج"
       ],
       "answer": 2,
       "why": "هش: ما سهل كسره وتفتته.",
@@ -5747,12 +5747,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_بع (شكل ذو أضلاع أربعة متساوية وزوايا قائمة)",
       "choices": [
-        "أ",
-        "ى",
         "ر",
-        "ح"
+        "ن",
+        "ت",
+        "س"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "مربع: شكل ذو أضلاع أربعة متساوية وزوايا قائمة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5769,9 +5769,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_وف (ما كان داخله خاليا وله فراغ)",
       "choices": [
-        "ء",
-        "ض",
-        "م",
+        "خ",
+        "س",
+        "ط",
         "ج"
       ],
       "answer": 3,
@@ -5792,9 +5792,9 @@ KZV.register({
       "q": "أكمل الكلمة: ف_ر (إعمال الذهن في المعاني والأمور)",
       "choices": [
         "ك",
-        "ر",
-        "ش",
-        "ف"
+        "أ",
+        "ت",
+        "ز"
       ],
       "answer": 0,
       "why": "فكر: إعمال الذهن في المعاني والأمور.",
@@ -5813,12 +5813,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: تف_ير (إعمال الذهن للوصول إلى رأي أو حل)",
       "choices": [
-        "ز",
-        "إ",
-        "ك",
-        "ى"
+        "ت",
+        "ج",
+        "س",
+        "ك"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "تفكير: إعمال الذهن للوصول إلى رأي أو حل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5836,9 +5836,9 @@ KZV.register({
       "q": "أكمل الكلمة: ق_اس (معرفة مقدار شيء بمقارنته بوحدة معروفة)",
       "choices": [
         "ي",
-        "ه",
-        "ص",
-        "ر"
+        "د",
+        "ى",
+        "ن"
       ],
       "answer": 0,
       "why": "قياس: معرفة مقدار شيء بمقارنته بوحدة معروفة.",
@@ -5858,12 +5858,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ح_اب (عمليات معرفة المقادير والأعداد)",
       "choices": [
-        "ظ",
-        "خ",
-        "س",
-        "و"
+        "ب",
+        "ج",
+        "ق",
+        "س"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "حساب: عمليات معرفة المقادير والأعداد.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5880,12 +5880,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ع_ (تحديد كمية الأشياء بإحصائها واحدا واحدا)",
       "choices": [
-        "ح",
-        "آ",
-        "ى",
-        "د"
+        "س",
+        "ش",
+        "د",
+        "ب"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "عد: تحديد كمية الأشياء بإحصائها واحدا واحدا.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5902,12 +5902,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: حا_ل (نتيجة أمر أو عملية حسابية)",
       "choices": [
-        "ص",
-        "إ",
-        "س",
-        "ش"
+        "ئ",
+        "ف",
+        "م",
+        "ص"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "حاصل: نتيجة أمر أو عملية حسابية.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5924,10 +5924,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ك_ر (جزء من وحدة صحيحة في الحساب)",
       "choices": [
-        "أ",
-        "ض",
+        "ي",
+        "ث",
         "س",
-        "ذ"
+        "ب"
       ],
       "answer": 2,
       "why": "كسر: جزء من وحدة صحيحة في الحساب.",
@@ -5946,12 +5946,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ط_ل (مقدار الامتداد بين طرفين)",
       "choices": [
-        "ص",
-        "ط",
-        "ك",
-        "و"
+        "ل",
+        "ب",
+        "و",
+        "ف"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "طول: مقدار الامتداد بين طرفين.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5968,12 +5968,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ارتف_ع (المسافة العمودية بين أسفل الشيء وأعلاه)",
       "choices": [
-        "ش",
-        "ض",
-        "ط",
-        "ا"
+        "ا",
+        "أ",
+        "إ",
+        "آ"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "ارتفاع: المسافة العمودية بين أسفل الشيء وأعلاه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -5990,10 +5990,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: و_ن (مقدار ثقل الشيء)",
       "choices": [
-        "إ",
-        "خ",
+        "ط",
+        "ك",
         "ز",
-        "ة"
+        "ث"
       ],
       "answer": 2,
       "why": "وزن: مقدار ثقل الشيء.",
@@ -6013,12 +6013,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ش_ (جذب الشيء بقوة من طرفه)",
       "choices": [
-        "ئ",
-        "أ",
-        "د",
-        "ء"
+        "ع",
+        "ق",
+        "ب",
+        "د"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "شد: جذب الشيء بقوة من طرفه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6036,12 +6036,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: د_ع (إزاحة الشيء بقوة إلى الأمام أو بعيدا)",
       "choices": [
-        "ث",
+        "م",
+        "س",
         "ف",
-        "ح",
-        "ئ"
+        "ر"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "دفع: إزاحة الشيء بقوة إلى الأمام أو بعيدا.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6059,9 +6059,9 @@ KZV.register({
       "q": "أكمل الكلمة: تنا_ص (استمرار المقدار في الانخفاض)",
       "choices": [
         "ق",
-        "ش",
-        "ز",
-        "ه"
+        "ك",
+        "ف",
+        "غ"
       ],
       "answer": 0,
       "why": "تناقص: استمرار المقدار في الانخفاض.",
@@ -6080,10 +6080,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: تم_ثل (اتفاق الأشياء في الصورة أو الصفة)",
       "choices": [
-        "م",
-        "ه",
+        "إ",
+        "آ",
         "ا",
-        "ث"
+        "أ"
       ],
       "answer": 2,
       "why": "تماثل: اتفاق الأشياء في الصورة أو الصفة.",
@@ -6102,12 +6102,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: غ_س (تثبيت النبات الصغير في التربة لينمو)",
       "choices": [
-        "ظ",
-        "ذ",
-        "ض",
-        "ر"
+        "ر",
+        "ل",
+        "ط",
+        "م"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "غرس: تثبيت النبات الصغير في التربة لينمو.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6124,12 +6124,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: حص_د (قطع الزرع وجمع محصوله عند نضجه)",
       "choices": [
-        "ج",
-        "ا",
-        "د",
-        "خ"
+        "أ",
+        "إ",
+        "آ",
+        "ا"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "حصاد: قطع الزرع وجمع محصوله عند نضجه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6146,12 +6146,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: قط_ف (جمع الثمار من أغصانها)",
       "choices": [
-        "م",
-        "د",
-        "ظ",
-        "ا"
+        "إ",
+        "آ",
+        "ا",
+        "أ"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "قطاف: جمع الثمار من أغصانها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6169,9 +6169,9 @@ KZV.register({
       "q": "أكمل الكلمة: سق_ية (تقديم الماء للشارب أو للنبات)",
       "choices": [
         "ا",
-        "د",
-        "ج",
-        "ف"
+        "أ",
+        "إ",
+        "آ"
       ],
       "answer": 0,
       "why": "سقاية: تقديم الماء للشارب أو للنبات.",
@@ -6190,12 +6190,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: س_اد (مادة تضاف إلى التربة لتغذية النبات)",
       "choices": [
+        "ن",
+        "و",
         "م",
-        "ح",
-        "ك",
-        "ة"
+        "د"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "سماد: مادة تضاف إلى التربة لتغذية النبات.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6212,12 +6212,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: كاف_ر (مادة بيضاء عطرية ذات رائحة نافذة)",
       "choices": [
-        "ث",
-        "ب",
-        "ي",
-        "و"
+        "ا",
+        "و",
+        "ؤ",
+        "ي"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "كافور: مادة بيضاء عطرية ذات رائحة نافذة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6234,12 +6234,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ع_د (خشب عطري يحرق لتطييب الجو)",
       "choices": [
-        "ذ",
-        "ع",
         "و",
-        "آ"
+        "ا",
+        "ب",
+        "د"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "عود: خشب عطري يحرق لتطييب الجو.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6257,12 +6257,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ط_ب (ما يستعمل لتعطير البدن أو المكان)",
       "choices": [
-        "ي",
-        "ف",
-        "ط",
-        "ع"
+        "ن",
+        "و",
+        "ر",
+        "ي"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "طيب: ما يستعمل لتعطير البدن أو المكان.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6279,12 +6279,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: تدب_ر (حسن النظر في الأمر وتنظيم وسائل إنجازه)",
       "choices": [
+        "ن",
+        "ت",
         "ي",
-        "أ",
-        "ص",
-        "ع"
+        "ى"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "تدبير: حسن النظر في الأمر وتنظيم وسائل إنجازه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6301,10 +6301,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: د_س (قدر من مادة علمية يتعلم في وقت محدد)",
       "choices": [
-        "د",
-        "ض",
+        "خ",
+        "ل",
         "ر",
-        "ف"
+        "ب"
       ],
       "answer": 2,
       "why": "درس: قدر من مادة علمية يتعلم في وقت محدد.",
@@ -6324,12 +6324,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: فصا_ة (وضوح الكلام وسلامته من العيوب اللغوية)",
       "choices": [
-        "ز",
-        "ث",
+        "ه",
         "ح",
-        "ئ"
+        "ج",
+        "خ"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "فصاحة: وضوح الكلام وسلامته من العيوب اللغوية.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6346,12 +6346,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: تف_ير (شرح المعنى وكشف المراد منه)",
       "choices": [
-        "ق",
-        "س",
-        "ف",
-        "و"
+        "ت",
+        "ج",
+        "ط",
+        "س"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "تفسير: شرح المعنى وكشف المراد منه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6368,12 +6368,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ح_ار (مراجعة الكلام بين طرفين أو أكثر)",
       "choices": [
+        "م",
         "و",
-        "خ",
-        "ث",
-        "ئ"
+        "ب",
+        "ص"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "حوار: مراجعة الكلام بين طرفين أو أكثر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6390,12 +6390,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ف_رة (معنى أو تصور ينشأ في الذهن)",
       "choices": [
-        "ن",
-        "ؤ",
         "ك",
-        "ل"
+        "ت",
+        "ز",
+        "ط"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "فكرة: معنى أو تصور ينشأ في الذهن.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6412,12 +6412,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: خا_ر (ما يمر بالذهن من معنى دون إطالة نظر)",
       "choices": [
-        "ط",
-        "و",
-        "ج",
-        "ة"
+        "ئ",
+        "ث",
+        "س",
+        "ط"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "خاطر: ما يمر بالذهن من معنى دون إطالة نظر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6434,12 +6434,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ا_تراح (رأي يعرض للعمل به أو مناقشته)",
       "choices": [
-        "م",
-        "ق",
         "ك",
-        "ن"
+        "ف",
+        "ق",
+        "س"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "اقتراح: رأي يعرض للعمل به أو مناقشته.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6456,12 +6456,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: نصي_ة (توجيه يراد به نفع المخاطب وإرشاده)",
       "choices": [
-        "ئ",
-        "ت",
-        "ك",
-        "ح"
+        "ه",
+        "ح",
+        "ج",
+        "خ"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "نصيحة: توجيه يراد به نفع المخاطب وإرشاده.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6478,12 +6478,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ب_اغ (ما ينقل إلى جهة لإعلامها بأمر)",
       "choices": [
-        "ظ",
         "ل",
-        "آ",
-        "ة"
+        "م",
+        "ك",
+        "ن"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "بلاغ: ما ينقل إلى جهة لإعلامها بأمر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6500,12 +6500,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ن_أ (خبر له شأن يلفت الانتباه)",
       "choices": [
-        "ح",
-        "غ",
-        "إ",
-        "ب"
+        "ت",
+        "ج",
+        "ب",
+        "ش"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "نبأ: خبر له شأن يلفت الانتباه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6522,12 +6522,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: و_قع (ما هو موجود أو حاصل بالفعل)",
       "choices": [
+        "آ",
         "ا",
-        "ص",
-        "ت",
-        "ج"
+        "أ",
+        "إ"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "واقع: ما هو موجود أو حاصل بالفعل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6544,12 +6544,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ب_هان (حجة واضحة تثبت صحة القول)",
       "choices": [
-        "أ",
-        "ت",
-        "ل",
-        "ر"
+        "ر",
+        "ز",
+        "د",
+        "و"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "برهان: حجة واضحة تثبت صحة القول.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6566,12 +6566,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: شا_د (ما يدعم القول من مثال أو دليل)",
       "choices": [
-        "آ",
-        "ه",
-        "ق",
-        "ظ"
+        "ر",
+        "ة",
+        "ح",
+        "ه"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "شاهد: ما يدعم القول من مثال أو دليل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6588,10 +6588,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مث_ل (حالة جزئية توضح قاعدة أو معنى)",
       "choices": [
-        "ت",
-        "خ",
+        "أ",
+        "إ",
         "ا",
-        "ة"
+        "ق"
       ],
       "answer": 2,
       "why": "مثال: حالة جزئية توضح قاعدة أو معنى.",
@@ -6610,12 +6610,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: عي_ة (جزء صغير يؤخذ ليدل على صفة الكل)",
       "choices": [
-        "ط",
-        "ع",
+        "ت",
         "ن",
-        "ر"
+        "ش",
+        "ل"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "عينة: جزء صغير يؤخذ ليدل على صفة الكل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6632,12 +6632,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ر_ز (رسم أو لفظ مختصر يدل على معنى آخر)",
       "choices": [
-        "ظ",
-        "ث",
-        "م",
-        "ء"
+        "ج",
+        "ا",
+        "ب",
+        "م"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "رمز: رسم أو لفظ مختصر يدل على معنى آخر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6654,12 +6654,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مج_ز (لفظ استعمل في معنى غير أصله لعلاقة وقرينة)",
       "choices": [
-        "ب",
-        "ؤ",
-        "ض",
-        "ا"
+        "إ",
+        "ا",
+        "ه",
+        "أ"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "مجاز: لفظ استعمل في معنى غير أصله لعلاقة وقرينة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6676,12 +6676,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ترك_ب (ضم أجزاء لتكوين شيء كامل)",
       "choices": [
-        "س",
-        "ك",
         "ي",
-        "ش"
+        "ى",
+        "ن",
+        "ت"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "تركيب: ضم أجزاء لتكوين شيء كامل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6699,12 +6699,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: رقا_ة (إشراف يراد به التأكد من حسن سير العمل)",
       "choices": [
-        "ب",
-        "م",
-        "ح",
-        "ض"
+        "ت",
+        "ن",
+        "ي",
+        "ب"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "رقابة: إشراف يراد به التأكد من حسن سير العمل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6722,12 +6722,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ظ_ (اعتقاد يحتمل الخطأ ولا يبلغ اليقين)",
       "choices": [
-        "ص",
-        "ط",
         "ن",
-        "ب"
+        "ر",
+        "ل",
+        "ت"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "ظن: اعتقاد يحتمل الخطأ ولا يبلغ اليقين.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6744,12 +6744,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ت_قع (ترقب حدوث شيء في المستقبل)",
       "choices": [
-        "ك",
-        "ئ",
-        "د",
-        "و"
+        "ؤ",
+        "ي",
+        "و",
+        "ر"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "توقع: ترقب حدوث شيء في المستقبل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6766,12 +6766,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: غ_ض (المقصود من فعل أو قول)",
       "choices": [
-        "ء",
-        "ئ",
         "ر",
-        "ط"
+        "م",
+        "ي",
+        "ا"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "غرض: المقصود من فعل أو قول.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6789,12 +6789,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ق_د (توجه الإرادة إلى شيء معين)",
       "choices": [
-        "ء",
-        "ظ",
-        "ص",
-        "س"
+        "ر",
+        "ي",
+        "د",
+        "ص"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "قصد: توجه الإرادة إلى شيء معين.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6811,10 +6811,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: نش_ط (ممارسة عمل زراعي أو تجاري أو نحوهما)",
       "choices": [
-        "ت",
+        "آ",
         "ا",
-        "د",
-        "ش"
+        "أ",
+        "إ"
       ],
       "answer": 1,
       "why": "نشاط: ممارسة عمل زراعي أو تجاري أو نحوهما.",
@@ -6833,12 +6833,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ح_اس (شدة وشجاعة في الإقدام على الأمر)",
       "choices": [
-        "ئ",
-        "د",
-        "غ",
-        "م"
+        "م",
+        "س",
+        "و",
+        "ر"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "حماس: شدة وشجاعة في الإقدام على الأمر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6855,12 +6855,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ش_ق (تطلع النفس بحنين إلى لقاء أو أمر محبوب)",
       "choices": [
-        "ئ",
-        "و",
-        "ة",
-        "غ"
+        "د",
+        "ر",
+        "ا",
+        "و"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "شوق: تطلع النفس بحنين إلى لقاء أو أمر محبوب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6877,12 +6877,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: أ_ل (تطلع إلى حصول خير في المستقبل)",
       "choices": [
-        "ة",
+        "ج",
+        "ز",
         "م",
-        "ر",
-        "آ"
+        "ث"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "أمل: تطلع إلى حصول خير في المستقبل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6899,12 +6899,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ف_حة (شعور طارئ بالسرور بسبب أمر محبب)",
       "choices": [
+        "ل",
         "ر",
-        "ئ",
-        "ا",
-        "ز"
+        "ت",
+        "س"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "فرحة: شعور طارئ بالسرور بسبب أمر محبب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6921,12 +6921,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: س_ينة (هدوء واستقرار في النفس أو المكان)",
       "choices": [
-        "ء",
         "ك",
-        "ص",
-        "غ"
+        "ف",
+        "ق",
+        "ل"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "سكينة: هدوء واستقرار في النفس أو المكان.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6943,12 +6943,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ص_ب (ارتفاع الأصوات واختلاطها بضجيج)",
       "choices": [
-        "ش",
-        "خ",
-        "ص",
-        "ى"
+        "ع",
+        "ل",
+        "و",
+        "خ"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "صخب: ارتفاع الأصوات واختلاطها بضجيج.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6965,12 +6965,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: جل_ة (اختلاط أصوات الناس وارتفاعها)",
       "choices": [
-        "ل",
-        "ذ",
-        "ش",
-        "ب"
+        "س",
+        "ط",
+        "ب",
+        "د"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "جلبة: اختلاط أصوات الناس وارتفاعها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -6987,12 +6987,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: هت_ف (نداء جماعي أو صوت مرتفع بالتشجيع)",
       "choices": [
-        "ي",
-        "ن",
-        "ا",
-        "ق"
+        "أ",
+        "إ",
+        "آ",
+        "ا"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "هتاف: نداء جماعي أو صوت مرتفع بالتشجيع.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7009,12 +7009,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ت_سم (ضحك خفيف لا يصحبه صوت)",
       "choices": [
-        "ئ",
-        "آ",
-        "ش",
-        "ب"
+        "ر",
+        "ق",
+        "ب",
+        "ج"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "تبسم: ضحك خفيف لا يصحبه صوت.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7031,10 +7031,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ج_ع (شدة الحرص على المال أو الطعام)",
       "choices": [
-        "ث",
-        "آ",
+        "م",
+        "ز",
         "ش",
-        "ئ"
+        "ذ"
       ],
       "answer": 2,
       "why": "جشع: شدة الحرص على المال أو الطعام.",
@@ -7053,12 +7053,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ج_د (كثرة العطاء من غير بخل)",
       "choices": [
-        "ق",
-        "ظ",
         "و",
-        "ش"
+        "س",
+        "ع",
+        "ل"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "جود: كثرة العطاء من غير بخل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7076,12 +7076,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ب_ل (إمساك ما ينبغي بذله من مال ونحوه)",
       "choices": [
-        "ظ",
-        "خ",
-        "ح",
-        "ئ"
+        "ا",
+        "ع",
+        "غ",
+        "خ"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "بخل: إمساك ما ينبغي بذله من مال ونحوه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7099,12 +7099,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: من_ة (عطية تعطى لمساعدة أو تكريم)",
       "choices": [
+        "ع",
+        "ي",
         "ح",
-        "ء",
-        "أ",
-        "ز"
+        "ص"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "منحة: عطية تعطى لمساعدة أو تكريم.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7121,10 +7121,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ص_ق (موافقة القول للحقيقة)",
       "choices": [
-        "ث",
+        "ذ",
         "د",
-        "إ",
-        "ص"
+        "ع",
+        "ف"
       ],
       "answer": 1,
       "why": "صدق: موافقة القول للحقيقة.",
@@ -7144,12 +7144,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: تسا_ح (عفو وتجاوز عن خطأ الغير)",
       "choices": [
-        "ى",
         "م",
-        "غ",
-        "ؤ"
+        "ن",
+        "ب",
+        "ل"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "تسامح: عفو وتجاوز عن خطأ الغير.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7166,12 +7166,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ل_ف (رقة في التصرف وحسن في المعاملة)",
       "choices": [
-        "ى",
         "ط",
-        "ش",
-        "ض"
+        "ي",
+        "ف",
+        "ق"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "لطف: رقة في التصرف وحسن في المعاملة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7188,12 +7188,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: تع_ون (مشاركة الناس في إنجاز عمل)",
       "choices": [
+        "إ",
+        "آ",
         "ا",
-        "ى",
-        "ر",
-        "ؤ"
+        "أ"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "تعاون: مشاركة الناس في إنجاز عمل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7210,10 +7210,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: تك_تف (تعاون وتساند لتحقيق غرض مشترك)",
       "choices": [
-        "ل",
+        "آ",
         "ا",
-        "ة",
-        "د"
+        "أ",
+        "إ"
       ],
       "answer": 1,
       "why": "تكاتف: تعاون وتساند لتحقيق غرض مشترك.",
@@ -7233,9 +7233,9 @@ KZV.register({
       "q": "أكمل الكلمة: م_ونة (ما يقدم لتيسير حاجة الغير)",
       "choices": [
         "ع",
-        "ى",
-        "ص",
-        "آ"
+        "ؤ",
+        "د",
+        "ر"
       ],
       "answer": 0,
       "why": "معونة: ما يقدم لتيسير حاجة الغير.",
@@ -7254,12 +7254,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: نج_ة (إسعاف من وقع في شدة ومساعدته)",
       "choices": [
-        "ض",
-        "ل",
-        "د",
-        "إ"
+        "ع",
+        "ف",
+        "ا",
+        "د"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "نجدة: إسعاف من وقع في شدة ومساعدته.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7276,9 +7276,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: تح_ل (قدرة على الصمود أمام العبء أو المشقة)",
       "choices": [
-        "ء",
-        "ض",
-        "ى",
+        "ص",
+        "ل",
+        "و",
         "م"
       ],
       "answer": 3,
@@ -7298,10 +7298,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: و_ار (رزانة وهدوء يبعثان على الاحترام)",
       "choices": [
-        "ل",
-        "ا",
+        "ج",
+        "ب",
         "ق",
-        "ش"
+        "ث"
       ],
       "answer": 2,
       "why": "وقار: رزانة وهدوء يبعثان على الاحترام.",
@@ -7320,10 +7320,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: فط_ة (سرعة إدراك المعاني الخفية)",
       "choices": [
-        "م",
+        "ث",
         "ن",
-        "ؤ",
-        "د"
+        "ر",
+        "ت"
       ],
       "answer": 1,
       "why": "فطنة: سرعة إدراك المعاني الخفية.",
@@ -7342,10 +7342,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ذ_ (ذكر العيوب واستقباحها)",
       "choices": [
-        "ة",
-        "أ",
+        "ب",
+        "ر",
         "م",
-        "ض"
+        "ل"
       ],
       "answer": 2,
       "why": "ذم: ذكر العيوب واستقباحها.",
@@ -7364,12 +7364,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: إب_اع (إنشاء عمل متميز على وجه جديد)",
       "choices": [
-        "ئ",
-        "ك",
+        "ز",
         "د",
-        "ا"
+        "ذ",
+        "ر"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "إبداع: إنشاء عمل متميز على وجه جديد.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7386,12 +7386,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ش_بة (جزء متفرع من الشيء)",
       "choices": [
-        "ل",
-        "س",
-        "د",
-        "ع"
+        "ع",
+        "ر",
+        "ه",
+        "ي"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "شعبة: جزء متفرع من الشيء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7408,12 +7408,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: قب_لة (جماعة من الناس تنتسب إلى أب أو جد واحد)",
       "choices": [
-        "ذ",
-        "ي",
-        "إ",
-        "غ"
+        "ا",
+        "ى",
+        "ن",
+        "ي"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "قبيلة: جماعة من الناس تنتسب إلى أب أو جد واحد.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7430,10 +7430,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: واقع_ة (تصوير أمين للأشياء والظروف كما هي)",
       "choices": [
-        "ص",
-        "ر",
+        "ن",
+        "ت",
         "ي",
-        "ب"
+        "ى"
       ],
       "answer": 2,
       "why": "واقعية: تصوير أمين للأشياء والظروف كما هي.",
@@ -7452,12 +7452,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: سرا_يل (لباس يغطي أسفل الجذع والساقين)",
       "choices": [
+        "ي",
         "و",
-        "ظ",
-        "ج",
-        "أ"
+        "ب",
+        "ؤ"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "سراويل: لباس يغطي أسفل الجذع والساقين.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7474,12 +7474,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: بص_ة (الأثر الذي يتركه ضغط الإصبع)",
       "choices": [
-        "ك",
-        "ا",
-        "س",
-        "م"
+        "م",
+        "ل",
+        "ق",
+        "ر"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "بصمة: الأثر الذي يتركه ضغط الإصبع.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7496,9 +7496,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_عاد (وقت حدد للقاء أو فعل أمر)",
       "choices": [
-        "ؤ",
-        "ك",
-        "ز",
+        "ى",
+        "ن",
+        "ت",
         "ي"
       ],
       "answer": 3,
@@ -7518,12 +7518,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: أ_اث (ما في البيت من متاع وفراش ونحوهما)",
       "choices": [
-        "ة",
-        "ذ",
-        "ي",
-        "ث"
+        "غ",
+        "ت",
+        "ث",
+        "ر"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "أثاث: ما في البيت من متاع وفراش ونحوهما.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7540,10 +7540,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_شأة (مكان للعمل أو الصناعة يجمع الآلات والعمال)",
       "choices": [
-        "ي",
+        "ل",
         "ن",
-        "ق",
-        "و"
+        "ت",
+        "ث"
       ],
       "answer": 1,
       "why": "منشأة: مكان للعمل أو الصناعة يجمع الآلات والعمال.",
@@ -7562,12 +7562,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ح_نة (دواء يدخل الجسم بأداة مخصصة)",
       "choices": [
-        "ظ",
-        "م",
-        "ث",
-        "ق"
+        "ق",
+        "ا",
+        "س",
+        "ف"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "حقنة: دواء يدخل الجسم بأداة مخصصة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7584,10 +7584,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ثل_ثي (ما ركب من ثلاثة أجزاء)",
       "choices": [
-        "ذ",
-        "ج",
+        "إ",
+        "آ",
         "ا",
-        "ئ"
+        "أ"
       ],
       "answer": 2,
       "why": "ثلاثي: ما ركب من ثلاثة أجزاء.",
@@ -7606,12 +7606,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ج_ين (الولد ما دام في رحم أمه)",
       "choices": [
-        "ل",
-        "ط",
         "ن",
-        "ؤ"
+        "ب",
+        "ت",
+        "ث"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "جنين: الولد ما دام في رحم أمه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7628,9 +7628,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: كي_يائي (من تخصص في علم المواد وتفاعلاتها)",
       "choices": [
-        "د",
-        "ث",
-        "ذ",
+        "ن",
+        "ب",
+        "ل",
         "م"
       ],
       "answer": 3,
@@ -7650,12 +7650,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مض_عة (ما يجلب ضياع الوقت أو المال وإهماله)",
       "choices": [
-        "ف",
         "ي",
-        "ج",
-        "س"
+        "ى",
+        "ن",
+        "ت"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "مضيعة: ما يجلب ضياع الوقت أو المال وإهماله.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7672,12 +7672,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_لد (موضع الولادة أو وقتها)",
       "choices": [
-        "ذ",
-        "ز",
-        "و",
-        "غ"
+        "ج",
+        "خ",
+        "ق",
+        "و"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "مولد: موضع الولادة أو وقتها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7694,12 +7694,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ط_ولة (المرحلة من الميلاد إلى البلوغ)",
       "choices": [
-        "ن",
+        "ق",
+        "ب",
         "ف",
-        "ك",
-        "غ"
+        "ا"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "طفولة: المرحلة من الميلاد إلى البلوغ.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7716,12 +7716,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: خر_ة (صغار الأمتعة المتفرقة وبقاياها)",
       "choices": [
-        "ح",
-        "ط",
-        "ذ",
-        "د"
+        "ز",
+        "د",
+        "ب",
+        "ج"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "خردة: صغار الأمتعة المتفرقة وبقاياها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7738,12 +7738,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ف_يلة (عشيرة الرجل ورهطه الأقربون)",
       "choices": [
-        "ر",
         "ص",
-        "ن",
-        "ب"
+        "س",
+        "ض",
+        "ط"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "فصيلة: عشيرة الرجل ورهطه الأقربون.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7760,9 +7760,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ز_د (طعام يعده المرء للسفر)",
       "choices": [
-        "ؤ",
-        "ع",
-        "ت",
+        "ب",
+        "ر",
+        "ن",
         "ا"
       ],
       "answer": 3,
@@ -7783,12 +7783,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ب_جل (أداة ذات ساقين ترسم بها الأقواس والدوائر)",
       "choices": [
-        "ف",
-        "ي",
-        "ك",
-        "ر"
+        "د",
+        "و",
+        "ر",
+        "ز"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "برجل: أداة ذات ساقين ترسم بها الأقواس والدوائر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7806,12 +7806,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ع_ء (حمل وثقل يحمله المرء)",
       "choices": [
-        "ه",
-        "أ",
+        "ي",
         "ب",
-        "ئ"
+        "ت",
+        "ن"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "عبء: حمل وثقل يحمله المرء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7829,8 +7829,8 @@ KZV.register({
       "q": "أكمل الكلمة: شر_ان (وعاء يحمل الدم الصادر من القلب إلى الجسم)",
       "choices": [
         "ي",
-        "ل",
-        "غ",
+        "ى",
+        "ن",
         "ت"
       ],
       "answer": 0,
@@ -7850,9 +7850,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: غوا_ة (سفينة مهيأة للغوص والمكث تحت الماء)",
       "choices": [
-        "د",
-        "ئ",
-        "ه",
+        "ض",
+        "س",
+        "ط",
         "ص"
       ],
       "answer": 3,
@@ -7872,10 +7872,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_فظة (كيس صغير لحفظ النقود أو الكتب)",
       "choices": [
-        "ش",
+        "ه",
         "ح",
-        "ط",
-        "ظ"
+        "ج",
+        "خ"
       ],
       "answer": 1,
       "why": "محفظة: كيس صغير لحفظ النقود أو الكتب.",
@@ -7895,9 +7895,9 @@ KZV.register({
       "q": "أكمل الكلمة: أ_طول (مجموعة من السفن أو الطائرات)",
       "choices": [
         "س",
-        "ء",
-        "و",
-        "إ"
+        "ش",
+        "ص",
+        "ز"
       ],
       "answer": 0,
       "why": "أسطول: مجموعة من السفن أو الطائرات.",
@@ -7917,12 +7917,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_مم (من يمضي في أمره بعزيمة ثابتة)",
       "choices": [
-        "ص",
-        "ن",
-        "آ",
-        "ج"
+        "ؤ",
+        "ت",
+        "ذ",
+        "ص"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "مصمم: من يمضي في أمره بعزيمة ثابتة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7939,10 +7939,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: كي_ياء (علم يبحث في المواد وخواصها وتغيراتها)",
       "choices": [
-        "د",
-        "ي",
+        "ب",
+        "ل",
         "م",
-        "ج"
+        "ن"
       ],
       "answer": 2,
       "why": "كيمياء: علم يبحث في المواد وخواصها وتغيراتها.",
@@ -7961,12 +7961,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مر_زي (ما نسب إلى المركز الذي ترجع إليه الفروع)",
       "choices": [
-        "ك",
-        "ب",
         "ل",
-        "ء"
+        "ك",
+        "و",
+        "ق"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "مركزي: ما نسب إلى المركز الذي ترجع إليه الفروع.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -7983,12 +7983,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: س_الة (جماعة من الكائنات الحية تتفق في صفات موروثة)",
       "choices": [
-        "ى",
-        "ر",
         "ل",
-        "ذ"
+        "ب",
+        "ق",
+        "ف"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "سلالة: جماعة من الكائنات الحية تتفق في صفات موروثة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8005,12 +8005,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: أخل_ق (صفات وأعمال يبحث العلم الخاص بها في حسنها وقبحها)",
       "choices": [
-        "خ",
-        "ا",
-        "ث",
-        "ه"
+        "أ",
+        "إ",
+        "آ",
+        "ا"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "أخلاق: صفات وأعمال يبحث العلم الخاص بها في حسنها وقبحها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8027,10 +8027,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: أنا_ية (أثرة يقدم بها المرء نفسه على غيره)",
       "choices": [
-        "ز",
-        "ش",
+        "ت",
+        "ث",
         "ن",
-        "خ"
+        "س"
       ],
       "answer": 2,
       "why": "أنانية: أثرة يقدم بها المرء نفسه على غيره.",
@@ -8049,12 +8049,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: أمس_ة (وقت من المساء قد يمتد إلى نصف الليل)",
       "choices": [
-        "ح",
-        "ن",
-        "ز",
-        "ي"
+        "ت",
+        "ي",
+        "ى",
+        "ن"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "أمسية: وقت من المساء قد يمتد إلى نصف الليل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8071,12 +8071,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ثق_فة (علوم ومعارف يطلب الحذق فيها)",
       "choices": [
-        "ص",
-        "ز",
         "ا",
-        "ك"
+        "أ",
+        "إ",
+        "آ"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "ثقافة: علوم ومعارف يطلب الحذق فيها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8093,12 +8093,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: خ_ق (ثقب في حائط أو غيره)",
       "choices": [
-        "غ",
+        "ن",
+        "ز",
         "ر",
-        "ض",
-        "ة"
+        "ل"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "خرق: ثقب في حائط أو غيره.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8115,12 +8115,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ل_طة (شيء تجده ملقى فتأخذه)",
       "choices": [
-        "ؤ",
-        "ء",
-        "ث",
-        "ق"
+        "غ",
+        "ق",
+        "ك",
+        "ف"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "لقطة: شيء تجده ملقى فتأخذه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8137,12 +8137,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: وص_ة (ما يعهد به المرء إلى غيره ويوصيه به)",
       "choices": [
-        "ص",
-        "ح",
         "ي",
-        "ك"
+        "ف",
+        "ل",
+        "م"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "وصية: ما يعهد به المرء إلى غيره ويوصيه به.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8159,12 +8159,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: فا_ق (ممتاز على غيره وجيد في بابه)",
       "choices": [
-        "م",
-        "ئ",
-        "أ",
-        "ص"
+        "ر",
+        "س",
+        "ت",
+        "ئ"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "فائق: ممتاز على غيره وجيد في بابه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8182,12 +8182,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مك_ن (موضع يقع فيه الشيء)",
       "choices": [
-        "ا",
-        "ب",
-        "ه",
-        "س"
+        "ف",
+        "ي",
+        "ن",
+        "ا"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "مكان: موضع يقع فيه الشيء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8205,10 +8205,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_ل (شبه ونظير لشيء آخر)",
       "choices": [
-        "ى",
-        "ز",
+        "ح",
+        "ش",
         "ث",
-        "إ"
+        "ا"
       ],
       "answer": 2,
       "why": "مثل: شبه ونظير لشيء آخر.",
@@ -8228,12 +8228,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ف_ل (عمل يدل في اللغة على حدث وزمن)",
       "choices": [
-        "ذ",
-        "ه",
-        "ؤ",
-        "ع"
+        "ع",
+        "أ",
+        "ج",
+        "و"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "فعل: عمل يدل في اللغة على حدث وزمن.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8250,12 +8250,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ن_س (جماعة من البشر واحدهم إنسان)",
       "choices": [
-        "ا",
-        "ء",
-        "ي",
-        "ز"
+        "ق",
+        "م",
+        "ج",
+        "ا"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "ناس: جماعة من البشر واحدهم إنسان.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8272,12 +8272,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: خ_رج (الظاهر من الشيء وما ليس في باطنه)",
       "choices": [
+        "إ",
         "ا",
-        "س",
-        "ح",
-        "ه"
+        "ز",
+        "أ"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "خارج: الظاهر من الشيء وما ليس في باطنه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8294,12 +8294,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ط_يق (ممر واسع ممتد يسير فيه الناس)",
       "choices": [
-        "ب",
-        "ت",
         "ر",
-        "ش"
+        "ل",
+        "ز",
+        "د"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "طريق: ممر واسع ممتد يسير فيه الناس.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8316,12 +8316,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ط_ع (خلق وسجية تميز الإنسان)",
       "choices": [
-        "ى",
-        "ب",
-        "ق",
-        "ن"
+        "ل",
+        "م",
+        "و",
+        "ب"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "طبع: خلق وسجية تميز الإنسان.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8338,10 +8338,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: سيا_ة (عربة آلية تستعمل للركوب أو النقل)",
       "choices": [
-        "أ",
-        "ذ",
+        "ح",
+        "د",
         "ر",
-        "ج"
+        "ق"
       ],
       "answer": 2,
       "why": "سيارة: عربة آلية تستعمل للركوب أو النقل.",
@@ -8360,12 +8360,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: صب_ح (أول النهار)",
       "choices": [
-        "م",
-        "ع",
-        "ا",
-        "ه"
+        "أ",
+        "إ",
+        "آ",
+        "ا"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "صباح: أول النهار.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8382,10 +8382,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_رد (ما يدرك بالذهن دون الحواس)",
       "choices": [
-        "ت",
+        "و",
         "ج",
-        "ي",
-        "ض"
+        "ب",
+        "س"
       ],
       "answer": 1,
       "why": "مجرد: ما يدرك بالذهن دون الحواس.",
@@ -8404,12 +8404,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ن_ع (صنف من أصناف الأشياء)",
       "choices": [
-        "ن",
-        "آ",
-        "و",
-        "ه"
+        "ط",
+        "ب",
+        "ز",
+        "و"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "نوع: صنف من أصناف الأشياء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8427,10 +8427,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: دا_ل (الباطن من كل شيء)",
       "choices": [
-        "ف",
-        "ا",
+        "م",
+        "و",
         "خ",
-        "ؤ"
+        "ب"
       ],
       "answer": 2,
       "why": "داخل: الباطن من كل شيء.",
@@ -8449,12 +8449,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: و_يد (منفرد بنفسه ليس معه غيره)",
       "choices": [
+        "د",
         "ح",
-        "غ",
-        "ه",
-        "ز"
+        "ر",
+        "ئ"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "وحيد: منفرد بنفسه ليس معه غيره.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8471,12 +8471,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ن_ر (ما يظهر منه لهب وضوء وحرارة محرقة)",
       "choices": [
-        "ئ",
         "ا",
-        "ء",
-        "ن"
+        "ب",
+        "س",
+        "ف"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "نار: ما يظهر منه لهب وضوء وحرارة محرقة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8495,12 +8495,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: خ_صة (ما يختص به شيء دون غيره)",
       "choices": [
+        "ل",
+        "أ",
         "ا",
-        "ظ",
-        "د",
-        "ئ"
+        "ر"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "خاصة: ما يختص به شيء دون غيره.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8518,9 +8518,9 @@ KZV.register({
       "q": "أكمل الكلمة: خ_ر (ما يحسن لذاته أو لما يحققه من نفع)",
       "choices": [
         "ي",
-        "ه",
-        "خ",
-        "آ"
+        "د",
+        "ض",
+        "م"
       ],
       "answer": 0,
       "why": "خير: ما يحسن لذاته أو لما يحققه من نفع.",
@@ -8540,12 +8540,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: غر_ب (من ليس من أهل القوم أو البلد)",
       "choices": [
-        "ي",
-        "ج",
-        "ف",
-        "ل"
+        "ا",
+        "ى",
+        "ن",
+        "ي"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "غريب: من ليس من أهل القوم أو البلد.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8562,10 +8562,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ح_ن (وقت مبهم قد يطول أو يقصر)",
       "choices": [
-        "ظ",
-        "أ",
+        "ض",
+        "ز",
         "ي",
-        "ك"
+        "ص"
       ],
       "answer": 2,
       "why": "حين: وقت مبهم قد يطول أو يقصر.",
@@ -8585,10 +8585,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ط_ام (ما يؤكل ويقوم به البدن)",
       "choices": [
-        "آ",
+        "ح",
         "ع",
-        "ز",
-        "ش"
+        "و",
+        "غ"
       ],
       "answer": 1,
       "why": "طعام: ما يؤكل ويقوم به البدن.",
@@ -8607,12 +8607,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ج_س (صنف عام يندرج تحته عدد من الأنواع)",
       "choices": [
-        "ك",
-        "ز",
-        "ه",
-        "ن"
+        "ن",
+        "ب",
+        "ر",
+        "ا"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "جنس: صنف عام يندرج تحته عدد من الأنواع.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8629,12 +8629,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ق_ية (مسألة يتنازع فيها وتعرض للفصل)",
       "choices": [
-        "ض",
-        "ج",
-        "خ",
-        "غ"
+        "ب",
+        "ر",
+        "ل",
+        "ض"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "قضية: مسألة يتنازع فيها وتعرض للفصل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8651,10 +8651,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ل_بة (شيء يستعمل للعب والتسلية)",
       "choices": [
-        "ى",
+        "ا",
         "ع",
-        "ة",
-        "ف"
+        "غ",
+        "ح"
       ],
       "answer": 1,
       "why": "لعبة: شيء يستعمل للعب والتسلية.",
@@ -8673,12 +8673,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ش_كة (عقد بين اثنين أو أكثر للقيام بعمل مشترك)",
       "choices": [
-        "غ",
-        "ذ",
-        "ى",
-        "ر"
+        "ر",
+        "ب",
+        "و",
+        "ز"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "شركة: عقد بين اثنين أو أكثر للقيام بعمل مشترك.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8696,9 +8696,9 @@ KZV.register({
       "q": "أكمل الكلمة: ق_ل (كلام يعبر عن رأي أو معتقد)",
       "choices": [
         "و",
-        "ش",
-        "ة",
-        "ظ"
+        "ب",
+        "ت",
+        "ف"
       ],
       "answer": 0,
       "why": "قول: كلام يعبر عن رأي أو معتقد.",
@@ -8717,12 +8717,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_ضي (زمان ذهب وانقضى)",
       "choices": [
-        "ء",
-        "ا",
-        "ه",
-        "ص"
+        "ر",
+        "أ",
+        "إ",
+        "ا"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "ماضي: زمان ذهب وانقضى.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8739,12 +8739,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: جا_ب (ناحية من الشيء أو شق منه)",
       "choices": [
+        "ذ",
+        "ع",
         "ن",
-        "م",
-        "ز",
-        "ؤ"
+        "ئ"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "جانب: ناحية من الشيء أو شق منه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8761,12 +8761,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ا_م (ما يعرف به الشيء ويميز عن غيره)",
       "choices": [
-        "ق",
-        "ب",
+        "ز",
         "س",
-        "ط"
+        "ش",
+        "ص"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "اسم: ما يعرف به الشيء ويميز عن غيره.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8783,12 +8783,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_م (ما يدعو إلى اليقظة والتدبير والاهتمام)",
       "choices": [
-        "ط",
-        "ا",
-        "ص",
-        "ه"
+        "ه",
+        "ح",
+        "ي",
+        "ذ"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "مهم: ما يدعو إلى اليقظة والتدبير والاهتمام.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8805,12 +8805,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ر_ئع (ما يثير الإعجاب)",
       "choices": [
-        "ء",
-        "ؤ",
-        "ا",
-        "ي"
+        "أ",
+        "إ",
+        "آ",
+        "ا"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "رائع: ما يثير الإعجاب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8827,12 +8827,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ع_لم (الخلق كله)",
       "choices": [
+        "إ",
+        "آ",
         "ا",
-        "ئ",
-        "ء",
-        "ؤ"
+        "أ"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "عالم: الخلق كله.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8849,10 +8849,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: أ_ي (من لا يقرأ ولا يكتب)",
       "choices": [
-        "أ",
+        "ذ",
         "م",
-        "ج",
-        "ؤ"
+        "ب",
+        "ت"
       ],
       "answer": 1,
       "why": "أمي: من لا يقرأ ولا يكتب.",
@@ -8871,12 +8871,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ح_ل (سنة)",
       "choices": [
-        "ن",
-        "آ",
         "و",
-        "ء"
+        "ب",
+        "ج",
+        "ق"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "حول: سنة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8893,12 +8893,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ع_د (يوم يحتفل فيه بذكرى كريمة)",
       "choices": [
-        "ؤ",
-        "ع",
-        "ي",
-        "ث"
+        "ا",
+        "ب",
+        "د",
+        "ي"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "عيد: يوم يحتفل فيه بذكرى كريمة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8915,12 +8915,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: حد_ث (كلام وخبر يتحدث بهما)",
       "choices": [
-        "ي",
         "ن",
-        "ث",
-        "ت"
+        "ت",
+        "ي",
+        "ى"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "حديث: كلام وخبر يتحدث بهما.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8937,12 +8937,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: شع_ر (إدراك وإحساس)",
       "choices": [
-        "ه",
-        "ل",
+        "ؤ",
         "و",
-        "ن"
+        "ا",
+        "ي"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "شعور: إدراك وإحساس.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -8960,9 +8960,9 @@ KZV.register({
       "q": "أكمل الكلمة: م_لاد (وقت الولادة)",
       "choices": [
         "ي",
-        "ث",
-        "ن",
-        "ا"
+        "ق",
+        "ى",
+        "ن"
       ],
       "answer": 0,
       "why": "ميلاد: وقت الولادة.",
@@ -8981,12 +8981,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: و_ود (ضد العدم)",
       "choices": [
-        "ؤ",
-        "ج",
-        "ح",
-        "ش"
+        "ق",
+        "د",
+        "ل",
+        "ج"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "وجود: ضد العدم.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9003,8 +9003,8 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مج_ون (من ذهب عقله أو فسد)",
       "choices": [
-        "ه",
-        "ك",
+        "ث",
+        "ل",
         "ن",
         "ت"
       ],
@@ -9025,10 +9025,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: نظ_م (ترتيب واتساق)",
       "choices": [
-        "ء",
+        "آ",
         "ا",
-        "ئ",
-        "و"
+        "أ",
+        "إ"
       ],
       "answer": 1,
       "why": "نظام: ترتيب واتساق.",
@@ -9047,12 +9047,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ك_ام (أصوات مفيدة)",
       "choices": [
-        "ك",
-        "و",
         "ل",
-        "ن"
+        "م",
+        "ت",
+        "ر"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "كلام: أصوات مفيدة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9069,9 +9069,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ع_يد (عدد كثير)",
       "choices": [
-        "ز",
-        "ر",
-        "ذ",
+        "ق",
+        "ت",
+        "ص",
         "د"
       ],
       "answer": 3,
@@ -9091,12 +9091,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ف_رة (مدة تقع بين زمنين)",
       "choices": [
-        "ث",
-        "ن",
-        "ب",
-        "ت"
+        "ط",
+        "ق",
+        "ت",
+        "ز"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "فترة: مدة تقع بين زمنين.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9114,9 +9114,9 @@ KZV.register({
       "q": "أكمل الكلمة: م_عد (زمان الوعد ومكانه)",
       "choices": [
         "و",
-        "ك",
-        "ه",
-        "ن"
+        "ص",
+        "ق",
+        "ب"
       ],
       "answer": 0,
       "why": "موعد: زمان الوعد ومكانه.",
@@ -9135,12 +9135,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_ى (مسافة وغاية)",
       "choices": [
-        "ز",
-        "آ",
-        "د",
-        "م"
+        "ع",
+        "ن",
+        "ر",
+        "د"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "مدى: مسافة وغاية.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9157,12 +9157,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: و_ه (جزء من الرأس فيه العينان والفم والأنف)",
       "choices": [
+        "ل",
+        "ب",
         "ج",
-        "و",
-        "ح",
-        "خ"
+        "ر"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "وجه: جزء من الرأس فيه العينان والفم والأنف.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9179,12 +9179,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: _حو (علم أحوال أواخر الكلام إعرابا وبناء)",
       "choices": [
-        "ه",
-        "ك",
-        "ب",
-        "ن"
+        "م",
+        "ن",
+        "ص",
+        "ض"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "نحو: علم أحوال أواخر الكلام إعرابا وبناء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9201,12 +9201,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ع_يل (من يعامل غيره في شأن من الشؤون)",
       "choices": [
-        "ك",
-        "ن",
         "م",
-        "ه"
+        "د",
+        "ل",
+        "و"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "عميل: من يعامل غيره في شأن من الشؤون.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9223,12 +9223,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: _عر (كلام موزون مقفى)",
       "choices": [
-        "ظ",
-        "ش",
-        "ر",
-        "ض"
+        "ب",
+        "ذ",
+        "س",
+        "ش"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "شعر: كلام موزون مقفى.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9245,12 +9245,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: جه_ز (أداة تؤدي عملا معينا)",
       "choices": [
-        "و",
+        "إ",
+        "آ",
         "ا",
-        "ء",
-        "ئ"
+        "أ"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "جهاز: أداة تؤدي عملا معينا.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9267,12 +9267,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ق_م (ما يطأ الأرض من رجل الإنسان)",
       "choices": [
-        "ء",
         "د",
-        "ج",
-        "ك"
+        "س",
+        "ل",
+        "ز"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "قدم: ما يطأ الأرض من رجل الإنسان.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9289,12 +9289,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ع_ش (الحياة وما تقوم به من مطعم ومشرب)",
       "choices": [
-        "و",
-        "ث",
-        "ي",
-        "ض"
+        "ر",
+        "ط",
+        "ك",
+        "ي"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "عيش: الحياة وما تقوم به من مطعم ومشرب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9311,12 +9311,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ل_م (جزء عضلي رخو بين جلد الحيوان وعظمه)",
       "choices": [
-        "ل",
-        "آ",
-        "ظ",
-        "ح"
+        "غ",
+        "ؤ",
+        "ح",
+        "ا"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "لحم: جزء عضلي رخو بين جلد الحيوان وعظمه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9333,12 +9333,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ت_ريخ (جملة الأحوال والأحداث التي يمر بها كائن)",
       "choices": [
+        "آ",
         "ا",
-        "ؤ",
-        "ء",
-        "ي"
+        "أ",
+        "إ"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "تاريخ: جملة الأحوال والأحداث التي يمر بها كائن.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9355,12 +9355,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ح_قة (شيء مستدير)",
       "choices": [
-        "غ",
         "ل",
-        "ك",
-        "ه"
+        "ر",
+        "و",
+        "ذ"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "حلقة: شيء مستدير.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9377,9 +9377,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ش_اب (ما يتناوله المرء بالشرب من أي نوع)",
       "choices": [
-        "ز",
-        "د",
-        "ذ",
+        "ج",
+        "ه",
+        "ب",
         "ر"
       ],
       "answer": 3,
@@ -9399,12 +9399,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ملي_ن (ألف ألف)",
       "choices": [
+        "ي",
+        "ا",
         "و",
-        "م",
-        "ل",
-        "ن"
+        "ؤ"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "مليون: ألف ألف.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9421,12 +9421,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ح_ن (جمال وكل مبهج مرغوب فيه)",
       "choices": [
-        "ح",
-        "ؤ",
+        "ز",
         "س",
-        "ء"
+        "ص",
+        "ض"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "حسن: جمال وكل مبهج مرغوب فيه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9443,12 +9443,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: أ_ف (عشر مئات)",
       "choices": [
-        "م",
-        "آ",
-        "ء",
-        "ل"
+        "ل",
+        "ن",
+        "خ",
+        "س"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "ألف: عشر مئات.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9465,9 +9465,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: _قطة (علامة مستديرة صغيرة على سطح مستو)",
       "choices": [
-        "ث",
-        "ي",
-        "ه",
+        "ر",
+        "ل",
+        "س",
         "ن"
       ],
       "answer": 3,
@@ -9487,12 +9487,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ط_بق (دور في البيت أو العمارة)",
       "choices": [
-        "ء",
-        "ي",
+        "آ",
         "ا",
-        "ؤ"
+        "أ",
+        "إ"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "طابق: دور في البيت أو العمارة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9509,12 +9509,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ع_ر (مدة الحياة)",
       "choices": [
-        "ل",
-        "ن",
-        "ئ",
-        "م"
+        "م",
+        "ا",
+        "ذ",
+        "ش"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "عمر: مدة الحياة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9531,9 +9531,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ق_ب (دنو)",
       "choices": [
-        "ي",
-        "ذ",
-        "د",
+        "ا",
+        "ش",
+        "ص",
         "ر"
       ],
       "answer": 3,
@@ -9553,12 +9553,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ع_دة (فعل يتكرر على نهج واحد بلا جهد)",
       "choices": [
+        "م",
+        "ه",
         "ا",
-        "ؤ",
-        "ء",
-        "ئ"
+        "ق"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "عادة: فعل يتكرر على نهج واحد بلا جهد.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9575,12 +9575,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ن_دي (مكان مهيأ لجلوس جماعة من صناعة أو طبقة واحدة)",
       "choices": [
+        "إ",
         "ا",
-        "ث",
-        "ئ",
-        "ء"
+        "ق",
+        "أ"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "نادي: مكان مهيأ لجلوس جماعة من صناعة أو طبقة واحدة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9597,12 +9597,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ص_قة (عقد بيع)",
       "choices": [
-        "ك",
-        "ؤ",
+        "ف",
+        "د",
         "ق",
-        "ف"
+        "ب"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "صفقة: عقد بيع.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9619,12 +9619,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ز_جة (امرأة الرجل)",
       "choices": [
-        "ك",
-        "غ",
-        "و",
-        "ه"
+        "م",
+        "ي",
+        "ؤ",
+        "و"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "زوجة: امرأة الرجل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9641,12 +9641,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ق_ار (مركبات سكة حديد تجرها قاطرة)",
       "choices": [
-        "ض",
+        "ش",
+        "ص",
         "ط",
-        "ظ",
-        "س"
+        "ت"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "قطار: مركبات سكة حديد تجرها قاطرة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9663,12 +9663,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_عم (مكان يقدم فيه الطعام بثمن)",
       "choices": [
+        "ن",
         "ط",
-        "ص",
-        "ش",
-        "ظ"
+        "ز",
+        "ف"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "مطعم: مكان يقدم فيه الطعام بثمن.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9685,12 +9685,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ل_ن (صفة الجسم من سواد وبياض وحمرة)",
       "choices": [
-        "ن",
-        "ل",
-        "ض",
-        "و"
+        "و",
+        "ب",
+        "ح",
+        "س"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "لون: صفة الجسم من سواد وبياض وحمرة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9707,9 +9707,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مع_ى (ما يدل عليه اللفظ)",
       "choices": [
-        "ه",
-        "ث",
-        "ت",
+        "ز",
+        "ر",
+        "ط",
         "ن"
       ],
       "answer": 3,
@@ -9729,12 +9729,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مج_س (جماعة تخصص للنظر فيما يناط بها من أعمال)",
       "choices": [
+        "ب",
         "ل",
-        "ك",
-        "م",
-        "ه"
+        "و",
+        "ا"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "مجلس: جماعة تخصص للنظر فيما يناط بها من أعمال.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9751,12 +9751,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_كة (استعداد عقلي لأداء أعمال بحذق ومهارة)",
       "choices": [
-        "ن",
-        "م",
         "ل",
-        "و"
+        "س",
+        "ش",
+        "ح"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "ملكة: استعداد عقلي لأداء أعمال بحذق ومهارة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9773,12 +9773,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ض_بط (لقب رياسي في الجيش والشرطة)",
       "choices": [
-        "ا",
-        "ي",
-        "و",
-        "ء"
+        "أ",
+        "إ",
+        "آ",
+        "ا"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "ضابط: لقب رياسي في الجيش والشرطة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9795,12 +9795,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_ض (خروج الكائن الحي عن الصحة والاعتدال)",
       "choices": [
+        "ض",
         "ر",
-        "د",
-        "ذ",
-        "ز"
+        "ح",
+        "خ"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "مرض: خروج الكائن الحي عن الصحة والاعتدال.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9817,12 +9817,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: خ_ف (انفعال يحدث لتوقع مكروه)",
       "choices": [
-        "ه",
-        "ك",
         "و",
-        "م"
+        "ز",
+        "ل",
+        "ي"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "خوف: انفعال يحدث لتوقع مكروه.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9839,12 +9839,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مت_ر (مكان للتجارة)",
       "choices": [
-        "ر",
+        "ح",
         "خ",
-        "ج",
-        "ح"
+        "د",
+        "ج"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "متجر: مكان للتجارة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9861,12 +9861,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: إ_افة (ربط اسمين يفيد تعريفا أو تخصيصا)",
       "choices": [
+        "ص",
+        "ظ",
         "ض",
-        "ش",
-        "ط",
-        "ظ"
+        "خ"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "إضافة: ربط اسمين يفيد تعريفا أو تخصيصا.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9883,12 +9883,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ح_دث (ضد القديم)",
       "choices": [
-        "ؤ",
-        "ء",
         "ا",
-        "ي"
+        "أ",
+        "إ",
+        "آ"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "حادث: ضد القديم.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9905,9 +9905,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ب_ع (مبادلة مال بمال)",
       "choices": [
-        "س",
-        "ط",
-        "ن",
+        "د",
+        "ض",
+        "و",
         "ي"
       ],
       "answer": 3,
@@ -9927,12 +9927,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ك_ب (خلاف الصدق)",
       "choices": [
-        "ف",
+        "ل",
+        "و",
         "ذ",
-        "ء",
-        "ي"
+        "ع"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "كذب: خلاف الصدق.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -9949,10 +9949,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ط_ولة (مائدة)",
       "choices": [
-        "ء",
+        "إ",
         "ا",
-        "ؤ",
-        "ئ"
+        "ف",
+        "أ"
       ],
       "answer": 1,
       "why": "طاولة: مائدة.",
@@ -9972,9 +9972,9 @@ KZV.register({
       "q": "أكمل الكلمة: و_ش (حيوان بري لا يستأنس)",
       "choices": [
         "ح",
-        "و",
-        "ص",
-        "ء"
+        "ر",
+        "ب",
+        "ج"
       ],
       "answer": 0,
       "why": "وحش: حيوان بري لا يستأنس.",
@@ -9993,12 +9993,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: غ_بة (أشجار كثيرة متكاثفة)",
       "choices": [
-        "ء",
-        "و",
-        "ا",
-        "ئ"
+        "ر",
+        "ض",
+        "ل",
+        "ا"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "غابة: أشجار كثيرة متكاثفة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10015,12 +10015,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ق_رب (زورق)",
       "choices": [
-        "ء",
-        "ي",
+        "إ",
         "ا",
-        "ؤ"
+        "ط",
+        "أ"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "قارب: زورق.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10038,9 +10038,9 @@ KZV.register({
       "q": "أكمل الكلمة: ع_د (اتفاق يلزم طرفيه بتنفيذ ما اتفقا عليه)",
       "choices": [
         "ق",
-        "آ",
-        "ء",
-        "ظ"
+        "ا",
+        "ب",
+        "د"
       ],
       "answer": 0,
       "why": "عقد: اتفاق يلزم طرفيه بتنفيذ ما اتفقا عليه.",
@@ -10059,12 +10059,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ص_حب (مرافق)",
       "choices": [
-        "ا",
-        "ء",
-        "ئ",
-        "ؤ"
+        "أ",
+        "إ",
+        "آ",
+        "ا"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "صاحب: مرافق.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10081,10 +10081,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: بر_د (رسائل)",
       "choices": [
-        "أ",
-        "ت",
+        "ج",
+        "و",
         "ي",
-        "ب"
+        "ا"
       ],
       "answer": 2,
       "why": "بريد: رسائل.",
@@ -10103,12 +10103,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: _قة (جزء من بيت تنفرد بسكناه أسرة)",
       "choices": [
-        "ظ",
-        "ض",
-        "س",
-        "ش"
+        "ث",
+        "ش",
+        "ح",
+        "د"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "شقة: جزء من بيت تنفرد بسكناه أسرة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10126,9 +10126,9 @@ KZV.register({
       "q": "أكمل الكلمة: ش_يط (سير ضيق ممدود من نسيج)",
       "choices": [
         "ر",
-        "ذ",
         "ز",
-        "د"
+        "د",
+        "و"
       ],
       "answer": 0,
       "why": "شريط: سير ضيق ممدود من نسيج.",
@@ -10147,9 +10147,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: بل_ي (منسوب إلى طبيعة البلد وبيئته)",
       "choices": [
+        "ط",
         "ذ",
         "ر",
-        "ز",
         "د"
       ],
       "answer": 3,
@@ -10169,10 +10169,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ك_كب (جرم سماوي يدور حول الشمس)",
       "choices": [
-        "م",
-        "ن",
+        "ؤ",
+        "ي",
         "و",
-        "ك"
+        "ب"
       ],
       "answer": 2,
       "why": "كوكب: جرم سماوي يدور حول الشمس.",
@@ -10191,12 +10191,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: _سب (قدر الشيء وعدده)",
       "choices": [
-        "ه",
-        "خ",
-        "ج",
-        "ح"
+        "ح",
+        "ك",
+        "ن",
+        "ر"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "حسب: قدر الشيء وعدده.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10213,12 +10213,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: س_ر (قطع المسافة)",
       "choices": [
+        "ب",
+        "ت",
         "ف",
-        "ض",
-        "ل",
-        "ص"
+        "ؤ"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "سفر: قطع المسافة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10235,9 +10235,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ح_ضر (الزمن بين الماضي والمستقبل)",
       "choices": [
-        "ء",
-        "ي",
-        "ؤ",
+        "أ",
+        "إ",
+        "آ",
         "ا"
       ],
       "answer": 3,
@@ -10257,10 +10257,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: س_ر (قطعة مستطيلة من الجلد ونحوه)",
       "choices": [
-        "ش",
-        "ث",
+        "ب",
+        "ت",
         "ي",
-        "ء"
+        "ؤ"
       ],
       "answer": 2,
       "why": "سير: قطعة مستطيلة من الجلد ونحوه.",
@@ -10279,12 +10279,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: م_در (صيغة اسمية تدل على الحدث فقط)",
       "choices": [
+        "ق",
         "ص",
-        "ط",
-        "ض",
-        "ش"
+        "ج",
+        "خ"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "مصدر: صيغة اسمية تدل على الحدث فقط.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10302,9 +10302,9 @@ KZV.register({
       "q": "أكمل الكلمة: س_يل (طريق واضح)",
       "choices": [
         "ب",
-        "ث",
-        "ي",
-        "ن"
+        "ج",
+        "ر",
+        "ه"
       ],
       "answer": 0,
       "why": "سبيل: طريق واضح.",
@@ -10323,12 +10323,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: _خل (مال يأتي من زراعة أو صناعة أو تجارة)",
       "choices": [
-        "ز",
+        "م",
+        "ن",
         "د",
-        "ذ",
-        "ض"
+        "ب"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "دخل: مال يأتي من زراعة أو صناعة أو تجارة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10345,10 +10345,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: زع_م (رئيس)",
       "choices": [
-        "ن",
+        "ت",
         "ي",
-        "ب",
-        "ت"
+        "ى",
+        "ن"
       ],
       "answer": 1,
       "why": "زعيم: رئيس.",
@@ -10367,12 +10367,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ن_خة (صورة المكتوب أو المرسوم)",
       "choices": [
-        "س",
-        "ظ",
+        "ف",
         "ش",
-        "ص"
+        "ص",
+        "س"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "نسخة: صورة المكتوب أو المرسوم.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10389,10 +10389,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ع_و (جزء من الجسد)",
       "choices": [
-        "ص",
-        "ذ",
+        "ل",
+        "ف",
         "ض",
-        "ي"
+        "د"
       ],
       "answer": 2,
       "why": "عضو: جزء من الجسد.",
@@ -10412,11 +10412,11 @@ KZV.register({
       "q": "أكمل الكلمة: م_ف (إضبارة تجمع أوراقا في موضوع أو أكثر)",
       "choices": [
         "ك",
-        "ن",
-        "ه",
-        "ل"
+        "ل",
+        "ص",
+        "م"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "ملف: إضبارة تجمع أوراقا في موضوع أو أكثر.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10433,12 +10433,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: د_م (قوة)",
       "choices": [
-        "ب",
         "ع",
-        "ث",
-        "ذ"
+        "س",
+        "أ",
+        "ه"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "دعم: قوة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10457,10 +10457,10 @@ KZV.register({
       "choices": [
         "م",
         "ك",
-        "ل",
-        "ه"
+        "ن",
+        "ل"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "لغة: أصوات يعبر بها كل قوم عن أغراضهم.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10477,12 +10477,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ح_ية (خلوص من الرق أو اللؤم)",
       "choices": [
-        "ء",
-        "آ",
-        "ز",
-        "ر"
+        "ل",
+        "م",
+        "ر",
+        "ش"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "حرية: خلوص من الرق أو اللؤم.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10500,9 +10500,9 @@ KZV.register({
       "q": "أكمل الكلمة: ي_ين (مقابل اليسار)",
       "choices": [
         "م",
-        "و",
-        "ظ",
-        "ض"
+        "ق",
+        "ن",
+        "ب"
       ],
       "answer": 0,
       "why": "يمين: مقابل اليسار.",
@@ -10521,12 +10521,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مط_ر (مكان معد لصعود الطائرات وهبوطها)",
       "choices": [
-        "ء",
-        "ا",
-        "ئ",
-        "ؤ"
+        "م",
+        "ه",
+        "و",
+        "ا"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "مطار: مكان معد لصعود الطائرات وهبوطها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10543,12 +10543,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ج_م (ما له طول وعرض وعمق)",
       "choices": [
-        "ظ",
+        "ر",
+        "ش",
         "س",
-        "ض",
-        "ط"
+        "ا"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "جسم: ما له طول وعرض وعمق.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10565,12 +10565,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: يس_ر (غنى وثروة وسعة ورخاء)",
       "choices": [
-        "ظ",
-        "ء",
-        "ؤ",
-        "ا"
+        "ا",
+        "أ",
+        "إ",
+        "آ"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "يسار: غنى وثروة وسعة ورخاء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10587,12 +10587,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: أد_ى (أقرب)",
       "choices": [
-        "ن",
-        "ث",
-        "ت",
-        "ي"
+        "ه",
+        "ج",
+        "ر",
+        "ن"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "أدنى: أقرب.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10611,10 +10611,10 @@ KZV.register({
       "choices": [
         "ن",
         "ت",
-        "ث",
-        "ي"
+        "ي",
+        "ى"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "حريق: اضطرام النار ولهبها.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10631,10 +10631,10 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ذ_ب (ذيل الحيوان)",
       "choices": [
-        "ك",
+        "ه",
         "ن",
-        "ل",
-        "م"
+        "ؤ",
+        "ر"
       ],
       "answer": 1,
       "why": "ذنب: ذيل الحيوان.",
@@ -10653,12 +10653,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: مب_غ (مقدار من المال)",
       "choices": [
-        "ن",
-        "ه",
+        "ل",
+        "ز",
         "م",
-        "ل"
+        "ك"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "مبلغ: مقدار من المال.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10675,12 +10675,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ع_دي (أمر جرت به العادة)",
       "choices": [
-        "ئ",
+        "أ",
+        "إ",
         "ا",
-        "ء",
-        "ؤ"
+        "د"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "عادي: أمر جرت به العادة.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10697,12 +10697,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ن_ئب (من يقوم مقام غيره في عمل)",
       "choices": [
-        "ؤ",
-        "ء",
-        "ئ",
-        "ا"
+        "آ",
+        "ا",
+        "أ",
+        "إ"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "نائب: من يقوم مقام غيره في عمل.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10719,12 +10719,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: أث_ (علامة وبقية الشيء)",
       "choices": [
-        "ظ",
         "ر",
-        "ز",
-        "ذ"
+        "ل",
+        "ث",
+        "ف"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "أثر: علامة وبقية الشيء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10741,9 +10741,9 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: _عب (جماعة من الناس تتكلم لسانا واحدا)",
       "choices": [
-        "ض",
-        "آ",
-        "ظ",
+        "ك",
+        "ت",
+        "د",
         "ش"
       ],
       "answer": 3,
@@ -10763,12 +10763,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: ع_بة (مركبة بعجلتين أو أربع تنقل عليها الأشياء)",
       "choices": [
-        "ف",
-        "د",
-        "ب",
-        "ر"
+        "ص",
+        "ق",
+        "ر",
+        "ز"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "عربة: مركبة بعجلتين أو أربع تنقل عليها الأشياء.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10785,12 +10785,12 @@ KZV.register({
       "fmt": "missing-letter",
       "q": "أكمل الكلمة: سب_حة (رياضة بدنية بالعوم)",
       "choices": [
-        "ي",
-        "ؤ",
+        "آ",
         "ا",
-        "ء"
+        "أ",
+        "إ"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "سباحة: رياضة بدنية بالعوم.",
       "src": [
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
@@ -10808,9 +10808,9 @@ KZV.register({
       "q": "أكمل الكلمة: _جل (كتاب يدون فيه ما يراد حفظه)",
       "choices": [
         "س",
-        "ط",
-        "ظ",
-        "ش"
+        "آ",
+        "أ",
+        "ح"
       ],
       "answer": 0,
       "why": "سجل: كتاب يدون فيه ما يراد حفظه.",

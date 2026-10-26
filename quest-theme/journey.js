@@ -55,7 +55,7 @@
     quizCount: 5, quizCustomCount: false, quizCountDraft: '', quizTimeDraft: '', quizAdvance: null, quizPausedAt: null, quizLastQuestion: null, roomDraft: '', roomCodeError: '', roomStartError: '',
     roomCodeEntry: false, joinDraft: '', joinError: '', roomFromEntry: false, homeNotice: null, roomClosedNotice: '', homePurchasesApplicable: false, joinOnly: false
   };
-  let boardRooms = null;
+  let boardRooms = null, activeScreenMotion = null;
   if (game !== 'hub') M.teams = Array.from({ length: limits[game][0] }, (_, i) => teamNew(i));
   try { M.muted = localStorage.getItem('kunuz_journey_muted_v1') === '1'; } catch (_) {}
   const app = document.createElement('div'); app.className = 'journey-app'; app.dataset.game = game;
@@ -482,8 +482,8 @@
   }
   function islandMap() {
     const w = M.g;
-    const slots = global.SLOTS;
-    return '<svg class="j-island-map" viewBox="0 0 600 920" role="group" aria-label="أرخبيل الجزر"><defs><linearGradient id="journey-sand" x2="0" y2="1"><stop stop-color="#fff1bd"/><stop offset="1" stop-color="#d8b878"/></linearGradient><linearGradient id="journey-green" x2="0" y2="1"><stop stop-color="#a5e2a2"/><stop offset="1" stop-color="#4eb893"/></linearGradient><filter id="journey-marker-shadow"><feDropShadow dx="0" dy="6" stdDeviation="1" flood-color="#075365"/></filter></defs><g fill="none" stroke="#a4ede64a" stroke-width="2">' + Array.from({ length: 15 }, (_, i) => '<path d="M' + (i * 71 % 510) + ' ' + (50 + i * 59) + 'q30-12 60 0t60 0"/>').join('') + '</g><g fill="none" stroke="#fff3a979" stroke-width="4" stroke-dasharray="9 9">' + global.WarEngine.LINKS.map(([a, b]) => '<path' + (w.base === a && w.tgt === b || w.base === b && w.tgt === a ? ' class="j-route-active"' : '') + ' d="M' + slots[a].x + ' ' + slots[a].y + 'Q300 ' + (slots[a].y + slots[b].y) / 2 + ' ' + slots[b].x + ' ' + slots[b].y + '"/>').join('') + '</g>' +
+    const slots = global.SLOTS.map((slot, i) => ({ ...slot, x: [95, 300, 505][i % 3], y: [50, 185, 320, 455][Math.floor(i / 3)] }));
+    return '<svg class="j-island-map" viewBox="0 0 600 540" role="group" aria-label="أرخبيل الجزر"><defs><linearGradient id="journey-sand" x2="0" y2="1"><stop stop-color="#fff1bd"/><stop offset="1" stop-color="#d8b878"/></linearGradient><linearGradient id="journey-green" x2="0" y2="1"><stop stop-color="#a5e2a2"/><stop offset="1" stop-color="#4eb893"/></linearGradient><filter id="journey-marker-shadow"><feDropShadow dx="0" dy="6" stdDeviation="1" flood-color="#075365"/></filter></defs><g fill="none" stroke="#a4ede64a" stroke-width="2">' + Array.from({ length: 13 }, (_, i) => '<path d="M' + (i * 71 % 510) + ' ' + (35 + i * 39) + 'q30-12 60 0t60 0"/>').join('') + '</g><g fill="none" stroke="#fff3a979" stroke-width="4" stroke-dasharray="9 9">' + global.WarEngine.LINKS.map(([a, b]) => '<path' + (w.base === a && w.tgt === b || w.base === b && w.tgt === a ? ' class="j-route-active"' : '') + ' d="M' + slots[a].x + ' ' + slots[a].y + 'Q300 ' + (slots[a].y + slots[b].y) / 2 + ' ' + slots[b].x + ' ' + slots[b].y + '"/>').join('') + '</g>' +
       slots.map((p, i) => {
         const owner = w.own[i], t = M.teams[owner], name = catName(w.slotCat[i]);
         const words = name.split(' '); let lines = ['']; words.forEach(word => { const last = lines.length - 1; if ((lines[last] + ' ' + word).length > 16 && lines[last]) lines.push(word); else lines[last] += (lines[last] ? ' ' : '') + word; });
@@ -498,8 +498,7 @@
     let text = q ? 'دور «' + M.teams[q.actor].n + '» ' + (q.defend ? 'يدافع عن الجزيرة.' : 'يهاجم الجزيرة.') : M.warMessage;
     if (!text) text = w.phase === 'deploy' ? 'وزّعوا الرايات على جزركم، ثم سلّموا الدور.' : w.phase === 'move' ? 'انقلوا الرايات إلى جزيرتكم الجديدة، أو أنهوا الدور.' : w.base === null ? 'اختاروا جزيرة تنطلقون منها.' : 'اختاروا جزيرة متصلة للهجوم.';
     const board = teamBar() + '<div class="j-map-title">اختاروا جزيرتكم القادمة</div><p class="j-war-message" role="status">' + esc(text) + (w.phase === 'deploy' ? ' الرايات بيدكم: ' + ar(w.pool) : '') + '</p>' + islandMap();
-    const controls = '<div class="j-actions">' + button('تراجع', 'war-undo', 'j-secondary', !w.placed.length && w.base === null ? 'disabled' : '') + button(w.phase === 'deploy' ? 'سلّموا الدور' : 'إنهاء الدور', 'war-next', 'j-btn j-teal', w.busy || w.phase === 'deploy' && w.pool > 0 ? 'disabled' : '') + '</div>';
-    if (!q) return board + controls + '<div class="j-actions">' + button('إنهاء اللعبة', 'finish-war', 'j-secondary') + '</div>';
+    if (!q) return board + '<div class="j-actions j-war-actions">' + button('تراجع', 'war-undo', 'j-secondary', !w.placed.length && w.base === null ? 'disabled' : '') + button(w.phase === 'deploy' ? 'سلّموا الدور' : 'إنهاء الدور', 'war-next', 'j-btn j-teal', w.busy || w.phase === 'deploy' && w.pool > 0 ? 'disabled' : '') + button('إنهاء اللعبة', 'finish-war', 'j-secondary') + '</div>';
     return board + '<section class="j-paper j-island-sheet" data-motion="island">' + meta(q) + '<h2>' + esc(questionText(q)[3]) + '</h2><div id="qvis" hidden></div>' + answers(q) + timerMarkup(q) +
       (q.settled ? '<div class="j-verdict' + (q.correct ? '' : ' j-no') + '">' + (q.correct ? q.fast ? '✓ إصابة مزدوجة — سبقتوا الجمر' : '✓ إصابة صحيحة' : q.timedOut ? 'نفد الوقت' : 'خطأ') + '</div>' + explanation(q) + '<div class="j-actions">' + button('التالي', 'war-answer-next', 'j-btn j-teal') + '</div>' : '<div class="j-actions">' + optionsButton(q) + (!shownOptions(q) && !q.answerRevealed ? button('أظهر الجواب', 'reveal-answer', 'j-btn j-teal') : '') + (q.answerRevealed ? button('صح', 'judge-yes', 'j-btn j-teal') + button('خطأ', 'judge-no', 'j-secondary') : '') + '</div>') + '</section>';
   }
@@ -547,7 +546,8 @@
       const q = questionText(M.question); app.querySelectorAll('[data-explanation]').forEach(el => renderExplanation(el, q));
     } else if (global.KZV) global.KZV.show(null);
     if (changed && Motion) {
-      Motion.enterScreen(app.querySelector('main'));
+      activeScreenMotion?.cancel();
+      activeScreenMotion = Motion.enterScreen(app.querySelector('main'));
       if (M.stage === 'hub') Motion.staggerCards(app.querySelectorAll('.j-game-card'));
       if (M.stage === 'categories') Motion.staggerCards(Array.from(app.querySelectorAll('.j-cat-pick')).slice(0, 8));
     }
@@ -662,6 +662,12 @@
     else history.replaceState({ journey: true, step: 1 }, '');
   }
   function homeExit() { try { sessionStorage.setItem('ezik_resume_section_v1', 'home'); } catch (_) {} location.href = '/'; }
+  function confirmedHomeExit() {
+    cancelPlay();
+    const close = game === 'hanna' && M.stage === 'room' ? global.KunuzHannaRoomExit?.() : null;
+    if (close && typeof close.then === 'function') { Promise.resolve(close).then(homeExit, homeExit); return; }
+    homeExit();
+  }
   function leaveRoomToSettings() {
     if (game === 'harb') { const state = { ...history.state }; delete state.kunuzWarRoom; delete state.kunuzWarRoomEntry; history.replaceState(state, ''); }
     const route = game === 'hanna' ? '/hanna-laha/' : '/quest-harb.html';
@@ -1267,7 +1273,7 @@
     if (action === 'mute') { M.muted = !M.muted; try { localStorage.setItem('kunuz_journey_muted_v1', M.muted ? '1' : '0'); } catch (_) {} if (M.muted) stopSounds(); render(); }
     else if (action === 'iap-purchase' && game === 'hub') { global.ezikIapOpenPurchase?.(); }
     else if (action === 'dismiss-home-notice' && game === 'hub') { M.homeNotice = null; render(); }
-    else if (action === 'home') { if (M.running || M.stage === 'room' || M.stage === 'board-room') askDialog('تطلعون للرئيسية وتتركون اللعبة؟', () => { cancelPlay(); homeExit(); }, () => {}, { yes: 'نعم، نطلع', no: 'لا، نبقى' }); else homeExit(); }
+    else if (action === 'home') { if (M.running || M.stage === 'room' || M.stage === 'board-room') askDialog('تطلعون للرئيسية وتتركون اللعبة؟', confirmedHomeExit, () => {}, { yes: 'نعم، نطلع', no: 'لا، نبقى' }); else homeExit(); }
     else if (action === 'back') back();
     else if (action === 'create-room' && M.stage === 'room-entry') beginHostEntry();
     else if (action === 'resume-room' && M.stage === 'room-entry' && savedWarRoom()) enterRoom(true, false, true);
@@ -1398,8 +1404,13 @@
     const keyboardOpen = !!(editable && viewport && global.innerHeight - viewport.height > 80);
     app.classList.toggle('kfix-keyboard-open', keyboardOpen);
     const main = app.querySelector('.j-content');
+    if (keyboardOpen && main) {
+      activeScreenMotion?.cancel(); activeScreenMotion = null;
+      main.style.removeProperty('transform');
+    }
     if (!keyboardOpen) {
       app.style.removeProperty('--kfix-vv-height');
+      app.style.removeProperty('--kfix-vv-bottom');
       app.style.removeProperty('--kfix-main-top');
       if (main) { main.style.maxHeight = ''; main.style.overflowY = ''; main.style.overscrollBehavior = ''; }
       return;
@@ -1407,14 +1418,20 @@
     if (!main) return;
     const top = Math.max(0, main.getBoundingClientRect().top - viewport.offsetTop);
     app.style.setProperty('--kfix-vv-height', viewport.height + 'px');
+    app.style.setProperty('--kfix-vv-bottom', Math.max(0, global.innerHeight - viewport.offsetTop - viewport.height) + 'px');
     app.style.setProperty('--kfix-main-top', top + 'px');
     if (main) { main.style.maxHeight = Math.max(180, viewport.offsetTop + viewport.height - main.getBoundingClientRect().top - 12) + 'px'; main.style.overflowY = 'auto'; main.style.overscrollBehavior = 'contain'; }
     global.requestAnimationFrame(() => {
-      const visibleTop = viewport.offsetTop + 8, visibleBottom = viewport.offsetTop + viewport.height - 12;
+      const visibleTop = viewport.offsetTop + 8, viewportBottom = viewport.offsetTop + viewport.height;
       const fieldRect = active.getBoundingClientRect();
-      let minScroll = fieldRect.bottom - visibleBottom, maxScroll = fieldRect.top - visibleTop;
       const actions = Array.from(main.querySelectorAll('.j-actions button:not([disabled])')).filter(button => button.getClientRects().length);
       const action = actions[actions.length - 1];
+      let visibleBottom = viewportBottom - 12;
+      if (action) {
+        const actionRect = action.getBoundingClientRect();
+        visibleBottom = Math.min(visibleBottom, actionRect.top - 12);
+      }
+      let minScroll = fieldRect.bottom - visibleBottom, maxScroll = fieldRect.top - visibleTop;
       if (action) {
         const actionRect = action.getBoundingClientRect();
         minScroll = Math.max(minScroll, actionRect.bottom - visibleBottom);
@@ -1514,7 +1531,7 @@
     // Direct room URLs stay outside the local bank/pack engine. Local Hanna uses
     // that engine only after the entry route has been classified below.
     const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = '/quest-visual.css'; document.head.append(css);
-    for (const src of ['/quest-data/kunuz-bank-3147.js', '/quest-theme/history.js', '/quest-data/kunuz-geo-index.js', '/quest-data/kunuz-packs-manifest.js?v=20261022-roomsfix2', '/quest-visual.js', '/quest-levels.js']) {
+    for (const src of ['/quest-data/kunuz-bank-3147.js', '/quest-theme/history.js', '/quest-data/kunuz-geo-index.js', '/quest-data/kunuz-packs-manifest.js?v=20261025-kfix4', '/quest-visual.js', '/quest-levels.js']) {
       await new Promise((resolve, reject) => {
         const script = document.createElement('script'); script.src = src;
         script.onload = resolve; script.onerror = () => reject(new Error('تعذّر تحميل ملفات المغامرة المحلية. حاولوا مرة ثانية.'));

@@ -15,24 +15,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "انظر إلى الشكل؛ أي اسم يطابقه؟",
+      "q": "أي عنصر من ثمار كبيرة يطابق المحيط الأسود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🍉"
       },
       "choices": [
+        "يقطين",
+        "قرع",
         "بطيخ",
-        "أناناس",
-        "فراولة",
-        "موز"
+        "شمام"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "الظل يمثل بطيخ؛ ويسمي Unicode الرمز «watermelon»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — watermelon — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — watermelon — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -41,24 +41,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "دقق في المحيط؛ أي اسم يطابقه؟",
+      "q": "تأمل محيط الشكل؛ أي خيار من حمضيات تراه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🍋"
       },
       "choices": [
-        "أناناس",
-        "جوز الهند",
+        "جريب فروت",
         "ليمون",
-        "خوخ"
+        "ليمون أخضر",
+        "برتقال"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "الظل يمثل ليمون؛ ويسمي Unicode الرمز «lemon»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — lemon — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — lemon — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -67,24 +67,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "ركز على الهيئة؛ أي اسم يطابقه؟",
+      "q": "هل تميّز هذا الظل بين ثمار استوائية؟ اختر الاسم.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🍍"
       },
       "choices": [
-        "أناناس",
-        "فراولة",
-        "جوز الهند",
-        "ليمون"
+        "جوز هند",
+        "دوريان",
+        "جاك فروت",
+        "أناناس"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "الظل يمثل أناناس؛ ويسمي Unicode الرمز «pineapple»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — pineapple — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — pineapple — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -93,24 +93,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "استدل من الحواف؛ أي اسم يطابقه؟",
+      "q": "في مجموعة ثمار مستديرة، ما الشيء الذي تشير إليه الحدود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🍎"
       },
       "choices": [
-        "بطيخ",
+        "خوخ",
+        "نكتارين",
         "تفاح",
-        "كرز",
         "كمثرى"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "الظل يمثل تفاح؛ ويسمي Unicode الرمز «red apple»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — red apple — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — red apple — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -119,24 +119,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "اعتمد على الملامح؛ أي اسم يطابقه؟",
+      "q": "أي مسمى من ثمار مستديرة يطابق هيئة الظل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🍐"
       },
       "choices": [
-        "فراولة",
+        "نكتارين",
+        "تفاح",
         "كمثرى",
-        "خوخ",
-        "أناناس"
+        "خوخ"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "الظل يمثل كمثرى؛ ويسمي Unicode الرمز «pear»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — pear — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — pear — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -145,24 +145,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تفحص الشكل الأسود؛ أي اسم يطابقه؟",
+      "q": "ركز على الهيئة السوداء وحدها؛ حدد خيار ثمار صغيرة المطابق.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🍒"
       },
       "choices": [
-        "برتقال",
-        "موز",
         "كرز",
-        "عنب"
+        "فراولة",
+        "توت",
+        "برقوق صغير"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "الظل يمثل كرز؛ ويسمي Unicode الرمز «cherries»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — cherries — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — cherries — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -171,24 +171,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تتبع خطوط الجسم؛ أي اسم يطابقه؟",
+      "q": "اقرأ المحيط الأسود ثم اختر الشيء من عائلة ثمار صغيرة.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🍓"
       },
       "choices": [
-        "ليمون",
         "فراولة",
-        "مانجو",
-        "برتقال"
+        "توت",
+        "برقوق صغير",
+        "كرز"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "الظل يمثل فراولة؛ ويسمي Unicode الرمز «strawberry»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — strawberry — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — strawberry — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -197,24 +197,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "قارن خيارات الصورة؛ أي اسم يطابقه؟",
+      "q": "من عائلة جذريات، ما الاسم الذي يوافق هيئة الشكل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🥕"
       },
       "choices": [
+        "شمندر",
         "جزر",
-        "طماطم",
-        "بصل",
-        "باذنجان"
+        "فجل",
+        "لفت"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "الظل يمثل جزر؛ ويسمي Unicode الرمز «carrot»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — carrot — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — carrot — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -223,24 +223,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "شاهد الرسم المعروض؛ أي اسم يطابقه؟",
+      "q": "أي عنصر من سنابل ومحاصيل حبوب يطابق المحيط الأسود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🌽"
       },
       "choices": [
-        "بروكلي",
-        "جزر",
         "ذرة",
-        "بصل"
+        "سنبلة أرز",
+        "سنبلة قمح",
+        "سنبلة شعير"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "الظل يمثل ذرة؛ ويسمي Unicode الرمز «ear of corn»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — ear of corn — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — ear of corn — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -249,24 +249,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "حدد مدلول الظل؛ أي اسم يطابقه؟",
+      "q": "تأمل محيط الشكل؛ أي خيار من خضار الثمار تراه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🌶️"
       },
       "choices": [
-        "بصل",
-        "فلفل حار",
-        "ذرة",
-        "فول سوداني"
+        "فلفل رومي",
+        "طماطم",
+        "خيار",
+        "فلفل حار"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "الظل يمثل فلفل حار؛ ويسمي Unicode الرمز «hot pepper»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — hot pepper — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — hot pepper — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -275,24 +275,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "ميز الجسم المصور؛ أي اسم يطابقه؟",
+      "q": "اختر من خضار ورقية ما تمثله الهيئة المرسومة.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🥦"
       },
       "choices": [
-        "جزر",
+        "ملفوف",
+        "خس",
         "بروكلي",
-        "طماطم",
-        "فول سوداني"
+        "قرنبيط"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "الظل يمثل بروكلي؛ ويسمي Unicode الرمز «broccoli»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — broccoli — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — broccoli — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -301,24 +301,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "اختبر ذاكرتك البصرية؛ أي اسم يطابقه؟",
+      "q": "هل تميّز هذا الظل بين فطريات؟ اختر الاسم.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🍄"
       },
       "choices": [
+        "فطر قبعي",
         "فطر",
-        "ذرة",
-        "فول سوداني",
-        "طماطم"
+        "كمأة",
+        "فطر محاري"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "الظل يمثل فطر؛ ويسمي Unicode الرمز «mushroom»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — mushroom — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — mushroom — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -327,16 +327,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "فكر في الهيئة؛ أي اسم يطابقه؟",
+      "q": "في مجموعة مكسرات، ما الشيء الذي تشير إليه الحدود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🥜"
       },
       "choices": [
         "فول سوداني",
-        "خيار",
-        "فطر",
-        "بروكلي"
+        "كستناء",
+        "لوز",
+        "بندق"
       ],
       "answer": 0,
       "why": "الظل يمثل فول سوداني؛ ويسمي Unicode الرمز «peanuts»، وتطابقه تسمية OpenMoji المستقلة.",
@@ -344,7 +344,7 @@ KZV.register({
         "Unicode Emoji 12.0 — peanuts — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — peanuts — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -353,24 +353,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "راجع ملامح الرسم؛ أي اسم يطابقه؟",
+      "q": "أي مسمى من خضار الثمار يطابق هيئة الظل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🍅"
       },
       "choices": [
-        "فول سوداني",
-        "بصل",
         "طماطم",
-        "بطاطس"
+        "خيار",
+        "كوسا",
+        "فلفل رومي"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "الظل يمثل طماطم؛ ويسمي Unicode الرمز «tomato»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — tomato — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — tomato — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -379,16 +379,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "اعتمد على الظل؛ أي اسم يطابقه؟",
+      "q": "اختر من نباتات شوكية ما تمثله الهيئة المرسومة.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🌵"
       },
       "choices": [
         "صبار",
-        "نخلة",
-        "شجرة صنوبر",
-        "سنبلة أرز"
+        "ألوة",
+        "صبار برميلي",
+        "صبار شوكي"
       ],
       "answer": 0,
       "why": "الظل يمثل صبار؛ ويسمي Unicode الرمز «cactus»، وتطابقه تسمية OpenMoji المستقلة.",
@@ -396,7 +396,7 @@ KZV.register({
         "Unicode Emoji 12.0 — cactus — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — cactus — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -405,24 +405,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تتبع محيط الشكل؛ أي اسم يطابقه؟",
+      "q": "في مجموعة أشجار، ما الشيء الذي تشير إليه الحدود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🌳"
       },
       "choices": [
-        "باقة أزهار",
-        "وردة",
-        "سنبلة أرز",
-        "شجرة مورقة"
+        "شجرة نخيل",
+        "شجيرة",
+        "شجرة مورقة",
+        "شجرة صنوبر"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "الظل يمثل شجرة مورقة؛ ويسمي Unicode الرمز «deciduous tree»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — deciduous tree — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — deciduous tree — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -431,24 +431,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "شاهد الظل المعروض؛ أي اسم يطابقه؟",
+      "q": "ركز على الهيئة السوداء وحدها؛ حدد خيار بادرات وشتلات المطابق.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🌱"
       },
       "choices": [
-        "باقة أزهار",
-        "زهرة توليب",
         "بادرة نبات",
-        "نفل رباعي"
+        "شتلة",
+        "نبتة صغيرة",
+        "غصن نامٍ"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "الظل يمثل بادرة نبات؛ ويسمي Unicode الرمز «seedling»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — seedling — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — seedling — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -457,18 +457,18 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "حدد الشيء المصور؛ أي اسم يطابقه؟",
+      "q": "اقرأ المحيط الأسود ثم اختر الشيء من عائلة سنابل ومحاصيل حبوب.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🌾"
       },
       "choices": [
-        "زهرة زنبق",
-        "نخلة",
         "سنبلة أرز",
-        "زهرة توليب"
+        "سنبلة قمح",
+        "سنبلة شعير",
+        "ذرة"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "الظل يمثل سنبلة أرز؛ ويسمي Unicode الرمز «sheaf of rice»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — sheaf of rice — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
@@ -483,18 +483,18 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "ميز الاسم المطابق؛ أي اسم يطابقه؟",
+      "q": "قارن حدود الظل ضمن عائلة أوراق النفل: أي خيار يطابقه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "☘️"
       },
       "choices": [
-        "غصن زيتون",
+        "ورقة برسيم",
+        "نفل ورقي",
         "نفل ثلاثي",
-        "بادرة نبات",
-        "شجرة مورقة"
+        "نفل رباعي"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "الظل يمثل نفل ثلاثي؛ ويسمي Unicode الرمز «shamrock»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — shamrock — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
@@ -509,18 +509,18 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تأمل هذا المحيط؛ أي اسم يطابقه؟",
+      "q": "أي عنصر من أوراق الأشجار يطابق المحيط الأسود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🍁"
       },
       "choices": [
-        "شجرة صنوبر",
-        "نفل ثلاثي",
         "ورقة قيقب",
-        "نفل رباعي"
+        "ورقة بلوط",
+        "ورقة عنب",
+        "ورقة نخيل"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "الظل يمثل ورقة قيقب؛ ويسمي Unicode الرمز «maple leaf»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — maple leaf — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
@@ -535,18 +535,18 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "دقق في الهيئة؛ أي اسم يطابقه؟",
+      "q": "تأمل محيط الشكل؛ أي خيار من أزهار تراه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🌷"
       },
       "choices": [
-        "باقة أزهار",
-        "زهرة توليب",
-        "زهرة نرجس",
-        "دوار الشمس"
+        "دوار الشمس",
+        "وردة",
+        "زنبق",
+        "زهرة توليب"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "الظل يمثل زهرة توليب؛ ويسمي Unicode الرمز «tulip»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — tulip — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
@@ -561,16 +561,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "اختر الاسم المناسب؛ أي اسم يطابقه؟",
+      "q": "هل تميّز هذا الظل بين أزهار؟ اختر الاسم.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🌻"
       },
       "choices": [
-        "شجرة مورقة",
-        "نخلة",
+        "زنبق",
+        "زهرة توليب",
         "دوار الشمس",
-        "باقة أزهار"
+        "وردة"
       ],
       "answer": 2,
       "why": "الظل يمثل دوار الشمس؛ ويسمي Unicode الرمز «sunflower»، وتطابقه تسمية OpenMoji المستقلة.",
@@ -578,7 +578,7 @@ KZV.register({
         "Unicode Emoji 12.0 — sunflower — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — sunflower — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -587,16 +587,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تمعن في السواد؛ أي اسم يطابقه؟",
+      "q": "في مجموعة تنسيقات زهرية، ما الشيء الذي تشير إليه الحدود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "💐"
       },
       "choices": [
         "باقة أزهار",
-        "نخلة",
-        "زهرة زنبق",
-        "بادرة نبات"
+        "إكليل زهور",
+        "مزهرية أزهار",
+        "غصن مزهر"
       ],
       "answer": 0,
       "why": "الظل يمثل باقة أزهار؛ ويسمي Unicode الرمز «bouquet»، وتطابقه تسمية OpenMoji المستقلة.",
@@ -604,7 +604,7 @@ KZV.register({
         "Unicode Emoji 12.0 — bouquet — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — bouquet — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -613,24 +613,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "قارن الشكل بالخيارات؛ أي اسم يطابقه؟",
+      "q": "أي مسمى من قمصان وبلوزات يطابق هيئة الظل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "👕"
       },
       "choices": [
-        "قميص قصير الأكمام",
-        "كيمونو",
-        "حزام",
-        "حذاء رياضي"
+        "قميص طويل الأكمام",
+        "بلوزة",
+        "سترة",
+        "قميص قصير الأكمام"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "الظل يمثل قميص قصير الأكمام؛ ويسمي Unicode الرمز «t-shirt»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — t-shirt — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — t-shirt — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -639,24 +639,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تفحص هذا الشكل؛ أي اسم يطابقه؟",
+      "q": "قارن حدود الظل ضمن عائلة أوشحة: أي خيار يطابقه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🧣"
       },
       "choices": [
-        "عباءة",
-        "حذاء طويل",
-        "حزام",
-        "وشاح"
+        "وشاح",
+        "شال",
+        "لفحة",
+        "غطاء رقبة"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "الظل يمثل وشاح؛ ويسمي Unicode الرمز «scarf»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — scarf — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — scarf — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -665,16 +665,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "انظر إلى الشكل؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "أي عنصر من ملابس طويلة يطابق المحيط الأسود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "👗"
       },
       "choices": [
-        "قبعة رياضية",
-        "حذاء طويل",
+        "رداء",
+        "معطف طويل",
         "فستان",
-        "قبعة أسطوانية"
+        "عباءة"
       ],
       "answer": 2,
       "why": "الظل يمثل فستان؛ ويسمي Unicode الرمز «dress»، وتطابقه تسمية OpenMoji المستقلة.",
@@ -682,7 +682,7 @@ KZV.register({
         "Unicode Emoji 12.0 — dress — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — dress — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -691,24 +691,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "دقق في المحيط؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "تأمل محيط الشكل؛ أي خيار من أحذية طويلة تراه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "👢"
       },
       "choices": [
-        "معطف",
-        "عباءة",
+        "حذاء ركوب",
         "حذاء طويل",
-        "قبعة ذات حافة"
+        "حذاء مطر",
+        "جزمة عمل"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "الظل يمثل حذاء طويل؛ ويسمي Unicode الرمز «woman’s boot»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — woman’s boot — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — woman’s boot — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -717,24 +717,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "لاحظ مساحة السواد؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "اختر من أغطية الرأس ما تمثله الهيئة المرسومة.",
       "vis": {
         "kind": "silhouette",
         "emoji": "👒"
       },
       "choices": [
-        "تاج",
-        "قبعة تخرج",
+        "قبعة ذات حافة",
         "قبعة أسطوانية",
-        "قبعة ذات حافة"
+        "قبعة رياضية",
+        "قبعة تخرج"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "الظل يمثل قبعة ذات حافة؛ ويسمي Unicode الرمز «woman’s hat»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — woman’s hat — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — woman’s hat — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -743,24 +743,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "ركز على الهيئة؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "هل تميّز هذا الظل بين أغطية الرأس؟ اختر الاسم.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🎩"
       },
       "choices": [
-        "قميص وربطة عنق",
-        "جوارب",
-        "معطف",
-        "قبعة أسطوانية"
+        "قبعة أسطوانية",
+        "قبعة رياضية",
+        "قبعة تخرج",
+        "قبعة ذات حافة"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "الظل يمثل قبعة أسطوانية؛ ويسمي Unicode الرمز «top hat»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — top hat — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — top hat — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -769,24 +769,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "استدل من الحواف؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "في مجموعة أغطية الرأس، ما الشيء الذي تشير إليه الحدود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🧢"
       },
       "choices": [
         "قبعة تخرج",
-        "قميص قصير الأكمام",
-        "قبعة رياضية",
-        "جوارب"
+        "خوذة دراجة",
+        "قبعة أسطوانية",
+        "قبعة رياضية"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "الظل يمثل قبعة رياضية؛ ويسمي Unicode الرمز «billed cap»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — billed cap — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — billed cap — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -795,24 +795,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "اعتمد على الملامح؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "أي مسمى من أغطية الرأس يطابق هيئة الظل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🎓"
       },
       "choices": [
-        "معطف",
+        "خوذة عمل",
+        "قبعة رياضية",
         "قبعة تخرج",
-        "حزام",
-        "قميص قصير الأكمام"
+        "خوذة دراجة"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "الظل يمثل قبعة تخرج؛ ويسمي Unicode الرمز «graduation cap»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — graduation cap — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — graduation cap — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -821,24 +821,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "شاهد الرسم المعروض؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "أي عنصر من حقائب السفر يطابق المحيط الأسود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🧳"
       },
       "choices": [
-        "سلة قماشية",
         "حقيبة سفر",
-        "حقيبة أوراق",
-        "حقيبة ظهر"
+        "حقيبة ظهر",
+        "حقيبة يد",
+        "حقيبة بعجلات"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "الظل يمثل حقيبة سفر؛ ويسمي Unicode الرمز «luggage»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — luggage — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — luggage — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -847,24 +847,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "فكر في الهيئة؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "في مجموعة سيارات الخدمة، ما الشيء الذي تشير إليه الحدود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🚒"
       },
       "choices": [
-        "شاحنة مقطورة",
-        "جرار",
         "سيارة إطفاء",
-        "سكوتر"
+        "سيارة إسعاف",
+        "شاحنة إنقاذ",
+        "شاحنة صيانة"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "الظل يمثل سيارة إطفاء؛ ويسمي Unicode الرمز «fire engine»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — fire engine — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — fire engine — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -873,24 +873,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "راجع ملامح الرسم؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "أي مسمى من جرارات زراعية يطابق هيئة الظل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🚜"
       },
       "choices": [
-        "حافلة",
-        "سيارة",
-        "جرار",
-        "سيارة سباق"
+        "جرار مجنزر",
+        "جرار صغير",
+        "حصادة",
+        "جرار"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "الظل يمثل جرار؛ ويسمي Unicode الرمز «tractor»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — tractor — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — tractor — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -899,16 +899,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "انظر نحو الظل؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "اقرأ المحيط الأسود ثم اختر الشيء من عائلة مركبات بعجلتين وثلاث.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🛴"
       },
       "choices": [
-        "سيارة سباق",
+        "دراجة نارية",
         "سكوتر",
-        "حافلة",
-        "سيارة إطفاء"
+        "دراجة بمحرك",
+        "عربة تكتك"
       ],
       "answer": 1,
       "why": "الظل يمثل سكوتر؛ ويسمي Unicode الرمز «kick scooter»، وتطابقه تسمية OpenMoji المستقلة.",
@@ -916,7 +916,7 @@ KZV.register({
         "Unicode Emoji 12.0 — kick scooter — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — kick scooter — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -925,24 +925,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "دقق بمحيط الصورة؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "قارن حدود الظل ضمن عائلة مركبات بعجلتين وثلاث: أي خيار يطابقه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🛵"
       },
       "choices": [
+        "سكوتر",
         "دراجة بمحرك",
-        "سيارة",
-        "شاحنة مقطورة",
-        "شاحنة"
+        "عربة تكتك",
+        "دراجة نارية"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "الظل يمثل دراجة بمحرك؛ ويسمي Unicode الرمز «motor scooter»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — motor scooter — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — motor scooter — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -951,24 +951,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "لاحظ شكل الحواف؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "من عائلة شاحنات، ما الاسم الذي يوافق هيئة الشكل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🚚"
       },
       "choices": [
-        "دراجة هوائية",
-        "شاحنة",
-        "دراجة بمحرك",
-        "شاحنة مقطورة"
+        "شاحنة مقطورة",
+        "شاحنة صغيرة",
+        "شاحنة نقل",
+        "شاحنة"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "الظل يمثل شاحنة؛ ويسمي Unicode الرمز «delivery truck»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — delivery truck — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — delivery truck — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -977,15 +977,15 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "ركز بمظهر الجسم؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "أي عنصر من شاحنات يطابق المحيط الأسود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🚛"
       },
       "choices": [
-        "دراجة هوائية",
-        "دراجة بمحرك",
-        "سيارة سباق",
+        "شاحنة صغيرة",
+        "شاحنة نقل",
+        "شاحنة",
         "شاحنة مقطورة"
       ],
       "answer": 3,
@@ -994,7 +994,7 @@ KZV.register({
         "Unicode Emoji 12.0 — articulated lorry — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — articulated lorry — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1003,24 +1003,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "استدل بهيئة الرسم؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "تأمل محيط الشكل؛ أي خيار من مركبات السكك الحديدية تراه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🚂"
       },
       "choices": [
-        "طبق طائر",
-        "عبارة",
+        "عربة ترام",
         "قاطرة بخارية",
-        "مروحية"
+        "قطار سريع",
+        "عربة قطار"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "الظل يمثل قاطرة بخارية؛ ويسمي Unicode الرمز «locomotive»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — locomotive — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — locomotive — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1029,24 +1029,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "اعتمد على الظل؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "اختر من مركبات فضائية ما تمثله الهيئة المرسومة.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🚀"
       },
       "choices": [
-        "منطاد",
         "صاروخ",
-        "غواصة",
-        "قاطرة بخارية"
+        "طبق طائر",
+        "قمر صناعي",
+        "مسبار فضائي"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "الظل يمثل صاروخ؛ ويسمي Unicode الرمز «rocket»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — rocket — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — rocket — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1055,24 +1055,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تفحص الحدود الخارجية؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "هل تميّز هذا الظل بين مركبات فضائية؟ اختر الاسم.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🛸"
       },
       "choices": [
-        "طائرة",
-        "زورق تجديف",
         "طبق طائر",
-        "قارب سريع"
+        "قمر صناعي",
+        "مسبار فضائي",
+        "صاروخ"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "الظل يمثل طبق طائر؛ ويسمي Unicode الرمز «flying saucer»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — flying saucer — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — flying saucer — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1081,24 +1081,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تتبع محيط الشكل؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "في مجموعة طائرات، ما الشيء الذي تشير إليه الحدود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🚁"
       },
       "choices": [
-        "قارب شراعي",
-        "قمر صناعي",
-        "منطاد",
-        "مروحية"
+        "طائرة شراعية",
+        "طائرة مائية",
+        "مروحية",
+        "طائرة"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "الظل يمثل مروحية؛ ويسمي Unicode الرمز «helicopter»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — helicopter — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — helicopter — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1107,24 +1107,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "قارن هذه الهيئة؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "أي مسمى من طائرات يطابق هيئة الظل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "✈️"
       },
       "choices": [
-        "طائرة",
+        "طائرة مائية",
         "مروحية",
-        "منطاد",
-        "طبق طائر"
+        "طائرة",
+        "طائرة شراعية"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "الظل يمثل طائرة؛ ويسمي Unicode الرمز «airplane»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — airplane — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — airplane — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1133,24 +1133,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "شاهد الظل المعروض؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "ركز على الهيئة السوداء وحدها؛ حدد خيار قوارب المطابق.",
       "vis": {
         "kind": "silhouette",
         "emoji": "⛵"
       },
       "choices": [
-        "قارب سريع",
         "قارب شراعي",
         "زورق تجديف",
-        "سفينة شحن"
+        "قارب سريع",
+        "قارب صيد"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "الظل يمثل قارب شراعي؛ ويسمي Unicode الرمز «sailboat»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — sailboat — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — sailboat — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1159,16 +1159,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "حدد الشيء المصور؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "اقرأ المحيط الأسود ثم اختر الشيء من عائلة قوارب.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🛶"
       },
       "choices": [
         "زورق تجديف",
-        "صاروخ",
-        "تلفريك",
-        "سفينة ركاب"
+        "قارب سريع",
+        "قارب صيد",
+        "قارب شراعي"
       ],
       "answer": 0,
       "why": "الظل يمثل زورق تجديف؛ ويسمي Unicode الرمز «canoe»، وتطابقه تسمية OpenMoji المستقلة.",
@@ -1176,7 +1176,7 @@ KZV.register({
         "Unicode Emoji 12.0 — canoe — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — canoe — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1185,14 +1185,14 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "ميز الاسم المطابق؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "قارن حدود الظل ضمن عائلة قوارب: أي خيار يطابقه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🚤"
       },
       "choices": [
-        "منطاد",
-        "تلفريك",
+        "قارب صيد",
+        "يخت",
         "زورق تجديف",
         "قارب سريع"
       ],
@@ -1202,7 +1202,7 @@ KZV.register({
         "Unicode Emoji 12.0 — speedboat — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — speedboat — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1211,24 +1211,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "لاحظ تفاصيل الهيئة؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "من عائلة مركبات فضائية، ما الاسم الذي يوافق هيئة الشكل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🛰️"
       },
       "choices": [
+        "مكوك فضاء",
+        "طبق طائر",
         "قمر صناعي",
-        "طائرة",
-        "تلفريك",
-        "سفينة ركاب"
+        "مسبار فضائي"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "الظل يمثل قمر صناعي؛ ويسمي Unicode الرمز «satellite»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — satellite — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — satellite — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1237,24 +1237,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تأمل هذا المحيط؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "أي عنصر من النقل المعلق يطابق المحيط الأسود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🚡"
       },
       "choices": [
-        "سفينة شحن",
-        "قارب سريع",
         "تلفريك",
-        "قمر صناعي"
+        "عربة معلقة",
+        "مصعد جبلي",
+        "قطار جبلي"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "الظل يمثل تلفريك؛ ويسمي Unicode الرمز «aerial tramway»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — aerial tramway — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — aerial tramway — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1263,24 +1263,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "دقق في الهيئة؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "تأمل محيط الشكل؛ أي خيار من مطارق تراه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🔨"
       },
       "choices": [
-        "مسطرة مثلثة",
-        "مطرقة",
-        "كماشة",
-        "مشبك ورق"
+        "مطرقة ثقيلة",
+        "مطرقة نجار",
+        "مطرقة مطاطية",
+        "مطرقة"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "الظل يمثل مطرقة؛ ويسمي Unicode الرمز «hammer»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — hammer — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — hammer — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1289,16 +1289,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "انظر إلى الحدود؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "اختر من أدوات الحفر ما تمثله الهيئة المرسومة.",
       "vis": {
         "kind": "silhouette",
         "emoji": "⛏️"
       },
       "choices": [
-        "ميزان ذو كفتين",
-        "مسطرة مثلثة",
+        "مجرفة حفر",
+        "أداة حرث",
         "معول",
-        "مقص"
+        "فأس معول"
       ],
       "answer": 2,
       "why": "الظل يمثل معول؛ ويسمي Unicode الرمز «pick»، وتطابقه تسمية OpenMoji المستقلة.",
@@ -1306,7 +1306,7 @@ KZV.register({
         "Unicode Emoji 12.0 — pick — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — pick — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1315,24 +1315,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "اختر الاسم المناسب؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "هل تميّز هذا الظل بين مفاتيح الربط؟ اختر الاسم.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🔧"
       },
       "choices": [
-        "طفاية حريق",
-        "منشار",
-        "مسطرة مثلثة",
-        "مفتاح ربط"
+        "مفتاح أنبوبي",
+        "مفتاح ربط",
+        "مفتاح إنجليزي",
+        "مفتاح صندوقي"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "الظل يمثل مفتاح ربط؛ ويسمي Unicode الرمز «wrench»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — wrench — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — wrench — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1341,16 +1341,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تمعن في السواد؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "في مجموعة مسامير وصواميل، ما الشيء الذي تشير إليه الحدود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🔩"
       },
       "choices": [
         "مسمار وصامولة",
-        "ميزان ذو كفتين",
-        "مكنسة",
-        "مفك براغي"
+        "برغي وصامولة",
+        "برغي",
+        "صامولة"
       ],
       "answer": 0,
       "why": "الظل يمثل مسمار وصامولة؛ ويسمي Unicode الرمز «nut and bolt»، وتطابقه تسمية OpenMoji المستقلة.",
@@ -1358,7 +1358,7 @@ KZV.register({
         "Unicode Emoji 12.0 — nut and bolt — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — nut and bolt — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1367,15 +1367,15 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "قارن الشكل بالخيارات؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "أي مسمى من تروس ميكانيكية يطابق هيئة الظل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "⚙️"
       },
       "choices": [
-        "دبوس تثبيت",
-        "فأس",
-        "مطرقة",
+        "عجلة مسننة",
+        "ترس حلزوني",
+        "سلسلة تروس",
         "ترس"
       ],
       "answer": 3,
@@ -1384,7 +1384,7 @@ KZV.register({
         "Unicode Emoji 12.0 — gear — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — gear — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1393,24 +1393,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "ركز على الحواف؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "ركز على الهيئة السوداء وحدها؛ حدد خيار مغناطيسات المطابق.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🧲"
       },
       "choices": [
-        "معول",
-        "مطرقة",
-        "مفك براغي",
-        "مغناطيس"
+        "مغناطيس حدوة",
+        "بوصلة مغناطيسية",
+        "مغناطيس",
+        "مغناطيس قضيب"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "الظل يمثل مغناطيس؛ ويسمي Unicode الرمز «magnet»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — magnet — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — magnet — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1419,16 +1419,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "حدد مدلول الصورة؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "اقرأ المحيط الأسود ثم اختر الشيء من عائلة فؤوس.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🪓"
       },
       "choices": [
-        "مفتاح",
+        "فأس حطب",
         "فأس",
-        "قاطع أسلاك",
-        "مسمار وصامولة"
+        "فأس يدوي",
+        "بلطة"
       ],
       "answer": 1,
       "why": "الظل يمثل فأس؛ ويسمي Unicode الرمز «axe»، وتطابقه تسمية OpenMoji المستقلة.",
@@ -1436,7 +1436,7 @@ KZV.register({
         "Unicode Emoji 12.0 — axe — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — axe — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1445,24 +1445,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تفحص هذا الشكل؛ أي خيار يسمي الشيء الذي تراه؟",
+      "q": "قارن حدود الظل ضمن عائلة مصابيح يدوية: أي خيار يطابقه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🔦"
       },
       "choices": [
-        "مقص",
-        "قاطع أسلاك",
-        "قفل",
-        "مصباح يدوي"
+        "مصباح يدوي",
+        "مصباح رأس",
+        "فانوس يدوي",
+        "مصباح كشفي"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "الظل يمثل مصباح يدوي؛ ويسمي Unicode الرمز «flashlight»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — flashlight — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — flashlight — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1471,24 +1471,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "دقق في المحيط؛ ما الشيء الممثل هنا؟",
+      "q": "تأمل محيط الشكل؛ أي خيار من أدوات القص تراه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "✂️"
       },
       "choices": [
-        "مكنسة",
-        "معول",
+        "كماشة قص",
         "مقص",
-        "مسطرة مثلثة"
+        "مقص مطبخ",
+        "قاطع ورق"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "الظل يمثل مقص؛ ويسمي Unicode الرمز «scissors»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — scissors — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — scissors — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1497,24 +1497,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "لاحظ مساحة السواد؛ ما الشيء الممثل هنا؟",
+      "q": "اختر من دبابيس التثبيت ما تمثله الهيئة المرسومة.",
       "vis": {
         "kind": "silhouette",
         "emoji": "📌"
       },
       "choices": [
-        "قاطع أسلاك",
-        "مفك براغي",
-        "قفل",
-        "دبوس تثبيت"
+        "دبوس تثبيت",
+        "دبوس رسم",
+        "دبوس خريطة",
+        "دبوس مكتب"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "الظل يمثل دبوس تثبيت؛ ويسمي Unicode الرمز «pushpin»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — pushpin — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — pushpin — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1523,24 +1523,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "استدل من الحواف؛ ما الشيء الممثل هنا؟",
+      "q": "في مجموعة دبابيس الأمان، ما الشيء الذي تشير إليه الحدود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🧷"
       },
       "choices": [
-        "مسطرة مثلثة",
-        "مصباح يدوي",
-        "عدسة مكبرة",
-        "دبوس أمان"
+        "مشبك أمان",
+        "مشبك ورق",
+        "دبوس أمان",
+        "دبوس خياطة"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "الظل يمثل دبوس أمان؛ ويسمي Unicode الرمز «safety pin»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — safety pin — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — safety pin — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1549,16 +1549,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "اعتمد على الملامح؛ ما الشيء الممثل هنا؟",
+      "q": "أي مسمى من أدوات الرسم الهندسي يطابق هيئة الظل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "📐"
       },
       "choices": [
-        "مسمار وصامولة",
+        "مثلث رسم",
         "مسطرة مثلثة",
-        "مقص",
-        "عدسة مكبرة"
+        "مسطرة مستقيمة",
+        "منقلة"
       ],
       "answer": 1,
       "why": "الظل يمثل مسطرة مثلثة؛ ويسمي Unicode الرمز «triangular ruler»، وتطابقه تسمية OpenMoji المستقلة.",
@@ -1566,7 +1566,7 @@ KZV.register({
         "Unicode Emoji 12.0 — triangular ruler — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — triangular ruler — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1575,15 +1575,15 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تتبع خطوط الجسم؛ ما الشيء الممثل هنا؟",
+      "q": "اقرأ المحيط الأسود ثم اختر الشيء من عائلة معدات إطفاء.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🧯"
       },
       "choices": [
-        "ميزان ذو كفتين",
-        "مشبك ورق",
-        "كماشة",
+        "أسطوانة إطفاء",
+        "خرطوم حريق",
+        "طفاية صغيرة",
         "طفاية حريق"
       ],
       "answer": 3,
@@ -1592,7 +1592,7 @@ KZV.register({
         "Unicode Emoji 12.0 — fire extinguisher — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — fire extinguisher — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1601,24 +1601,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تذكر هيئة الأشياء؛ ما الشيء الممثل هنا؟",
+      "q": "قارن حدود الظل ضمن عائلة عدسات مكبرة: أي خيار يطابقه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🔍"
       },
       "choices": [
+        "عدسة قراءة",
+        "عدسة مكتبية",
         "عدسة مكبرة",
-        "مكنسة",
-        "قفل",
-        "قاطع أسلاك"
+        "عدسة يدوية"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "الظل يمثل عدسة مكبرة؛ ويسمي Unicode الرمز «magnifying glass tilted left»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — magnifying glass tilted left — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — magnifying glass tilted left — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1627,24 +1627,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "قارن خيارات الصورة؛ ما الشيء الممثل هنا؟",
+      "q": "من عائلة موازين، ما الاسم الذي يوافق هيئة الشكل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "⚖️"
       },
       "choices": [
-        "مفتاح",
-        "مشبك ورق",
-        "منشار",
-        "ميزان ذو كفتين"
+        "ميزان حساس",
+        "ميزان ذو كفتين",
+        "ميزان مطبخ",
+        "ميزان يدوي"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "الظل يمثل ميزان ذو كفتين؛ ويسمي Unicode الرمز «balance scale»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — balance scale — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — balance scale — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1653,16 +1653,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "ميز الجسم المصور؛ ما الشيء الممثل هنا؟",
+      "q": "اختر من زجاجيات المختبر ما تمثله الهيئة المرسومة.",
       "vis": {
         "kind": "silhouette",
         "emoji": "⚗️"
       },
       "choices": [
-        "ميزان مختبري",
-        "مجهر",
+        "أنبوب اختبار",
+        "قارورة مختبر",
         "إنبيق",
-        "مقراب"
+        "دورق"
       ],
       "answer": 2,
       "why": "الظل يمثل إنبيق؛ ويسمي Unicode الرمز «alembic»، وتطابقه تسمية OpenMoji المستقلة.",
@@ -1679,15 +1679,15 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "اختبر ذاكرتك البصرية؛ ما الشيء الممثل هنا؟",
+      "q": "هل تميّز هذا الظل بين زجاجيات المختبر؟ اختر الاسم.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🧪"
       },
       "choices": [
-        "مجهر",
-        "ميزان مختبري",
-        "كأس مدرجة",
+        "قارورة مختبر",
+        "إنبيق",
+        "دورق",
         "أنبوب اختبار"
       ],
       "answer": 3,
@@ -1696,7 +1696,7 @@ KZV.register({
         "Unicode Emoji 12.0 — test tube — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — test tube — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1705,24 +1705,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "فكر في الهيئة؛ ما الشيء الممثل هنا؟",
+      "q": "في مجموعة سلال وعربات، ما الشيء الذي تشير إليه الحدود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🧺"
       },
       "choices": [
-        "كرسي",
-        "عربة تسوق",
         "سلة",
-        "خزانة"
+        "عربة تسوق",
+        "سلة يد",
+        "عربة متجر"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "الظل يمثل سلة؛ ويسمي Unicode الرمز «basket»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — basket — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — basket — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1731,24 +1731,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "راجع ملامح الرسم؛ ما الشيء الممثل هنا؟",
+      "q": "أي مسمى من سلال وعربات يطابق هيئة الظل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🛒"
       },
       "choices": [
-        "كرسي",
-        "مقعد طويل",
         "عربة تسوق",
-        "وسادة"
+        "سلة يد",
+        "عربة متجر",
+        "سلة"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "الظل يمثل عربة تسوق؛ ويسمي Unicode الرمز «shopping cart»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — shopping cart — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — shopping cart — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1757,24 +1757,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تأمل الامتداد الخارجي؛ ما الشيء الممثل هنا؟",
+      "q": "ركز على الهيئة السوداء وحدها؛ حدد خيار تجهيزات الحمام المطابق.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🛁"
       },
       "choices": [
-        "سلة مهملات",
+        "مرحاض",
+        "مغسلة",
         "حوض استحمام",
-        "طاولة",
-        "مصباح كهربائي"
+        "دش"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "الظل يمثل حوض استحمام؛ ويسمي Unicode الرمز «bathtub»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — bathtub — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — bathtub — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1783,24 +1783,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "انظر نحو الظل؛ ما الشيء الممثل هنا؟",
+      "q": "اقرأ المحيط الأسود ثم اختر الشيء من عائلة تجهيزات الحمام.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🚿"
       },
       "choices": [
-        "وسادة",
-        "سرير",
-        "خزانة",
-        "دش"
+        "مغسلة",
+        "حوض استحمام",
+        "دش",
+        "مرحاض"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "الظل يمثل دش؛ ويسمي Unicode الرمز «shower»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — shower — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — shower — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1809,24 +1809,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "دقق بمحيط الصورة؛ ما الشيء الممثل هنا؟",
+      "q": "قارن حدود الظل ضمن عائلة أثاث المنزل: أي خيار يطابقه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🛏️"
       },
       "choices": [
-        "سلة مهملات",
         "سرير",
-        "لفافة ورق",
-        "سلة"
+        "كرسي",
+        "أريكة",
+        "مقعد"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "الظل يمثل سرير؛ ويسمي Unicode الرمز «bed»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — bed — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — bed — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1835,24 +1835,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "ركز بمظهر الجسم؛ ما الشيء الممثل هنا؟",
+      "q": "أي عنصر من أثاث المنزل يطابق المحيط الأسود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🪑"
       },
       "choices": [
-        "سلة",
-        "وسادة",
-        "كرسي",
-        "دش"
+        "أريكة",
+        "مقعد",
+        "سرير",
+        "كرسي"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "الظل يمثل كرسي؛ ويسمي Unicode الرمز «chair»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — chair — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — chair — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1861,16 +1861,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "استدل بهيئة الرسم؛ ما الشيء الممثل هنا؟",
+      "q": "تأمل محيط الشكل؛ أي خيار من أوعية وحاويات تراه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🛢️"
       },
       "choices": [
-        "مقعد طويل",
+        "عبوة بمضخة",
         "برميل",
-        "كرسي",
-        "أريكة"
+        "سلة مهملات",
+        "جرة"
       ],
       "answer": 1,
       "why": "الظل يمثل برميل؛ ويسمي Unicode الرمز «oil drum»، وتطابقه تسمية OpenMoji المستقلة.",
@@ -1878,7 +1878,7 @@ KZV.register({
         "Unicode Emoji 12.0 — oil drum — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — oil drum — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1887,24 +1887,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "اعتمد على الظل؛ ما الشيء الممثل هنا؟",
+      "q": "اختر من أوعية وحاويات ما تمثله الهيئة المرسومة.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🗑️"
       },
       "choices": [
-        "كرسي",
-        "حوض استحمام",
+        "برميل",
         "سلة مهملات",
-        "شمعة"
+        "جرة",
+        "عبوة بمضخة"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "الظل يمثل سلة مهملات؛ ويسمي Unicode الرمز «wastebasket»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — wastebasket — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — wastebasket — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1913,24 +1913,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تتبع محيط الشكل؛ ما الشيء الممثل هنا؟",
+      "q": "في مجموعة مصابيح منزلية، ما الشيء الذي تشير إليه الحدود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "💡"
       },
       "choices": [
-        "سلة",
+        "مصباح سقف",
+        "لمبة",
         "مصباح كهربائي",
-        "مقعد طويل",
-        "شمعة"
+        "مصباح مكتبي"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "الظل يمثل مصباح كهربائي؛ ويسمي Unicode الرمز «light bulb»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — light bulb — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — light bulb — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1939,24 +1939,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "قارن هذه الهيئة؛ ما الشيء الممثل هنا؟",
+      "q": "أي مسمى من أدوات المائدة يطابق هيئة الظل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🍴"
       },
       "choices": [
+        "مغرفة",
+        "شوكة وسكين",
         "ملعقة",
-        "زجاجة رضاعة",
-        "سكين مطبخ",
-        "شوكة وسكين"
+        "عيدان طعام"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "الظل يمثل شوكة وسكين؛ ويسمي Unicode الرمز «fork and knife»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — fork and knife — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — fork and knife — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1965,24 +1965,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "شاهد الظل المعروض؛ ما الشيء الممثل هنا؟",
+      "q": "ركز على الهيئة السوداء وحدها؛ حدد خيار أدوات المائدة المطابق.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🥄"
       },
       "choices": [
-        "جرة",
-        "وعاء وملعقة",
+        "شوكة وسكين",
+        "ملعقة",
         "عيدان طعام",
-        "ملعقة"
+        "مغرفة"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "الظل يمثل ملعقة؛ ويسمي Unicode الرمز «spoon»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — spoon — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — spoon — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1991,16 +1991,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "حدد الشيء المصور؛ ما الشيء الممثل هنا؟",
+      "q": "اقرأ المحيط الأسود ثم اختر الشيء من عائلة أدوات المائدة.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🥢"
       },
       "choices": [
         "عيدان طعام",
-        "وعاء وملعقة",
-        "فنجان ساخن",
-        "شوكة وسكين"
+        "مغرفة",
+        "ملعقة تقديم",
+        "ملعقة"
       ],
       "answer": 0,
       "why": "الظل يمثل عيدان طعام؛ ويسمي Unicode الرمز «chopsticks»، وتطابقه تسمية OpenMoji المستقلة.",
@@ -2008,7 +2008,7 @@ KZV.register({
         "Unicode Emoji 12.0 — chopsticks — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — chopsticks — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2017,16 +2017,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "لاحظ تفاصيل الهيئة؛ ما الشيء الممثل هنا؟",
+      "q": "من عائلة أوعية الطعام، ما الاسم الذي يوافق هيئة الشكل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🥣"
       },
       "choices": [
-        "إبريق",
+        "قدر صغير",
         "وعاء وملعقة",
-        "زجاجة رضاعة",
-        "شوكة وسكين"
+        "وعاء عميق",
+        "صحن عميق"
       ],
       "answer": 1,
       "why": "الظل يمثل وعاء وملعقة؛ ويسمي Unicode الرمز «bowl with spoon»، وتطابقه تسمية OpenMoji المستقلة.",
@@ -2034,7 +2034,7 @@ KZV.register({
         "Unicode Emoji 12.0 — bowl with spoon — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — bowl with spoon — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2043,16 +2043,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "دقق في الهيئة؛ ما الشيء الممثل هنا؟",
+      "q": "هل تميّز هذا الظل بين أوعية وحاويات؟ اختر الاسم.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🍼"
       },
       "choices": [
         "زجاجة رضاعة",
-        "قدر",
-        "سكين مطبخ",
-        "وعاء وملعقة"
+        "حاوية",
+        "قارورة",
+        "عبوة بمضخة"
       ],
       "answer": 0,
       "why": "الظل يمثل زجاجة رضاعة؛ ويسمي Unicode الرمز «baby bottle»، وتطابقه تسمية OpenMoji المستقلة.",
@@ -2060,7 +2060,7 @@ KZV.register({
         "Unicode Emoji 12.0 — baby bottle — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — baby bottle — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2069,24 +2069,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "انظر إلى الحدود؛ ما الشيء الممثل هنا؟",
+      "q": "في مجموعة أوعية وحاويات، ما الشيء الذي تشير إليه الحدود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🏺"
       },
       "choices": [
-        "مغرفة",
-        "جرة",
-        "إبريق",
-        "قدر"
+        "عبوة بمضخة",
+        "زجاجة رضاعة",
+        "سلة مهملات",
+        "جرة"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "الظل يمثل جرة؛ ويسمي Unicode الرمز «amphora»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — amphora — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — amphora — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2095,24 +2095,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "اختر الاسم المناسب؛ ما الشيء الممثل هنا؟",
+      "q": "هل تميّز هذا الظل بين أجهزة العرض والشاشات؟ اختر الاسم.",
       "vis": {
         "kind": "silhouette",
         "emoji": "📺"
       },
       "choices": [
-        "لوحة مفاتيح",
-        "سماعة هاتف",
+        "حاسوب مكتبي",
         "تلفاز",
-        "فأرة حاسوب"
+        "شاشة حاسوب",
+        "شاشة مراقبة"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "الظل يمثل تلفاز؛ ويسمي Unicode الرمز «television»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — television — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — television — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2121,24 +2121,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تمعن في السواد؛ ما الشيء الممثل هنا؟",
+      "q": "في مجموعة كاميرات، ما الشيء الذي تشير إليه الحدود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "📹"
       },
       "choices": [
-        "هاتف مكتبي",
-        "فأرة حاسوب",
         "كاميرا فيديو",
-        "جهاز مسح ضوئي"
+        "آلة تصوير فوتوغرافي",
+        "كاميرا فورية",
+        "كاميرا مراقبة"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "الظل يمثل كاميرا فيديو؛ ويسمي Unicode الرمز «video camera»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — video camera — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — video camera — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2147,24 +2147,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "قارن الشكل بالخيارات؛ ما الشيء الممثل هنا؟",
+      "q": "أي مسمى من الهواتف يطابق هيئة الظل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "📞"
       },
       "choices": [
-        "قابس كهربائي",
-        "سماعة هاتف",
-        "شاشة حاسوب",
-        "عصا تحكم"
+        "هاتف مكتبي",
+        "هاتف لاسلكي",
+        "هاتف دوار",
+        "سماعة هاتف"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "الظل يمثل سماعة هاتف؛ ويسمي Unicode الرمز «telephone receiver»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — telephone receiver — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — telephone receiver — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2173,14 +2173,14 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "ركز على الحواف؛ ما الشيء الممثل هنا؟",
+      "q": "ركز على الهيئة السوداء وحدها؛ حدد خيار الهواتف المطابق.",
       "vis": {
         "kind": "silhouette",
         "emoji": "☎️"
       },
       "choices": [
-        "طابعة",
-        "تلفاز",
+        "هاتف لاسلكي",
+        "هاتف دوار",
         "سماعة هاتف",
         "هاتف مكتبي"
       ],
@@ -2190,7 +2190,7 @@ KZV.register({
         "Unicode Emoji 12.0 — telephone — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — telephone — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2199,24 +2199,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تفحص هذا الشكل؛ ما الشيء الممثل هنا؟",
+      "q": "قارن حدود الظل ضمن عائلة وحدات التحكم: أي خيار يطابقه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🕹️"
       },
       "choices": [
-        "معداد",
-        "هاتف مكتبي",
-        "طابعة",
-        "عصا تحكم"
+        "عصا تحكم",
+        "وحدة تحكم بالألعاب",
+        "ذراع تحكم",
+        "يد تحكم"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "الظل يمثل عصا تحكم؛ ويسمي Unicode الرمز «joystick»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — joystick — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — joystick — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2225,24 +2225,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تأمل حدود الظل؛ أي مسمى يناسب هذا الرسم؟",
+      "q": "من عائلة بطاريات وتوصيلات، ما الاسم الذي يوافق هيئة الشكل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🔋"
       },
       "choices": [
-        "هاتف مكتبي",
-        "بطارية",
-        "كاميرا فيديو",
-        "لوحة مفاتيح"
+        "قابس كهربائي",
+        "خلية كهربائية",
+        "مقبس كهرباء",
+        "بطارية"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "الظل يمثل بطارية؛ ويسمي Unicode الرمز «battery»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — battery — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — battery — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2251,24 +2251,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "انظر إلى الشكل؛ أي مسمى يناسب هذا الرسم؟",
+      "q": "أي عنصر من بطاريات وتوصيلات يطابق المحيط الأسود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🔌"
       },
       "choices": [
-        "قابس كهربائي",
-        "جهاز مسح ضوئي",
-        "لوحة مفاتيح",
-        "معداد"
+        "خلية كهربائية",
+        "مقبس كهرباء",
+        "بطارية",
+        "قابس كهربائي"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "الظل يمثل قابس كهربائي؛ ويسمي Unicode الرمز «electric plug»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — electric plug — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — electric plug — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2277,18 +2277,18 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "دقق في المحيط؛ أي مسمى يناسب هذا الرسم؟",
+      "q": "تأمل محيط الشكل؛ أي خيار من آلات الحساب اليدوية تراه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🧮"
       },
       "choices": [
-        "عصا تحكم",
-        "جهاز عرض",
-        "فأرة حاسوب",
-        "معداد"
+        "عداد خرز",
+        "معداد",
+        "إطار معداد",
+        "آلة حساب يدوية"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "الظل يمثل معداد؛ ويسمي Unicode الرمز «abacus»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — abacus — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
@@ -2303,24 +2303,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "لاحظ مساحة السواد؛ أي مسمى يناسب هذا الرسم؟",
+      "q": "اختر من لفائف الورق ما تمثله الهيئة المرسومة.",
       "vis": {
         "kind": "silhouette",
         "emoji": "📜"
       },
       "choices": [
-        "سلسلة",
-        "كتاب مفتوح",
         "لفافة مخطوط",
-        "طائرة ورقية"
+        "لفافة ورق",
+        "رسالة مطوية",
+        "شهادة ملفوفة"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "الظل يمثل لفافة مخطوط؛ ويسمي Unicode الرمز «scroll»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — scroll — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — scroll — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2329,24 +2329,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "ركز على الهيئة؛ أي مسمى يناسب هذا الرسم؟",
+      "q": "أي مسمى من أوعية وحاويات يطابق هيئة الظل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🧴"
       },
       "choices": [
-        "طائرة ورقية",
-        "مظلة",
         "عبوة بمضخة",
-        "حذاء تزلج"
+        "زجاجة رضاعة",
+        "حاوية",
+        "جرة"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "الظل يمثل عبوة بمضخة؛ ويسمي Unicode الرمز «lotion bottle»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — lotion bottle — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — lotion bottle — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2355,24 +2355,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "استدل من الحواف؛ أي مسمى يناسب هذا الرسم؟",
+      "q": "في مجموعة خيوط وكرات صوف، ما الشيء الذي تشير إليه الحدود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🧵"
       },
       "choices": [
+        "بكرة صوف",
+        "لفة خيوط",
         "بكرة خيط",
-        "مرساة",
-        "مرآة",
-        "حذاء تزلج"
+        "كرة صوف"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "الظل يمثل بكرة خيط؛ ويسمي Unicode الرمز «thread»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — thread — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — thread — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2381,16 +2381,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "اعتمد على الملامح؛ أي مسمى يناسب هذا الرسم؟",
+      "q": "أي مسمى من خيوط وكرات صوف يطابق هيئة الظل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🧶"
       },
       "choices": [
-        "عبوة بمضخة",
-        "لفافة مخطوط",
+        "لفة خيوط",
+        "بكرة خيط",
         "كرة صوف",
-        "بكرة خيط"
+        "بكرة صوف"
       ],
       "answer": 2,
       "why": "الظل يمثل كرة صوف؛ ويسمي Unicode الرمز «yarn»، وتطابقه تسمية OpenMoji المستقلة.",
@@ -2398,7 +2398,7 @@ KZV.register({
         "Unicode Emoji 12.0 — yarn — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — yarn — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2407,24 +2407,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تفحص الشكل الأسود؛ أي مسمى يناسب هذا الرسم؟",
+      "q": "ركز على الهيئة السوداء وحدها؛ حدد خيار قطع الأحاجي المطابق.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🧩"
       },
       "choices": [
-        "مجموعة كتب",
         "قطعة أحجية",
-        "جرس يدوي",
-        "حذاء تزلج"
+        "قطعة بازل",
+        "قطعة تركيب",
+        "قطعة لغز"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "الظل يمثل قطعة أحجية؛ ويسمي Unicode الرمز «puzzle piece»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — puzzle piece — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — puzzle piece — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2433,24 +2433,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تذكر هيئة الأشياء؛ أي مسمى يناسب هذا الرسم؟",
+      "q": "قارن حدود الظل ضمن عائلة أحذية التزلج: أي خيار يطابقه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "⛸️"
       },
       "choices": [
-        "سلسلة",
+        "حذاء بعجلات",
+        "حذاء جليد",
         "حذاء تزلج",
-        "عبوة بمضخة",
-        "نظارة"
+        "حذاء رياضي"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "الظل يمثل حذاء تزلج؛ ويسمي Unicode الرمز «ice skate»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — ice skate — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — ice skate — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2459,24 +2459,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "قارن خيارات الصورة؛ أي مسمى يناسب هذا الرسم؟",
+      "q": "من عائلة نظارات، ما الاسم الذي يوافق هيئة الشكل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "👓"
       },
       "choices": [
+        "نظارة قراءة",
         "نظارة",
-        "حذاء تزلج",
-        "لفافة مخطوط",
-        "طائرة ورقية"
+        "نظارة شمسية",
+        "نظارة واقية"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "الظل يمثل نظارة؛ ويسمي Unicode الرمز «glasses»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — glasses — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — glasses — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2485,24 +2485,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "ميز الجسم المصور؛ أي مسمى يناسب هذا الرسم؟",
+      "q": "اختر من منازل ما تمثله الهيئة المرسومة.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🏠"
       },
       "choices": [
+        "فيلا",
+        "مبنى سكني",
         "منزل",
-        "خيمة",
-        "برج ماء",
-        "حاجز أعمال"
+        "كوخ"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "الظل يمثل منزل؛ ويسمي Unicode الرمز «house»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — house — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — house — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2511,15 +2511,15 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "راجع ملامح الرسم؛ أي مسمى يناسب هذا الرسم؟",
+      "q": "أي مسمى من مبانٍ ذات قباب ومآذن يطابق هيئة الظل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🕌"
       },
       "choices": [
-        "حاجز أعمال",
-        "نافورة",
-        "خيمة",
+        "قبة",
+        "مئذنة",
+        "مصلى",
         "مسجد"
       ],
       "answer": 3,
@@ -2528,7 +2528,7 @@ KZV.register({
         "Unicode Emoji 12.0 — mosque — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — mosque — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2537,24 +2537,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تأمل الامتداد الخارجي؛ أي مسمى يناسب هذا الرسم؟",
+      "q": "ركز على الهيئة السوداء وحدها؛ حدد خيار نوافير المطابق.",
       "vis": {
         "kind": "silhouette",
         "emoji": "⛲"
       },
       "choices": [
-        "عجلة دوارة",
-        "منزل",
-        "حاجز أعمال",
-        "نافورة"
+        "نافورة حديقة",
+        "مجرى ماء",
+        "نافورة",
+        "نافورة جدارية"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "الظل يمثل نافورة؛ ويسمي Unicode الرمز «fountain»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — fountain — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — fountain — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2563,24 +2563,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "دقق بمحيط الصورة؛ أي مسمى يناسب هذا الرسم؟",
+      "q": "قارن حدود الظل ضمن عائلة ألعاب الملاهي الدوارة: أي خيار يطابقه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🎡"
       },
       "choices": [
-        "مصنع",
-        "حاجز أعمال",
-        "قلعة",
-        "عجلة دوارة"
+        "عجلة دوارة",
+        "أفعوانية",
+        "دولاب ملاهٍ",
+        "قطار ملاهٍ"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "الظل يمثل عجلة دوارة؛ ويسمي Unicode الرمز «ferris wheel»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — ferris wheel — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — ferris wheel — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2589,24 +2589,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "لاحظ شكل الحواف؛ أي مسمى يناسب هذا الرسم؟",
+      "q": "من عائلة حواجز المرور، ما الاسم الذي يوافق هيئة الشكل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🚧"
       },
       "choices": [
-        "حاجز أعمال",
-        "عجلة دوارة",
-        "مصنع",
-        "كوخ"
+        "حاجز طريق",
+        "حاجز سكة",
+        "مخروط مروري",
+        "حاجز أعمال"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "الظل يمثل حاجز أعمال؛ ويسمي Unicode الرمز «construction»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — construction — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — construction — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2615,24 +2615,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "استدل بهيئة الرسم؛ أي مسمى يناسب هذا الرسم؟",
+      "q": "تأمل محيط الشكل؛ أي خيار من نجوم تراه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "⭐"
       },
       "choices": [
-        "قوس مطر",
-        "شمس",
-        "ومضة برق",
-        "نجمة"
+        "شرارة",
+        "نجمة",
+        "نجمة خماسية",
+        "نجم لامع"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "الظل يمثل نجمة؛ ويسمي Unicode الرمز «star»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — star — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — star — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2641,24 +2641,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تفحص الحدود الخارجية؛ أي مسمى يناسب هذا الرسم؟",
+      "q": "هل تميّز هذا الظل بين سحب؟ اختر الاسم.",
       "vis": {
         "kind": "silhouette",
         "emoji": "☁️"
       },
       "choices": [
-        "ومضة برق",
-        "مظلة مفتوحة",
-        "سحابة",
-        "مظلة مغلقة"
+        "سحابة ممطرة",
+        "سحابة رعدية",
+        "غيمة كثيفة",
+        "سحابة"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "الظل يمثل سحابة؛ ويسمي Unicode الرمز «cloud»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — cloud — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — cloud — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2667,24 +2667,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تتبع محيط الشكل؛ أي مسمى يناسب هذا الرسم؟",
+      "q": "في مجموعة مظلات، ما الشيء الذي تشير إليه الحدود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🌂"
       },
       "choices": [
-        "شمس",
-        "مظلة مفتوحة",
-        "سحابة",
-        "مظلة مغلقة"
+        "مظلة شمسية",
+        "مظلة مطر",
+        "مظلة مغلقة",
+        "مظلة مفتوحة"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "الظل يمثل مظلة مغلقة؛ ويسمي Unicode الرمز «closed umbrella»، وتطابقه تسمية OpenMoji المستقلة.",
       "src": [
         "Unicode Emoji 12.0 — closed umbrella — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — closed umbrella — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2693,24 +2693,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تأمل ملامح هذا الظل؛ أي خيار يسميه بدقة؟",
+      "q": "ركز على الهيئة السوداء وحدها؛ حدد خيار خضار الثمار المطابق.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🥒"
       },
       "choices": [
-        "فلفل حار",
-        "خيار",
-        "جزر",
-        "فول سوداني"
+        "كوسا",
+        "باذنجان",
+        "طماطم",
+        "خيار"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "الاسم المطابق للرمز هو خيار؛ وتثبت تسميتا Unicode وOpenMoji أنه «cucumber».",
       "src": [
         "Unicode Emoji 12.0 — cucumber — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — cucumber — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2719,16 +2719,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "ابحث بين الأسماء المعروضة؛ أي خيار يسميه بدقة؟",
+      "q": "اقرأ المحيط الأسود ثم اختر الشيء من عائلة بصيلات غذائية.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🧄"
       },
       "choices": [
-        "بطاطس",
+        "شالوت",
         "ثوم",
-        "جزر",
-        "فلفل حلو"
+        "بصل",
+        "كراث"
       ],
       "answer": 1,
       "why": "الاسم المطابق للرمز هو ثوم؛ وتثبت تسميتا Unicode وOpenMoji أنه «garlic».",
@@ -2736,7 +2736,7 @@ KZV.register({
         "Unicode Emoji 12.0 — garlic — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — garlic — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2745,24 +2745,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "حدد الجسم من حدوده؛ أي خيار يسميه بدقة؟",
+      "q": "قارن حدود الظل ضمن عائلة بصيلات غذائية: أي خيار يطابقه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🧅"
       },
       "choices": [
-        "جزر",
-        "ذرة",
-        "خيار",
-        "بصل"
+        "ثوم",
+        "بصل",
+        "كراث",
+        "شالوت"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "الاسم المطابق للرمز هو بصل؛ وتثبت تسميتا Unicode وOpenMoji أنه «onion».",
       "src": [
         "Unicode Emoji 12.0 — onion — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — onion — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2771,18 +2771,18 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تفحص الرسم الأسود بعناية؛ أي خيار يسميه بدقة؟",
+      "q": "من عائلة مكسرات، ما الاسم الذي يوافق هيئة الشكل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🌰"
       },
       "choices": [
-        "جوز",
+        "كستناء",
         "لوز",
-        "فول سوداني",
-        "كستناء"
+        "بندق",
+        "فول سوداني"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "الاسم المطابق للرمز هو كستناء؛ وتثبت تسميتا Unicode وOpenMoji أنه «chestnut».",
       "src": [
         "Unicode Emoji 12.0 — chestnut — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
@@ -2797,24 +2797,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "ما التسمية الموافقة للظل؟ أي خيار يسميه بدقة؟",
+      "q": "في مجموعة أكواب وعبوات الشراب، ما الشيء الذي تشير إليه الحدود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🥤"
       },
       "choices": [
+        "كوب ورقي",
+        "علبة عصير",
         "كوب بشفاطة",
-        "قارورة ماء",
-        "فنجان بمقبض",
-        "إبريق زجاجي"
+        "علبة مشروب"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "الاسم المطابق للرمز هو كوب بشفاطة؛ وتثبت تسميتا Unicode وOpenMoji أنه «cup with straw».",
       "src": [
         "Unicode Emoji 12.0 — cup with straw — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — cup with straw — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2823,24 +2823,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "اختر الاسم الملائم للشكل؛ أي خيار يسميه بدقة؟",
+      "q": "أي مسمى من أكواب وعبوات الشراب يطابق هيئة الظل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🧃"
       },
       "choices": [
-        "إبريق شاي",
-        "فنجان بمقبض",
-        "قارورة ماء",
-        "علبة مشروب"
+        "علبة عصير",
+        "كوب بشفاطة",
+        "علبة مشروب",
+        "كوب ورقي"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "الاسم المطابق للرمز هو علبة مشروب؛ وتثبت تسميتا Unicode وOpenMoji أنه «beverage box».",
       "src": [
         "Unicode Emoji 12.0 — beverage box — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — beverage box — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2849,24 +2849,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "لاحظ انحناءات هذا الرسم؛ أي خيار يسميه بدقة؟",
+      "q": "ركز على الهيئة السوداء وحدها؛ حدد خيار المجسمات الجغرافية المطابق.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🌐"
       },
       "choices": [
-        "بوصلة",
-        "خريطة مطوية",
         "كرة أرضية",
-        "مقراب"
+        "مجسم كرة أرضية",
+        "كرة سماوية",
+        "نموذج كوكب"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "الاسم المطابق للرمز هو كرة أرضية؛ وتثبت تسميتا Unicode وOpenMoji أنه «globe with meridians».",
       "src": [
         "Unicode Emoji 12.0 — globe with meridians — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — globe with meridians — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2875,24 +2875,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "حاول تسمية الشيء المرسوم؛ أي خيار يسميه بدقة؟",
+      "q": "من عائلة ألعاب الملاهي الدوارة، ما الاسم الذي يوافق هيئة الشكل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🎢"
       },
       "choices": [
+        "قطار ملاهٍ",
         "عجلة دوارة",
-        "زحليقة",
-        "أرجوحة",
-        "أفعوانية"
+        "أفعوانية",
+        "دولاب ملاهٍ"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "الاسم المطابق للرمز هو أفعوانية؛ وتثبت تسميتا Unicode وOpenMoji أنه «roller coaster».",
       "src": [
         "Unicode Emoji 12.0 — roller coaster — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — roller coaster — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2901,24 +2901,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "راجع صورة الجسم السوداء؛ أي خيار يسميه بدقة؟",
+      "q": "أي عنصر من كرسي التنقل يطابق المحيط الأسود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🦽"
       },
       "choices": [
-        "دراجة هوائية",
         "كرسي متحرك",
-        "عربة يد",
-        "عربة أطفال"
+        "كرسي كهربائي",
+        "كرسي طبي",
+        "عربة تنقل"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "الاسم المطابق للرمز هو كرسي متحرك؛ وتثبت تسميتا Unicode وOpenMoji أنه «manual wheelchair».",
       "src": [
         "Unicode Emoji 12.0 — manual wheelchair — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — manual wheelchair — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2927,16 +2927,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "طابق الرسم مع تسميته؛ أي خيار يسميه بدقة؟",
+      "q": "تأمل محيط الشكل؛ أي خيار من مركبات بعجلتين وثلاث تراه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🛺"
       },
       "choices": [
         "عربة تكتك",
-        "مركبة غولف",
-        "عربة يد",
-        "مقطورة صغيرة"
+        "دراجة نارية",
+        "دراجة كهربائية",
+        "دراجة بمحرك"
       ],
       "answer": 0,
       "why": "الاسم المطابق للرمز هو عربة تكتك؛ وتثبت تسميتا Unicode وOpenMoji أنه «auto rickshaw».",
@@ -2953,24 +2953,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "ركز على محيط الجسم؛ أي خيار يسميه بدقة؟",
+      "q": "اختر من ألواح التزلج ما تمثله الهيئة المرسومة.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🛹"
       },
       "choices": [
+        "سكوتر",
+        "زلاجات بعجلات",
         "لوح تزلج",
-        "مزلجة ثلجية",
-        "لوح ركوب الأمواج",
-        "حذاء تزلج"
+        "لوح بعجلات"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "الاسم المطابق للرمز هو لوح تزلج؛ وتثبت تسميتا Unicode وOpenMoji أنه «skateboard».",
       "src": [
         "Unicode Emoji 12.0 — skateboard — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — skateboard — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2979,24 +2979,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "اعرف الشيء من ظله؛ أي خيار يسميه بدقة؟",
+      "q": "هل تميّز هذا الظل بين مضخات الوقود؟ اختر الاسم.",
       "vis": {
         "kind": "silhouette",
         "emoji": "⛽"
       },
       "choices": [
-        "عداد موقف سيارات",
-        "صراف آلي",
-        "آلة بيع آلية",
-        "مضخة وقود"
+        "مضخة محطة",
+        "مضخة وقود",
+        "مضخة بنزين",
+        "مضخة ديزل"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "الاسم المطابق للرمز هو مضخة وقود؛ وتثبت تسميتا Unicode وOpenMoji أنه «fuel pump».",
       "src": [
         "Unicode Emoji 12.0 — fuel pump — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — fuel pump — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3005,16 +3005,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "استكشف هوية الشكل المعروض؛ أي خيار يسميه بدقة؟",
+      "q": "في مجموعة أضواء التحذير، ما الشيء الذي تشير إليه الحدود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🚨"
       },
       "choices": [
         "ضوء إنذار",
-        "إشارة مرور",
-        "عداد موقف سيارات",
-        "مصباح شارع"
+        "مصباح طوارئ",
+        "منارة إنذار",
+        "ضوء تحذير"
       ],
       "answer": 0,
       "why": "الاسم المطابق للرمز هو ضوء إنذار؛ وتثبت تسميتا Unicode وOpenMoji أنه «police car light».",
@@ -3022,7 +3022,7 @@ KZV.register({
         "Unicode Emoji 12.0 — police car light — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — police car light — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3031,24 +3031,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "أي تسمية توافق الحدود؟ أي خيار يسميه بدقة؟",
+      "q": "أي مسمى من أجراس يطابق هيئة الظل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🛎"
       },
       "choices": [
-        "إبريق شاي",
-        "صينية تقديم",
-        "جرس استقبال",
-        "مزهرية"
+        "جرس معلق",
+        "جرس باب",
+        "جرس يدوي",
+        "جرس استقبال"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "الاسم المطابق للرمز هو جرس استقبال؛ وتثبت تسميتا Unicode وOpenMoji أنه «bellhop bell».",
       "src": [
         "Unicode Emoji 12.0 — bellhop bell — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — bellhop bell — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3057,24 +3057,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "إلى ماذا تنسب الظل؟ أي خيار يسميه بدقة؟",
+      "q": "ركز على الهيئة السوداء وحدها؛ حدد خيار ساعات وأدوات توقيت المطابق.",
       "vis": {
         "kind": "silhouette",
         "emoji": "⌛"
       },
       "choices": [
-        "ساعة حائط",
+        "ساعة منبه",
         "ساعة إيقاف",
-        "ساعة يد",
-        "ساعة رملية"
+        "ساعة رملية",
+        "ساعة يد"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "الاسم المطابق للرمز هو ساعة رملية؛ وتثبت تسميتا Unicode وOpenMoji أنه «hourglass done».",
       "src": [
         "Unicode Emoji 12.0 — hourglass done — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — hourglass done — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3083,24 +3083,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "شاهد الحواف ثم اختر؛ أي خيار يسميه بدقة؟",
+      "q": "اقرأ المحيط الأسود ثم اختر الشيء من عائلة ساعات وأدوات توقيت.",
       "vis": {
         "kind": "silhouette",
         "emoji": "⌚"
       },
       "choices": [
+        "ساعة إيقاف",
         "ساعة رملية",
         "ساعة يد",
-        "ساعة منبه",
-        "ساعة حائط"
+        "ساعة منبه"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "الاسم المطابق للرمز هو ساعة يد؛ وتثبت تسميتا Unicode وOpenMoji أنه «watch».",
       "src": [
         "Unicode Emoji 12.0 — watch — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — watch — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3109,24 +3109,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "صنف هيئة الجسم المعروض؛ أي خيار يسميه بدقة؟",
+      "q": "قارن حدود الظل ضمن عائلة ساعات وأدوات توقيت: أي خيار يطابقه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "⏰"
       },
       "choices": [
-        "ساعة شمسية",
-        "ساعة منبه",
+        "ساعة رملية",
         "ساعة يد",
-        "ساعة رملية"
+        "ساعة منبه",
+        "ساعة إيقاف"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "الاسم المطابق للرمز هو ساعة منبه؛ وتثبت تسميتا Unicode وOpenMoji أنه «alarm clock».",
       "src": [
         "Unicode Emoji 12.0 — alarm clock — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — alarm clock — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3135,24 +3135,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تعرف إلى الرسم المظلل؛ أي خيار يسميه بدقة؟",
+      "q": "من عائلة ساعات وأدوات توقيت، ما الاسم الذي يوافق هيئة الشكل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "⏱"
       },
       "choices": [
-        "ساعة رملية",
+        "ساعة يد",
+        "ساعة منبه",
         "ساعة إيقاف",
-        "ساعة شمسية",
-        "ساعة حائط"
+        "ساعة رملية"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "الاسم المطابق للرمز هو ساعة إيقاف؛ وتثبت تسميتا Unicode وOpenMoji أنه «stopwatch».",
       "src": [
         "Unicode Emoji 12.0 — stopwatch — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — stopwatch — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3161,24 +3161,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "دقق في شكل الجسم؛ أي خيار يسميه بدقة؟",
+      "q": "أي عنصر من مقاييس الحرارة يطابق المحيط الأسود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🌡"
       },
       "choices": [
-        "محقنة طبية",
         "مقياس ضغط",
-        "سماعة طبية",
-        "مقياس حرارة"
+        "مقياس رطوبة",
+        "مقياس حرارة",
+        "ميزان حرارة"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "الاسم المطابق للرمز هو مقياس حرارة؛ وتثبت تسميتا Unicode وOpenMoji أنه «thermometer».",
       "src": [
         "Unicode Emoji 12.0 — thermometer — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — thermometer — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3187,24 +3187,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "ما الاسم الدال عليه؟ أي خيار يسميه بدقة؟",
+      "q": "تأمل محيط الشكل؛ أي خيار من كواكب تراه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🪐"
       },
       "choices": [
-        "قمر هلالي",
-        "مذنب طويل الذيل",
+        "كرة سماوية",
         "كوكب ذو حلقات",
-        "نجم خماسي"
+        "زحل",
+        "كوكب"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "الاسم المطابق للرمز هو كوكب ذو حلقات؛ وتثبت تسميتا Unicode وOpenMoji أنه «ringed planet».",
       "src": [
         "Unicode Emoji 12.0 — ringed planet — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — ringed planet — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3213,24 +3213,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "انتق تسمية هذا الجسم؛ أي خيار يسميه بدقة؟",
+      "q": "هل تميّز هذا الظل بين أقواس الطقس؟ اختر الاسم.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🌈"
       },
       "choices": [
-        "قوس مطر",
-        "ندفة ثلج",
-        "إعصار قمعي",
-        "سحابة ممطرة"
+        "قوس ضوئي",
+        "قوس قزح مزدوج",
+        "هالة قوسية",
+        "قوس مطر"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "الاسم المطابق للرمز هو قوس مطر؛ وتثبت تسميتا Unicode وOpenMoji أنه «rainbow».",
       "src": [
         "Unicode Emoji 12.0 — rainbow — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — rainbow — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3239,24 +3239,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "اقرأ ملامح الظل المعروض؛ أي خيار يسميه بدقة؟",
+      "q": "في مجموعة بلورات الثلج، ما الشيء الذي تشير إليه الحدود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "❄"
       },
       "choices": [
+        "نجمة ثلج",
+        "بلورة صقيع",
         "ندفة ثلج",
-        "سحابة",
-        "قوس مطر",
-        "قطرة ماء"
+        "بلورة جليد"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "الاسم المطابق للرمز هو ندفة ثلج؛ وتثبت تسميتا Unicode وOpenMoji أنه «snowflake».",
       "src": [
         "Unicode Emoji 12.0 — snowflake — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — snowflake — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3265,24 +3265,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "توقع اسم الرسم الأسود؛ أي خيار يسميه بدقة؟",
+      "q": "ركز على الهيئة السوداء وحدها؛ حدد خيار ألسنة اللهب المطابق.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🔥"
       },
       "choices": [
-        "موجة ماء",
-        "قطرة ماء",
-        "بلورة ثلج",
-        "لهب"
+        "لهب",
+        "شعلة",
+        "لهب شمعة",
+        "لهب موقد"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "الاسم المطابق للرمز هو لهب؛ وتثبت تسميتا Unicode وOpenMoji أنه «fire».",
       "src": [
         "Unicode Emoji 12.0 — fire — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — fire — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3291,24 +3291,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "أي اسم يدل عليه؟ أي خيار يسميه بدقة؟",
+      "q": "اقرأ المحيط الأسود ثم اختر الشيء من عائلة قطرات السوائل.",
       "vis": {
         "kind": "silhouette",
         "emoji": "💧"
       },
       "choices": [
-        "قطرة ماء",
-        "سحابة",
-        "لهب",
-        "بلورة ثلج"
+        "قطرة زيت",
+        "قطرة ندى",
+        "دمعة",
+        "قطرة ماء"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "الاسم المطابق للرمز هو قطرة ماء؛ وتثبت تسميتا Unicode وOpenMoji أنه «droplet».",
       "src": [
         "Unicode Emoji 12.0 — droplet — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — droplet — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3317,24 +3317,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تأمل ملامح هذا الظل؛ اختر ما يوافق هذا المحيط.",
+      "q": "قارن حدود الظل ضمن عائلة أمواج الماء: أي خيار يطابقه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🌊"
       },
       "choices": [
+        "تموج ماء",
+        "موجة مد",
         "موجة ماء",
-        "شلال",
-        "كثيب رملي",
-        "إعصار قمعي"
+        "موجة بحر"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "الاسم المطابق للرمز هو موجة ماء؛ وتثبت تسميتا Unicode وOpenMoji أنه «water wave».",
       "src": [
         "Unicode Emoji 12.0 — water wave — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — water wave — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3343,16 +3343,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "ابحث بين الأسماء المعروضة؛ اختر ما يوافق هذا المحيط.",
+      "q": "من عائلة جوائز وميداليات، ما الاسم الذي يوافق هيئة الشكل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🏆"
       },
       "choices": [
-        "درع تكريمي",
+        "وسام",
         "كأس جائزة",
-        "إكليل غار",
-        "ميدالية"
+        "ميدالية",
+        "كأس بطولة"
       ],
       "answer": 1,
       "why": "الاسم المطابق للرمز هو كأس جائزة؛ وتثبت تسميتا Unicode وOpenMoji أنه «trophy».",
@@ -3360,7 +3360,7 @@ KZV.register({
         "Unicode Emoji 12.0 — trophy — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — trophy — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3369,24 +3369,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "حدد الجسم من حدوده؛ اختر ما يوافق هذا المحيط.",
+      "q": "أي عنصر من جوائز وميداليات يطابق المحيط الأسود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🏅"
       },
       "choices": [
         "كأس جائزة",
-        "إكليل غار",
-        "درع تكريمي",
-        "ميدالية"
+        "ميدالية",
+        "كأس بطولة",
+        "وسام"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "الاسم المطابق للرمز هو ميدالية؛ وتثبت تسميتا Unicode وOpenMoji أنه «sports medal».",
       "src": [
         "Unicode Emoji 12.0 — sports medal — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — sports medal — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3395,15 +3395,15 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تفحص الرسم الأسود بعناية؛ اختر ما يوافق هذا المحيط.",
+      "q": "تأمل محيط الشكل؛ أي خيار من رياضات المضرب تراه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🏓"
       },
       "choices": [
-        "مضرب تنس وكرة",
-        "عصا هوكي وقرص",
         "مضرب كريكيت وكرة",
+        "مضرب تنس الريشة والريشة",
+        "مضرب تنس وكرة",
         "مضرب تنس الطاولة وكرة"
       ],
       "answer": 3,
@@ -3412,7 +3412,7 @@ KZV.register({
         "Unicode Emoji 12.0 — table tennis paddle and ball — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — table tennis paddle and ball — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3421,18 +3421,18 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "عين اسم الشيء المعروض؛ اختر ما يوافق هذا المحيط.",
+      "q": "اختر من رياضات المضرب ما تمثله الهيئة المرسومة.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🏏"
       },
       "choices": [
-        "مضرب كريكيت وكرة",
-        "عصا هوكي وقرص",
+        "مضرب تنس الريشة والريشة",
         "مضرب تنس وكرة",
-        "مضرب تنس طاولة وكرة"
+        "مضرب تنس الطاولة وكرة",
+        "مضرب كريكيت وكرة"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "الاسم المطابق للرمز هو مضرب كريكيت وكرة؛ وتثبت تسميتا Unicode وOpenMoji أنه «cricket game».",
       "src": [
         "Unicode Emoji 12.0 — cricket game — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
@@ -3447,16 +3447,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "قارن الظل بهذه البدائل؛ اختر ما يوافق هذا المحيط.",
+      "q": "هل تميّز هذا الظل بين عصي رياضية؟ اختر الاسم.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🏒"
       },
       "choices": [
-        "مضرب كريكيت وكرة",
+        "عصا غولف",
         "عصا هوكي الجليد وقرص",
-        "مضرب تنس طاولة وكرة",
-        "مضرب تنس وكرة"
+        "عصا هوكي ميداني",
+        "عصا لاكروس"
       ],
       "answer": 1,
       "why": "الاسم المطابق للرمز هو عصا هوكي الجليد وقرص؛ وتثبت تسميتا Unicode وOpenMoji أنه «ice hockey».",
@@ -3473,24 +3473,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "استدل من الهيئة الخارجية؛ اختر ما يوافق هذا المحيط.",
+      "q": "في مجموعة رياضات المضرب، ما الشيء الذي تشير إليه الحدود؟",
       "vis": {
         "kind": "silhouette",
-        "emoji": "🏓"
+        "emoji": "🏸"
       },
       "choices": [
-        "عصا هوكي الجليد وقرص",
         "مضرب كريكيت وكرة",
-        "مضرب تنس طاولة وكرة",
-        "مضرب تنس وكرة"
+        "مضرب تنس الريشة والريشة",
+        "مضرب تنس وكرة",
+        "مضرب اسكواش"
       ],
-      "answer": 2,
-      "why": "الاسم المطابق للرمز هو مضرب تنس طاولة وكرة؛ وتثبت تسميتا Unicode وOpenMoji أنه «ping pong».",
+      "answer": 1,
+      "why": "الظل يجمع مضرب تنس الريشة والريشة الطائرة؛ وهو شكل منفصل عن مضرب تنس الطاولة.",
       "src": [
-        "Unicode Emoji 12.0 — ping pong — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
-        "OpenMoji — ping pong — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
+        "Unicode Emoji 12.0 — badminton — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
+        "OpenMoji — badminton — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3499,24 +3499,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تتبع الحواف الظاهرة أمامك؛ اختر ما يوافق هذا المحيط.",
+      "q": "أي مسمى من شبكات اللعب يطابق هيئة الظل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🥅"
       },
       "choices": [
-        "شبكة مرمى",
-        "سلة كرة سلة",
-        "حاجز قفز",
-        "طاولة تنس"
+        "شبكة تنس",
+        "شبكة كرة طائرة",
+        "شبكة كرة سلة",
+        "شبكة مرمى"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "الاسم المطابق للرمز هو شبكة مرمى؛ وتثبت تسميتا Unicode وOpenMoji أنه «goal net».",
       "src": [
         "Unicode Emoji 12.0 — goal net — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — goal net — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3525,24 +3525,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "ما التسمية الموافقة للظل؟ اختر ما يوافق هذا المحيط.",
+      "q": "ركز على الهيئة السوداء وحدها؛ حدد خيار معدات الغوص المطابق.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🤿"
       },
       "choices": [
+        "نظارة غوص",
+        "خوذة غوص",
         "قناع غوص",
-        "خوذة تزلج",
-        "قبعة سباحة",
-        "نظارة شمسية"
+        "قناع تزلج"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "الاسم المطابق للرمز هو قناع غوص؛ وتثبت تسميتا Unicode وOpenMoji أنه «diving mask».",
       "src": [
         "Unicode Emoji 12.0 — diving mask — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — diving mask — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3551,18 +3551,18 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "اختر الاسم الملائم للشكل؛ اختر ما يوافق هذا المحيط.",
+      "q": "اقرأ المحيط الأسود ثم اختر الشيء من عائلة معدات الانزلاق.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🎿"
       },
       "choices": [
+        "زلاجات بعجلات",
         "زلاجات ثلج",
-        "دراجة هوائية",
-        "لوح ركوب الأمواج",
+        "مزلجة ثلجية",
         "لوح تزلج"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "الاسم المطابق للرمز هو زلاجات ثلج؛ وتثبت تسميتا Unicode وOpenMoji أنه «skis».",
       "src": [
         "Unicode Emoji 12.0 — skis — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
@@ -3577,18 +3577,18 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "لاحظ انحناءات هذا الرسم؛ اختر ما يوافق هذا المحيط.",
+      "q": "قارن حدود الظل ضمن عائلة معدات الانزلاق: أي خيار يطابقه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🛷"
       },
       "choices": [
-        "حذاء تزلج",
-        "لوح ركوب الأمواج",
+        "زلاجات ثلج",
         "مزلجة ثلجية",
-        "لوح تزلج"
+        "لوح تزلج",
+        "زلاجات بعجلات"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "الاسم المطابق للرمز هو مزلجة ثلجية؛ وتثبت تسميتا Unicode وOpenMoji أنه «sled».",
       "src": [
         "Unicode Emoji 12.0 — sled — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
@@ -3603,24 +3603,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "ميز الجسم الذي أمامك؛ اختر ما يوافق هذا المحيط.",
+      "q": "من عائلة ألواح الرسم، ما الاسم الذي يوافق هيئة الشكل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🎨"
       },
       "choices": [
-        "ممحاة مطاطية",
-        "لوحة مزج الألوان",
-        "لوح رسم مستطيل",
-        "فرشاة رسم"
+        "لوحة رسم",
+        "لوحة ألوان",
+        "حامل ألوان",
+        "لوحة مزج الألوان"
       ],
-      "answer": 1,
+      "answer": 3,
       "why": "الاسم المطابق للرمز هو لوحة مزج الألوان؛ وتثبت تسميتا Unicode وOpenMoji أنه «artist palette».",
       "src": [
         "Unicode Emoji 12.0 — artist palette — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — artist palette — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3629,24 +3629,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "حاول تسمية الشيء المرسوم؛ اختر ما يوافق هذا المحيط.",
+      "q": "تأمل محيط الشكل؛ أي خيار من أحذية رياضية تراه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "👟"
       },
       "choices": [
+        "حذاء تدريب",
         "حذاء رياضي",
-        "حذاء طويل",
-        "خف منزلي",
-        "صندل"
+        "حذاء جري",
+        "حذاء كرة"
       ],
-      "answer": 0,
+      "answer": 1,
       "why": "الاسم المطابق للرمز هو حذاء رياضي؛ وتثبت تسميتا Unicode وOpenMoji أنه «running shoe».",
       "src": [
         "Unicode Emoji 12.0 — running shoe — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — running shoe — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3655,24 +3655,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "طابق الرسم مع تسميته؛ اختر ما يوافق هذا المحيط.",
+      "q": "هل تميّز هذا الظل بين خواتم ومجوهرات؟ اختر الاسم.",
       "vis": {
         "kind": "silhouette",
         "emoji": "💍"
       },
       "choices": [
-        "قرط",
-        "عقد",
-        "خاتم",
-        "سوار"
+        "خاتم زواج",
+        "خاتم مرصع",
+        "خاتم فضة",
+        "خاتم"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "الاسم المطابق للرمز هو خاتم؛ وتثبت تسميتا Unicode وOpenMoji أنه «ring».",
       "src": [
         "Unicode Emoji 12.0 — ring — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — ring — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3681,24 +3681,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "ركز على محيط الجسم؛ اختر ما يوافق هذا المحيط.",
+      "q": "في مجموعة أجهزة العرض والشاشات، ما الشيء الذي تشير إليه الحدود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🖥"
       },
       "choices": [
-        "طابعة",
         "حاسوب مكتبي",
-        "جهاز فاكس",
-        "حاسوب محمول"
+        "حاسوب محمول",
+        "شاشة حاسوب",
+        "شاشة مراقبة"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "الاسم المطابق للرمز هو حاسوب مكتبي؛ وتثبت تسميتا Unicode وOpenMoji أنه «desktop computer».",
       "src": [
         "Unicode Emoji 12.0 — desktop computer — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — desktop computer — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3707,24 +3707,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "استكشف هوية الشكل المعروض؛ اختر ما يوافق هذا المحيط.",
+      "q": "ركز على الهيئة السوداء وحدها؛ حدد خيار أجهزة الاستقبال المحمولة المطابق.",
       "vis": {
         "kind": "silhouette",
-        "emoji": "💿"
+        "emoji": "📻"
       },
       "choices": [
-        "شريط تخزين",
-        "وحدة ذاكرة محمولة",
-        "قرص ضوئي",
-        "قرص مرن"
+        "مذياع محمول",
+        "راديو محمول",
+        "جهاز اتصال لاسلكي",
+        "جهاز استقبال صغير"
       ],
-      "answer": 2,
-      "why": "الاسم المطابق للرمز هو قرص ضوئي؛ وتثبت تسميتا Unicode وOpenMoji أنه «optical disk».",
+      "answer": 0,
+      "why": "الظل يبيّن جسماً مستطيلاً بمقبض وهوائي، فيميّز المذياع المحمول من أجهزة الصوت الأخرى.",
       "src": [
-        "Unicode Emoji 12.0 — optical disk — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
-        "OpenMoji — optical disk — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
+        "Unicode Emoji 12.0 — radio — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
+        "OpenMoji — radio — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3733,18 +3733,18 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "أي تسمية توافق الحدود؟ اختر ما يوافق هذا المحيط.",
+      "q": "اقرأ المحيط الأسود ثم اختر الشيء من عائلة فوانيس.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🏮"
       },
       "choices": [
-        "مصباح يدوي",
-        "شمعة",
-        "فانوس ورقي",
-        "مصباح كهربائي"
+        "فانوس يدوي",
+        "مصباح معلق",
+        "فانوس شرقي",
+        "فانوس ورقي"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "الاسم المطابق للرمز هو فانوس ورقي؛ وتثبت تسميتا Unicode وOpenMoji أنه «red paper lantern».",
       "src": [
         "Unicode Emoji 12.0 — red paper lantern — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
@@ -3759,24 +3759,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "إلى ماذا تنسب الظل؟ اختر ما يوافق هذا المحيط.",
+      "q": "قارن حدود الظل ضمن عائلة علامات الكتب: أي خيار يطابقه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🔖"
       },
       "choices": [
+        "شريط علامة",
+        "بطاقة كتاب",
         "فاصل كتاب",
-        "مسطرة",
-        "قلم رصاص",
-        "ممحاة"
+        "علامة صفحة"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "الاسم المطابق للرمز هو فاصل كتاب؛ وتثبت تسميتا Unicode وOpenMoji أنه «bookmark».",
       "src": [
         "Unicode Emoji 12.0 — bookmark — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — bookmark — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3785,24 +3785,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "شاهد الحواف ثم اختر؛ اختر ما يوافق هذا المحيط.",
+      "q": "من عائلة بطاقات الأسعار، ما الاسم الذي يوافق هيئة الشكل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🏷"
       },
       "choices": [
-        "دفتر صغير",
-        "مجلد أوراق",
+        "بطاقة ملابس",
         "بطاقة تعليق",
-        "ظرف ورقي"
+        "بطاقة سعر",
+        "ملصق ثمن"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "الاسم المطابق للرمز هو بطاقة تعليق؛ وتثبت تسميتا Unicode وOpenMoji أنه «label».",
       "src": [
         "Unicode Emoji 12.0 — label — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — label — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3811,24 +3811,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "صنف هيئة الجسم المعروض؛ اختر ما يوافق هذا المحيط.",
+      "q": "أي عنصر من صناديق البريد يطابق المحيط الأسود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "📫"
       },
       "choices": [
-        "صندوق أدوات",
         "صندوق بريد",
-        "صندوق نفايات",
-        "صندوق اقتراع"
+        "صندوق رسائل",
+        "صندوق طرد",
+        "صندوق بريد جداري"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "الاسم المطابق للرمز هو صندوق بريد؛ وتثبت تسميتا Unicode وOpenMoji أنه «closed mailbox with raised flag».",
       "src": [
         "Unicode Emoji 12.0 — closed mailbox with raised flag — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — closed mailbox with raised flag — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3837,24 +3837,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تعرف إلى الرسم المظلل؛ اختر ما يوافق هذا المحيط.",
+      "q": "تأمل محيط الشكل؛ أي خيار من أقلام الرصاص تراه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "✏"
       },
       "choices": [
-        "قلم رصاص",
-        "ممحاة",
-        "فرشاة رسم",
-        "مسطرة"
+        "قلم فحم",
+        "قلم رصاص ميكانيكي",
+        "قلم تلوين",
+        "قلم رصاص"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "الاسم المطابق للرمز هو قلم رصاص؛ وتثبت تسميتا Unicode وOpenMoji أنه «pencil».",
       "src": [
         "Unicode Emoji 12.0 — pencil — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — pencil — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3863,24 +3863,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "دقق في شكل الجسم؛ اختر ما يوافق هذا المحيط.",
+      "q": "اختر من أقلام الحبر ما تمثله الهيئة المرسومة.",
       "vis": {
         "kind": "silhouette",
         "emoji": "✒"
       },
       "choices": [
-        "ممحاة مطاطية",
+        "قلم حبر",
+        "قلم خط",
         "سن قلم حبر",
-        "مبراة قلم",
-        "مشبك ورق"
+        "ريشة حبر"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "الاسم المطابق للرمز هو سن قلم حبر؛ وتثبت تسميتا Unicode وOpenMoji أنه «black nib».",
       "src": [
         "Unicode Emoji 12.0 — black nib — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — black nib — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3889,16 +3889,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "ما الاسم الدال عليه؟ اختر ما يوافق هذا المحيط.",
+      "q": "هل تميّز هذا الظل بين فرش الرسم؟ اختر الاسم.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🖌"
       },
       "choices": [
-        "مسطرة مثلثة",
+        "فرشاة خط",
         "فرشاة رسم",
-        "سكين مزج الألوان",
-        "قلم رصاص"
+        "فرشاة دهان",
+        "فرشاة تلوين"
       ],
       "answer": 1,
       "why": "الاسم المطابق للرمز هو فرشاة رسم؛ وتثبت تسميتا Unicode وOpenMoji أنه «paintbrush».",
@@ -3906,7 +3906,7 @@ KZV.register({
         "Unicode Emoji 12.0 — paintbrush — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — paintbrush — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3915,16 +3915,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "اقرأ ملامح الظل المعروض؛ اختر ما يوافق هذا المحيط.",
+      "q": "ركز على الهيئة السوداء وحدها؛ حدد خيار دروع الوقاية المطابق.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🛡"
       },
       "choices": [
+        "ترس",
         "خوذة",
-        "قفاز حماية",
         "درع واق",
-        "نظارة واقية"
+        "درع معدني"
       ],
       "answer": 2,
       "why": "الاسم المطابق للرمز هو درع واق؛ وتثبت تسميتا Unicode وOpenMoji أنه «shield».",
@@ -3932,7 +3932,7 @@ KZV.register({
         "Unicode Emoji 12.0 — shield — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — shield — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3941,18 +3941,18 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "ما الشيء الظاهر أمامك؟ اختر ما يوافق هذا المحيط.",
+      "q": "اقرأ المحيط الأسود ثم اختر الشيء من عائلة مشابك وأدوات التثبيت.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🗜"
       },
       "choices": [
-        "كماشة",
-        "مطرقة",
-        "مفتاح ربط",
-        "مشبك تثبيت"
+        "كماشة تثبيت",
+        "مشبك تثبيت",
+        "ملزمة",
+        "مشبك حديد"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "الاسم المطابق للرمز هو مشبك تثبيت؛ وتثبت تسميتا Unicode وOpenMoji أنه «clamp».",
       "src": [
         "Unicode Emoji 12.0 — clamp — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
@@ -3967,24 +3967,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "توقع اسم الرسم الأسود؛ اختر ما يوافق هذا المحيط.",
+      "q": "قارن حدود الظل ضمن عائلة عصي الحركة: أي خيار يطابقه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🦯"
       },
       "choices": [
-        "كرسي متحرك",
         "عصا تحسس",
-        "إطار مشي",
-        "عكاز"
+        "عكاز",
+        "عصا مشي",
+        "عصا إرشاد"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "الاسم المطابق للرمز هو عصا تحسس؛ وتثبت تسميتا Unicode وOpenMoji أنه «probing cane».",
       "src": [
         "Unicode Emoji 12.0 — probing cane — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — white cane — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3993,24 +3993,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "أي اسم يدل عليه؟ اختر ما يوافق هذا المحيط.",
+      "q": "من عائلة هوائيات الاستقبال، ما الاسم الذي يوافق هيئة الشكل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "📡"
       },
       "choices": [
-        "هوائي أقمار صناعية",
-        "مقراب فلكي",
-        "رادار دوار",
-        "قمر صناعي"
+        "طبق استقبال",
+        "هوائي راديو",
+        "طبق فضائي",
+        "هوائي أقمار صناعية"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "الاسم المطابق للرمز هو هوائي أقمار صناعية؛ وتثبت تسميتا Unicode وOpenMoji أنه «satellite antenna».",
       "src": [
         "Unicode Emoji 12.0 — satellite antenna — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — satellite antenna — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4019,24 +4019,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تأمل ملامح هذا الظل؛ عين الاسم المطابق لهيئته.",
+      "q": "أي عنصر من تجهيزات الحمام يطابق المحيط الأسود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🚽"
       },
       "choices": [
-        "دش",
         "مغسلة",
-        "مرحاض",
-        "حوض استحمام"
+        "مبولة",
+        "دش",
+        "مرحاض"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "الاسم المطابق للرمز هو مرحاض؛ وتثبت تسميتا Unicode وOpenMoji أنه «toilet».",
       "src": [
         "Unicode Emoji 12.0 — toilet — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — toilet — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4045,24 +4045,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "ابحث بين الأسماء المعروضة؛ عين الاسم المطابق لهيئته.",
+      "q": "تأمل محيط الشكل؛ أي خيار من أدوات الحلاقة تراه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🪒"
       },
       "choices": [
-        "مشط شعر",
-        "فرشاة أسنان",
-        "مقص أظافر",
-        "ماكينة حلاقة يدوية"
+        "ماكينة حلاقة",
+        "ماكينة حلاقة يدوية",
+        "شفرة حلاقة",
+        "موس"
       ],
-      "answer": 3,
+      "answer": 1,
       "why": "الاسم المطابق للرمز هو ماكينة حلاقة يدوية؛ وتثبت تسميتا Unicode وOpenMoji أنه «razor».",
       "src": [
         "Unicode Emoji 12.0 — razor — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — razor — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4071,24 +4071,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "دقق في هيئة الظل؛ أي مسمى يناسبه؟",
+      "q": "اختر من بالونات ما تمثله الهيئة المرسومة.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🎈"
       },
       "choices": [
-        "لعبة يويو",
-        "كرة مطاطية",
-        "طائرة ورقية",
-        "بالون"
+        "بالون",
+        "بالون هيليوم",
+        "بالون ماء",
+        "منطاد صغير"
       ],
-      "answer": 3,
+      "answer": 0,
       "why": "الاسم المطابق للرمز هو بالون؛ وتثبت تسميتا Unicode وOpenMoji أنه «balloon».",
       "src": [
         "Unicode Emoji 12.0 — balloon — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — balloon — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4097,24 +4097,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "ابحث عن الاسم الصحيح؛ ماذا تمثل هذه الحدود؟",
+      "q": "في مجموعة بولينغ، ما الشيء الذي تشير إليه الحدود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🎳"
       },
       "choices": [
+        "قوارير بولينغ",
+        "كرة خشبية",
         "قوارير بولينغ وكرة",
-        "عصا هوكي وقرص",
-        "مضرب كريكيت وكرة",
-        "شبكة تنس وكرة"
+        "كرة بولينغ"
       ],
-      "answer": 0,
+      "answer": 2,
       "why": "الاسم المطابق للرمز هو قوارير بولينغ وكرة؛ وتثبت تسميتا Unicode وOpenMoji أنه «bowling».",
       "src": [
         "Unicode Emoji 12.0 — bowling — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — bowling — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4123,16 +4123,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تتبع محيط الرسم الأسود؛ إلى أي شيء يشير؟",
+      "q": "أي مسمى من ألعاب الخيط يطابق هيئة الظل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🪀"
       },
       "choices": [
-        "بلبل دوار",
+        "لعبة نطاطة",
         "لعبة يويو",
-        "طائرة ورقية",
-        "مكعب أحجية"
+        "كرة خيط",
+        "دوامة"
       ],
       "answer": 1,
       "why": "الاسم المطابق للرمز هو لعبة يويو؛ وتثبت تسميتا Unicode وOpenMoji أنه «yo-yo».",
@@ -4140,7 +4140,7 @@ KZV.register({
         "Unicode Emoji 12.0 — yo-yo — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — yo-yo — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4149,24 +4149,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "انتبه إلى شكل الجسم؛ ما تسميته بين البدائل؟",
+      "q": "ركز على الهيئة السوداء وحدها؛ حدد خيار مكبرات الصوت المطابق.",
       "vis": {
         "kind": "silhouette",
         "emoji": "📣"
       },
       "choices": [
-        "مصباح يدوي",
-        "جرس يدوي",
         "مكبر صوت محمول",
-        "صافرة رياضية"
+        "مكبر يدوي",
+        "بوق صوت",
+        "مكبر نداء"
       ],
-      "answer": 2,
+      "answer": 0,
       "why": "الاسم المطابق للرمز هو مكبر صوت محمول؛ وتثبت تسميتا Unicode وOpenMoji أنه «megaphone».",
       "src": [
         "Unicode Emoji 12.0 — megaphone — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — megaphone — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4175,24 +4175,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "قارن الأسماء بهذا الظل؛ أيها يوافق الرسم؟",
+      "q": "اقرأ المحيط الأسود ثم اختر الشيء من عائلة أدوات الفحص الطبي.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🩺"
       },
       "choices": [
-        "مقياس حرارة",
-        "مقياس ضغط",
-        "سماعة طبية",
-        "محقنة طبية"
+        "منظار أذن",
+        "جهاز قياس ضغط",
+        "جهاز فحص",
+        "سماعة طبية"
       ],
-      "answer": 2,
+      "answer": 3,
       "why": "الاسم المطابق للرمز هو سماعة طبية؛ وتثبت تسميتا Unicode وOpenMoji أنه «stethoscope».",
       "src": [
         "Unicode Emoji 12.0 — stethoscope — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — stethoscope — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4201,24 +4201,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "افحص حدود الشيء المصور؛ ما اسمه الصحيح؟",
+      "q": "قارن حدود الظل ضمن عائلة الحقن الطبية: أي خيار يطابقه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "💉"
       },
       "choices": [
-        "مقص طبي",
-        "مقياس حرارة",
-        "سماعة طبية",
-        "محقنة طبية"
+        "إبرة طبية",
+        "سرنجة",
+        "محقنة طبية",
+        "حقنة"
       ],
-      "answer": 3,
+      "answer": 2,
       "why": "الاسم المطابق للرمز هو محقنة طبية؛ وتثبت تسميتا Unicode وOpenMoji أنه «syringe».",
       "src": [
         "Unicode Emoji 12.0 — syringe — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — syringe — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4227,16 +4227,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تتبع تفرعات هذا الظل؛ أي اسم يناسبه؟",
+      "q": "أي عنصر من أغصان الأعشاب يطابق المحيط الأسود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🌿"
       },
       "choices": [
         "غصن عشبي",
-        "زهرة توليب",
-        "سنبلة أرز",
-        "ورقة قيقب"
+        "غصن نعناع",
+        "غصن زعتر",
+        "غصن إكليل الجبل"
       ],
       "answer": 0,
       "why": "يمثل الظل غصن عشبي؛ وتثبت هوية الرمز تسميته في Unicode وسجل OpenMoji مع هيئة الرسم الفعلية.",
@@ -4244,7 +4244,7 @@ KZV.register({
         "Unicode Emoji 12.0 — herb — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — herb — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4253,24 +4253,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "لاحظ الحافة العليا للرسم؛ ما الذي يمثله؟",
+      "q": "في مجموعة براكين، ما الشيء الذي تشير إليه الحدود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🌋"
       },
       "choices": [
-        "وادي نهر",
         "بركان ثائر",
-        "شلال متدفق",
-        "جبل جليدي"
+        "بركان خامد",
+        "جبل بركاني",
+        "فوهة بركان"
       ],
-      "answer": 1,
+      "answer": 0,
       "why": "يمثل الظل بركان ثائر؛ وتثبت هوية الرمز تسميته في Unicode وسجل OpenMoji مع هيئة الرسم الفعلية.",
       "src": [
         "Unicode Emoji 12.0 — volcano — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — volcano — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4279,22 +4279,22 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تفحص هيئة عربة القطار السوداء؛ أي وصف يطابقها؟",
+      "q": "أي مسمى من مركبات السكك الحديدية يطابق هيئة الظل؟",
       "vis": {
         "kind": "silhouette",
-        "emoji": "🚃"
+        "emoji": "🚆"
       },
       "choices": [
-        "عربة تلفريك معلقة",
-        "قاطرة تعمل بالبخار",
+        "قطار سريع",
         "عربة قطار",
-        "حافلة ذات طابقين"
+        "عربة ترام",
+        "قاطرة بخارية"
       ],
-      "answer": 2,
-      "why": "الرسم يبيّن عربة قطار عامة ولا يحدّد مصدر طاقتها؛ لذلك يصف المفتاح الهيئة الظاهرة وحدها.",
+      "answer": 0,
+      "why": "مقدمة القطار السريع ذات الأنف الطويل تميّزه عن القاطرة والعربات المفردة.",
       "src": [
-        "Unicode Emoji 12.0 — railway car — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
-        "OpenMoji — railway car — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
+        "Unicode Emoji 12.0 — train — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
+        "OpenMoji — train — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
       "level": 2,
       "status": "approved",
@@ -4305,24 +4305,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "استعن بشكل اللوحة الخارجية؛ أي أداة مرورية هذه؟",
+      "q": "ركز على الهيئة السوداء وحدها؛ حدد خيار إشارات الطرق المطابق.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🛑"
       },
       "choices": [
-        "حاجز أعمال طريق",
+        "علامة تحذير",
+        "لافتة طريق",
         "إشارة قف",
-        "مثلث تحذير مروري",
-        "إشارة مرور ضوئية"
+        "إشارة مرور"
       ],
-      "answer": 1,
+      "answer": 2,
       "why": "يمثل الظل إشارة قف؛ وتثبت هوية الرمز تسميته في Unicode وسجل OpenMoji مع هيئة الرسم الفعلية.",
       "src": [
         "Unicode Emoji 12.0 — stop sign — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — stop sign — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4331,24 +4331,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تأمل الجسم وما يتطاير منه؛ أي شيء هو؟",
+      "q": "اقرأ المحيط الأسود ثم اختر الشيء من عائلة أدوات الاحتفال.",
       "vis": {
         "kind": "silhouette",
         "emoji": "🎉"
       },
       "choices": [
-        "مصباح يدوي صغير",
-        "مكشاف للرياح",
+        "لعبة فرقعة",
         "قاذف قصاصات ورقية",
-        "بكرة خيط ملونة"
+        "مدفع قصاصات",
+        "قاذف احتفال"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "يمثل الظل قاذف قصاصات ورقية؛ وتثبت هوية الرمز تسميته في Unicode وسجل OpenMoji مع هيئة الرسم الفعلية.",
       "src": [
         "Unicode Emoji 12.0 — party popper — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — party popper — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4357,24 +4357,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "طابق هيئة الجهاز بالأسماء؛ ما تسميته؟",
+      "q": "من عائلة وحدات التحكم، ما الاسم الذي يوافق هيئة الشكل؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🎮"
       },
       "choices": [
-        "لوحة مفاتيح حاسوب",
-        "فأرة حاسوب سلكية",
+        "عصا تحكم",
         "وحدة تحكم بالألعاب",
-        "سماعة هاتف مكتبي"
+        "ذراع تحكم",
+        "يد تحكم"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "يمثل الظل وحدة تحكم بالألعاب؛ وتثبت هوية الرمز تسميته في Unicode وسجل OpenMoji مع هيئة الرسم الفعلية.",
       "src": [
         "Unicode Emoji 12.0 — video game — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — video game — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4383,24 +4383,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "دقق في محيط الجهاز؛ أي آلة تظهر هنا؟",
+      "q": "أي عنصر من كاميرات يطابق المحيط الأسود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "📸"
       },
       "choices": [
-        "آلة تصوير فوتوغرافي",
-        "جهاز عرض ضوئي قديم",
-        "راديو محمول بهوائي",
-        "مسجل صوت محمول"
+        "كاميرا فورية",
+        "كاميرا مراقبة",
+        "كاميرا فيديو",
+        "آلة تصوير فوتوغرافي"
       ],
-      "answer": 0,
+      "answer": 3,
       "why": "يمثل الظل آلة تصوير فوتوغرافي؛ وتثبت هوية الرمز تسميته في Unicode وسجل OpenMoji مع هيئة الرسم الفعلية.",
       "src": [
         "Unicode Emoji 12.0 — camera with flash — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — camera with flash — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4409,24 +4409,24 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "عين أداة المكتب المرسومة؛ أي اسم يطابقها؟",
+      "q": "تأمل محيط الشكل؛ أي خيار من ألواح الكتابة تراه؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "📋"
       },
       "choices": [
-        "ملف أوراق بمقبض",
-        "رزمة بطاقات بريدية",
+        "ملف أوراق",
         "لوح تثبيت أوراق",
-        "دفتر بحلقات جانبية"
+        "لوح كتابة",
+        "لوح رسم"
       ],
-      "answer": 2,
+      "answer": 1,
       "why": "يمثل الظل لوح تثبيت أوراق؛ وتثبت هوية الرمز تسميته في Unicode وسجل OpenMoji مع هيئة الرسم الفعلية.",
       "src": [
         "Unicode Emoji 12.0 — clipboard — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — clipboard — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4461,16 +4461,16 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تتبع المقبض العلوي ولسان القطعة؛ أي شيء هي؟",
+      "q": "في مجموعة أجراس، ما الشيء الذي تشير إليه الحدود؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🔔"
       },
       "choices": [
-        "مصباح يدوي",
-        "جرس معلق",
         "جرس استقبال",
-        "كأس جائزة"
+        "جرس معلق",
+        "جرس باب",
+        "جرس يدوي"
       ],
       "answer": 1,
       "why": "الحلقة العلوية والجسم المتسع واللسان السفلي تمثل جرسا معلقا؛ ويسمي المصدران الرمز bell.",
@@ -4478,7 +4478,7 @@ KZV.register({
         "Unicode Emoji 12.0 — bell — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — bell — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     }
