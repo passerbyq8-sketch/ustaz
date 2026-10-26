@@ -637,7 +637,7 @@ function seenRead(){
   if(SEEN.mem)return;
   if(typeof DATA==="undefined"||!DATA||!Array.isArray(DATA.qs))return;
   var currentLength=Math.ceil(DATA.qs.length/8);
-  if(!SEEN.stamp||SEEN.bits.length!==currentLength){SEEN.stamp=seenStamp();SEEN.bits=seenEmpty()}
+  if(!SEEN.stamp||SEEN.bits.length!==currentLength){SEEN.stamp = seenStamp();SEEN.bits=seenEmpty()}
   var raw=null,bits=null;
   try{raw=window.localStorage.getItem(SEEN_KEY)}catch(e){SEEN.mem=true;return}
   var carried=false;
