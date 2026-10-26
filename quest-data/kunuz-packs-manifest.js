@@ -72,5 +72,9 @@ var KUNUZ_PACKS=[
   {
     "slug": "historical-events",
     "src": "quest-data/kunuz-pack-historical-events.js"
+  },
+  {
+    "slug": "landmark-photos",
+    "src": "quest-data/kunuz-pack-landmark-photos.js"
   }
 ];

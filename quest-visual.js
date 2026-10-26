@@ -85,7 +85,7 @@ var KZV=(function(){
     if(v.kind==="silhouette")return emoji(v.emoji,1);
     if(v.kind==="pattern")return Array.isArray(v.seq)&&v.seq.length===4&&v.seq.every(cell)&&Array.isArray(v.opts)&&v.opts.length===4&&v.opts.every(cell);
     if(v.kind==="photo"){
-      if(!/^quest-data\/signs\/[a-z0-9]+(?:-[a-z0-9]+)*\.webp$/.test(v.src))return false;
+      if(!/^(?:quest-data\/signs\/[a-z0-9]+(?:-[a-z0-9]+)*\.webp|quest-img\/landmarks\/landmark-photos-\d{4}\.webp)$/.test(v.src))return false;
       if(v.mask===undefined)return true;
       var m=v.mask;return object(m)&&[m.x,m.y,m.w,m.h].every(function(n){return typeof n==="number"&&isFinite(n)})&&m.x>=0&&m.y>=0&&m.w>0&&m.h>0&&m.x+m.w<=100&&m.y+m.h<=100;
     }
