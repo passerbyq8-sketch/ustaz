@@ -26,10 +26,10 @@ const makeWorld = new Function('fs', 'vm', 'VER', 'El', 'Txt', 'parseInto', 'get
 
 // ---------- load a built file ----------
 // ezik: the page no longer embeds its bank -- it loads ONE shared file, so DATA is read from that file.
-const BANK_TAG = '<script src="/quest-data/kunuz-bank-3147.js"></script>';
+const BANK_SCRIPT_RE = /<script\b[^>]*\bsrc=["'][^"']*kunuz-bank-3147\.js(?:\?[^"']*)?["'][^>]*>/i;
 function load(file) {
   const page = fs.readFileSync(file, 'utf8');
-  if (page.split(BANK_TAG).length !== 2) throw new Error('page does not load the shared bank exactly once: ' + file);
+  if (BANK_SCRIPT_RE.test(page)) throw new Error('page has a parser-blocking shared bank tag: ' + file);
   if (page.indexOf('var DATA=') > -1) throw new Error('page still embeds a bank: ' + file);
   const t = '<script>' + fs.readFileSync(path.join(REPO, 'quest-data', 'kunuz-bank-3147.js'), 'utf8') + '</script>\n' + page;
   const k = t.indexOf('var DATA='), i = t.lastIndexOf('<script>', k), j = t.indexOf('</script>', k);

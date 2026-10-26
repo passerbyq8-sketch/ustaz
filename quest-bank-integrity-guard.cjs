@@ -28,8 +28,8 @@
  *                      is true/false, and the entity rule holds over the whole bank (named exceptions only).
  *   K2 one copy     -- quest-data/ holds one bank, its levels map and declared visual sidecars (2026-10-19), and no page in
  *                      the repository root embeds a bank of its own.
- *   K3 the modes    -- quest-ghaws.html, quest-harb.html, quest-test.html and quest-board.html each load the shared bank
- *                      exactly once, and each carries a way back to /quest.html and a
+ *   K3 the modes    -- quest-ghaws.html, quest-harb.html, quest-test.html and quest-board.html start without a
+ *                      parser-blocking bank tag, use the shared deferred loader, and each carries a way back to /quest.html and a
  *                      way home to /.
  *   K4 the hub      -- quest.html carries the home link to /, a door to each mode, and
  *                      does NOT load the bank (the hub must stay light).
@@ -2626,14 +2626,22 @@ async function compare(bankPath) {
   if (!embedders.length) ok('no root page embeds a bank of its own');
   else no('K2', 'pages embedding their own bank: ' + embedders.join(', '));
 
-  // -- K3 the two modes ------------------------------------------------------
-  console.log('\n-- K3 the two modes --');
+  // -- K3 the four modes -----------------------------------------------------
+  console.log('\n-- K3 the four modes --');
+  const journey = fs.readFileSync(path.join(__dirname, 'quest-theme', 'journey.js'), 'utf8');
+  const deferredBankLoader = /function loadKunuzLocal\(\)/.test(journey)
+    && /const version = '\?v=' \+ OFFLINE_VERSION/.test(journey)
+    && /'\/quest-data\/kunuz-bank-3147\.js'/.test(journey)
+    && /await loadLocalScript\(src \+ version\)/.test(journey);
+  if (deferredBankLoader) ok('the shared journey loads the bank after the initial screen with the worker version');
+  else no('K3', 'the shared deferred bank loader is missing or not versioned');
   for (const f of KUNUZ_MODES) {
     const p = path.join(__dirname, f);
     if (!fs.existsSync(p)) { no('K3', f + ' is ABSENT'); continue; }
     const h = fs.readFileSync(p, 'utf8');
-    if (countOf(h, BANK_TAG) === 1) ok(f + ' loads the shared bank exactly once');
-    else no('K3', f + ' loads the shared bank ' + countOf(h, BANK_TAG) + ' times');
+    const hasBankScript = /<script\b[^>]*\bsrc=["'][^"']*kunuz-bank-3147\.js(?:\?[^"']*)?["'][^>]*>/i.test(h);
+    if (!hasBankScript && /quest-theme\/journey\.js/.test(h) && deferredBankLoader) ok(f + ' defers the shared bank to the journey loader');
+    else no('K3', f + ' has a parser-blocking bank tag or lacks the deferred journey loader');
     if (/<a\b[^>]*href="\/quest\.html"/.test(h)) ok(f + ' carries the way back to /quest.html');
     else no('K3', f + ' has no link back to /quest.html');
     if (/<a\b[^>]*href="\/"/.test(h)) ok(f + ' carries the way home to /');

@@ -2,6 +2,8 @@
 (function (global) {
   'use strict';
   const PER_CATEGORY = 6;
+  // Compact labels let setup screens render before the full question bank loads.
+  const FALLBACK_CATEGORIES = Object.freeze([{"slug":"deen","name":"الدين"},{"slug":"prayer","name":"الصلاة"},{"slug":"quran","name":"القرآن الكريم"},{"slug":"juz-amma","name":"جزء عمّ"},{"slug":"juz-tabarak","name":"جزء تبارك"},{"slug":"adhkar","name":"أذكار اليوم"},{"slug":"prophets","name":"قصص الأنبياء"},{"slug":"seerah","name":"السيرة النبوية"},{"slug":"manners","name":"الآداب والأخلاق"},{"slug":"islamic-history","name":"التاريخ الإسلامي"},{"slug":"geography","name":"الجغرافيا"},{"slug":"world-history","name":"تاريخ العالم"},{"slug":"animals","name":"عالم الحيوان"},{"slug":"physics","name":"الفيزياء"},{"slug":"biology","name":"الأحياء"},{"slug":"chemistry","name":"الكيمياء"},{"slug":"math","name":"الرياضيات"},{"slug":"hadith","name":"الأحاديث النبوية"},{"slug":"rashidun","name":"الخلفاء الراشدون"},{"slug":"umayyad","name":"الدولة الأموية"},{"slug":"abbasid","name":"الدولة العباسية"},{"slug":"ayyubid","name":"الدولة الأيوبية"},{"slug":"mamluk","name":"دولة المماليك"},{"slug":"ottoman","name":"الدولة العثمانية"},{"slug":"arab-world","name":"العالم العربي"},{"slug":"kuwait-history","name":"تاريخ الكويت"},{"slug":"cuisine","name":"المطبخ"},{"slug":"poetry-fusha","name":"الشعر الفصيح"},{"slug":"poetry-nabati","name":"الشعر النبطي"},{"slug":"fitness-health","name":"الصحة واللياقة"},{"slug":"arabic-language","name":"اللغة العربية"},{"slug":"proverbs","name":"الأمثال"},{"slug":"kuwait-sea-heritage","name":"التراث البحري"},{"slug":"kuwait-old-life","name":"الحياة الكويتية القديمة"},{"slug":"marine-life","name":"الأحياء البحرية"},{"slug":"astronomy","name":"الفلك والفضاء"},{"slug":"earth-weather","name":"علوم الأرض والطقس"},{"slug":"human-body","name":"جسم الإنسان"},{"slug":"muslim-scientists","name":"علماء المسلمين"},{"slug":"inventions","name":"الاختراعات"},{"slug":"palm-plants","name":"النخلة والنبات"},{"slug":"horses-camels-falcons","name":"الخيل والإبل والصقور"},{"slug":"first-aid","name":"الإسعافات الأولية"},{"slug":"money-economy","name":"المال والاقتصاد"},{"slug":"riddles-logic","name":"الألغاز والذكاء"},{"slug":"tech-computing","name":"التقنية والحاسوب"},{"slug":"islamic-architecture","name":"العمارة الإسلامية"},{"slug":"sahaba","name":"الصحابة والصحابيات"},{"slug":"mothers-ahlulbayt","name":"أمهات المؤمنين وآل البيت"},{"slug":"ghazawat","name":"الغزوات والسرايا"},{"slug":"tajweed","name":"التجويد"},{"slug":"asmaa-husna","name":"أسماء الله الحسنى"},{"slug":"easy-fiqh","name":"فقه العبادات"}]);
   const LEVELS = Object.freeze([1, 2, 3, 1, 2, 3]);
   const POINTS = Object.freeze([200, 400, 600]);
   const HANNA_POINTS = Object.freeze({
@@ -22,10 +24,16 @@
     return global.LEVELS_EXPERIMENT !== false && global.KUNUZ_LEVELS?.levels[q[8]] || 0;
   }
   function live(index) { return global.DATA.qs[index]?.[2] !== 0; }
+  function catalog() {
+    if (Array.isArray(global.DATA?.cats)) return global.DATA.cats.map((row, index) => ({ index, slug: row[0], name: row[1] }));
+    return FALLBACK_CATEGORIES.map((row, index) => ({ index, ...row }));
+  }
   function categories() {
-    const counts = global.DATA.cats.map(() => 0);
-    global.DATA.qs.forEach((q, i) => { if (live(i)) counts[q[0]]++; });
-    return global.DATA.cats.map((c, i) => ({ index: i, slug: c[0], name: c[1], count: counts[i] }));
+    const rows = catalog();
+    if (!Array.isArray(global.DATA?.qs)) return rows.map(row => ({ ...row, count: null }));
+    const counts = rows.map(() => 0);
+    global.DATA.qs.forEach((q, i) => { if (live(i) && counts[q[0]] !== undefined) counts[q[0]]++; });
+    return rows.map(row => ({ ...row, count: counts[row.index] }));
   }
   /* Device-local cycle/recency overlay. Native base/pack history remains intact for
      fallback screens and rooms; only the Journey's local reservations use cycles. */
@@ -121,5 +129,5 @@
     if (!game) return null;
     game.cats = cats.slice(); game.slots = slots; return game;
   }
-  global.KunuzModel = Object.freeze({ PER_CATEGORY, LEVELS, POINTS, HANNA_POINTS, shuffle, level, live, categories, history, candidates, pool, reserve, rank, hannaDelta, board });
+  global.KunuzModel = Object.freeze({ PER_CATEGORY, LEVELS, POINTS, HANNA_POINTS, shuffle, level, live, catalog, categories, history, candidates, pool, reserve, rank, hannaDelta, board });
 })(window);

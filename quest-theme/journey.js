@@ -43,8 +43,9 @@
     if (!global.KZV?.explain(node, display)) node.innerHTML = q[6] + (display[7] ? '<span class="src">' + esc(display[7]) + '</span>' : '');
   }
   const sym = i => Icons.symbol(i);
-  const catIcon = c => Icons.category(global.DATA.cats[c][0], c);
-  const catName = c => global.DATA.cats[c][1];
+  const categoryMeta = c => Model.catalog()[c] || { slug: '', name: '' };
+  const catIcon = c => Icons.category(categoryMeta(c).slug, c);
+  const catName = c => categoryMeta(c).name;
   const teamNew = i => ({ n: defaults[i], c: colors[i], symbol: i, score: 0, shows: 2 });
   const M = {
     game, ready: false, step: game === 'hub' ? 0 : 1, stage: game === 'hub' ? 'hub' : 'loading', cats: [], teams: [],
@@ -52,6 +53,7 @@
     slots: [], pool: [], used: new Set(), question: null, g: null, error: '', dialog: null, running: false,
     fallback: [], excluded: [], questionHistory: false, skipPop: false, lastStage: '', warMessage: '', warEvent: null, diveNative: null,
     result: null, audioUnlocked: false, muted: false, timer: null, lastAction: -Infinity, offlineReady: false,
+    pendingStartupAction: '',
     quizCount: 5, quizCustomCount: false, quizCountDraft: '', quizTimeDraft: '', quizAdvance: null, quizPausedAt: null, quizLastQuestion: null, roomDraft: '', roomCodeError: '', roomStartError: '',
     roomCodeEntry: false, joinDraft: '', joinError: '', roomFromEntry: false, homeNotice: null, roomClosedNotice: '', homePurchasesApplicable: false, joinOnly: false
   };
@@ -61,7 +63,8 @@
   const app = document.createElement('div'); app.className = 'journey-app'; app.dataset.game = game;
   document.body.classList.add('ezik-treasure-theme'); document.body.append(app);
   const themeMeta = document.querySelector('meta[name="theme-color"]'); if (themeMeta) themeMeta.content = '#082c38';
-  const THEME_VERSION = '20261025-kfix3';
+  const OFFLINE_VERSION = '20261025-kfix5';
+  const THEME_VERSION = OFFLINE_VERSION;
   const IAP_HOST_RESUME_KEY = 'kunuz_iap_host_resume_v1';
   const IAP_EXPIRED_NOTICE_KEY = 'kunuz_iap_expired_notice_v1';
   const themeAsset = file => '/quest-theme/' + file + '?v=' + THEME_VERSION;
@@ -83,6 +86,16 @@
     }
     M.bubbleFrame = requestAnimationFrame(step);
   }
+  function hasKunuzController() { return !!navigator.serviceWorker.controller?.scriptURL.endsWith('/quest-sw.js'); }
+  async function waitForKunuzController() {
+    if (hasKunuzController()) return true;
+    return new Promise(resolve => {
+      const finish = () => { clearTimeout(timeout); navigator.serviceWorker.removeEventListener('controllerchange', changed); resolve(hasKunuzController()); };
+      const changed = () => { if (hasKunuzController()) finish(); };
+      const timeout = setTimeout(finish, 5000);
+      navigator.serviceWorker.addEventListener('controllerchange', changed);
+    });
+  }
   async function prepareOffline() {
     if (!('serviceWorker' in navigator)) return;
     try {
@@ -99,15 +112,11 @@
         });
         if (worker.state !== 'activated') M.offlineReady = false;
       }
+      if (M.offlineReady) M.offlineReady = await waitForKunuzController();
       if ((hasRooms || game === 'test') && M.offlineReady) {
         // These two entry pages version their new screens independently. Cache
         // them after the first worker takes control, including a first visit.
-        if (!navigator.serviceWorker.controller) await new Promise(resolve => {
-          const controlled = () => { clearTimeout(timeout); navigator.serviceWorker.removeEventListener('controllerchange', controlled); resolve(); };
-          const timeout = setTimeout(controlled, 3000);
-          navigator.serviceWorker.addEventListener('controllerchange', controlled);
-        });
-        const screenVersion = '20261024-iapg6';
+        const screenVersion = OFFLINE_VERSION;
         const screenAssets = ['theme.css?v=' + screenVersion, 'journey.js?v=' + screenVersion, 'room-categories.js?v=' + screenVersion, 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
         if (game === 'board') screenAssets.push('board-rooms.js?v=' + screenVersion);
         if (navigator.serviceWorker.controller) await Promise.all(screenAssets.map(async file => {
@@ -122,6 +131,7 @@
         const registrations = await Promise.all(['/quest.html', '/hanna-laha/'].map(url => navigator.serviceWorker.getRegistration(url)));
         M.offlineReady = registrations.every(registration => registration?.active?.scriptURL.endsWith('/quest-sw.js'));
       } catch (_) { M.offlineReady = false; }
+      if (M.offlineReady) M.offlineReady = await waitForKunuzController();
     }
   }
   async function warmLocalAssets() {
@@ -242,7 +252,7 @@
   }
   function categories() {
     const roomBank = usesRoomBank();
-    const all = Model.categories().filter(c => c.count >= Model.PER_CATEGORY && (!roomBank || roomCategorySupported(c.index)));
+    const all = Model.categories().filter(c => (c.count === null || c.count >= Model.PER_CATEGORY) && (!roomBank || roomCategorySupported(c.index)));
     function section(list, title) {
       return '<h2 class="j-divider">' + title + '</h2><div class="j-category-picker">' + list.map(c => {
         const selected = M.cats.includes(c.index), disabled = !selected && M.cats.length >= 6;
@@ -415,6 +425,7 @@
       (M.error ? '<div class="j-error" role="alert">' + esc(M.error) + '</div>' : '') + '<div class="j-actions">' + button('ابدأ', 'quiz-start', 'j-btn', !quizCounts().length ? 'disabled' : '') + '</div></section>';
   }
   function quizCatalog() {
+    if (!Array.isArray(global.DATA?.qs)) return Model.categories().map(c => ({ ...c, count: null }));
     const counts = global.DATA.cats.map(() => 0);
     global.DATA.qs.forEach((q, i) => { if (Model.live(i) && q[4].length === 4) counts[q[0]]++; });
     return Model.categories().map(c => ({ ...c, count: counts[c.index] })).filter(c => c.count > 0);
@@ -422,7 +433,7 @@
   function quizAvailable() { return quizCatalog().filter(c => M.cats.includes(c.index)).reduce((n, c) => n + c.count, 0); }
   function quizCountError() { return M.quizCustomCount && !/^0*[1-9]\d*$/.test(M.quizCountDraft) ? 'اكتب عددًا أو اختر واحدًا' : ''; }
   function quizTimeError() { return M.settings.custom && (!/^\d+$/.test(M.quizTimeDraft) || +M.quizTimeDraft < 1 || +M.quizTimeDraft > 3600) ? 'اكتب وقتًا من ١ إلى ٣٦٠٠ ثانية' : ''; }
-  function quizCountNote() { return M.quizCustomCount && !quizCountError() && +M.quizCountDraft > quizAvailable() ? 'العدد المختار أكبر من المتاح؛ ستلعب بالأسئلة المتاحة.' : ''; }
+  function quizCountNote() { return !M.ready ? '' : M.quizCustomCount && !quizCountError() && +M.quizCountDraft > quizAvailable() ? 'العدد المختار أكبر من المتاح؛ ستلعب بالأسئلة المتاحة.' : ''; }
   function quizNumberField(kind, label, value) {
     const error = kind === 'count' ? quizCountError() : quizTimeError();
     return '<div class="j-quiz-custom"><label class="j-field" for="j-quiz-' + kind + '">' + label + '</label><input id="j-quiz-' + kind + '" class="j-input" data-quiz-number="' + kind + '" inputmode="numeric" pattern="[0-9]*" autocomplete="off" dir="ltr" value="' + esc(value) + '" aria-invalid="' + !!error + '" aria-describedby="j-quiz-' + kind + '-help"><p id="j-quiz-' + kind + '-help" class="' + (error ? 'j-error' : 'j-note') + '" role="status">' + (error || (kind === 'count' ? quizCountNote() : 'من ١ إلى ٣٦٠٠ ثانية')) + '</p></div>';
@@ -440,6 +451,7 @@
     saveQuizDraft();
   }
   function quizCounts() {
+    if (!M.ready) return M.cats.length ? [5, 10, 15, 20] : [];
     const available = quizCatalog().filter(c => M.cats.includes(c.index)).reduce((n, c) => n + c.count, 0);
     return available < 5 ? available ? [available] : [] : [5, 10, 15, 20].filter(n => n <= available);
   }
@@ -1275,8 +1287,8 @@
     else if (action === 'dismiss-home-notice' && game === 'hub') { M.homeNotice = null; render(); }
     else if (action === 'home') { if (M.running || M.stage === 'room' || M.stage === 'board-room') askDialog('تطلعون للرئيسية وتتركون اللعبة؟', confirmedHomeExit, () => {}, { yes: 'نعم، نطلع', no: 'لا، نبقى' }); else homeExit(); }
     else if (action === 'back') back();
-    else if (action === 'create-room' && M.stage === 'room-entry') beginHostEntry();
-    else if (action === 'resume-room' && M.stage === 'room-entry' && savedWarRoom()) enterRoom(true, false, true);
+    else if (action === 'create-room' && M.stage === 'room-entry') { if (M.ready) beginHostEntry(); else M.pendingStartupAction = 'create-room'; }
+    else if (action === 'resume-room' && M.stage === 'room-entry' && savedWarRoom()) { if (M.ready) enterRoom(true, false, true); else M.pendingStartupAction = 'resume-room'; }
     else if (action === 'single-device' && M.stage === 'room-entry') { M.settings.room = false; M.error = ''; setStage('categories', 1, true); }
     else if (action === 'change-play-mode' && M.stage === 'settings' && hasRooms) { M.error = ''; setStage('room-entry', 0, true); }
     else if (action === 'join-submit' && M.stage === 'room-join') submitJoin();
@@ -1287,7 +1299,7 @@
     else if (action === 'quiz-options' && game === 'test' && M.stage === 'settings') { M.settings.options = M.settings.options === 'shown' ? 'hidden' : 'shown'; render(); }
     else if (action === 'quiz-all' && game === 'test' && M.stage === 'categories') { M.cats = quizCatalog().map(c => c.index); render(); }
     else if (action === 'quiz-clear' && game === 'test' && M.stage === 'categories') { M.cats = []; render(); }
-    else if (action === 'quiz-start' && game === 'test') beginQuiz();
+    else if (action === 'quiz-start' && game === 'test') { if (M.ready) beginQuiz(); else M.pendingStartupAction = 'quiz-start'; }
     else if (action === 'quiz-again' && game === 'test') resetQuiz();
     else if (action === 'cat') { const c = +el.dataset.cat, i = M.cats.indexOf(c); if (i >= 0) M.cats.splice(i, 1); else if (game === 'test' || M.cats.length < 6) M.cats.push(c); M.error = ''; render(); }
     else if (action === 'next-setup') {
@@ -1309,7 +1321,7 @@
       M.error = ''; M.roomStartError = ''; render();
       if (field === 'room' && M.settings.room) window.scrollTo(0, 0);
     }
-    else if (action === 'start') beginWithIap();
+    else if (action === 'start') { if (M.ready) beginWithIap(); else M.pendingStartupAction = 'start'; }
     else if (action === 'tile') openTile(+el.dataset.slot);
     else if (action === 'show-options' && q && !q.settled && !shownOptions(q)) { const team = M.teams[q.activeTeam ?? q.actor]; if (team.shows > 0) { team.shows--; q.showTeams.add(q.activeTeam ?? q.actor); render(); } }
     else if (action === 'answer' && q && !q.settled && !q.answerRevealed && !q.burned.has(+el.dataset.answer)) {
@@ -1527,17 +1539,25 @@
   global.addEventListener('pagehide', event => { clearTimer(); stopSounds(); cancelVisuals(); if (!event.persisted) Motion?.dispose(); });
   global.addEventListener('pageshow', event => { if (event.persisted) { render(); if (game === 'test' && M.stage !== 'test-question') return; if (game === 'test' && M.question?.settled && M.running) scheduleQuizNext(M.question); else if (M.question && !M.question.settled && !M.question.answerRevealed && !M.question.beat) startTimer(); } });
   global.KunuzJourney = Object.freeze({ get state() { return M; }, get boardRooms() { return boardRooms?.diagnostics || null; }, get diagnostics() { return { bankStamp: typeof global.seenStamp === 'function' ? global.seenStamp() : '', offlineReady: M.offlineReady, excluded: M.excluded, fallback: M.fallback, categories: game === 'hub' ? [] : Model.categories().map(c => ({ name: c.name, total: c.count })) }; } });
+  function loadLocalScript(src) {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script'); script.src = src;
+      script.onload = resolve; script.onerror = () => reject(new Error('A local Kunuz file could not be loaded. Reconnect once, then try again.'));
+      document.head.append(script);
+    });
+  }
+  async function loadKunuzLocal() {
+    const version = '?v=' + OFFLINE_VERSION;
+    const sources = ['/quest-data/kunuz-bank-3147.js', '/quest-data/kunuz-geo-index.js', '/quest-data/kunuz-packs-manifest.js', '/quest-visual.js', '/quest-levels.js'];
+    if (game === 'hanna') sources.splice(1, 0, '/quest-theme/history.js');
+    for (const src of sources) await loadLocalScript(src + version);
+    global.dispatchEvent(new Event('kunuz-bank-ready'));
+  }
   async function loadHannaLocal() {
     // Direct room URLs stay outside the local bank/pack engine. Local Hanna uses
     // that engine only after the entry route has been classified below.
-    const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = '/quest-visual.css'; document.head.append(css);
-    for (const src of ['/quest-data/kunuz-bank-3147.js', '/quest-theme/history.js', '/quest-data/kunuz-geo-index.js', '/quest-data/kunuz-packs-manifest.js?v=20261022-roomsfix2', '/quest-visual.js', '/quest-levels.js']) {
-      await new Promise((resolve, reject) => {
-        const script = document.createElement('script'); script.src = src;
-        script.onload = resolve; script.onerror = () => reject(new Error('تعذّر تحميل ملفات المغامرة المحلية. حاولوا مرة ثانية.'));
-        document.head.append(script);
-      });
-    }
+    const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = '/quest-visual.css?v=' + OFFLINE_VERSION; document.head.append(css);
+    await loadKunuzLocal();
   }
   async function boot() {
     // Mount before parser-blocking legacy bank/engine scripts. They stay hidden.
@@ -1549,7 +1569,9 @@
     if (game === 'hub') {
       render();
       if (typeof global.ezikIapEnterHome === 'function') global.ezikIapEnterHome(setHomeNotice).catch(() => {});
-      await prepareOffline(); M.ready = true; return;
+      await prepareOffline();
+      loadLocalScript('/quest-i18n.js?v=' + OFFLINE_VERSION).catch(() => {});
+      M.ready = true; return;
     }
     const params = new URLSearchParams(location.search);
     const joinRoute = game === 'hanna' && /^\/hanna-laha\/(?:join|j\/\d{4,6})\/?$/.test(path);
@@ -1567,22 +1589,38 @@
       M.roomFromEntry = new URLSearchParams(location.search).get('entry') === '1';
       M.ready = true; await enterRoom(true, true); return;
     }
-    if (game !== 'test') history.replaceState({ journey: true, step: 1 }, ''); render();
+    if (game !== 'test') history.replaceState({ journey: true, step: 1 }, '');
+    const setupRoute = new URLSearchParams(location.search).get('setup') === '1';
+    const earlyEntry = !resumeWarOnReload && !boardJoinRoute && !setupRoute;
+    if (earlyEntry && hasRooms && !M.joinOnly) {
+      const draft = entryHistory?.entryDraft;
+      if (draft && Array.isArray(draft.cats) && Array.isArray(draft.teams)) { M.cats = draft.cats; M.teams = draft.teams; Object.assign(M.settings, draft.settings); }
+      setStage('room-entry', 0);
+    } else if (earlyEntry && game === 'test') initQuizSetup();
+    else if (earlyEntry && game !== 'test') setStage('categories', 1);
+    else render();
     try {
+      await prepareOffline();
       if (game === 'hanna') await loadHannaLocal();
+      else await loadKunuzLocal();
+      if (game === 'ghaws' || game === 'harb') loadLocalScript('/quest-i18n.js?v=' + OFFLINE_VERSION).catch(() => {});
       if (!global.DATA || !global.KZV) throw new Error('ملفات المغامرة غير متاحة. افتحوا الصفحة متصلين مرة لتكتمل الملفات المحلية.');
       await global.KZV.ready;
-      await warmLocalAssets();
-      await prepareOffline();
+      warmLocalAssets().catch(() => {});
       if (global.LEVELS_EXPERIMENT !== false) await new Promise(resolve => { let tries = 0; const timer = setInterval(() => { if (global.KUNUZ_LEVELS || ++tries >= 80) { clearInterval(timer); resolve(); } }, 25); });
-      M.excluded = Model.categories().filter(c => c.count < Model.PER_CATEGORY); M.ready = true;
+      const availableCategories = Model.categories();
+      M.excluded = availableCategories.filter(c => c.count < Model.PER_CATEGORY);
+      const usableCategories = new Set((game === 'test' ? quizCatalog() : availableCategories.filter(c => c.count >= Model.PER_CATEGORY)).map(c => c.index));
+      M.cats = M.cats.filter(index => usableCategories.has(index));
+      if (game === 'test' && !M.quizCustomCount && !quizCounts().includes(M.quizCount) && quizCounts().length) M.quizCount = quizCounts()[0];
+      if (M.stage === 'settings' && M.cats.length < (game === 'test' ? 1 : 3)) { M.stage = 'categories'; M.step = 1; }
+      M.ready = true;
       if (game === 'board') {
         boardRooms = global.KunuzBoardRooms.attach({ state: M, app, render, esc, ar, button, digits: roomDigits, colors, sym, time, paintTime, askDialog, boardView, boardQuestion, teamBar, timerMarkup });
-        if (!M.joinOnly && boardRooms.resume()) return;
+        if (!M.joinOnly && M.stage === 'room-entry' && !M.pendingStartupAction && boardRooms.resume()) return;
       }
-      if (game === 'test') { initQuizSetup(); return; }
       if (resumeWarOnReload) { await enterRoom(true, false, true); return; }
-      if (M.joinOnly) { history.replaceState({ journey: true, stage: 'room-entry', step: 0 }, '', location.pathname + '?iap_join=1'); setStage('room-entry', 0); return; }
+      if (M.joinOnly && M.stage === 'room-entry') { history.replaceState({ journey: true, stage: 'room-entry', step: 0 }, '', location.pathname + '?iap_join=1'); setStage('room-entry', 0); return; }
       if (new URLSearchParams(location.search).get('setup') === '1') {
         try {
           const draft = JSON.parse(sessionStorage.getItem('kunuz_journey_room_setup_v1')); sessionStorage.removeItem('kunuz_journey_room_setup_v1');
@@ -1593,17 +1631,26 @@
           }
         } catch (_) {}
       }
+      if (M.pendingStartupAction) {
+        const pending = M.pendingStartupAction; M.pendingStartupAction = '';
+        if (pending === 'start' && M.stage === 'settings') { beginWithIap(); return; }
+        if (pending === 'quiz-start' && M.stage === 'settings') { beginQuiz(); return; }
+        if (pending === 'create-room' || pending === 'resume-room') { onAction(pending, null); return; }
+      }
       if (hasRooms) {
-        if (restoreHostResume()) {
+        if (M.stage === 'room-entry' && restoreHostResume()) {
           history.replaceState({ journey: true, stage: 'room-entry', step: 0 }, '', location.pathname);
           setStage('room-entry', 0);
           beginHostEntry();
           return;
         }
-        const draft = entryHistory?.entryDraft;
-        if (draft && Array.isArray(draft.cats) && Array.isArray(draft.teams)) { M.cats = draft.cats; M.teams = draft.teams; Object.assign(M.settings, draft.settings); }
-        history.replaceState({ journey: true, step: 0, stage: 'room-entry', room: M.settings.room }, ''); setStage('room-entry', 0);
-      } else setStage('categories', 1);
+        if (M.stage === 'loading') M.stage = 'room-entry';
+        if (M.stage === 'room-entry') history.replaceState({ journey: true, step: 0, stage: 'room-entry', room: M.settings.room }, '');
+      } else if (M.stage === 'loading') {
+        if (game === 'test') { initQuizSetup(); return; }
+        M.stage = 'categories'; M.step = 1;
+      }
+      render();
     } catch (error) { M.error = error.message; setStage('error', 1); }
   }
   boot();

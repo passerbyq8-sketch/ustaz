@@ -51,12 +51,12 @@ WORLD = WORLD.replace(A1, 'DATA, localStorage: o.storage, Math: M,').replace(/\b
 const makeWorld = new Function('fs', 'vm', 'VER', 'El', 'Txt', 'parseInto', 'getR', WORLD + '\nreturn makeWorld;')(fs, vm, VER, El, Txt, parseInto, () => R);
 
 const BANK_FILE = path.join(REPO, 'quest-data', 'kunuz-bank-3147.js');
-const BANK_TAG = '<script src="/quest-data/kunuz-bank-3147.js"></script>';
+const BANK_SCRIPT_RE = /<script\b[^>]*\bsrc=["'][^"']*kunuz-bank-3147\.js(?:\?[^"']*)?["'][^>]*>/i;
 const BANK_TEXT = fs.readFileSync(BANK_FILE, 'utf8');
 const DATA0 = new Function(BANK_TEXT + ';return DATA;')();
 const N = DATA0.qs.length;
 function srcOf(pageText) {
-  if (pageText.split(BANK_TAG).length !== 2) throw new Error('page does not load the shared bank exactly once');
+  if (BANK_SCRIPT_RE.test(pageText)) throw new Error('page has a parser-blocking shared bank tag');
   if (pageText.indexOf('var DATA=') > -1) throw new Error('page embeds a bank of its own');
   const sa = pageText.lastIndexOf('<script>'), sb = pageText.indexOf('</script>', sa);
   const bs = pageText.indexOf('<body>') + 6, be = pageText.indexOf('<script', bs);
@@ -502,7 +502,7 @@ function checkT11(pageText) {
   // KUNUZ-LEVELS-POETRY (2026-10-19, C): the owner's experimental levels add exactly one more script, the shared module, after
   // the page's own; it reaches nothing but its own data file (kunuzlevels L4/L5 hold what it does and that it can be switched off)
   // Visual engine: four fixed same-origin assets; kunuzvisual checks their loaders and switch.
-  if (srcs.join(',') !== '/quest-theme/motion-kit.js?v=20261022-roomsfix2,/quest-theme/icons.js?v=20261022-roomsfix2,/quest-theme/model.js?v=20261025-kfix3,/iap-pending.js?v=20261023-iapf,/hanna-laha/assets/iap-bridge-v1.js?v=20261024-iapg6,/quest-theme/journey.js?v=20261025-kfix8,/quest-data/kunuz-bank-3147.js,/quest-data/kunuz-geo-index.js,/quest-data/kunuz-packs-manifest.js?v=20261022-roomsfix2,/quest-visual.js,/quest-levels.js') f.push('scripts loaded: ' + srcs.join(','));
+  if (srcs.join(',') !== '/quest-theme/motion-kit.js?v=20261022-roomsfix2,/quest-theme/icons.js?v=20261022-roomsfix2,/quest-theme/model.js?v=20261025-kfix5,/iap-pending.js?v=20261023-iapf,/hanna-laha/assets/iap-bridge-v1.js?v=20261024-iapg6,/quest-theme/journey.js?v=20261025-kfix5') f.push('scripts loaded: ' + srcs.join(','));
   { const mod = fs.readFileSync(path.join(REPO, 'quest-levels.js'), 'utf8'); bad.forEach((re) => { if (re.test(mod.replace('s.src="/quest-data/kunuz-levels-3147.js";', ''))) f.push('the levels module reaches out: ' + re); });
     if ((mod.match(/\.src="([^"]*)"/g) || []).join() !== '.src="/quest-data/kunuz-levels-3147.js"') f.push('the levels module loads something else than its file'); }
   if (!/<html lang="ar" dir="rtl">/.test(pageText)) f.push('not declared Arabic right to left');
