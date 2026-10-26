@@ -2036,7 +2036,9 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3476767. NO CORE entry joined or left; the app.js line in sw.js's measured byte table followed. THIS digest is re-cut LAST, at CR = 0.
   //   2026-10-25 -- POSTSHIP SHIP: cache ezik-v112 -> ezik-v113 (the owner's word of 25 October; config/app-version.json and sw.js CACHE, app.js line 6 rebuilt): app.js 2290753 -> 2290753 bytes, sha256 3298fdaf..9b1c; node tools/core-bytes.cjs --write: CORE_BYTES 3476767.
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
-  'sw.js': 'da0402a066f29cb6fa1f760e65c9babcf6055c1dd65c0c144bc95ad11a592a19',
+  //   2026-10-26 -- YAHIMMAK, the section «يهمّك» (yahimmak.json and yahimmak-book.json warm in IDLE, not CORE) and cache ezik-v113 -> ezik-v114: app.js 2290753 -> 2356171 bytes, sha256 f097839d..2de5; node tools/core-bytes.cjs --write: CORE_BYTES 3542185.
+//                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57787 bytes).
+  'sw.js': '206583f8e05627735c63b7d98a03aaaea09605693aad7ca2ed41df2978c15d04',
 };
 
 // ---------------------------------------------------------------------------
@@ -3217,7 +3219,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2290753, of: 'app.js' },
+      { n: 2356171, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
