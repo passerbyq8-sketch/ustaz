@@ -587,7 +587,8 @@ async function main() {
       ok('M10 KILLED: with the quote exit ahead of the rule a pornography quote request is served by the library, not refused', dq.text !== PR.PORN_REFUSAL_TEXT);
       const mm = await askMutant('minors-reblocked', "if (impermissible.blocked && !(impermissible.kind === 'pornography' && impermissibleEarlyDecision().enabled)) {", 'if (impermissible.blocked) {');
       const dm = await drive(FIX.minors[0].q, { band: FIX.minors[0].band, age: FIX.minors[0].age, handler: mm.default });
-      ok('M11 KILLED: with the old classifier blocking again, a minor\'s question gets the counsel and no model call', dm.text === COUNSEL_YOUNG && outbound(dm.calls).length === 0);
+      ok('M11 KILLED: with the old classifier blocking again, a minor\'s question gets the counsel and no model call',
+        dm.text === COUNSEL_YOUNG && dm.calls.filter((url) => String(url).includes('api.anthropic.com')).length === 0);
       const DOUBT_TAIL = "|| ((audienceBand === 'young' || audienceBand === 'teen') && classifyYoungPornographyDoubt(currentQuestionText)));";
       const mage = await askMutant('doubt-for-everyone', DOUBT_TAIL, '|| classifyYoungPornographyDoubt(currentQuestionText));');
       const dad = await drive('خل اشوف مقاطع سكس', { handler: mage.default });

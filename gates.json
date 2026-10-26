@@ -340,6 +340,11 @@
     "args": ""
   },
   {
+    "name": "fatwaverifyparallel",
+    "script": "guards/fatwa-verify-parallel-guard.cjs",
+    "args": ""
+  },
+  {
     "name": "retiredchat",
     "script": "guards/retired-chat-endpoints-guard.cjs",
     "args": ""

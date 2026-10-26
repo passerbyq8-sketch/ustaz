@@ -596,7 +596,7 @@ function libraryPlain(markup) {
     // times, B2's one shared check leaves no query late: W6B2d.)
     const q4 = replayOwner4({ verifyMs: [1000], searchMs: { ...W4GAP_SEARCH_MS, 'إخراج القيمة في الزكاة': 3000 } });
     ok('W6B1g the owner\'s question 4 replayed with the store\'s recorded replies and W4GAP\'s timings keeps binbaz 6518',
-      q4 && q4.report.timedOut === true && q4.ids.includes('binbaz:6518'), ascii(JSON.stringify(q4)));
+      q4 && q4.report.timedOut === false && q4.ids.includes('binbaz:6518'), ascii(JSON.stringify(q4)));
   }
 
   // ---------------------------------------------------------------- W6B B2 one store check per instance (W4GAP K1b)
@@ -645,8 +645,9 @@ function libraryPlain(markup) {
       x1.startsWith('err:') && /^ok:[1-9]/.test(x2) && nc.health === 1, ascii(JSON.stringify({ x1, x2, calls: nc })));
     // The first fatwa turn of a cold instance, W4GAP's timings (the replay of W6B1g): with one check, its time is the first
     // caller's (+0.98 s), and every query starts then.
+    // Search requests now start while verification is running.
     const q4 = replayOwner4();
-    ok('W6B2d the owner\'s question 4 on a cold instance with W4GAP\'s timings: one /health and one /scholars call, every query starts after the one check, and the member answers inside its budget with binbaz 6518',
+    ok('W6B2d the owner\'s question 4 on a cold instance with W4GAP\'s timings: one /health and one /scholars call, searches overlap verification, and binbaz 6518 answers inside its budget',
       q4 && q4.health === 1 && q4.scholars === 1 && q4.searches.every((s) => s.start < 1500) && q4.report.timedOut === false && q4.ids.includes('binbaz:6518'),
       ascii(JSON.stringify(q4)));
   }

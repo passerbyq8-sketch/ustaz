@@ -1529,6 +1529,13 @@ const user = (t) => [{ role: 'user', content: t }];
         return { ok: true, status: 200, headers: { get: () => 'application/json' },
           json: async () => payload, text: async () => JSON.stringify(payload) };
       }
+      if (target.startsWith('https://ezik-fatwas-4k.vercel.app/api/v1/')) {
+        if (init.method !== 'GET' || !['/api/v1/health', '/api/v1/scholars'].includes(new URL(target).pathname)) {
+          unknownFetches.push({ requestId, target });
+          throw new Error('routing fixture blocked unexpected Fatwa request: ' + target.slice(0, 100));
+        }
+        return new Response('{"ok":false}', { status: 503, headers: { 'Content-Type': 'application/json' } });
+      }
       if (Object.prototype.hasOwnProperty.call(PAGES, target.split('?')[0])) return fetchImpl(target, init);
       unknownFetches.push({ requestId, target });
       throw new Error('routing fixture blocked non-stub fetch: ' + target.slice(0, 100));

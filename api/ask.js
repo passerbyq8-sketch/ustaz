@@ -70,6 +70,7 @@ import { liveSearchNotice } from '../lib/policy/live-search-disclosure.js';
 // included. ج٣ needs to ask «is this page on the shaykh's official domain?» and asking it with
 // string equality would answer «no» for www.binbaz.org.sa.
 import { findSource, hostMatches, resolveScholar } from '../lib/source-registry.js';
+import { startFatwaServiceWarmup } from '../lib/fatwa-service.js';
 import {
   rawQueryEntityInQuestion,
   stripEntityFromQuery,
@@ -940,7 +941,6 @@ export default async function handler(req, res) {
     await refundDayCap(cap);
     return;
   }
-
   // Server-derived charging identities only. The helper returns HMAC digests and never raw
   // account/device/cookie values; every paid-search path below receives the same dimensions.
   const paidSearchCallerDigests = searchBudgetCallerDigests(req);
@@ -1183,13 +1183,23 @@ export default async function handler(req, res) {
   // POSTSHIP FIX2 ITEM 1 -- 2026-10-25: the reader's own text (before the translation) or its Arabic -- either opens it.
   const supportContact = !pornBlocked && (isSupportContactRequest(currentQuestionText)
     || (readerOwnQuestionText !== currentQuestionText && isSupportContactRequest(readerOwnQuestionText)));
+  const graveHazardClass = graveHazard(currentQuestionText);
+  const impermissibleForWarmup = effectiveRoute === 'GEN'
+    ? classifyImpermissibleRequest(currentQuestionText)
+    : { blocked: false, kind: '' };
+  const impermissibleCounselForWarmup = impermissibleForWarmup.blocked
+    && !(impermissibleForWarmup.kind === 'pornography' && impermissibleEarlyDecision().enabled);
+  // Do not make even a background service request for a fixed local refusal, safety redirect, or support reply.
+  if (!pornBlocked && !supportContact && !graveHazardClass && !impermissibleCounselForWarmup) {
+    startFatwaServiceWarmup({ fetchImpl: globalThis.fetch });
+  }
   const sorterPlan = sorterEligibility({
     enabled: frontSorter.enabled, band, freeBrainEnabled: freeBrainOnAtSorter, runtime: currentRuntime,
     liveSearch: readLiveSearch(body), excluded: bw2ScopeExclusion(currentQuestionText), text: currentQuestionText,
     // ITEM C1 -- 2026-10-15 brain-line: graveHazard() returns the class name, and sorterEligibility() reads
     // `hazard === true`. Harmless while a hazard turn was lexically GENERAL and never asked; with GENERAL asked,
     // the class has to arrive as the boolean the eligibility reads.
-    closedDeen: closedDeenAnswers, hazard: !!graveHazard(currentQuestionText), porn: pornBlocked, support: supportContact,
+    closedDeen: closedDeenAnswers, hazard: !!graveHazardClass, porn: pornBlocked, support: supportContact,
   });
   // The frame the free-brain seat answers in: the general one for an adult whose FINAL runtime is GENERAL
   // (and never with the switch off).
@@ -2107,6 +2117,7 @@ export default async function handler(req, res) {
         console.log('[bw2]', {
           bw2: t.bw2, runtime: currentRuntime, frame: answerFrame,
           fatwaMs: t.fatwaMs, fatwaHits: t.fatwaHits, fatwaTimedOut: t.fatwaTimedOut,
+          fatwaVerifyMs: t.fatwaVerifyMs, fatwaSearchMs: t.fatwaSearchMs, fatwaMembers: t.fatwaMembers, fatwaLate: t.fatwaLate,
           libraryMs: t.libraryMs, libraryHits: t.libraryHits, libraryTimedOut: t.libraryTimedOut,
           encyclopediaMs: t.encyclopediaMs, encyclopediaHits: t.encyclopediaHits, encyclopediaTimedOut: t.encyclopediaTimedOut,
           lessonsMs: t.lessonsMs, lessonsHits: t.lessonsHits, lessonsTimedOut: t.lessonsTimedOut,

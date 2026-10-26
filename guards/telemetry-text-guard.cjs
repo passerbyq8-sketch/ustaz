@@ -89,7 +89,7 @@ const ALLOWED_FIELDS = [
   // which are already here; there is no string in it, and nothing about it is derived from
   // anything the reader typed. The other three names that line prints — found, dropped, emitted
   // — were already reviewed onto this list and are not re-approved here.
-  'entity', 'evidence', 'examined', 'fatwaScholars', 'fatwaSearch', 'fatwaStatus', 'fatwaTotal',
+  'entity', 'evidence', 'examined', 'fatwaLate', 'fatwaMembers', 'fatwaSearch', 'fatwaSearchMs', 'fatwaScholars', 'fatwaStatus', 'fatwaTotal', 'fatwaVerifyMs',
   'flag',
   'flips', 'footer', 'found', 'hasDescriptor', 'host', 'hosts', 'ibnBazTotal', 'id',
   'injectionMarkers', 'intent', 'judged', 'kept', 'khilafFromOpinions', 'kind', 'lexicalRoute',

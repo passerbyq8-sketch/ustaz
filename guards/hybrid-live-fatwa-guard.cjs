@@ -441,9 +441,9 @@ async function runHybridGuard() {
     fetchImpl: recordedFatwaTransport(x021, adapterRequests),
     force: true,
   });
-  eq('X-021 production adapter drives the sealed verification and search paths',
-    adapterRequests.map((entry) => entry.pathname),
-    [...x021.expected.verificationRequestPaths, x021.expected.searchRequestPath]);
+  eq('X-021 production adapter drives verification and search paths concurrently',
+    adapterRequests.map((entry) => entry.pathname).sort(),
+    [...x021.expected.verificationRequestPaths, x021.expected.searchRequestPath].sort());
   ok('X-021 production adapter sends only GET requests',
     adapterRequests.every((entry) => entry.method === 'GET'));
   const observedAdapterSearches = requestsFor(adapterRequests, x021.expected.searchRequestPath).length;

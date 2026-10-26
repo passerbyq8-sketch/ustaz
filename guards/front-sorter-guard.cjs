@@ -324,10 +324,18 @@ async function main() {
     LEGACY.__resetLegacyFlagCacheForTest();
     installDayCapStore();
     const model = [];
-    const counts = { sorter: 0, fatwa: 0, judge: 0, other: 0 };
+    const counts = { sorter: 0, fatwa: 0, warmup: 0, judge: 0, other: 0 };
     globalThis.fetch = async (url, init) => {
       const u = String(url);
-      if (u.startsWith(FC.FATWA_BASE)) { counts.fatwa += 1; return jsonResponse(u, { ok: true, schemaVersion: FC.FATWA_SCHEMA, results: [], scholars: [], pagination: { total: 0 }, counts: { scholars: 0 } }); }
+      if (u.startsWith(FC.FATWA_BASE)) {
+        const pathname = new URL(u).pathname;
+        if (init && init.method === 'GET' && ['/api/v1/health', '/api/v1/scholars'].includes(pathname)) {
+          counts.warmup += 1;
+          return jsonResponse(u, {}, 503);
+        }
+        counts.fatwa += 1;
+        return jsonResponse(u, { ok: true, schemaVersion: FC.FATWA_SCHEMA, results: [], scholars: [], pagination: { total: 0 }, counts: { scholars: 0 } });
+      }
       if (u.includes('api.anthropic.com')) {
         const b = JSON.parse(init.body);
         if (b.system === FS.FRONT_SORTER_SYSTEM) {
