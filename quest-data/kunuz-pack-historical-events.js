@@ -1,6 +1,6 @@
 KZV.register({
   "slug": "historical-events",
-  "stamp": "123-506fb863",
+  "stamp": "123-d0ff8044",
   "cats": [
     {
       "id": "historical-events",
