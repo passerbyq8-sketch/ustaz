@@ -97,7 +97,7 @@ check('every category has a unique inanimate SVG, with no shared gradient identi
 });
 check('the theme is scoped, locally hosted and uses the clean ocean only', () => {
   const css = read('quest-theme/theme.css'), js = read('quest-theme/journey.js');
-  css.split('\n').filter(s => s.trim() && !s.startsWith('@')).forEach(line => assert.ok(line.startsWith('.ezik-treasure-theme'), line.slice(0,80)));
+  css.split('\n').map(s => s.trim()).filter(s => s.includes('{') && !s.startsWith('@')).forEach(line => assert.ok(line.startsWith('.ezik-treasure-theme'), line.slice(0,80)));
   assert.match(css, /font-family:KunuzPlex/); assert.match(css, /prefers-reduced-motion:reduce/);
   assert.doesNotMatch(css + js, /fonts\.googleapis|fonts\.gstatic|assets\/ocean\.png|sfx\.wav/);
   assert.match(js, /global\.TE\.settle/); assert.match(js, /global\.BE\.award/); assert.match(js, /global\.WarEngine\.fightAnswer/); assert.match(js, /M\.diveNative\.answer/);
