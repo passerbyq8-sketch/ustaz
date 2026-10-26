@@ -499,8 +499,8 @@ function checkT11(pageText) {
   bad.forEach((re) => { if (re.test(script)) f.push('the script reaches out: ' + re); });
   if (/\baction=/.test(pageText) || /<form\b/.test(pageText)) f.push('a form on the page');
   const srcs = [...pageText.matchAll(/<script\b[^>]*\bsrc="([^"]*)"/g)].map((m) => m[1]);
-  // KUNUZ-LEVELS-POETRY (2026-10-19, C): the owner's experimental levels add exactly one more script, the shared module, after
-  // the page's own; it reaches nothing but its own data file (kunuzlevels L4/L5 hold what it does and that it can be switched off)
+  // KUNUZ-LEVELS-POETRY (2026-10-19, C): the deferred shared loader requests the optional levels file after setup mounts;
+  // kunuzlevels L4/L5 check its switch and single source entry.
   // Visual engine: four fixed same-origin assets; kunuzvisual checks their loaders and switch.
   if (srcs.join(',') !== '/quest-theme/motion-kit.js?v=20261022-roomsfix2,/quest-theme/icons.js?v=20261022-roomsfix2,/quest-theme/model.js?v=20261025-kfix5,/iap-pending.js?v=20261023-iapf,/hanna-laha/assets/iap-bridge-v1.js?v=20261024-iapg6,/quest-theme/journey.js?v=20261025-kfix5') f.push('scripts loaded: ' + srcs.join(','));
   { const mod = fs.readFileSync(path.join(REPO, 'quest-levels.js'), 'utf8'); bad.forEach((re) => { if (re.test(mod.replace('s.src="/quest-data/kunuz-levels-3147.js";', ''))) f.push('the levels module reaches out: ' + re); });
@@ -549,7 +549,7 @@ run('T11', 'nothing leaves the device; Arabic; the way back; the entity rule; th
     mut('seen record one byte off', 'var SEEN_KEY="kunuz_seen_v1";', 'var SEEN_KEY="kunuz_seen_v1" ;', checkT1, false),
     mut('a switch that returns the left question to the pool', 'else if(P.phase==="q"&&!P.locked&&!P.answered)ask();', 'else if(P.phase==="q"&&!P.locked&&!P.answered){var o=G.cur;ask();SEEN.bits[o>>3]&=~(1<<(o&7));seenWrite();delete G.used[o]}', checkT6, true),
     mut('timer that scores right', '  lock(false,true);', '  lock(true,true);', checkT7, true),
-    mut('a fetch on the page', 'openCfg();\n</script>', 'openCfg();try{fetch("/api/x")}catch(e){}\n</script>', checkT11, false),
+    mut('a fetch on the page', '</body>', '<script>try{fetch("/api/x")}catch(e){}</script>\n</body>', checkT11, false),
     mut('a question count on the setup', '<p class="lbl">الفئات</p><p class="sub">', '<p class="lbl">الفئات</p><p class="sub">' + N + ' سؤال · ', checkT10, true),
     // KUNUZ-QA-DECISIONS (2026-10-19): a count a screen reader alone would hear is a count on the screen
     mut('a question count read only by a screen reader', '<p class="lbl">الفئات</p><p class="sub">', '<p class="lbl">الفئات</p><p class="sub" aria-description="' + N + ' سؤال">', checkT10, true),

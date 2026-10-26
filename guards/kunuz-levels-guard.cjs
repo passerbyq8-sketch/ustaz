@@ -14,7 +14,7 @@
 //   L4 off: LEVELS_EXPERIMENT=false requests no file, leaves the slot empty and no «المستوى»/«تجريبي» anywhere, and draws exactly
 //      what the page draws without the module; a short, foreign-stamped or missing file hides the field with no page error;
 //      the experiment writes no storage key
-//   L5 one line: LEVELS_EXPERIMENT appears once (quest-levels.js), each game loads the module once, after its own script
+//   L5 one line: LEVELS_EXPERIMENT appears once (quest-levels.js); each game uses the shared loader once, and the levels file is loaded after setup mounts
 //   L6 the gate bites: a field with no «تجريبي», a level that draws another level, an off switch that leaves the field, a short
 //      file that still shows the field, and a by-points board that ignores the slot are each caught
 'use strict';
@@ -25,9 +25,9 @@ const REPO = path.join(__dirname, '..');
 const ascii = (s) => String(s).replace(/[^\x00-\x7f]/g, '?');
 const read = (f) => fs.readFileSync(path.join(REPO, f), 'utf8');
 const GAMES = ['quest-ghaws.html', 'quest-harb.html', 'quest-test.html', 'quest-board.html'];
-const MODULE = 'quest-levels.js', LVFILE = 'quest-data/kunuz-levels-3147.js', BANK = 'quest-data/kunuz-bank-3147.js';
+const MODULE = 'quest-levels.js', JOURNEY = 'quest-theme/journey.js', LVFILE = 'quest-data/kunuz-levels-3147.js', BANK = 'quest-data/kunuz-bank-3147.js';
 const MIN_EACH = 0;
-const TEXT = {}; GAMES.concat([MODULE, LVFILE]).forEach((f) => { TEXT[f] = read(f); });
+const TEXT = {}; GAMES.concat([MODULE, JOURNEY, LVFILE]).forEach((f) => { TEXT[f] = read(f); });
 const DATA0 = new Function(read(BANK) + ';return DATA;')();
 const LV0 = new Function(TEXT[LVFILE] + ';return KUNUZ_LEVELS;')();
 const W_ = String.fromCharCode;
@@ -285,18 +285,31 @@ function checkL4(T) {
 // ---------- L5 one line ----------
 function checkL5(T) {
   const f = [];
-  const all = GAMES.concat([MODULE]).map((x) => T[x]).join('\n');
+  const all = GAMES.concat([MODULE, JOURNEY]).map((x) => T[x]).join('\n');
   if (all.split('LEVELS_EXPERIMENT=').length - 1 !== 1 || T[MODULE].indexOf('var LEVELS_EXPERIMENT=true;') < 0) f.push('LEVELS_EXPERIMENT is not one line in quest-levels.js');
+  const loader = T[JOURNEY];
+  const sourcesAt = loader.indexOf('const sources = [');
+  const sourcesEnd = loader.indexOf('];', sourcesAt);
+  const sources = sourcesAt < 0 || sourcesEnd < 0 ? '' : loader.slice(sourcesAt, sourcesEnd);
+  const levelsCount = (sources.match(/['\"]\/quest-levels\.js['\"]/g) || []).length;
+  const visualAt = sources.indexOf("'/quest-visual.js'");
+  const levelsAt = sources.indexOf("'/quest-levels.js'");
+  const loadAt = loader.indexOf('for (const src of sources) await loadLocalScript(src + version);', sourcesAt);
+  if (levelsCount !== 1 || levelsAt < 0 || visualAt < 0 || levelsAt <= visualAt || loadAt < 0) f.push('shared local loader does not load quest-levels.js exactly once after setup resources');
+  const bootAt = loader.indexOf('async function boot()');
+  const setupAt = loader.indexOf("const setupRoute =", bootAt);
+  const prepareAt = loader.indexOf('await prepareOffline();', setupAt);
+  const localAt = loader.indexOf('else await loadKunuzLocal();', setupAt);
+  if (bootAt < 0 || setupAt < 0 || prepareAt < 0 || localAt < 0 || prepareAt >= localAt) f.push('levels loader is not deferred until after the initial game setup mounts');
   for (const page of GAMES) {
-    const t = T[page], tag = '<script src="/' + MODULE + '"></script>';
-    if (t.split(tag).length !== 2) f.push(page + ' does not load the module exactly once');
-    else if (t.indexOf(tag) < t.lastIndexOf('<script>')) f.push(page + ' loads the module before its own script');
+    const t = T[page], tags = t.match(/<script[^>]*src=[\"'][^\"']*\/quest-theme\/journey\.js(?:\?[^\"']*)?[\"'][^>]*>/g) || [];
+    if (tags.length !== 1) f.push(page + ' does not load the shared journey loader exactly once');
     const hooks = (t.match(/KZL\./g) || []).length, guarded = (t.match(/typeof KZL/g) || []).length;
     if (!hooks || !guarded) f.push(page + ' has no guarded hook');
   }
-  return { f, info: 'switch=1' };
+  return { f, info: 'switch=1 loader=1 afterSetup=1 pages=4' };
 }
-{ const r = checkL5(TEXT); report('L5', 'one switch; each game loads the module once, after its own script', r.f, r.info); }
+{ const r = checkL5(TEXT); report('L5', 'one switch; shared loader loads levels after setup in all four games', r.f, r.info); }
 
 // ---------- L6 the gate bites ----------
 {
@@ -319,7 +332,7 @@ function checkL5(T) {
   mut('the war that ignores the level', 'quest-harb.html', 'if(kzLive(i)&&kzLv(i)&&DATA.qs[i][0]===ci&&!G.used[i]', 'if(kzLive(i)&&DATA.qs[i][0]===ci&&!G.used[i]', checkL3);
   mut('the test that ignores the level', 'quest-test.html', 'return kzLive(i)&&kzLv(i)&&!g.used[i]', 'return kzLive(i)&&!g.used[i]', checkL3);
   mut('a spent level that is not said', MODULE, 'function spent(){return lv&&want>0?', 'function spent(){return false?', checkL3);
-  mut('a second switch in a page', 'quest-test.html', '<script src="/quest-levels.js"></script>', '<script>var LEVELS_EXPERIMENT=true;</script><script src="/quest-levels.js"></script>', checkL5);
+  mut('a second load registration', JOURNEY, "'/quest-levels.js'", "'/quest-levels.js', '/quest-levels.js'", checkL5);
   { n++; const L = JSON.parse(JSON.stringify(LV0)); const id = Object.keys(L.levels).find((k) => DATA0.qs.find((q) => q[8] === k)[0] === 16); L.levels[id] = 4; if (!checkL1(L, DATA0).f.length) missed.push('a level 4 in the file'); }
   { n++; const L = JSON.parse(JSON.stringify(LV0)); L.stamp = '0-00000000'; if (!checkL1(L, DATA0).f.length) missed.push('a file stamped for another bank'); }
   report('L6', 'the gate bites: each broken rule is caught', missed.map((m) => 'MUTANT SURVIVED: ' + m), 'mutants=' + n + ' missed=' + missed.length);

@@ -472,8 +472,8 @@ function checkB8(pageText) {
   bad.forEach((re) => { if (re.test(script)) f.push('the script reaches out: ' + re); });
   if (/\baction=/.test(pageText) || /<form\b/.test(pageText) || /<img\b/.test(pageText)) f.push('a form or an image on the page');
   const srcs = [...pageText.matchAll(/<script\b[^>]*\bsrc="([^"]*)"/g)].map((m) => m[1]);
-  // KUNUZ-LEVELS-POETRY (2026-10-19, C): the owner's experimental levels add exactly one more script, the shared module, after
-  // the page's own; it reaches nothing but its own data file (kunuzlevels L4/L5 hold what it does and that it can be switched off)
+  // KUNUZ-LEVELS-POETRY (2026-10-19, C): the deferred shared loader requests the optional levels file after setup mounts;
+  // kunuzlevels L4/L5 check its switch and single source entry.
   // Visual engine: four fixed same-origin assets; kunuzvisual checks their loaders and switch.
   if (srcs.join(',') !== '/quest-theme/motion-kit.js?v=20261022-roomsfix2,/quest-theme/icons.js?v=20261022-roomsfix2,/quest-theme/model.js?v=20261025-kfix5,/iap-pending.js?v=20261023-iapf,/hanna-laha/assets/iap-bridge-v1.js?v=20261024-iapg6,/quest-theme/board-rooms.js?v=20261025-kfix3,/quest-theme/journey.js?v=20261025-kfix5') f.push('scripts loaded: ' + srcs.join(','));
   { const mod = fs.readFileSync(path.join(REPO, 'quest-levels.js'), 'utf8'); bad.forEach((re) => { if (re.test(mod.replace('s.src="/quest-data/kunuz-levels-3147.js";', ''))) f.push('the levels module reaches out: ' + re); });
@@ -567,7 +567,7 @@ run('B10', 'scoped reference gradient, phone/wide grid, two point columns, 44px 
     mut('the record ignored', 'if(seen(i))old.push(i);else{fresh.push(i);', 'old.push(i);fresh.push(i);', checkB6, true),
     mut('a shown question not marked', '  seenMark(k);   /*', '  /*', checkB4, true),
     mut('seen record one byte off', 'var SEEN_KEY="kunuz_seen_v1";', 'var SEEN_KEY="kunuz_seen_v1" ;', checkB1, false),
-    mut('a fetch on the page', 'openCfg();\n</script>', 'openCfg();try{fetch("/api/x")}catch(e){}\n</script>', checkB8, false),
+    mut('a fetch on the page', '</body>', '<script>try{fetch("/api/x")}catch(e){}</script>\n</body>', checkB8, false),
     mut('a slot count on the board', 'tn.textContent="دور "+teamLabel(t.n)+": اختاروا النقاط";', 'tn.textContent="دور "+teamLabel(t.n)+": اختاروا النقاط · باقي "+ar(G.slots.filter(function(x){return !x.used}).length)+" خانة";', checkB7, true),
     mut('the tie not named', '(r.tie?"تعادل بين "+names.join(" و"):', '(r.tie?"تعادل":', checkB5, true),
     mut('quit in one tap', 'if($("quit").dataset.arm!=="1"){arm(true);return}', '', checkB5, true),
