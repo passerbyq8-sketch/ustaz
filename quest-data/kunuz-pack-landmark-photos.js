@@ -1,6 +1,6 @@
 KZV.register({
   "slug": "landmark-photos",
-  "stamp": "150-60feb17c",
+  "stamp": "150-b9a2e71e",
   "cats": [
     {
       "id": "landmark-photos",
