@@ -67,7 +67,7 @@ KZV.register({
         "KAUST Museum — Technology — https://museum.kaust.edu.sa/explore/technology/",
         "Metropolitan Museum — Clock manuscript by al-Jazari — https://www.metmuseum.org/art/collection/search/451402"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -127,7 +127,7 @@ KZV.register({
       "src": [
         "Library of Congress — The Canon of Medicine — https://www.loc.gov/resource/gdcwdl.wdl_15436/"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -157,7 +157,7 @@ KZV.register({
       "src": [
         "Journal of Medical Biography — Ibn Al-Haytham: Father of Modern Optics — https://pmc.ncbi.nlm.nih.gov/articles/PMC6074172/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -187,7 +187,7 @@ KZV.register({
       "src": [
         "Wellcome Collection — A Treatise on the Small-pox and Measles — https://wellcomecollection.org/works/g87eufac"
       ],
-      "level": 1,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -217,7 +217,7 @@ KZV.register({
       "src": [
         "Cryptologia — Origins of Cryptology: The Arab Contributions — https://www.tandfonline.com/doi/abs/10.1080/0161-119291866801"
       ],
-      "level": 1,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -247,7 +247,7 @@ KZV.register({
       "src": [
         "Biruni University — Who is Biruni? — https://www.biruni.edu.tr/en/university/who-is-biruni"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -277,7 +277,7 @@ KZV.register({
       "src": [
         "Stanford Encyclopedia of Philosophy — al-Farabi — https://plato.stanford.edu/entries/al-farabi/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -307,7 +307,7 @@ KZV.register({
       "src": [
         "Oxford Bibliographies — Ibn Rushd (Averroës) — https://academic.oup.com/reference/62361/reference-article-abstract/554578553"
       ],
-      "level": 1,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -337,7 +337,7 @@ KZV.register({
       "src": [
         "Edinburgh University Press via Oxford Academic — Ibn Khaldun: Life and Times — https://academic.oup.com/edinburgh-scholarship-online/book/22768"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -397,7 +397,7 @@ KZV.register({
       "src": [
         "MacTutor History of Mathematics — Omar Khayyam — https://mathshistory.st-andrews.ac.uk/Biographies/Khayyam/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -427,7 +427,7 @@ KZV.register({
       "src": [
         "Cambridge University Press — The Observatory in Maragha — https://www.cambridge.org/core/books/abs/astronomy-and-astrology-in-the-islamic-world/observatory-in-maragha/06B9C503746F498F59D0DD929A76CFDA"
       ],
-      "level": 1,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -457,7 +457,7 @@ KZV.register({
       "src": [
         "PubMed — Abu Al-Qasim Al-Zahrawi, Icon of Medieval Surgery — https://pubmed.ncbi.nlm.nih.gov/32736026/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -517,7 +517,7 @@ KZV.register({
       "src": [
         "PubMed — Ibn Zuhr (Avenzoar) on a Clinical Case — https://pubmed.ncbi.nlm.nih.gov/12776717/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -578,7 +578,7 @@ KZV.register({
       "src": [
         "Library of Congress — The Book of Medicinal and Nutritional Terms — https://www.loc.gov/item/2021666188/"
       ],
-      "level": 1,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -608,7 +608,7 @@ KZV.register({
       "src": [
         "Oxford Bibliographies — Ibn Tufayl — https://academic.oup.com/reference/62361/reference-article-abstract/554573383"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -668,7 +668,7 @@ KZV.register({
       "src": [
         "Library of Congress — The Meadows of Gold and Mines of Gems — https://www.loc.gov/resource/gdcwdl.wdl_07441/"
       ],
-      "level": 1,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -728,7 +728,7 @@ KZV.register({
       "src": [
         "Internet Encyclopedia of Philosophy — al-Ghazali — https://iep.utm.edu/al-ghazali/"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -758,7 +758,7 @@ KZV.register({
       "src": [
         "Encyclopedia.com — Al-Mutanabbi — https://www.encyclopedia.com/history/news-wires-white-papers-and-books/al-mutanabbi"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -788,7 +788,7 @@ KZV.register({
       "src": [
         "Encyclopaedia Iranica — Rumi — https://www.iranicaonline.org/articles/rumi-jalal-al-din/"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -818,7 +818,7 @@ KZV.register({
       "src": [
         "Persian Heritage Foundation — Niẓāmī Ganjavī — https://persian.packhum.org/author/0176"
       ],
-      "level": 1,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -848,7 +848,7 @@ KZV.register({
       "src": [
         "Nobel Prize — Literature 1988 Press Release — https://www.nobelprize.org/prizes/literature/1988/press-release/"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -878,7 +878,7 @@ KZV.register({
       "src": [
         "Nobel Prize — Ahmed Zewail Facts — https://www.nobelprize.org/prizes/chemistry/1999/zewail/facts/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -938,7 +938,7 @@ KZV.register({
       "src": [
         "Smithsonian National Museum of African American History and Culture — Float Like a Butterfly — https://nmaahc.si.edu/explore/stories/float-butterfly"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -998,7 +998,7 @@ KZV.register({
       "src": [
         "National Geographic Education — The Mali Empire — https://education.nationalgeographic.org/resource/mali-empire/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1028,7 +1028,7 @@ KZV.register({
       "src": [
         "Encyclopaedia Iranica — Ayyubids — https://www.iranicaonline.org/articles/ayyubids/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1088,7 +1088,7 @@ KZV.register({
       "src": [
         "The Metropolitan Museum of Art — Constantinople after 1261 — https://www.metmuseum.org/ja/essays/constantinople-after-1261"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1118,7 +1118,7 @@ KZV.register({
       "src": [
         "Encyclopaedia Iranica — Akbar I — https://www.iranicaonline.org/articles/akbar-i-mughal-india/"
       ],
-      "level": 1,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1148,7 +1148,7 @@ KZV.register({
       "src": [
         "Encyclopaedia Iranica — Hārūn al-Rašīd — https://www.iranicaonline.org/articles/harun-al-rasid/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1178,7 +1178,7 @@ KZV.register({
       "src": [
         "NYU Press via JSTOR — Mission to the Volga — https://www.jstor.org/stable/j.ctt1gk093h"
       ],
-      "level": 1,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1208,7 +1208,7 @@ KZV.register({
       "src": [
         "MIT Libraries — Ibn Jubayr: Riḥla — https://libguides.mit.edu/c.php?g=883344&p=6346961"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1238,7 +1238,7 @@ KZV.register({
       "src": [
         "Encyclopaedia Iranica — Maqrizi — https://www.iranicaonline.org/articles/maqrizi-taqi-al-din-a%E1%B8%A5mad-b-%CA%BFali/"
       ],
-      "level": 1,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1268,7 +1268,7 @@ KZV.register({
       "src": [
         "Library of Congress — Book on Navigation — https://www.loc.gov/item/2021667235/"
       ],
-      "level": 1,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1358,7 +1358,7 @@ KZV.register({
       "src": [
         "Al-Ahram Weekly — A New Look at Taha Hussein — https://english.ahram.org.eg/NewsContentP/50/471159/AlAhram-Weekly/A-new-look-at-Taha-Hussein.aspx"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1418,7 +1418,7 @@ KZV.register({
       "src": [
         "Institute for the History of Science, MPIWG — Farghani — https://ismi.mpiwg-berlin.mpg.de/biography/Farghani_BEA.htm"
       ],
-      "level": 1,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1448,7 +1448,7 @@ KZV.register({
       "src": [
         "MacTutor History of Mathematics — Al-Battani — https://mathshistory.st-andrews.ac.uk/Biographies/Al-Battani/"
       ],
-      "level": 1,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1478,7 +1478,7 @@ KZV.register({
       "src": [
         "MacTutor History of Mathematics — Ibn Yunus — https://mathshistory.st-andrews.ac.uk/Biographies/Yunus/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1508,7 +1508,7 @@ KZV.register({
       "src": [
         "MacTutor History of Mathematics — Abu’l-Wafa — https://mathshistory.st-andrews.ac.uk/Biographies/Abul-Wafa/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1538,7 +1538,7 @@ KZV.register({
       "src": [
         "MacTutor History of Mathematics — al-Karaji — https://mathshistory.st-andrews.ac.uk/Biographies/Al-Karaji/"
       ],
-      "level": 1,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1568,7 +1568,7 @@ KZV.register({
       "src": [
         "Nuncius — Al-Khazini’s Balance of Wisdom — https://doi.org/10.1163/18253911-03503003"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1658,7 +1658,7 @@ KZV.register({
       "src": [
         "Library of Congress — The Dove’s Neck-Ring — https://www.loc.gov/item/2021666154/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1748,7 +1748,7 @@ KZV.register({
       "src": [
         "TDV İslâm Ansiklopedisi — Fethu’l-Bârî — https://islamansiklopedisi.org.tr/fethul-bari"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1808,7 +1808,7 @@ KZV.register({
       "src": [
         "Encyclopaedia Iranica — Aḥsan al-Taqāsīm — https://www.iranicaonline.org/articles/ahsan-al-taqasim-fi-marefat-al-aqalim-celebrated-geographical-work/"
       ],
-      "level": 1,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1838,7 +1838,7 @@ KZV.register({
         "Riyadh Municipality — About Riyadh — https://www.alriyadh.gov.sa/en/about-alriyadh",
         "Riyadh — History — https://en.wikipedia.org/wiki/Riyadh"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1868,7 +1868,7 @@ KZV.register({
         "Addis Ababa Mayor's Office — FAQs — https://addismayor.gov.et/faqs",
         "Addis Ababa — Etymology — https://en.wikipedia.org/wiki/Addis_Ababa"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1929,7 +1929,7 @@ KZV.register({
       "src": [
         "MIT Libraries — Yaʿqūbī: Kitāb al-Buldān — https://libguides.mit.edu/c.php?g=883344&p=6346961"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1959,7 +1959,7 @@ KZV.register({
         "Visit Beijing — Meaning of Beijing — https://english.visitbeijing.com.cn/article/47ONsjiQ97p",
         "Beijing — Etymology — https://en.wikipedia.org/wiki/Beijing"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2049,7 +2049,7 @@ KZV.register({
       "src": [
         "Encyclopaedia Iranica — Meskawayh — https://www.iranicaonline.org/articles/meskavayh-abu-ali-ahmad/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2171,7 +2171,7 @@ KZV.register({
       "src": [
         "Library of Congress — Lives of the Physicians — https://www.loc.gov/item/2021666197/"
       ],
-      "level": 1,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2201,7 +2201,7 @@ KZV.register({
       "src": [
         "Encyclopaedia Iranica — Ebn al-Aṯīr — https://www.iranicaonline.org/articles/ebn-al-air/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2231,7 +2231,7 @@ KZV.register({
       "src": [
         "Library of Congress — The Dictionary of Countries — https://www.loc.gov/resource/gdcwdl.wdl_07444/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     }

@@ -64,7 +64,7 @@ KZV.register({
         "Natural Earth: حدود الإمارات العربية المتحدة بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -93,7 +93,7 @@ KZV.register({
         "Natural Earth: حدود النرويج بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -354,7 +354,7 @@ KZV.register({
         "Natural Earth: حدود سلوفينيا بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -557,7 +557,7 @@ KZV.register({
         "Natural Earth: حدود السلفادور بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -789,7 +789,7 @@ KZV.register({
         "Natural Earth: حدود مالطا بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -934,7 +934,7 @@ KZV.register({
         "Natural Earth: حدود نيكاراغوا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1166,7 +1166,7 @@ KZV.register({
         "Natural Earth: حدود كوستاريكا بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1195,7 +1195,7 @@ KZV.register({
         "Natural Earth: حدود زيمبابوي بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1253,7 +1253,7 @@ KZV.register({
         "Natural Earth: حدود مالي بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1514,7 +1514,7 @@ KZV.register({
         "Natural Earth: حدود نيوزيلندا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1543,7 +1543,7 @@ KZV.register({
         "Natural Earth: حدود غواتيمالا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1572,7 +1572,7 @@ KZV.register({
         "Natural Earth: حدود السويد بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1659,7 +1659,7 @@ KZV.register({
         "Natural Earth: حدود لبنان بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1688,7 +1688,7 @@ KZV.register({
         "Natural Earth: حدود كينيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1978,7 +1978,7 @@ KZV.register({
         "Natural Earth: حدود تشاد بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2065,7 +2065,7 @@ KZV.register({
         "Natural Earth: حدود قطر بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2181,7 +2181,7 @@ KZV.register({
         "Natural Earth: حدود آيسلندا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2210,7 +2210,7 @@ KZV.register({
         "Natural Earth: حدود باراغواي بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2326,7 +2326,7 @@ KZV.register({
         "Natural Earth: حدود تايلاند بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2355,7 +2355,7 @@ KZV.register({
         "Natural Earth: حدود هندوراس بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2413,7 +2413,7 @@ KZV.register({
         "Natural Earth: حدود بولندا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2558,7 +2558,7 @@ KZV.register({
         "Natural Earth: حدود النيجر بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2732,7 +2732,7 @@ KZV.register({
         "Natural Earth: حدود سريلانكا بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2906,7 +2906,7 @@ KZV.register({
         "Natural Earth: حدود إريتريا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -3109,7 +3109,7 @@ KZV.register({
         "Natural Earth: حدود إثيوبيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3370,7 +3370,7 @@ KZV.register({
         "Natural Earth: حدود نيجيريا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3428,7 +3428,7 @@ KZV.register({
         "Natural Earth: حدود كوبا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3457,7 +3457,7 @@ KZV.register({
         "Natural Earth: حدود سلوفاكيا بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3486,7 +3486,7 @@ KZV.register({
         "Natural Earth: حدود الدنمارك بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3515,7 +3515,7 @@ KZV.register({
         "Natural Earth: حدود زامبيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3689,7 +3689,7 @@ KZV.register({
         "Natural Earth: حدود جيبوتي بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -3834,7 +3834,7 @@ KZV.register({
         "Natural Earth: حدود اليونان بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3892,7 +3892,7 @@ KZV.register({
         "Natural Earth: حدود فنلندا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3950,7 +3950,7 @@ KZV.register({
         "Natural Earth: حدود تونس بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3979,7 +3979,7 @@ KZV.register({
         "Natural Earth: حدود سويسرا بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4095,7 +4095,7 @@ KZV.register({
         "Natural Earth: حدود البحرين بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4124,7 +4124,7 @@ KZV.register({
         "Natural Earth: حدود كمبوديا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4327,7 +4327,7 @@ KZV.register({
         "Natural Earth: حدود بلجيكا بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4414,7 +4414,7 @@ KZV.register({
         "Natural Earth: حدود هولندا بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4472,7 +4472,7 @@ KZV.register({
         "Natural Earth: حدود كولومبيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4588,7 +4588,7 @@ KZV.register({
         "Natural Earth: حدود مدغشقر بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 1,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4646,7 +4646,7 @@ KZV.register({
         "Natural Earth: حدود غانا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4976,7 +4976,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود جنوب السودان بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -5096,7 +5096,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود السلفادور بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5306,7 +5306,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود مالطا بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5366,7 +5366,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود نيكاراغوا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5486,7 +5486,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود نيبال بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -5576,7 +5576,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود كوستاريكا بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5606,7 +5606,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود زيمبابوي بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5666,7 +5666,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود مالي بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -5786,7 +5786,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود تنزانيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -5906,7 +5906,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود نيوزيلندا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -5936,7 +5936,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود غواتيمالا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5966,7 +5966,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود السويد بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -5996,7 +5996,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود أنغولا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6056,7 +6056,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود كينيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -6086,7 +6086,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود فيجي بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6146,7 +6146,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود البرتغال بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -6476,7 +6476,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود تايلاند بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -6506,7 +6506,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود بولندا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -6686,7 +6686,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود التشيك بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -6716,7 +6716,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود هايتي بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6746,7 +6746,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود جمهورية الدومينيكان بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6776,7 +6776,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود الأوروغواي بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -6926,7 +6926,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود بيلاروسيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -6956,7 +6956,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود إريتريا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7106,7 +7106,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود إثيوبيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -7166,7 +7166,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود موزمبيق بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7347,7 +7347,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود نيجيريا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -7407,7 +7407,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود كوبا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -7437,7 +7437,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود سلوفاكيا بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7467,7 +7467,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود الدنمارك بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -7497,7 +7497,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود زامبيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7527,7 +7527,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود بيرو بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -7677,7 +7677,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود جيبوتي بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7767,7 +7767,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود اليونان بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -7827,7 +7827,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود فنلندا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -7917,7 +7917,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود تونس بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7977,7 +7977,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود منغوليا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -8007,7 +8007,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود كمبوديا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8097,7 +8097,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود النمسا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -8187,7 +8187,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود بلجيكا بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -8247,7 +8247,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود كولومبيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -8277,7 +8277,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود باهاماس بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8307,7 +8307,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود كرواتيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8337,7 +8337,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود سوريا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8427,7 +8427,7 @@ KZV.register({
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
         "Natural Earth: حدود غانا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -8547,7 +8547,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود بابوا غينيا الجديدة بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -8637,7 +8637,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود كوريا الجنوبية بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -8697,7 +8697,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود نيكاراغوا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8787,7 +8787,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود اليمن بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8817,7 +8817,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود بنغلاديش بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -8937,7 +8937,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود إسواتيني بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9057,7 +9057,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود السلفادور بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9117,7 +9117,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود الإمارات العربية المتحدة بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9177,7 +9177,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود السويد بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -9207,7 +9207,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود بليز بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9237,7 +9237,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود إستونيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9267,7 +9267,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود إريتريا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -9327,7 +9327,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود هندوراس بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9537,7 +9537,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود لوكسمبورغ بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9567,7 +9567,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود توغو بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9657,7 +9657,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود غيانا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9747,7 +9747,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود الغابون بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9837,7 +9837,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود بوتسوانا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9867,7 +9867,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود سورينام بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9897,7 +9897,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود مالاوي بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9927,7 +9927,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود ليبيريا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9957,7 +9957,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود سلطنة عمان بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 1,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -9987,7 +9987,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود لاتفيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10017,7 +10017,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود غواتيمالا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -10107,7 +10107,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود تركمانستان بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10137,7 +10137,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود قيرغيزستان بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10287,7 +10287,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود رواندا بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10317,7 +10317,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود بلجيكا بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -10347,7 +10347,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود ليتوانيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10377,7 +10377,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود سلوفينيا بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10437,7 +10437,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود بنين بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10497,7 +10497,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود أنغولا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10527,7 +10527,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود مقدونيا الشمالية بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10587,7 +10587,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود الجبل الأسود بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10617,7 +10617,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود بيرو بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -10647,7 +10647,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود سلوفاكيا بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10677,7 +10677,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود ألبانيا بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10767,7 +10767,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود بيلاروسيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10857,7 +10857,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود ساحل العاج بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10887,7 +10887,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود كرواتيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10977,7 +10977,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود كازاخستان بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -11037,7 +11037,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود سويسرا بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -11097,7 +11097,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود كولومبيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -11127,7 +11127,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود الأرجنتين بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -11247,7 +11247,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود بوركينا فاسو بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -11277,7 +11277,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود ليبيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -11337,7 +11337,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود غينيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -11427,7 +11427,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود إيطاليا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -11637,7 +11637,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود زامبيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -11667,7 +11667,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود إيران بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -11697,7 +11697,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود المجر بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -11847,7 +11847,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود بولندا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -11907,7 +11907,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود تركيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -11997,7 +11997,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود ألمانيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -12057,7 +12057,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود بوتسوانا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -12087,7 +12087,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود السنغال بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -12117,7 +12117,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود ساحل العاج بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -12147,7 +12147,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود نيجيريا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -12267,7 +12267,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود تشيلي بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -12297,7 +12297,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود كمبوديا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -12327,7 +12327,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود ساحل العاج بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -12357,7 +12357,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود زامبيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -12387,7 +12387,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود بيلاروسيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -12417,7 +12417,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود كولومبيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -12477,7 +12477,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود تونس بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -12507,7 +12507,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود زامبيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -12567,7 +12567,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود الكاميرون بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -12657,7 +12657,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود ألبانيا بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -12687,7 +12687,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود جيبوتي بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -12717,7 +12717,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود ألبانيا بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -12747,7 +12747,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود أفغانستان بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -12777,7 +12777,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود أوغندا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -12837,7 +12837,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود فرنسا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -12867,7 +12867,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود سلوفينيا بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -12927,7 +12927,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود مالاوي بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -12957,7 +12957,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود هندوراس بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -13017,7 +13017,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود غيانا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -13077,7 +13077,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود رواندا بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -13107,7 +13107,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود سلوفاكيا بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -13167,7 +13167,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود المجر بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -13197,7 +13197,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود بنين بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -13227,7 +13227,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود ألمانيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -13257,7 +13257,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود رواندا بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -13347,7 +13347,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود تنزانيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -13377,7 +13377,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود جنوب أفريقيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -13437,7 +13437,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود أوغندا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -13527,7 +13527,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود بليز بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -13557,7 +13557,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود غينيا بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -13587,7 +13587,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود بنين بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -13707,7 +13707,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt",
         "Natural Earth: حدود توغو بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },

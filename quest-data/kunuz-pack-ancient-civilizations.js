@@ -116,7 +116,7 @@ KZV.register({
         "اليونسكو: منف ومقبرتها — https://whc.unesco.org/en/list/86/",
         "وزارة السياحة والآثار المصرية: مجموعة هرم زوسر المدرج — https://egymonuments.gov.eg/monuments/the-step-pyramid-complex-of-djoser/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -160,7 +160,7 @@ KZV.register({
         "اليونسكو: البتراء — https://whc.unesco.org/en/list/326/",
         "المتحف الأمريكي للتاريخ الطبيعي: مدينة البتراء القديمة — https://www.amnh.org/explore/ology/archaeology/the-ancient-city-of-petra2"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -182,7 +182,7 @@ KZV.register({
         "سلطة إقليم البتراء: تاريخ البتراء — https://visitpetra.jo/en/page/12/History-of-Petra",
         "المتحف الأمريكي للتاريخ الطبيعي: مدينة البتراء القديمة — https://www.amnh.org/explore/ology/archaeology/the-ancient-city-of-petra2"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -358,7 +358,7 @@ KZV.register({
         "اليونسكو: آثار موهينجو دارو — https://whc.unesco.org/en/list/138/",
         "هارابا، بمشاركة علماء مشروع التنقيب: مقدمة إلى حضارة السند — https://www.harappa.com/content/brief-introduction-ancient-indus-civilization"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -380,7 +380,7 @@ KZV.register({
         "هارابا، بمشاركة علماء مشروع التنقيب: مقدمة إلى حضارة السند — https://www.harappa.com/content/brief-introduction-ancient-indus-civilization",
         "موسوعة تاريخ العالم: حضارة وادي السند — https://www.worldhistory.org/Indus_Valley_Civilization/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -424,7 +424,7 @@ KZV.register({
         "هارابا، بمشاركة علماء مشروع التنقيب: مقدمة إلى حضارة السند — https://www.harappa.com/content/brief-introduction-ancient-indus-civilization",
         "موسوعة تاريخ العالم: حضارة وادي السند — https://www.worldhistory.org/Indus_Valley_Civilization/"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -446,7 +446,7 @@ KZV.register({
         "متحف المتروبوليتان: شانغ وتشو والعصر البرونزي الصيني — https://www.metmuseum.org/essays/shang-and-zhou-dynasties-the-bronze-age-of-china",
         "موسوعة تاريخ العالم: سلالة شانغ — https://www.worldhistory.org/Shang_Dynasty/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -468,7 +468,7 @@ KZV.register({
         "متحف المتروبوليتان: شانغ وتشو والعصر البرونزي الصيني — https://www.metmuseum.org/essays/shang-and-zhou-dynasties-the-bronze-age-of-china",
         "موسوعة تاريخ العالم: سلالة شانغ — https://www.worldhistory.org/Shang_Dynasty/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -534,7 +534,7 @@ KZV.register({
         "اليونسكو: السور العظيم — https://whc.unesco.org/en/list/438/",
         "متحف المتروبوليتان: سلالة تشين — https://www.metmuseum.org/essays/qin-dynasty-221-206-b-c"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -666,7 +666,7 @@ KZV.register({
         "متحف المتروبوليتان: سلالة هان — https://www.metmuseum.org/essays/han-dynasty-206-b-c-220-a-d",
         "موسوعة تاريخ العالم: سلالة هان — https://www.worldhistory.org/Han_Dynasty/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -754,7 +754,7 @@ KZV.register({
         "متحف المتروبوليتان: صناعة البردي في مصر — https://www.metmuseum.org/essays/papyrus-making-in-egypt",
         "موسوعة تاريخ العالم: البردي المصري — https://www.worldhistory.org/Egyptian_Papyrus/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -930,7 +930,7 @@ KZV.register({
         "اليونسكو: بات والخطم والعين — https://whc.unesco.org/en/list/434/",
         "المتحف الوطني العماني: بات والخطم والعين — https://www.nm.gov.om/en/bat?action=first"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1040,7 +1040,7 @@ KZV.register({
         "اليونسكو: معالم مملكة سبأ القديمة في مأرب — https://whc.unesco.org/en/list/1700/",
         "المعهد الألماني للآثار: مأرب عاصمة سبأ في جنوب الجزيرة — https://www.dainst.org/en/research/projects/noslug/2634?cHash=3b7aa586f8a97e09771f4a166e878247&tx_wfdaiprojects_projects%5Bnav%5D=open"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1062,7 +1062,7 @@ KZV.register({
         "موسوعة تاريخ العالم: حجر رشيد — https://www.worldhistory.org/Rosetta_Stone/",
         "المتحف البريطاني: الهيروغليفية وكشف مصر القديمة، دليل المعرض — https://www.britishmuseum.org/sites/default/files/2022-10/Hieroglyphs_unlocking_ancient_Egypt_large_print_guide_The_British_Museum.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1084,7 +1084,7 @@ KZV.register({
         "اليونسكو: جسر غارد الروماني — https://whc.unesco.org/en/list/344/",
         "المؤسسة العامة لجسر غارد: التعريف بالمعلم — https://pontdugard.fr/en/discover"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1106,7 +1106,7 @@ KZV.register({
         "اليونسكو: جسر غارد الروماني — https://whc.unesco.org/en/list/344/",
         "المؤسسة العامة لجسر غارد: التعريف بالمعلم — https://pontdugard.fr/en/discover"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1172,7 +1172,7 @@ KZV.register({
         "متحف المتروبوليتان: العمارة في اليونان القديمة — https://www.metmuseum.org/essays/architecture-in-ancient-greece",
         "موسوعة تاريخ العالم: العمارة اليونانية — https://www.worldhistory.org/Greek_Architecture/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1216,7 +1216,7 @@ KZV.register({
         "اليونسكو: باسارغاد — https://whc.unesco.org/en/list/1106/",
         "موسوعة تاريخ العالم: باسارغاد — https://www.worldhistory.org/Pasargadae/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1238,7 +1238,7 @@ KZV.register({
         "اليونسكو: منتزه تيكال الوطني — https://whc.unesco.org/en/list/64/",
         "موسوعة تاريخ العالم: تيكال — https://www.worldhistory.org/Tikal/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1282,7 +1282,7 @@ KZV.register({
         "اليونسكو: منطقة تشان تشان الأثرية — https://whc.unesco.org/en/list/366/",
         "موسوعة تاريخ العالم: تشان تشان — https://www.worldhistory.org/Chan_Chan/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1348,7 +1348,7 @@ KZV.register({
         "اليونسكو: خطوط ورسوم نازكا وبالبا الأرضية — https://whc.unesco.org/en/list/700/",
         "موسوعة تاريخ العالم: حضارة نازكا — https://www.worldhistory.org/Nazca_Civilization/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1414,7 +1414,7 @@ KZV.register({
         "اليونسكو: بالينكي القديمة — https://whc.unesco.org/en/list/411/",
         "موسوعة تاريخ العالم: بالينكي — https://www.worldhistory.org/Palenque/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1436,7 +1436,7 @@ KZV.register({
         "اليونسكو: بالينكي القديمة — https://whc.unesco.org/en/list/411/",
         "موسوعة تاريخ العالم: بالينكي — https://www.worldhistory.org/Palenque/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1480,7 +1480,7 @@ KZV.register({
         "متحف لاركو: الكيبو عند الإنكا — https://www.museolarco.org/en/exhibition/permanent-exhibition/online-exhibition/textiles-from-ancient-peru/inca-quipus/",
         "موسوعة تاريخ العالم: حضارة الإنكا — https://www.worldhistory.org/Inca_Civilization/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1590,7 +1590,7 @@ KZV.register({
         "متحف المتروبوليتان: قياس الزمن في مصر القديمة — https://www.metmuseum.org/essays/telling-time-in-ancient-egypt",
         "خوان أنطونيو بيلمونتي، معهد الفيزياء الفلكية في الكناري: أصل تقويم 365 يوما — https://mmolipol.webs.ull.es/TdE2/TdE2-1Belmonte.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1612,7 +1612,7 @@ KZV.register({
         "متحف المتروبوليتان: قياس الزمن في مصر القديمة — https://www.metmuseum.org/essays/telling-time-in-ancient-egypt",
         "خوان أنطونيو بيلمونتي، معهد الفيزياء الفلكية في الكناري: أصل تقويم 365 يوما — https://mmolipol.webs.ull.es/TdE2/TdE2-1Belmonte.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1656,7 +1656,7 @@ KZV.register({
         "متحف المتروبوليتان: قياس الزمن في مصر القديمة — https://www.metmuseum.org/essays/telling-time-in-ancient-egypt",
         "خوان أنطونيو بيلمونتي، معهد الفيزياء الفلكية في الكناري: أصل تقويم 365 يوما — https://mmolipol.webs.ull.es/TdE2/TdE2-1Belmonte.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1722,7 +1722,7 @@ KZV.register({
         "موسوعة تاريخ العالم: الحمامات الرومانية — https://www.worldhistory.org/Roman_Baths/",
         "مؤسسة التراث الإنجليزي: الحمامات والاستحمام في بريطانيا الرومانية — https://www.english-heritage.org.uk/learn/story-of-england/romans/roman-bathing/"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1766,7 +1766,7 @@ KZV.register({
         "متحف المتروبوليتان: فن جنوب وجنوب شرق آسيا، دليل المعلمين — https://www.metmuseum.org/-/media/files/learn/for-educators/publications-for-educators/sseasia.pdf",
         "المركز الهندي لشبكات المكتبات والمعلومات، مقرر جامعي: حرف السند وفنونها — https://ebooks.inflibnet.ac.in/icp02/chapter/99/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1788,7 +1788,7 @@ KZV.register({
         "متحف غيتي: مساحات المعيشة في الفيلا الرومانية — https://www.getty.edu/education/teachers/trippack/downloads/villa_living_spaces_worksheet.pdf",
         "منتزه بومبي الأثري: البيت الروماني — https://pompeiisites.org/en/pompeii-map/analysis/roman-housing/"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1810,7 +1810,7 @@ KZV.register({
         "متحف المتروبوليتان: المساكن الرومانية — https://www.metmuseum.org/essays/roman-housing",
         "منتزه بومبي الأثري: البيت الروماني — https://pompeiisites.org/en/pompeii-map/analysis/roman-housing/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1854,7 +1854,7 @@ KZV.register({
         "المتحف الوطني للفن الآسيوي، سميثسونيان: فن الصين القديمة وآثارها — https://asia-archive.si.edu/wp-content/uploads/2020/05/Art-and-Archaeology-of-Ancient-China.pdf",
         "موسوعة تاريخ العالم: الحرير في العصور القديمة — https://www.worldhistory.org/Silk/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1876,7 +1876,7 @@ KZV.register({
         "المتحف الوطني للفن الآسيوي، سميثسونيان: فن الصين القديمة وآثارها — https://asia-archive.si.edu/wp-content/uploads/2020/05/Art-and-Archaeology-of-Ancient-China.pdf",
         "متحف المتروبوليتان: مادة الطلاء الصيني اللاكيه — https://www.metmuseum.org/exhibitions/listings/2011/red-and-black"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1898,7 +1898,7 @@ KZV.register({
         "المتحف البريطاني: دليل قاعة النقود — https://www.britishmuseum.org/sites/default/files/2021-05/Money_Gallery_LPG_2020_Room_68.pdf",
         "متحف النقود، الجمعية الأمريكية للمسكوكات: النقود الصينية التقليدية — https://www.money.org/money-museum-virtual-exhibits-silk-case2/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2008,7 +2008,7 @@ KZV.register({
         "اليونسكو: المراكز القصرية المينوية — https://whc.unesco.org/en/list/1733/",
         "موسوعة تاريخ العالم: كنوسوس — https://www.worldhistory.org/knossos/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2030,7 +2030,7 @@ KZV.register({
         "جامعة أكسفورد: القنصلية الرومانية — https://academic.oup.com/reference/62365/reference-article-abstract/554629120?login=false",
         "موسوعة تاريخ العالم: القنصل الروماني — https://www.worldhistory.org/Consul/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2052,7 +2052,7 @@ KZV.register({
         "جامعة أكسفورد: القنصلية الرومانية — https://academic.oup.com/reference/62365/reference-article-abstract/554629120?login=false",
         "موسوعة تاريخ العالم: القنصل الروماني — https://www.worldhistory.org/Consul/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2140,7 +2140,7 @@ KZV.register({
         "جامعة كلية لندن: تقنية الفيانس المصري — https://www.ucl.ac.uk/museums-static/digitalegypt/faience/index.html",
         "متحف المتروبوليتان: تقنية الفيانس المصري وإنتاجه — https://www.metmuseum.org/essays/egyptian-faience-technology-and-production"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2162,7 +2162,7 @@ KZV.register({
         "المتحف البريطاني: الزراعة في وادي النيل — https://artsandculture.google.com/story/farming-in-the-nile-valley-the-british-museum/kAWxk-YaOyfgJw?hl=en",
         "متحف المتروبوليتان: الشادوف لرفع مياه النيل — https://www.metmuseum.org/art/collection/search/12074"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2184,7 +2184,7 @@ KZV.register({
         "موسوعة تاريخ العالم: مصر القديمة — https://www.worldhistory.org/egypt/",
         "متحف المتروبوليتان: فن مصر القديمة، دليل للمعلمين — https://www.metmuseum.org/-/media/files/learn/for-educators/publications-for-educators/the-art-of-ancient-egypt.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2206,7 +2206,7 @@ KZV.register({
         "موسوعة تاريخ العالم: مصر القديمة — https://www.worldhistory.org/egypt/",
         "جامعة كامبريدج: البيئة الطبيعية لمصر القديمة — https://assets.cambridge.org/97805217/76561/excerpt/9780521776561_excerpt.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2338,7 +2338,7 @@ KZV.register({
         "مكتبة ولاية ساكسونيا وجامعة دريسدن: مخطوط المايا — https://www.slub-dresden.de/en/explore/manuscripts/the-dresden-maya-codex",
         "جامعة هامبورغ: دراسة مخطوط دريسدن للمايا — https://www.csmc.uni-hamburg.de/publications/aom/023-en.html"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2382,7 +2382,7 @@ KZV.register({
         "متحف المتروبوليتان: تقنيات زخرفة الأواني الأثينية — https://www.metmuseum.org/essays/athenian-vase-painting-black-and-red-figure-techniques",
         "متحف جيتي: الفخار الأتيكي وتقنياته — https://www.getty.edu/news/what-is-attic-pottery/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2404,7 +2404,7 @@ KZV.register({
         "متحف المتروبوليتان: تقنيات زخرفة الأواني الأثينية — https://www.metmuseum.org/essays/athenian-vase-painting-black-and-red-figure-techniques",
         "متحف جيتي: الفخار الأتيكي وتقنياته — https://www.getty.edu/news/what-is-attic-pottery/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2492,7 +2492,7 @@ KZV.register({
         "متحف المتروبوليتان: تطور الخزف الصيني — https://www.metmuseum.org/ja/press-releases/chinese-ceramics-on-great-hall-balcony-2012-exhibitions",
         "متحف الفن الآسيوي الوطني: فنون البلاط وصناعة البورسلين — https://asia-archive.si.edu/press-release/luxury-and-luminosity-visual-culture-and-the-ming-court/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2580,7 +2580,7 @@ KZV.register({
         "وزارة الثقافة الإيطالية: البانثيون — https://direzionemuseiroma.cultura.gov.it/pantheon/",
         "موسوعة تاريخ العالم: البانثيون — https://www.worldhistory.org/Pantheon/"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2668,7 +2668,7 @@ KZV.register({
         "متحف المتروبوليتان: زجاج الكاميو الروماني — https://www.metmuseum.org/fr/essays/roman-cameo-glass",
         "متحف كورنينغ للزجاج: زجاج الرومان — https://whatson.cmog.org/exhibitions-galleries/glass-romans"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2690,7 +2690,7 @@ KZV.register({
         "موسوعة تاريخ العالم: الألواح الاثنا عشر — https://www.worldhistory.org/Twelve_Tables/",
         "كلية الحقوق بجامعة ييل: ترجمة قوانين الألواح الاثني عشر — https://avalon.law.yale.edu/ancient/twelve_tables.asp"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2712,7 +2712,7 @@ KZV.register({
         "الموسوعة الإيرانية: الداريك — https://www.iranicaonline.org/articles/daric/",
         "بعثة سارديس الأثرية: دراسة مسكوكات سارديس — https://www.sardisexpedition.org/en/essays/latw-kroll-coins-of-sardis"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2734,7 +2734,7 @@ KZV.register({
         "الموسوعة الإيرانية: الداريك — https://www.iranicaonline.org/articles/daric/",
         "بعثة سارديس الأثرية: دراسة مسكوكات سارديس — https://www.sardisexpedition.org/en/essays/latw-kroll-coins-of-sardis"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2756,7 +2756,7 @@ KZV.register({
         "الموسوعة الإيرانية: تاريخ الآرامية واستخداماتها — https://www.iranicaonline.org/articles/aramaic/i-general/",
         "المدرسة العليا للمعلمين في بيزا: تاريخ الخطوط الآرامية — https://mnamon.sns.it/index.php?id=2&lang=en&page=Scrittura"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2778,7 +2778,7 @@ KZV.register({
         "الموسوعة الإيرانية: تاريخ الآرامية واستخداماتها — https://www.iranicaonline.org/articles/aramaic/i-general/",
         "المدرسة العليا للمعلمين في بيزا: تاريخ الخطوط الآرامية — https://mnamon.sns.it/index.php?id=2&lang=en&page=Scrittura"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2800,7 +2800,7 @@ KZV.register({
         "جامعة شيكاغو: تقاليد الكتابة في الجزيرة العربية القديمة — https://isac-assets.s3.amazonaws.com/isac-publications/lamine3.pdf?VersionId=6ZOngcoQ2cbtMwsQFAsMQemfSIWOJO5A",
         "المدرسة العليا للمعلمين في بيزا: الكتابة العربية الجنوبية القديمة — https://mnamon.sns.it/index.php?id=27&lang=en&page=Scrittura"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2910,7 +2910,7 @@ KZV.register({
         "متحف جامعة بنسلفانيا: شبكات التبادل بين الرافدين والخليج والسند — https://www.penn.museum/sites/expedition/the-middle-asian-interaction-sphere/",
         "متحف المتروبوليتان: فن المدن الأولى — https://www.metmuseum.org/exhibitions/listings/2003/art-of-the-first-cities"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -3064,7 +3064,7 @@ KZV.register({
         "متحف المتروبوليتان: مواد الرسم في مصر القديمة — https://www.metmuseum.org/fr/perspectives/paint-like-an-egyptian",
         "معجم الفن والعمارة بمعهد جيتي: الأزرق المصري — https://www.getty.edu/vow/AATFullDisplay?find=300010682&logic=AND&note=&subjectid=300013280"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -3108,7 +3108,7 @@ KZV.register({
         "اليونسكو: القناة الكبرى في الصين — https://whc.unesco.org/en/list/1443/",
         "الجغرافيا الأكاديمية للنقل: شبكة القناة الكبرى الصينية — https://transportgeography.org/contents/chapter1/emergence-of-mechanized-transportation-systems/grand-canal-china/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3196,7 +3196,7 @@ KZV.register({
         "اليونسكو: مدينة كارال في وادي سوبه — https://whc.unesco.org/en/list/1269/",
         "منطقة كارال الأثرية التابعة لوزارة الثقافة البيروفية: المدينة والحضارة — https://www.zonacaral.gob.pe/Caral/about.html"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3240,7 +3240,7 @@ KZV.register({
         "موسوعة تاريخ العالم: الطرق الرومانية — https://www.worldhistory.org/article/758/roman-roads/",
         "اليونسكو: طريق أبيا، ملكة الطرق — https://whc.unesco.org/en/list/1708/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3284,7 +3284,7 @@ KZV.register({
         "موسوعة تاريخ العالم: الطرق الرومانية — https://www.worldhistory.org/article/758/roman-roads/",
         "اليونسكو: طريق أبيا، ملكة الطرق — https://whc.unesco.org/en/list/1708/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3306,7 +3306,7 @@ KZV.register({
         "جامعة أكسفورد: اللغة السومرية — https://www.orinst.ox.ac.uk/sumerian",
         "متحف المتروبوليتان: أصول الكتابة — https://www.metmuseum.org/essays/the-origins-of-writing"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -3350,7 +3350,7 @@ KZV.register({
         "جامعة شيكاغو: اللغة الأكدية ولهجاتها — https://mes.uchicago.edu/language-study/akkadian-language-program",
         "جامعة أكسفورد: اللغة الأكدية — https://www.orinst.ox.ac.uk/akkadian"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3526,7 +3526,7 @@ KZV.register({
         "متحف المتروبوليتان: طيسفون وعمارتها — https://www.metmuseum.org/es/essays/ctesiphon",
         "الموسوعة الإيرانية: طيسفون — https://www.iranicaonline.org/articles/ctesiphon/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3548,7 +3548,7 @@ KZV.register({
         "متحف المتروبوليتان: تطور التصوير الروماني — https://www.metmuseum.org/it/essays/roman-painting",
         "متحف جيتي: روائع مجموعة الآثار، فصل العصر الروماني — https://d2aohiyo3d3idm.cloudfront.net/publications/virtuallibrary/0892364211.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3614,7 +3614,7 @@ KZV.register({
         "موسوعة تاريخ العالم: الفسيفساء الرومانية — https://www.worldhistory.org/article/498/roman-mosaics/",
         "متحف جيتي: مقدمة علمية إلى الفسيفساء الرومانية — https://www.getty.edu/publications/romanmosaics/introduction/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3637,7 +3637,7 @@ KZV.register({
         "متحف جيتي: مقدمة علمية إلى الفسيفساء الرومانية — https://www.getty.edu/publications/romanmosaics/introduction/",
         "موسوعة تاريخ العالم: الفسيفساء الرومانية — https://www.worldhistory.org/article/498/roman-mosaics/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3681,7 +3681,7 @@ KZV.register({
         "موسوعة تاريخ العالم: الفنون وتقنيات الصناعة المينوية — https://www.worldhistory.org/Minoan_Art/",
         "متحف هيراكليون الأثري: خزف كاماريس — https://heraklionmuseum.gr/en/exhibit/the-royal-dinner-service-kamares-style-vessels/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3703,7 +3703,7 @@ KZV.register({
         "موسوعة ستانفورد للفلسفة: سيرة أرسطو — https://plato.stanford.edu/entries/aristotle/",
         "موسوعة تاريخ العالم: أرسطو ومدرسته — https://www.worldhistory.org/aristotle/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3725,7 +3725,7 @@ KZV.register({
         "موسوعة ستانفورد للفلسفة: سيرة أرسطو — https://plato.stanford.edu/entries/aristotle/",
         "موسوعة تاريخ العالم: أرسطو ومدرسته — https://www.worldhistory.org/aristotle/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3747,7 +3747,7 @@ KZV.register({
         "موسوعة ستانفورد للفلسفة: سيرة أرسطو — https://plato.stanford.edu/entries/aristotle/",
         "موسوعة تاريخ العالم: أرسطو ومدرسته — https://www.worldhistory.org/aristotle/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3769,7 +3769,7 @@ KZV.register({
         "موسوعة ستانفورد للفلسفة: أفلاطون وعلاقته بسقراط — https://plato.stanford.edu/entries/plato/",
         "موسوعة تاريخ العالم: أفلاطون وأكاديميته — https://www.worldhistory.org/plato/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3791,7 +3791,7 @@ KZV.register({
         "الموسوعة الإنترنتية للفلسفة بجامعة تينيسي في مارتن: أفلاطون — https://iep.utm.edu/plato/",
         "موسوعة تاريخ العالم: أفلاطون وأكاديميته — https://www.worldhistory.org/plato/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3835,7 +3835,7 @@ KZV.register({
         "موسوعة تاريخ العالم: نظام الحكم في إسبرطة — https://www.worldhistory.org/sparta/",
         "مجلة الدراسات الكلاسيكية بجامعة كامبريدج: مؤسسات الحكم في إسبرطة — https://www.cambridge.org/core/journals/classical-quarterly/article/divided-power-and-deliberative-procedures-in-ancient-sparta/DB515806C3F3CFF62AEDA17A1E47A204"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3857,7 +3857,7 @@ KZV.register({
         "موسوعة تاريخ العالم: نظام الحكم في إسبرطة — https://www.worldhistory.org/sparta/",
         "مجلة الدراسات الكلاسيكية بجامعة كامبريدج: مؤسسات الحكم في إسبرطة — https://www.cambridge.org/core/journals/classical-quarterly/article/divided-power-and-deliberative-procedures-in-ancient-sparta/DB515806C3F3CFF62AEDA17A1E47A204"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3879,7 +3879,7 @@ KZV.register({
         "موسوعة تاريخ العالم: الديمقراطية الأثينية — https://www.worldhistory.org/Athenian_Democracy/",
         "كلية كورنيل: مؤسسات الديمقراطية الأثينية وآثارها — https://www.cornellcollege.edu/classical_studies/ariadne/images/ch22.shtml"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3945,7 +3945,7 @@ KZV.register({
         "كلية كورنيل: مؤسسات الديمقراطية الأثينية وآثارها — https://www.cornellcollege.edu/classical_studies/ariadne/images/ch22.shtml",
         "موسوعة تاريخ العالم: التصويت بالنفي في أثينا — https://www.worldhistory.org/Ostracism/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4187,7 +4187,7 @@ KZV.register({
         "موسوعة تاريخ العالم: عمارة الكولوسيوم وتاريخه — https://www.worldhistory.org/Colosseum/",
         "الجامعة المفتوحة: الكولوسيوم في العصور القديمة — https://www.open.edu/openlearn/history-the-arts/travelling-culture-the-grand-tour/content-section-1.1"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4209,7 +4209,7 @@ KZV.register({
         "موسوعة تاريخ العالم: عمارة الكولوسيوم وتاريخه — https://www.worldhistory.org/Colosseum/",
         "الجامعة المفتوحة: الكولوسيوم في العصور القديمة — https://www.open.edu/openlearn/history-the-arts/travelling-culture-the-grand-tour/content-section-1.1"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4231,7 +4231,7 @@ KZV.register({
         "موسوعة تاريخ العالم: عمارة الكولوسيوم وتاريخه — https://www.worldhistory.org/Colosseum/",
         "الجامعة المفتوحة: الكولوسيوم في العصور القديمة — https://www.open.edu/openlearn/history-the-arts/travelling-culture-the-grand-tour/content-section-1.1"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4253,7 +4253,7 @@ KZV.register({
         "موسوعة تاريخ العالم: الفسيفساء الرومانية — https://www.worldhistory.org/article/498/roman-mosaics/",
         "متحف جيتي: معجم تقنيات الفسيفساء والعمارة الرومانية — https://www.getty.edu/publications/romanmosaics/glossary/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4275,7 +4275,7 @@ KZV.register({
         "جامعة كوليدج لندن: شارات الملك وأسماؤه — https://www.ucl.ac.uk/3dpetriemuseum/stories/ancient-life/egyptian-life/recognising-pharaoh.html",
         "المتحف البريطاني: الهيروغليفية وكشف مصر القديمة، دليل المعرض — https://www.britishmuseum.org/sites/default/files/2022-10/Hieroglyphs_unlocking_ancient_Egypt_large_print_guide_The_British_Museum.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4363,7 +4363,7 @@ KZV.register({
         "جامعة سانت أندروز: الرياضيات في البرديات المصرية — https://mathshistory.st-andrews.ac.uk/HistTopics/Egyptian_papyri/",
         "الجامعة المفتوحة: طرائق الحساب المصري القديم — https://www.open.edu/openlearn/science-maths-technology/mathematics-statistics/egyptian-mathematics/content-section-1.1.2"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4407,7 +4407,7 @@ KZV.register({
         "موسوعة تاريخ العالم: منارة الإسكندرية — https://www.worldhistory.org/Lighthouse_of_Alexandria/",
         "مكتبة الإسكندرية: الإسكندرية القديمة، فصل منارة فاروس — https://www.bibalex.gov.eg/Attachments/Publications/Files/201303201500376555_AncientAlexandria.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4451,7 +4451,7 @@ KZV.register({
         "موسوعة تاريخ العالم: منارة الإسكندرية — https://www.worldhistory.org/Lighthouse_of_Alexandria/",
         "مكتبة الإسكندرية: الإسكندرية القديمة، فصل منارة فاروس — https://www.bibalex.gov.eg/Attachments/Publications/Files/201303201500376555_AncientAlexandria.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4473,7 +4473,7 @@ KZV.register({
         "موسوعة تاريخ العالم: أبو الهول بالجيزة — https://www.worldhistory.org/Great_Sphinx_of_Giza/",
         "نوفا: إجابة أثرية عن مادة أبي الهول وهيئته — https://www.pbs.org/wgbh/nova/pyramid/mail/responses970220.html"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4495,7 +4495,7 @@ KZV.register({
         "موسوعة تاريخ العالم: أغسطس — https://www.worldhistory.org/augustus/",
         "ليفيوس: أغسطس وتسلسل حكمه — https://www.livius.org/articles/person/augustus/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4539,7 +4539,7 @@ KZV.register({
         "موسوعة تاريخ العالم: أغسطس — https://www.worldhistory.org/augustus/",
         "متحف المتروبوليتان: السياق التاريخي لاسم أغسطس — https://www.metmuseum.org/art/collection/search/251114"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4583,7 +4583,7 @@ KZV.register({
         "موسوعة تاريخ العالم: دقلديانوس — https://www.worldhistory.org/Diocletian/",
         "اليونسكو: مجمع سبليت التاريخي وقصر دقلديانوس — https://whc.unesco.org/en/list/97/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4605,7 +4605,7 @@ KZV.register({
         "هيئة التراث الإنجليزي: حقائق عن سور هادريان — https://www.english-heritage.org.uk/faqs-hadrians-wall/",
         "موسوعة تاريخ العالم: سور هادريان — https://www.worldhistory.org/Hadrians_Wall/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4627,7 +4627,7 @@ KZV.register({
         "هيئة التراث الإنجليزي: حقائق عن سور هادريان — https://www.english-heritage.org.uk/faqs-hadrians-wall/",
         "موسوعة تاريخ العالم: سور هادريان — https://www.worldhistory.org/Hadrians_Wall/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4671,7 +4671,7 @@ KZV.register({
         "المجلس الهندي للبحوث والتدريب التربوي: الطوب والخرز والعظام، الحضارة الهارابية — https://ncert.nic.in/textbook/pdf/lehs101.pdf",
         "مشروع هارابا الأثري: تسلسل الاستيطان والتطور الحضري — https://www.harappa.com/content/recent-indus-discoveries-and-highlights-excavations-harappa-1998-2000"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4715,7 +4715,7 @@ KZV.register({
         "المجلس الهندي للبحوث والتدريب التربوي: الطوب والخرز والعظام، الحضارة الهارابية — https://ncert.nic.in/textbook/pdf/lehs101.pdf",
         "مطبعة جامعة كامبريدج عبر هارابا: القياس في العالم الهارابي — https://www.harappa.com/sites/default/files/pdf/Kenoyer%202010%20Measuring%20the%20Harappan%20World.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4737,7 +4737,7 @@ KZV.register({
         "المجلس الهندي للبحوث والتدريب التربوي: الطوب والخرز والعظام، الحضارة الهارابية — https://ncert.nic.in/textbook/pdf/lehs101.pdf",
         "مطبعة جامعة كامبريدج عبر هارابا: القياس في العالم الهارابي — https://www.harappa.com/sites/default/files/pdf/Kenoyer%202010%20Measuring%20the%20Harappan%20World.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4781,7 +4781,7 @@ KZV.register({
         "اليونسكو: دولافيرا، مدينة هارابية — https://whc.unesco.org/en/list/1645/",
         "هارابا: لمحات من عمارة دولافيرا — https://www.harappa.com/blog/glimpses-dholavira-1"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4803,7 +4803,7 @@ KZV.register({
         "موسوعة تاريخ العالم: تخطيط هارابا وعمارتها — https://www.worldhistory.org/article/695/harappa-an-overview-of-harappan-architecture--town/",
         "اليونسكو: موقع هارابا الأثري — https://whc.unesco.org/en/tentativelists/1878/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4935,7 +4935,7 @@ KZV.register({
         "موسوعة تاريخ العالم: مدينة شوش القديمة — https://www.worldhistory.org/susa/",
         "ليفيوس: شوش وقصر دارا الأول — https://www.livius.org/articles/place/susa/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5155,7 +5155,7 @@ KZV.register({
         "متحف المتروبوليتان: تاريخ الصين من500إلى1000م — https://www.metmuseum.org/zh/toah/ht/06/eac.html",
         "موسوعة تاريخ العالم: أسرة تانغ — https://www.worldhistory.org/Tang_Dynasty/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5199,7 +5199,7 @@ KZV.register({
         "متحف المتروبوليتان: تاريخ الصين من500إلى1000م — https://www.metmuseum.org/zh/toah/ht/06/eac.html",
         "موسوعة تاريخ العالم: أسرة سونغ — https://www.worldhistory.org/Song_Dynasty/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5243,7 +5243,7 @@ KZV.register({
         "موسوعة تاريخ العالم: أسرة سوي ومشروع القناة الكبرى — https://www.worldhistory.org/Sui_Dynasty/",
         "متحف المتروبوليتان: تاريخ الصين من500إلى1000م — https://www.metmuseum.org/zh/toah/ht/06/eac.html"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5309,7 +5309,7 @@ KZV.register({
         "المتحف الوطني للهنود الأمريكيين: الحفظ والتخزين لدى الإنكا — https://americanindian.si.edu/nk360/inka-water/preservation/preservation",
         "موسوعة تاريخ العالم: طعام الإنكا وزراعتهم — https://www.worldhistory.org/article/792/inca-food--agriculture/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5331,7 +5331,7 @@ KZV.register({
         "موسوعة تاريخ العالم: منشآت شبكة طرق الإنكا — https://www.worldhistory.org/article/757/the-inca-road-system/",
         "المتحف الوطني للهنود الأمريكيين: استضافة المسافرين في طرق الإنكا — https://americanindian.si.edu/inkaroad/engineering/question/where-were-inka-travelers-housed.html"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5397,7 +5397,7 @@ KZV.register({
         "متحف المتروبوليتان: مدينة تنوختيتلان — https://www.metmuseum.org/de/essays/tenochtitlan",
         "موسوعة تاريخ العالم: تنوختيتلان — https://www.worldhistory.org/Tenochtitlan/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5507,7 +5507,7 @@ KZV.register({
         "اليونسكو: باكيمي وكاساس غراندس — https://whc.unesco.org/en/list/560/",
         "موسوعة تاريخ العالم: كاساس غراندس — https://www.worldhistory.org/Casas_Grandes/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5529,7 +5529,7 @@ KZV.register({
         "اليونسكو: باكيمي وكاساس غراندس — https://whc.unesco.org/en/list/560/",
         "موسوعة تاريخ العالم: كاساس غراندس — https://www.worldhistory.org/Casas_Grandes/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5551,7 +5551,7 @@ KZV.register({
         "اليونسكو: باكيمي وكاساس غراندس — https://whc.unesco.org/en/list/560/",
         "موسوعة تاريخ العالم: كاساس غراندس — https://www.worldhistory.org/Casas_Grandes/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5573,7 +5573,7 @@ KZV.register({
         "اليونسكو: موقع كوبان — https://whc.unesco.org/en/list/129/",
         "موسوعة تاريخ العالم: كوبان — https://www.worldhistory.org/Copan/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5705,7 +5705,7 @@ KZV.register({
         "متحف المتروبوليتان: النحت الحجري في لا فينتا — https://www.metmuseum.org/essays/la-venta-stone-sculpture",
         "موسوعة تاريخ العالم: الرؤوس الحجرية الأولمكية — https://www.worldhistory.org/article/672/olmec-colossal-stone-heads/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5727,7 +5727,7 @@ KZV.register({
         "المكتبة البريطانية: ألواح الكتابة وأقلامها — https://www.bl.uk/stories/blogs/posts/keep-taking-the-wax-tablets",
         "نقوش بريطانيا الرومانية: صناعة ألواح الكتابة — https://romaninscriptionsofbritain.org/tablondbloomberg/form-epigraphy"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -5749,7 +5749,7 @@ KZV.register({
         "المكتبة البريطانية: ألواح الكتابة وأقلامها — https://www.bl.uk/stories/blogs/posts/keep-taking-the-wax-tablets",
         "متحف لندن: قلم الكتابة الروماني — https://www.londonmuseum.org.uk/collections/v/object-9789/stylus/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -5771,7 +5771,7 @@ KZV.register({
         "مكتبة جامعة برنستون: من اللفافة إلى الكتاب المجلد — https://dpul.princeton.edu/global-book-forms/feature/from-papyrus-scroll-to-codex",
         "جامعة شيكاغو: اللفائف والكتب المجلدة في العالم الروماني — https://penelope.uchicago.edu/~grout/encyclopaedia_romana/scroll/scrollcodex.html"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -5815,7 +5815,7 @@ KZV.register({
         "كلية لندن الجامعية: الرق مادة للكتابة — https://www.ucl.ac.uk/museums-static/digitalegypt/craft/parchment.html",
         "مكتبة جامعة ولاية فلوريدا: صناعة الرق — https://guides.lib.fsu.edu/hott/substrates/parchment"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -5837,7 +5837,7 @@ KZV.register({
         "متحف المتروبوليتان: الخيتون والبيبلوس والهيماتيون — https://www.metmuseum.org/es/essays/the-chiton-peplos-and-himation-in-modern-dress",
         "موسوعة تاريخ العالم: ملابس اليونان القديمة — https://www.worldhistory.org/article/20/ancient-greek-clothing/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5859,7 +5859,7 @@ KZV.register({
         "متحف المتروبوليتان: الخيتون والبيبلوس والهيماتيون — https://www.metmuseum.org/es/essays/the-chiton-peplos-and-himation-in-modern-dress",
         "جامعة كولورادو: الملابس في اليونان القديمة — https://www.colorado.edu/classics/2018/06/18/womens-dress-archaic-greece-peplos-chiton-and-himation"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5881,7 +5881,7 @@ KZV.register({
         "متحف المتروبوليتان: مشبك فيبولا يوناني — https://www.metmuseum.org/art/collection/search/251533",
         "جامعة كولومبيا: مشابك الفيبولا — https://projects.mcah.columbia.edu/courses/medmil/pages/non-mma-pages/text_links/fibulae"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5903,7 +5903,7 @@ KZV.register({
         "متحف أونتاريو الملكي: التوجا الرومانية — https://www.rom.on.ca/learn/resources/activity-wear-toga",
         "موسوعة تاريخ العالم: التوجا الرومانية — https://www.worldhistory.org/article/48/the-roman-toga/"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -5925,7 +5925,7 @@ KZV.register({
         "متحف أونتاريو الملكي: التوجا الرومانية — https://www.rom.on.ca/learn/resources/activity-wear-toga",
         "موسوعة تاريخ العالم: التوجا الرومانية — https://www.worldhistory.org/article/48/the-roman-toga/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5969,7 +5969,7 @@ KZV.register({
         "متحف أونتاريو الملكي: التوجا الرومانية — https://www.rom.on.ca/learn/resources/activity-wear-toga",
         "موسوعة تاريخ العالم: التوجا الرومانية — https://www.worldhistory.org/article/48/the-roman-toga/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5991,7 +5991,7 @@ KZV.register({
         "متحف الأكروبوليس: شكل كأس كيليكس — https://www.theacropolismuseum.gr/en/kylix",
         "متحف المتروبوليتان: كأس كيليكس — https://www.metmuseum.org/art/collection/search/254894"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6013,7 +6013,7 @@ KZV.register({
         "متحف أشموليان: دليل الفخار اليوناني القديم — https://www.ashmolean.org/sites/default/files/ashmolean/documents/media/learn_pdf_resources_greece_focus_on_ancient_greek_pottery_teacher_notes.pdf",
         "متحف المتروبوليتان: جرة أمفورا — https://www.metmuseum.org/art/collection/search/247208"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -6035,7 +6035,7 @@ KZV.register({
         "متحف المتروبوليتان: علبة بيكسيس — https://www.metmuseum.org/art/collection/search/254598",
         "متحف جامعة برنستون: علبة بيكسيس ذات غطاء — https://artmuseum.princeton.edu/art/collections/objects/19156"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6057,7 +6057,7 @@ KZV.register({
         "متنزه بومبي الأثري: أبنية الشوارع — https://pompeiisites.org/en/pompeii-map/analysis/along-the-streets-of-pompeii/",
         "موسوعة تاريخ العالم: متجر طعام في هركولانيوم — https://www.worldhistory.org/image/11749/a-thermopolium-in-herculaneum/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6145,7 +6145,7 @@ KZV.register({
         "مؤسسة تاريخ العالم: ممالك جنوب الجزيرة القديمة — https://etc.worldhistory.org/2014/08/08/the-wealthy-kingdoms-of-ancient-arabia/",
         "وزارة الثقافة الفرنسية: شبوة عاصمة حضرموت القديمة — https://archeologie.culture.gouv.fr/fr/shabwa-capitale-antique-du-hadramawt"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -6167,7 +6167,7 @@ KZV.register({
         "دائرة الثقافة والسياحة أبوظبي: آثار أم النار — https://abudhabiculture.ae/en/cultural-heritage/tangible/archaeology/umm-an-nar",
         "دورية آثار الجزيرة العربية ونقوشها: استيطان فترة أم النار — https://onlinelibrary.wiley.com/doi/10.1111/aae.12218"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -6211,7 +6211,7 @@ KZV.register({
         "متحف البحرين الوطني: تايلوس القديمة — https://culture.gov.bh/en/authority/cultural_sites/BahrainNationalMuseum/HallofTylosandIslam/",
         "الاتحاد الياباني للتعاون الدولي في التراث: آثار البحرين — https://www.jcic-heritage.jp/wp-content/uploads/2022/12/2012Report_Bahrain_eg.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -6233,7 +6233,7 @@ KZV.register({
         "متحف الفن الآسيوي: دليل الصين القديمة — https://education.asianart.org/wp-content/uploads/sites/6/2019/09/ancient_china.pdf",
         "متحف المتروبوليتان: قرص بي الصيني — https://www.metmuseum.org/art/collection/search/49371"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6387,7 +6387,7 @@ KZV.register({
         "كلية لندن الجامعية: المصاطب المصرية — https://www.ucl.ac.uk/museums-static/digitalegypt/burialcustoms/mastaba.html",
         "موسوعة تاريخ العالم: العمارة المصرية القديمة — https://www.worldhistory.org/Egyptian_Architecture/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -6497,7 +6497,7 @@ KZV.register({
         "وزارة السياحة والآثار المصرية: الإسكندرية القديمة — https://egymonuments.gov.eg/en/archaeological-sites/alexandria",
         "موسوعة تاريخ العالم: الأسرة البطلمية — https://www.worldhistory.org/Ptolemaic_Dynasty/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -6519,7 +6519,7 @@ KZV.register({
         "متحف الفن الآسيوي: أدوات مكتب الكاتب الصيني — https://education.asianart.org/resources/the-four-treasures-and-other-utensils-for-a-scholars-desk/",
         "مؤسسة سميثسونيان: مواد عود الحبر الصيني — https://collections.si.edu/search/detail/edanmdm%3Afsg_F1983.12.12"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6563,7 +6563,7 @@ KZV.register({
         "مشروع هارابا: الصوان وشبكات توريده — https://www.harappa.com/content/chert-acquisition-networks",
         "المعهد الهندي للتقنية: مراجعة أدوات النصال الهارابية — https://asc.iitgn.ac.in/assets/publications/research_papers/Harappan_Blade_Implements_Literature_Review_Future_Perspectives_Banerjee_Prabhakar_Bisht_2018.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -6607,7 +6607,7 @@ KZV.register({
         "متحف المتروبوليتان: أدوات الخط الصيني — https://www.metmuseum.org/essays/chinese-calligraphy",
         "موسوعة تاريخ العالم: أساليب الخط الصيني القديم — https://www.worldhistory.org/Chinese_Calligraphy/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6629,7 +6629,7 @@ KZV.register({
         "متحف المتروبوليتان: أدوات الخط الصيني — https://www.metmuseum.org/essays/chinese-calligraphy",
         "موسوعة تاريخ العالم: أساليب الخط الصيني القديم — https://www.worldhistory.org/Chinese_Calligraphy/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6651,7 +6651,7 @@ KZV.register({
         "متحف المتروبوليتان: بابل — https://www.metmuseum.org/fr/essays/babylon",
         "موسوعة تاريخ العالم: مدينة بابل — https://www.worldhistory.org/Babylon/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -6673,7 +6673,7 @@ KZV.register({
         "متحف جامعة بنسلفانيا: ملوك سلالة أور الثالثة — https://www.penn.museum/sites/bulletin/2657/",
         "موسوعة تاريخ العالم: أور نمو — https://www.worldhistory.org/Ur-Nammu/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6739,7 +6739,7 @@ KZV.register({
         "متحف المتروبوليتان: فن اليونان الكلاسيكية — https://www.metmuseum.org/pt/essays/the-art-of-classical-greece-ca-480-323-b-c",
         "موسوعة تاريخ العالم: الإسكندر الأكبر — https://www.worldhistory.org/Alexander_the_Great/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -6761,7 +6761,7 @@ KZV.register({
         "متحف المتروبوليتان: مقدونيا والإسكندر — https://www.metmuseum.org/ko/essays/the-rise-of-macedonia-and-the-conquests-of-alexander-the-great",
         "موسوعة تاريخ العالم: الإسكندر الأكبر — https://www.worldhistory.org/Alexander_the_Great/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -6783,7 +6783,7 @@ KZV.register({
         "متحف المتروبوليتان: فن اليونان الكلاسيكية — https://www.metmuseum.org/pt/essays/the-art-of-classical-greece-ca-480-323-b-c",
         "موسوعة تاريخ العالم: الإسكندر الأكبر — https://www.worldhistory.org/Alexander_the_Great/"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -6805,7 +6805,7 @@ KZV.register({
         "موسوعة ليفيوس التاريخية: بيلا المقدونية — https://www.livius.org/articles/place/pella/",
         "موسوعة تاريخ العالم: فيليب الثاني المقدوني — https://www.worldhistory.org/Philip_II_of_Macedon/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6827,7 +6827,7 @@ KZV.register({
         "معهد غيتي للأبحاث: القبو البرميلي — https://www.getty.edu/vow/AATFullDisplay?find=&logic=AND&note=&subjectid=300001363",
         "متحف المتروبوليتان: الفن الروماني مورد للمعلمين — https://www.metmuseum.org/pt/met-publications/roman-art-a-resource-for-educators"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -6849,7 +6849,7 @@ KZV.register({
         "متحف الأكروبوليس: دعامة الكارياتيد — https://www.theacropolismuseum.gr/en/erechtheion-karyatid-kore-e",
         "متحف الآثار الكلاسيكية بجامعة كامبريدج: كارياتيد الإرختيون — https://museum.classics.cam.ac.uk/collections/casts/caryatid-erechtheum-0"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -6871,7 +6871,7 @@ KZV.register({
         "متحف الأكروبوليس: دعامة الكارياتيد — https://www.theacropolismuseum.gr/en/erechtheion-karyatid-kore-e",
         "متحف الآثار الكلاسيكية بجامعة كامبريدج: كارياتيد الإرختيون — https://museum.classics.cam.ac.uk/collections/casts/caryatid-erechtheum-0"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6915,7 +6915,7 @@ KZV.register({
         "موسوعة تاريخ العالم: فخار نازكا — https://www.worldhistory.org/article/883/nazca-pottery/",
         "متحف المتروبوليتان: تقاليد الفخار البيروفي القديم — https://www.metmuseum.org/es/essays/great-hall-balcony-containing-the-divine-peru"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6937,7 +6937,7 @@ KZV.register({
         "موسوعة تاريخ العالم: عمارة المايا — https://www.worldhistory.org/Maya_Architecture/",
         "متحف جامعة بنسلفانيا: البناء عند المايا — https://www.penn.museum/sites/bulletin/2485/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6959,7 +6959,7 @@ KZV.register({
         "موسوعة تاريخ العالم: قورش الكبير — https://www.worldhistory.org/Cyrus_the_Great/",
         "موسوعة ليفيوس التاريخية: قورش الكبير — https://www.livius.org/articles/person/cyrus-the-great/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -6981,7 +6981,7 @@ KZV.register({
         "موسوعة تاريخ العالم: قورش الكبير — https://www.worldhistory.org/Cyrus_the_Great/",
         "موسوعة ليفيوس التاريخية: قورش الكبير — https://www.livius.org/articles/person/cyrus-the-great/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7003,7 +7003,7 @@ KZV.register({
         "موسوعة تاريخ العالم: قورش الكبير — https://www.worldhistory.org/Cyrus_the_Great/",
         "موسوعة ليفيوس التاريخية: قورش الكبير — https://www.livius.org/articles/person/cyrus-the-great/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7047,7 +7047,7 @@ KZV.register({
         "اليونسكو: قلاع نيسا البارثية — https://whc.unesco.org/en/list/1242/",
         "الموسوعة الإيرانية: نيسا — https://www.iranicaonline.org/articles/nisa/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7069,7 +7069,7 @@ KZV.register({
         "موسوعة تاريخ العالم: أوستيا — https://www.worldhistory.org/Ostia/",
         "حديقة أوستيا الأثرية: المدينة القديمة — https://ostiaantica.cultura.gov.it/siti-musei/scavi-di-ostia-e-museo-ostiense/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7113,7 +7113,7 @@ KZV.register({
         "موسوعة تاريخ العالم: أوستيا — https://www.worldhistory.org/Ostia/",
         "حديقة أوستيا الأثرية: المدينة القديمة — https://ostiaantica.cultura.gov.it/siti-musei/scavi-di-ostia-e-museo-ostiense/"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -7135,7 +7135,7 @@ KZV.register({
         "جامعة كولومبيا: السفن والبوصلة في عهد سونغ — https://afe.easia.columbia.edu/songdynasty-module/tech-compass.html",
         "متحف بيرك بجامعة واشنطن: سفن الجنك الصينية — https://www.burkemuseum.org/news/model-chinese-junks-sail"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7157,7 +7157,7 @@ KZV.register({
         "اليونسكو: فيلا أدريانا — https://whc.unesco.org/en/list/907/",
         "موسوعة تاريخ العالم: معالم فيلا هادريان — https://www.worldhistory.org/article/1750/visitors-guide-to-the-monuments-of-hadrians-villa/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7179,7 +7179,7 @@ KZV.register({
         "اليونسكو: فيلا أدريانا — https://whc.unesco.org/en/list/907/",
         "موسوعة تاريخ العالم: معالم فيلا هادريان — https://www.worldhistory.org/article/1750/visitors-guide-to-the-monuments-of-hadrians-villa/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7201,7 +7201,7 @@ KZV.register({
         "موسوعة تاريخ العالم: الحمامات الرومانية — https://www.worldhistory.org/Roman_Baths/",
         "مؤسسة التراث الإنجليزي: مخطط حمامات وركستر الرومانية — https://www.english-heritage.org.uk/siteassets/home/visit/places-to-visit/wroxeter-roman-city/history/wroxeter-roman-baths-phased-plan.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7223,7 +7223,7 @@ KZV.register({
         "موسوعة تاريخ العالم: الحمامات الرومانية — https://www.worldhistory.org/Roman_Baths/",
         "مؤسسة التراث الإنجليزي: مخطط حمامات وركستر الرومانية — https://www.english-heritage.org.uk/siteassets/home/visit/places-to-visit/wroxeter-roman-city/history/wroxeter-roman-baths-phased-plan.pdf"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -7245,7 +7245,7 @@ KZV.register({
         "متحف جامعة بنسلفانيا: النصوص والألواح والتعليم — https://www.penn.museum/sites/expedition/texts-tablets-and-teaching/",
         "موسوعة تاريخ العالم: التعليم في بلاد الرافدين — https://www.worldhistory.org/article/2203/mesopotamian-education/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7311,7 +7311,7 @@ KZV.register({
         "موسوعة تاريخ العالم: حرف التشيمو — https://www.worldhistory.org/Chimu_Civilization/",
         "متحف كليفلاند للفنون: تقنيات خزف التشيمو — https://www.clevelandart.org/art/1951.181"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7333,7 +7333,7 @@ KZV.register({
         "متحف المتروبوليتان: خزف التشيمو الأسود — https://www.metmuseum.org/art/collection/search/308523?od=on",
         "متحف كليفلاند للفنون: تقنيات خزف التشيمو — https://www.clevelandart.org/art/1951.181"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7443,7 +7443,7 @@ KZV.register({
         "جامعة بيتسبرغ: الخلايا السقفية الغائرة — https://www.pitt.edu/~medart/menuglossary/coffer.htm",
         "معهد غيتي للأبحاث: الألواح السقفية الغائرة — https://www.getty.edu/vow/AATFullDisplay?find=&logic=&note=&subjectid=300002041"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7465,7 +7465,7 @@ KZV.register({
         "اليونسكو: أفسس — https://whc.unesco.org/en/list/1018/",
         "موسوعة تاريخ العالم: أفسس — https://www.worldhistory.org/Ephesos/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7509,7 +7509,7 @@ KZV.register({
         "اليونسكو: أفروديسياس — https://whc.unesco.org/en/list/1519/",
         "جامعة أكسفورد: مشروع حفريات أفروديسياس — https://aphrodisias.classics.ox.ac.uk/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7531,7 +7531,7 @@ KZV.register({
         "اليونسكو: أفروديسياس — https://whc.unesco.org/en/list/1519/",
         "جامعة أكسفورد: مشروع حفريات أفروديسياس — https://aphrodisias.classics.ox.ac.uk/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7575,7 +7575,7 @@ KZV.register({
         "موسوعة تاريخ العالم: أرخميدس — https://www.worldhistory.org/Archimedes/",
         "جامعة سانت أندروز: سيرة أرخميدس — https://mathshistory.st-andrews.ac.uk/Biographies/Archimedes/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -7597,7 +7597,7 @@ KZV.register({
         "موسوعة تاريخ العالم: سقراط — https://www.worldhistory.org/Socrates/",
         "موسوعة ستانفورد للفلسفة: سقراط — https://plato.stanford.edu/entries/socrates/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -7619,7 +7619,7 @@ KZV.register({
         "موسوعة تاريخ العالم: سقراط — https://www.worldhistory.org/Socrates/",
         "موسوعة ستانفورد للفلسفة: سقراط — https://plato.stanford.edu/entries/socrates/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -7707,7 +7707,7 @@ KZV.register({
         "الموسوعة الإيرانية: ألواح برسبوليس — https://www.iranicaonline.org/articles/persepolis-elamite-tablets/",
         "موسوعة تاريخ العالم: أرشيف برسبوليس — https://www.worldhistory.org/persepolis/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7927,7 +7927,7 @@ KZV.register({
         "بلدية شقوبية: القناة المائية الرومانية — https://turismodesegovia.com/en/arquitectura-civil/obras-de-ingenieria/aqueduct",
         "الجمعية الأمريكية للمهندسين المدنيين: قناة شقوبية — https://www.asce.org/about-civil-engineering/history-and-heritage/historic-landmarks/acueducto-de-segovia"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7949,7 +7949,7 @@ KZV.register({
         "اليونسكو: آثار ترير الرومانية — https://whc.unesco.org/en/list/367/",
         "هيئة السياحة في ترير: بورتا نيغرا — https://www.trier-info.de/en/places-of-interest/porta-nigra"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7971,7 +7971,7 @@ KZV.register({
         "اليونسكو: آثار ترير الرومانية — https://whc.unesco.org/en/list/367/",
         "هيئة السياحة في ترير: بورتا نيغرا — https://www.trier-info.de/en/places-of-interest/porta-nigra"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8081,7 +8081,7 @@ KZV.register({
         "الموسوعة الإيرانية: إكباتانا — https://www.iranicaonline.org/articles/ecbatana/",
         "موسوعة ليفيوس التاريخية: إكباتانا — https://www.livius.org/articles/place/ecbatana-hamadan/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -8103,7 +8103,7 @@ KZV.register({
         "الموسوعة الإيرانية: إكباتانا — https://www.iranicaonline.org/articles/ecbatana/",
         "موسوعة ليفيوس التاريخية: إكباتانا — https://www.livius.org/articles/place/ecbatana-hamadan/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -8147,7 +8147,7 @@ KZV.register({
         "الموسوعة الإيرانية: بيشابور — https://www.iranicaonline.org/articles/bisapur-town/",
         "موسوعة ليفيوس التاريخية: مخطط بيشابور — https://www.livius.org/articles/place/bishapur/bishapur-city/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8169,7 +8169,7 @@ KZV.register({
         "الموسوعة الإيرانية: فيروزآباد — https://www.iranicaonline.org/articles/firuzabad/",
         "اليونسكو: المشهد الأثري الساساني في فارس — https://whc.unesco.org/en/list/1568/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8235,7 +8235,7 @@ KZV.register({
         "متحف المتروبوليتان: الخزف النبطي المرسوم — https://www.metmuseum.org/art/collection/search/326243",
         "دورية آثار المتوسط وقياس الآثار: دراسة الخزف النبطي من البتراء — https://www.maajournal.com/index.php/maa/article/view/783"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8323,7 +8323,7 @@ KZV.register({
         "هيئة السياحة في روما: كلواكا ماكسيما — https://www.turismoroma.it/en/node/1029",
         "موسوعة تاريخ العالم: موقع كلواكا ماكسيما — https://www.worldhistory.org/image/499/site-of-the-cloaca-maxima/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8367,7 +8367,7 @@ KZV.register({
         "موسوعة تاريخ العالم: فيثاغورس — https://www.worldhistory.org/Pythagoras/",
         "جامعة سانت أندروز: فيثاغورس — https://mathshistory.st-andrews.ac.uk/Biographies/Pythagoras/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8389,7 +8389,7 @@ KZV.register({
         "موسوعة تاريخ العالم: إراتوستينس — https://www.worldhistory.org/Eratosthenes/",
         "جامعة سانت أندروز: إراتوستينس — https://mathshistory.st-andrews.ac.uk/Biographies/Eratosthenes/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8411,7 +8411,7 @@ KZV.register({
         "موسوعة تاريخ العالم: ديموقريطس — https://www.worldhistory.org/Democritus/",
         "موسوعة ستانفورد للفلسفة: ديموقريطس — https://plato.stanford.edu/entries/democritus/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -8433,7 +8433,7 @@ KZV.register({
         "موسوعة تاريخ العالم: أبقراط — https://www.worldhistory.org/Hippocrates/",
         "الموسوعة الدنماركية ليكس: أبقراط — https://lex.dk/Hippokrates"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8477,7 +8477,7 @@ KZV.register({
         "الجمعية الأمريكية للمهندسين المدنيين: نفق إيوبالينوس — https://www.asce.org/about-civil-engineering/history-and-heritage/historic-landmarks/tunnel-of-eupalinos",
         "دورية آثار الأناضول: هندسة حفر نفق إيوبالينوس — https://www.persee.fr/doc/anata_1018-1946_2012_num_20_1_1323"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -8543,7 +8543,7 @@ KZV.register({
         "متحف المتروبوليتان: نقش الملك أحمس — https://www.metmuseum.org/art/collection/search/544779",
         "موسوعة تاريخ العالم: الدولة الحديثة المصرية — https://www.worldhistory.org/New_Kingdom_of_Egypt/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -8587,7 +8587,7 @@ KZV.register({
         "متحف المتروبوليتان: أداة الستريجيل اليونانية — https://www.metmuseum.org/art/collection/search/248881",
         "متحف غيتي: أدوات العناية بالجسم في اليونان القديمة — https://www.getty.edu/news/the-getty-villa-guide-to-the-ancient-olympics/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8653,7 +8653,7 @@ KZV.register({
         "موسوعة ليفيوس التاريخية: خريطة بيوتنغر — https://www.livius.org/articles/concept/peutinger-map/",
         "المكتبة الوطنية النمساوية: خريطة بيوتنغر — https://www.onb.ac.at/mehr/blogs/die-tabula-peutingeriana"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8763,7 +8763,7 @@ KZV.register({
         "مجموعة متحف العلوم: آلية ساعة سو سونغ — https://collection.sciencemuseumgroup.org.uk/objects/co894/scale-model-of-su-songs-water-balance-escapement",
         "موسوعة العلوم وعصرها: سو سونغ — https://www.encyclopedia.com/science/encyclopedias-almanacs-transcripts-and-maps/su-sung"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -8785,7 +8785,7 @@ KZV.register({
         "اليونسكو: موقع كاهوكيا — https://whc.unesco.org/en/list/198/",
         "موسوعة تاريخ العالم: تل مونكس ماوند في كاهوكيا — https://www.worldhistory.org/cahokia/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8807,7 +8807,7 @@ KZV.register({
         "هيئة تاريخ أوهايو: موقع سيربنت ماوند — https://www.ohiohistory.org/visit/browse-historical-sites/serpent-mound/",
         "موسوعة تاريخ العالم: سيربنت ماوند — https://www.worldhistory.org/Serpent_Mound/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8873,7 +8873,7 @@ KZV.register({
         "دورية الجيوآثار: تشغيل مجمع باربيغال — https://openscience.ub.uni-mainz.de/server/api/core/bitstreams/ed058e41-ee6f-4841-b767-2e2c2dfddaaf/content",
         "ويكيبيديا: مجمع باربيغال المائي — https://en.wikipedia.org/wiki/Barbegal_aqueduct_and_mills"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8895,7 +8895,7 @@ KZV.register({
         "دورية الجيوآثار: تشغيل مجمع باربيغال — https://openscience.ub.uni-mainz.de/server/api/core/bitstreams/ed058e41-ee6f-4841-b767-2e2c2dfddaaf/content",
         "ويكيبيديا: مجمع باربيغال المائي — https://en.wikipedia.org/wiki/Barbegal_aqueduct_and_mills"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8917,7 +8917,7 @@ KZV.register({
         "موسوعة ليفيوس التاريخية: نابونيد — https://www.livius.org/articles/person/nabonidus/",
         "المتحف البريطاني: مسلة نابونيد — https://artsandculture.google.com/asset/stela-of-nabonidus/-AEcCIf0_dXhTg?hl=en"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8939,7 +8939,7 @@ KZV.register({
         "موسوعة تاريخ العالم: البروبيلايا — https://www.worldhistory.org/Propylaea/",
         "اليونسكو: أكروبول أثينا — https://whc.unesco.org/en/list/404/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8983,7 +8983,7 @@ KZV.register({
         "موسوعة تاريخ العالم: البارثينون — https://www.worldhistory.org/parthenon/",
         "اليونسكو: أكروبول أثينا — https://whc.unesco.org/en/list/404/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9005,7 +9005,7 @@ KZV.register({
         "معهد غيتي للبحوث: البيديمنت — https://www.getty.edu/vow/AATFullDisplay?find=&logic=&note=&subjectid=300002726",
         "جامعة بيتسبرغ: معجم العمارة، البيديمنت — https://sites.pitt.edu/~medart/menuglossary/pediment.htm"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -9049,7 +9049,7 @@ KZV.register({
         "الموسوعة الإيرانية: الداريك — https://www.iranicaonline.org/articles/daric/",
         "بعثة سارديس الأثرية: دراسة مسكوكات سارديس — https://www.sardisexpedition.org/en/essays/latw-kroll-coins-of-sardis"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9093,7 +9093,7 @@ KZV.register({
         "متحف المتروبوليتان: نسيج حضارة الواري — https://www.metmuseum.org/art/collection/search/833953",
         "متحف مقاطعة لوس أنجلوس: أثواب الواري — https://collections.lacma.org/object/30857"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9225,7 +9225,7 @@ KZV.register({
         "معهد غيتي للبحوث: الكافيا — https://www.getty.edu/vow/AATFullDisplay?find=&logic=&note=&subjectid=300004734",
         "وزارة الثقافة الفرنسية: الكافيا في عمارة باريس الرومانية — https://archeologie.culture.gouv.fr/paris/en/cavea"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9247,7 +9247,7 @@ KZV.register({
         "الموسوعة الإيرانية: أصول نظام البريد — https://www.iranicaonline.org/articles/barid-the-official-postal-and-intelligence-service-of-the-early-islamic-caliphate-and-its-successor-states/",
         "موسوعة تاريخ العالم: المراسلات والبريد في العالم القديم — https://www.worldhistory.org/article/1442/letters--post-in-the-ancient-world/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -9379,7 +9379,7 @@ KZV.register({
         "موسوعة تاريخ العالم: نينوى — https://www.worldhistory.org/nineveh/",
         "متحف المتروبوليتان: النقوش الصخرية الآشورية وشبكة القنوات — https://www.metmuseum.org/exhibitions/listings/2014/assyria-to-iberia/blog/posts/rock-reliefs"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -9423,7 +9423,7 @@ KZV.register({
         "متحف المتروبوليتان: تقنيات زخرفة الأواني الأثينية — https://www.metmuseum.org/essays/athenian-vase-painting-black-and-red-figure-techniques",
         "معجم الفن والعمارة بمعهد جيتي: الهيدريا — https://www.getty.edu/vow/AATFullDisplay?find=tree&logic=null&note=&subjectid=300198844"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9467,7 +9467,7 @@ KZV.register({
         "متحف المتروبوليتان: تقنيات خزف سانكاي — https://www.metmuseum.org/art/collection/search/44348",
         "متحف فيكتوريا الوطني: مواد الخزف وتبادل تقنياته — https://www.ngv.vic.gov.au/wp-content/uploads/2022/04/Global-Life-of-Design-final-didactics-and-labels.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9577,7 +9577,7 @@ KZV.register({
         "متحف المتروبوليتان: أواني الوجوه لدى موتشي — https://www.metmuseum.org/ja/essays/moche-portrait-head-vessels",
         "متحف أمريكا بوزارة الثقافة الإسبانية: إناء تصويري من موتشي — https://www.cultura.gob.es/museodeamerica/en/coleccion/america-prehispanica/retrato-moche.html"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9599,7 +9599,7 @@ KZV.register({
         "متحف أشموليان: مجموعة الأواني اليونانية — https://potweb.ashmolean.org/PotProsp-Greek.html",
         "معهد غيتي للأبحاث: تعريف الليكيثوس — https://www.getty.edu/vow/AATFullDisplay?find=tree&logic=null&note=&subjectid=300264937"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9643,7 +9643,7 @@ KZV.register({
         "متحف المتروبوليتان: تقاليد نسيج باراكاس — https://www.metmuseum.org/art/collection/search/308078",
         "المتحف البريطاني: دليل آثار بيرو — https://www.britishmuseum.org/sites/default/files/2021-11/Peru_a_journey_in_time_large_print_guide.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9687,7 +9687,7 @@ KZV.register({
         "متحف المتروبوليتان: عصر توت عنخ آمون — https://www.metmuseum.org/pt/perspectives/tutankhamuns-world",
         "وزارة السياحة والآثار المصرية: مقبرة توت عنخ آمون — https://egymonuments.gov.eg/monuments/tomb-of-tutankhamun/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9753,7 +9753,7 @@ KZV.register({
         "وزارة الثقافة الفرنسية: الرياضيات الرافدينية — https://archeologie.culture.gouv.fr/orient-cuneiforme/en/mesopotamian-mathematics",
         "جامعة كامبريدج، مشروع Motivate: الرياضيات البابلية، دليل المعلم — https://motivate.maths.org/content/sites/motivate.maths.org/files/BabylonianMaths-TeacherNotes.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9775,7 +9775,7 @@ KZV.register({
         "موسوعة تاريخ العالم: الحمامات الرومانية — https://www.worldhistory.org/Roman_Baths/",
         "مؤسسة التراث الإنجليزي: الحمامات والاستحمام في بريطانيا الرومانية — https://www.english-heritage.org.uk/learn/story-of-england/romans/roman-bathing/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9797,7 +9797,7 @@ KZV.register({
         "المركز الهندي لشبكات المكتبات والمعلومات، مقرر جامعي: حرف السند وفنونها — https://ebooks.inflibnet.ac.in/icp02/chapter/99/",
         "متحف المتروبوليتان: أختام حضارة السند — https://www.metmuseum.org/art/collection/search/324062"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9907,7 +9907,7 @@ KZV.register({
         "إدارة الموارد الطبيعية بولاية إلينوي: تلال كاهوكيا — https://dnrhistoric.illinois.gov/experience/sites/site.cahokia-mounds.html",
         "موسوعة تاريخ العالم: كاهوكيا — https://www.worldhistory.org/cahokia/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10039,7 +10039,7 @@ KZV.register({
         "موسوعة تاريخ العالم: أسطوانة كورش — https://www.worldhistory.org/article/166/the-cyrus-cylinder/",
         "متحف جيتي: دليل أسطوانة كورش التاريخي — https://www.getty.edu/education/teachers/classroom_resources/curricula/cyrus_cylinder/documents/cyrus_teacher.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -10061,7 +10061,7 @@ KZV.register({
         "موسوعة تاريخ العالم: منشآت شبكة طرق الإنكا — https://www.worldhistory.org/article/757/the-inca-road-system/",
         "المتحف الوطني للهنود الأمريكيين: عبور الأنهار في شبكة الإنكا — https://americanindian.si.edu/inkaroad/engineering/question/how-did-inka-road-cross-rivers.html"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -10171,7 +10171,7 @@ KZV.register({
         "مطبعة جامعة كاليفورنيا: جوانب الديمقراطية الأثينية — https://www.ucpress.edu/books/aspects-of-athenian-democracy/hardcover",
         "موسوعة تاريخ العالم: إصلاحات كليسثينيس — https://www.worldhistory.org/Cleisthenes/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10193,7 +10193,7 @@ KZV.register({
         "جامعة كامبريدج: السكن والأثاث في مصر القديمة — https://www.cambridge.org/core/books/abs/material-world-of-ancient-egypt/housing-and-furniture/D1988DECF55BC9C6610DCD85F0FF0F63",
         "متحف المتروبوليتان: مواد البناء في مصر القديمة — https://www.metmuseum.org/-/media/files/learn/for-educators/publications-for-educators/the-art-of-ancient-egypt.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -10347,7 +10347,7 @@ KZV.register({
         "جامعة واشنطن: الهيكل الخشبي في العمارة الصينية — https://depts.washington.edu/chinaciv/thframe.htm",
         "موسوعة تاريخ العالم: العمارة الصينية القديمة — https://www.worldhistory.org/Chinese_Architecture/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10369,7 +10369,7 @@ KZV.register({
         "جامعة كولومبيا: السفن والبوصلة في عهد سونغ — https://afe.easia.columbia.edu/songdynasty-module/tech-compass.html",
         "متحف بيرك بجامعة واشنطن: سفن الجنك الصينية — https://www.burkemuseum.org/news/model-chinese-junks-sail"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -10413,7 +10413,7 @@ KZV.register({
         "وزارة السياحة والآثار المصرية: تعريف الصلاية الحجرية — https://egymonuments.gov.eg/ar/collections/narmer-palette-1/",
         "المتحف المصري في سان خوسيه: نعرمر وصلايته — https://egyptianmuseum.org/explore/early-dynastic-period-rulers-narmer"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10435,7 +10435,7 @@ KZV.register({
         "البعثة الأثرية اللندنية البحرينية: تقرير تنقيبات سار — https://archaeologydataservice.ac.uk/catalogue/adsdata/arch-456-2/dissemination/pdf/dilmun_temple_at_saar.pdf",
         "البعثة الفرنسية في فيلكا: دراسة أختام دلمون، دومينيك باير — https://www.persee.fr/doc/mom_0766-0510_1986_rpm_12_1_1665"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -10501,7 +10501,7 @@ KZV.register({
         "اليونسكو: موقع تشافين الأثري — https://whc.unesco.org/en/list/330/",
         "مركز الآثار بجامعة ستانفورد: البحث الميداني في تشافين دي وانتار — https://archaeology.stanford.edu/academics/why-archaeology"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10523,7 +10523,7 @@ KZV.register({
         "المعهد الألماني للآثار: دراسات أسوار تيماء وتاريخ الإقامة البابلية — https://www.dainst.org/forschung/projekte/noslug/5701?cHash=992901c271f877f71e0e6cf22aae60cb&tx_wfdaiprojects_projects%5Bnav%5D=open&tx_wfdaiprojects_projects%5Bsection%5D=space",
         "مؤسسة ليفيوس التاريخية: نابونيد — https://www.livius.org/articles/person/nabonidus/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -10545,7 +10545,7 @@ KZV.register({
         "موسوعة تاريخ العالم: الحمامات الرومانية — https://www.worldhistory.org/Roman_Baths/",
         "مؤسسة التراث الإنجليزي: الحمامات والاستحمام في بريطانيا الرومانية — https://www.english-heritage.org.uk/learn/story-of-england/romans/roman-bathing/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10567,7 +10567,7 @@ KZV.register({
         "متحف غيتي: مساحات المعيشة في الفيلا الرومانية — https://www.getty.edu/education/teachers/trippack/downloads/villa_living_spaces_worksheet.pdf",
         "منتزه بومبي الأثري: البيت الروماني — https://pompeiisites.org/en/pompeii-map/analysis/roman-housing/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10743,7 +10743,7 @@ KZV.register({
         "اليونسكو: موقعا ميسيناي وتيرينس الأثريان — https://whc.unesco.org/en/list/941/",
         "متحف الفن الكيكلادي: الحضارة الميسينية — https://cycladic.gr/en/essay/mikinaikos-polotismos/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10765,7 +10765,7 @@ KZV.register({
         "اليونسكو: موقعا ميسيناي وتيرينس الأثريان — https://whc.unesco.org/en/list/941/",
         "متحف الفن الكيكلادي: الحضارة الميسينية — https://cycladic.gr/en/essay/mikinaikos-polotismos/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -10809,7 +10809,7 @@ KZV.register({
         "خدمة المتنزهات الوطنية: مساكن ميسا فيردي — https://www.nps.gov/articles/mesaverde.htm",
         "اليونسكو: ميسا فيردي — https://whc.unesco.org/en/list/27/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10831,7 +10831,7 @@ KZV.register({
         "خدمة المتنزهات الوطنية: عمارة شاكو — https://www.nps.gov/articles/000/chaco-culture-world-heritage-site.htm",
         "اليونسكو: ثقافة شاكو — https://whc.unesco.org/en/list/353/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10853,7 +10853,7 @@ KZV.register({
         "موسوعة تاريخ العالم: تخطيط تيوتيهواكان — https://www.worldhistory.org/Teotihuacan/",
         "اليونسكو: مدينة تيوتيهواكان القديمة — https://whc.unesco.org/en/list/414/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10897,7 +10897,7 @@ KZV.register({
         "موسوعة تاريخ العالم: قورش الكبير — https://www.worldhistory.org/Cyrus_the_Great/",
         "موسوعة ليفيوس التاريخية: قورش الكبير — https://www.livius.org/articles/person/cyrus-the-great/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10941,7 +10941,7 @@ KZV.register({
         "اليونسكو: بات والخطم والعين — https://whc.unesco.org/en/list/434/",
         "معجم الأسماء الجغرافية بمعهد جيتي: بلاد مجان — https://www.getty.edu/vow/TGNFullDisplay?english=N&find=&nation=Benin&place=&subjectid=8698246"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },

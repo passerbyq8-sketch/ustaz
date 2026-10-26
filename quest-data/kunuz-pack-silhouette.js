@@ -32,7 +32,7 @@ KZV.register({
         "Unicode Emoji 12.0 — watermelon — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — watermelon — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -58,7 +58,7 @@ KZV.register({
         "Unicode Emoji 12.0 — lemon — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — lemon — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -84,7 +84,7 @@ KZV.register({
         "Unicode Emoji 12.0 — pineapple — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — pineapple — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -110,7 +110,7 @@ KZV.register({
         "Unicode Emoji 12.0 — red apple — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — red apple — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -136,7 +136,7 @@ KZV.register({
         "Unicode Emoji 12.0 — pear — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — pear — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -162,7 +162,7 @@ KZV.register({
         "Unicode Emoji 12.0 — cherries — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — cherries — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -188,7 +188,7 @@ KZV.register({
         "Unicode Emoji 12.0 — strawberry — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — strawberry — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -214,7 +214,7 @@ KZV.register({
         "Unicode Emoji 12.0 — carrot — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — carrot — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -240,7 +240,7 @@ KZV.register({
         "Unicode Emoji 12.0 — ear of corn — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — ear of corn — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -292,7 +292,7 @@ KZV.register({
         "Unicode Emoji 12.0 — broccoli — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — broccoli — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -344,7 +344,7 @@ KZV.register({
         "Unicode Emoji 12.0 — peanuts — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — peanuts — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -370,7 +370,7 @@ KZV.register({
         "Unicode Emoji 12.0 — tomato — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — tomato — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -474,7 +474,7 @@ KZV.register({
         "Unicode Emoji 12.0 — sheaf of rice — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — sheaf of rice — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -552,7 +552,7 @@ KZV.register({
         "Unicode Emoji 12.0 — tulip — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — tulip — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -578,7 +578,7 @@ KZV.register({
         "Unicode Emoji 12.0 — sunflower — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — sunflower — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -604,7 +604,7 @@ KZV.register({
         "Unicode Emoji 12.0 — bouquet — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — bouquet — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -630,7 +630,7 @@ KZV.register({
         "Unicode Emoji 12.0 — t-shirt — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — t-shirt — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -734,7 +734,7 @@ KZV.register({
         "Unicode Emoji 12.0 — woman’s hat — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — woman’s hat — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -760,7 +760,7 @@ KZV.register({
         "Unicode Emoji 12.0 — top hat — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — top hat — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -786,7 +786,7 @@ KZV.register({
         "Unicode Emoji 12.0 — billed cap — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — billed cap — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -812,7 +812,7 @@ KZV.register({
         "Unicode Emoji 12.0 — graduation cap — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — graduation cap — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -838,7 +838,7 @@ KZV.register({
         "Unicode Emoji 12.0 — luggage — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — luggage — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -864,7 +864,7 @@ KZV.register({
         "Unicode Emoji 12.0 — fire engine — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — fire engine — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -890,7 +890,7 @@ KZV.register({
         "Unicode Emoji 12.0 — tractor — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — tractor — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1046,7 +1046,7 @@ KZV.register({
         "Unicode Emoji 12.0 — rocket — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — rocket — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1072,7 +1072,7 @@ KZV.register({
         "Unicode Emoji 12.0 — flying saucer — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — flying saucer — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1098,7 +1098,7 @@ KZV.register({
         "Unicode Emoji 12.0 — helicopter — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — helicopter — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1124,7 +1124,7 @@ KZV.register({
         "Unicode Emoji 12.0 — airplane — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — airplane — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1150,7 +1150,7 @@ KZV.register({
         "Unicode Emoji 12.0 — sailboat — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — sailboat — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1176,7 +1176,7 @@ KZV.register({
         "Unicode Emoji 12.0 — canoe — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — canoe — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1202,7 +1202,7 @@ KZV.register({
         "Unicode Emoji 12.0 — speedboat — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — speedboat — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1254,7 +1254,7 @@ KZV.register({
         "Unicode Emoji 12.0 — aerial tramway — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — aerial tramway — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1280,7 +1280,7 @@ KZV.register({
         "Unicode Emoji 12.0 — hammer — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — hammer — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1306,7 +1306,7 @@ KZV.register({
         "Unicode Emoji 12.0 — pick — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — pick — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1358,7 +1358,7 @@ KZV.register({
         "Unicode Emoji 12.0 — nut and bolt — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — nut and bolt — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1384,7 +1384,7 @@ KZV.register({
         "Unicode Emoji 12.0 — gear — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — gear — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1410,7 +1410,7 @@ KZV.register({
         "Unicode Emoji 12.0 — magnet — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — magnet — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1462,7 +1462,7 @@ KZV.register({
         "Unicode Emoji 12.0 — flashlight — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — flashlight — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1488,7 +1488,7 @@ KZV.register({
         "Unicode Emoji 12.0 — scissors — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — scissors — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1540,7 +1540,7 @@ KZV.register({
         "Unicode Emoji 12.0 — safety pin — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — safety pin — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1592,7 +1592,7 @@ KZV.register({
         "Unicode Emoji 12.0 — fire extinguisher — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — fire extinguisher — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1618,7 +1618,7 @@ KZV.register({
         "Unicode Emoji 12.0 — magnifying glass tilted left — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — magnifying glass tilted left — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1670,7 +1670,7 @@ KZV.register({
         "Unicode Emoji 12.0 — alembic — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — alembic — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1696,7 +1696,7 @@ KZV.register({
         "Unicode Emoji 12.0 — test tube — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — test tube — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1722,7 +1722,7 @@ KZV.register({
         "Unicode Emoji 12.0 — basket — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — basket — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1748,7 +1748,7 @@ KZV.register({
         "Unicode Emoji 12.0 — shopping cart — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — shopping cart — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1774,7 +1774,7 @@ KZV.register({
         "Unicode Emoji 12.0 — bathtub — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — bathtub — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1800,7 +1800,7 @@ KZV.register({
         "Unicode Emoji 12.0 — shower — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — shower — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1826,7 +1826,7 @@ KZV.register({
         "Unicode Emoji 12.0 — bed — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — bed — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1852,7 +1852,7 @@ KZV.register({
         "Unicode Emoji 12.0 — chair — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — chair — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1904,7 +1904,7 @@ KZV.register({
         "Unicode Emoji 12.0 — wastebasket — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — wastebasket — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1930,7 +1930,7 @@ KZV.register({
         "Unicode Emoji 12.0 — light bulb — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — light bulb — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1956,7 +1956,7 @@ KZV.register({
         "Unicode Emoji 12.0 — fork and knife — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — fork and knife — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1982,7 +1982,7 @@ KZV.register({
         "Unicode Emoji 12.0 — spoon — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — spoon — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2060,7 +2060,7 @@ KZV.register({
         "Unicode Emoji 12.0 — baby bottle — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — baby bottle — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2086,7 +2086,7 @@ KZV.register({
         "Unicode Emoji 12.0 — amphora — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — amphora — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2112,7 +2112,7 @@ KZV.register({
         "Unicode Emoji 12.0 — television — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — television — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2242,7 +2242,7 @@ KZV.register({
         "Unicode Emoji 12.0 — battery — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — battery — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2268,7 +2268,7 @@ KZV.register({
         "Unicode Emoji 12.0 — electric plug — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — electric plug — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2294,7 +2294,7 @@ KZV.register({
         "Unicode Emoji 12.0 — abacus — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — abacus — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2372,7 +2372,7 @@ KZV.register({
         "Unicode Emoji 12.0 — thread — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — thread — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2424,7 +2424,7 @@ KZV.register({
         "Unicode Emoji 12.0 — puzzle piece — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — puzzle piece — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2476,7 +2476,7 @@ KZV.register({
         "Unicode Emoji 12.0 — glasses — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — glasses — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2502,7 +2502,7 @@ KZV.register({
         "Unicode Emoji 12.0 — house — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — house — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2528,7 +2528,7 @@ KZV.register({
         "Unicode Emoji 12.0 — mosque — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — mosque — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2554,7 +2554,7 @@ KZV.register({
         "Unicode Emoji 12.0 — fountain — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — fountain — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2632,7 +2632,7 @@ KZV.register({
         "Unicode Emoji 12.0 — star — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — star — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2658,7 +2658,7 @@ KZV.register({
         "Unicode Emoji 12.0 — cloud — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — cloud — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2710,7 +2710,7 @@ KZV.register({
         "Unicode Emoji 12.0 — cucumber — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — cucumber — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2762,7 +2762,7 @@ KZV.register({
         "Unicode Emoji 12.0 — onion — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — onion — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2814,7 +2814,7 @@ KZV.register({
         "Unicode Emoji 12.0 — cup with straw — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — cup with straw — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2892,7 +2892,7 @@ KZV.register({
         "Unicode Emoji 12.0 — roller coaster — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — roller coaster — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2918,7 +2918,7 @@ KZV.register({
         "Unicode Emoji 12.0 — manual wheelchair — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — manual wheelchair — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2944,7 +2944,7 @@ KZV.register({
         "Unicode Emoji 12.0 — auto rickshaw — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — auto rickshaw — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2970,7 +2970,7 @@ KZV.register({
         "Unicode Emoji 12.0 — skateboard — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — skateboard — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2996,7 +2996,7 @@ KZV.register({
         "Unicode Emoji 12.0 — fuel pump — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — fuel pump — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3074,7 +3074,7 @@ KZV.register({
         "Unicode Emoji 12.0 — hourglass done — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — hourglass done — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3100,7 +3100,7 @@ KZV.register({
         "Unicode Emoji 12.0 — watch — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — watch — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3126,7 +3126,7 @@ KZV.register({
         "Unicode Emoji 12.0 — alarm clock — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — alarm clock — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3178,7 +3178,7 @@ KZV.register({
         "Unicode Emoji 12.0 — thermometer — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — thermometer — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3230,7 +3230,7 @@ KZV.register({
         "Unicode Emoji 12.0 — rainbow — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — rainbow — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3256,7 +3256,7 @@ KZV.register({
         "Unicode Emoji 12.0 — snowflake — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — snowflake — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3282,7 +3282,7 @@ KZV.register({
         "Unicode Emoji 12.0 — fire — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — fire — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3308,7 +3308,7 @@ KZV.register({
         "Unicode Emoji 12.0 — droplet — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — droplet — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3360,7 +3360,7 @@ KZV.register({
         "Unicode Emoji 12.0 — trophy — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — trophy — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3386,7 +3386,7 @@ KZV.register({
         "Unicode Emoji 12.0 — sports medal — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — sports medal — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3438,7 +3438,7 @@ KZV.register({
         "Unicode Emoji 12.0 — cricket game — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — cricket game — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -3464,7 +3464,7 @@ KZV.register({
         "Unicode Emoji 12.0 — ice hockey — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — ice hockey — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -3516,7 +3516,7 @@ KZV.register({
         "Unicode Emoji 12.0 — goal net — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — goal net — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3646,7 +3646,7 @@ KZV.register({
         "Unicode Emoji 12.0 — running shoe — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — running shoe — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3672,7 +3672,7 @@ KZV.register({
         "Unicode Emoji 12.0 — ring — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — ring — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3724,7 +3724,7 @@ KZV.register({
         "Unicode Emoji 12.0 — radio — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — radio — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3828,7 +3828,7 @@ KZV.register({
         "Unicode Emoji 12.0 — closed mailbox with raised flag — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — closed mailbox with raised flag — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3854,7 +3854,7 @@ KZV.register({
         "Unicode Emoji 12.0 — pencil — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — pencil — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3880,7 +3880,7 @@ KZV.register({
         "Unicode Emoji 12.0 — black nib — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — black nib — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -3906,7 +3906,7 @@ KZV.register({
         "Unicode Emoji 12.0 — paintbrush — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — paintbrush — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3932,7 +3932,7 @@ KZV.register({
         "Unicode Emoji 12.0 — shield — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — shield — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4036,7 +4036,7 @@ KZV.register({
         "Unicode Emoji 12.0 — toilet — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — toilet — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4088,7 +4088,7 @@ KZV.register({
         "Unicode Emoji 12.0 — balloon — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — balloon — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4114,7 +4114,7 @@ KZV.register({
         "Unicode Emoji 12.0 — bowling — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — bowling — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4140,7 +4140,7 @@ KZV.register({
         "Unicode Emoji 12.0 — yo-yo — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — yo-yo — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4192,7 +4192,7 @@ KZV.register({
         "Unicode Emoji 12.0 — stethoscope — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — stethoscope — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4218,7 +4218,7 @@ KZV.register({
         "Unicode Emoji 12.0 — syringe — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — syringe — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4270,7 +4270,7 @@ KZV.register({
         "Unicode Emoji 12.0 — volcano — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — volcano — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4322,7 +4322,7 @@ KZV.register({
         "Unicode Emoji 12.0 — stop sign — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — stop sign — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4374,7 +4374,7 @@ KZV.register({
         "Unicode Emoji 12.0 — video game — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — video game — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4400,7 +4400,7 @@ KZV.register({
         "Unicode Emoji 12.0 — camera with flash — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — camera with flash — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4478,7 +4478,7 @@ KZV.register({
         "Unicode Emoji 12.0 — bell — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — bell — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     }

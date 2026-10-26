@@ -28,7 +28,7 @@ KZV.register({
         "وزارة الداخلية: الطرق السريعة، 7 نوفمبر 2021 — https://www.moi.gov.kw/gdt/traffic-news/details/42500",
         "بلدية الكويت: جدول أسماء الطرق الرئيسية، استرجاع 19 أكتوبر 2026 — https://www.baladia.gov.kw/sites/ar/Pages/streetsNamesPDFs/111.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -50,7 +50,7 @@ KZV.register({
         "وزارة الداخلية: الطرق السريعة، 7 نوفمبر 2021 — https://www.moi.gov.kw/gdt/traffic-news/details/42500",
         "بلدية الكويت: جدول أسماء الطرق الرئيسية، استرجاع 19 أكتوبر 2026 — https://www.baladia.gov.kw/sites/ar/Pages/streetsNamesPDFs/111.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -72,7 +72,7 @@ KZV.register({
         "وزارة الداخلية: الطرق السريعة، 7 نوفمبر 2021 — https://www.moi.gov.kw/gdt/traffic-news/details/42500",
         "بلدية الكويت: جدول أسماء الطرق الرئيسية، استرجاع 19 أكتوبر 2026 — https://www.baladia.gov.kw/sites/ar/Pages/streetsNamesPDFs/111.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -94,7 +94,7 @@ KZV.register({
         "وزارة الداخلية: الطرق السريعة، 7 نوفمبر 2021 — https://www.moi.gov.kw/gdt/traffic-news/details/42500",
         "بلدية الكويت: جدول أسماء الطرق الرئيسية، استرجاع 19 أكتوبر 2026 — https://www.baladia.gov.kw/sites/ar/Pages/streetsNamesPDFs/111.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -116,7 +116,7 @@ KZV.register({
         "وزارة الداخلية: الطرق السريعة، 7 نوفمبر 2021 — https://www.moi.gov.kw/gdt/traffic-news/details/42500",
         "بلدية الكويت: جدول أسماء الطرق الرئيسية، استرجاع 19 أكتوبر 2026 — https://www.baladia.gov.kw/sites/ar/Pages/streetsNamesPDFs/111.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -160,7 +160,7 @@ KZV.register({
         "دار الهندسة: مشروع جسر الشيخ جابر — https://www.dar.com/work/project/sheikh-jaber-al-ahmad-al-sabah-causeway-project",
         "كونا عبر وكالة الأنباء الموريتانية: جسر جابر، 3 يوليو 2019 — https://www.ami.mr/Depeche-58268.html?share=facebook"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -182,7 +182,7 @@ KZV.register({
         "دار الهندسة: مشروع جسر الشيخ جابر — https://www.dar.com/work/project/sheikh-jaber-al-ahmad-al-sabah-causeway-project",
         "SYSTRA: جسر الصبية، 7 مايو 2019 — https://www.systra.com/uk/news/systras-landmark-maritime-bridge-reference-in-kuwait/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -204,7 +204,7 @@ KZV.register({
         "دار الهندسة: مشروع جسر الشيخ جابر — https://www.dar.com/work/project/sheikh-jaber-al-ahmad-al-sabah-causeway-project",
         "SSH: جسر الشيخ جابر الأحمد الصباح — https://www.sshic.com/our-projects/sheikh-jaber-al-ahmad-al-sabah-causeway/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -226,7 +226,7 @@ KZV.register({
         "دار الهندسة: مشروع جسر الشيخ جابر — https://www.dar.com/work/project/sheikh-jaber-al-ahmad-al-sabah-causeway-project",
         "كونا عبر وكالة الأنباء الموريتانية: جسر جابر، 3 يوليو 2019 — https://www.ami.mr/Depeche-58268.html?share=facebook"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -270,7 +270,7 @@ KZV.register({
         "كونا: أبراج الكويت، 24 فبراير 2015 — https://www.kuna.net.kw/ArticleDetails.aspx?id=2426593&language=ar",
         "نفط الكويت: كويت دايجست يوليو إلى سبتمبر 2025 — https://www.kockw.com/sites/EN/Periodicals/Digest%20July%20-%20September%202025.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -380,7 +380,7 @@ KZV.register({
         "البوابة الرسمية: متاحف الكويت — https://e.gov.kw/sites/kgoarabic/Pages/Visitors/TourismInKuwait/ActivitiesInKuwaitMusiumsAndGalleries.aspx",
         "بيت المرايا: الأسئلة والأجوبة — https://www.mirrorhouseq8.com/frequently-asked-questions/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -402,7 +402,7 @@ KZV.register({
         "حديقة الشهيد: نبذة رسمية — https://alshaheedpark.kw/en/about-us/",
         "ACCIONA Cultura: متحفا حديقة الشهيد — https://www.acciona-cultura.com/projects-and-collections/projects/al-shaheed-park-museums-kuwait"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -468,7 +468,7 @@ KZV.register({
         "البوابة الرسمية: تضاريس الكويت وجزرها — https://e.gov.kw/sites/kgoArabic/Pages/Visitors/AboutKuwait/KuwaitAtaGlaneTopography.aspx",
         "موسوعة بيئتنا: جزر الكويت، 2011 — https://www.beatona.org/ar/knowledge-hub/article/content-40436"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -512,7 +512,7 @@ KZV.register({
         "البوابة الرسمية: تضاريس الكويت وجزرها — https://e.gov.kw/sites/kgoArabic/Pages/Visitors/AboutKuwait/KuwaitAtaGlaneTopography.aspx",
         "موسوعة بيئتنا: تضاريس الكويت، 2011 — https://www.beatona.org/ar/knowledge-hub/article/content-39240"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -578,7 +578,7 @@ KZV.register({
         "SYSTRA: maritime causeway reference, inauguration 1 May 2019 — https://www.systra.com/uk/news/systras-landmark-maritime-bridge-reference-in-kuwait/",
         "كونا، فواز كرامي، عبر الوكالة الموريتانية: جسر الشيخ جابر، 3 يوليو 2019 — https://www.ami.mr/Depeche-58268.html?share=facebook"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -600,7 +600,7 @@ KZV.register({
         "SYSTRA: maritime causeway reference, inauguration 1 May 2019 — https://www.systra.com/uk/news/systras-landmark-maritime-bridge-reference-in-kuwait/",
         "كونا، فواز كرامي، عبر الوكالة الموريتانية: جسر الشيخ جابر، 3 يوليو 2019 — https://www.ami.mr/Depeche-58268.html?share=facebook"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -622,7 +622,7 @@ KZV.register({
         "جمعية السدو الحرفية: المتحف وعنوان بيت السدو — https://alsadu.org.kw/ar/museum/",
         "بوابة الكويت الحكومية: المتاحف والمعارض، دليل المواقع — https://e.gov.kw/sites/kgoarabic/Pages/Visitors/TourismInKuwait/ActivitiesInKuwaitMusiumsAndGalleries.aspx"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -732,7 +732,7 @@ KZV.register({
         "دار الآثار الإسلامية: تاريخ المركز الأمريكاني الثقافي — https://daralatharalislamiyyah.com/en/amricani-cultural-centre-en/",
         "الجريدة، لافي الشمري: المركز الأمريكاني الثقافي، 27 فبراير 2011 — https://www.aljarida.com/articles/1461898471221872900"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -754,7 +754,7 @@ KZV.register({
         "وزارة التربية: تاريخ التعليم، ظهور المدرسة المباركية عام 1911 — https://www2.moe.edu.kw/pages/history",
         "كونا عبر الجريدة: الذكرى المئوية للمدرسة المباركية، 6 يناير 2011 — https://www.aljarida.com/articles/1461866413282171500/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -776,7 +776,7 @@ KZV.register({
         "SSH: own design project and inauguration of Abdullah Al Salem Cultural Centre, 10 December 2018 — https://www.sshic.com/our-media/sheikh-abdullah-al-salem-cultural-centre-success-at-international-property-awards/",
         "كونا، موسى أحمد: مقومات السياحة الثقافية الكويتية، 4 مارس 2019 — https://www.kuna.net.kw/ArticleDetails.aspx?id=2780510"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -820,7 +820,7 @@ KZV.register({
         "الراي، خالد الشرقاوي: زيارة بيت ديكسون، 22 مارس 2025 — https://www.alraimedia.com/ampArticle/1721623",
         "بوابة الكويت الحكومية: المتاحف والمعارض، دليل المواقع — https://e.gov.kw/sites/kgoarabic/Pages/Visitors/TourismInKuwait/ActivitiesInKuwaitMusiumsAndGalleries.aspx"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -842,7 +842,7 @@ KZV.register({
         "بلدية الكويت: جدول أسماء الطرق الرئيسية، ملف 111؛ دليل قديم استُخدم للأسماء فقط — https://www.baladia.gov.kw/sites/ar/Pages/streetsNamesPDFs/111.pdf",
         "الجريدة، سيد القصاص: صيانة طريق المطار 55، 21 أغسطس 2025 — https://www.aljarida.com/article/106734"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -908,7 +908,7 @@ KZV.register({
         "كونا عبر الراي: قرار تسمية الدائري السادس، 6 يوليو 2015 — https://www.alraimedia.com/ampArticle/590363",
         "الأنباء، بداح العنزي: جلسة المجلس البلدي وتسمية الدائري السادس، 7 يوليو 2015 — https://www.alanba.com.kw/570590"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -974,7 +974,7 @@ KZV.register({
         "Gulf Consult: own timeline, 2000 Scientific Center opening ceremony — https://www.gckuwait.com/about-gulf-consult/",
         "الأنباء، دانيا شومان: الذكرى الحادية عشرة لافتتاح المركز العلمي، 16 أبريل 2011 — https://www.alanba.com.kw/187830"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1106,7 +1106,7 @@ KZV.register({
         "بلدية الكويت — الخريطة الأساسية، بيانات أسماء الطرق الدائرية — https://gismaps.baladia.gov.kw/arcgis/rest/services/NewBasemap/MapServer/0/query?where=KM_ROUTE_N%20IN%20(1%2C2%2C3%2C4%2C5%2C6%2C7)&outFields=A_Name%2CE_NAME%2CKM_ROUTE_N&returnGeometry=false&returnDistinctValues=true&f=pjson",
         "وزارة الداخلية — المرور: أسماء الطرق السريعة، 30 ديسمبر 2021 — https://www.moi.gov.kw/gdt/traffic-news/details/42579"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1128,7 +1128,7 @@ KZV.register({
         "الأمانة العامة لمجلس الوزراء — البيان الأسبوعي 56، 31 أغسطس 2020 — https://www.cmgs.gov.kw/Weekly-Statement?id=1844",
         "وزارة الداخلية — المرور: أسماء الطرق السريعة، 30 ديسمبر 2021 — https://www.moi.gov.kw/gdt/traffic-news/details/42579"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1150,7 +1150,7 @@ KZV.register({
         "بلدية الكويت — جدول أسماء الطرق الرئيسية، ملف111؛ دليل قديم للأسماء فقط — https://www.baladia.gov.kw/sites/ar/Pages/streetsNamesPDFs/111.pdf",
         "وزارة الداخلية — المرور: شارع عبدالله علي المطوع والدائري الثالث، 19 يونيو 2024 — https://www.moi.gov.kw/gdt/traffic-news/details/53144"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1260,7 +1260,7 @@ KZV.register({
         "قصر نايف.. معلم تاريخي شاهد على تراث الكويت — الجزيرة، 2022 — https://www.aljazeera.net/amp/misc/2022/8/28/%D9%82%D8%B5%D8%B1-%D9%86%D8%A7%D9%8A%D9%81-%D9%85%D8%B9%D9%84%D9%85-%D8%AA%D8%A7%D8%B1%D9%8A%D8%AE%D9%8A-%D8%B4%D8%A7%D9%87%D8%AF-%D8%B9%D9%84%D9%89-%D8%AA%D8%B1%D8%A7%D8%AB",
         "الأشغال: صيانة طرق وساحات ومبان حكومية في العاصمة — 18 يناير 2010 — https://www.kuna.net.kw/ArticlePrintPage.aspx?id=2055104&language=ar"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1282,7 +1282,7 @@ KZV.register({
         "مجلة الداخلية، العدد 523، أكتوبر 2008 — بيت البدر — https://moi.gov.kw/SMD/Magazines/2008/1712201710-2008.pdf",
         "Architectural Sustainability in Kuwait — Al Bader House case study, 2025 — https://www.ajsp.net/research/Architectural%20Sustainability%20in%20Kuwait_35.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1304,7 +1304,7 @@ KZV.register({
         "نبذة تعريفية عن جزيرة بوبيان — الموسوعة العلمية المبسطة — https://www.aspdkw.com/ksag/31432-revision-v1/",
         "Recent Trace Metals Pollution in Bottom Sediments of Khor Al-Sabiya, Kuwait — 2017 — https://www.walshmedicalmedia.com/open-access/recent-trace-metals-pollution-in-bottom-sediments-of-khor-alsabiyakuwait-2473-3350-1000451.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1370,7 +1370,7 @@ KZV.register({
         "متحف قصر السلام — قصتنا — https://aspm.com.kw/ar/our-story/",
         "لا بد من قصر السلام وإن طال الزمن — حمزة عليان، 5 يونيو 2024 — https://www.aljarida.com/article/64808"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1392,7 +1392,7 @@ KZV.register({
         "Apportionment of Trace Metals Pollution — original Kuwait University research project — https://research.kfas.org.kw/ar/projects/ccc4f5b9-2ba9-4b86-8aac-286590e08057/",
         "Kenaneya Farms: Connecting Community to the Source — Mai Al-Farhan, 9April2018 — https://agsi.org/analysis/kenaneya-farms-connecting-community-to-the-source/"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1436,7 +1436,7 @@ KZV.register({
         "معهد الكويت للأبحاث العلمية — مشروع الشقايا للطاقة المتجددة — https://www.kisr.edu.kw/ar/gi/5/details/",
         "وزارة الكهرباء والماء — إحصاء الطاقة الكهربائية 2018، محطة الشقايا — https://www.mew.gov.kw/media/2xblxq1v/engery-2018.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1524,7 +1524,7 @@ KZV.register({
         "معطيات البيئة الطبيعية في دولة الكويت — مهدي حسن العجمي، 1996 — https://www.aspdkw.com/ksag/%D9%85%D8%B9%D8%B7%D9%8A%D8%A7%D8%AA-%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D8%A9-%D8%A7%D9%84%D8%B7%D8%A8%D9%8A%D8%B9%D9%8A%D8%A9-%D9%81%D9%8A-%D8%AF%D9%88%D9%84%D8%A9-%D8%A7%D9%84%D9%83%D9%88%D9%8A%D8%AA/",
         "جامعة الكويت — دراسة النظائر لحقلي مياه الروضتين وأم العيش، 1985 — https://pure.ku.edu.kw/en/publications/the-stable-isotopic-composition-of-water-and-sulfate-from-the-rau/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1546,7 +1546,7 @@ KZV.register({
         "معهد الكويت للأبحاث العلمية — علوم وتكنولوجيا، العدد 251، 2018، سهل الدبدبة — https://www.kisr.edu.kw/media/filer_public/35/aa/35aaa9be-1a75-4d85-8966-ed444f5fe5ae/magazine251.pdf",
         "USGS Professional Paper 560-D — Sedimentary Geology of Saudi Arabia، 1966/1985، Sheet Gravel — https://pubs.usgs.gov/pp/0560d/report.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1568,7 +1568,7 @@ KZV.register({
         "معهد الكويت للأبحاث العلمية — علوم وتكنولوجيا، العدد 241، 2016 — https://www.kisr.edu.kw/media/filer_public/ed/de/edde64e0-26cf-488e-84d0-e584601bc298/issue241.pdf",
         "Defense Language Institute Foreign Language Center — Kuwait Country in Perspective، 2011، Geography — https://fieldsupport.dliflc.edu/products/cip/kuwait/kuwait.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1722,7 +1722,7 @@ KZV.register({
         "الراي — مناطق الكويت وجزرها: أسماء ومعان (1/2)، 11 فبراير 2014 — https://www.alraimedia.com/ampArticle/473341",
         "بيت الزكاة — محسنون من بلدي، عبدالجليل محمود الباقر، ص50 — https://www.zakathouse.org.kw/pdfencyclopedia/%D9%85%D8%AD%D8%B3%D9%86%D9%88%D9%86%20%D9%85%D9%86%20%D8%A8%D9%84%D8%AF%D9%8A%207.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1744,7 +1744,7 @@ KZV.register({
         "وزارة التجارة والصناعة — التقرير السنوي 2017، مركز جليب الشيوخ، ص65 — https://moci.gov.kw/media/filer_public/a5/b9/a5b996b2-910e-475a-9008-9f68645d5a2c/ltqryr_lsnwy_2017.pdf",
         "وزارة الكهرباء والماء — الإحصاء السنوي للمياه 2021، جنوب الدوحة (القيروان) — https://www.mew.gov.kw/media/2i1l4phf/final-water-book-2021_compressed.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1766,7 +1766,7 @@ KZV.register({
         "Birdair — The Scientific Center of Kuwait، سجل تنفيذ المظلات — https://www.birdair.com/birdair-portfolio/the-scientific-center-of-kuwait/",
         "IASTE / TDSR 36.1، يوسف الحارون، دراسة العمارة الكويتية، 2024، ص77 — https://iaste.org/wp-content/uploads/2025/08/36.1-TDSR_Fall-24_screen_05-al-haroun.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1832,7 +1832,7 @@ KZV.register({
         "الأنباء — محمد الدشيش: سوق المقاصيص.. تاريخ الماضي وعراقة الحاضر، 19 مايو2023 — https://www.alanba.com.kw/1183573",
         "الجريدة — عبق الماضي: سوق المقاصيص، 20 أغسطس2010 — https://www.aljarida.com/articles/1461920848140714600"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1964,7 +1964,7 @@ KZV.register({
         "KISR — Fathoming the Northwestern Arabian Gulf، الفصل18: البيئات الساحلية — https://www.kisr.edu.kw/media/filer_public/d7/f7/d7f77a5e-9ab4-4339-b3f3-057c990d45e1/fathoming_book_20_sep_optimized.pdf",
         "الهيئة العامة للبيئة — أمل جاسم: السواحل الكويتية، مجلة بيئتنا89، 20 أبريل2011 — https://www.beatona.net/ar/knowledge-hub/article/content-39323"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2030,7 +2030,7 @@ KZV.register({
         "بنك الكويت المركزي — الكتيب التعريفي للمبنى الجديد، 2017، ص13 — https://www.cbk.gov.kw/ar/images/cbk-brochure-building-fa-123439_v50_tcm11-123439.pdf",
         "HOK — Central Bank of Kuwait Headquarters — https://www.hok.com/projects/view/central-bank-of-kuwait-headquarters/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2074,7 +2074,7 @@ KZV.register({
         "ديوان سمو ولي العهد — قصر بيان العامر: الحديقة النباتية — https://www.cpd.gov.kw/Ar/BayanPalace.aspx",
         "Smiemans Projecten — Bayan Botanic Garden — https://www.smiemansprojecten.com/en/projects/bayan-botanic-garden"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2118,7 +2118,7 @@ KZV.register({
         "الراي — تطوير حديقة اليرموك بإعادة استخدام المخلفات، تقرير ناصر الفرحان، 2 مايو2013 — https://www.alraimedia.com/ampArticle/399027",
         "الأنباء — حديقة اليرموك النموذجية وإعادة تدوير المخلفات، تقرير دارين العلي، 16 مايو2013، ص21 — https://pdf.alanba.com.kw/pdf/2013/05/16-05-2013/21.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2184,7 +2184,7 @@ KZV.register({
         "الجريدة — المهندس المبدع، بناء بوابات سور الكويت الثالث، 22نوفمبر2017 — https://www.aljarida.com/articles/1511283928384548300",
         "الراي — وثائق تاريخ الكويت وبوابات سوره، حوار أصلي، 29مارس2022 — https://www.alraimedia.com/ampArticle/1583169"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2206,7 +2206,7 @@ KZV.register({
         "جامعة الكويت، آفاق999 — طلبة التاريخ زاروا متحف التعليم النظامي، 26يناير2014، ص14 — https://www.ku.edu.kw/sites/default/files/2025-06/afaq%20999%20_compressed.pdf",
         "الجريدة — افتتاح متحف تاريخ التعليم في المدرسة المباركية، 24يناير2012 — https://www.aljarida.com/articles/1461992610163071700/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2250,7 +2250,7 @@ KZV.register({
         "الهيئة العامة لمشروعات الشراكة — وثيقة EOI-KMAAAS-V3-18-12-2025، وصف الوصول بطريق السالمي، ص5 — https://www.kapp.gov.kw/uploads/files/EOI-KMAAAS-V3-18-12-2025.pdf",
         "الأنباء — تقرير المجلس البلدي، إعداد بداح العنزي، 22مارس2011، ص11 — https://pdf.alanba.com.kw/PDF/2011/03/22-03-2011/11.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2295,7 +2295,7 @@ KZV.register({
         "الهيئة العامة للمعلومات المدنية — لوحة GeoStatAr المرتبطة بإصدار 30 يونيو 2026، محافظة حولي — https://public.tableau.com/views/GeoStatAr/sheet0?:showVizHome=no",
         "وزارة العدل — التقرير الإحصائي الأسبوعي للتسجيل العقاري والتوثيق، 1–3 سبتمبر 2026، ص4 — https://www.moj.gov.kw/AR/Apps/Statistics/2026%D8%A7%D8%B3%D8%A8%D9%88%D8%B9%D9%8A%D8%A9%201%20%D8%B3%D8%A8%D8%AA%D9%85%D8%A8%D8%B1%20%D8%A7%D9%84%D9%89%203%20%D8%B3%D8%A8%D8%AA%D9%85%D8%A8%D8%B1.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3261,7 +3261,7 @@ KZV.register({
         "الهيئة العامة للمعلومات المدنية — إصدار 30 يونيو 2026، الانتماء الإداري لمناطق محافظة العاصمة — https://public.tableau.com/views/GeoStatAr/sheet0?:showVizHome=no",
         "وزارة العدل — التسجيل العقاري والتوثيق، 9–13 أغسطس 2026، عمودا المحافظة والموقع — https://www.moj.gov.kw/AR/Apps/Statistics/2026%D8%A7%D8%B3%D8%A8%D9%88%D8%B9%D9%8A%D8%A9%209%20%D8%A7%D8%BA%D8%B3%D8%B7%D8%B3%20%D8%A7%D9%84%D9%89%2013%20%D8%A7%D8%BA%D8%B3%D8%B7%D8%B3.pdf"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3744,7 +3744,7 @@ KZV.register({
         "الهيئة العامة للمعلومات المدنية — الإصدار الجغرافي 30 يونيو 2026، مناطق وجزر محافظة العاصمة — https://public.tableau.com/views/GeoStatAr/sheet0?:showVizHome=no",
         "بلدية الكويت — التقرير الإحصائي السنوي 2017–2018، نبذة محافظة العاصمة — https://www.baladia.gov.kw/sites/ar/Pages/annualReportPDFs/%D8%A7%D9%84%D8%AA%D9%82%D8%B1%D9%8A%D8%B1%20%D8%A7%D9%84%D8%A5%D8%AD%D8%B5%D8%A7%D8%A6%D9%8A%202017-2018.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -3882,7 +3882,7 @@ KZV.register({
         "الهيئة العامة للمعلومات المدنية — الإصدار الجغرافي 30 يونيو 2026، مناطق وجزر محافظة الجهراء — https://public.tableau.com/views/GeoStatAr/sheet0?:showVizHome=no",
         "بلدية الكويت — التقرير الإحصائي السنوي 2017–2018، نبذة محافظة الجهراء — https://www.baladia.gov.kw/sites/ar/Pages/annualReportPDFs/%D8%A7%D9%84%D8%AA%D9%82%D8%B1%D9%8A%D8%B1%20%D8%A7%D9%84%D8%A5%D8%AD%D8%B5%D8%A7%D8%A6%D9%8A%202017-2018.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -3905,7 +3905,7 @@ KZV.register({
         "الهيئة العامة للمعلومات المدنية — الإصدار الجغرافي 30 يونيو 2026، مناطق وجزر محافظة الجهراء — https://public.tableau.com/views/GeoStatAr/sheet0?:showVizHome=no",
         "بلدية الكويت — التقرير الإحصائي السنوي 2017–2018، نبذة محافظة الجهراء — https://www.baladia.gov.kw/sites/ar/Pages/annualReportPDFs/%D8%A7%D9%84%D8%AA%D9%82%D8%B1%D9%8A%D8%B1%20%D8%A7%D9%84%D8%A5%D8%AD%D8%B5%D8%A7%D8%A6%D9%8A%202017-2018.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -3928,7 +3928,7 @@ KZV.register({
         "الهيئة العامة للمعلومات المدنية — الإصدار الجغرافي 30 يونيو 2026، مناطق وجزر محافظة الجهراء — https://public.tableau.com/views/GeoStatAr/sheet0?:showVizHome=no",
         "بلدية الكويت — التقرير الإحصائي السنوي 2017–2018، نبذة محافظة الجهراء — https://www.baladia.gov.kw/sites/ar/Pages/annualReportPDFs/%D8%A7%D9%84%D8%AA%D9%82%D8%B1%D9%8A%D8%B1%20%D8%A7%D9%84%D8%A5%D8%AD%D8%B5%D8%A7%D8%A6%D9%8A%202017-2018.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -3974,7 +3974,7 @@ KZV.register({
         "الهيئة العامة للمعلومات المدنية — الإصدار الجغرافي 30 يونيو 2026، مناطق وجزر محافظة الجهراء — https://public.tableau.com/views/GeoStatAr/sheet0?:showVizHome=no",
         "بلدية الكويت — التقرير الإحصائي السنوي 2017–2018، نبذة محافظة الجهراء — https://www.baladia.gov.kw/sites/ar/Pages/annualReportPDFs/%D8%A7%D9%84%D8%AA%D9%82%D8%B1%D9%8A%D8%B1%20%D8%A7%D9%84%D8%A5%D8%AD%D8%B5%D8%A7%D8%A6%D9%8A%202017-2018.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -3997,7 +3997,7 @@ KZV.register({
         "الهيئة العامة للمعلومات المدنية — الإصدار الجغرافي 30 يونيو 2026، مناطق وجزر محافظة الجهراء — https://public.tableau.com/views/GeoStatAr/sheet0?:showVizHome=no",
         "بلدية الكويت — التقرير الإحصائي السنوي 2017–2018، نبذة محافظة الجهراء — https://www.baladia.gov.kw/sites/ar/Pages/annualReportPDFs/%D8%A7%D9%84%D8%AA%D9%82%D8%B1%D9%8A%D8%B1%20%D8%A7%D9%84%D8%A5%D8%AD%D8%B5%D8%A7%D8%A6%D9%8A%202017-2018.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4020,7 +4020,7 @@ KZV.register({
         "الهيئة العامة للمعلومات المدنية — الإصدار الجغرافي 30 يونيو 2026، مناطق وجزر محافظة الجهراء — https://public.tableau.com/views/GeoStatAr/sheet0?:showVizHome=no",
         "بلدية الكويت — التقرير الإحصائي السنوي 2017–2018، نبذة محافظة الجهراء — https://www.baladia.gov.kw/sites/ar/Pages/annualReportPDFs/%D8%A7%D9%84%D8%AA%D9%82%D8%B1%D9%8A%D8%B1%20%D8%A7%D9%84%D8%A5%D8%AD%D8%B5%D8%A7%D8%A6%D9%8A%202017-2018.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4066,7 +4066,7 @@ KZV.register({
         "الهيئة العامة للمعلومات المدنية — الإصدار الجغرافي 30 يونيو 2026، مناطق وجزر محافظة الأحمدي — https://public.tableau.com/views/GeoStatAr/sheet0?:showVizHome=no",
         "بلدية الكويت — التقرير الإحصائي السنوي 2017–2018، نبذة محافظة الأحمدي — https://www.baladia.gov.kw/sites/ar/Pages/annualReportPDFs/%D8%A7%D9%84%D8%AA%D9%82%D8%B1%D9%8A%D8%B1%20%D8%A7%D9%84%D8%A5%D8%AD%D8%B5%D8%A7%D8%A6%D9%8A%202017-2018.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4112,7 +4112,7 @@ KZV.register({
         "الهيئة العامة للمعلومات المدنية — الإصدار الجغرافي 30 يونيو 2026، مناطق وجزر محافظة الجهراء — https://public.tableau.com/views/GeoStatAr/sheet0?:showVizHome=no",
         "هيئة مشروعات الشراكة — إعلان مشروع الشقايا الأصلي، 21 يناير 2024 — https://www.kapp.gov.kw/media/get_details/106"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4135,7 +4135,7 @@ KZV.register({
         "الهيئة العامة للمعلومات المدنية — الإصدار الجغرافي 30 يونيو 2026، شمال غرب الصليبيخات — https://public.tableau.com/views/GeoStatAr/sheet0?:showVizHome=no",
         "وزارة العدل — التسجيل العقاري والتوثيق، 28January–1February2024، ص7 — https://www.moj.gov.kw/AR/Apps/Statistics/28-1-1-2-2024.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4180,7 +4180,7 @@ KZV.register({
         "مركز الشيخ عبدالله السالم الثقافي — صفحة الحجز الرسمية، العنوان الظاهر — https://booking.ascckw.com/",
         "Culture Counsel — Annette Welkamp، Sheikh Abdullah Al Salem Cultural Centre، 1 يوليو 2020 — https://www.culturecounsel.art/mena-museums/2020/7/1/sheikh-abdullah-al-salem-cultural-centre"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4431,7 +4431,7 @@ KZV.register({
         "وزارة الداخلية — المرور، إعلان أصلي 16 سبتمبر 2026: طريق صباح الأول الدائري الأول وشارع خالد يوسف المرزوق الدائري الثاني — https://www.moi.gov.kw/gdt/traffic-news/details/54078",
         "النهار — فايز الزعل، إطلاق اسم صباح الأول على الدائري الأول، 20 أكتوبر 2015 — https://www.annaharkw.com/Annahar/Article.aspx?date=20102015&id=600722"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4499,7 +4499,7 @@ KZV.register({
         "الهيئة العامة للمعلومات المدنية — الإصدار الجغرافي 30 يونيو 2026، واره — https://public.tableau.com/views/GeoStatAr/sheet0?:showVizHome=no",
         "وزارة التخطيط، الإدارة المركزية للإحصاء — المجموعة الإحصائية السنوية 1979، تعداد 1975، ص26/جدول21: واره — https://scpd.gov.kw/arabicbooks/%D8%A7%D9%84%D9%85%D8%AC%D9%85%D9%88%D8%B9%D8%A7%D8%AA%20%D8%A7%D9%84%D8%A7%D8%AD%D8%B5%D8%A7%D8%A6%D9%8A%D8%A9%20%D8%A7%D9%84%D8%B3%D9%86%D9%88%D9%8A%D8%A9%20.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4614,7 +4614,7 @@ KZV.register({
         "الهيئة العامة للمعلومات المدنية — الإصدار الجغرافي 30 يونيو 2026، المنطقة الحرة — https://public.tableau.com/views/GeoStatAr/sheet0?:showVizHome=no",
         "بلدية الكويت — الإعلان الأصلي المنشور لدى الجهاز المركزي للمناقصات العامة، 25 يناير 2026، ص15: المنطقة الحرة — https://files.capt.gov.kw/media/db4656b1-0884-475f-b9a9-47133af17660.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4681,7 +4681,7 @@ KZV.register({
         "الجريدة — باسم اللوغاني: صورة لها تاريخ، كوت الغيث وشارع الجهراء، 21 أكتوبر 2022 — https://www.aljarida.com/articles/1666283274304302700/amp",
         "الأنباء — أمينة العلي: نزع المزاج، 4 مايو 2008، فقرة التجول في شارع فهد السالم — https://www.alanba.com.kw/27113"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4703,7 +4703,7 @@ KZV.register({
         "الأنباء — وسمية المسلم: سوق المباركية عروس الأسواق، 26 فبراير 2016 — https://www.alanba.com.kw/628857",
         "الراي — د. عبدالله سهر: حتى لا يكون مجلس المقاصيص!، 26 سبتمبر 2023، اسم الشارع — https://www.alraimedia.com/print-article?articleId=1658478"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4726,7 +4726,7 @@ KZV.register({
         "الهيئة العامة للمعلومات المدنية — الإصدار الجغرافي30يونيو2026، شاليهات بنيدر — https://public.tableau.com/views/GeoStatAr/sheet0?:showVizHome=no",
         "بيت التمويل الكويتي — تقرير سوق العقارالمحلي،الربعالثاني2026،ص52 جدول28الشاليهات — https://www.kfh.com/reports/kuwait/RE-Reports/KFH-Local-Real-Estate-Report---Q2-2026/document/KFH-Real-Estate-Report-2026-Q2.pdf.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4749,7 +4749,7 @@ KZV.register({
         "الهيئة العامة للمعلومات المدنية — الإصدار الجغرافي30يونيو2026، شاليهات الضباعية — https://public.tableau.com/views/GeoStatAr/sheet0?:showVizHome=no",
         "بيت التمويل الكويتي — تقرير سوق العقارالمحلي،الربعالثاني2026،ص52 جدول28الشاليهات — https://www.kfh.com/reports/kuwait/RE-Reports/KFH-Local-Real-Estate-Report---Q2-2026/document/KFH-Real-Estate-Report-2026-Q2.pdf.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4771,7 +4771,7 @@ KZV.register({
         "وزارةالكهرباءوالماء — كتابالماء2021،إصدار2022،ص111مواقعالأبراج — https://www.mew.gov.kw/media/g2ib3h0s/final-water-book-2021_compressed.pdf",
         "مجلةالداخلية512،نوفمبر2007 — لقاءنصرعطيةمعالعقيدصالحالعبيد،ص42–43 — https://www.moi.gov.kw/SMD/Magazines/2007/1712201711-2007.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4793,7 +4793,7 @@ KZV.register({
         "وزارة الأشغال العامة — الدليل الإحصائي للمشاريع2018، ص20 كلمة وكيلة الوزارة السابقة — https://www.mpw.gov.kw/sites/ar/MediaCenterDocuments/Publications/StatisticalYear2018/files/assets/common/page-substrates/page0020.jpg",
         "CambridgeSeven — Kuwait Ministry of Education Headquarters, The Approach — https://www.cambridgeseven.com/project/ministry-of-education/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4837,7 +4837,7 @@ KZV.register({
         "وزارة الأشغال العامة — الدليل الإحصائي2018، ص96: مبنى الركاب الجديد II — https://www.mpw.gov.kw/sites/ar/MediaCenterDocuments/Publications/StatisticalYear2018/files/assets/common/page-substrates/page0097.jpg",
         "Ineco — El nuevo aeropuerto de Kuwait, el velero del desierto (22 enero2025) — https://www.ineco.com/ineco/comunicacion/conectados/el-nuevo-aeropuerto-de-kuwait-el-velero-del-desierto"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4859,7 +4859,7 @@ KZV.register({
         "وزارة الأشغال العامة — الدليل الإحصائي2018، ص142: جسر جابر، وصلة الدوحة — https://www.mpw.gov.kw/sites/ar/MediaCenterDocuments/Publications/StatisticalYear2018/files/assets/common/page-substrates/page0143.jpg",
         "Tony Gee — Sheikh Jaber Al Ahmad Al Sabah Causeway Project (Doha Link) — https://tonygee.com/our-work/doha-link"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     }

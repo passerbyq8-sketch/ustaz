@@ -28,7 +28,7 @@ KZV.register({
         "جامعة ولاية آيوا — عائلات محاصيل الخضروات — https://yardandgarden.extension.iastate.edu/how-to/crop-rotation-vegetable-garden",
         "جامعة كاليفورنيا — عائلات النباتات في الدورة الزراعية — https://ucanr.edu/sites/default/files/2021-03/347517.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -72,7 +72,7 @@ KZV.register({
         "جامعة ولاية آيوا — عائلات محاصيل الخضروات — https://yardandgarden.extension.iastate.edu/how-to/crop-rotation-vegetable-garden",
         "جامعة كاليفورنيا — عائلات النباتات في الدورة الزراعية — https://ucanr.edu/sites/default/files/2021-03/347517.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -94,7 +94,7 @@ KZV.register({
         "جامعة ولاية آيوا — عائلات محاصيل الخضروات — https://yardandgarden.extension.iastate.edu/how-to/crop-rotation-vegetable-garden",
         "جامعة كاليفورنيا — عائلات النباتات في الدورة الزراعية — https://ucanr.edu/sites/default/files/2021-03/347517.pdf"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -116,7 +116,7 @@ KZV.register({
         "جامعة ولاية آيوا — عائلات محاصيل الخضروات — https://yardandgarden.extension.iastate.edu/how-to/crop-rotation-vegetable-garden",
         "جامعة كاليفورنيا — عائلات النباتات في الدورة الزراعية — https://ucanr.edu/sites/default/files/2021-03/347517.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -138,7 +138,7 @@ KZV.register({
         "ناسا — كواكب المجموعة الشمسية — https://science.nasa.gov/solar-system/planets/",
         "وكالة الفضاء الأوروبية — المجموعة الشمسية وكواكبها — https://www.esa.int/kids/en/learn/Our_Universe/Planets_and_moons/The_Solar_System_and_its_planets"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -204,7 +204,7 @@ KZV.register({
         "جامعة هاواي — الفصيلة الشفوية — https://manoa.hawaii.edu/lifesciences/faculty/carr/lami.htm",
         "جامعة مينيسوتا — زراعة الأعشاب والفصيلة الشفوية — https://extension.umn.edu/garden-and-home/yard-and-garden/gardening-in-minnesota/growing-herbs"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -446,7 +446,7 @@ KZV.register({
         "مكتب الأرصاد البريطاني — السحب المنخفضة — https://weather.metoffice.gov.uk/learn-about/weather/types-of-weather/clouds/low-level-clouds",
         "خدمة الطقس الوطنية الأمريكية — تصنيف السحب — https://www.weather.gov/lmk/cloud_classification"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -468,7 +468,7 @@ KZV.register({
         "مكتب الأرصاد البريطاني — الجبهات الجوية — https://weather.metoffice.gov.uk/learn-about/weather/atmosphere/weather-fronts",
         "الإدارة الوطنية الأمريكية للمحيطات والغلاف الجوي — نموذج الإعصار النرويجي — https://www.noaa.gov/jetstream/synoptic/norwegian-cyclone-model"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -512,7 +512,7 @@ KZV.register({
         "جامعة رايس، أوبن ستاكس — مجموعات الجدول الدوري — https://openstax.org/books/chemistry-2e/pages/2-5-the-periodic-table",
         "الجمعية الملكية للكيمياء — السترونشيوم وأقرانه — https://periodic-table.rsc.org/element/38/strontium"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -534,7 +534,7 @@ KZV.register({
         "متحف التاريخ الطبيعي البريطاني — الرخويات — https://www.nhm.ac.uk/discover/molluscs.html",
         "جامعة ميشيغان — تصنيف الرخويات — https://animaldiversity.org/accounts/Mollusca/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -578,7 +578,7 @@ KZV.register({
         "المتحف الأسترالي — مجموعات اللافقاريات البحرية — https://australian.museum/learn/collections/natural-science/marine-invertebrates/marine-invertebrate-collections-taxonomic-groups/",
         "جامعة ميشيغان — القشريات — https://animaldiversity.org/accounts/Crustacea/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -600,7 +600,7 @@ KZV.register({
         "جامعة ميشيغان — العنكبيات — https://animaldiversity.org/accounts/Arachnida/",
         "جامعة مين — تصنيف القراد — https://extension.umaine.edu/ticks/tick-biology/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -644,7 +644,7 @@ KZV.register({
         "وولفرام ماث وورلد — القطوع المخروطية — https://mathworld.wolfram.com/ConicSection.html",
         "جامعة رايس، أوبن ستاكس — القطوع المخروطية — https://openstax.org/books/calculus-volume-2/pages/7-5-conic-sections"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -666,7 +666,7 @@ KZV.register({
         "وولفرام ماث وورلد — الدوال المثلثية — https://mathworld.wolfram.com/TrigonometricFunctions.html",
         "جامعة رايس، أوبن ستاكس — الدوال المثلثية — https://openstax.org/books/calculus-volume-1/pages/1-3-trigonometric-functions"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -732,7 +732,7 @@ KZV.register({
         "المكتب الدولي للأوزان والمقاييس — كتيب النظام الدولي للوحدات — https://www.bipm.org/documents/20126/41483022/SI-Brochure-9.pdf",
         "المعهد الوطني الأمريكي للمعايير والتقنية — دليل استعمال النظام الدولي للوحدات — https://doi.org/10.6028/NIST.SP.811e2008"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -930,7 +930,7 @@ KZV.register({
         "جامعة ميشيغان — مفصليات الأرجل — https://animaldiversity.org/accounts/Arthropoda/",
         "المتحف الأسترالي — الشعب الحيوانية في مجموعات اللافقاريات — https://australian.museum/learn/collections/natural-science/marine-invertebrates/marine-invertebrate-collections-taxonomic-groups/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1062,7 +1062,7 @@ KZV.register({
         "جامعة الملك سعود — أقسام الفعل من حيث الصحة والعلة — https://faculty.ksu.edu.sa/sites/default/files/qsm_lfl_mn_hyth_lsh_wll_1.pdf",
         "الجامعة المستنصرية — إسناد الأفعال إلى الضمائر — https://www.uomustansiriyah.edu.iq/media/lectures/8/8_2026_03_19%2112_28_22_PM.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1085,7 +1085,7 @@ KZV.register({
         "الجامعة المستنصرية — إسناد الأفعال إلى الضمائر — https://www.uomustansiriyah.edu.iq/media/lectures/8/8_2026_03_19%2112_28_22_PM.pdf",
         "الجامعة المستنصرية — الفعل الصحيح والفعل المعتل — https://www.uomustansiriyah.edu.iq/media/lectures/8/8_2019_05_20%2103_18_57_PM.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1107,7 +1107,7 @@ KZV.register({
         "جامعة هاواي — الفصيلة الوردية — https://manoa.hawaii.edu/lifesciences/faculty/carr/ros.htm",
         "جامعة ماسي — دراسة الخرائط الجينية في الفصيلة الوردية — https://mro.massey.ac.nz/server/api/core/bitstreams/bbdf9430-80b1-499f-ac23-8a73296f8173/content"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1129,7 +1129,7 @@ KZV.register({
         "مؤسسة سميثسونيان — أبحاث الفصيلة النجيلية — https://naturalhistory.si.edu/research/botany/research/grass-research",
         "حدائق كيو — تصنيف النباتات النجيلية — https://www.kew.org/read-and-watch/growing-our-knowledge-grasses"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1151,7 +1151,7 @@ KZV.register({
         "جامعة ولاية ميشيغان — تصنيف الهيدروكربونات — https://www2.chemistry.msu.edu/faculty/reusch/virttxtjml/chapt5.htm",
         "جامعة رايس، أوبن ستاكس — الهيدروكربونات — https://openstax.org/books/chemistry-2e/pages/20-1-hydrocarbons"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1241,7 +1241,7 @@ KZV.register({
         "جامعة ميشيغان — النيص — https://animaldiversity.org/accounts/Hystricidae/",
         "متحف فلوريدا للتاريخ الطبيعي — رتبة القوارض — https://www.floridamuseum.ufl.edu/florida-vertebrate-fossils/species/neofiber-alleni/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1263,7 +1263,7 @@ KZV.register({
         "جامعة ميشيغان — رتبة اللواحم — https://animaldiversity.org/accounts/Carnivora/",
         "الجامعة المفتوحة — التعريف برتبة اللواحم — https://www.open.edu/openlearn/nature-environment/natural-history/studying-mammals-meat-eaters/content-section-2.1"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1286,7 +1286,7 @@ KZV.register({
         "جامعة ميشيغان — البابون — https://animaldiversity.org/accounts/Papio/",
         "مؤسسة سميثسونيان — مجموعة الرئيسيات — https://humanorigins.si.edu/evidence/3d-collection/primates"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1352,7 +1352,7 @@ KZV.register({
         "جامعة ميشيغان — فصيلة البطيات — https://animaldiversity.org/accounts/Anatidae/",
         "متحف التاريخ الطبيعي — البط والإوز والتم — https://www.nhm.ac.uk/our-science/data/uk-species/taxon?tvk=NBNSYS0100001322"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1396,7 +1396,7 @@ KZV.register({
         "هيئة المسح الجيولوجي البريطانية — تصنيف الصخور — https://www.bgs.ac.uk/datasets/bgs-geology/",
         "هيئة المسح الجيولوجي الأمريكية — الصخور الرسوبية — https://www.usgs.gov/faqs/what-are-sedimentary-rocks"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1440,7 +1440,7 @@ KZV.register({
         "جامعة هاواي — الفصيلة السذابية — https://manoa.hawaii.edu/lifesciences/faculty/carr/rut.htm",
         "مؤسسة البحوث الزراعية البرازيلية — تصنيف الحمضيات — https://www.embrapa.br/en/web/mandioca-e-fruticultura/cultivos/citros"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1485,7 +1485,7 @@ KZV.register({
         "جامعة رايس، أوبن ستاكس — تركيب الأحماض الأمينية — https://openstax.org/books/organic-chemistry/pages/26-1-structures-of-amino-acids",
         "جامعة أريزونا — الأحماض الأمينية القاعدية — https://biology.arizona.edu/biochemistry/problem_sets/aa/Basic.html"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1507,7 +1507,7 @@ KZV.register({
         "المعاهد الوطنية الأمريكية للصحة — أحماض أوميغا ثلاثة — https://ods.od.nih.gov/factsheets/Omega3FattyAcids-HealthProfessional/",
         "جامعة ولاية أوريغون — الأحماض الدهنية الأساسية — https://lpi.oregonstate.edu/mic/other-nutrients/essential-fatty-acids"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1551,7 +1551,7 @@ KZV.register({
         "وايلي — أدوات قياس الحجم في المختبر — https://catalogimages.wiley.com/images/db/pdf/9781119571148.excerpt.pdf",
         "جامعة المستقبل — أدوات المختبر الكيميائي — https://uomus.edu.iq/uploads/lectures/46/e4eb76fd2cd84a3b93cf0963ccb8b1f4.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1595,7 +1595,7 @@ KZV.register({
         "جامعة هارفارد — اللغات السلافية — https://slavic.fas.harvard.edu/pages/what-are-slavic-languages",
         "جامعة كاليفورنيا في لوس أنجلوس — الانتماء اللغوي للتشيكية — https://slavic.ucla.edu/languages/czech/background-info/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1617,7 +1617,7 @@ KZV.register({
         "جامعة ولاية بنسلفانيا — اللغات الرومانسية — https://sites.psu.edu/symbolcodes/languages/europe/romance/",
         "جامعة أوريغون — اللغات الرومانسية — https://humanities.uoregon.edu/romance-languages/romance"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1639,7 +1639,7 @@ KZV.register({
         "جامعة كامبريدج — مجموعات اللغات الجرمانية — https://libguides.cam.ac.uk/c.php?g=737049&p=5393534",
         "جامعة أكسفورد — أبحاث اللسانيات — https://www.ling-phil.ox.ac.uk/research/linguistics-research"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1661,7 +1661,7 @@ KZV.register({
         "جامعة هلسنكي — الأسرة اللغوية الأورالية — https://www.helsinki.fi/en/news/culture/dramatic-events-demographics-led-spread-uralic-languages",
         "كلية لندن الجامعية — مدخل إلى اللغات الأورالية — https://discovery.ucl.ac.uk/id/eprint/10167161/1/Abondolo_Valijarvi_2023_Introduction.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1727,7 +1727,7 @@ KZV.register({
         "جامعة رايس، أوبن ستاكس — تصنيف العظام — https://openstax.org/books/anatomy-and-physiology-2e/pages/6-2-bone-classification",
         "كليفلاند كلينك — أمثلة العظام الطويلة — https://my.clevelandclinic.org/health/diseases/22113-enchondroma"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1749,7 +1749,7 @@ KZV.register({
         "معهد الحفظ الكندي — الألياف الطبيعية — https://www.canada.ca/en/conservation-institute/services/conservation-preservation-publications/canadian-conservation-institute-notes/natural-fibres.html",
         "منظمة الأغذية والزراعة — تصنيف الألياف النباتية — https://www.fao.org/4/y3612e/y3612e04.htm"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1775,7 +1775,7 @@ KZV.register({
         "مختبر لوس ألاموس الوطني — أصل اسم الأينشتاينيوم — https://periodic.lanl.gov/99.shtml",
         "مختبر لوس ألاموس الوطني — أصل اسم الفرميوم — https://periodic.lanl.gov/100.shtml"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1827,7 +1827,7 @@ KZV.register({
         "مختبر لوس ألاموس الوطني — أصل اسم اليود — https://periodic.lanl.gov/53.shtml",
         "مختبر لوس ألاموس الوطني — أصل اسم الروبيديوم — https://periodic.lanl.gov/37.shtml"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1874,7 +1874,7 @@ KZV.register({
         "جامعة الملك سعود — الأسماء الموصولة والضمائر — https://chss.ksu.edu.sa/en/node/4997",
         "الجامعة المستنصرية — الأسماء الموصولة والضمائر — https://uomustansiriyah.edu.iq/media/lectures/12/12_2022_06_30%2110_59_51_PM.pdf"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1940,7 +1940,7 @@ KZV.register({
         "جامعة الملك سعود — الحروف الناسخة — https://chss.ksu.edu.sa/ar/node/5237",
         "جامعة بابل — إن وأخواتها — https://www.uobabylon.edu.iq/eprints/publication_1_21188_547.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2077,7 +2077,7 @@ KZV.register({
         "جامعة رايس، أوبن ستاكس — ملحقات الجلد — https://openstax.org/books/anatomy-and-physiology-2e/pages/5-2-accessory-structures-of-the-skin",
         "كليفلاند كلينك — مكونات الجهاز اللحافي — https://my.clevelandclinic.org/health/body/22827-integumentary-system"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2099,7 +2099,7 @@ KZV.register({
         "جامعة مينيسوتا — أنواع الثمار وبنيتها — https://open.lib.umn.edu/horticulture/chapter/8-1-fruit-morphology/",
         "جامعة ويسكونسن — تصنيف الثمار — https://botit.botany.wisc.edu/botany_130/diversity/plants/Vascular_Plants/Magnoliophyta/Fruits/Fruits.html"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2143,7 +2143,7 @@ KZV.register({
         "جامعة مينيسوتا — أنواع الثمار وبنيتها — https://open.lib.umn.edu/horticulture/chapter/8-1-fruit-morphology/",
         "مؤسسة أبحاث الحفريات — أنواع الثمار — https://www.digitalatlasofancientlife.org/learn/embryophytes/angiosperms/fruits/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2187,7 +2187,7 @@ KZV.register({
         "جامعة كولورادو الحكومية — الثمار العنبية والمتجمعة — https://www.lsop.colostate.edu/2020/04/29/everything-you-need-to-know-is-that-a-berry/",
         "مؤسسة أبحاث الحفريات — أنواع الثمار — https://www.digitalatlasofancientlife.org/learn/embryophytes/angiosperms/fruits/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2209,7 +2209,7 @@ KZV.register({
         "جامعة مكغيل — الجوز الحقيقي في علم النبات — https://www.mcgill.ca/oss/article/nutrition-did-you-know/cashews-and-almonds-arent-technically-nuts-so-what-are-they",
         "مؤسسة أبحاث الحفريات — أنواع الثمار — https://www.digitalatlasofancientlife.org/learn/embryophytes/angiosperms/fruits/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2231,7 +2231,7 @@ KZV.register({
         "اتحاد البنلوكس — الدول المشاركة — https://www.benelux.int/en/",
         "الاتحاد الأوروبي — نشأة البنلوكس — https://european-union.europa.eu/principles-countries-history/history-eu/eu-pioneers/paul-henri-spaak_en?prefLang=uk"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2275,7 +2275,7 @@ KZV.register({
         "ناسا — جزر الأنتيل الكبرى — https://modis.gsfc.nasa.gov/gallery/individual.php?db_date=2021-01-10",
         "وزارة الزراعة الأمريكية — دراسة جزر الأنتيل الكبرى — https://www.ars.usda.gov/research/publications/publication/?seqNo115=353059"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2297,7 +2297,7 @@ KZV.register({
         "مؤسسة غيتي — جزر سوندا الكبرى — https://www.getty.edu/vow/TGNFullDisplay?english=N&find=7014494&nation=&place=&subjectid=1010021",
         "الجامعة الوطنية الأسترالية — جغرافية العالم الأسترونيزي — https://openresearch-repository.anu.edu.au/bitstreams/ecb58bb2-e323-4d88-8576-cd7fa64a5792/download"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2319,7 +2319,7 @@ KZV.register({
         "اللجنة العلمية البريطانية للتغذية — المغذيات الكبرى — https://www.gov.uk/government/publications/sacn-statement-on-expressing-fat-and-carbohydrate-recommendations/sacn-statement-on-expressing-energy-fat-and-carbohydrate-intakes-and-recommendations",
         "المكتبة الزراعية الوطنية الأمريكية — المغذيات الكبرى — https://www.nal.usda.gov/human-nutrition-and-food-safety/food-composition/macronutrients"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2363,7 +2363,7 @@ KZV.register({
         "جامعة ميشيغان — الفصيلة البقرية — https://animaldiversity.org/accounts/Bovidae/",
         "جامعة تكساس التقنية — تصنيف الثدييات المستأنسة — https://www.depts.ttu.edu/nsrl/mammals-of-texas-online-edition/Accounts_Domesticated_Mammals/index.php"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2451,7 +2451,7 @@ KZV.register({
         "جامعة ولاية كارولينا الشمالية — غشائيات الأجنحة — https://genent.cals.ncsu.edu/insect-identification/hymenoptera-ants-bees-wasps/",
         "جامعة كولورادو الحكومية — التعرف على رتب الحشرات — https://cmg.extension.colostate.edu/wp-content/uploads/sites/59/2024/10/2024-8-Entomology.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2495,7 +2495,7 @@ KZV.register({
         "موزيلا — الصور النقطية — https://developer.mozilla.org/en-US/docs/Glossary/Raster_image",
         "أدوبي — صيغ الصور النقطية والمتجهية — https://helpx.adobe.com/photoshop/desktop/create-open-import-images/import-files/use-raster-and-vector-files.html"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2627,7 +2627,7 @@ KZV.register({
         "جامعة الملك سعود — جموع التكسير — https://chss.ksu.edu.sa/en/node/4997",
         "الجامعة المستنصرية — أمثلة جمع التكسير — https://uomustansiriyah.edu.iq/media/lectures/12/12_2022_06_30%2110_59_51_PM.pdf"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2737,7 +2737,7 @@ KZV.register({
         "الموسوعة النرويجية — إسكندنافيا — https://snl.no/Skandinavia",
         "جامعة كوبنهاغن — تعريف إسكندنافيا — https://researchprofiles.ku.dk/en/publications/nordic-law/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2759,7 +2759,7 @@ KZV.register({
         "موزيلا — تقنيات بناء صفحات الويب — https://developer.mozilla.org/en-US/docs/Learn_web_development/Getting_started/Web_standards/The_web_standards_model",
         "مايكروسوفت — بدء تطوير صفحات الويب — https://learn.microsoft.com/en-us/training/modules/build-simple-website/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2825,7 +2825,7 @@ KZV.register({
         "جامعة ولاية بنسلفانيا — نظام الأغشية الداخلي — https://oer.hax.psu.edu/gxt5/sites/biol230-tutorials/intracellular-compartments-er-golgi-complex",
         "أوبن ستاكس — مكونات نظام الأغشية الداخلي — https://openstax.org/books/biology-2e/pages/4-4-the-endomembrane-system-and-proteins"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2869,7 +2869,7 @@ KZV.register({
         "أوبن ستاكس — الفطريات الزقية — https://openstax.org/books/microbiology/pages/5-3-fungi",
         "جامعة ولاية بنسلفانيا — أمثلة الفطريات الزقية — https://oer.hax.psu.edu/dmw29/sites/biol110-1/fungi-i-evolution-and-diversity-the-chytridiomycota-glomeromycota-zygomycota-and-microsporidians/phylum-glomeromycota"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2891,7 +2891,7 @@ KZV.register({
         "جامعة المستقبل — نواصب الفعل المضارع — https://www.uomus.edu.iq/img/lectures21/MUCLecture_2022_122519871.pdf",
         "جامعة بابل — نصب الفعل المضارع — https://www.uobabylon.edu.iq/eprints/publication_1_8132_1781.pdf"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2979,7 +2979,7 @@ KZV.register({
         "جامعة المستقبل — جوازم الفعل المضارع — https://www.uomus.edu.iq/img/lectures21/MUCLecture_2022_122519871.pdf",
         "الجامعة المستنصرية — جزم الفعل المضارع — https://uomustansiriyah.edu.iq/media/lectures/12/12_2024_10_01%2112_27_42_AM.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -3045,7 +3045,7 @@ KZV.register({
         "مؤسسة غيتي — الألوان الثانوية — https://www.getty.edu/vow/AATFullDisplay?find=&logic=null&note=&subjectid=300056140",
         "المعرض الوطني للفنون — عجلة الألوان التقليدية — https://www.nga.gov/sites/default/files/migrate_images/content/dam/ngaweb/education/learning-resources/teaching-packets/pdfs/picturing_france.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3133,7 +3133,7 @@ KZV.register({
         "جامعة إلينوي — التوصيل والحمل والإشعاع — https://van.physics.illinois.edu/ask/listing/1789",
         "جامعة ولاية آيوا — انتقال الحرارة في المحيطات — https://meteor.geol.iastate.edu/gccourse/ocean/conduction.html"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3155,7 +3155,7 @@ KZV.register({
         "جامعة عين تموشنت — مستويات التحليل البلاغي — https://dspace.univ-temouchent.edu.dz/bitstreams/171fb888-a198-4243-a109-e0e74fba7796/download",
         "جامعة الملك خالد — مدخل البلاغة وعلم البديع — https://hs.kku.edu.sa/sites/hs.kku.edu.sa/files/2024-10/%D8%A8%D9%84%D8%A7%D8%BA%D8%A91%20%D9%85%D8%AF%D8%AE%D9%84%20%D8%A7%D9%84%D8%A8%D9%84%D8%A7%D8%BA%D8%A9%20%D9%88%D8%B9%D9%84%D9%85%20%D8%A7%D9%84%D8%A8%D8%AF%D9%8A%D8%B9.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -3309,7 +3309,7 @@ KZV.register({
         "جامعة ييل — الآلات البسيطة — https://teachersinstitute.yale.edu/curriculum/units/2003/4/03.04.08/3",
         "أكاديمية أوك الوطنية — أنواع الآلات البسيطة — https://www.thenational.academy/teachers/lessons/simple-machines"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3331,7 +3331,7 @@ KZV.register({
         "مختبر المنتجات الحرجية الأمريكي — تصنيف الراتنجات اللاصقة — https://research.fs.usda.gov/download/treesearch/9099.pdf",
         "جامعة أيداهو — أصناف الراتنجات المتصلدة — https://objects.lib.uidaho.edu/etd/pdf/Orji_idaho_0089E_12546.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3485,7 +3485,7 @@ KZV.register({
         "Rice University OpenStax — Biology2e, 3.5 Nucleic Acids — https://openstax.org/books/biology-2e/pages/3-5-nucleic-acids",
         "National Cancer Institute — Dictionary: Pyrimidine — https://www.cancer.gov/publications/dictionaries/cancer-terms/def/pyrimidine"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3551,7 +3551,7 @@ KZV.register({
         "CERN — The Standard Model: Matter Particles — https://home.web.cern.ch/science/physics/standard-model/",
         "Fermilab — Particle Physics101: Worldwide Particle Physics Discoveries — https://www.fnal.gov/pub/science/particle-physics-101/worldwide-discoveries.html"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3617,7 +3617,7 @@ KZV.register({
         "Oregon State University — Biochemistry Free For All1.3: Aromatic Amino Acids, PDF Pages62–63 — https://biochem.oregonstate.edu/sites/biochem.oregonstate.edu/files/2022-04/Biochemistry%20Free%20For%20All%201.3_compressed.pdf",
         "US National Library of Medicine — MeSH: Amino Acids, Aromatic — https://www.ncbi.nlm.nih.gov/mesh/68024322"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3773,7 +3773,7 @@ KZV.register({
         "Oregon State University — Biochemistry Free For All1.3: Hemoglobin, Myoglobin and Cytochrome C, PDF Pages130–131,440–441 — https://biochem.oregonstate.edu/sites/biochem.oregonstate.edu/files/2022-04/Biochemistry%20Free%20For%20All%201.3_compressed.pdf",
         "US National Library of Medicine — MeSH: Hemeproteins — https://www.ncbi.nlm.nih.gov/mesh/D12.776.422"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3865,7 +3865,7 @@ KZV.register({
         "MDN Web Docs — CSS Font-Family: Generic Family Names — https://developer.mozilla.org/en-US/docs/Web/CSS/font-family",
         "W3C — CSS2, 15.3.1 Generic Font Families — https://www.w3.org/TR/CSS2/fonts.html"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3887,7 +3887,7 @@ KZV.register({
         "OpenStax / Rice University — Organic Chemistry 27.1: Waxes, Fats, and Oils — https://openstax.org/books/organic-chemistry/pages/27-1-waxes-fats-and-oils",
         "FAO — Fats and Fatty Acids in Human Nutrition, Table 3.2 — https://www.fao.org/4/i1953e/i1953e00.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3931,7 +3931,7 @@ KZV.register({
         "Johns Hopkins Medicine — Digestive Enzymes and Digestive Enzyme Supplements — https://www.hopkinsmedicine.org/health/wellness-and-prevention/digestive-enzymes-and-digestive-enzyme-supplements",
         "Cleveland Clinic — Digestive Enzymes 101: Why They’re Important — https://health.clevelandclinic.org/digestive-enzymes-101-why-theyre-important"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3976,7 +3976,7 @@ KZV.register({
         "OpenStax / Rice University — Biology 2e 30.1: The Plant Body — https://openstax.org/books/biology-2e/pages/30-1-the-plant-body",
         "NCERT — Biology, Chapter6: Anatomy of Flowering Plants, The Tissue System — https://www.ncert.nic.in/textbook/pdf/kebo106.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4020,7 +4020,7 @@ KZV.register({
         "OpenStax / Rice University — Biology 2e 5.4: Bulk Transport — https://openstax.org/books/biology-2e/pages/5-4-bulk-transport",
         "Pennsylvania State University — Biology230: Intracellular Compartments, Exocytosis, Endocytosis and Lysosome — https://oer.hax.psu.edu/gxt5/sites/biol230-tutorials/intracellular-compartments-exocytosis-endocytosis-lysosome"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4043,7 +4043,7 @@ KZV.register({
         "OpenStax / Rice University — Biology 2e 30.3: Roots — https://openstax.org/books/biology-2e/pages/30-3-roots",
         "OpenStax / Rice University — Biology 2e 30.4: Leaves — https://openstax.org/books/biology-2e/pages/30-4-leaves"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4131,7 +4131,7 @@ KZV.register({
         "US National Library of Medicine — MeSH: Pentoses — https://www.ncbi.nlm.nih.gov/mesh/68010429",
         "University of Montana — Michael Raymond Hinton, Original2008 Chemistry Dissertation Abstract — https://scholarworks.umt.edu/etd/1202/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4219,7 +4219,7 @@ KZV.register({
         "OpenStax / Rice University — Biology2e43.1: Reproduction Methods — https://openstax.org/books/biology-2e/pages/43-1-reproduction-methods",
         "Arizona State University, Ask A Biologist — Reproduction Types — https://askabiologist.asu.edu/explore/reproduction-types"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4263,7 +4263,7 @@ KZV.register({
         "OpenStax / Rice University — College Physics2e5.3: Elasticity, Stress and Strain — https://openstax.org/books/college-physics-2e/pages/5-3-elasticity-stress-and-strain",
         "California Institute of Technology — Effective Elastic Moduli and Characterization of a Particulate-Reinforced Metal Matrix Composite — https://authors.library.caltech.edu/records/dbngb-qns67"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4308,7 +4308,7 @@ KZV.register({
         "Federal Aviation Administration — Pilot's Handbook of Aeronautical Knowledge, Chapter1: Aircraft Categories — https://www.faa.gov/sites/faa.gov/files/03_phak_ch1.pdf",
         "European Aviation Safety Agency — CS Definitions, Original2003 Classification Definitions — https://www.easa.europa.eu/en/downloads/1723/en"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4422,7 +4422,7 @@ KZV.register({
         "NASA — Mechanical Fastening of Nickel-Base Alloys, Technical Memorandum1966 — https://ntrs.nasa.gov/api/citations/19660016989/downloads/19660016989.pdf?attachment=true",
         "TWI — A Competitive Advantage through Innovation, Original Technical Article2001 — https://www.twi-global.com/technical-knowledge/published-papers/a-competitive-advantage-through-innovation-march-2001"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4466,7 +4466,7 @@ KZV.register({
         "Purdue University — Polymer Definitions: Elastomers — https://chemed.chem.purdue.edu/genchem/topicreview/bp/1polymer/terms.html",
         "Trelleborg Sealing Solutions — Original Material Classification: Elastomers — https://www.trelleborg.com/-/media/tss-media-repository/tss_website/pdf-and-other-literature/catalogs/kantseal_en.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4510,7 +4510,7 @@ KZV.register({
         "University of Toronto / Burbulla — Original MAT188 Week10 Lecture Notes — https://www.math.toronto.edu/burbulla/lecturenotes188/Week10.pdf",
         "Lafayette College / Mary Clair Thompson — Original Linear Algebra Section5.2: Diagonalization — https://sites.lafayette.edu/thompsmc/files/2015/08/Section_5_2.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4532,7 +4532,7 @@ KZV.register({
         "United States Geological Survey — What Are Sedimentary Rocks? — https://www.usgs.gov/faqs/what-are-sedimentary-rocks",
         "BCcampus — Original Laboratory Manual for Introduction to Physical Geography, Lab17 — https://opentextbc.ca/geoglabmanualv2/chapter/bcs-geology-and-geologic-structures/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4554,7 +4554,7 @@ KZV.register({
         "Oregon State University — Original Biochemistry Free For All, Amino-Acid Metabolism — https://biochem.oregonstate.edu/sites/biochem.oregonstate.edu/files/2022-04/Biochemistry%20Free%20For%20All%201.3_compressed.pdf",
         "United States National Library of Medicine — MeSH: Amino Acids, Branched-Chain — https://meshb.nlm.nih.gov/record/ui?dcmsLinks=true&ui=D000597"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4576,7 +4576,7 @@ KZV.register({
         "Mozilla Developer Network — Original HTTP Request Methods Reference — https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods",
         "Internet Engineering Task Force — RFC9110, Section9: Methods — https://www.rfc-editor.org/rfc/rfc9110.html"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4598,7 +4598,7 @@ KZV.register({
         "Mozilla Developer Network — Original CSS Box Model Tutorial — https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Styling_basics/Box_model",
         "World Wide Web Consortium — CSS2, Section8: Box Model — https://www.w3.org/TR/CSS2/box.html"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4666,7 +4666,7 @@ KZV.register({
         "William Johnson — Original Tales of Heroes: Classical Epic Course Syllabus — https://people.duke.edu/~wj25/UC_Web_Site/epic/syllabus.html",
         "The Open University — Original OpenLearn: Epic Poetry Before Virgil — https://www.open.edu/openlearn/history-the-arts/introducing-virgils-aeneid/content-section-1.1"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4732,7 +4732,7 @@ KZV.register({
         "Formlabs — Original FDM vs. SLA vs. SLS Technology Comparison — https://formlabs.com/eu/blog/fdm-vs-sla-vs-sls-how-to-choose-the-right-3d-printing-technology/",
         "The Welding Institute — Original What Is 3D Printing? Processes Overview — https://www.twi-global.com/technical-knowledge/faqs/what-is-3d-printing"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4755,7 +4755,7 @@ KZV.register({
         "United States National Library of Medicine — Original MeSH: Purines — https://meshb.nlm.nih.gov/record/ui?ui=D011687&dcmsLinks=true",
         "United States National Library of Medicine — Original MeSH: Hypoxanthine — https://meshb.nlm.nih.gov/record/ui?ui=D019271&dcmsLinks=true"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4843,7 +4843,7 @@ KZV.register({
         "United States National Institute of Standards and Technology — Original DLMF3.8: Nonlinear Equations — https://dlmf.nist.gov/3.8",
         "Massachusetts Institute of Technology — Original Math,Numerics and Programming, Chapter29: Nonlinear Equations — https://ocw.mit.edu/ans7870/2/2.086/F14/MIT2_086S13_Textbook.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5003,7 +5003,7 @@ KZV.register({
         "Purdue University Online Writing Lab — Conducting Primary Research — https://owl.purdue.edu/owl/research_and_citation/conducting_research/conducting_primary_research/index.html",
         "Purdue University Online Writing Lab — Surveying — https://owl.purdue.edu/owl/research_and_citation/conducting_research/conducting_primary_research/surveying.html"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5025,7 +5025,7 @@ KZV.register({
         "Harvard University Library — What Is a Resource? Reference Materials — https://guides.library.harvard.edu/c.php?g=1153484&p=8420492",
         "University of Illinois Urbana-Champaign Library — Online Reference Collection — https://guides.library.illinois.edu/eref"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5180,7 +5180,7 @@ KZV.register({
         "جامعة الملك سعود — مفردات مقرر النحو: أفعال الرجاء — https://faculty.ksu.edu.sa/sites/default/files/mfrdt_lnhw_1_0.pdf",
         "الجامعة المستنصرية — محاضرة اللغة العربية: أفعال الرجاء — https://uomustansiriyah.edu.iq/media/lectures/14/14_2023_04_13%2112_15_14_PM.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -5669,7 +5669,7 @@ KZV.register({
         "NIST — Original Dictionary Entry, Prim-Jarnik Algorithm — https://xlinux.nist.gov/dads/HTML/primJarnik.html",
         "NIST — Original Dictionary Entry, Boruvka's Algorithm — https://xlinux.nist.gov/dads/HTML/boruvkasAlgorithm.html"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5713,7 +5713,7 @@ KZV.register({
         "MIT OpenCourseWare — Original Lecture7, Notation for Complexity — https://ocw.mit.edu/courses/6-080-great-ideas-in-theoretical-computer-science-spring-2008/4c40dede95d3b2fe07e6aa435b46b471_lec7.pdf",
         "Cornell University — Original CS211 Searching and Asymptotic Complexity Lecture — https://www.cs.cornell.edu/courses/cs211/2005fa/Lectures/L12-Searching%20%26%20Asymptotic%20Complexity/L12cs211fa05.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -5890,7 +5890,7 @@ KZV.register({
         "Rice University — Original OpenStax Astronomy, Spectroscopy — https://openstax.org/books/astronomy-2e/pages/5-3-spectroscopy-in-astronomy",
         "NASA — Original Types of Spectra: Continuous, Emission and Absorption — https://science.nasa.gov/asset/webb/types-of-spectra-continuous-emission-and-absorption/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -6090,7 +6090,7 @@ KZV.register({
         "Unicode Consortium — Original Core Specification, Writing Systems — https://unicode.org/versions/Unicode16.0.0/core-spec/chapter-6/",
         "SIL International — Original Melinda Lyons Writing Systems Glossary — https://scripts.sil.org/cms/scripts/page.php?id=glossary&site_id=nrsi"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6247,7 +6247,7 @@ KZV.register({
         "Rice University — Original Biology2e Forms of Cell Signaling — https://openstax.org/books/biology-2e/pages/9-1-signaling-molecules-and-cellular-receptors",
         "Yale University — Original MedCell Cell Communication Reading — https://medcell.org/tbl/cell_communication/reading.php"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6269,7 +6269,7 @@ KZV.register({
         "Rice University — Original Biology2e Intercellular Junctions — https://openstax.org/books/biology-2e/pages/4-6-connections-between-cells-and-cellular-activities",
         "University of Leeds — Original Histology Guide Cell Junctions — https://histology.leeds.ac.uk/home/cell/cell_junctions/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6313,7 +6313,7 @@ KZV.register({
         "MIT — Original Signals and Systems Z-Transform Lecture — https://ocw.mit.edu/courses/res-6-007-signals-and-systems-spring-2011/a7c147c0ec77f3e04d6ed4ddd9d28ee1_MITRES_6_007S11_lec22.pdf",
         "University of Victoria — Michael D Adams Original Signals and Systems Textbook — https://www.ece.uvic.ca/~frodo/sigsysbook/downloads/signals_and_systems-3.0.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -6514,7 +6514,7 @@ KZV.register({
         "IIT Guwahati — Original NPTEL Equivalent Viscous Damping Account — https://archive.nptel.ac.in/content/storage2/courses/112103111/modules/module-4/lecture-4/topic-1/s16.htm",
         "University College London — Jie Fang Original Structural Damping Research Thesis — https://discovery.ucl.ac.uk/id/eprint/10123411/1/On_structural_damping_and_vort.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -6580,7 +6580,7 @@ KZV.register({
         "University of Houston — Paul Hardin Original Cell-Adhesion Lecture — https://www.uh.edu/~phardin/chapter22.html",
         "University of Maryland — Original Cell-Junction and Adhesion Lecture — https://science.umd.edu/classroom/BSCI421/goode/lectures/420L24_Cell_Junctions_Adhesion2.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6893,7 +6893,7 @@ KZV.register({
         "David Harvey, DePauw University — Original Analytical Chemistry 2.1, Coulometric Methods — https://drive.google.com/uc?export=download&id=1fHjsK36zO_Ra9arouleH3oQaMfxkryIF",
         "US National Bureau of Standards — Original Coordination Chemistry Analytical Research Report, Technical Note 402 — https://nvlpubs.nist.gov/nistpubs/Legacy/TN/nbstechnicalnote402.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -6915,7 +6915,7 @@ KZV.register({
         "Unicode Consortium — Original Arabic Script FAQ — https://unicode.org/faq/arabic.html",
         "Microsoft — Original Arabic Typesetting Font Documentation — https://learn.microsoft.com/en-us/typography/font-list/arabic-typesetting"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6938,7 +6938,7 @@ KZV.register({
         "Geological Society of London — Original East African Rift Structural Geology Account — https://www.geolsoc.org.uk/science-and-policy/plate-tectonic-stories/east-african-rift-valley/",
         "Geological Society of London — Original Vale of Eden Half-Graben Explanation — https://www.geolsoc.org.uk/science-and-policy/plate-tectonic-stories/vale-of-eden/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -6960,7 +6960,7 @@ KZV.register({
         "Guy Blelloch — Original Algorithms in the Real World Lossless-Compression Course Outline — https://www.cs.cmu.edu/~guyb/real-world/compress/index.html",
         "NTT — Seishi Takamura Original Lossless Video Coding Lecture at Stanford — https://web.stanford.edu/class/ee398b/handouts/lectures/LosslessVideoCoding.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6982,7 +6982,7 @@ KZV.register({
         "French Ministry of Culture — Original Font-de-Gaume Archaeological Glossary — https://archeologie.culture.gouv.fr/font-de-gaume/fr/glossary/glossaire-0",
         "Italian State Party Nomination — De Martini and Marcialis Original Megalithic Circles in Sardinia Study — https://whc.unesco.org/document/218119"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7027,7 +7027,7 @@ KZV.register({
         "Al-Mustaqbal University — Enas Waleed Original Arabic Grammar Lecture — https://uomus.edu.iq/img/lectures21/MUCLecture_2022_5151167.pdf",
         "Umm Al-Qura University — Original Arabic Department Undergraduate Curriculum — https://drive.uqu.edu.sa/_/colarab_lg/files/%D8%AF%D9%84%D9%8A%D9%84%20%D9%82%D8%B3%D9%85%20%D9%84%D9%85%D8%B1%D8%AD%D9%84%D8%A9%20%D8%A7%D9%84%D8%A8%D9%83%D8%A7%D9%84%D9%88%D8%B1%D9%8A%D9%88%D8%B3/%D8%AF%D9%84%D9%8A%D9%84%20%D8%A7%D9%84%D9%82%D8%B3%D9%85%201440.pdf"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7138,7 +7138,7 @@ KZV.register({
         "University of British Columbia — CLP Vector Calculus, Gradient, Divergence and Curl — https://personal.math.ubc.ca/~CLP/CLP4/clp_4_vc/sec_graadDivCurl.html",
         "NIST Digital Library of Mathematical Functions — Vectors and Vector-Valued Functions, Del Operator — https://dlmf.nist.gov/1.6"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7342,7 +7342,7 @@ KZV.register({
         "WHATWG HTML Standard — Sections — https://html.spec.whatwg.org/multipage/sections.html",
         "WHATWG HTML Standard — Main element — https://html.spec.whatwg.org/multipage/grouping-content.html#the-main-element"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -7496,7 +7496,7 @@ KZV.register({
         "John McMurry — Structure determination: chapter introduction — https://openstax.org/books/organic-chemistry/pages/12-why-this-chapter",
         "Bowdoin Chemistry — Instrumentation — https://www.bowdoin.edu/chemistry/resources/instrumentation/index.html"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7672,7 +7672,7 @@ KZV.register({
         "Pro Git — About version control — https://git-scm.com/book/en/v2/Getting-Started-About-Version-Control",
         "IBM — DevOps — https://www.ibm.com/think/topics/devops"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -7694,7 +7694,7 @@ KZV.register({
         "Debian Reference — GNU/Linux tutorials — https://www.debian.org/doc/manuals/debian-reference/ch01.en.html",
         "Red Hat — Three text editors compared — https://www.redhat.com/en/blog/3-text-editors-compared"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -7763,7 +7763,7 @@ KZV.register({
         "AWS CodeDeploy — Product integrations — https://aws.amazon.com/codedeploy/product-integrations/",
         "Microsoft Azure — Infrastructure automation tools — https://learn.microsoft.com/en-us/azure/virtual-machines/infrastructure-automation"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7785,7 +7785,7 @@ KZV.register({
         "MDN — CSS length — https://developer.mozilla.org/en-US/docs/Web/CSS/length",
         "W3C — CSS Values and Units Level4 — https://www.w3.org/TR/css-values-4/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -7807,7 +7807,7 @@ KZV.register({
         "MDN — CSS position — https://developer.mozilla.org/en-US/docs/Web/CSS/position",
         "W3C — CSS Positioned Layout Level3 — https://www.w3.org/TR/css-position-3/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -7917,7 +7917,7 @@ KZV.register({
         "TensorFlow — Working with RNNs — https://www.tensorflow.org/guide/keras/working_with_rnns",
         "PyTorch torch.nn — Neural network layers — https://docs.pytorch.org/docs/2.14/nn.html"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7985,7 +7985,7 @@ KZV.register({
         "Microsoft — Office file-format reference — https://learn.microsoft.com/en-us/office/compatibility/office-file-format-reference",
         "Google Drive API — Export formats — https://developers.google.com/workspace/drive/api/guides/ref-export-formats"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8007,7 +8007,7 @@ KZV.register({
         "Microsoft — Office file-format reference — https://learn.microsoft.com/en-us/office/compatibility/office-file-format-reference",
         "Google Drive API — Export formats — https://developers.google.com/workspace/drive/api/guides/ref-export-formats"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8056,7 +8056,7 @@ KZV.register({
         "Kew original Species Profile — Okra — https://powo.science.kew.org/taxon/urn%3Alsid%3Aipni.org%3Anames%3A558006-1/general-information",
         "RHS Plant Profile — roselle/karkade — https://www.rhs.org.uk/plants/44980/hibiscus-sabdariffa/details"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8082,7 +8082,7 @@ KZV.register({
         "RHS Plant Profile — garlic — https://www.rhs.org.uk/plants/858/allium-sativum/details",
         "RHS Plant Profile — leek — https://www.rhs.org.uk/plants/220728/allium-porrum-a005/details"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8126,7 +8126,7 @@ KZV.register({
         "OpenStax Biology2e — Bryophytes — https://openstax.org/books/biology-2e/pages/25-3-bryophytes",
         "NC State Extension Gardener Handbook — Botany — https://content.ces.ncsu.edu/extension-gardener-handbook/3-botany"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -8263,7 +8263,7 @@ KZV.register({
         "Wolfram MathWorld — Pythagorean means — https://mathworld.wolfram.com/PythagoreanMeans.html",
         "NRICH — Classical means — https://nrich.maths.org/problems/classical-means"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8285,7 +8285,7 @@ KZV.register({
         "OpenStax Algebra and Trigonometry — Even and odd functions — https://openstax.org/books/algebra-and-trigonometry-2e/pages/7-4-the-other-trigonometric-functions",
         "Wolfram MathWorld — Odd function — https://mathworld.wolfram.com/OddFunction.html"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -8308,7 +8308,7 @@ KZV.register({
         "OpenStax Algebra and Trigonometry — Even and odd functions — https://openstax.org/books/algebra-and-trigonometry-2e/pages/7-4-the-other-trigonometric-functions",
         "OpenStax Calculus1 — Review of functions — https://openstax.org/books/calculus-volume-1/pages/1-1-review-of-functions"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -8374,7 +8374,7 @@ KZV.register({
         "MIT — Structure of Earth Materials, Lab1 specimen gallery — https://ocw.mit.edu/courses/12-108-structure-of-earth-materials-fall-2004/pages/image-gallery/image-gallery-lab-1/",
         "Ocean Drilling Program — Sulfide and oxide petrology — https://www-odp.tamu.edu/publications/193_IR/chap_04/c4_4.htm"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8396,7 +8396,7 @@ KZV.register({
         "MIT — Structure of Earth Materials, Lab1 specimen gallery — https://ocw.mit.edu/courses/12-108-structure-of-earth-materials-fall-2004/pages/image-gallery/image-gallery-lab-1/",
         "Steven Earle — Physical Geology, Mineral groups — https://opentextbc.ca/geology/chapter/2-3-mineral-groups/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8462,7 +8462,7 @@ KZV.register({
         "Steven Earle — Physical Geology, Mineral groups — https://opentextbc.ca/geology/chapter/2-3-mineral-groups/",
         "Sheri N.White — Laser Raman spectroscopy for seafloor minerals — https://www.whoi.edu/cms/files/White_09_pre_46611.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8528,7 +8528,7 @@ KZV.register({
         "OpenStax Algebra1 — Writing linear equations — https://openstax.org/books/algebra-1/pages/4-7-3-writing-linear-equations",
         "Paul Dawkins — Lines — https://tutorial.math.lamar.edu/Classes/Alg/Lines.aspx"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -8771,7 +8771,7 @@ KZV.register({
         "ساهر القرالة وعاطف فضل — كاد وأخواتها بين التنظير النحوي والاستعمال اللغوي — https://journals.wise.edu.jo/ojs2020/index.php/mish/article/download/1005/225/11394",
         "بلال صلاح الدين محمد حسن — أفعال المقاربة عند اللغويين والنحويين — https://amm.uomustansiriyah.edu.iq/index.php/mustansiriyah/article/download/902/790/1586"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -8837,7 +8837,7 @@ KZV.register({
         "Statistics Canada — Non-sampling error — https://www150.statcan.gc.ca/n1/edu/power-pouvoir/ch6/nse-endae/5214806-eng.htm",
         "Census Bureau — Quality standard D3:Nonsampling error — https://www.census.gov/about/policies/quality/standards/standardd3.html"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8947,7 +8947,7 @@ KZV.register({
         "NIST — Hardness standard reference materials — https://www.nist.gov/mml/materials-science-and-engineering-division/mechanical-performance-group/hardness-standard",
         "ZwickRoell — Hardness testing machines — https://www.zwickroell.com/products/hardness-testing-machines/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8991,7 +8991,7 @@ KZV.register({
         "DOE — Types of hydropower turbines — https://www.energy.gov/cmei/water/types-hydropower-turbines",
         "ANDRITZ — Hydropower turbines — https://www.andritz.com/products-en/hydro/products/turbines-hydropower"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9168,7 +9168,7 @@ KZV.register({
         "Jeremy Orloff and Jonathan Bloom — Bayesian updating with discrete priors — https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/mit18_05_s22_class11-prep.pdf",
         "Caltech — Hypothesis testing,Bayesian approach — https://www.its.caltech.edu/~mshum/stats/lect8.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -9212,7 +9212,7 @@ KZV.register({
         "Armfield — Flow meter demonstration — https://armfield.co.uk/product/f1-21-flow-meter-demonstration/",
         "Bean T.Chen,Robert A.Fletcher,Yung-Sung Cheng — Calibration of aerosol instruments — https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=901720"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9303,7 +9303,7 @@ KZV.register({
         "TecQuipment — Heat exchangers module — https://www.tecquipment.com/assets/documents/datasheets/TD1360V-Heat-Exchangers-Module-Datasheet.pdf",
         "TecQuipment — Concentric tube heat exchanger — https://www.tecquipment.com/assets/documents/datasheets/TD1360a-Concentric-Tube-Datasheet.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9506,7 +9506,7 @@ KZV.register({
         "KSU — المنقوص والمقصور والممدود — https://chss.ksu.edu.sa/en/node/5246",
         "Saad Sabah Jassim — الاسم المقصور — https://uomustansiriyah.edu.iq/media/lectures/8/8_2023_04_12%2109_34_00_PM.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -9617,7 +9617,7 @@ KZV.register({
         "Ann Marie VanDerZanden — Vegetative plant parts,EM9904 — https://extension.oregonstate.edu/catalog/em-9904-vegetative-plant-parts",
         "Stephen G.Saupe — Vegetative structures and vegetables — https://employees.csbsju.edu/ssaupe/biol106/lectures/veggie_structures_new.htm"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -9750,7 +9750,7 @@ KZV.register({
         "Ann Marie VanDerZanden — Reproductive plant parts,EM9900 — https://extension.oregonstate.edu/catalog/em-9900-reproductive-plant-parts",
         "Biology2e32.1 — Reproductive development andstructure — https://openstax.org/books/biology-2e/pages/32-1-reproductive-development-and-structure"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -9817,7 +9817,7 @@ KZV.register({
         "Biology2e30.2 — Stems,simple plant tissues — https://openstax.org/books/biology-2e/pages/30-2-stems",
         "NCERT BiologyXI — Anatomy offlowering plants,section6.1.2 — https://ncert.nic.in/textbook/pdf/kebo106.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9839,7 +9839,7 @@ KZV.register({
         "How toIdentify aTree,FR296 — Leaf structure — https://ask.ifas.ufl.edu/publication/FR296",
         "AnneMStreich — Garden Terms:Vegetative plant morphology,EC1259 — https://extensionpubs.unl.edu/publication/ec1259/na/pdf/view"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -9927,7 +9927,7 @@ KZV.register({
         "Jim Clark — Group0,the noble gases — https://www.chemguide.co.uk/14to16/pt/group0.html",
         "Chemistry2e18.12 — Noble gases — https://openstax.org/books/chemistry-2e/pages/18-12-occurrence-preparation-and-properties-of-the-noble-gases"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -10016,7 +10016,7 @@ KZV.register({
         "Chemistry2e14.1 — Arrhenius andBronsted–Lowry acid-base definitions — https://openstax.org/books/chemistry-2e/pages/14-1-bronsted-lowry-acids-and-bases",
         "Chemistry2e15.2 — Lewis acids andbases — https://openstax.org/books/chemistry-2e/pages/15-2-lewis-acids-and-bases"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -10084,7 +10084,7 @@ KZV.register({
         "JimClark — Filtration andcrystallisation — https://www.chemguide.co.uk/14to16/separating/filtration.html",
         "JimClark — Simpledistillation — https://www.chemguide.co.uk/14to16/separating/distil.html"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -10106,7 +10106,7 @@ KZV.register({
         "Chemistry2e17.2 — Galvaniccells — https://openstax.org/books/chemistry-2e/pages/17-2-galvanic-cells",
         "WisconsinNetorials — Voltaiccells — https://www2.chem.wisc.edu/deptfiles/genchem/netorial/rottosen/tutorial/modules/electrochemistry/03voltaic_cells/18_31.htm"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -10219,7 +10219,7 @@ KZV.register({
         "Joshua Noble — What are distance metrics? — https://www.ibm.com/think/topics/distance-metrics",
         "scikit-learn — DistanceMetric, real-vector metric definitions — https://scikit-learn.org/stable/modules/generated/sklearn.metrics.DistanceMetric.html"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -10419,7 +10419,7 @@ KZV.register({
         "WALS Online -             Family Sino-Tibetan — https://wals.info/languoid/family/sinotibetan",
         "Descriptions: Show — https://subjects.kmaps.virginia.edu/features/286/descriptions/47"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -10463,7 +10463,7 @@ KZV.register({
         "University of Anbar — Dhilal Adnan Abd al-Majid, original five-nouns lecture — https://uoanbar.edu.iq/eStoreImages/Bank/30075.pdf",
         "Lebanese General Security magazine — Antoine Dahdah, original language column issue60 — https://www.general-security.gov.lb/uploads/magazines/60-09-2018.pdf"
       ],
-      "level": 1,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -10507,7 +10507,7 @@ KZV.register({
         "A Guide to Cooking Techniques and How They Work - Recipes — https://msu-prod-2.dotcms.cloud/resources/a-guide-to-cooking-techniques-and-how-they-work",
         "NCERT/PSSCIVE — Food and Beverage Service Trainee,ClassIX2020,original textbook — https://psscive.ac.in/storage/uploads/textbooks/pdf/english/food-and-beverage-service-assistant-english-class-9.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -10529,7 +10529,7 @@ KZV.register({
         "A Guide to Cooking Techniques and How They Work - Recipes — https://msu-prod-2.dotcms.cloud/resources/a-guide-to-cooking-techniques-and-how-they-work",
         "NCERT/PSSCIVE — Food and Beverage Service Trainee,ClassIX2020,original textbook — https://psscive.ac.in/storage/uploads/textbooks/pdf/english/food-and-beverage-service-assistant-english-class-9.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -10617,7 +10617,7 @@ KZV.register({
         "TWI — original What Metals Are Non-Ferrous technical guide — https://www.twi-global.com/technical-knowledge/faqs/what-metals-are-non-ferrous",
         "Edinburgh Napier — original Civil Engineering Materials CTR07100 curriculum — https://www.modules.napier.ac.uk/Module.aspx?ID=CTR07100"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -10640,7 +10640,7 @@ KZV.register({
         "Italia.it/ENIT — original Italian Regions exposition — https://www.italia.it/en/italy/italian-regions",
         "Italia.it/ENIT — original Sicily regional exposition — https://www.italia.it/en/sicily/guide-history-facts"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -10662,7 +10662,7 @@ KZV.register({
         "German National Tourist Board — original Information onGermany — https://www.germany.travel/en/information-on-germany.html",
         "BMI/BAMF — original Welcome toGermany2021handbook — https://www.bamf.de/SharedDocs/Anlagen/EN/Integration/WillkommenDeutschland/willkommen-in-deutschland.pdf?__blob=publicationFile&v=21"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -10734,7 +10734,7 @@ KZV.register({
         "Bretagne, région administrative — original Encyclopædia Universalis France article — https://www.universalis.fr/encyclopedie/bretagne-region-administrative/",
         "Bretagne : Histoire de la Bretagne — original Encyclopædia Universalis France article — https://www.universalis.fr/encyclopedie/bretagne/2-histoire-de-la-bretagne/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -10801,7 +10801,7 @@ KZV.register({
         "North Carolina State University — Hemiptera, suborder Homoptera — https://genent.cals.ncsu.edu/insect-identification/order-hemiptera-suborder-homoptera/",
         "Royal Entomological Society — Hemiptera — https://www.royensoc.co.uk/understanding-insects/classification-of-insects/hemiptera/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10823,7 +10823,7 @@ KZV.register({
         "King Saud University — التصغير — https://chss.ksu.edu.sa/en/node/5258",
         "University of Diyala — دراسة كتاب التصغير لابن السكيت — https://coehuman.uodiyala.edu.iq/%D9%83%D9%84%D9%8A%D8%A9-%D8%A7%D9%84%D8%AA%D8%B1%D8%A8%D9%8A%D8%A9-%D9%84%D9%84%D8%B9%D9%84%D9%88%D9%85-%D8%A7%D9%84%D8%A5%D9%86%D8%B3%D8%A7%D9%86%D9%8A%D8%A9-%D8%AA%D9%86%D8%A7%D9%82%D8%B4-%D9%83-6/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -10867,7 +10867,7 @@ KZV.register({
         "MDN — Expressions and operators — https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_operators",
         "Microsoft Learn — C++ built-in operators, precedence, and associativity — https://learn.microsoft.com/en-us/cpp/cpp/cpp-built-in-operators-precedence-and-associativity?view=msvc-170"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -10890,7 +10890,7 @@ KZV.register({
         "Oracle Java Tutorials — The while and do-while Statements — https://docs.oracle.com/javase/tutorial/java/nutsandbolts/while.html",
         "Oracle Java Tutorials — The for Statement — https://docs.oracle.com/javase/tutorial/java/nutsandbolts/for.html"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -10912,7 +10912,7 @@ KZV.register({
         "Oracle Java Tutorials — Controlling Access to Members of a Class — https://docs.oracle.com/javase/tutorial/java/javaOO/accesscontrol.html",
         "Microsoft Learn — Member Access Control (C++) — https://learn.microsoft.com/en-us/cpp/cpp/member-access-control-cpp?view=msvc-170"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -10934,7 +10934,7 @@ KZV.register({
         "MDN — The HTML section heading elements — https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/Heading_Elements",
         "WHATWG HTML Living Standard — The h1, h2, h3, h4, h5, and h6 elements — https://html.spec.whatwg.org/multipage/sections.html#the-h1,-h2,-h3,-h4,-h5,-and-h6-elements"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -10956,7 +10956,7 @@ KZV.register({
         "MDN — Lists — https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Structuring_content/Lists",
         "WHATWG HTML Living Standard — Grouping content — https://html.spec.whatwg.org/multipage/grouping-content.html"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -10978,7 +10978,7 @@ KZV.register({
         "Oracle Java Tutorials — Primitive Data Types — https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html",
         "Microsoft Learn — Built-in types (C++) — https://learn.microsoft.com/en-us/cpp/cpp/fundamental-types-cpp?view=msvc-170"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -11000,7 +11000,7 @@ KZV.register({
         "ساهر القرالة وعاطف فضل — كاد وأخواتها بين التنظير النحوي والاستعمال اللغوي — https://journals.wise.edu.jo/ojs2020/index.php/mish/article/download/1005/225/11394",
         "بلال صلاح الدين محمد حسن — أفعال المقاربة عند اللغويين والنحويين — https://amm.uomustansiriyah.edu.iq/index.php/mustansiriyah/article/download/902/790/1586"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -11069,7 +11069,7 @@ KZV.register({
         "Ahern and Rajagopal / Oregon State University — Biochemistry Free for All1.3 — https://biochem.oregonstate.edu/sites/biochem.oregonstate.edu/files/2022-04/Biochemistry%20Free%20For%20All%201.3_compressed.pdf",
         "A.D.A.M. / MedlinePlus — Amino acids — https://medlineplus.gov/ency/article/002222.htm"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -11095,7 +11095,7 @@ KZV.register({
         "Kew POWO — Syringa vulgaris — https://powo.science.kew.org/taxon/urn:lsid:ipni.org:names:289009-2",
         "Kew POWO — Forsythia — https://powo.science.kew.org/taxon/331614-2"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -11121,7 +11121,7 @@ KZV.register({
         "Kew POWO — Thuja occidentalis — https://powo.science.kew.org/taxon/263956-1",
         "Kew POWO — Sequoia sempervirens — https://powo.science.kew.org/taxon/urn:lsid:ipni.org:names:263741-1"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     }

@@ -1266,7 +1266,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل شفق — https://shamela.ws/book/7028/487"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2065,7 +2065,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل خس — https://shamela.ws/book/7028/234"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2087,7 +2087,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل كراث — https://shamela.ws/book/7028/781"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2996,7 +2996,7 @@ KZV.register({
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل ناب — https://shamela.ws/book/7028/965",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل ناب — https://shamela.ws/book/7028/960"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3151,7 +3151,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل مغزل — https://shamela.ws/book/7028/651"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3261,7 +3261,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل مغرفة — https://shamela.ws/book/7028/649"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3306,7 +3306,7 @@ KZV.register({
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل هاون — https://shamela.ws/book/7028/1000",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل هاون — https://shamela.ws/book/7028/999"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4986,7 +4986,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل رهط — https://shamela.ws/book/7028/377"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5008,7 +5008,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل نفر — https://shamela.ws/book/7028/939"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5052,7 +5052,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل رضيع — https://shamela.ws/book/7028/350"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5096,7 +5096,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل كهل — https://shamela.ws/book/7028/802"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5162,7 +5162,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل أملس — https://shamela.ws/book/7028/883"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5230,7 +5230,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل عكر — https://shamela.ws/book/7028/617"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5384,7 +5384,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل فطن — https://shamela.ws/book/7028/694"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5406,7 +5406,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل يقظ — https://shamela.ws/book/7028/1065"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5604,7 +5604,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل معقد — https://shamela.ws/book/7028/613"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5714,7 +5714,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل منيع — https://shamela.ws/book/7028/887"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5869,7 +5869,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل حساب — https://shamela.ws/book/7028/171"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5935,7 +5935,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل كسر — https://shamela.ws/book/7028/786"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6223,7 +6223,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل كافور — https://shamela.ws/book/7028/791"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6290,7 +6290,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل تدبير — https://shamela.ws/book/7028/269"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6335,7 +6335,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل فصاحة — https://shamela.ws/book/7028/689"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6423,7 +6423,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل خاطر — https://shamela.ws/book/7028/243"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6555,7 +6555,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل برهان — https://shamela.ws/book/7028/53"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6577,7 +6577,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل شاهد — https://shamela.ws/book/7028/497"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6665,7 +6665,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل مجاز — https://shamela.ws/book/7028/147"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6711,7 +6711,7 @@ KZV.register({
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل رقابة — https://shamela.ws/book/7028/363",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل رقابة — https://shamela.ws/book/7028/364"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6932,7 +6932,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل سكينة — https://shamela.ws/book/7028/440"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6976,7 +6976,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل جلبة — https://shamela.ws/book/7028/128"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7065,7 +7065,7 @@ KZV.register({
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل جود — https://shamela.ws/book/7028/146",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل جود — https://shamela.ws/book/7028/145"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7155,7 +7155,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل تسامح — https://shamela.ws/book/7028/447"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7177,7 +7177,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل لطف — https://shamela.ws/book/7028/825"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7309,7 +7309,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل وقار — https://shamela.ws/book/7028/1048"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7331,7 +7331,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل فطنة — https://shamela.ws/book/7028/694"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7375,7 +7375,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل إبداع — https://shamela.ws/book/7028/43"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7397,7 +7397,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل شعبة — https://shamela.ws/book/7028/483"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7441,7 +7441,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل واقعية — https://shamela.ws/book/7028/1050"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7595,7 +7595,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل ثلاثي — https://shamela.ws/book/7028/99"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7639,7 +7639,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل كيميائي — https://shamela.ws/book/7028/807"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7749,7 +7749,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل فصيلة — https://shamela.ws/book/7028/690"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7839,7 +7839,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل شريان — https://shamela.ws/book/7028/481"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7906,7 +7906,7 @@ KZV.register({
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل أسطول — https://shamela.ws/book/7028/17",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل أسطول — https://shamela.ws/book/7028/429"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7928,7 +7928,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل مصمم — https://shamela.ws/book/7028/524"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8016,7 +8016,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل أخلاق — https://shamela.ws/book/7028/252"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8038,7 +8038,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل أنانية — https://shamela.ws/book/7028/28"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8126,7 +8126,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل لقطة — https://shamela.ws/book/7028/833"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8171,7 +8171,7 @@ KZV.register({
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل فائق — https://shamela.ws/book/7028/705",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل فائق — https://shamela.ws/book/7028/670"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8327,7 +8327,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل طبع — https://shamela.ws/book/7028/549"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8574,7 +8574,7 @@ KZV.register({
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل حين — https://shamela.ws/book/7028/212",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل حين — https://shamela.ws/book/7028/213"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8618,7 +8618,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل جنس — https://shamela.ws/book/7028/140"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9190,7 +9190,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل النحو — https://shamela.ws/book/7028/907"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10290,7 +10290,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل المصدر — https://shamela.ws/book/7028/510"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },

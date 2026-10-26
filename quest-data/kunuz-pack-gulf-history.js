@@ -28,7 +28,7 @@ KZV.register({
         "أرامكو السعودية: تاريخنا — https://www.aramco.com/ar/about-us/our-history",
         "سعوديبيديا: أرامكو السعودية — https://saudipedia.com/أرامكو-السعودية"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -50,7 +50,7 @@ KZV.register({
         "أرامكو السعودية: تاريخنا — https://www.aramco.com/ar/about-us/our-history",
         "سعوديبيديا: أرامكو السعودية — https://saudipedia.com/أرامكو-السعودية"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -72,7 +72,7 @@ KZV.register({
         "أرامكو السعودية: تاريخنا — https://www.aramco.com/ar/about-us/our-history",
         "سعوديبيديا: أرامكو السعودية — https://saudipedia.com/أرامكو-السعودية"
       ],
-      "level": 1,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -94,7 +94,7 @@ KZV.register({
         "أرامكو السعودية: تاريخنا — https://www.aramco.com/ar/about-us/our-history",
         "سعوديبيديا: أرامكو السعودية — https://saudipedia.com/أرامكو-السعودية"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -160,7 +160,7 @@ KZV.register({
         "أرامكو السعودية: تاريخنا — https://www.aramco.com/ar/about-us/our-history",
         "سعوديبيديا: أرامكو السعودية — https://saudipedia.com/أرامكو-السعودية"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -204,7 +204,7 @@ KZV.register({
         "بابكو: تاريخ الشركة — https://www.bapco.net/en/about-us/history",
         "البنك الدولي: التقرير الاقتصادي عن البحرين — https://documents1.worldbank.org/curated/en/929771467991048563/pdf/multi0page.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -248,7 +248,7 @@ KZV.register({
         "بابكو: تاريخ الشركة — https://www.bapco.net/en/about-us/history",
         "مكتبة الكونغرس: دراسات دول الخليج العربي، طبعة 1994 — https://tile.loc.gov/storage-services/master/frd/frdcstdy/pe/persiangulfstate00metz_0/persiangulfstate00metz_0.pdf#page=169"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -292,7 +292,7 @@ KZV.register({
         "مؤسسة نقد البحرين: التقرير السنوي 2001، تاريخ إصدار العملة — https://www.cbb.gov.bh/wp-content/uploads/2019/01/annual_report_2001eng.pdf",
         "مكتبة الكونغرس: دراسات دول الخليج العربي، طبعة 1994 — https://tile.loc.gov/storage-services/master/frd/frdcstdy/pe/persiangulfstate00metz_0/persiangulfstate00metz_0.pdf#page=178"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -314,7 +314,7 @@ KZV.register({
         "هيئة البحرين للثقافة والآثار: مدرسة الهداية الخليفية — https://culture.gov.bh/ar/authority/infra_projects/s%2C4105/",
         "هيئة جودة التعليم والتدريب البحرينية: التقرير السنوي 2018 — https://www.bqa.gov.bh/wp-content/uploads/2018/10/التقرير-السنوي-2018.pdf#page=11"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -358,7 +358,7 @@ KZV.register({
         "قطر للطاقة: تاريخنا — https://www.qatarenergy.qa/en/whoweare/Pages/OurHistory.aspx/1000",
         "جامعة قطر: جيولوجيا قطر — https://www.qu.edu.qa/en-us/research/esc/documents/books/booklets/geology_of_qatar.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -380,7 +380,7 @@ KZV.register({
         "قطر للطاقة: تاريخنا — https://www.qatarenergy.qa/en/whoweare/Pages/OurHistory.aspx/1000",
         "جامعة قطر: جيولوجيا قطر — https://www.qu.edu.qa/en-us/research/esc/documents/books/booklets/geology_of_qatar.pdf"
       ],
-      "level": 1,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -446,7 +446,7 @@ KZV.register({
         "تنمية نفط عمان: معجم النفط والغاز 2014، تاريخ الشركة — https://www.pdo.co.om/en/PDOSERVICES/PDO%20Oil%20%26%20Gas%20Dictionary%202014.pdf#page=12",
         "مكتبة الكونغرس: دراسات دول الخليج العربي، طبعة 1994 — https://tile.loc.gov/storage-services/master/frd/frdcstdy/pe/persiangulfstate00metz_0/persiangulfstate00metz_0.pdf#page=33"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -512,7 +512,7 @@ KZV.register({
         "جامعة السلطان قابوس: تاريخ الجامعة — https://www.squ.edu.om/About",
         "مكتبة الكونغرس: دراسات دول الخليج العربي، طبعة 1994 — https://tile.loc.gov/storage-services/master/frd/frdcstdy/pe/persiangulfstate00metz_0/persiangulfstate00metz_0.pdf#page=313"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -556,7 +556,7 @@ KZV.register({
         "وزارة الخارجية الإماراتية: تاريخ الدولة — https://www.mofa.gov.ae/ar-ae/the-uae/history",
         "مكتبة الكونغرس: دراسات دول الخليج العربي، طبعة 1994 — https://tile.loc.gov/storage-services/master/frd/frdcstdy/pe/persiangulfstate00metz_0/persiangulfstate00metz_0.pdf#page=268"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -578,7 +578,7 @@ KZV.register({
         "وزارة الخارجية الإماراتية: تاريخ الدولة — https://www.mofa.gov.ae/ar-ae/the-uae/history",
         "الأرشيف والمكتبة الوطنية بالإمارات: قيام الاتحاد — https://www.nla.ae/en/our-history/historical-periods/the-formation-of-the-federation/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -600,7 +600,7 @@ KZV.register({
         "وزارة الخارجية الإماراتية: تاريخ الدولة — https://www.mofa.gov.ae/ar-ae/the-uae/history",
         "الأرشيف والمكتبة الوطنية بالإمارات: قيام الاتحاد — https://www.nla.ae/en/our-history/historical-periods/the-formation-of-the-federation/"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -622,7 +622,7 @@ KZV.register({
         "وزارة الخارجية الإماراتية: تاريخ الدولة — https://www.mofa.gov.ae/ar-ae/the-uae/history",
         "الأرشيف والمكتبة الوطنية بالإمارات: قيام الاتحاد — https://www.nla.ae/en/our-history/historical-periods/the-formation-of-the-federation/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -776,7 +776,7 @@ KZV.register({
         "أوابك: تاريخ تأسيس المنظمة — https://oapecorg.org/ar/Home/About-Us/History",
         "أرشيف الخارجية الأمريكية: اتفاقية إنشاء أوابك عام 1968 — https://history.state.gov/historicaldocuments/frus1964-68v34/d268"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -820,7 +820,7 @@ KZV.register({
         "أوابك: تاريخ تأسيس المنظمة — https://oapecorg.org/ar/Home/About-Us/History",
         "أرشيف الخارجية الأمريكية: اتفاقية إنشاء أوابك عام 1968 — https://history.state.gov/historicaldocuments/frus1964-68v34/d268"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -842,7 +842,7 @@ KZV.register({
         "المتحف الوطني العماني: مقتنيات التراث البحري — https://www.nm.gov.om/collection/gift/maritime-heritage",
         "وزارة الخارجية العمانية: تاريخ الوزارة والعلاقات التجارية — https://www.fm.gov.om/en/ministry/about-us/history-of-the-foreign-ministry/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -864,7 +864,7 @@ KZV.register({
         "المتحف الوطني العماني: مقتنيات التراث البحري — https://www.nm.gov.om/collection/gift/maritime-heritage",
         "وزارة الخارجية العمانية: تاريخ الوزارة والعلاقات التجارية — https://www.fm.gov.om/en/ministry/about-us/history-of-the-foreign-ministry/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -886,7 +886,7 @@ KZV.register({
         "المتحف الوطني العماني: مقتنيات التراث البحري — https://www.nm.gov.om/collection/gift/maritime-heritage",
         "جريدة الوطن: رحلة السفينة صحار التاريخية — https://alwatan.om/details/158512"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -908,7 +908,7 @@ KZV.register({
         "المتحف الوطني العماني: مقتنيات التراث البحري — https://www.nm.gov.om/collection/gift/maritime-heritage",
         "جريدة الوطن: رحلة السفينة صحار التاريخية — https://alwatan.om/details/158512"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -952,7 +952,7 @@ KZV.register({
         "الخطوط البريطانية: تاريخ رحلات الكونكورد — https://www.britishairways.com/content/information/about-ba/history-and-heritage/celebrating-concorde",
         "مكتبة الكونغرس: دراسات دول الخليج العربي، طبعة 1994 — https://tile.loc.gov/storage-services/master/frd/frdcstdy/pe/persiangulfstate00metz_0/persiangulfstate00metz_0.pdf#page=176"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1106,7 +1106,7 @@ KZV.register({
         "مطارات دبي: التسلسل التاريخي للمطار — https://media.dubaiairports.ae/dxb---chronological-history/",
         "الهيئة العامة للطيران المدني: أجواء العدد 18 — https://www.gcaa.gov.ae/en/departments/SIA/Shared%20Documents/Issue18_AJWAA_JAN21.pdf#page=20"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1172,7 +1172,7 @@ KZV.register({
         "أدنوك: الإرث التاريخي — https://www.adnoc.ae/en/our-story/our-heritage",
         "مكتبة الكونغرس: دراسات دول الخليج العربي، طبعة 1994 — https://tile.loc.gov/storage-services/master/frd/frdcstdy/pe/persiangulfstate00metz_0/persiangulfstate00metz_0.pdf#page=269"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1348,7 +1348,7 @@ KZV.register({
         "مركز الشيخ إبراهيم الثقافي: عبدالله الزايد وتراث الصحافة — https://shaikhebrahimcenter.org/house/abdulla-al-zayed-house/?from_pagination=1&mode=next",
         "جريدة الأيام: تاريخ صحيفة البحرين وعبدالله الزايد — https://www.alayam.com/Article/alayam-article/412738/null"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1590,7 +1590,7 @@ KZV.register({
         "جائزة الملك فيصل: حمد بن محمد الجاسر — https://kingfaisalprize.org/ar/shaikh-hamad-bin-mohamad-al-jasir/",
         "موسوعة الجزيرة: حمد الجاسر — https://www.aljazeera.net/encyclopedia/2016/3/15/حمد-الجاسر-همْداني-الجزيرة-العربية"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1612,7 +1612,7 @@ KZV.register({
         "سعوديبيديا: تاريخ اكتشاف النفط في السعودية — https://saudipedia.com/en/oil-discovery-in-saudi-arabia",
         "أرامكو وورلد 1962: الناقلة الأولى من رأس تنورة — https://archive.aramcoworld.com/issue/196210/giant.of.the.sea.htm"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1634,7 +1634,7 @@ KZV.register({
         "سعوديبيديا: تاريخ اكتشاف النفط في السعودية — https://saudipedia.com/en/oil-discovery-in-saudi-arabia",
         "أرامكو وورلد 1962: الناقلة الأولى من رأس تنورة — https://archive.aramcoworld.com/issue/196210/giant.of.the.sea.htm"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1678,7 +1678,7 @@ KZV.register({
         "جريدة الاتحاد: تاريخ العدد الأول — https://www.aletihad.ae/article/97427/2013/الاتحاد-44-عاما-من-الصدارة",
         "جريدة البيان: مسيرة الصحافة الإماراتية عام 1999 — https://www.albayan.ae/opinions/1999-10-11-1.1094345"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1854,7 +1854,7 @@ KZV.register({
         "جامعة الملك فهد للبترول والمعادن: التاريخ — https://www.kfupm.edu.sa/about-us/our-story/history",
         "سعوديبيديا: جامعة الملك فهد للبترول والمعادن — https://saudipedia.com/en/king-fahd-university-of-petroleum-and-minerals"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1942,7 +1942,7 @@ KZV.register({
         "جامعة الملك عبدالعزيز: النبذة التاريخية — https://kau.edu.sa/ar/page-legacy/historical-overview-",
         "سعوديبيديا: جامعة الملك عبدالعزيز — https://saudipedia.com/جامعة-الملك-عبدالعزيز"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1964,7 +1964,7 @@ KZV.register({
         "جامعة الملك عبدالعزيز: النبذة التاريخية — https://kau.edu.sa/ar/page-legacy/historical-overview-",
         "سعوديبيديا: جامعة الملك عبدالعزيز — https://saudipedia.com/جامعة-الملك-عبدالعزيز"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2030,7 +2030,7 @@ KZV.register({
         "جامعة أم القرى: النشأة — https://uqu.edu.sa/main/AboutUs/",
         "سعوديبيديا: جامعة أم القرى — https://saudipedia.com/جامعة-أم-القرى"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2074,7 +2074,7 @@ KZV.register({
         "جامعة أم القرى: النشأة — https://uqu.edu.sa/main/AboutUs/",
         "سعوديبيديا: جامعة أم القرى — https://saudipedia.com/جامعة-أم-القرى"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2118,7 +2118,7 @@ KZV.register({
         "عبداللطيف جميل: قصة الشركة — https://alj.com/ar/about/story/",
         "جامعة نيويورك أبوظبي وثروات: تاريخ عبداللطيف جميل — https://www.familybusinesshistories.org/wp-content/uploads/2025/10/FBH_Abdul_atif_Jameel_Arabic_Copyright_TharawatFamilyBusinessForumAndNewYorkUniversityAbuDhabi-.pdf#page=2"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2250,7 +2250,7 @@ KZV.register({
         "طيران الإمارات: الخط الزمني للتاريخ — https://www.emirates.com/us/english/about-us/timeline/",
         "ذا ناشونال: شهادات انطلاق طيران الإمارات — https://www.thenationalnews.com/uae/remembering-emirates-first-flights-30-years-on-1.635565"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2272,7 +2272,7 @@ KZV.register({
         "طيران الإمارات: الخط الزمني للتاريخ — https://www.emirates.com/us/english/about-us/timeline/",
         "ذا ناشونال: شهادات انطلاق طيران الإمارات — https://www.thenationalnews.com/uae/remembering-emirates-first-flights-30-years-on-1.635565"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2382,7 +2382,7 @@ KZV.register({
         "وزارة المواصلات والاتصالات البحرينية: تراثنا — https://www.mtt.gov.bh/index.php/our-heritage",
         "جامعة رايس: تاريخ تطور شركات الطيران في الخليج — https://www.bakerinstitute.org/sites/default/files/2015-06/import/CME-pub-GulfAviation-062515.pdf#page=5"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2448,7 +2448,7 @@ KZV.register({
         "سعوديبيديا: ميناء العقير التاريخي — https://saudipedia.com/ميناء-العقير-التاريخي",
         "وزارة التجارة السعودية: أوائل تجارية — https://mc.gov.sa/ar/mediacenter/Dec/3.pdf#page=6"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2536,7 +2536,7 @@ KZV.register({
         "هيئة جودة التعليم البحرينية: مدرسة خديجة الكبرى وتاريخها — https://www.bqa.gov.bh/wp-content/uploads/2024/10/Khadija-AlKubra-IG-en-NEW.pdf#page=6",
         "جريدة الوسط: تاريخ تعليم البنات في البحرين — https://www.alwasatnews.com/news/237387.html"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2558,7 +2558,7 @@ KZV.register({
         "مدارس الفلاح: الإطار التاريخي — https://alfalah.edu.sa/about-us/historical",
         "سعوديبيديا: مدارس الفلاح الأهلية — https://saudipedia.com/en/al-falah-private-schools"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2602,7 +2602,7 @@ KZV.register({
         "سعوديبيديا: تاريخ النقد السعودي — https://saudipedia.com/en/saudi-currency",
         "جريدة الجزيرة 1998: تاريخ النقد السعودي — https://www.al-jazirah.com/1998/19981223/p122.htm"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2690,7 +2690,7 @@ KZV.register({
         "مصرف الإمارات المركزي: تاريخ إصدار النقد — https://centralbank.ae/en/museum/",
         "غلف نيوز: تاريخ الدرهم والعملات السابقة — https://gulfnews.com/amp/story/uae%2Fyear-of-the-50th%2Fcreation-history-and-evolution-of-the-uae-dirham-1.1621767243152"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2712,7 +2712,7 @@ KZV.register({
         "غلف نيوز: تاريخ الدرهم والعملات السابقة — https://gulfnews.com/amp/story/uae%2Fyear-of-the-50th%2Fcreation-history-and-evolution-of-the-uae-dirham-1.1621767243152",
         "مكتبة الكونغرس: دراسات دول الخليج العربي، طبعة 1994 — https://tile.loc.gov/storage-services/master/frd/frdcstdy/pe/persiangulfstate00metz_0/persiangulfstate00metz_0.pdf#page=282"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2734,7 +2734,7 @@ KZV.register({
         "غلف نيوز: تاريخ الدرهم والعملات السابقة — https://gulfnews.com/amp/story/uae%2Fyear-of-the-50th%2Fcreation-history-and-evolution-of-the-uae-dirham-1.1621767243152",
         "مكتبة الكونغرس: دراسات دول الخليج العربي، طبعة 1994 — https://tile.loc.gov/storage-services/master/frd/frdcstdy/pe/persiangulfstate00metz_0/persiangulfstate00metz_0.pdf#page=282"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2778,7 +2778,7 @@ KZV.register({
         "بنك البحرين الوطني: تاريخ التأسيس — https://nbbonline.com/about/",
         "مكتبة الكونغرس: دراسات دول الخليج العربي، طبعة 1994 — https://tile.loc.gov/storage-services/master/frd/frdcstdy/pe/persiangulfstate00metz_0/persiangulfstate00metz_0.pdf#page=178"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2822,7 +2822,7 @@ KZV.register({
         "سابك: التاريخ في التقرير المتكامل 2023 — https://www.sabic.com/en/reports/integrated-report-2023/at-a-glance/our-history",
         "سعوديبيديا: سابك — https://saudipedia.com/سابك"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2932,7 +2932,7 @@ KZV.register({
         "سعوديبيديا: مجلة المنهل — https://saudipedia.com/مجلة-المنهل",
         "عكاظ: سيرة عبدالقدوس الأنصاري ومجلة المنهل — https://www.okaz.com.sa/ampArticle/2070957"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3130,7 +3130,7 @@ KZV.register({
         "سعوديبيديا: خميس بن رمثان — https://saudipedia.com/خميس-بن-رمثان",
         "أرامكو: رائد الصحراء خميس بن رمثان — https://www.aramco.com/en/news-media/elements-magazine/2025/the-desert-pioneer-behind-our-first-oil-discovery"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -3240,7 +3240,7 @@ KZV.register({
         "اتصالات: تاريخ المؤسسة — https://prodnew.etisalat.ae/en/smb/footer/etisalat-corporation.html",
         "جامعة درم: دراسة التطور الاقتصادي وتاريخ موانئ الشارقة — https://etheses.durham.ac.uk/id/eprint/6119/1/6119_3472.PDF#page=197"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -3262,7 +3262,7 @@ KZV.register({
         "مجموعة الاتصالات السعودية: التاريخ — https://www.stc.com/en/who-we-are/our-history.html",
         "سعوديبيديا: شركة الاتصالات السعودية — https://saudipedia.com/شركة-الاتصالات-السعودية"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -3284,7 +3284,7 @@ KZV.register({
         "ثقافة أبوظبي: قلعة الجاهلي وسيرة الرحالة ثيسجر — https://abudhabiculture.ae/-/media/abudhabiculture/docs/2026/publications/al-jahili-fort.pdf?rev=1f1e5acdd76e43ab9448cfc3d941cda9#page=14",
         "البيان 1999: الرحالة ويلفريد ثيسجر ولقبه — https://www.albayan.ae/culture/1999-06-14-1.1032040"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3329,7 +3329,7 @@ KZV.register({
         "ليوان ومتاحف قطر: تاريخ تعليم البنات — https://liwan.org.qa/ar/about-us/our-history-timeline/",
         "مكتبة اتحاد الإمارات: السيرة المنشورة لآمنة محمود الجيدة — https://library.ecssr.ae/cgi-bin/koha/opac-detail.pl?biblionumber=159844&shelfbrowse_itemnumber=242303"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -3505,7 +3505,7 @@ KZV.register({
         "المكتبة البريطانية عبر مكتبة قطر الرقمية: لمحة تاريخية عن قطر — https://www.qdl.qa/en/historical-profile-qatar",
         "مكتبة الكونغرس: دراسات دول الخليج العربي، طبعة 1994 — https://tile.loc.gov/storage-services/master/frd/frdcstdy/pe/persiangulfstate00metz_0/persiangulfstate00metz_0.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -3637,7 +3637,7 @@ KZV.register({
         "هيئة البحرين للثقافة والآثار: الخط الزمني لتاريخ البحرين — https://culture.gov.bh/en/eservices/BahrainHistoryTimeline/",
         "المكتبة البريطانية عبر مكتبة قطر الرقمية: لمحة تاريخية عن البحرين — https://www.qdl.qa/en/historical-profile-bahrain"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3725,7 +3725,7 @@ KZV.register({
         "هيئة البحرين للثقافة والآثار: الخط الزمني لتاريخ البحرين — https://culture.gov.bh/en/eservices/BahrainHistoryTimeline/",
         "المكتبة البريطانية عبر مكتبة قطر الرقمية: لمحة تاريخية عن البحرين — https://www.qdl.qa/en/historical-profile-bahrain"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -3769,7 +3769,7 @@ KZV.register({
         "وزارة الخارجية السعودية: تاريخ المملكة — https://www.mofa.gov.sa/en/ksa/Pages/history.aspx",
         "سعوديبيديا: الدولة السعودية الثانية — https://saudipedia.com/الدولة-السعودية-الثانية"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -3813,7 +3813,7 @@ KZV.register({
         "الديوان الأميري القطري: تاريخ قطر — https://diwan.gov.qa/ar-qa/about-qatar/history-of-qatar",
         "المكتبة البريطانية عبر مكتبة قطر الرقمية: لمحة تاريخية عن قطر — https://www.qdl.qa/en/historical-profile-qatar"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -4033,7 +4033,7 @@ KZV.register({
         "الخطوط الجوية البريطانية: تاريخ طائرة الكونكورد — https://www.britishairways.com/content/information/about-ba/history-and-heritage/celebrating-concorde",
         "وزارة المواصلات والاتصالات البحرينية: تراثنا — https://www.mtt.gov.bh/index.php/our-heritage"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4077,7 +4077,7 @@ KZV.register({
         "جامعة الملك سعود: تاريخ الجامعة — https://ksu.edu.sa/history",
         "سعوديبيديا: جامعة الملك سعود — https://saudipedia.com/جامعة-الملك-سعود"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4143,7 +4143,7 @@ KZV.register({
         "جيريمي جونز ونيكولاس ريداوت: تاريخ عمان الحديث، عمان وآل بوسعيد — https://www.cambridge.org/core/books/abs/history-of-modern-oman/oman-and-the-al-bu-said/883ADF91B35D6E7ABD74B6F5C0F2F2AA",
         "وزارة الخارجية العمانية: تاريخ عمان — https://www.fm.gov.om/en/about-oman/state/history/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4187,7 +4187,7 @@ KZV.register({
         "المكتبة البريطانية عبر مكتبة قطر الرقمية: لمحة تاريخية عن عمان — https://www.qdl.qa/en/historical-profile-oman",
         "مكتبة الكونغرس: دراسات دول الخليج العربي، طبعة 1994 — https://tile.loc.gov/storage-services/master/frd/frdcstdy/pe/persiangulfstate00metz_0/persiangulfstate00metz_0.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4209,7 +4209,7 @@ KZV.register({
         "موسوعة سالم برس عبر إبسكو: سعيد بن سلطان — https://www.ebsco.com/research-starters/history/said-ibn-sultan",
         "وزارة الخارجية العمانية: تاريخ عمان — https://www.fm.gov.om/en/about-oman/state/history/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4297,7 +4297,7 @@ KZV.register({
         "أرامكو السعودية: تاريخنا — https://www.aramco.com/ar/about-us/our-history",
         "سعوديبيديا: أرامكو السعودية — https://saudipedia.com/أرامكو-السعودية"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4429,7 +4429,7 @@ KZV.register({
         "أرامكو السعودية: تاريخنا — https://www.aramco.com/ar/about-us/our-history",
         "سعوديبيديا: أرامكو السعودية — https://saudipedia.com/أرامكو-السعودية"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4473,7 +4473,7 @@ KZV.register({
         "مدرسة دار الحنان: من نحن — https://dhs.edu.sa/من-نحن/",
         "صحيفة البلاد: تاريخ دار الحنان وتعليم البنات — https://archive.albiladdaily.com/ضمن-فعاليات-معرض-الفيصل-شاهد-وشهيد/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4517,7 +4517,7 @@ KZV.register({
         "مدرسة دار الحنان: من نحن — https://dhs.edu.sa/من-نحن/",
         "صحيفة البلاد: تاريخ دار الحنان وتعليم البنات — https://archive.albiladdaily.com/ضمن-فعاليات-معرض-الفيصل-شاهد-وشهيد/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4539,7 +4539,7 @@ KZV.register({
         "مطار الشارقة: المحطات التاريخية — https://www.sharjahairport.ae/en/business/corporate-information/milestones/",
         "الهيئة العامة للطيران المدني: أجواء، نوفمبر 2014 — https://www.gcaa.gov.ae/en/departments/SIA/Shared%20Documents/Issue1_AJWAA_Nov14.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4583,7 +4583,7 @@ KZV.register({
         "وزارة الخارجية السعودية: عن الوزارة — https://mofa.gov.sa/ar/ministry/Pages/default.aspx",
         "سعوديبيديا: وزارة الخارجية — https://saudipedia.com/وزارة-الخارجية"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4605,7 +4605,7 @@ KZV.register({
         "وزارة الخارجية السعودية: عن الوزارة — https://mofa.gov.sa/ar/ministry/Pages/default.aspx",
         "سعوديبيديا: وزارة الخارجية — https://saudipedia.com/وزارة-الخارجية"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4627,7 +4627,7 @@ KZV.register({
         "وزارة التعليم السعودية: نشأة الوزارة — https://www.moe.gov.sa/ar/aboutus/aboutministry/pages/about.aspx",
         "سعوديبيديا: وزارة التعليم — https://saudipedia.com/وزارة-التعليم"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4671,7 +4671,7 @@ KZV.register({
         "وزارة الخارجية السعودية: تاريخ المملكة — https://www.mofa.gov.sa/en/ksa/Pages/history.aspx",
         "سعوديبيديا: محافظة الدرعية — https://saudipedia.com/محافظة-الدرعية"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4693,7 +4693,7 @@ KZV.register({
         "سعوديبيديا: محافظة الدرعية — https://saudipedia.com/محافظة-الدرعية",
         "شركة الدرعية: تاريخ الدرعية — https://www.diriyahcompany.sa/en/diriyah"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4715,7 +4715,7 @@ KZV.register({
         "سعوديبيديا: محافظة الدرعية — https://saudipedia.com/محافظة-الدرعية",
         "شركة الدرعية: تاريخ الدرعية — https://www.diriyahcompany.sa/en/diriyah"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4737,7 +4737,7 @@ KZV.register({
         "وزارة الخارجية السعودية: تاريخ المملكة — https://www.mofa.gov.sa/en/ksa/Pages/history.aspx",
         "سعوديبيديا: الدولة السعودية الثانية — https://saudipedia.com/الدولة-السعودية-الثانية"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4847,7 +4847,7 @@ KZV.register({
         "المنصة الرسمية لحكومة الإمارات: الآباء المؤسسون للاتحاد — https://u.ae/ar/about-the-uae/founders-of-the-union",
         "ذا ناشيونال: الذين شهدوا تأسيس دولة الإمارات — https://www.thenationalnews.com/uae/heritage/2021/12/02/national-day-2021-who-was-there-the-day-the-uae-was-born/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4869,7 +4869,7 @@ KZV.register({
         "المنصة الرسمية لحكومة الإمارات: الآباء المؤسسون للاتحاد — https://u.ae/ar/about-the-uae/founders-of-the-union",
         "ذا ناشيونال: الذين شهدوا تأسيس دولة الإمارات — https://www.thenationalnews.com/uae/heritage/2021/12/02/national-day-2021-who-was-there-the-day-the-uae-was-born/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4913,7 +4913,7 @@ KZV.register({
         "المنصة الرسمية لحكومة الإمارات: الآباء المؤسسون للاتحاد — https://u.ae/ar/about-the-uae/founders-of-the-union",
         "ذا ناشيونال: الذين شهدوا تأسيس دولة الإمارات — https://www.thenationalnews.com/uae/heritage/2021/12/02/national-day-2021-who-was-there-the-day-the-uae-was-born/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4979,7 +4979,7 @@ KZV.register({
         "المنصة الرسمية لحكومة الإمارات: الآباء المؤسسون للاتحاد — https://u.ae/ar/about-the-uae/founders-of-the-union",
         "ذا ناشيونال: الذين شهدوا تأسيس دولة الإمارات — https://www.thenationalnews.com/uae/heritage/2021/12/02/national-day-2021-who-was-there-the-day-the-uae-was-born/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -5001,7 +5001,7 @@ KZV.register({
         "نيكولاس كروس وكورت شولر: القوائم المالية لمجالس النقد، جامعة جونز هوبكنز، 2014 — https://sites.krieger.jhu.edu/iae/files/2017/04/Krus-Schuler_Currency_Board_Financial_Statements_2014.12.21.pdf",
         "البنك الدولي: عمان، تحول اقتصاد، التقرير الرئيس، 1977 — https://documents1.worldbank.org/curated/en/382701468333631479/pdf/multi0page.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -5023,7 +5023,7 @@ KZV.register({
         "نيكولاس كروس وكورت شولر: القوائم المالية لمجالس النقد، جامعة جونز هوبكنز، 2014 — https://sites.krieger.jhu.edu/iae/files/2017/04/Krus-Schuler_Currency_Board_Financial_Statements_2014.12.21.pdf",
         "البنك الدولي: عمان، تحول اقتصاد، التقرير الرئيس، 1977 — https://documents1.worldbank.org/curated/en/382701468333631479/pdf/multi0page.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -5177,7 +5177,7 @@ KZV.register({
         "الأمانة العامة لمجلس التعاون: البيان الختامي للدورة الأولى — https://www.gcc-sg.org/ar/AboutUs/Data/SupremeData/Pages/Thefinalstatementforthefirstse0.aspx",
         "أ. أ. المسلماني: الجوانب القانونية لمجلس التعاون لدول الخليج العربية، أطروحة دكتوراه، جامعة لندن، 1990 — https://researchonline.lse.ac.uk/id/eprint/132210/1/U050250.pdf"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5199,7 +5199,7 @@ KZV.register({
         "الأمانة العامة لمجلس التعاون: النظام الأساسي الموقع سنة 1981 — https://www.gcc-sg.org/ar/AboutUs/Pages/PrimaryLaw.aspx",
         "أ. أ. المسلماني: الجوانب القانونية لمجلس التعاون لدول الخليج العربية، أطروحة دكتوراه، جامعة لندن، 1990 — https://researchonline.lse.ac.uk/id/eprint/132210/1/U050250.pdf"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5265,7 +5265,7 @@ KZV.register({
         "موسوعة سالم برس عبر إبسكو: سعيد بن سلطان — https://www.ebsco.com/research-starters/history/said-ibn-sultan",
         "جيف كولر، أرامكو وورلد: هجرات التوابل، القرنفل، يوليو وأغسطس 2021 — https://www.aramcolife.com/-/media/aramco-life/publications/aramcoworld/editions/2021/july-august-aramcoworld/2021-july-august-aramcoworld.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -5287,7 +5287,7 @@ KZV.register({
         "دائرة التشريفات والضيافة بدبي: عن دبي، تاريخ آل مكتوم — https://www.protocol.dubai.ae/ar/uae-dubai/about-dubai/",
         "مركز حمدان بن محمد لإحياء التراث: الحياة الاقتصادية في دبي — https://hhc.gov.ae/wp-content/uploads/2021/06/al7ayahaleqtsadyah.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -5309,7 +5309,7 @@ KZV.register({
         "دائرة التشريفات والضيافة بدبي: عن دبي، تاريخ آل مكتوم — https://www.protocol.dubai.ae/ar/uae-dubai/about-dubai/",
         "مركز حمدان بن محمد لإحياء التراث: الحياة الاقتصادية في دبي — https://hhc.gov.ae/wp-content/uploads/2021/06/al7ayahaleqtsadyah.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -5331,7 +5331,7 @@ KZV.register({
         "طيران الإمارات: الخط الزمني للتاريخ — https://www.emirates.com/us/english/about-us/timeline/",
         "عادل سالم، جريدة البيان: انطلاق طيران الإمارات في رحلتها الأولى، 2013 — https://www.albayan.ae/five-senses/mirrors/2013-08-24-1.1946716"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -5353,7 +5353,7 @@ KZV.register({
         "جامعة الإمارات العربية المتحدة: History & Key Achievements — https://www.uaeu.ac.ae/en/about/history-key-achievements.shtml",
         "البيان: جامعة الإمارات.. تاريخ أكاديمي عريق معطر بالعطاء — https://www.albayan.ae/paths/2009-01-02-1.392045"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -5661,7 +5661,7 @@ KZV.register({
         "Vineet Kumar، The Daily Tribune: Indian Rupee in the Gulf — https://www.newsofbahrain.com/views/107811.html",
         "Krus and Schuler: Currency Board Financial Statements، دراسة تاريخية منشورة في جامعة جونز هوبكنز — https://sites.krieger.jhu.edu/iae/files/2017/04/Krus-Schuler_Currency_Board_Financial_Statements_2014.12.21.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -5683,7 +5683,7 @@ KZV.register({
         "مصرف قطر المركزي: تاريخ تطور النقد — https://www.qcb.gov.qa/ar/Pages/HistoryOfBanknotes.aspx",
         "مركز جمال بن حويرب للدراسات: العملات المستخدمة في الإمارات حتى صدور الدرهم — https://jbhsc.ae/العملات-المستخدمة-في-الإمارات-حتى-صدو/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -5815,7 +5815,7 @@ KZV.register({
         "سعوديبيديا: التلفزيون السعودي — https://saudipedia.com/التلفزيون-السعودي",
         "الأمانة العامة لمجلس التعاون: المؤسسات الإعلامية في دول مجلس التعاون، 2004 — https://www.gcc-sg.org/ar/MediaCenter/DigitalLibrary/Documents/media%20org.2004.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -6343,7 +6343,7 @@ KZV.register({
         "مطار الملك خالد الدولي: عن المطار — https://www.kkia.sa/ar-sa/about-us",
         "الوطن السعودية: مطار الملك خالد الدولي يكمل عامه الأربعين — https://www.alwatan.com.sa/article/1137325"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -6365,7 +6365,7 @@ KZV.register({
         "جامعة قطر، مركز الدراسات البيئية: جيولوجيا قطر، ص 36 — https://www.qu.edu.qa/en-us/research/esc/documents/books/booklets/geology_of_qatar.pdf",
         "Emil D. Attanasi وPhilip A. Freeman، USGS: Statistics of Petroleum Exploration in the World Outside the United States and Canada Through 2015، Circular 1450، 2019، ص 32 — https://pubs.usgs.gov/circ/1450/circ1450.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -6387,7 +6387,7 @@ KZV.register({
         "نورمان جراي، مجلة عناصر، أرامكو السعودية: التابلاين.. حكاية نجاح هندسي — https://www.aramco.com/ar/news-media/elements-magazine/2021/the-tapline-a-legacy-of-triumph",
         "سعوديبيديا: خط التابلاين — https://saudipedia.com/خط-التابلاين"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -6409,7 +6409,7 @@ KZV.register({
         "هدى حسين، صوت الأهلية، العدد 18، يوليو 2019: الأسواق الشعبية في البحرين، ص 19 — https://www.ahlia.edu.bh/cms4/wp-content/uploads/2019/10/Issuw-18.pdf",
         "الوسط: 1949 تشييد باب البحرين — https://www.alwasatnews.com/news/603359.html"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -6431,7 +6431,7 @@ KZV.register({
         "الجزيرة نت: حمد الجاسر.. همْداني الجزيرة العربية — https://www.aljazeera.net/encyclopedia/2016/3/15/حمد-الجاسر-همْداني-الجزيرة-العربية",
         "د. محمد الدبيسي، الجزيرة: عبدالقدوس الأنصاري والمنهل.. الأوليات وقضايا أُخرى — https://www.al-jazirah.com/2025/20250926/cm22.htm"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -6453,7 +6453,7 @@ KZV.register({
         "Oil & Gas Journal: Qatar ships first LNG to Japan, signs accord، 30 ديسمبر 1996 — https://www.ogj.com/home/article/17234229/qatar-ships-first-lng-to-japan-signs-accord",
         "Masayuki Ishikura وYoshitsugi Kikkawa: Qatargas LNG Project: Managing the Complexities of a Remote Location and Modern Technology، GASTECH 1998 — https://www.researchgate.net/publication/393261591_QATARGAS_LNG_PROJECT_MANAGING_THE_COMPLEXITIES_OF_A_REMOTE_LOCATION_AND_MODERN_TECHNOLOGY"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -6651,7 +6651,7 @@ KZV.register({
         "سعوديبيديا: الهيئة الملكية للجبيل وينبع — https://saudipedia.com/الهيئة-الملكية-للجبيل-وينبع",
         "جمعية اقتصاديات الطاقة، اقتصاديات الطاقة، العدد الخامس، يناير–مارس 2025: لقاء مع الدكتور عبدالعزيز الجربوع، ص 3 — https://www.saudi-aee.sa/wp-content/uploads/2025/02/اقتصاديات-الطاقة-العدد-5.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -6717,7 +6717,7 @@ KZV.register({
         "سعوديبيديا: تقنيات تحلية المياه في السعودية — https://saudipedia.com/تقنيات-تحلية-المياه-في-السعودية",
         "صالح بن محمد علي بطيش، الجزيرة: ملحمة تحلية المياه من كنداسة جدة إلى تحلية الرياض، 2002 — https://www.al-jazirah.com/2002/20021024/ec16.htm"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -6739,7 +6739,7 @@ KZV.register({
         "متاحف قطر، ليوان: Our History — https://liwan.org.qa/en/about-us/our-history-timeline/",
         "إبراهيم محمد جيدة، ليوان: أرشفة العمارة في الخليج — https://liwan.org.qa/ar/journal/archiving-architecture-in-the-gulf-ar/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -6761,7 +6761,7 @@ KZV.register({
         "وزارة الثقافة الإماراتية، الخارطة الثقافية الوطنية: مدرسة القاسمية — https://culturalmap.gov.ae/ar/facilities/al-qasimia-school",
         "أحمد سالم البيرق، الخليج: المدرسة القاسمية من الجريد إلى صروح العلم والمعرفة، 2025 — https://www.alkhaleej.ae/2025-02-03/المدرسة-القاسمية-من-الجريد-إلى-صروح-العلم-والمعرفة/التربية-والتعليم/أخبار-الدار"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -6805,7 +6805,7 @@ KZV.register({
         "قطر للبترول: MIC Port Information and Regulations Guide، يناير 2021، ص7 — https://www.qatarenergy.qa/en/Whatwedo/IndustrialCities/Documents/Regulations/Mesaieed%20Port/MIC%20Port%20Information%20and%20Regulations%20Guide%202021.pdf",
         "Gulf Times: QP celebrates its 11,000th crude cargo from Mesaieed، 2011 — https://www.gulf-times.com/story/146150/qp-celebrates-its-11000th-crude-cargo-from-mesaieed"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -6871,7 +6871,7 @@ KZV.register({
         "جامعة الملك سعود، كلية الطب: About the College of Medicine — https://medicine.ksu.edu.sa/en/node/3907",
         "جبرين الجبرين، الوطن السعودية: جامعة الملك سعود جامعة الوطن، 2014 — https://www.alwatan.com.sa/article/20740"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -6893,7 +6893,7 @@ KZV.register({
         "سعوديبيديا: عبدالله السليمان — https://saudipedia.com/عبدالله-السليمان",
         "حمد القاضي، الوزير عبدالله السليمان والتكريم المستحق، الجزيرة 2009 — https://www.al-jazirah.com/2009/20091214/fe10.htm"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -6915,7 +6915,7 @@ KZV.register({
         "د. محمد أحمد الجوير، الزلفي والوزير الطريقي، الجزيرة 2013 — https://www.al-jazirah.com/2013/20131219/rj2.htm",
         "الجزيرة، وفاة أول وزير للبترول في المملكة، 7 سبتمبر 2004 — https://www.al-jazirah.com/2004/20040907/xh3.htm"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -6937,7 +6937,7 @@ KZV.register({
         "الاقتصادية، حافظ وهبة: مصمم العلم ومستشار الملك المؤسس، 2009 — https://www.aleqt.com/2009/05/01/article_120305.html",
         "مرام الهويدي، التوكيل وإقرار التمثيل في الدبلوماسية السعودية، الاقتصادية 2018 — https://www.aleqt.com/2018/04/13/article_1368531.html"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7003,7 +7003,7 @@ KZV.register({
         "Flemming Højlund، Qala’at al-Bahrain 3: The Western and Southern City Walls and Other Excavations، 2019، المقدمة — https://api.pageplace.de/preview/DT0400.9788793423411_A46462122/preview-9788793423411_A46462122.pdf",
         "د. حمد بن صراي، آثار منطقة الخليج بعيون بريطانية 2-2، البيان 2020 — https://www.albayan.ae/five-senses/culture/2020-01-02-1.3741874"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7047,7 +7047,7 @@ KZV.register({
         "كونا، ذاكرة عمان: معرض لأوائل المطبوعات العمانية، 28 فبراير 2023 — https://www.e.gov.kw/sites/kgoarabic/Pages/ApplicationPages/NewsDetail.aspx?nid=10243375",
         "زاهر المحروقي، بقايا المطبعة السلطانية في زنجبار، جريدة عمان 2026 — https://www.omandaily.om/أفكار-وآراء/na/بقايا-المطبعة-السلطانية-في-زنجبار"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7113,7 +7113,7 @@ KZV.register({
         "وزارة التربية والتعليم العمانية، المدرسة السعيدية تحتفل بمرور ثمانين عاماً، 2021 — https://home.moe.gov.om/ar/topics/1/show/7345",
         "Helen Chapin Metz (ed.)، Persian Gulf States: Country Studies، مكتبة الكونغرس 1994، فصل عمان: التعليم، ص265 — https://tile.loc.gov/storage-services/master/frd/frdcstdy/pe/persiangulfstate00metz_0/persiangulfstate00metz_0.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7157,7 +7157,7 @@ KZV.register({
         "البنك الوطني العماني: من نحن — https://nbo.om/ar/Pages/About-Us/About-us.aspx",
         "البنك المركزي العماني، مجلة المركزي، مارس 2020، التاريخ المصرفي العماني — https://cbo.gov.om/sites/assets/Documents/Arabic/AlMarkazi/2020/Al%20MarkaziAmarch2020.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7179,7 +7179,7 @@ KZV.register({
         "الإمارات دبي الوطني: هويتنا ورحلتنا — https://www.emiratesnbd.com/ar/about-emirates-nbd/our-journey",
         "البيان، البريطاني كان له السبق في الاحتكار: البنوك الأجنبية احتكرت العمل المصرفي بالإمارات 17 سنة، 1999 — https://www.albayan.ae/amp/economy/1999-08-08-1.1046281"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7201,7 +7201,7 @@ KZV.register({
         "مصرف قطر المركزي، تقرير الاستقرار المالي الأول 2009، ص41 — https://www.qcb.gov.qa/PublicationFiles/FS%20report.pdf",
         "بنك قطر الوطني، التقرير السنوي 2014، خمسون عاماً من التميز، ص16–19 — https://qnb.com/sites/qnb/qnbqatar/document/ar/arAnnualReport2014"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7223,7 +7223,7 @@ KZV.register({
         "سعوديبيديا: التاريخ الاقتصادي للسعودية — https://saudipedia.com/التاريخ-الاقتصادي-للسعودية",
         "عبدالعزيز محمد النهاري، هشام ناظر، عكاظ 2015 — https://www.okaz.com.sa/article/1028373"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7267,7 +7267,7 @@ KZV.register({
         "الهيئة العامة للاستثمار: تاريخ الهيئة — https://www.kia.gov.kw/about-kia/",
         "Abdulaziz Alosaimi، The Investment Strategies of Sovereign Wealth Funds، أطروحة مانشستر 2015، ص171 — https://pure.manchester.ac.uk/ws/portalfiles/portal/84030777/FULL_TEXT.PDF"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7311,7 +7311,7 @@ KZV.register({
         "Maximilien Berthet وآخرون، History of the space industry in Asia، Acta Astronautica 235، 2025، ص439 — https://researchmap.jp/maximilien.berthet/published_papers/50447298/attachment_file.pdf",
         "أحمد زكريا، الكويت والفضاء: علاقة منذ الستينات، الراي 2026 — https://www.alraimedia.com/print-article?articleId=1762654"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7333,7 +7333,7 @@ KZV.register({
         "وزارة الإعلام الكويتية، الكتاب السنوي الخمسون 2016–2017، المسلسل التاريخي لأحداث الكويت، ص21 — https://www.media.gov.kw/files/YearBook/50.pdf",
         "كونا، سنة الهدامة: العاصفة التي تحولت إلى تقويم، الأنباء 2026 — https://www.alanba.com.kw/1344828"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7355,7 +7355,7 @@ KZV.register({
         "الدرر السنية، الموسوعة التاريخية: سنة الهيلق — https://dorar.net/history/event/4670",
         "كونا، الكويت في عهد عبدالله بن صباح: كتاب توثيقي للدكتورة سعاد الصباح، الأنباء 2019 — https://www.alanba.com.kw/868602"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7377,7 +7377,7 @@ KZV.register({
         "وفاء السويدي، سنة الطبعة 1925: وفاء لأبطال البحر وتوثيق لذاكرة الخليج، البيان 2025 — https://www.albayan.ae/lifestyle/culture/history/208668",
         "عبدالله مطيويع، من سنة الطبعة 1925 إلى طبعة الدانة 2006، الوسط 2006 — https://www.alwasatnews.com/news/print/559195.html"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7399,7 +7399,7 @@ KZV.register({
         "Helen Chapin Metz، Persian Gulf States: Country Studies، مكتبة الكونغرس 1994، فصل الكويت: المصارف ص69 — https://tile.loc.gov/storage-services/master/frd/frdcstdy/pe/persiangulfstate00metz_0/persiangulfstate00metz_0.pdf",
         "Oxford Business Group، The Report Kuwait 2014: A strong focus on improving asset quality and ramping up reserves has paid dividends — https://oxfordbusinessgroup.com/reports/kuwait/2014-report/economy/a-strong-focus-on-improving-asset-quality-and-ramping-up-reserves-has-paid-dividends"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7421,7 +7421,7 @@ KZV.register({
         "الجزيرة نت: بعد مسيرة حافلة بالعطاء.. رحيل السياسي الكويتي أحمد الخطيب، 2022 — https://www.aljazeera.net/politics/2022/3/8/أول-طبيب-في-البلاد-وفاة-السياسي",
         "مجلة الرائد، العدد 10، 1 مارس 1953، ص968–969: أول طبيب كويتي؛ مقابلة مع الدكتور أحمد الخطيب — https://www.kazima.org/media/Library/alsharekh/as-424314.pdf?e=1793232000&pv=1&s=465e2e1fa7c3c0b7ef0a8d"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7509,7 +7509,7 @@ KZV.register({
         "Gulf Times: About — Historical Background — https://www.gulf-times.com/about/",
         "سفارة أذربيجان في قطر: الرئيس الأذربيجاني في مقابلة مع غلف تايمز، 2019 — https://doha.mfa.gov.az/ar/news/altk-sfyr-fok-alaaad-oalmfod-lgmhory-athrbygan-ld-dol-ktr-rshad-asmaaaylof-maa-ryys-thryr-shyf-glf-taymz-fy-ktr-alsyd-fysl-almdahk"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7531,7 +7531,7 @@ KZV.register({
         "Arab News PK: About us — https://arabnews-pk.maestronewsroom.com/about-us",
         "Marwan M. Kraidy, Saudi Arabia: From National Media to Global Player, in Arab Media Systems, 2021, p100 — https://tile.loc.gov/storage-services/master/gdc/gdcebookspublic/20/20/71/80/50/2020718050/2020718050.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7553,7 +7553,7 @@ KZV.register({
         "ناصر الجابري، الاتحاد: سيح السديرة موطن البذرة الأولى تمهيداً لقيام الاتحاد، 2018 — https://www.aletihad.ae/article/12367/2018/سيـح-السديرة-موطن-البذرة-الأولى-تمهيداً-لقيام-الاتحاد",
         "بلال البدور، في إطار عام الخمسين، مقال البيان المنشور في العين الإخبارية، 2021 — https://al-ain.com/article/during-fiftieth-year"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7575,7 +7575,7 @@ KZV.register({
         "سعوديبيديا: جريدة أم القرى — https://saudipedia.com/جريدة-أم-القرى",
         "محمد عبدالرزاق القشعمي، الجزيرة الثقافية: 1ـ جريدة أم القرى، 2021 — https://www.al-jazirah.com/2021/20210122/cm43.htm"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7707,7 +7707,7 @@ KZV.register({
         "الجزيرة نت: دستور البحرين 1973، 2011 — https://www.aljazeera.net/amp/encyclopedia/2011/4/21/دستور-1973-بالبحرين",
         "سعد ناصر المران، المواجهة القانونية والأمنية للجرائم الانتخابية، معهد البحرين للتنمية السياسية، 2019، ص40 — https://www.bipd.org/publications/InstituteBooks/MediaHandler/GenericHandler/images/publication/LegalandSecurityConfrontationofElectoralCrimes.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7751,7 +7751,7 @@ KZV.register({
         "Melissa Hathaway, Francesca Spidalieri and Fahad Alsowailm, Kingdom of Saudi Arabia Cyber Readiness at a Glance, Potomac Institute, 2017, pp2–3 — https://www.belfercenter.org/sites/default/files/pantheon_files/files/publication/cri-2.0-ksa.pdf",
         "Freedom House, Freedom in the World 1999–2000, Saudi Arabia country report, p423 — https://freedomhouse.org/sites/default/files/2020-02/Freedom_in_the_World_1999-2000_complete_book.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -7795,7 +7795,7 @@ KZV.register({
         "الاتحاد الآسيوي لكرة القدم: مواجهات قوية يوم الجمعة في افتتاح كأس الخليج — https://www.the-afc.com/ar/more/news/مواجهات_قوية_يوم_الجمعة_في_افتتاح_كأس_الخليج.html",
         "وكالة الأنباء الكويتية: مشاركة المنتخبات العربية في كأس العالم؛ منشور البوابة الرسمية للكويت، 2026 — https://e.gov.kw/sites/KGOArabic/Pages/ApplicationPages/NewsDetail.aspx?nid=64408500"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7817,7 +7817,7 @@ KZV.register({
         "FIFA: Anwar — We surprised the world in 1994, original interview, 2020 — https://inside.fifa.com/tournaments/mens/worldcup/1994usa/news/anwar-we-surprised-the-world-in-1994",
         "FIFA: Seven-goal thriller sends Saudis to USA 1994, original historical feature, 2017 — https://inside.fifa.com/news/seven-goal-thriller-sends-saudis-to-usa-1994-814858"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7905,7 +7905,7 @@ KZV.register({
         "عبدالله المالكي، الجزيرة: دورات الخليج حقائق وأرقام.. تاريخ ونجوم وإنجازات، 2007 — https://www.al-jazirah.com/2007/20070114/sp11.htm",
         "سارة الشهري، الجزيرة: خليجنا في جدة، 2026 — https://www.al-jazirah.com/2026/20261001/ar5.htm"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     }
