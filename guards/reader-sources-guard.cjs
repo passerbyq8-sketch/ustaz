@@ -197,6 +197,10 @@ async function main() {
   ok('no answer-log cited assignment uses raw array lengths or card-send counters',
     !ask.includes('cited: cards.length') && !ask.includes('cited: out.cited.length')
       && !ask.includes('cited: t.cardsSent'));
+  ok('BW2 released-card telemetry stays separate from the accepted source-unit count',
+    units.includes('cardsSent += 1;') && units.includes('cardsSent, readerCards: [...readerCards]')
+      && bw2.includes('telemetry.cardsSent = summary.cardsSent;')
+      && ask.includes('cardsSent: t.cardsSent') && ask.includes('cited: summary.count'));
   ok('the route-by-source matrix guard is registered',
     registry.some((entry) => entry.script === 'guards/reader-sources-guard.cjs'));
   console.log('RESULT ' + (checks - failures) + '/' + checks + ' failures=' + failures);
