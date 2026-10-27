@@ -147,6 +147,19 @@ async function main() {
   const answerLog = fs.readFileSync(path.join(ROOT, 'lib', 'answer-log.js'), 'utf8');
   const ask = fs.readFileSync(path.join(ROOT, 'api', 'ask.js'), 'utf8');
   const bw2 = fs.readFileSync(path.join(ROOT, 'lib', 'before-writing-v2.js'), 'utf8');
+  const shariaHold = ask.indexOf('const holdUnsourced = currentRuntime !== \'GENERAL\' && !generalSystem;');
+  const shariaTurn = ask.indexOf('out = await runFreeBrainTurn({', shariaHold);
+  const zeroSourceHold = ask.indexOf('if (holdUnsourced && freeBrainSourceSummary.count === 0)');
+  ok('non-general free-brain turns enable the zero-source hold before generation',
+    shariaHold >= 0 && shariaTurn > shariaHold
+      && ask.includes('onWriteUnit: (detail) => (holdUnsourced ? false : liveFreeBrainUnits.push(detail))'));
+  ok('zero accepted free-brain sources replace held output with the server-owned not-covered response',
+    zeroSourceHold > shariaTurn && ask.includes('answerLog.note({ flags: [\'unsourced_withheld\'] });')
+      && ask.includes('liveFreeBrainUnits.finish(BW2_NOT_COVERED, { replace: true })')
+      && ask.includes('emitOnce(BW2_NOT_COVERED)'));
+  ok('source delivery and cited counts use the accepted source summary at the release boundary',
+    ask.includes("readerSources('free-brain', freeBrainSourceRows)")
+      && ask.includes('cited: summary.count') && ask.includes('freeBrainSourceSummary.count === 0'));
   const sourceStart = bw2.indexOf("const readerSourceSummary = readerSources('bw2', [");
   const sourceEnd = bw2.indexOf('  telemetry.readerSourceCount =', sourceStart);
   ok('BW2 source-count expression is available for the release-boundary fixture', sourceStart >= 0 && sourceEnd > sourceStart);
