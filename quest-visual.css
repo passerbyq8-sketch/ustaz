@@ -13,8 +13,8 @@
 .kzv-pattern{direction:ltr}
 .kzv-pattern>span{display:flex;justify-content:center;align-items:center;flex:1;min-width:0;height:100%;font-size:32px}
 .kzv-pattern svg{width:100%;max-height:86px}
-.kzv-photo-frame{height:100%;max-width:100%;position:relative;display:inline-flex;align-items:center;justify-content:center}
-.kzv-photo-frame img{display:block;width:100%;height:100%;object-fit:fill}
+.kzv-photo-frame{height:100%;max-width:100%;position:relative;display:inline-flex;align-items:center;justify-content:center;background:var(--journey-paper,#fff8eb)}
+.kzv-photo-frame img{display:block;width:100%;height:100%;object-fit:contain;opacity:0;transition:none}
 .kzv-mask{position:absolute;background:#123b55;border:1px solid #edf6fc;box-sizing:border-box}
 .kzv-revealed .kzv-mask{visibility:hidden}
 .kzv-question .kzv-choice{min-width:44px;min-height:48px;display:flex;align-items:center;justify-content:center;padding:2px 8px;color:#123b55;background:#fff}
