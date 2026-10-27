@@ -1062,3 +1062,6 @@ guards/brain-postship3-answer-log-visibility-guard.cjs text eol=lf
 guards/brain-postship3-identity-frame-guard.cjs text eol=lf
 guards/brain-postship3-attribution-trigger-guard.cjs text eol=lf
 guards/brain-postship3-row7a-guard.cjs text eol=lf
+
+lib/route-log.js text eol=lf
+guards/brain-postship3-route-log-guard.cjs text eol=lf

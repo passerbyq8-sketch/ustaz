@@ -1080,5 +1080,10 @@
     "name": "postship3row7a",
     "script": "guards/brain-postship3-row7a-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "postship3routelog",
+    "script": "guards/brain-postship3-route-log-guard.cjs",
+    "args": ""
   }
 ]

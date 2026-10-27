@@ -27,6 +27,8 @@ import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
 import { languageGate, decideLanguage } from '../lib/lang/gate.js';
 import { withAnswerLog, heldFromTelemetry, hitsFromSpend } from '../lib/answer-log.js';
 import { readerSources, readerSourceKindsFromMask } from '../lib/reader-sources.js';
+import { visibleSourceCount } from '../lib/reader-sources.js';
+import { routeLogFields } from '../lib/route-log.js';
 import { createContinuationRelay } from '../lib/continuation.js';
 import { installAnswerStatus } from '../lib/answer-status.js';
 // ITEM 58 -- the address line from the gender the asker wrote in «ملفّك», behind SYNC_SWITCH.
@@ -1218,15 +1220,27 @@ export default async function handler(req, res) {
   // (and never with the switch off).
   // ITEM C1 (axis row 1) -- 2026-10-15 brain-line: and only where the sorter itself said WORLDLY. A turn the
   // lexicon alone called general, with no verdict behind it, keeps the shari'a frame.
-  const frameFor = (runtime, sorter) => (frontSorter.enabled && band === 'adult' && freeBrainOnAtSorter && runtime === 'GENERAL' && sorter === 'worldly' ? 'general' : 'sharia');
-  const logRoute = (final = {}) => answerLog.note({ route: effectiveRoute, runtime: currentRuntime }) && console.log('[route]', {
-    route: effectiveRoute, lexicalRoute: route, band,
-    purpose: currentPlan.purpose, mode: currentPlan.attributionMode,
-    entity: currentPlan.namedEntity || null, officialDomain: currentPlan.officialDomain || null,
-    lexicalRuntime: currentRuntime, runtime: currentRuntime, sorter: sorterPlan.sorter, sorterMs: 0, frame: frameFor(currentRuntime),
-    impermissible: 'none',
-    ...final,
+  const frameFor = (runtime, sorter = sorterPlan.sorter) => frameAfterSorter(runtime, sorter, {
+    enabled: frontSorter.enabled, band, freeBrainEnabled: freeBrainOnAtSorter,
   });
+  const logRoute = (final = {}) => {
+    const finalRuntime = final.runtime || currentRuntime;
+    const finalRoute = final.route || (finalRuntime === 'GENERAL' ? 'GEN' : 'DEEN');
+    const routeTags = routeLogFields({
+      lexicalRuntime: lexicalRuntimeOfRequest, runtime: finalRuntime, sorter: final.sorter || null,
+    });
+    answerLog.note({ route: finalRoute, runtime: finalRuntime, flags: routeTags });
+    console.log('[route]', {
+      route: finalRoute, lexicalRoute: route, band,
+      purpose: currentPlan.purpose, mode: currentPlan.attributionMode,
+      entity: currentPlan.namedEntity || null, officialDomain: currentPlan.officialDomain || null,
+      lexicalRuntime: lexicalRuntimeOfRequest, runtime: finalRuntime,
+      sorter: final.sorter || sorterPlan.sorter, sorterMs: final.sorterMs || 0,
+      frame: frameFor(finalRuntime, final.sorter || sorterPlan.sorter),
+      impermissible: 'none', tags: routeTags,
+      ...final,
+    });
+  };
 
   // ── LIB_QUOTE_V1 · «انقل لي من كتاب …» ANSWERED WITH THE BOOK'S OWN WORDS ──────────────
   // An adult who asks for the text of a named book gets a SERVER-COMPOSED reply and no model

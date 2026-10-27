@@ -787,10 +787,10 @@ async function runSuite() {
     // POSTSHIP2 item 1 (2026-10-26): 206 -> 207, removedsources.
     // POSTSHIP2 item 2 (2026-10-26): 207 -> 208, fatwaverifyparallel.
     // POSTSHIP2 item 3 (2026-10-26): 208 -> 209, readersources.
-    // POSTSHIP3 (2026-10-27): 209 -> 215, six measured row guards.
-function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 215; }
+    // POSTSHIP3 B2 (2026-10-28): 215 -> 216, one route-log guard.
+function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 216; }
     ok('ORIGINAL_GATE_SET_MATCH', exactGateSet(EXPECTED_GATES));
-    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 215-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
+    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 216-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
     ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 215-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
 
     const m13 = await storedMutant(temp, 'fiqh-before-special', (source) => source.replace(
