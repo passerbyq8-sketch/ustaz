@@ -878,8 +878,22 @@
     showExpired(startContext.gameId, window.location.pathname + window.location.search + window.location.hash, balance);
   }
 
+  function hasNativeIosPurchaseBridge() {
+    var bridge = window.ReactNativeWebView;
+    if (!bridge || typeof bridge.postMessage !== 'function') return false;
+    var ua = typeof navigator !== 'undefined' ? String(navigator.userAgent || '') : '';
+    var isIosUa = /iPhone|iPad|iPod/i.test(ua);
+    var isIpadOs = typeof navigator !== 'undefined'
+      && navigator.platform === 'MacIntel' && Number(navigator.maxTouchPoints) > 1;
+    return isIosUa || isIpadOs;
+  }
+
   async function enterKunuzHome(onUpdate) {
     if (typeof onUpdate !== 'function') return;
+    if (hasNativeIosPurchaseBridge() && authSession()) {
+      onUpdate(null, true);
+      return;
+    }
     var mode;
     try { mode = await getEnforcementMode(); } catch (e) { onUpdate(null, false); return; }
     if (!['off', 'test', 'all'].includes(mode)) { onUpdate(null, false); return; }

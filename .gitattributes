@@ -4,6 +4,7 @@
 # worship-display.json (64B8A2C9 -> 9A56CC5B), and gate 7 exits 1.
 
 # Byte-compared or SHA-pinned by the guards. LF forever, on every machine.
+tests/iap-ios-purchase-visibility.test.cjs text eol=lf
 worship-golden.json      text eol=lf
 worship-display.json     text eol=lf
 quran-golden.json        text eol=lf
