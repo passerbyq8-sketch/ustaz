@@ -911,7 +911,7 @@
     var session = authSession();
     if (!session) {
       if (mode !== 'all') { onUpdate(null, false); return; }
-      onUpdate({ kind: 'sign-in' }, true);
+      onUpdate({ kind: 'sign-in' }, false);
       if (homeSignInCleanup) homeSignInCleanup();
       var done = false;
       var resume = function () {
@@ -934,8 +934,8 @@
       };
       return;
     }
-    var purchasesApplicable = mode === 'all';
-    if (purchasesApplicable) onUpdate(null, true);
+    var purchasesApplicable = false;
+    onUpdate(null, false);
     var response;
     try { response = await getBalance(session); } catch (e) { response = { ok: false }; }
     if (!response.ok) {
@@ -944,18 +944,17 @@
       return;
     }
     if (response.data.enforced !== true) { onUpdate(null, purchasesApplicable); return; }
-    purchasesApplicable = true;
     var expiresAt = Number(response.data.subscriptionExpiresAt);
     var activePass = response.data.subscriptionActive === true
       || Number.isFinite(expiresAt) && expiresAt > Date.now();
-    if (activePass) { onUpdate(null, true); return; }
+    if (activePass) { onUpdate(null, false); return; }
     var expiredPass = Number.isFinite(expiresAt) && expiresAt > 0 && expiresAt <= Date.now();
     if (!response.data.trial && expiredPass) {
-      onUpdate({ kind: 'pass-expired' }, true);
+      onUpdate({ kind: 'pass-expired' }, false);
       return;
     }
     if (!response.data.trial) {
-      onUpdate({ kind: 'trial', trial: { active: true, daysLeft: 7 }, starting: true }, true);
+      onUpdate({ kind: 'trial', trial: { active: true, daysLeft: 7 }, starting: true }, false);
       var started = await requestTrialStart(session);
       if (!started.ok || started.data.enforced !== true) { onUpdate(null, purchasesApplicable); return; }
       try { response = await getBalance(session); } catch (e) { response = { ok: false }; }
@@ -964,10 +963,10 @@
     expiresAt = Number(response.data.subscriptionExpiresAt);
     activePass = response.data.subscriptionActive === true
       || Number.isFinite(expiresAt) && expiresAt > Date.now();
-    if (activePass) { onUpdate(null, true); return; }
+    if (activePass) { onUpdate(null, false); return; }
     expiredPass = Number.isFinite(expiresAt) && expiresAt > 0 && expiresAt <= Date.now();
     if (expiredPass && response.data.trial && response.data.trial.active === false) {
-      onUpdate({ kind: 'pass-expired' }, true);
+      onUpdate({ kind: 'pass-expired' }, false);
       return;
     }
     onUpdate({ kind: 'trial', trial: response.data.trial, starting: false }, purchasesApplicable);

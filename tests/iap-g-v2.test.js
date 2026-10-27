@@ -361,7 +361,7 @@ function makeBridge({ mode = 'all', accountSession = null, balance = {}, prices 
   });
 }
 
-test('home purchase visibility follows verified rollout eligibility and gates the fallback and auto-open', async () => {
+test('home purchase visibility requires a confirmed native iOS bridge and gates fallback and auto-open', async () => {
   async function homeState(options) {
     const bridge = await makeBridge(options);
     const updates = [];
@@ -382,13 +382,13 @@ test('home purchase visibility follows verified rollout eligibility and gates th
   }
 
   const listed = await homeState({ mode: 'test', accountSession: { session } });
-  assert.equal(listed.applicable, true);
+  assert.equal(listed.applicable, false);
   assert.ok(listed.updates.some(({ notice }) => notice?.kind === 'trial'));
   const allSignedOut = await homeState({ mode: 'all' });
-  assert.equal(allSignedOut.applicable, true);
+  assert.equal(allSignedOut.applicable, false);
   assert.equal(allSignedOut.updates.at(-1).notice.kind, 'sign-in');
   const allSignedIn = await homeState({ mode: 'all', accountSession: { session }, balance: { enforced: false } });
-  assert.equal(allSignedIn.applicable, true);
+  assert.equal(allSignedIn.applicable, false);
 
   const [journey, fallback, fallbackScript] = await Promise.all([
     readFile(new URL('../quest-theme/journey.js', import.meta.url), 'utf8'),

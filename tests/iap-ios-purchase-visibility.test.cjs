@@ -25,16 +25,18 @@ function sourceOf(name) {
   return source.slice(node.start, node.end);
 }
 
-function makeHomeEntry({ userAgent, platform = '', maxTouchPoints = 0, bridge = false, iapHandler = false, session = 'signed-in' }) {
+function makeHomeEntry({ userAgent, platform = '', maxTouchPoints = 0, bridge = false, iapHandler = false, session = 'signed-in', modeError = true, mode = 'all' }) {
   const updates = [];
   let modeLookups = 0;
   let probeCalls = 0;
-  const window = { ReactNativeWebView: bridge ? { postMessage() {} } : null };
+  const window = { ReactNativeWebView: bridge ? { postMessage() {} } : null, addEventListener() {}, removeEventListener() {} };
+  const document = { visibilityState: 'visible', addEventListener() {}, removeEventListener() {} };
   const navigator = { userAgent, platform, maxTouchPoints };
   const authSession = () => session;
   const getEnforcementMode = async () => {
     modeLookups++;
-    throw new Error('public mode unavailable');
+    if (modeError) throw new Error('public mode unavailable');
+    return mode;
   };
   const requestShell = async (type, payload, timeout) => {
     probeCalls++;
@@ -50,8 +52,8 @@ function makeHomeEntry({ userAgent, platform = '', maxTouchPoints = 0, bridge = 
     sourceOf('enterKunuzHome'),
     'return enterKunuzHome;'
   ].join(String.fromCharCode(10));
-  const factory = new Function('window', 'navigator', 'authSession', 'getEnforcementMode', 'requestShell', factorySource);
-  const enter = factory(window, navigator, authSession, getEnforcementMode, requestShell);
+  const factory = new Function('window', 'document', 'navigator', 'authSession', 'getEnforcementMode', 'requestShell', 'homeSignInCleanup', factorySource);
+  const enter = factory(window, document, navigator, authSession, getEnforcementMode, requestShell, null);
   return {
     updates,
     get modeLookups() { return modeLookups; },
@@ -60,10 +62,12 @@ function makeHomeEntry({ userAgent, platform = '', maxTouchPoints = 0, bridge = 
   };
 }
 
-async function verify(label, setup, expectedApplicable, expectedModeLookups, expectedProbeCalls) {
+async function verify(label, setup, expectedApplicable, expectedModeLookups, expectedProbeCalls, expectedNotice = null) {
   const scenario = makeHomeEntry(setup);
   await scenario.run();
-  assert.deepStrictEqual(scenario.updates, [{ notice: null, applicable: expectedApplicable }], label);
+  assert.ok(scenario.updates.length > 0, label + ': home update');
+  assert.equal(scenario.updates.at(-1).notice?.kind || null, expectedNotice, label + ': final notice');
+  assert.equal(scenario.updates.at(-1).applicable, expectedApplicable, label + ': purchase entry');
   assert.strictEqual(scenario.modeLookups, expectedModeLookups, label + ': rollout lookup count');
   assert.strictEqual(scenario.probeCalls, expectedProbeCalls, label + ': bridge probe count');
 }
@@ -72,21 +76,21 @@ async function verify(label, setup, expectedApplicable, expectedModeLookups, exp
   await verify('iOS IAP bridge handshake and signed-in account', {
     userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)', bridge: true, iapHandler: true,
   }, true, 0, 1);
-  await verify('iOS generic WebView without IAP handler keeps existing fallback', {
-    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)', bridge: true, iapHandler: false,
+  await verify('iOS generic WebView without IAP handler keeps purchase entry hidden', {
+    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)', bridge: true, iapHandler: false, modeError: false, mode: 'all',
   }, false, 1, 1);
-  await verify('iOS without WebView bridge keeps existing fallback', {
-    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)', bridge: false,
+  await verify('iOS without WebView bridge keeps purchase entry hidden', {
+    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)', bridge: false, modeError: false, mode: 'all',
   }, false, 1, 0);
-  await verify('Android IAP handler keeps existing fallback', {
-    userAgent: 'Mozilla/5.0 (Linux; Android 15)', bridge: true, iapHandler: true,
+  await verify('Android IAP handler keeps purchase entry hidden', {
+    userAgent: 'Mozilla/5.0 (Linux; Android 15)', bridge: true, iapHandler: true, modeError: false, mode: 'all',
   }, false, 1, 0);
-  await verify('web keeps existing fallback', {
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', bridge: false,
+  await verify('web keeps purchase entry hidden', {
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', bridge: false, modeError: false, mode: 'all',
   }, false, 1, 0);
-  await verify('signed-out iOS native shell keeps existing fallback', {
-    userAgent: 'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X)', bridge: true, iapHandler: true, session: null,
-  }, false, 1, 0);
+  await verify('signed-out iOS native shell keeps purchase entry hidden', {
+    userAgent: 'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X)', bridge: true, iapHandler: true, session: null, modeError: false, mode: 'all',
+  }, false, 1, 0, 'sign-in');
   process.stdout.write('PASS iap-ios-purchase-visibility.test.cjs (6 scenarios)' + String.fromCharCode(10));
 })().catch(error => {
   process.stderr.write('FAIL iap-ios-purchase-visibility.test.cjs: ' + error.message + String.fromCharCode(10));
