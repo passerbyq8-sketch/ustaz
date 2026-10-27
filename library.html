@@ -198,7 +198,7 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
   "sort_death": ["ترتيب: سنة الوفاة", "قائمة الترتيب في صفحة القسم"],
   "loading": ["جارٍ التحميل…", "أثناء تحميل البيانات"],
   "load_error": ["تعذّر الاتصال بالمكتبة. حاول مرة أخرى.", "عند فشل طلب الخادم"],
-  "book_not_found": ["\u0647\u0630\u0627\u0020\u0627\u0644\u0643\u062a\u0627\u0628\u0020\u063a\u064a\u0631\u0020\u0645\u0648\u062c\u0648\u062f\u0020\u0641\u064a\u0020\u0627\u0644\u0645\u0643\u062a\u0628\u0629\u002e", "Book lookup returned HTTP 404"],
+  "book_not_found": ["هذا الكتاب غير موجود في المكتبة.", "Book lookup returned HTTP 404"],
   "retry": ["إعادة المحاولة", "زر بعد فشل التحميل"],
   "no_books": ["لا توجد كتب", "قسم أو تصفية بلا نتائج"],
   "died": ["ت {y} هـ", "سنة الوفاة بجانب اسم المؤلف"],
@@ -882,9 +882,11 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
       });
     });
   }
-  function errorView(target, retry, messageKey) {
+  function errorView(target, retry) {
+    var messageKey = target.getAttribute('data-error-key') || 'load_error';
+    target.removeAttribute('data-error-key');
     target.innerHTML = '';
-    target.appendChild(el('div', { class: 'msg' }, [el('p', { text: T(messageKey || 'load_error') }), el('button', { class: 'btn ghost', text: T('retry'), on: { click: retry } })]));
+    target.appendChild(el('div', { class: 'msg' }, [el('p', { text: T(messageKey) }), el('button', { class: 'btn ghost', text: T('retry'), on: { click: retry } })]));
   }
 
   // ---------------- positions ----------------
@@ -1510,7 +1512,11 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
         loaded = [w.from, w.from + w.count - 1];
         rebuild(anchor || { seq: seq, part: 0, offset: 0 });
         show();
-      }).catch(function () { stage.innerHTML = ''; errorView(stage, function () { openAt(seq, anchor); }); }).then(function () { busy = false; maybeLoadMore(); });
+      }).catch(function (e) {
+        stage.innerHTML = '';
+        stage.setAttribute('data-error-key', e && e.status === 404 ? 'book_not_found' : 'load_error');
+        errorView(stage, function () { openAt(seq, anchor); });
+      }).then(function () { busy = false; maybeLoadMore(); });
     }
     function jumpTo(seq) {
       seq = Math.max(1, Math.min(book.pages, seq));
@@ -1727,7 +1733,8 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
       var anchor = p && p.seq === seq && !startSeq ? { seq: seq, part: p.part || 0, offset: p.offset || 0 } : { seq: seq, part: 0, offset: 0 };
       openAt(seq, anchor);
     }).catch(function (e) {
-      errorView(stage, function () { route(); }, e && e.status === 404 ? 'book_not_found' : 'load_error');
+      stage.setAttribute('data-error-key', e && e.status === 404 ? 'book_not_found' : 'load_error');
+      errorView(stage, function () { route(); });
     });
 
     return {

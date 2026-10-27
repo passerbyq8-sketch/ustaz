@@ -10,12 +10,15 @@ function ok(name, cond) {
   console.log('  FAIL  ' + name);
   return false;
 }
-ok('book_not_found has an Arabic UI string', /"book_not_found"\s*:\s*\[\s*"\\u[0-9a-f]{4}/i.test(html));
-ok('errorView accepts a message key and defaults to load_error',
-  /function errorView\(target, retry, messageKey\)\s*\{[\s\S]{0,500}T\(messageKey \|\| 'load_error'\)/.test(html));
-ok('book view maps HTTP 404 to book_not_found and other failures to load_error',
-  /\.catch\(function \(e\) \{\s*errorView\(stage, function \(\) \{ route\(\); \}, e && e\.status === 404 \? 'book_not_found' : 'load_error'\);\s*\}\);/.test(html));
-ok('category list failures keep the generic retryable error view',
-  /loadPage\(0\)\.catch\(function \(\) \{ errorView\(list, function \(\) \{ route\(\); \}\); \}\);/.test(html));
-console.log('\n' + (checks - failures) + '/' + checks + ' checks passed');
+const A = (hex) => String.fromCodePoint(...hex.trim().split(/\s+/).map((x) => parseInt(x, 16)));
+const expected = A('647 630 627 20 627 644 643 62a 627 628 20 63a 64a 631 20 645 648 62c 648 62f 20 641 64a 20 627 644 645 643 62a 628 629 2e');
+const rowAt = html.indexOf(String.fromCharCode(34) + 'book_not_found' + String.fromCharCode(34));
+const row = rowAt >= 0 ? html.slice(rowAt).split(String.fromCharCode(10), 1)[0] : '';
+ok('book_not_found is literal UTF-8 Arabic', row.includes(expected) && !row.includes(String.fromCharCode(92) + 'u'));
+ok('errorView reads and clears the target key with load_error fallback', html.includes('function errorView(target, retry) {') && html.includes('target.getAttribute(' + String.fromCharCode(39) + 'data-error-key' + String.fromCharCode(39) + ') || ' + String.fromCharCode(39) + 'load_error' + String.fromCharCode(39) + ';') && html.includes('target.removeAttribute(' + String.fromCharCode(39) + 'data-error-key' + String.fromCharCode(39) + ');'));
+ok('reader page maps HTTP 404 and calls the two-argument renderer', html.includes('stage.setAttribute(' + String.fromCharCode(39) + 'data-error-key' + String.fromCharCode(39) + ', e && e.status === 404 ? ' + String.fromCharCode(39) + 'book_not_found' + String.fromCharCode(39) + ' : ' + String.fromCharCode(39) + 'load_error' + String.fromCharCode(39) + ');') && html.includes('errorView(stage, function () { openAt(seq, anchor); });'));
+ok('book route maps HTTP 404 and calls the two-argument renderer', html.includes('errorView(stage, function () { route(); });') && html.includes('stage.setAttribute(' + String.fromCharCode(39) + 'data-error-key' + String.fromCharCode(39) + ', e && e.status === 404 ? ' + String.fromCharCode(39) + 'book_not_found' + String.fromCharCode(39) + ' : ' + String.fromCharCode(39) + 'load_error' + String.fromCharCode(39) + ');'));
+ok('category list failures keep the generic retryable error view', html.includes('loadPage(0).catch(function () { errorView(list, function () { route(); }); });'));
+ok('the old third message-key argument is gone', !html.includes('errorView(stage, function () { route(); }, e &&'));
+console.log(String.fromCharCode(10) + (checks - failures) + '/' + checks + ' checks passed');
 process.exit(failures ? 1 : 0);
