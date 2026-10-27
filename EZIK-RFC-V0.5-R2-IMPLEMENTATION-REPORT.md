@@ -349,7 +349,7 @@ every purpose and `capabilityEligible()` is false for every capability. **Regist
 
 ## K. Gates and tests
 
-All 209 gates run sequentially by the authorized gates-seq.cjs runner from gates.json. Historical pre-rebase totals are retained below; the final post-rebase run is recorded after the ordered gate sequence.
+All 215 gates run sequentially by the authorized gates-seq.cjs runner from gates.json. Historical pre-rebase totals are retained below; the final post-rebase run is recorded after the ordered gate sequence.
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -403,14 +403,20 @@ postship17 0
 postship18 0
 postship19 0
 yahimmak 0
-TOTAL_GATES        209/209 PASS
+postship3removedtitle 0
+postship3library404 0
+postship3answerlog 0
+postship3identityframes 0
+postship3attributiontrigger 0
+postship3row7a 0
+TOTAL_GATES        215/215 PASS
 CURRENT_RECON PASS=302 WARN=0 FAIL=0
 PRE_REBASE_UPSTREAM_TOTAL_GATES 206/206 PASS
 PRE_REBASE_UPSTREAM_RECON PASS=299 WARN=0 FAIL=0
 PRE_REBASE_BRANCH_TOTAL_GATES 208/208 PASS
 PRE_REBASE_BRANCH_RECON PASS=301 WARN=0 FAIL=0
-MERGED_GATES 209 (calculated from gates.json)
-POST_REBASE_FINAL_GATES 209/209 PASS
+MERGED_GATES 215 (calculated from gates.json)
+POST_REBASE_FINAL_GATES 215/215 PASS
 DIFF_CHECK         PASS (exit 0)
 OLD_FIXTURES       9/9 drive clean (F1–F9); F6 rewritten per owner decision
 NEW_FIXTURES       rfcpolicy 125/125 · rfcruntime 96/96
