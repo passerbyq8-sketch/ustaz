@@ -1,9 +1,7 @@
 'use strict';
 const path = require('path');
-
 const REPO = path.join(__dirname, '..');
 const esm = (rel) => import('file://' + path.join(REPO, rel).replace(/\\/g, '/'));
-const FIX = require(path.join(REPO, 'lib/data/removed-sources.json'));
 let failures = 0;
 let checks = 0;
 function ok(name, cond, detail) {
@@ -15,42 +13,49 @@ function ok(name, cond, detail) {
 }
 const A = (hex) => String.fromCodePoint(...hex.trim().split(/\s+/).map((x) => parseInt(x, 16)));
 
+const removedCases = [
+  { id: 1, q: A('627 646 642 644 20 644 64a 20 645 646 20 643 62a 627 628 20 627 644 62f 627 631 20 627 644 622 62e 631 629 20 2d 20 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a'), expected: A('644 64a 633 20 639 646 62f 64a 20 643 62a 627 628 20 628 627 633 645 20 ab 627 644 62f 627 631 20 627 644 622 62e 631 629 bb 20 644 640 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a 2e') },
+  { id: 2, q: A('627 646 642 644 20 644 64a 20 645 646 20 643 62a 627 628 20 634 631 62d 20 643 62a 627 628 20 627 644 641 648 627 626 62f'), expected: A('644 64a 633 20 639 646 62f 64a 20 643 62a 627 628 20 628 627 633 645 20 ab 634 631 62d 20 643 62a 627 628 20 627 644 641 648 627 626 62f bb 2e') },
+  { id: 3, q: A('627 646 642 644 20 644 64a 20 645 646 20 643 62a 627 628 20 645 642 62a 637 641 627 62a 20 645 646 20 627 644 633 64a 631 629'), expected: A('644 64a 633 20 639 646 62f 64a 20 643 62a 627 628 20 628 627 633 645 20 ab 645 642 62a 637 641 627 62a 20 645 646 20 627 644 633 64a 631 629 bb 2e') },
+  { id: 4, q: A('627 646 642 644 20 644 64a 20 645 646 20 643 62a 627 628 20 62f 631 648 633 20 627 644 62f 643 62a 648 631 20 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a'), expected: A('644 64a 633 20 639 646 62f 64a 20 643 62a 627 628 20 628 627 633 645 20 ab 62f 631 648 633 20 627 644 62f 643 62a 648 631 20 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a bb 2e') },
+  { id: 5, q: A('627 646 642 644 20 644 64a 20 645 646 20 643 62a 627 628 20 627 644 62f 627 631 20 627 644 622 62e 631 629 20 644 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a'), expected: A('644 64a 633 20 639 646 62f 64a 20 643 62a 627 628 20 628 627 633 645 20 ab 627 644 62f 627 631 20 627 644 622 62e 631 629 bb 20 644 640 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a 2e') },
+  { id: 6, q: A('627 646 642 644 20 644 64a 20 645 646 20 643 62a 627 628 20 627 644 62f 627 631 20 627 644 622 62e 631 629 20 644 644 62f 643 62a 648 631 20 639 645 631 20 639 628 62f 627 644 643 627 641 64a'), expected: A('644 64a 633 20 639 646 62f 64a 20 643 62a 627 628 20 628 627 633 645 20 ab 627 644 62f 627 631 20 627 644 622 62e 631 629 bb 20 644 640 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a 2e') },
+  { id: 7, q: A('627 646 642 644 20 644 64a 20 645 646 20 643 62a 627 628 20 627 644 62f 627 631 20 627 644 622 62e 631 629 20 644 639 645 631 20 628 646 20 639 628 62f 20 627 644 643 627 641 64a'), expected: A('644 64a 633 20 639 646 62f 64a 20 643 62a 627 628 20 628 627 633 645 20 ab 627 644 62f 627 631 20 627 644 622 62e 631 629 bb 20 644 640 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a 2e') },
+  { id: 8, q: A('627 646 642 644 20 644 64a 20 645 646 20 643 62a 627 628 20 627 644 62f 627 631 20 627 644 622 62e 631 629 20 644 644 634 64a 62e 20 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a 20 645 627 20 62c 627 621 20 641 64a 20 639 630 627 628 20 627 644 642 628 631'), expected: A('644 64a 633 20 639 646 62f 64a 20 643 62a 627 628 20 628 627 633 645 20 ab 627 644 62f 627 631 20 627 644 622 62e 631 629 bb 20 644 640 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a 2e') },
+  { id: 9, q: A('627 646 642 644 20 644 64a 20 645 646 20 627 644 62f 627 631 20 627 644 622 62e 631 629 20 644 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a'), expected: A('644 64a 633 20 639 646 62f 64a 20 643 62a 627 628 20 628 627 633 645 20 ab 627 644 62f 627 631 20 627 644 622 62e 631 629 bb 20 644 640 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a 2e') },
+  { id: 10, q: A('627 646 642 644 20 644 64a 20 645 646 20 643 62a 628 20 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a'), expected: A('644 64a 633 20 639 646 62f 64a 20 645 635 627 62f 631 20 645 646 20 643 62a 628 20 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a 2e') },
+  { id: 11, q: A('627 646 642 644 20 644 64a 20 645 646 20 643 62a 627 628 20 634 631 62d 20 643 62a 627 628 20 627 644 641 648 627 626 62f 20 644 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a'), expected: A('644 64a 633 20 639 646 62f 64a 20 643 62a 627 628 20 628 627 633 645 20 ab 634 631 62d 20 643 62a 627 628 20 627 644 641 648 627 626 62f bb 20 644 640 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a 2e') },
+  { id: 12, q: A('627 646 642 644 20 644 64a 20 645 646 20 643 62a 627 628 20 634 631 62d 20 643 62a 627 628 20 627 644 641 648 627 626 62f 20 644 644 634 64a 62e 20 639 645 631 20 639 628 62f 627 644 643 627 641 64a'), expected: A('644 64a 633 20 639 646 62f 64a 20 643 62a 627 628 20 628 627 633 645 20 ab 634 631 62d 20 643 62a 627 628 20 627 644 641 648 627 626 62f bb 20 644 640 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a 2e') },
+  { id: 13, q: A('627 646 642 644 20 644 64a 20 645 646 20 643 62a 627 628 20 645 642 62a 637 641 627 62a 20 645 646 20 627 644 633 64a 631 629 20 644 644 62f 643 62a 648 631 20 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a'), expected: A('644 64a 633 20 639 646 62f 64a 20 643 62a 627 628 20 628 627 633 645 20 ab 645 642 62a 637 641 627 62a 20 645 646 20 627 644 633 64a 631 629 bb 20 644 640 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a 2e') },
+  { id: 14, q: A('627 646 642 644 20 644 64a 20 645 646 20 643 62a 627 628 20 645 642 62a 637 641 627 62a 20 645 646 20 627 644 633 64a 631 629 20 644 639 645 631 20 628 646 20 639 628 62f 20 627 644 643 627 641 64a'), expected: A('644 64a 633 20 639 646 62f 64a 20 643 62a 627 628 20 628 627 633 645 20 ab 645 642 62a 637 641 627 62a 20 645 646 20 627 644 633 64a 631 629 bb 20 644 640 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a 2e') },
+  { id: 15, q: A('627 646 642 644 20 644 64a 20 645 646 20 643 62a 627 628 20 62f 631 648 633 20 627 644 62f 643 62a 648 631 20 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a 20 645 627 20 642 627 644 647 20 641 64a 20 627 644 635 628 631'), expected: A('644 64a 633 20 639 646 62f 64a 20 643 62a 627 628 20 628 627 633 645 20 ab 62f 631 648 633 20 627 644 62f 643 62a 648 631 20 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a bb 2e') },
+];
+
+const controls = [
+  { id: "C1", q: A('627 646 642 644 20 644 64a 20 645 646 20 643 62a 627 628 20 632 627 62f 20 627 644 645 639 627 62f 20 644 627 628 646 20 627 644 642 64a 645'), outcome: 'need_topic', title: A('632 627 62f 20 627 644 645 639 627 62f 20 641 64a 20 647 62f 64a 20 62e 64a 631 20 627 644 639 628 627 62f') },
+  { id: "C2", q: A('627 646 642 644 20 644 64a 20 645 646 20 643 62a 627 628 20 627 644 62f 627 631 20 627 644 622 62e 631 629'), outcome: 'need_topic', title: A('627 644 62f 627 631 20 627 644 622 62e 631 629 20 2d 20 645 62d 645 62f 20 62d 633 627 646') },
+  { id: "C3", q: A('627 646 642 644 20 644 64a 20 645 646 20 643 62a 627 628 20 627 644 641 648 627 626 62f 20 644 627 628 646 20 627 644 642 64a 645'), outcome: 'need_topic', title: A('627 644 641 648 627 626 62f 20 644 627 628 646 20 627 644 642 64a 645') },
+  { id: "C4", q: A('627 646 642 644 20 644 64a 20 645 646 20 643 62a 627 628 20 627 644 62f 627 631 20 627 644 622 62e 631 629 20 644 627 628 646 20 623 628 64a 20 627 644 62f 646 64a 627'), outcome: 'no_book', expected: A('627 644 631 62f 64f 651 20 627 644 639 627 645 651 20 ab 644 64a 633 20 639 646 62f 64a 20 643 62a 627 628 20 628 627 633 645 20 ab 627 644 62f 627 631 20 627 644 622 62e 631 629 20 644 627 628 646 20 623 628 64a 20 627 644 62f 646 64a 627 bb 2e 20 625 646 20 643 627 646 20 644 644 643 62a 627 628 20 627 633 645 20 622 62e 631 20 64a 639 631 641 20 628 647 20 641 627 630 643 631 647 20 644 64a 2e bb') },
+];
+
 (async () => {
   const Q = await esm('lib/lib-quote.js');
-  const prefix = A('627 646 642 644 20 644 64a 20 645 646 20 643 62a 627 628 20');
-  const baseTitle = A('627 644 62f 627 631 20 627 644 622 62e 631 629');
-  const cases = [
-    ['witness title plus author', A('20 644 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a')],
-    ['doctor honorific and attached author', A('20 644 644 62f 643 62a 648 631 20 639 645 631 20 639 628 62f 627 644 643 627 641 64a')],
-    ['author with ibn spelling', A('20 644 639 645 631 20 628 646 20 639 628 62f 20 627 644 643 627 641 64a')],
-    ['shaykh honorific with topic', A('20 644 644 634 64a 62e 20 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a 20 645 627 20 62c 627 621 20 641 64a 20 639 630 627 628 20 627 644 642 628 631')],
-  ];
-  for (const [name, suffix] of cases) {
-    const ask = Q.detectQuoteRequest(prefix + baseTitle + suffix);
+  for (const item of removedCases) {
+    const ask = Q.detectQuoteRequest(item.q);
     const plan = ask ? Q.planQuote(ask) : null;
     const answer = ask ? await Q.answerQuoteRequest(ask, {}) : null;
-    const removed = !!(plan && plan.outcome === 'no_book' && answer
-      && answer.outcome === 'no_book'
-      && answer.text === Q.removedBookReply(plan.titleText, plan.authorText));
-    ok(name + ' returns the fixed removed-book reply', removed,
+    ok('removed prompt ' + item.id + ' returns its exact fixed reply', !!(plan && plan.outcome === 'no_book' && answer && answer.outcome === 'no_book' && answer.text === item.expected),
+      'detected=' + !!ask + ' plan=' + (plan && plan.outcome || 'none') + ' exact=' + !!(answer && answer.text === item.expected));
+  }
+  for (const item of controls) {
+    const ask = Q.detectQuoteRequest(item.q);
+    const plan = ask ? Q.planQuote(ask) : null;
+    const answer = ask ? await Q.answerQuoteRequest(ask, {}) : null;
+    const pass = !!(plan && plan.outcome === item.outcome && answer && answer.outcome === item.outcome
+      && (item.title ? plan.titleText === item.title : answer.text === item.expected));
+    ok('control prompt ' + item.id + ' retains its existing path', pass,
       'detected=' + !!ask + ' plan=' + (plan && plan.outcome || 'none'));
   }
-  const exactTitle = FIX.bookTitles['FC-004992'];
-  const direct = Q.detectQuoteRequest(prefix + exactTitle);
-  const directPlan = direct ? Q.planQuote(direct) : null;
-  const directAnswer = direct ? await Q.answerQuoteRequest(direct, {}) : null;
-  ok('exact removed title alone keeps the removed-book reply', !!(directPlan && directPlan.outcome === 'no_book'
-    && directAnswer && directAnswer.text === Q.removedBookReply(directPlan.titleText, directPlan.authorText)));
-  const bareAsk = Q.detectQuoteRequest(prefix + baseTitle);
-  const barePlan = bareAsk ? Q.planQuote(bareAsk) : null;
-  const bareAnswer = bareAsk ? await Q.answerQuoteRequest(bareAsk, {}) : null;
-  ok('title prefix without a known author is not classified as removed', !(barePlan && bareAnswer
-    && bareAnswer.text === Q.removedBookReply(barePlan.titleText, barePlan.authorText)));
-  const control = A('627 646 642 644 20 644 64a 20 645 646 20 643 62a 627 628 20 632 627 62f 20 627 644 645 639 627 62f 20 644 627 628 646 20 627 644 642 64a 645');
-  const controlAsk = Q.detectQuoteRequest(control);
-  const controlPlan = controlAsk ? Q.planQuote(controlAsk) : null;
-  ok('unrelated title remains on its normal topic path', !!controlPlan && controlPlan.outcome === 'need_topic',
-    'plan=' + (controlPlan && controlPlan.outcome || 'none'));
   console.log('\n' + (checks - failures) + '/' + checks + ' checks passed');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.log('FAIL  guard crashed: ' + (e && e.stack || e)); process.exit(1); });
