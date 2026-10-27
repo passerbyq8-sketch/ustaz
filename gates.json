@@ -1070,5 +1070,10 @@
     "name": "postship3identityframes",
     "script": "guards/brain-postship3-identity-frame-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "postship3attributiontrigger",
+    "script": "guards/brain-postship3-attribution-trigger-guard.cjs",
+    "args": ""
   }
 ]
