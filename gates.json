@@ -1055,5 +1055,10 @@
     "name": "postship3removedtitle",
     "script": "guards/brain-postship3-removed-title-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "postship3library404",
+    "script": "guards/brain-postship3-library-404-guard.cjs",
+    "args": ""
   }
 ]

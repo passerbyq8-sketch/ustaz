@@ -198,6 +198,7 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
   "sort_death": ["ترتيب: سنة الوفاة", "قائمة الترتيب في صفحة القسم"],
   "loading": ["جارٍ التحميل…", "أثناء تحميل البيانات"],
   "load_error": ["تعذّر الاتصال بالمكتبة. حاول مرة أخرى.", "عند فشل طلب الخادم"],
+  "book_not_found": ["\u0647\u0630\u0627\u0020\u0627\u0644\u0643\u062a\u0627\u0628\u0020\u063a\u064a\u0631\u0020\u0645\u0648\u062c\u0648\u062f\u0020\u0641\u064a\u0020\u0627\u0644\u0645\u0643\u062a\u0628\u0629\u002e", "Book lookup returned HTTP 404"],
   "retry": ["إعادة المحاولة", "زر بعد فشل التحميل"],
   "no_books": ["لا توجد كتب", "قسم أو تصفية بلا نتائج"],
   "died": ["ت {y} هـ", "سنة الوفاة بجانب اسم المؤلف"],
@@ -881,9 +882,9 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
       });
     });
   }
-  function errorView(target, retry) {
+  function errorView(target, retry, messageKey) {
     target.innerHTML = '';
-    target.appendChild(el('div', { class: 'msg' }, [el('p', { text: T('load_error') }), el('button', { class: 'btn ghost', text: T('retry'), on: { click: retry } })]));
+    target.appendChild(el('div', { class: 'msg' }, [el('p', { text: T(messageKey || 'load_error') }), el('button', { class: 'btn ghost', text: T('retry'), on: { click: retry } })]));
   }
 
   // ---------------- positions ----------------
@@ -1725,7 +1726,9 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
       var seq = startSeq && startSeq >= 1 ? Math.min(startSeq, book.pages) : p ? p.seq : 1;
       var anchor = p && p.seq === seq && !startSeq ? { seq: seq, part: p.part || 0, offset: p.offset || 0 } : { seq: seq, part: 0, offset: 0 };
       openAt(seq, anchor);
-    }).catch(function () { errorView(stage, function () { route(); }); });
+    }).catch(function (e) {
+      errorView(stage, function () { route(); }, e && e.status === 404 ? 'book_not_found' : 'load_error');
+    });
 
     return {
       destroy: function () {
