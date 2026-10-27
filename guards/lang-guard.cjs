@@ -575,10 +575,47 @@ const V = '﴿', W = '﴾';
       ok('lang/' + c + '.json holds every key of the English half, non-empty, no placeholder lost or invented, and no key the app lacks',
         bad.length === 0 && Object.keys(d).length === Object.keys(DI.en).length, bad.length + ' bad, e.g. ' + bad.slice(0, 3).join(' '));
     });
-    // app.js was 1939410 bytes when English shipped (ezik-v57). A language may add to it a row and a few lines, never its words.
-    const appBytes = fs.statSync(path.join(REPO, 'app.js')).size;
-    ok('app.js has grown by at most 20 KB for each language added after English', appBytes <= 1939410 + 20480 * files.length,
-      appBytes + ' bytes against ' + (1939410 + 20480 * files.length));
+    // A language may add to app.js a row and a few lines, never its words. So what is counted is exactly what the languages
+    // add: in the built app.js, the rows of EZ_LANGUAGE_TABLE whose code is not ar or en, and their entries in the baked
+    // EZIK_ENABLED_LANGS array -- 20 KB for each. (The words stay covered by the inline-dictionary check above.) The rest of
+    // app.js is the app's own features and is not a language's to pay for.
+    const langAdds = (src) => {
+      const at = src.indexOf('const EZ_LANGUAGE_TABLE=[');
+      if (at === -1) return null;
+      const rows = [];
+      let depth = 0, q = '', start = -1, i = at + 'const EZ_LANGUAGE_TABLE='.length;
+      for (; i < src.length; i++) {
+        const ch = src[i];
+        if (q) { if (ch === '\\') i++; else if (ch === q) q = ''; continue; }
+        if (ch === "'" || ch === '"' || ch === '`') { q = ch; continue; }
+        if (ch === '[' || ch === '{') { if (depth === 1 && ch === '{') start = i; depth++; }
+        else if (ch === ']' || ch === '}') { depth--; if (depth === 1 && ch === '}') rows.push(src.slice(start, i + 1)); if (depth === 0) break; }
+      }
+      const baked = (src.match(/var EZIK_ENABLED_LANGS = (\[[^\]]*\]);/) || [])[1];
+      const enabled = baked ? JSON.parse(baked) : [];
+      const per = {};
+      rows.forEach((r) => {
+        const code = (r.match(/^\{code:'([a-z]{2})'/) || [])[1];
+        if (!code || code === 'ar' || code === 'en') return;
+        // the row and its comma, plus its entry in the baked list and that entry's comma
+        per[code] = Buffer.byteLength(r, 'utf8') + 1 + (enabled.indexOf(code) !== -1 ? Buffer.byteLength(JSON.stringify(code), 'utf8') + 1 : 0);
+      });
+      return { per, rows: Object.keys(per).length, bytes: Object.values(per).reduce((a, b) => a + b, 0) };
+    };
+    const appSrcBuilt = read('app.js');
+    const appBytes = Buffer.byteLength(appSrcBuilt, 'utf8');
+    const langCap = 20480 * files.length;
+    const added = langAdds(appSrcBuilt);
+    ok('the languages after English add at most 20 KB each to app.js, counting their table rows and baked list entries: '
+      + (added ? added.bytes + ' bytes (' + added.rows + ' rows)' : 'EZ_LANGUAGE_TABLE not found') + ' against a cap of ' + langCap
+      + ' (' + files.length + ' languages); app.js is ' + appBytes + ' bytes in all',
+      !!added && added.rows === files.length && added.bytes <= langCap,
+      added ? 'per language ' + JSON.stringify(added.per) : 'EZ_LANGUAGE_TABLE not found in app.js');
+    const padded = appSrcBuilt.replace("{code:'" + files[0] + "',", () => "{code:'" + files[0] + "',pad:'" + 'x'.repeat(langCap) + "',");
+    const paddedAdds = langAdds(padded);
+    ok('...and the count is real: the same check over a copy of app.js with one row padded past the cap fails, and over a copy without the table it fails',
+      padded !== appSrcBuilt && !!paddedAdds && paddedAdds.rows === files.length && paddedAdds.bytes > langCap && langAdds(appSrcBuilt.replace('const EZ_LANGUAGE_TABLE=[', 'const EZ_LANGUAGE_ROWS=[')) === null,
+      paddedAdds ? paddedAdds.bytes + ' bytes in the padded copy' : 'padded copy not read');
     ok('the service worker keeps a fetched language file after the first fetch (the same-origin *.json arm), and does not precache it',
       /url\.pathname\.endsWith\('\.json'\) && !sealedMushaf/.test(read('sw.js')) && !/'\/lang\//.test(read('sw.js').split('const CORE = [')[1].split('];')[0]));
   }

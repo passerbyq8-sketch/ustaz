@@ -14,6 +14,10 @@
 // witness does not match; the section carries no purchase, trial or store symbol; and the
 // section's one key is swept by «حذف كل بياناتي».
 // THE MUTATIONS: the rule is broken three ways on in-memory copies, and each must turn this red.
+// THE CORRECTION (FIX1, 27 October 2026): page 10 of the library copy read «ففد أشرك»; the collected works
+// (مجموع فتاوى ابن باز، ج٣ ص٢٩٠, library book FC-004528) read «فقد أشرك». The page text carries the corrected
+// letter, page 10 alone carries a note naming the correction and its source, the source note says so, and
+// the client shows the note under its page. M5-M7 break it on in-memory copies.
 //
 // Usage: node guards/yahimmak-guard.cjs
 'use strict';
@@ -140,6 +144,25 @@ const problems = dataProblems(DATA, BOOK);
 ok('yahimmak.json stands on yahimmak-book.json (lessons, stations, headings, witnesses, terms, counts, map, audio)',
   problems.length === 0, problems.slice(0, 12).join('\n        '));
 ok('the book file is the library\'s copy and names it', BOOK.library_book_id === 'FC-004071' && /lib\.ezik\.app/.test(BOOK.source_note || ''));
+// THE CORRECTION ON PAGE 10 -- one function of the book, so M5-M7 run the very same check over broken copies.
+const FIX1_NOTE = "صُحِّح في هذه الصفحة حرفٌ في الحديث: «ففد» إلى «فقد»، كما في مجموع فتاوى ابن باز، ج٣ ص٢٩٠.";
+const FIX1_SENTENCE = "وصُحِّح فيه حرفٌ واحد في ص١٠، مبيَّنٌ تحتها.";
+function correctionProblems(book) {
+  const bad = [];
+  const ps = (book && Array.isArray(book.pages)) ? book.pages : [];
+  const p10 = ps.find((p) => p && p.page === 10);
+  if (ps.some((p) => p && typeof p.text === 'string' && p.text.indexOf('ففد') !== -1)) bad.push('a page text holds «ففد»');
+  if (!p10 || typeof p10.text !== 'string' || p10.text.indexOf('فقد أشرك') === -1) bad.push('page 10 does not read «فقد أشرك»');
+  if (!p10 || p10.note !== FIX1_NOTE) bad.push('page 10 note is not the correction line');
+  const noted = ps.filter((p) => p && p.note !== undefined).map((p) => p.page);
+  if (JSON.stringify(noted) !== '[10]') bad.push('pages with a note: ' + JSON.stringify(noted) + ' (want [10])');
+  if (typeof (book && book.source_note) !== 'string' || book.source_note.indexOf(FIX1_SENTENCE) === -1) bad.push('source_note lacks the correction sentence');
+  if (!/lib\.ezik\.app/.test((book && book.source_note) || '')) bad.push('source_note no longer names lib.ezik.app');
+  return bad;
+}
+const fixProblems = correctionProblems(BOOK);
+ok('page 10 reads «فقد أشرك», no page text holds «ففد», page 10 alone carries the correction note, and the source note names the correction and lib.ezik.app',
+  fixProblems.length === 0, fixProblems.join('\n        '));
 const witnessCount = JSON.stringify(DATA).split('"witness":').length - 1;
 ok('...and it is a real body of evidence, not a vacuous pass (witness entries: ' + witnessCount + ')', witnessCount > 300);
 const SW = read('sw.js');
@@ -204,6 +227,26 @@ const sweep = sweepAt === -1 ? '' : APPJS.slice(Math.max(0, APPJS.lastIndexOf('c
 ok('the section\'s one key is ezik_yahimmak_v1', /const YAHIMMAK_KEY\s*=\s*['"]ezik_yahimmak_v1['"]/.test(APPJS));
 ok('...and «حذف كل بياناتي» (the sweep that removes ezik_hide_women_v1) removes it', sweep.indexOf('localStorage.removeItem(YAHIMMAK_KEY)') !== -1);
 
+function slicePrepare(source) {
+  const at = source.indexOf('const YAHIMMAK_N_RE');
+  const fnAt = at === -1 ? -1 : source.indexOf('function yahimmakPrepare(', at);
+  if (fnAt === -1) return null;
+  let i = source.indexOf('{', fnAt), depth = 0;
+  for (; i < source.length; i++) {
+    if (source[i] === '{') depth++;
+    else if (source[i] === '}') { depth--; if (depth === 0) { i++; break; } }
+  }
+  return source.slice(at, i);
+}
+const PREP = slicePrepare(APPJS);
+let prepared = null;
+try { const ctx = vm.createContext({}); vm.runInContext(PREP + '\n;this.__p = yahimmakPrepare;', ctx, { filename: 'yahimmak-prepare.js' }); prepared = ctx.__p(DATA, BOOK); }
+catch (e) { ok('the shipped yahimmakPrepare runs on its own', false, e && e.message); }
+ok('the shipped yahimmakPrepare builds the notes map beside the pages map: exactly page 10, with its note',
+  !!prepared && !!prepared.pages && JSON.stringify(prepared.notes) === JSON.stringify({ 10: FIX1_NOTE }), prepared ? JSON.stringify(prepared.notes) : 'not run');
+ok('...and the «من نصّ الكتاب» sheet renders a page\'s note under its text, in the small line, kept from translation',
+  /React\.createElement\("p",\{style:s\.yhPageText,"data-ez-keep":"1"\},P\.pages\[p\]\),P\.notes\[p\]\?\/\*#__PURE__\*\/React\.createElement\("div",\{style:s\.yhSubLine,"data-ez-keep":"1"\},P\.notes\[p\]\):null\)/.test(SECTION));
+
 head('C. MUTATIONS: each break of the rule turns this gate red');
 const clone = (o) => JSON.parse(JSON.stringify(o));
 {
@@ -228,6 +271,22 @@ const clone = (o) => JSON.parse(JSON.stringify(o));
     let f = null; try { f = runRule(m); } catch (e) {}
     ok('M4 a filter that always says yes is caught by the broken items', m !== RULE && !!f && BROKEN.some((it) => f(it, PAGES) === true));
   }
+}
+{
+  const b = clone(BOOK);
+  delete b.pages.find((p) => p.page === 10).note;
+  ok('M5 the page-10 note removed is caught', correctionProblems(b).some((p) => /page 10 note/.test(p)));
+}
+{
+  const b = clone(BOOK);
+  const p = b.pages.find((x) => x.page === 10);
+  p.text = p.text.replace('فقد أشرك', 'ففد أشرك');
+  ok('M6 «ففد» put back in page 10 is caught', correctionProblems(b).some((x) => /«ففد»/.test(x)) && correctionProblems(b).some((x) => /does not read/.test(x)));
+}
+{
+  const b = clone(BOOK);
+  b.pages.find((p) => p.page === 11).note = FIX1_NOTE;
+  ok('M7 a note added to another page is caught', correctionProblems(b).some((p) => /pages with a note/.test(p)));
 }
 
 console.log('\n' + (failures === 0 ? 'PASS' : 'FAIL') + '  ' + (checks - failures) + '/' + checks + ' checks');

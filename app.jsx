@@ -15715,8 +15715,8 @@ function yahimmakItemShowable(item, pages) {
 // The whole file through the rule, once: refused items are dropped, a card left empty is
 // dropped, a lesson left with no card is dropped. Nothing is reordered and nothing is added.
 function yahimmakPrepare(data, book) {
-  const pages = {};
-  (book && Array.isArray(book.pages) ? book.pages : []).forEach((p) => { if (p && Number.isInteger(p.page)) pages[p.page] = p.text; });
+  const pages = {}, notes = {};
+  (book && Array.isArray(book.pages) ? book.pages : []).forEach((p) => { if (p && Number.isInteger(p.page)) { pages[p.page] = p.text; if (typeof p.note === 'string' && p.note.trim()) notes[p.page] = p.note; } });
   const ok = (x) => yahimmakItemShowable(x, pages);
   const lessons = (data && Array.isArray(data.lessons) ? data.lessons : []).map((L) => {
     const cards = (Array.isArray(L.cards) ? L.cards : []).map((c) => {
@@ -15730,7 +15730,7 @@ function yahimmakPrepare(data, book) {
     return { ...L, cards, quiz, summary };
   }).filter((L) => L.cards.length);
   const pm = (data && data.prayer_map) || {};
-  return { lessons, pages, book: (data && data.book) || {}, credit: (data && data.audio_credit) || null,
+  return { lessons, pages, notes, book: (data && data.book) || {}, credit: (data && data.audio_credit) || null,
     stations: (data && Array.isArray(data.stations)) ? data.stations : [],
     positions: Array.isArray(pm.positions) ? pm.positions : [], entries: (Array.isArray(pm.entries) ? pm.entries : []).filter(ok) };
 }
@@ -16398,7 +16398,8 @@ function EzikYahimmakSection({ onBack, onOpenSurah }) {
           <div style={s.yhKicker}>{ezT('yahimmak.fromBook')} · {tx.book_heading}</div>
           {Object.keys(P.pages).map(Number).filter((p) => p >= tx.pages[0] && p <= tx.pages[1]).map((p) => (
             <div key={p} style={s.yhPage}><div style={s.yhSubLine}>{ezT('yahimmak.page', { n: toArabicDigits(p) })}</div>
-              <p style={s.yhPageText} data-ez-keep="1">{P.pages[p]}</p></div>
+              <p style={s.yhPageText} data-ez-keep="1">{P.pages[p]}</p>
+              {P.notes[p] ? <div style={s.yhSubLine} data-ez-keep="1">{P.notes[p]}</div> : null}</div>
           ))}
           <div style={s.yhSubLine}>{P.book.title} · {P.book.author}</div>
         </YhSheet>
