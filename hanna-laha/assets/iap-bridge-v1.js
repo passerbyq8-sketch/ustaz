@@ -878,7 +878,7 @@
     showExpired(startContext.gameId, window.location.pathname + window.location.search + window.location.hash, balance);
   }
 
-  function hasNativeIosPurchaseBridge() {
+  function isIosWebViewWithMessaging() {
     var bridge = window.ReactNativeWebView;
     if (!bridge || typeof bridge.postMessage !== 'function') return false;
     var ua = typeof navigator !== 'undefined' ? String(navigator.userAgent || '') : '';
@@ -888,9 +888,19 @@
     return isIosUa || isIpadOs;
   }
 
+  async function hasNativeIosPurchaseBridge() {
+    if (!isIosWebViewWithMessaging()) return false;
+    try {
+      await requestShell('iap.prices', { productIds: ['ezik_pass_week_1', 'ezik_pass_month_1', 'ezik_pass_year_1'] }, 8000);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   async function enterKunuzHome(onUpdate) {
     if (typeof onUpdate !== 'function') return;
-    if (hasNativeIosPurchaseBridge() && authSession()) {
+    if (authSession() && await hasNativeIosPurchaseBridge()) {
       onUpdate(null, true);
       return;
     }
