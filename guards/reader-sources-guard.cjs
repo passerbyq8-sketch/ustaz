@@ -129,6 +129,32 @@ async function main() {
       return shouldBlock(summary) === item.blocked && invertedRule(summary) !== item.blocked;
     }));
 
+  const sourceMarkup = '<source>A</source><book>B</book>';
+  const nl = String.fromCharCode(10);
+  const encyclopediaLabel = String.fromCodePoint(0x627, 0x644, 0x645, 0x635, 0x62f, 0x631, 0x3a);
+  const tail = nl + nl + encyclopediaLabel + ' Fixture.';
+  ok('visible source count is exported', typeof RS.visibleSourceCount === 'function');
+  if (typeof RS.visibleSourceCount === 'function') {
+    ok('visible source count counts reader-facing source and book tags', RS.visibleSourceCount(sourceMarkup) === 2);
+    ok('visible source count counts the encyclopedia tail once', RS.visibleSourceCount(tail + tail) === 1);
+    ok('visible source count includes retrieved takhrij evidence', RS.visibleSourceCount('', 2) === 2);
+    ok('visible source count reads finalizer card tags, suffix, and takhrij count',
+      RS.visibleSourceCount({ readerCards: [{ tag: '<source>A</source>' }, { tag: '<book>B</book>' }], readerSuffix: tail, takhrijEvidence: 2 }) === 5);
+  }
+  const makeRecord = (events, units, evidence) => {
+    const log = LOG.createAnswerLog({ question: 'fixture', key: 'fixture-key', now: () => 1000, trace: 'visiblefixture' });
+    const target = { write() { return true; }, end() { return true; } };
+    log.tap(target);
+    for (const event of events) target.write('data: ' + JSON.stringify(event) + nl + nl);
+    log.note({ cited: units, takhrijEvidence: evidence });
+    return log.record();
+  };
+  const delta = (text) => ({ type: 'content_block_delta', delta: { type: 'text_delta', text } });
+  const measured = makeRecord([delta(sourceMarkup + tail)], 7, 2);
+  ok('answer log cited is the visible tag/tail/evidence count and preserves differing units',
+    measured.cited === 5 && measured.flags.includes('units:7') && !Object.prototype.hasOwnProperty.call(measured, 'takhrijEvidence'));
+  const replaced = makeRecord([delta('<source>A</source><source>B</source>'), { type: 'ezik_replace', text: '<book>B</book>' }], 0, 0);
+  ok('answer log resets final visible text on ezik_replace', replaced.cited === 1 && replaced.flags.includes('units:0'));
   const [BW2, SSE] = await Promise.all([load('lib/before-writing-v2.js'), load('lib/finalized-sse-writer.js')]);
   const uncitedLesson = await replayKeptLesson(BW2, SSE);
   ok('BW2 fixture keeps one lesson and releases uncited text',
@@ -149,17 +175,17 @@ async function main() {
   const bw2 = fs.readFileSync(path.join(ROOT, 'lib', 'before-writing-v2.js'), 'utf8');
   const shariaHold = ask.indexOf('const holdUnsourced = currentRuntime !== \'GENERAL\' && !generalSystem;');
   const shariaTurn = ask.indexOf('out = await runFreeBrainTurn({', shariaHold);
-  const zeroSourceHold = ask.indexOf('if (holdUnsourced && freeBrainSourceSummary.count === 0)');
+  const zeroSourceHold = ask.indexOf('freeBrainVisibleSourceCount === 0');
   ok('non-general free-brain turns enable the zero-source hold before generation',
     shariaHold >= 0 && shariaTurn > shariaHold
-      && ask.includes('onWriteUnit: (detail) => (holdUnsourced ? false : liveFreeBrainUnits.push(detail))'));
+      && ask.includes('onWriteUnit: (detail) => ((holdUnsourced || !!removedPersonQuestion) ? false : liveFreeBrainUnits.push(detail))'));
   ok('zero accepted free-brain sources replace held output with the server-owned not-covered response',
     zeroSourceHold > shariaTurn && ask.includes('answerLog.note({ flags: [\'unsourced_withheld\'] });')
       && ask.includes('liveFreeBrainUnits.finish(BW2_NOT_COVERED, { replace: true })')
       && ask.includes('emitOnce(BW2_NOT_COVERED)'));
   ok('source delivery and cited counts use the accepted source summary at the release boundary',
     ask.includes("readerSources('free-brain', freeBrainSourceRows)")
-      && ask.includes('cited: summary.count') && ask.includes('freeBrainSourceSummary.count === 0'));
+      && ask.includes('cited: summary.count') && ask.includes('freeBrainVisibleSourceCount === 0'));
   const sourceStart = bw2.indexOf("const readerSourceSummary = readerSources('bw2', [");
   const sourceEnd = bw2.indexOf('  telemetry.readerSourceCount =', sourceStart);
   ok('BW2 source-count expression is available for the release-boundary fixture', sourceStart >= 0 && sourceEnd > sourceStart);
@@ -175,14 +201,17 @@ async function main() {
   const ledger = fs.readFileSync(path.join(ROOT, 'lib', 'ledger', 'seam.js'), 'utf8');
   const registry = JSON.parse(fs.readFileSync(path.join(ROOT, 'gates.json'), 'utf8'));
   ok('answer log defaults cited to zero when the source gate accepted nothing', /cited:\s*0/.test(answerLog));
-  ok('free-brain decision counts cards, cited rows, and late proved hadith together',
-    ask.includes("readerSources('free-brain', freeBrainSourceRows)")
-      && ask.includes('finalizerContext.readerCards') && ask.includes('Array.isArray(out.cited)')
-      && ask.includes('takhrijProvenRows.map') && ask.includes('freeBrainSourceSummary.count === 0'));
-  ok('free-brain cited and source-kind flags are written at the final source decision',
+  ok('free-brain visible hold counts final card markup, encyclopedia tail, and takhrij evidence',
+    ask.includes('visibleSourceCount({') && ask.includes("readerCards: String(readerText || '').trim() ? finalizerContext.readerCards : [],")
+      && ask.includes('readerSuffix: finalizerContext.readerSuffix')
+      && ask.includes('takhrijEvidence: takhrijProvenRows.length')
+      && ask.includes('freeBrainVisibleSourceCount === 0'));
+  ok('free-brain source-unit telemetry remains separate from visible cited count',
     ask.includes("path: 'free-brain', ...sourceNoteFields(freeBrainSourceSummary)")
-      && ask.includes('cited: summary.count') && ask.includes('`src:${kind}`')
-      && ask.indexOf('sourceNoteFields(freeBrainSourceSummary)') < ask.indexOf('freeBrainSourceSummary.count === 0'));
+      && ask.includes('cited: summary.count') && ask.includes('src:')
+      && answerLog.includes('visibleSourceCount(tapper.finalText, takhrijEvidence)')
+      && answerLog.includes("finalText = typeof e.text === 'string' ? e.text : '';")
+      && answerLog.includes("'units:' + units"));
   ok('BW2 counts delivered cards and uses the same zero-count blocking rule',
     bw2.includes("readerSources('bw2', [") && bw2.includes('summary.readerCards')
       && bw2.includes('telemetry.readerSourceCount === 0') && units.includes('readerCards: [...readerCards]'));

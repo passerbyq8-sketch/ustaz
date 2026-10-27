@@ -2774,8 +2774,13 @@ export default async function handler(req, res) {
         })),
       ];
       const freeBrainSourceSummary = readerSources('free-brain', freeBrainSourceRows);
-      answerLog.note({ path: 'free-brain', ...sourceNoteFields(freeBrainSourceSummary) });
-      if (holdUnsourced && freeBrainSourceSummary.count === 0) {
+      const freeBrainVisibleSourceCount = visibleSourceCount({
+        readerCards: String(readerText || '').trim() ? finalizerContext.readerCards : [],
+        readerSuffix: finalizerContext.readerSuffix,
+        takhrijEvidence: takhrijProvenRows.length,
+      });
+      answerLog.note({ path: 'free-brain', ...sourceNoteFields(freeBrainSourceSummary), takhrijEvidence: takhrijProvenRows.length });
+      if ((holdUnsourced || (removedPersonQuestion && !String(readerText || '').trim())) && freeBrainVisibleSourceCount === 0) {
         const { BW2_NOT_COVERED } = await import('../lib/before-writing-v2.js');
         answerLog.note({ flags: ['unsourced_withheld'] });
         out.degraded.push('unsourced:not_covered');
@@ -2785,7 +2790,7 @@ export default async function handler(req, res) {
       // ITEM C3 (axis row 5) -- 2026-10-15 brain-line: the draft stated rulings and none sourced was left
       // (lib/free-brain/loop.js withoutUnsourcedRulings): what stays is followed by the one server-owned
       // not-covered sentence, and the search offer goes out with it, as before writing ends the same case.
-      if (out.notCovered === true && !out.streamedThisTurn) {
+      if (out.notCovered === true && !out.streamedThisTurn && freeBrainVisibleSourceCount === 0) {
         const { BW2_NOT_COVERED } = await import('../lib/before-writing-v2.js');
         readerText = (String(readerText || '').trim() ? String(readerText).trim() + '\n\n' : '') + BW2_NOT_COVERED;
         out.degraded.push('unsourced_ruling:not_covered');
@@ -2796,10 +2801,13 @@ export default async function handler(req, res) {
       readerText = withPatientReferral(readerText, questionText, audienceBand);
       // ITEM r2-7 -- 2026-10-17 brain-line R2: a question about suicide ends on the one comfort sentence (lib/policy/core.js).
       readerText = withSuicideComfort(readerText, questionText);
-      const freeBrainBody = appendRemovedPersonAnswerNote(
-        readerText + (out.truncated === true ? TRUNCATED_MARK : ''),
-        questionText,
-        { blocked: out.notCovered === true || out.refused === true || out.unsourcedWithheld === true },
+      const freeBrainBody = appendRemovedPersonIdentityNote(
+        appendRemovedPersonAnswerNote(
+          readerText + (out.truncated === true ? TRUNCATED_MARK : ''),
+          questionText,
+          { blocked: (out.notCovered === true && freeBrainVisibleSourceCount === 0) || out.refused === true || out.unsourcedWithheld === true },
+        ),
+        removedIdentityQuestion,
       );
       if (takhrijDisclosureOnce(freeBrainBody, takhrijNote)) out.degraded.push('takhrij:limit_declared');
       return emitFreeBrain(freeBrainBody, out.readerUnits);
