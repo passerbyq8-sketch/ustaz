@@ -63,7 +63,7 @@
   const app = document.createElement('div'); app.className = 'journey-app'; app.dataset.game = game;
   document.body.classList.add('ezik-treasure-theme'); document.body.append(app);
   const themeMeta = document.querySelector('meta[name="theme-color"]'); if (themeMeta) themeMeta.content = '#082c38';
-  const OFFLINE_VERSION = '20261026-kfix6';
+  const OFFLINE_VERSION = '20261027-kfix1';
   const THEME_VERSION = OFFLINE_VERSION;
   const IAP_HOST_RESUME_KEY = 'kunuz_iap_host_resume_v1';
   const IAP_EXPIRED_NOTICE_KEY = 'kunuz_iap_expired_notice_v1';
@@ -140,7 +140,6 @@
       const script = document.createElement('script'); script.src = '/quest-data/kunuz-geo.js'; script.onload = resolve; script.onerror = resolve; document.head.append(script);
     });
     const sources = new Set([themeAsset('assets/ocean-clean.webp'), themeAsset('assets/islands.webp')]);
-    if (global.DATA) global.DATA.qs.forEach(q => { if (q.kzPack?.vis?.kind === 'photo') sources.add('/' + q.kzPack.vis.src); });
     const images = [...sources].map(src => new Promise(resolve => { const img = new Image(); warmedImages.push(img); img.onload = resolve; img.onerror = resolve; img.src = src; }));
     for (const name of ['tap', 'success', 'swoosh', 'water-transition', 'bubble']) {
       const audio = new Audio('/quest-theme/audio/' + name + '.wav'); audio.preload = 'auto'; audio.volume = .18; audio.load(); soundCache.set(name, audio);
