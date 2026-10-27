@@ -708,7 +708,7 @@ KZV.register({
       "cat": "historical-events",
       "type": "mcq",
       "fmt": "text",
-      "q": "في أي عام وُقّع الهدنة التي أنهت القتال في الحرب العالمية الأولى؟",
+      "q": "في أي عام وُقّعت الهدنة التي أنهت القتال في الحرب العالمية الأولى؟",
       "choices": [
         "١٨٩٣م",
         "١٩١٨م",
@@ -1791,7 +1791,7 @@ KZV.register({
       "src": [
         "Wikipedia — Palestinian Declaration of Independence — https://en.wikipedia.org/wiki/Palestinian_Declaration_of_Independence"
       ],
-      "level": 1,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
