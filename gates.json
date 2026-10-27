@@ -1065,5 +1065,10 @@
     "name": "postship3answerlog",
     "script": "guards/brain-postship3-answer-log-visibility-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "postship3identityframes",
+    "script": "guards/brain-postship3-identity-frame-guard.cjs",
+    "args": ""
   }
 ]
