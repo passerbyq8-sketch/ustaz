@@ -148,13 +148,13 @@ import { bw2ScopeExclusion } from '../lib/bw2-scope.js';
 // THE FRONT SORTER AND THE GENERAL FRAME (order EZIK-SORTER-ORDER-2026-10-01). One fast-model call
 // separates a worldly request that carries a religious-looking word from a religious one BEFORE it is
 // framed; a turn that ends GENERAL is then answered in the general frame. Both modules are pure.
-import { frontSorterDecision, sorterEligibility, startSorter, runtimeAfterSorter } from '../lib/front-sorter.js';
+import { frontSorterDecision, sorterEligibility, startSorter, runtimeAfterSorter, frameAfterSorter } from '../lib/front-sorter.js';
 // The hard rule for pornography (order EZIK-IMPERMISSIBLE-ORDER-2026-10-01): a request for the content is answered with a fixed text,
 // for every reader, with no model call; a QUESTION about it (its ruling, its harm, quitting it) goes on to its own path.
 import { impermissibleEarlyDecision, classifyPornographyRequest, classifyYoungPornographyDoubt, PORN_REFUSAL_TEXT } from '../lib/policy/porn-request.js';
 // POSTSHIP ITEM 4 -- 2026-10-24: the owner's support address, a fixed text with no model (lib/policy/support-contact.js).
 import { isSupportContactRequest, SUPPORT_CONTACT_TEXT } from '../lib/policy/support-contact.js';
-import { removedPersonAttribution, appendRemovedPersonAnswerNote } from '../lib/removed-sources.js';
+import { removedPersonAttribution, removedPersonIdentity, appendRemovedPersonAnswerNote, appendRemovedPersonIdentityNote } from '../lib/removed-sources.js';
 import { generalizeSystemBlocks } from '../lib/general-frame.js';
 import { takhrijDecision, TAKHRIJ_SKIPPED_STREAMED } from '../lib/takhrij.js';
 // BATCH 4 [b18] — on its own line: guards/takhrij-contract-guard.cjs row 19 pins the line above.
@@ -1151,6 +1151,7 @@ export default async function handler(req, res) {
   const legacyPolicy = await decideLegacyPolicy(req);
   const currentQuestionText = lastUserText(body.messages);
   const removedPersonQuestion = removedPersonAttribution(currentQuestionText);
+  const removedIdentityQuestion = removedPersonIdentity(currentQuestionText);
   if (removedPersonQuestion) console.log('[removed-person]', { role: 'removed_person', action: 'library_source_excluded' });
   // The legacy paths keep their thread IR, but domain/retrieval owns a separate current-turn IR.
   // No entity inferred from older turns may enter the stored query, prompt, answer or telemetry.
@@ -1211,6 +1212,7 @@ export default async function handler(req, res) {
     // `hazard === true`. Harmless while a hazard turn was lexically GENERAL and never asked; with GENERAL asked,
     // the class has to arrive as the boolean the eligibility reads.
     closedDeen: closedDeenAnswers, hazard: !!graveHazardClass, porn: pornBlocked, support: supportContact,
+    removedIdentity: !!removedIdentityQuestion,
   });
   // The frame the free-brain seat answers in: the general one for an adult whose FINAL runtime is GENERAL
   // (and never with the switch off).
@@ -3187,7 +3189,9 @@ export default async function handler(req, res) {
       canonicalId: resolvedNameIdentity ? (resolvedNameIdentity.canonicalId || '')
         : (registryNameIdentity.status === 'resolved' ? registryNameIdentity.domain : ''),
     };
-    const nameShape = probeShape(questionText, unregisteredName, nameIdentityTrust);
+    const nameShape = removedIdentityQuestion
+      ? { probe: false, name: '', kind: PRESENCE.NOT_PROBED }
+      : probeShape(questionText, unregisteredName, nameIdentityTrust);
     let namePresence = {
       probed: false, searchCompleted: false, outcome: PRESENCE.NOT_PROBED,
       retrievalOutcome: 'INCONCLUSIVE',
