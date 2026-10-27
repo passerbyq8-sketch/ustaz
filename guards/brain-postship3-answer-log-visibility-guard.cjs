@@ -26,7 +26,7 @@ const res = () => ({ write() { return true; }, end() { return true; } });
   const line = typeof AL.answerLogFailureLine === 'function'
     ? AL.answerLogFailureLine({ trace: 'trace-p3', question: 'QUESTION_SECRET', answer: 'ANSWER_SECRET' }) : '';
   ok('failure line contains only its fixed tag and safe trace',
-    line === '[answer-log] write_failed trace=trace-p3'
+    line.length > 0 && line === '[answer-log] write_failed trace=trace-p3'
       && !line.includes('QUESTION_SECRET') && !line.includes('ANSWER_SECRET'));
 
   const originalWarn = console.warn;
