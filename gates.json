@@ -1060,5 +1060,10 @@
     "name": "postship3library404",
     "script": "guards/brain-postship3-library-404-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "postship3answerlog",
+    "script": "guards/brain-postship3-answer-log-visibility-guard.cjs",
+    "args": ""
   }
 ]
