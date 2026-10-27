@@ -17,8 +17,8 @@
   const game = path.includes('quest-ghaws') ? 'ghaws' : path.includes('quest-harb') ? 'harb' : path.includes('quest-test') ? 'test' : path.includes('quest-board') ? 'board' : path.includes('hanna-laha') ? 'hanna' : 'hub';
   const hasRooms = game === 'hanna' || game === 'harb' || game === 'board';
   const roomCategoryIds = new Set(global.KunuzRoomCategoryIds || []);
-  const usesRoomBank = () => (game === 'hanna' || game === 'harb') && M.settings.room;
-  const roomCategorySupported = c => roomCategoryIds.has(global.DATA.cats[c]?.[0]);
+  const usesRoomBank = () => (game === 'hanna' || game === 'harb' || game === 'board') && M.settings.room;
+  const roomCategorySupported = c => game === 'board' ? !!boardRooms?.supportsCategory(c) : roomCategoryIds.has(global.DATA.cats[c]?.[0]);
   const entryHistory = hasRooms ? history.state : null;
   const names = { hub: 'كنوز المعرفة', ghaws: 'الغوص', harb: 'حرب الجزر', test: 'اختبر معلوماتك', board: 'تحدّي الفئات', hanna: 'حنّا لها' };
   const limits = { ghaws: [1, 6], harb: [2, 4], test: [1, 4], board: [2, 4], hanna: [2, 10] };
@@ -228,9 +228,19 @@
       M.error = 'تعذّر التحقق من رصيد الحساب. أعدوا تحميل الصفحة.'; render(); return;
     }
     const allowed = () => {
-      try { sessionStorage.removeItem(IAP_HOST_RESUME_KEY); } catch (_) {}
-      M.settings.room = true; M.error = '';
-      if (game === 'hanna') openRoomCode(); else setStage('categories', 1, true);
+      const continueToRoom = () => {
+        try { sessionStorage.removeItem(IAP_HOST_RESUME_KEY); } catch (_) {}
+        M.settings.room = true; M.error = '';
+        if (game === 'hanna') openRoomCode(); else setStage('categories', 1, true);
+      };
+      if (game === 'board') {
+        if (!boardRooms?.loadCatalog) { M.error = 'تعذر تحميل فئات غرف التحدي. حاولوا مرة أخرى.'; render(); return; }
+        boardRooms.loadCatalog().then(() => { M.cats = M.cats.filter(roomCategorySupported); continueToRoom(); }).catch(() => {
+          M.error = 'تعذر تحميل فئات غرف التحدي. تحققوا من الاتصال وحاولوا مرة أخرى.'; render();
+        });
+        return;
+      }
+      continueToRoom();
     };
     Promise.resolve(global.ezikIapCheckHostAccess(game, allowed)).catch(() => {
       M.error = 'تعذّر التحقق من رصيد الحساب الآن. حاولوا مرة أخرى.'; render();
@@ -261,7 +271,7 @@
     return '<h1 class="j-heading">اختاروا فئات مغامرتكم</h1>' +
       (roomBank ? '<p class="j-note">بعض الفئات تُلعب على جهاز واحد فقط، فلا تظهر في الغرف.</p>' : '') + '<p class="j-lead">اختاروا من ثلاث إلى ست فئات. كل فئة بطاقتها الخاصة.</p>' +
       (M.error ? '<div class="j-error" role="alert">' + esc(M.error) + '</div>' : '') +
-      section(all.filter(c => c.index < 53), 'من كنوز المعرفة') + (roomBank ? '' : section(all.filter(c => c.index >= 53), 'فئات إضافية')) +
+      section(all.filter(c => c.index < 53), 'من كنوز المعرفة') + (roomBank && game !== 'board' ? '' : section(all.filter(c => c.index >= 53), 'فئات إضافية')) +
       '<p class="j-note" role="status">' + (M.cats.length >= 6 ? 'وصلتم للحد الأعلى؛ أزيلوا اختيارًا لتختاروا فئة أخرى.' : M.cats.length < 3 ? 'اختاروا ثلاث فئات على الأقل للمتابعة.' : 'فئاتكم جاهزة؛ تقدرون تتابعون.') + '</p>' +
       '<div class="j-actions">' + button('التالي', 'next-setup', 'j-btn', M.cats.length < 3 ? 'disabled' : '') + '</div>';
   }

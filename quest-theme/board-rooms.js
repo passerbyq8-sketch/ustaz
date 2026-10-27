@@ -5,9 +5,32 @@
     const M = h.state, Model = global.KunuzModel, esc = h.esc, ar = h.ar, button = h.button;
     const KEY = 'kunuz_points_board_room_v1', DEVICE = 'kunuz_points_board_device_v1';
     const api = global.KUNUZ_BOARD_API_ORIGIN || 'https://hanna-laha.hl-worker.workers.dev';
-    const digits = h.digits, stamp = () => global.seenStamp() + ':' + global.DATA.qs.length;
+    let roomCategorySlugs = new Set(), roomCategoryIndexes = new Map(), roomCatalogPromise = null, roomBankStamp = '';
+    const digits = h.digits;
     const S = { session: null, snapshot: null, socket: null, connected: false, stopped: true, error: '', note: '', retry: null, heartbeat: null, ticks: null, closeTimer: null, retryCount: 0, slot: 0, name: '', color: 0, answer: null, text: '', returnStage: 'room-entry', busy: false };
     const startWaiters = new Set();
+    async function loadCatalog() {
+      if (roomCategorySlugs.size) return [...roomCategorySlugs];
+      if (!roomCatalogPromise) {
+        roomCatalogPromise = (async () => {
+          const response = await fetch(api + '/api/board/catalog', { cache: 'no-store', signal: AbortSignal.timeout(10000) });
+          if (!response.ok) throw new Error('board-catalog-http-' + response.status);
+          const catalog = await response.json();
+          const categories = catalog && Array.isArray(catalog.categories) ? catalog.categories : [];
+          const slugs = categories.map(category => category && typeof category.slug === 'string' ? category.slug.trim() : '');
+          if (typeof catalog.bankStamp !== 'string' || !catalog.bankStamp || !slugs.length || slugs.some((slug, index) => !slug || !Number.isInteger(categories[index].index)) || new Set(slugs).size !== slugs.length) throw new Error('board-catalog-invalid');
+          roomCategorySlugs = new Set(slugs);
+          roomCategoryIndexes = new Map(categories.map(category => [category.slug.trim(), category.index]));
+          roomBankStamp = catalog.bankStamp;
+          return [...roomCategorySlugs];
+        })().catch(error => { roomCatalogPromise = null; throw error; });
+      }
+      return roomCatalogPromise;
+    }
+    function supportsCategory(index) {
+      const slug = global.DATA.cats[index]?.[0];
+      return !!slug && roomCategorySlugs.has(slug) && roomCategoryIndexes.get(slug) === index;
+    }
     const invalidSessionMessage = 'تعذّرت استعادة دخولكم؛ انضموا من جديد.';
     const errors = { NOT_FOUND: 'ما لقينا غرفة بهذا الرقم.', ROOM_CLOSED: 'أُغلقت الغرفة.', BAD_TOKEN: invalidSessionMessage, BANK_MISMATCH: 'تحتاجون تحديث الصفحة لتطابق أسئلة الغرفة.', OUTDATED: 'حدّثوا الصفحة للانضمام إلى الغرفة.', CODE_TAKEN: 'هذا الرقم مستخدم؛ اختاروا رقمًا آخر.', TEAM_TAKEN: 'الفريق اختاره لاعب آخر؛ اختاروا فريقًا متاحًا.', ROOM_FULL: 'اكتمل عدد الفرق في الغرفة.', NOT_READY: 'تغيّرت الخطوة؛ انتظروا تحديث الغرفة.', STALE: 'تغيّرت الجولة؛ اختاروا من جديد.', TOO_MANY: 'انتظروا قليلًا ثم حاولوا مرة ثانية.', FORBIDDEN: 'هذا الإجراء لصاحب الدور أو صاحب الغرفة.', BAD_CONFIG: 'راجعوا الفئات والفرق والوقت ثم حاولوا.', BAD_MESSAGE: 'راجعوا الاختيار ثم حاولوا مرة ثانية.', SERVER: 'تعذّر الاتصال بالغرفة؛ حاولوا مرة ثانية.' };
     function identity() { try { let id = localStorage.getItem(DEVICE); if (!id) { id = 'board-' + crypto.randomUUID(); localStorage.setItem(DEVICE, id); } return id; } catch (_) { return S.device ||= 'board-' + crypto.randomUUID(); } }
@@ -66,7 +89,7 @@
       save();
     }
     function apply(snapshot) {
-      if (snapshot.bankStamp !== stamp()) { permanent('BANK_MISMATCH'); return; }
+      if (snapshot.bankStamp !== roomBankStamp) { permanent('BANK_MISMATCH'); return; }
       if (S.snapshot && snapshot.roomId === S.snapshot.roomId && snapshot.version < S.snapshot.version) return;
       const changedQuestion = snapshot.question?.qn !== S.snapshot?.question?.qn;
       S.snapshot = snapshot; S.error = ''; S.busy = false;
@@ -84,13 +107,17 @@
     }
     function connect() {
       if (!S.session) return;
+      if (!roomBankStamp) {
+        loadCatalog().then(() => { if (S.session) connect(); }).catch(() => { S.error = errors.SERVER; h.render(); });
+        return;
+      }
       S.stopped = false; S.connected = false; clearInterval(S.heartbeat); clearInterval(S.ticks);
       const session = S.session, socket = new WebSocket(api.replace(/^http/, 'ws') + '/ws/board/' + session.code + (session.hostToken || session.teamToken ? '' : '?j=1'));
       S.socket = socket;
       socket.onopen = () => {
         if (socket !== S.socket) return;
         S.connected = true; S.retryCount = 0;
-        socket.send(JSON.stringify({ t: 'hello', v: 1, deviceId: identity(), bankStamp: stamp(), ...(session.roomId ? { roomId: session.roomId } : {}), ...(session.hostToken ? { hostToken: session.hostToken } : {}), ...(session.teamToken ? { teamToken: session.teamToken } : {}) }));
+        socket.send(JSON.stringify({ t: 'hello', v: 1, deviceId: identity(), bankStamp: roomBankStamp, ...(session.roomId ? { roomId: session.roomId } : {}), ...(session.hostToken ? { hostToken: session.hostToken } : {}), ...(session.teamToken ? { teamToken: session.teamToken } : {}) }));
         S.heartbeat = setInterval(() => { if (socket.readyState === WebSocket.OPEN) socket.send('ping'); }, 20000);
         S.ticks = setInterval(() => h.paintTime(), 200);
       };
@@ -121,9 +148,11 @@
       const roomCode = digits(M.settings.roomCode), seconds = h.time();
       if (roomCode && !/^\d{4,6}$/.test(roomCode)) { M.error = 'رقم الغرفة من ٤ إلى ٦ خانات.'; h.render(); return; }
       if (!Number.isInteger(seconds * 1000) || seconds < 0 || seconds > 3600 || !Number.isInteger(M.settings.reveals) || M.settings.reveals < 0 || M.settings.reveals > 99) { M.error = 'وقت الغرفة من صفر إلى ٣٦٠٠ ثانية، ورصيد الخيارات من صفر إلى ٩٩.'; h.render(); return; }
+      try { await loadCatalog(); } catch (_) { M.error = errors.SERVER; h.render(); return; }
+      if (M.cats.some(index => !supportsCategory(index))) { M.error = errors.BANK_MISMATCH; h.render(); return; }
       M.history ||= Model.history(); M.history.read();
       const seen = global.DATA.qs.flatMap((q, index) => Model.live(index) && M.cats.includes(q[0]) && M.history.has(index) ? [{ id: String(q[8]), last: M.history.last(index) }] : []);
-      const config = { cats: M.cats.slice(), teams: M.teams.map((t, i) => ({ name: t.n.trim() || 'الفريق ' + ar(i + 1), color: Math.max(0, h.colors.indexOf(t.c)) })), timeMs: seconds * 1000, options: M.settings.options, reveals: M.settings.reveals, questionOrder: M.settings.difficulty, bankStamp: stamp(), seen, ...(roomCode ? { roomCode } : {}) };
+      const config = { cats: M.cats.slice(), teams: M.teams.map((t, i) => ({ name: t.n.trim() || 'الفريق ' + ar(i + 1), color: Math.max(0, h.colors.indexOf(t.c)) })), timeMs: seconds * 1000, options: M.settings.options, reveals: M.settings.reveals, questionOrder: M.settings.difficulty, bankStamp: roomBankStamp, seen, ...(roomCode ? { roomCode } : {}) };
       S.busy = true; M.error = ''; h.render();
       try {
         const response = await fetch(api + '/api/board/rooms', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ deviceId: identity(), config }), signal: AbortSignal.timeout(20000) });
@@ -239,7 +268,7 @@
     }
     global.addEventListener('pagehide', () => stop());
     global.addEventListener('pageshow', event => { if (event.persisted && S.session) connect(); });
-    return Object.freeze({ create, card, view, handle, input, resume, join: code => { let saved; try { saved = JSON.parse(localStorage.getItem(KEY)); } catch (_) {} enter(saved?.code === code ? saved : { code, role: 'candidate' }, 'room-join'); }, leave, get busy() { return S.busy; }, get active() { return !!S.session; }, get diagnostics() { return { connected: S.connected, snapshot: S.snapshot, error: S.error }; } });
+    return Object.freeze({ create, card, view, handle, input, resume, loadCatalog, supportsCategory, join: code => { let saved; try { saved = JSON.parse(localStorage.getItem(KEY)); } catch (_) {} enter(saved?.code === code ? saved : { code, role: 'candidate' }, 'room-join'); }, leave, get busy() { return S.busy; }, get active() { return !!S.session; }, get diagnostics() { return { connected: S.connected, snapshot: S.snapshot, error: S.error }; } });
   }
   global.KunuzBoardRooms = Object.freeze({ attach });
 })(window);
