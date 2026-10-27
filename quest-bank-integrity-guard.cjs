@@ -2039,7 +2039,9 @@ const SEALED = {
   //   2026-10-26 -- YAHIMMAK, the section «يهمّك» (yahimmak.json and yahimmak-book.json warm in IDLE, not CORE) and cache ezik-v113 -> ezik-v114: app.js 2290753 -> 2356171 bytes, sha256 f097839d..2de5; node tools/core-bytes.cjs --write: CORE_BYTES 3542185.
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57787 bytes).
 //   2026-10-26 -- KUNUZ FIX phase5 preview: cache ezik-v114 -> ezik-v115; YAHIMMAK content remains in app.js; app.js 2356171 bytes, sha256 e2d8cdd6d7a2; CORE_BYTES remains 3542185.
-  'sw.js': 'ca3e9bdfb06e8193682a3039f5f13849a5e84ca93a9b6b63dd2ba39f8e2b27fe',
+  //   2026-10-27 -- YAHIMMAK-FIX1 ship: cache ezik-v116 -> ezik-v117 (page 10 of the book text and its note; the lang size line): app.js 2356094 -> 2356281 bytes, sha256 8381b7bd..5ef4; node tools/core-bytes.cjs --write: CORE_BYTES 3542295.
+//                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57787 bytes).
+  'sw.js': 'fd128ffd729b1abb1cf1e00a3d2a84c8fb208214cf535b2c402beacde9c437f1',
 };
 
 // ---------------------------------------------------------------------------
@@ -3228,7 +3230,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2356094, of: 'app.js' },
+      { n: 2356281, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
