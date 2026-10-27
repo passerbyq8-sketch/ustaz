@@ -2254,7 +2254,7 @@ export default async function handler(req, res) {
           // religious key). The offer above is untouched; this is the prefetch, not the tool.
           lessonsPrefetch: band === 'adult' && libToken !== '' ? { token: libToken } : null,
           // POSTSHIP ITEM 12 -- 2026-10-24: a shari'a turn streams nothing before its sources are known (holdUnsourced below).
-          onWriteUnit: (detail) => (holdUnsourced ? false : liveFreeBrainUnits.push(detail)),
+          onWriteUnit: (detail) => ((holdUnsourced || !!removedPersonQuestion) ? false : liveFreeBrainUnits.push(detail)),
           // BATCH 4 [b18] — the takhrij pass below runs on a streamed turn too, so the stream holds
           // the units it could change. The same three conditions the pass itself is gated on.
           takhrijHold: takhrijDecision().enabled && band === 'adult' && libFlagValue === 'on' && libToken !== ''

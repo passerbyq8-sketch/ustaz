@@ -35,14 +35,40 @@ const questions = [
       && unblocked === sample + '\n\n' + note && unblocked.split(note).length === 2);
     ok(id + ' suppresses the note when the answer is blocked', blocked === sample);
   }
-  ok('the measured say-form is an attribution trigger', S.TRIGGERS.has(A('64a 642 648 644')));
+  const sayForm = A('64a 642 648 644');
+  ok('shared BW2 scholar triggers remain at the c14 count', S.TRIGGERS.size === 11);
+  ok('the measured say-form is not a shared BW2 scholar trigger', !S.TRIGGERS.has(sayForm));
   const sayQuestion = questions.find(([id]) => id === 'sibling_2_says')[1];
-  const extracted = R.normalizeRemovedName(S.scholarNameOf(sayQuestion));
-  ok('the BW2 scholar parser extracts the name after the measured say-form',
-    extracted.includes(A('639 645 631')) && extracted.includes(A('639 628 62f')) && extracted.includes(A('643 627 641 64a')));
-  const identity = A('645 646 20 647 648 20') + A('639 645 631 20 639 628 62f 20 627 644 643 627 641 64a');
+  const local = R.removedPersonAttribution(sayQuestion);
+  ok('the measured say-form remains a local removed-person trigger',
+    !!local && local.id === 'umar-abd-al-kafi' && local.role === 'removed_person');
+  ok('the shared scholar parser does not widen for the measured say-form', S.scholarNameOf(sayQuestion) === '');
+  const speechVerbs = [
+    ['say_present', A('64a 642 648 644')],
+    ['say_past', A('642 627 644')],
+    ['see_present', A('64a 631 649')],
+    ['see_past', A('631 623 649')],
+    ['issue_present', A('64a 641 62a 64a')],
+    ['issue_past', A('623 641 62a 649')],
+    ['mention_present', A('64a 630 643 631')],
+    ['mention_past', A('630 643 631')],
+  ];
+  ok('local removed-person speech matcher is exported', typeof R.isRemovedPersonSpeechVerb === 'function');
+  for (const [id, verb] of speechVerbs) {
+    ok(id + ' is recognized only by the removed-person matcher',
+      typeof R.isRemovedPersonSpeechVerb === 'function' && R.isRemovedPersonSpeechVerb(verb));
+  }
+  const rawName = A('639 645 631 20 639 628 62f 20 627 644 643 627 641 64a');
+  const queryFrame = A('645 627 20 642 627 644');
+  for (const cp of [0x648, 0x641, 0x644, 0x628]) {
+    const attribution = R.removedPersonAttribution(queryFrame + ' ' + String.fromCodePoint(cp) + rawName + A('61f'));
+    ok('single name prefix ' + cp.toString(16) + ' is matched', !!attribution && attribution.role === 'removed_person');
+  }
+  const identity = A('645 646 20 647 648 20') + rawName;
   ok('ordinary identity questions do not get an attribution note', R.removedPersonAttribution(identity) === null
     && R.removedPersonAnswerNote(identity) === '');
+  const untriggered = A('645 627 20 62d 643 645 20') + rawName;
+  ok('a complete removed name alone does not activate attribution role', R.removedPersonAttribution(untriggered) === null);
   console.log('\n' + (checks - failures) + '/' + checks + ' checks passed');
   process.exit(failures ? 1 : 0);
-})().catch((e) => { console.log('FAIL  guard crashed: ' + (e && e.stack || e)); process.exit(1); });
+})().catch((e) => { console.log('FAIL guard crashed: ' + (e && e.message || 'unknown error')); process.exit(1); });
