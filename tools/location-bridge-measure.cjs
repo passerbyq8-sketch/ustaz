@@ -118,6 +118,9 @@ const V_HEADING_RESULT = innerConst('QiblaPanel', 'onHeadingResult');
 const V_HEADING_RETRY = innerConst('QiblaPanel', 'retryShellHeading');
 const V_BROWSER_COMPASS = innerConst('QiblaPanel', 'startCompass');
 const FN_QIBLA_PANEL = topFunction('QiblaPanel');
+// PRAYER REBUILD (29 October 2026): the handler hands every reading to the panel's intake (takeHeading) and believes
+// the shell's calibration verdict only after QIBLA_CALIB_SKIP readings (measure report F8-c).
+const C_CALIB_SKIP = topConst('QIBLA_CALIB_SKIP');
 
 const HEADING_UI_NAMES = [
   'QIBLA_COMPASS_LIVE',
@@ -190,8 +193,10 @@ const headingHarness = makeHeadingHarness();
 
 const HEADING_EVENT_HARNESS = [
   '"use strict";',
-  'const setHeading = env.setHeading;',
   'const setCompass = env.setCompass;',
+  'const takeHeading = env.takeHeading;',
+  'const readsRef = env.readsRef;',
+  text(C_CALIB_SKIP),
   text(C_HEADING_RESULT),
   text(C_HEADING_STATUSES),
   text(FN_HEADING),
@@ -604,36 +609,48 @@ run('calibration marks the arrow itself as untrusted, while ready removes that m
   const calibration = headingHarness.qiblaNeedleVisual('calibration-needed');
   const ready = headingHarness.qiblaNeedleVisual('ready');
   eq(calibration, {
-    fill: 'none', stroke: 'var(--red)', strokeWidth: 3, strokeDasharray: '6 4', untrusted: 'true',
+    fill: 'none', stroke: '#12327A', strokeWidth: 3, strokeDasharray: '6 4', untrusted: 'true',
   }, 'calibration arrow visual');
   is(Object.prototype.hasOwnProperty.call(calibration, 'untrusted'),
     'the calibration arrow has no untrusted marker');
   is(!Object.prototype.hasOwnProperty.call(ready, 'untrusted'),
     'the ready arrow still carries the untrusted marker');
-  eq(ready, { fill: 'var(--red)' }, 'ready arrow visual');
+  eq(ready, { fill: '#12327A' }, 'ready arrow visual');
   is(text(FN_QIBLA_PANEL).indexOf('data-ezik-heading-untrusted={needleVisual.untrusted}') !== -1,
     'the marker is not wired to the arrow path');
   return 'calibration = hollow dashed + marker; ready = original solid path + no marker';
 });
 
 run('all five shell statuses remain distinct, and status -- not accuracy -- is the judgment', () => {
+  // PRAYER REBUILD (29 October 2026): a reading goes to the intake; a failure hands the intake nothing. A calibration
+  // verdict in the first QIBLA_CALIB_SKIP readings is the shell's stuck start value and reads as ready; the one after
+  // them is believed (F8-c).
   const cases = [
     ['ready', headingResult('ready', { accuracy: 0 }), [224], ['ready']],
-    ['calibration-needed', headingResult('calibration-needed', { accuracy: 3 }), [224], ['calibration-needed']],
-    ['sensor-unavailable', headingResult('sensor-unavailable'), [null], ['sensor-unavailable']],
-    ['permission-denied', headingResult('permission-denied'), [null], ['permission-denied']],
-    ['heading-error', headingResult('heading-error'), [null], ['heading-error']],
+    ['calibration-needed', headingResult('calibration-needed', { accuracy: 3 }), [224], ['ready']],
+    ['sensor-unavailable', headingResult('sensor-unavailable'), [], ['sensor-unavailable']],
+    ['permission-denied', headingResult('permission-denied'), [], ['permission-denied']],
+    ['heading-error', headingResult('heading-error'), [], ['heading-error']],
   ];
   for (const c of cases) {
     const headings = [];
     const states = [];
+    const reads = { current: { n: 0, list: [] } };
     const onResult = makeHeadingEventHandler({
-      setHeading: (v) => { headings.push(v); },
+      takeHeading: (v) => { headings.push(v); reads.current.n += 1; },
+      readsRef: reads,
       setCompass: (v) => { states.push(v); },
     });
     onResult({ detail: c[1] });
     eq(headings, c[2], 'heading updates for ' + c[0]);
     eq(states, c[3], 'compass states for ' + c[0]);
+  }
+  {
+    const states = [];
+    const reads = { current: { n: 0, list: [] } };
+    const onResult = makeHeadingEventHandler({ takeHeading: () => { reads.current.n += 1; }, readsRef: reads, setCompass: (v) => { states.push(v); } });
+    for (let i = 0; i < 6; i++) onResult({ detail: headingResult('calibration-needed', { accuracy: 1 }) });
+    eq(states, ['ready', 'ready', 'ready', 'ready', 'ready', 'calibration-needed'], 'six calibration readings: the stuck start value, then the verdict');
   }
   is(text(V_HEADING_RESULT).indexOf('.status') !== -1, 'the result handler never reads status');
   is(text(V_HEADING_RESULT).indexOf('accuracy') === -1,
@@ -684,8 +701,14 @@ run('no bridge keeps the existing DeviceOrientation path and never wraps it in s
     'the browser orientation function was coupled to the shell');
   is(panel.indexOf("useState(headingBridgeRef.current ? 'wait' : 'off')") !== -1
     && panel.indexOf("compass === 'off' || compass === 'none'") !== -1
-    && panel.indexOf('onClick={startCompass}') !== -1,
+    && panel.indexOf('onClick={() => startCompass(null, true)}') !== -1,
   'an absent bridge no longer reaches the old off/none button path');
+  // PRAYER REBUILD (29 October 2026): the compass screen starts the browser's sensor at entry with the gesture the
+  // opening press parked, and the starter's first line refuses the shell -- one source there, never two
+  is(panel.indexOf('startCompass(QIBLA_GESTURE, false)') !== -1
+    && browser.indexOf('if (headingBridgeRef.current) return;') !== -1
+    && browser.indexOf("if (!fromPress) { setCompass('off'); return; }") !== -1,
+  'the compass screen no longer starts at entry from the parked gesture, or the shell can reach the browser listeners');
   is(panel.indexOf('QIBLA_COMPASS_NONE') !== -1,
     'the existing browser failure sentence was removed');
   return 'DeviceOrientation + permission press intact; absent bridge starts off and keeps its button';

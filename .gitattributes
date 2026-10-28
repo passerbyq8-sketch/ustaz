@@ -877,6 +877,9 @@ guards/prayer-ojeiri-guard.cjs text eol=lf
 data/prayer-ojeiri-kw-2026-10.csv text eol=lf
 data/prayer-ojeiri-kw-2026-11.csv text eol=lf
 guards/prayer-features-guard.cjs text eol=lf
+
+# PRAYER BUILD (29 October 2026): the compass arithmetic of the rebuilt prayer section.
+guards/compass-math-guard.cjs text eol=lf
 places.json text eol=lf
 guards/lang-guard.cjs text eol=lf
 lib/lang/table.js text eol=lf

@@ -148,7 +148,8 @@ function boot(opts) {
     if (/\bezonb\b/.test(cls)) return 'onboarding';
     if (/\bezgate\b/.test(cls)) return 'gate';
     if (/\bezf\b/.test(cls)) return 'fatwa';
-    if (Array.from(root.querySelectorAll('svg')).some((el) => el.getAttribute('aria-label') === read('QIBLA_SECTION'))) return 'compass';
+    // PRAYER REBUILD (29 October 2026): the compass screen is the one place the dial is drawn bare (its wrap is .is-full)
+    if (Array.from(root.querySelectorAll('svg[data-ezik-compass="dial"]')).some((el) => el.closest && el.closest('.ez110-qibla-dialwrap.is-full'))) return 'compass';
     const shellBrand = root.querySelector('.ezsh-brand');
     if (shellBrand) {
       const spans = shellBrand.querySelectorAll('span');

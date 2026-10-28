@@ -2056,6 +2056,19 @@ const EZ_I18N = {
     'mem86.sim.shared': '{n} كلمات مشتركة',
     'mem86.sim.diff': 'المسطّر بنقاط يشبه في النطق ويختلف في الرسم.',
     'mem86.close': 'إغلاق',
+    // PRAYER REBUILD (29 October 2026) -- the compass screen (panels 2 and 3)
+    'qibla.dial.aria': '\u0628\u0648\u0635\u0644\u0629 \u0627\u0644\u0642\u0628\u0644\u0629',
+    'qibla.dial.n': '\u0634',
+    'qibla.dial.e': '\u0642',
+    'qibla.dial.s': '\u062C',
+    'qibla.dial.w': '\u063A',
+    'qibla.line': '\u0627\u0644\u0642\u0628\u0644\u0629 {n}\u00B0 \u0645\u0646 \u0627\u0644\u0634\u0645\u0627\u0644',
+    'qibla.badge.calib': '\u0627\u0644\u062F\u0642\u0651\u0629 \u0636\u0639\u064A\u0641\u0629 \u2014 \u062D\u0631\u0651\u0643 \u0627\u0644\u062C\u0648\u0627\u0644 \u0639\u0644\u0649 \u0634\u0643\u0644 \u0668',
+    'qibla.allowLoc': '\u0627\u0644\u0633\u0645\u0627\u062D \u0628\u0627\u0644\u0645\u0648\u0642\u0639',
+    'qibla.kaaba': '\u0627\u0644\u0643\u0639\u0628\u0629',
+    'qibla.sun': '\u0627\u0644\u0634\u0645\u0633',
+    'qibla.pin': '\u062A\u062B\u0628\u064A\u062A \u0627\u0644\u0625\u0628\u0631\u0629',
+    'qibla.unpin': '\u062A\u062D\u0631\u064A\u0631 \u0627\u0644\u0625\u0628\u0631\u0629',
   },
   en: {
     'common.close': 'Close',
@@ -3695,6 +3708,19 @@ const EZ_I18N = {
     'mem86.sim.shared': '{n} shared words',
     'mem86.sim.diff': 'Words underlined with dots sound alike but are written differently.',
     'mem86.close': 'Close',
+    // PRAYER REBUILD (29 October 2026) -- the compass screen (panels 2 and 3)
+    'qibla.dial.aria': 'Qibla compass',
+    'qibla.dial.n': 'N',
+    'qibla.dial.e': 'E',
+    'qibla.dial.s': 'S',
+    'qibla.dial.w': 'W',
+    'qibla.line': 'Qibla {n}\u00B0 from north',
+    'qibla.badge.calib': 'Low accuracy \u2014 move the phone in a figure eight',
+    'qibla.allowLoc': 'Allow location',
+    'qibla.kaaba': 'Kaaba',
+    'qibla.sun': 'Sun',
+    'qibla.pin': 'Pin the needle',
+    'qibla.unpin': 'Release the needle',
   },
 };
 
@@ -29416,13 +29442,15 @@ function qiblaNeedleAngle(bearing, heading) {
 // Calibration does not stop the direction stream, but its arrow must look provisional without
 // asking the reader to remember the warning below it. Ready/live keeps the original solid path;
 // calibration alone gets a hollow dashed outline and carries the marker on the arrow itself.
+// PRAYER REBUILD (29 October 2026): the needle's head is navy (#12327A, panel 2); calibration keeps the hollow dashed
+// outline it always had, in the same navy, and still carries the marker on the arrow itself.
 function qiblaNeedleVisual(compass) {
   if (compass === 'calibration-needed') {
     return {
-      fill: 'none', stroke: 'var(--red)', strokeWidth: 3, strokeDasharray: '6 4', untrusted: 'true',
+      fill: 'none', stroke: '#12327A', strokeWidth: 3, strokeDasharray: '6 4', untrusted: 'true',
     };
   }
-  return { fill: 'var(--red)' };
+  return { fill: '#12327A' };
 }
 // THE POSITION. Default Kuwait, always readable, never written by a read. `by` says which it is,
 // so no line on the screen can call the default a measurement.
@@ -32710,10 +32738,210 @@ const QIBLA_SETTLE_MS = 600;
 const PRAYER_SHEET_TITLE = 'الصلاة والقبلة';
 const QIBLA_NEEDLE_MS = 4000;
 
+// ============================================================
+// PRAYER REBUILD (29 October 2026) -- THE COMPASS ENGINE: one continuous angle, the shortest arc, true north
+// ============================================================
+// THE FAULT THIS CLOSES (measure report, F5). The needle was turned by `rotate(Xdeg)` with X clamped to [0, 360)
+// under a 600 ms CSS transition. Facing the qibla put X at 0/360, every jitter of the hand flipped it between 0.6
+// and 359.6, and the transition walked the NUMERIC distance -- a full turn for every degree the phone moved, at the
+// very moment the reader was pointing right. So the shown angle is now CONTINUOUS and unbounded: every step adds the
+// shortest signed arc and nothing ever reduces it modulo 360. The settle is exponential (the listener stage of
+// com.haz.prayer, factor 0.25, design brief section 1), driven by requestAnimationFrame -- not a transition per event
+// -- and a gap wider than QIBLA_SNAP_DEG is a straight jump, so a phone spun round is not chased through a lazy arc.
+const QIBLA_SMOOTH_ALPHA = 0.25;   // the exponential factor of each frame's step toward the target
+const QIBLA_SNAP_DEG = 90;         // a gap wider than this is not smoothed and gets no transition: the dial jumps
+const QIBLA_ALIGN_DEG = 3;         // within this of the qibla the ring turns green and the hub shows its check
+const QIBLA_TURN_MS = 160;         // the CSS transition left on each step (the order's ceiling is 250 ms)
+const QIBLA_CALIB_SKIP = 5;        // the shell's `accuracy` is stuck at its start value in its first readings (F8-c)
+const QIBLA_STD_WINDOW = 20;       // Android browser: readings whose circular spread passes QIBLA_STD_DEG read as poor
+const QIBLA_STD_DEG = 12;
+const QIBLA_IOS_ACC_DEG = 25;      // iOS: webkitCompassAccuracy above this, or negative, reads as poor
+// The shortest signed arc from one angle to another, in [-180, 180).
+function qiblaArcDelta(from, to) {
+  if (typeof from !== 'number' || typeof to !== 'number' || !isFinite(from) || !isFinite(to)) return 0;
+  return (((to - from + 540) % 360) + 360) % 360 - 180;
+}
+// One smoothing step of the shown angle toward the target: exponential over the shortest arc; a gap over the snap
+// width jumps straight. The result is NOT reduced modulo 360 -- that is the whole cure.
+function qiblaSmoothStep(shown, target, alpha) {
+  if (typeof target !== 'number' || !isFinite(target)) return shown;
+  if (typeof shown !== 'number' || !isFinite(shown)) return target;
+  const d = qiblaArcDelta(shown, target);
+  if (Math.abs(d) > QIBLA_SNAP_DEG) return shown + d;
+  const a = (typeof alpha === 'number' && alpha > 0 && alpha <= 1) ? alpha : QIBLA_SMOOTH_ALPHA;
+  return shown + d * a;
+}
+// The way the screen is held (F2): the orientation angle is added to the browser's device heading. The shell is
+// locked to portrait and never comes here.
+function qiblaScreenAngle() {
+  try {
+    if (typeof screen !== 'undefined' && screen.orientation && typeof screen.orientation.angle === 'number' && isFinite(screen.orientation.angle)) return screen.orientation.angle;
+    if (typeof window !== 'undefined' && typeof window.orientation === 'number' && isFinite(window.orientation)) return window.orientation;
+  } catch (e) {}
+  return 0;
+}
+// The circular standard deviation of a list of headings, in degrees: the Android browser's only accuracy signal.
+function qiblaSpreadDeg(list) {
+  if (!Array.isArray(list) || list.length < 2) return 0;
+  const R = Math.PI / 180;
+  let sx = 0, sy = 0;
+  for (let i = 0; i < list.length; i++) { sx += Math.cos(list[i] * R); sy += Math.sin(list[i] * R); }
+  const r = Math.sqrt(sx * sx + sy * sy) / list.length;
+  if (r <= 0) return 180;
+  return Math.sqrt(-2 * Math.log(Math.min(1, r))) / R;
+}
+// The sun's azimuth (clockwise from true north) and altitude at an instant, from the SAME solar position the prayer
+// calculator reads (prayerSunPosition): drawn on the dial so the reader can check the compass against the sky.
+function prayerSunAzimuth(ms, lat, lng) {
+  if (typeof ms !== 'number' || !isFinite(ms) || typeof lat !== 'number' || typeof lng !== 'number' || !isFinite(lat) || !isFinite(lng)) return null;
+  const R = Math.PI / 180;
+  const p = prayerSunPosition(2440587.5 + ms / 86400000);
+  const ut = (((ms / 3600000) % 24) + 24) % 24;
+  const H = (ut + lng / 15 + p.eqt - 12) * 15;
+  const sa = Math.sin(lat * R) * Math.sin(p.decl * R) + Math.cos(lat * R) * Math.cos(p.decl * R) * Math.cos(H * R);
+  const alt = Math.asin(Math.max(-1, Math.min(1, sa))) / R;
+  const az = (((Math.atan2(Math.sin(H * R), Math.cos(H * R) * Math.sin(lat * R) - Math.tan(p.decl * R) * Math.cos(lat * R)) / R + 540) % 360) + 360) % 360;
+  return { az: az, alt: alt };
+}
+// The section's own digits (ROUND 29 October, panel 6: Western by default, Arabic-Indic by the reader's choice in the
+// prayer settings). Read through the prayer preferences; in a sandbox that lifts this function alone it is Western.
+function prayerNum(v) {
+  const sv = String(v == null ? '' : v);
+  let d = 'latn';
+  try { d = readPrayerPrefs().digits; } catch (e) { d = 'latn'; }
+  if (d !== 'arab') return sv;
+  const z = '٠١٢٣٤٥٦٧٨٩';
+  return sv.replace(/[0-9]/g, (c) => z[c]);
+}
+// ============================================================
+// WMM2025 -- MAGNETIC DECLINATION, FOR THE BROWSER'S READINGS ALONE (measure report F6)
+// ============================================================
+// A browser compass reads MAGNETIC north (webkitCompassHeading on iOS, the absolute alpha on Android) while the qibla
+// bearing is from TRUE north; the gap is the local declination (about +3.7 degrees in Kuwait City on the day this was
+// built). The shell adds it itself (Expo's trueHeading), so nothing is added on that road. The model is NOAA/BGS
+// WMM2025 (epoch 2025.0, valid 2025-2030): the 90 main-field pairs and their 90 secular-variation pairs to degree 12,
+// in the file's own order (n = 1..12, m = 0..n), read from the official WMM2025.COF (NCEI, dated 11/13/2024) as
+// redistributed inside the pygeomag 1.1.0 package on PyPI, and validated by the session's reference script against
+// NCEI's WMM2025_TEST_VALUES.txt (12 points, worst declination miss 0.005 degrees). Gate compassmath holds the
+// Kuwait, London and New York values of the build day. No network, no clock inside: the date is an argument.
+const WMM_EPOCH = 2025;
+const WMM_N = 12;
+const WMM_G = [
+  -29351.8, -1410.8, -2556.6, 2951.1, 1649.3, 1361, -2404.1, 1243.8, 453.6, 895, 799.5, 55.7, -281.1, 12.1, -233.2,
+  368.9, 187.2, -138.7, -142, 20.9, 64.4, 63.8, 76.9, -115.7, -40.9, 14.9, -60.7, 79.5, -77, -8.8,
+  59.3, 15.8, 2.5, -11.1, 14.2, 23.2, 10.8, -17.5, 2, -21.7, 16.9, 15, -16.8, 0.9, 4.6,
+  7.8, 3, -0.2, -2.5, -13.1, 2.4, 8.6, -8.7, -12.9, -1.3, -6.4, 0.2, 2, -1, -0.6,
+  -0.9, 1.5, 0.9, -2.7, -3.9, 2.9, -1.5, -2.5, 2.4, -0.6, -0.1, -0.6, -0.1, 1.1, -1,
+  -0.2, 2.6, -2, -0.2, 0.3, 1.2, -1.3, 0.6, 0.6, 0.5, -0.1, -0.4, -0.2, -1.3, -0.7,
+];
+const WMM_H = [
+  0, 4545.4, 0, -3133.6, -815.1, 0, -56.6, 237.5, -549.5, 0, 278.6, -133.9, 212, -375.6, 0,
+  45.4, 220.2, -122.9, 43, 106.1, 0, -18.4, 16.8, 48.8, -59.8, 10.9, 72.7, 0, -48.9, -14.4,
+  -1, 23.4, -7.4, -25.1, -2.3, 0, 7.1, -12.6, 11.4, -9.7, 12.7, 0.7, -5.2, 3.9, 0,
+  -24.8, 12.2, 8.3, -3.3, -5.2, 7.2, -0.6, 0.8, 10, 0, 3.3, 0, 2.4, 5.3, -9.1,
+  0.4, -4.2, -3.8, 0.9, -9.1, 0, 0, 2.9, -0.6, 0.2, 0.5, -0.3, -1.2, -1.7, -2.9,
+  -1.8, -2.3, 0, -1.3, 0.7, 1, -1.4, 0, 0.6, -0.1, 0.8, 0.1, -1, 0.1, 0.2,
+];
+const WMM_GD = [
+  12, 9.7, -11.6, -5.2, -8, -1.3, -4.2, 0.4, -15.6, -1.6, -2.4, -6, 5.6, -7, 0.6,
+  1.4, 0, 0.6, 2.2, 0.9, -0.2, -0.4, 0.9, 1.2, -0.9, 0.3, 0.9, 0, -0.1, -0.1,
+  0.5, -0.1, -0.8, -0.8, 0.8, -0.1, 0.2, 0, 0.5, -0.1, 0.3, 0.2, 0, 0.2, 0,
+  -0.1, 0.1, 0.3, -0.3, 0, 0.3, -0.1, 0.1, -0.1, 0.1, 0, 0.1, 0.1, 0, -0.3,
+  0, -0.1, -0.1, 0, 0, 0, 0, 0, 0, 0, -0.1, 0, 0, -0.1, -0.1,
+  -0.1, -0.1, 0, 0, 0, 0, 0, 0, 0.1, 0, 0, 0, -0.1, 0, -0.1,
+];
+const WMM_HD = [
+  0, -21.5, 0, -27.7, -12.1, 0, 4, -0.3, -4.1, 0, -1.1, 4.1, 1.6, -4.4, 0,
+  -0.5, 2.2, 0.4, 1.7, 1.9, 0, 0.3, -1.6, -0.4, 0.9, 0.7, 0.9, 0, 0.6, 0.5,
+  -0.8, 0, -1, 0.6, -0.2, 0, -0.2, 0.5, -0.4, 0.4, -0.5, -0.6, 0.3, 0.2, 0,
+  -0.3, 0.3, -0.3, 0.3, 0.2, -0.1, -0.2, 0.4, 0.1, 0, 0, 0, -0.2, 0.1, -0.1,
+  0.1, 0, -0.1, 0.2, 0, 0, 0, 0.1, 0, 0.1, 0, 0, 0.1, 0, 0,
+  0, 0, 0, 0, 0, -0.1, 0.1, 0, 0, 0, 0, 0, 0, 0, -0.1,
+];
+// Declination in degrees (east positive) at a geodetic position on the WGS84 ellipsoid (sea level) for a decimal year,
+// or null for an unusable input. Schmidt semi-normalised Legendre functions by the standard recursions, the field
+// summed in geocentric coordinates and rotated back to geodetic -- the WMM technical report's own procedure.
+function wmmDeclination(lat, lon, dateYears) {
+  if (typeof lat !== 'number' || typeof lon !== 'number' || typeof dateYears !== 'number') return null;
+  if (!isFinite(lat) || !isFinite(lon) || !isFinite(dateYears) || lat < -90 || lat > 90 || lon < -180 || lon > 180) return null;
+  const R = Math.PI / 180, a = 6378.137, e2 = 0.00669437999014, re = 6371.2;
+  const phi = lat * R, lam = lon * R, sp = Math.sin(phi), cp = Math.cos(phi);
+  const rc = a / Math.sqrt(1 - e2 * sp * sp);
+  const p = rc * cp, z = rc * (1 - e2) * sp;
+  const r = Math.sqrt(p * p + z * z), phic = Math.atan2(z, p);
+  const sq = Math.sin(phic), cq = Math.cos(phic);
+  const dt = dateYears - WMM_EPOCH;
+  const N = WMM_N;
+  // Schmidt factors S[n][m] and the unnormalised Legendre functions P[n][m], dP[n][m] (derivative in the colatitude sense)
+  const S = [], P = [], dP = [];
+  for (let n = 0; n <= N; n++) { S.push(new Array(N + 1).fill(0)); P.push(new Array(N + 1).fill(0)); dP.push(new Array(N + 1).fill(0)); }
+  S[0][0] = 1; P[0][0] = 1; dP[0][0] = 0;
+  for (let n = 1; n <= N; n++) {
+    S[n][0] = S[n - 1][0] * (2 * n - 1) / n;
+    for (let m = 1; m <= n; m++) S[n][m] = S[n][m - 1] * Math.sqrt((n - m + 1) * (m === 1 ? 2 : 1) / (n + m));
+    for (let m = 0; m <= n; m++) {
+      if (n === m) { P[n][m] = cq * P[n - 1][m - 1]; dP[n][m] = cq * dP[n - 1][m - 1] - sq * P[n - 1][m - 1]; }
+      else if (n === 1 || m === n - 1) { P[n][m] = sq * P[n - 1][m]; dP[n][m] = sq * dP[n - 1][m] + cq * P[n - 1][m]; }
+      else {
+        const k = ((n - 1) * (n - 1) - m * m) / ((2 * n - 1) * (2 * n - 3));
+        P[n][m] = sq * P[n - 1][m] - k * P[n - 2][m];
+        dP[n][m] = sq * dP[n - 1][m] + cq * P[n - 1][m] - k * dP[n - 2][m];
+      }
+    }
+  }
+  let bx = 0, by = 0, bz = 0, i = 0;
+  for (let n = 1; n <= N; n++) {
+    const ar = Math.pow(re / r, n + 2);
+    for (let m = 0; m <= n; m++, i++) {
+      const gg = WMM_G[i] + dt * WMM_GD[i], hh = WMM_H[i] + dt * WMM_HD[i];
+      const cml = Math.cos(m * lam), sml = Math.sin(m * lam);
+      const pn = S[n][m] * P[n][m], dpn = S[n][m] * dP[n][m];
+      bx -= ar * (gg * cml + hh * sml) * dpn;
+      by += ar * m * (gg * sml - hh * cml) * pn / cq;
+      bz -= ar * (n + 1) * (gg * cml + hh * sml) * pn;
+    }
+  }
+  const psi = phic - phi;
+  const x = bx * Math.cos(psi) - bz * Math.sin(psi);
+  return Math.atan2(by, x) / R;
+}
+// The decimal year of an instant, for the model above.
+function wmmYearOf(d) {
+  const t = d instanceof Date ? d.getTime() : Number(d);
+  if (!isFinite(t)) return WMM_EPOCH;
+  const y = new Date(t).getUTCFullYear();
+  const a = Date.UTC(y, 0, 1), b = Date.UTC(y + 1, 0, 1);
+  return y + (t - a) / (b - a);
+}
+
+// ع٢ -- THE GESTURE SAFARI WANTS, SPENT WHERE IT HAPPENS. DeviceOrientationEvent.requestPermission must be called
+// synchronously inside a user gesture; the press that OPENS the compass screen is one, and that screen's mount effect
+// is not (measured in item 66: the passive effect flushes after the paint, off the gesture). So every opener of the
+// screen calls this first: on iOS it raises the prompt and parks the promise, and the screen's mount awaits it. Where
+// no such method exists (Android, desktop) nothing is asked and the park says 'granted'. In the shell the heading
+// comes from the bridge and the browser's sensor is never started, so the park is cleared.
+let QIBLA_GESTURE = null;
+function qiblaCompassGesture() {
+  if (ezikShellBridge()) { QIBLA_GESTURE = null; return; }
+  const DOE = (typeof window !== 'undefined') ? window.DeviceOrientationEvent : null;
+  if (DOE && typeof DOE.requestPermission === 'function') {
+    let p = null;
+    try { p = DOE.requestPermission(); } catch (e) { p = null; }
+    QIBLA_GESTURE = { at: Date.now(), promise: (p && typeof p.then === 'function') ? p : Promise.resolve('denied') };
+    return;
+  }
+  QIBLA_GESTURE = { at: Date.now(), promise: Promise.resolve('granted') };
+}
+
 // ITEM 66 (ب): `full` is the ONE thing the full-screen view asks of this panel, and it is a
 // presentation flag and nothing else -- it reaches the dial's box on one line below and touches
 // no state, no status, no timer, no sender and no control. Absent, as the prayer sheet leaves
 // it, every byte of this panel behaves exactly as it shipped.
+//
+// PRAYER REBUILD (29 October 2026) -- THE PANEL OWNS THE ENGINE ABOVE. The rotation is written to the DOM every
+// frame from refs (the dial group turns by -heading so its letters stay on the world; the needle turns by
+// bearing - heading); React state holds only what the reader must SEE change: the status, the alignment, the pin,
+// the accuracy badge. One effect, as before: the shell stream on a bridge, the browser's sensor on the compass screen.
 function QiblaPanel({ loc, onLoc, full }) {
   const setLoc = onLoc;
   const [locState, setLocState] = useState('');
@@ -32723,12 +32951,28 @@ function QiblaPanel({ loc, onLoc, full }) {
   const headingBridgeRef = useRef(undefined);
   if (headingBridgeRef.current === undefined) headingBridgeRef.current = ezikShellBridge() || false;
   const [compass, setCompass] = useState(headingBridgeRef.current ? 'wait' : 'off');
-  const [heading, setHeading] = useState(null);
+  // A heading has arrived at least once: until then the needle is drawn faint, so it cannot lie (the warning at
+  // qiblaHeadingOf: a still needle at full colour is a needle that claims a direction it does not have).
+  const [headingSeen, setHeadingSeen] = useState(false);
+  const [aligned, setAligned] = useState(false);
+  const [pinned, setPinned] = useState(false);
   const stopRef = useRef(null);
-  // The shell listener's detach, parked where a later press, the deadline, and the unmount below
-  // can all reach the same one. It rides the compass's teardown rather than adding a second
-  // effect beside it: this panel goes away once, so one effect should be what answers that.
   const locStopRef = useRef(null);
+  const compassRef = useRef(compass); compassRef.current = compass;
+  // THE ENGINE'S OWN SLOTS. The shown dial angle is continuous (never reduced), the target is the last true heading,
+  // the readings count and the spread window feed the accuracy verdicts, and the pin holds the frame still.
+  const dialRef = useRef(null);
+  const needleRef = useRef(null);
+  const sunRef = useRef(null);
+  const shownRef = useRef({ dial: 0, started: false });
+  const targetRef = useRef(null);
+  const rafRef = useRef(null);
+  const pinnedRef = useRef(false);
+  const alignedRef = useRef(false);
+  const readsRef = useRef({ n: 0, list: [] });
+  const bearingRef = useRef(null);
+  const declRef = useRef(0);
+  const sunAtRef = useRef(0);
   // ITEM 66 (٢) -- THE FLOOR UNDER `wait`, WHICH HAD NONE. `wait` is the one state on this panel
   // that draws no control: `off`/`none` draw the browser's start, `heading-error` draws the retry,
   // and the pair item 66 added draws the location ask. That was survivable only while something
@@ -32768,12 +33012,79 @@ function QiblaPanel({ loc, onLoc, full }) {
   };
   // AND THE FIRST ANSWER ENDS IT -- from here, in the render body, and NOT from inside
   // onHeadingResult. tools/location-bridge-measure.cjs lifts that handler ALONE, into a scope that
-  // holds nothing but its two setters, so a call to anything else from inside it would be a
-  // ReferenceError in a gate rather than a bug in the app. This line needs no such help: all five
+  // holds nothing but its setters and the intake, so a call to anything else from inside it would be
+  // a ReferenceError in a gate rather than a bug in the app. This line needs no such help: all five
   // shell statuses leave `wait` and every one of them re-renders this panel, so the first answer
   // arrives here exactly once and cancels on the way past. A reader whose needle is already
   // turning never reaches a timer, is never re-armed underneath, and sees no new control.
   if (compass !== 'wait') stopHeadingWait();
+
+  const bearing = qiblaBearing(loc.lat, loc.lng);
+  bearingRef.current = bearing;
+  // F6: the browser reads magnetic north, so its readings get the local declination; the shell's trueHeading does not.
+  declRef.current = headingBridgeRef.current ? 0 : (wmmDeclination(loc.lat, loc.lng, wmmYearOf(new Date())) || 0);
+
+  // ---- THE FRAME: the one place the DOM is turned -------------------------------------------------------------
+  const paint = (snap) => {
+    const d = shownRef.current.dial;
+    const b = bearingRef.current;
+    const turn = snap ? 'none' : 'transform ' + QIBLA_TURN_MS + 'ms ease-out';
+    try {
+      if (dialRef.current) { dialRef.current.style.transition = turn; dialRef.current.style.transform = 'rotate(' + d + 'deg)'; }
+      if (needleRef.current && b !== null) { needleRef.current.style.transition = turn; needleRef.current.style.transform = 'rotate(' + (b + d) + 'deg)'; }
+    } catch (e) {}
+    const now = Date.now();
+    if (sunRef.current && now - sunAtRef.current > 1000) {
+      sunAtRef.current = now;
+      const sun = prayerSunAzimuth(now, loc.lat, loc.lng);
+      try {
+        sunRef.current.style.display = sun && sun.alt > 0 ? '' : 'none';
+        sunRef.current.setAttribute('transform', 'rotate(' + (sun ? Math.round(sun.az * 10) / 10 : 0) + ' 100 100)');
+      } catch (e) {}
+    }
+  };
+  const checkAlign = () => {
+    const b = bearingRef.current;
+    if (b === null || targetRef.current === null) return;
+    const on = Math.abs(qiblaArcDelta(0, b + shownRef.current.dial)) <= QIBLA_ALIGN_DEG;
+    if (on === alignedRef.current) return;
+    alignedRef.current = on;
+    setAligned(on);
+    // once, on entering the band, where the device offers it
+    if (on) { try { if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') navigator.vibrate(30); } catch (e) {} }
+  };
+  const frame = () => {
+    rafRef.current = null;
+    const t = targetRef.current;
+    if (t === null || pinnedRef.current) return;
+    const cur = shownRef.current.dial;
+    const want = -t;                                   // the dial turns against the device, so its letters stay on the world
+    const gap = qiblaArcDelta(cur, want);
+    // the first reading goes straight there (a transition walks it when the gap is small); every later one is a step
+    const next = shownRef.current.started ? qiblaSmoothStep(cur, want, QIBLA_SMOOTH_ALPHA) : cur + gap;
+    const snap = !shownRef.current.started ? Math.abs(gap) > QIBLA_SNAP_DEG : Math.abs(gap) > QIBLA_SNAP_DEG;
+    shownRef.current.started = true;
+    shownRef.current.dial = next;
+    paint(snap);
+    checkAlign();
+    if (Math.abs(qiblaArcDelta(next, want)) > 0.02) kick();
+  };
+  const kick = () => {
+    if (rafRef.current !== null) return;
+    if (typeof requestAnimationFrame !== 'function') { rafRef.current = 1; frame(); rafRef.current = null; return; }
+    rafRef.current = requestAnimationFrame(frame);
+  };
+  // Every heading, from either source, enters here: counted, windowed for the spread, made the target, walked to.
+  const takeHeading = (h) => {
+    const r = readsRef.current;
+    r.n += 1;
+    r.list.push(h);
+    if (r.list.length > QIBLA_STD_WINDOW) r.list.shift();
+    targetRef.current = h;
+    setHeadingSeen(true);
+    kick();
+  };
+
   useEffect(() => {
     const bridge = headingBridgeRef.current || null;
     if (bridge) {
@@ -32784,10 +33095,12 @@ function QiblaPanel({ loc, onLoc, full }) {
         if (SHELL_HEADING_STATUSES.indexOf(status) === -1) return;
         if (status === 'ready' || status === 'calibration-needed') {
           const nextHeading = shellHeadingOf(detail);
-          if (nextHeading === null) { setHeading(null); setCompass('heading-error'); return; }
-          setHeading(nextHeading);
-        } else {
-          setHeading(null);
+          if (nextHeading === null) { setCompass('heading-error'); return; }
+          takeHeading(nextHeading);
+          // F8-c: the shell's calibration verdict is stuck at its start value for the first readings, so it is believed
+          // only after QIBLA_CALIB_SKIP of them; until then the reading counts as ready
+          setCompass(status === 'calibration-needed' && readsRef.current.n <= QIBLA_CALIB_SKIP ? 'ready' : status);
+          return;
         }
         setCompass(status);
       };
@@ -32802,34 +33115,24 @@ function QiblaPanel({ loc, onLoc, full }) {
       } catch (e) {
         setCompass('heading-error');
       }
+    } else if (full === true) {
+      // ع٢ -- THE BROWSER STARTS AT ENTRY. The permission (iOS) was asked inside the press that opened this screen
+      // and parked by qiblaCompassGesture; its answer is awaited here. Where no permission exists (Android, desktop)
+      // the listeners are attached now. Opened without a press (a widget route, a resume) on a device that asks for
+      // permission, the panel rests at `off` and the dial's first touch is the gesture.
+      startCompass(QIBLA_GESTURE, false);
+      QIBLA_GESTURE = null;
     }
-    // ITEM 66 (15 September 2026) -- AND THIS EFFECT STARTS NO SENSOR. It used to end with
-    // `if (!bridge && full === true) startCompass;` -- a call -- so that screen started the browser
-    // orientation sensor on its own mount.
-    //
-    // MEASURED, NOT ASSUMED: that call was NOT inside the press. This is a useEffect with an
-    // empty dependency list -- a PASSIVE effect. The press on the prayer sheet's compass mark ran
-    // setCompassOpen(true) and returned; React then committed, painted, and flushed this effect
-    // afterwards, off the gesture. DeviceOrientationEvent.requestPermission is refused by Safari
-    // outside a user gesture, so on the iPhone -- the one device that has that method -- the
-    // prompt was never raised and the needle could never turn.
-    //
-    // THE CURE IS NOT A BUTTON. The owner's ruling for this screen is a circle, a needle and not
-    // one letter, and a button is a letter. So the DIAL is the gesture: the render below attaches
-    // the start to the circle itself on `bare`, and the first touch anywhere on the compass is
-    // the user gesture the prompt is raised from. Nothing is drawn, nothing is read, and nothing
-    // about the prayer sheet's copy of this panel changes -- it never had this call.
-    //
-    // THE SHELL ARM ABOVE IS UNTOUCHED. A native shell still starts its own heading stream at
-    // mount, because that path raises no web permission prompt and needs no gesture.
+    // THE SHELL ARM ABOVE IS UNTOUCHED. A native shell starts its own heading stream at mount, because that path
+    // raises no web permission prompt and needs no gesture -- and the browser's sensor is never started beside it.
     return () => {
       stopHeadingWait();
       if (stopRef.current) { stopRef.current(); stopRef.current = null; }
       if (locStopRef.current) { locStopRef.current(); locStopRef.current = null; }
+      if (rafRef.current !== null && typeof cancelAnimationFrame === 'function') { try { cancelAnimationFrame(rafRef.current); } catch (e) {} }
+      rafRef.current = null;
     };
   }, []);
-
-  const bearing = qiblaBearing(loc.lat, loc.lng);
 
   // THE SHELL ARM OF THE ONE BUTTON. Attached inside the press and nowhere else, and one shot:
   // the first result detaches it, the timeout detaches it, unmount detaches it, and a second press
@@ -32905,14 +33208,25 @@ function QiblaPanel({ loc, onLoc, full }) {
   };
   const useDefault = () => { setLoc(clearQiblaLoc()); setLocState(''); };
 
-  const startCompass = () => {
-    if (compass === 'wait' || compass === 'live') return;
+  // THE BROWSER'S SENSOR, AND THE ONE FUNCTION THAT STARTS IT. `park` is the answer the opening press parked (ع٢);
+  // `fromPress` says this call is itself inside a gesture (the settings panel's button, or the dial's first touch on
+  // a device that was opened without one), so a fresh request may be raised here. Neither the shell nor a second
+  // call while a stream is live ever reaches the listeners.
+  const startCompass = (park, fromPress) => {
+    if (headingBridgeRef.current) return;             // ع١ -- the shell has one source, and this is not it
+    if (compassRef.current === 'wait' || compassRef.current === 'live' || compassRef.current === 'calibration-needed') return;
     setCompass('wait');
     const onEvent = (ev) => {
       const h = qiblaHeadingOf(ev);
       if (h === null) return;              // a reading with nothing in it is not a reading
-      setHeading(h);
-      setCompass('live');
+      // F2 + F6: the screen's own turn, then magnetic north to true north -- the browser's readings alone
+      takeHeading((((h + qiblaScreenAngle() + declRef.current) % 360) + 360) % 360);
+      // F9: iOS says its accuracy out loud; Android says nothing, so the spread of the last readings speaks for it
+      const acc = ev.webkitCompassAccuracy;
+      let poor = false;
+      if (typeof acc === 'number' && isFinite(acc)) poor = acc < 0 || acc > QIBLA_IOS_ACC_DEG;
+      else { const list = readsRef.current.list; poor = list.length >= QIBLA_STD_WINDOW && qiblaSpreadDeg(list) > QIBLA_STD_DEG; }
+      setCompass(poor ? 'calibration-needed' : 'live');
     };
     let timer = null;
     const attach = () => {
@@ -32920,7 +33234,7 @@ function QiblaPanel({ loc, onLoc, full }) {
         window.addEventListener('deviceorientationabsolute', onEvent);
         window.addEventListener('deviceorientation', onEvent);
       } catch (e) { setCompass('none'); return; }
-      timer = setTimeout(() => { setCompass((c) => (c === 'live' ? c : 'none')); }, QIBLA_NEEDLE_MS);
+      timer = setTimeout(() => { setCompass((c) => (c === 'live' || c === 'calibration-needed' ? c : 'none')); }, QIBLA_NEEDLE_MS);
       stopRef.current = () => {
         if (timer) { clearTimeout(timer); timer = null; }
         try {
@@ -32929,12 +33243,15 @@ function QiblaPanel({ loc, onLoc, full }) {
         } catch (e) {}
       };
     };
-    // The gesture requirement, satisfied where it exists: this whole function runs inside the
-    // press, so a permission prompt raised here is raised from a user gesture.
+    // The gesture requirement, satisfied where it exists: the parked answer of the press that opened the screen, or
+    // a request raised inside this very press. Opened by neither, the panel rests at `off` and waits for a touch.
     const DOE = (typeof window !== 'undefined') ? window.DeviceOrientationEvent : null;
     if (DOE && typeof DOE.requestPermission === 'function') {
-      let p = null;
-      try { p = DOE.requestPermission(); } catch (e) { setCompass('none'); return; }
+      let p = (park && park.promise && typeof park.promise.then === 'function') ? park.promise : null;
+      if (!p) {
+        if (!fromPress) { setCompass('off'); return; }
+        try { p = DOE.requestPermission(); } catch (e) { setCompass('none'); return; }
+      }
       if (p && typeof p.then === 'function') {
         p.then((r) => { if (r === 'granted') attach(); else setCompass('none'); }, () => setCompass('none'));
         return;
@@ -32948,13 +33265,21 @@ function QiblaPanel({ loc, onLoc, full }) {
   const retryShellHeading = () => {
     const bridge = headingBridgeRef.current || null;
     if (!bridge) return;
-    setHeading(null);
     setCompass('wait');
     armHeadingWait(true);
     if (!sendShellHeadingCommand(bridge, SHELL_HEADING_START)) { stopHeadingWait(); setCompass('heading-error'); }
   };
 
-  const needle = qiblaNeedleAngle(bearing, heading);
+  // ع١ -- THE TOUCH ON THE DIAL, IN EVERY ENVIRONMENT, IS THE PIN: the frame holds where it is and the next touch
+  // releases it. It never starts a second source in the shell. The one exception is a browser that asks for
+  // permission and was opened without a press: there the first touch IS the press, and it starts the sensor.
+  const onDialPress = () => {
+    if (!headingBridgeRef.current && compassRef.current === 'off') { startCompass(null, true); return; }
+    pinnedRef.current = !pinnedRef.current;
+    setPinned(pinnedRef.current);
+    if (!pinnedRef.current) kick();
+  };
+
   const needleVisual = qiblaNeedleVisual(compass);
   const placeName = loc.by === 'place' ? placeLabel(loc.place) : (loc.by === 'device' ? QIBLA_DEVICE_PLACE : QIBLA_DEFAULT_PLACE);
   // ITEM 66 (side round) -- THE TWO FACTS THE COMPASS SCREEN ADDS, AND THEY ARE BOTH DERIVED.
@@ -32963,17 +33288,62 @@ function QiblaPanel({ loc, onLoc, full }) {
   // that is handed no flag -- which is every mount the prayer sheet makes and every mount the two
   // measuring tools make -- takes the identical road it took before this round, byte for byte.
   //
-  // `settled` is the condition that USED to decide whether the dial existed at all -- the same
-  // expression, to the character, and tools/wird-guard.cjs still reads it here. It still decides
-  // something, but only WHERE THE NEEDLE POINTS: with no reading it is null, the needle rests at
-  // zero, and the transition below walks it to the bearing when one arrives. That is the whole of
-  // the owner's ruling -- the drawing is immediate, the settling is allowed to take its time.
+  // `settled` is the condition that USED to decide whether the dial existed at all. It still decides
+  // that on the prayer settings' copy of this panel; on the compass screen the dial is in the first
+  // paint whatever happens (the owner's ruling: the drawing is immediate, the settling may take its time).
   const bare = full === true;
-  const settled = (compass === 'live' || compass === 'ready' || compass === 'calibration-needed') && needle !== null ? needle : null;
+  const settled = (compass === 'live' || compass === 'ready' || compass === 'calibration-needed') && headingSeen;
   // The one allowed sentence, and the exact set of states that may draw it. Every one of them is a
   // road on which no heading can arrive; none of them is reachable while the needle is turning.
   const bareFailed = bare && (compass === 'none' || compass === 'sensor-unavailable'
     || compass === 'permission-denied' || compass === 'heading-error');
+  // ع٣ -- THE DOOR ON THE BARE SCREEN: a refused permission, or a position never obtained, draws the one button.
+  const bareDoor = bare && (compass === 'permission-denied' || loc.by === 'default');
+  const poorShown = compass === 'calibration-needed';
+  const ticks = [];
+  for (let i = 0; i < 24; i++) ticks.push(<line key={i} x1="100" y1="10" x2="100" y2={i % 6 === 0 ? 22 : 16} transform={'rotate(' + (i * 15) + ' 100 100)'} className={i % 6 === 0 ? 'ez110-qibla-tick is-main' : 'ez110-qibla-tick'} />);
+  // THE ONE DIAL IN THE CLIENT (panels 2 and 3): a rose that turns with the device, the Kaaba on it at the qibla's
+  // bearing, the sun on it at its true azimuth while it is up, a fixed index at the top, and a needle whose long
+  // navy head points at the qibla. The groups are turned from the frame above; nothing here reads the heading.
+  const dial = (
+    <div className={'ez110-qibla-dialwrap' + (bare ? ' is-full' : '')} style={s.qiblaDialWrap}>
+      <svg className={'ez110-qibla-dial' + (aligned ? ' is-aligned' : '') + (pinned ? ' is-pinned' : '') + (headingSeen ? ' is-live' : '')}
+        width="200" height="200" viewBox="0 0 200 200" role="button" tabIndex={0} aria-pressed={pinned ? 'true' : 'false'}
+        aria-label={ezT(pinned ? 'qibla.unpin' : 'qibla.pin')} onClick={onDialPress}
+        onKeyDown={(e) => { if (e && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onDialPress(); } }}
+        data-ezik-compass="dial" data-ezik-compass-state={compass} data-ezik-compass-aligned={aligned ? '1' : '0'} data-ezik-compass-pinned={pinned ? '1' : '0'}
+        style={full ? s.qiblaDialFull : null}>
+        <circle className="ez110-qibla-face" cx="100" cy="100" r="92" />
+        <circle className="ez110-qibla-ring" cx="100" cy="100" r="92" fill="none" stroke={aligned ? '#1E8E5A' : 'var(--line)'} strokeWidth={aligned ? 4 : 2} />
+        <g ref={dialRef} style={{ transformOrigin: '100px 100px' }} data-ezik-compass="rose">
+          {ticks}
+          <text className="ez110-qibla-letter is-n" x="100" y="42" textAnchor="middle">{ezT('qibla.dial.n')}</text>
+          <text className="ez110-qibla-letter" x="160" y="106" textAnchor="middle">{ezT('qibla.dial.e')}</text>
+          <text className="ez110-qibla-letter" x="100" y="170" textAnchor="middle">{ezT('qibla.dial.s')}</text>
+          <text className="ez110-qibla-letter" x="40" y="106" textAnchor="middle">{ezT('qibla.dial.w')}</text>
+          {bearing === null ? null : (
+            <g transform={'rotate(' + bearing + ' 100 100)'} data-ezik-compass="kaaba" aria-label={ezT('qibla.kaaba')}>
+              {aligned ? <circle cx="100" cy="24" r="13" className="ez110-qibla-kaaba-glow" /> : null}
+              <rect x={aligned ? 92 : 94} y={aligned ? 16 : 18} width={aligned ? 16 : 12} height={aligned ? 16 : 12} rx="2" className="ez110-qibla-kaaba" />
+              <rect x={aligned ? 92 : 94} y={aligned ? 21 : 22} width={aligned ? 16 : 12} height="3" className="ez110-qibla-kaaba-band" />
+            </g>
+          )}
+          <g ref={sunRef} data-ezik-compass="sun" aria-label={ezT('qibla.sun')} style={{ display: 'none' }}>
+            <circle cx="100" cy="27" r="6" className="ez110-qibla-sun" />
+          </g>
+        </g>
+        <g ref={needleRef} style={{ transformOrigin: '100px 100px', opacity: headingSeen ? 1 : 0.35 }} data-ezik-compass="needle">
+          <path d="M100 30 L109 100 L91 100 Z" className="ez110-qibla-head"
+            fill={needleVisual.fill} stroke={needleVisual.stroke} strokeWidth={needleVisual.strokeWidth} strokeDasharray={needleVisual.strokeDasharray}
+            data-ezik-heading-untrusted={needleVisual.untrusted} />
+          <path d="M100 148 L107 100 L93 100 Z" className="ez110-qibla-tail" />
+          <circle cx="100" cy="100" r="9" className="ez110-qibla-hub" />
+          {aligned ? <path d="M95 100.5 L98.5 104 L105.5 96.5" className="ez110-qibla-check" /> : null}
+        </g>
+        <path d="M93 3 L107 3 L100 15 Z" className="ez110-qibla-index" data-ezik-compass="index" />
+      </svg>
+    </div>
+  );
   return (
     <EzShellGroup title={bare ? '' : QIBLA_SECTION}>
       {bare || bearing === null ? null : (
@@ -32982,39 +33352,17 @@ function QiblaPanel({ loc, onLoc, full }) {
           <div style={s.qiblaDir}>{QIBLA_TOWARD} {qiblaDirName(bearing)}</div>
         </>
       )}
-      {/* THE DIAL EXISTS ONLY WHILE A HEADING DOES -- on the prayer sheet, which is the screen
+      {/* THE DIAL EXISTS ONLY WHILE A HEADING DOES -- on the prayer settings, which is the screen
           that sentence was written about and where it still holds exactly as it did.
           ON THE COMPASS SCREEN IT DOES NOT. `bare` short-circuits the condition, so the circle
           and the needle are in the FIRST paint of that screen: no permission is waited for, no
-          position, no first sensor reading, no loading state and no early return. This line was
-          the whole of the delay the owner reported.
-
-          ITEM 66 (15 September 2026) -- AND ON THAT SCREEN THE DIAL IS THE PRESS. Safari grants
-          DeviceOrientationEvent.requestPermission only inside a user gesture, and the mount
-          effect that used to call the starter is not one: the press that opened this screen
-          set state, React committed, painted, and only then flushed that passive effect, so the
-          gesture was spent before the call was made and the prompt would never be raised. So the
-          automatic call is gone and the CIRCLE ITSELF answers the touch -- the same circle, the
-          same needle, painted at the same first paint. No button, no word, nothing to read: the
-          reader touches the compass and the compass starts, which is the gesture Safari wants.
-          It is attached on `bare` ALONE, so the prayer sheet's copy of this panel still asks for
-          nothing until its own button is pressed. */}
-      {bare || settled !== null ? (
-        <div style={s.qiblaDialWrap} onClick={bare ? () => startCompass() : null}>
-          <svg width="132" height="132" viewBox="0 0 100 100" role="img" aria-label={QIBLA_SECTION}
-            style={full ? s.qiblaDialFull : null}>
-            <circle cx="50" cy="50" r="46" fill="none" stroke="var(--line)" strokeWidth="2" />
-            <g style={{ transform: 'rotate(' + (settled === null ? 0 : settled) + 'deg)', transformOrigin: '50px 50px',
-              transition: bare ? 'transform ' + QIBLA_SETTLE_MS + 'ms ease-out' : null }}>
-              <path d="M50 8 L58 54 L50 48 L42 54 Z"
-                fill={needleVisual.fill} stroke={needleVisual.stroke}
-                strokeWidth={needleVisual.strokeWidth} strokeDasharray={needleVisual.strokeDasharray}
-                data-ezik-heading-untrusted={needleVisual.untrusted} />
-              <circle cx="50" cy="50" r="4" fill="var(--ink)" />
-            </g>
-          </svg>
-        </div>
+          position, no first sensor reading, no loading state and no early return. Until the first
+          reading the needle is drawn faint, so a still needle never claims a direction. */}
+      {bare || settled ? dial : null}
+      {bare && bearing !== null ? (
+        <div className="ez110-qibla-line" data-ezik-qibla="line">{ezT('qibla.line', { n: prayerNum(Math.round(bearing * 10) / 10) })}</div>
       ) : null}
+      {bare && poorShown ? <div className="ez110-qibla-badge" role="status" data-ezik-qibla="badge">{ezT('qibla.badge.calib')}</div> : null}
       {bare ? null : (
       <div style={s.qiblaNote}>
         {compass === 'live' || compass === 'ready' ? QIBLA_COMPASS_LIVE
@@ -33029,9 +33377,16 @@ function QiblaPanel({ loc, onLoc, full }) {
       {/* THE ONE EXCEPTION, AND IT IS THE FAILURE ROAD ALONE. `bareFailed` is false for `off`,
           `wait`, `live`, `ready` and `calibration-needed`, so a reader whose compass works never
           sees a letter on this screen at any moment of its life. */}
-      {bareFailed ? <div style={s.qiblaNote}>{QIBLA_FULL_FAIL}</div> : null}
+      {bareFailed ? <div style={s.qiblaNote} data-ezik-qibla="fail">{QIBLA_FULL_FAIL}</div> : null}
+      {/* ع٣ -- AND THE DOOR, the second exception the order wrote: a refused permission or a position never obtained
+          draws one button that asks for the location -- the shell's bridge or the browser's geolocation -- which is
+          the request that grants the shell's heading too. */}
+      {bareDoor ? (
+        <button type="button" onClick={askLocation} className="ezik-focus ez110-qibla-door" data-ezik-qibla="door"
+          disabled={locState === 'asking' || locState === 'slow'}>{ezT('qibla.allowLoc')}</button>
+      ) : null}
       {!bare && (compass === 'off' || compass === 'none') ? (
-        <button type="button" onClick={startCompass} className="ezik-focus" style={s.qiblaBtn}>{QIBLA_COMPASS_START}</button>
+        <button type="button" onClick={() => startCompass(null, true)} className="ezik-focus" style={s.qiblaBtn}>{QIBLA_COMPASS_START}</button>
       ) : null}
       {!bare && compass === 'heading-error' ? (
         <button type="button" onClick={retryShellHeading} className="ezik-focus" style={s.qiblaBtn}>{QIBLA_COMPASS_RETRY}</button>
@@ -33114,7 +33469,7 @@ function PrayerSheet({ onClose, onOpenCompass }) {
          drawn, imported or fetched for it. */
       lead={onOpenCompass ? (
         <>
-        <button type="button" className="ezhome-focus" onClick={onOpenCompass} style={s.ezshNavBtn}
+        <button type="button" className="ezhome-focus ez110-prayer-compassbtn" onClick={() => { qiblaCompassGesture(); onOpenCompass(); }} style={s.ezshNavBtn}
           aria-label={EZH_NAV_COMPASS}>{EZH_ICON_PRAYER}</button>
         {ez110.id ? <button type="button" className="ezhome-focus ez110-prayerset" data-ez110-prayerset="1" onClick={() => setSetOpen(true)}
           style={s.ezshNavBtn} aria-label={ezT('ez110.prayer.settings')}>{EZ110_ICON_GEAR}</button> : null}

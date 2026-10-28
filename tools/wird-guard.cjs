@@ -1589,13 +1589,14 @@ if (qLifted) {
     const calibrationVisual = B.qiblaNeedleVisual('calibration-needed');
     const readyVisual = B.qiblaNeedleVisual('ready');
     eq('108-b: calibration puts the untrusted marker on the arrow', calibrationVisual.untrusted, 'true');
+    // PRAYER REBUILD (29 October 2026): the needle's head is the design's navy (#12327A) on both roads
     ok('108-b: calibration is visibly untrusted without a color-only signal',
-      calibrationVisual.fill === 'none' && calibrationVisual.stroke === 'var(--red)'
+      calibrationVisual.fill === 'none' && calibrationVisual.stroke === '#12327A'
       && calibrationVisual.strokeWidth > 0 && calibrationVisual.strokeDasharray === '6 4');
     ok('108-b: ready removes the untrusted marker from the arrow',
       !Object.prototype.hasOwnProperty.call(readyVisual, 'untrusted'));
     ok('108-b: ready keeps the original solid arrow',
-      readyVisual.fill === 'var(--red)' && Object.keys(readyVisual).length === 1);
+      readyVisual.fill === '#12327A' && Object.keys(readyVisual).length === 1);
 
     // The needle turns by the difference, and by nothing else.
     eq('108-a: a device facing north points the needle at the qibla', B.qiblaNeedleAngle(224.62, 0), 224.62);
@@ -1650,8 +1651,13 @@ if (qLifted) {
   const qpEnd = qpAt === -1 ? -1 : SRC.indexOf('function PrayerSheet(', qpAt);
   const QPANEL = (qpAt !== -1 && qpEnd > qpAt) ? SRC.slice(qpAt, qpEnd) : '';
   if (ok('108-a: the panel was located', QPANEL.length > 800, 'len=' + QPANEL.length)) {
+    // PRAYER REBUILD (29 October 2026): on the prayer settings' copy the dial still exists only while a heading does;
+    // on the compass screen it is in the first paint, and the needle is drawn FAINT until the first reading, so a still
+    // needle never claims a direction (the warning at qiblaHeadingOf). One <svg> in the panel, as before.
     ok('108-a: THE NEEDLE EXISTS ONLY WHILE A HEADING DOES',
-      QPANEL.indexOf("(compass === 'live' || compass === 'ready' || compass === 'calibration-needed') && needle !== null ?") !== -1
+      QPANEL.indexOf("const settled = (compass === 'live' || compass === 'ready' || compass === 'calibration-needed') && headingSeen;") !== -1
+      && QPANEL.indexOf('{bare || settled ? dial : null}') !== -1
+      && QPANEL.indexOf('opacity: headingSeen ? 1 : 0.35') !== -1
       && (QPANEL.match(/<svg /g) || []).length === 1);
     ok('108-a: ...and when it does not, the reader is told why rather than shown a still needle',
       QPANEL.indexOf('QIBLA_COMPASS_NONE') !== -1);
@@ -1703,15 +1709,27 @@ if (qLifted) {
     // else) and the gesture is real. The third clause states the automatic call is gone, so this
     // cannot drift back to a start nobody touched. The prayer sheet's copy still asks for
     // nothing until the button below is pressed, and that button is still required.
+    // PRAYER REBUILD (29 October 2026) -- RE-PINNED, NOT RELAXED. The compass screen now starts the browser's sensor AT
+    // ENTRY (the order's item 2-4), and the gesture Safari wants is spent where it happens: the press that OPENS the
+    // screen calls qiblaCompassGesture(), which raises DeviceOrientationEvent.requestPermission synchronously and parks
+    // the promise; the mount effect awaits that park and never raises a request of its own (no park and no press: the
+    // panel rests at 'off' and the dial's first touch is the press). So the starter has exactly three call sites -- the
+    // mount with the park, the settings' button and the dial's first touch, both inside a gesture -- and its first line
+    // refuses the shell, which has one source and never reaches the browser's listeners (the order's item 2-3).
     ok('108-a: the browser sensor is started from a press, and on the compass screen alone',
-      /onClick=\{startCompass\}/.test(QPANEL)
-      && (QPANEL.match(/startCompass\(\)/g) || []).length === 1
-      && /onClick=\{bare \? \(\) => startCompass\(\) : null\}/.test(QPANEL));
-    ok('108-a: ...and no mount effect starts it -- the automatic call is gone',
+      (QPANEL.match(/startCompass\(/g) || []).length === 3
+      && /onClick=\{\(\) => startCompass\(null, true\)\}/.test(QPANEL)
+      && /if \(!headingBridgeRef\.current && compassRef\.current === 'off'\) \{ startCompass\(null, true\); return; \}/.test(QPANEL)
+      && /else if \(full === true\) \{[\s\S]{0,900}?startCompass\(QIBLA_GESTURE, false\);/.test(QPANEL)
+      && /const startCompass = \(park, fromPress\) => \{\n    if \(headingBridgeRef\.current\) return;/.test(QPANEL));
+    ok('108-a: ...and the mount raises no request of its own: it spends the park of the opening press, or rests at off',
       QPANEL.length > 0 && QPANEL.indexOf('full === true) startCompass();') === -1
-      && QPANEL.length > 0 && !/useEffect\([\s\S]*?startCompass\(\)[\s\S]*?\}, \[\]\)/.test(QPANEL));
+      && /useEffect\([\s\S]*?else if \(full === true\) \{[\s\S]*?startCompass\(QIBLA_GESTURE, false\);[\s\S]*?\}, \[\]\)/.test(QPANEL)
+      && /if \(!fromPress\) \{ setCompass\('off'\); return; \}/.test(QPANEL));
     ok('108-a: ...and the permission request sits inside that press',
-      QPANEL.indexOf('const startCompass = () =>') < QPANEL.indexOf('DOE.requestPermission()'));
+      QPANEL.indexOf('const startCompass = (park, fromPress) =>') < QPANEL.indexOf('DOE.requestPermission()')
+      && /function qiblaCompassGesture\(\) \{[\s\S]{0,700}?DOE\.requestPermission\(\)/.test(SRC)
+      && /onClick=\{\(\) => \{ qiblaCompassGesture\(\); onOpenCompass\(\); \}\}/.test(SRC));
     ok('108-a: the position is asked for from a press too',
       /onClick=\{askLocation\}/.test(QPANEL) && (QPANEL.match(/askLocation\(\)/g) || []).length === 0);
     ok('108-a: the listeners are removed when the panel goes',
@@ -2129,9 +2147,12 @@ if (tLifted) {
     (SRC.match(/<QiblaPanel /g) || []).length === 2
     && /<QiblaPanel loc=\{loc\} onLoc=\{setLoc\} \/>/.test(SHEET_SRC)
     && /<QiblaPanel loc=\{loc\} onLoc=\{setLoc\} full \/>/.test(CSHEET_SRC));
+  // PRAYER REBUILD (29 October 2026): the dial is 200 wide now and turned from the frame by the shortest arc; still ONE
   ok('66-b: ...so there is ONE dial in the client, not one per road',
-    (SRC.match(/viewBox="0 0 100 100"/g) || []).length === 1
-    && (SRC.match(/qiblaNeedleAngle\(/g) || []).length === 2);
+    (SRC.match(/viewBox="0 0 200 200"/g) || []).length === 1
+    && (SRC.match(/data-ezik-compass="dial"/g) || []).length === 1
+    && (SRC.match(/data-ezik-compass="needle"/g) || []).length === 1
+    && (SRC.match(/qiblaArcDelta\(/g) || []).length >= 4);
   ok('66-b: ...and the compass view is a LAYER, adding no route of its own',
     /if \(compassOpen\) return <CompassSheet onClose=\{ezikGoBack\} \/>;/.test(SRC)
     && /useEzikBackLayer\(compassOpen, \(\) => setCompassOpen\(false\)\);/.test(SRC)
@@ -2143,7 +2164,7 @@ if (tLifted) {
   // the press now lives, and a second clause below proves the bar no longer offers one.
   ok('66-b: ...reached in ONE press, from the head of the prayer sheet',
     /lead=\{onOpenCompass \? \(/.test(SHEET_SRC)
-    && /onClick=\{onOpenCompass\}[\s\S]{0,120}aria-label=\{EZH_NAV_COMPASS\}/.test(SHEET_SRC)
+    && /onClick=\{\(\) => \{ qiblaCompassGesture\(\); onOpenCompass\(\); \}\}[\s\S]{0,160}aria-label=\{EZH_NAV_COMPASS\}/.test(SHEET_SRC)
     && /<PrayerSheet onClose=\{ezikGoBack\} onOpenCompass=\{\(\) => setCompassOpen\(true\)\} \/>/.test(SRC));
   ok('66-b: ...and the home top bar offers no second one',
     /<EzistTopNav onOpenMenu=\{v\.onOpenMenu\} onOpenTafsir=\{v\.onOpenTafsir\} \/>/.test(SRC)

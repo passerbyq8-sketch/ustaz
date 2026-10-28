@@ -1,0 +1,46 @@
+/* 35 -- THE PRAYER SECTION, REBUILT (29 October 2026): the compass screen (panels 2 and 3). The identity decides the
+   values through its tokens; the four fixed colours of the design brief (navy #12327A, tail #CBD5E1, gold #C48A27,
+   aligned green #1E8E5A) are written where the brief fixes them. */
+
+/* ---- the compass screen: one dial, centred, as wide as the screen allows ---- */
+html[data-ez110] .ez110-qibla-dialwrap.is-full { padding: 18px 0 6px; }
+html[data-ez110] .ez110-qibla-dial { display: block; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+html[data-ez110] .ez110-qibla-dial:focus-visible { outline: 2px solid var(--vt-focus); outline-offset: 6px; border-radius: 50%; }
+html[data-ez110] .ez110-qibla-face { fill: var(--vt-surface); }
+html[data-ez110] .ez110-qibla-ring { transition: stroke .25s, stroke-width .25s; }
+html[data-ez110] .ez110-qibla-tick { stroke: var(--vt-muted); stroke-width: 1.2; stroke-linecap: round; opacity: .55; }
+html[data-ez110] .ez110-qibla-tick.is-main { stroke: var(--vt-ink); stroke-width: 2; opacity: .9; }
+html[data-ez110] .ez110-qibla-letter { fill: var(--vt-ink); font-family: var(--ez110-font-head); font-size: 15px; font-weight: 700; dominant-baseline: middle; }
+html[data-ez110] .ez110-qibla-letter.is-n { fill: #12327A; }
+html[data-ez110] .ez110-qibla-kaaba { fill: #12327A; transition: all .25s; }
+html[data-ez110] .ez110-qibla-kaaba-band { fill: #C48A27; transition: all .25s; }
+html[data-ez110] .ez110-qibla-kaaba-glow { fill: #1E8E5A; opacity: .22; }
+html[data-ez110] .ez110-qibla-sun { fill: #C48A27; stroke: #FFFFFF; stroke-width: 1.5; }
+html[data-ez110] .ez110-qibla-head { transition: fill .25s; }
+html[data-ez110] .ez110-qibla-tail { fill: #CBD5E1; }
+html[data-ez110] .ez110-qibla-hub { fill: #FFFFFF; stroke: #12327A; stroke-width: 3; }
+html[data-ez110] .ez110-qibla-check { fill: none; stroke: #1E8E5A; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+html[data-ez110] .ez110-qibla-index { fill: var(--vt-ink); }
+html[data-ez110] .ez110-qibla-dial.is-aligned .ez110-qibla-hub { stroke: #1E8E5A; }
+html[data-ez110] .ez110-qibla-dial.is-aligned .ez110-qibla-index { fill: #1E8E5A; }
+html[data-ez110] .ez110-qibla-dial.is-pinned .ez110-qibla-hub { fill: #EDF1FA; }
+html[data-ez110] .ez110-qibla-dial.is-pinned .ez110-qibla-tail { opacity: .6; }
+/* reduced motion stops the settle and the colour fades, never the geometry */
+html[data-ez110][data-ez-motion="reduce"] .ez110-qibla-dial * { transition: none !important; }
+
+/* ---- the one small line under the dial, the accuracy badge that comes and goes, and the location door ---- */
+html[data-ez110] .ez110-qibla-line { margin-top: 2px; text-align: center; font-size: calc(13px * var(--ez-fs, 1)); color: var(--vt-muted); font-family: var(--ez110-font-ui); }
+html[data-ez110] .ez110-qibla-badge {
+  margin: 10px auto 0; width: fit-content; max-width: 100%; padding: 6px 12px; border-radius: 999px;
+  background: color-mix(in srgb, #C48A27 14%, var(--vt-surface)); color: #8A5A10; border: 1px solid color-mix(in srgb, #C48A27 45%, transparent);
+  font-size: calc(12.5px * var(--ez-fs, 1)); font-weight: 600; text-align: center; line-height: 1.5;
+}
+html[data-ez110] .ez110-qibla-door {
+  display: block; margin: 14px auto 4px; min-height: 44px; padding: 10px 22px; border-radius: 14px; border: 0;
+  background: #12327A; color: #FFFFFF; font-family: var(--ez110-font-ui); font-size: calc(15px * var(--ez-fs, 1)); font-weight: 700; cursor: pointer;
+}
+html[data-ez110] .ez110-qibla-door:disabled { opacity: .55; }
+
+/* ---- the compass control in the section's head: the navy mark the reader looks for first ---- */
+html[data-ez110] .ezsh-nav .ez110-prayer-compassbtn { background: #12327A; color: #FFFFFF; border-radius: 14px; }
+html[data-ez110] .ezsh-nav .ez110-prayer-compassbtn svg { width: 24px; height: 24px; }

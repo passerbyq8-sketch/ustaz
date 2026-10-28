@@ -1050,5 +1050,10 @@
     "name": "yahimmak",
     "script": "guards/yahimmak-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "compassmath",
+    "script": "guards/compass-math-guard.cjs",
+    "args": ""
   }
 ]
