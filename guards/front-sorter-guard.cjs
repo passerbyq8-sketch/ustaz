@@ -255,11 +255,11 @@ async function main() {
       && /system: appendDepthBlock\(generalSystem \|\| system, buildFreeBrainInstruction\(\{ band, fiqh: !generalSystem && currentRuntime === 'STORED_FIQH' \}\)\)/.test(askSource)
       && /\n          system,\n          model,\n          maxTokens,\n          usePremium,\n          effort: round2Effort,\n          providerUrl: ANTHROPIC_URL,/.test(askSource));
     ok('F9 the classifyImpermissibleRequest site is untouched', /const impermissible = effectiveRoute === 'GEN'/.test(askSource));
-    ok('F10 the route log keeps its base fields, then records final sorter state and closed tags',
+    ok('F10 the route log keeps base fields and closed tags only in the final answer-log note',
       /answerLog\.note\(\{ route: effectiveRoute, runtime: currentRuntime \}\)\s*&& answerLog\.note\(\{ route: finalRoute, runtime: finalRuntime, flags: routeTags \}\)\s*&& console\.log\('\[route\]', \{/.test(askSource)
-      && /lexicalRuntime: currentRuntime, runtime: currentRuntime,\s*sorter: sorterPlan\.sorter, sorterMs: 0, frame: frameFor\(currentRuntime\),/.test(askSource)
+      && /lexicalRuntime: currentRuntime, runtime: currentRuntime,\s*sorter: sorterPlan\.sorter, sorterMs: 0, frame: frameFor\(currentRuntime, sorterPlan\.sorter\),/.test(askSource)
       && /routeTags = routeLogFields\(\{\s*lexicalRuntime: lexicalRuntimeOfRequest, runtime: finalRuntime, sorter: final\.sorter \|\| null,\s*\}\)/.test(askSource)
-      && /tags: routeTags,\s*\.\.\.final/.test(askSource));
+      && !/tags:\s*routeTags,\s*\.\.\.final/.test(askSource));
     ok('F11 the closed-deen stand-down is computed from the real dispatcher', /const closedDeenAnswers = currentRuntime === 'HADITH'\s*&& !!runClosedDeenTurn\(resolveStoredContext\(/.test(askSource));
   }
 

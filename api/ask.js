@@ -1235,7 +1235,7 @@ export default async function handler(req, res) {
       entity: currentPlan.namedEntity || null, officialDomain: currentPlan.officialDomain || null,
       lexicalRuntime: currentRuntime, runtime: currentRuntime,
       sorter: sorterPlan.sorter, sorterMs: 0, frame: frameFor(currentRuntime, sorterPlan.sorter),
-      impermissible: 'none', tags: routeTags,
+      impermissible: 'none',
       ...final,
     });
   };
