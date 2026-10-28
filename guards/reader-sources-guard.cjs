@@ -178,7 +178,7 @@ async function main() {
   const zeroSourceHold = ask.indexOf('freeBrainVisibleSourceCount === 0');
   ok('non-general free-brain turns enable the zero-source hold before generation',
     shariaHold >= 0 && shariaTurn > shariaHold
-      && ask.includes('onWriteUnit: (detail) => ((holdUnsourced || !!removedPersonQuestion) ? false : liveFreeBrainUnits.push(detail))'));
+      && ask.includes('onWriteUnit: (detail) => ((holdUnsourced || !!removedPersonQuestion || !!removedIdentityQuestion) ? false : liveFreeBrainUnits.push(detail))'));
   ok('zero accepted free-brain sources replace held output with the server-owned not-covered response',
     zeroSourceHold > shariaTurn && ask.includes('answerLog.note({ flags: [\'unsourced_withheld\'] });')
       && ask.includes('liveFreeBrainUnits.finish(BW2_NOT_COVERED, { replace: true })')

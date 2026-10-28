@@ -2266,7 +2266,7 @@ export default async function handler(req, res) {
           // religious key). The offer above is untouched; this is the prefetch, not the tool.
           lessonsPrefetch: band === 'adult' && libToken !== '' ? { token: libToken } : null,
           // POSTSHIP ITEM 12 -- 2026-10-24: a shari'a turn streams nothing before its sources are known (holdUnsourced below).
-          onWriteUnit: (detail) => ((holdUnsourced || !!removedPersonQuestion) ? false : liveFreeBrainUnits.push(detail)),
+          onWriteUnit: (detail) => ((holdUnsourced || !!removedPersonQuestion || !!removedIdentityQuestion) ? false : liveFreeBrainUnits.push(detail)),
           // BATCH 4 [b18] — the takhrij pass below runs on a streamed turn too, so the stream holds
           // the units it could change. The same three conditions the pass itself is gated on.
           takhrijHold: takhrijDecision().enabled && band === 'adult' && libFlagValue === 'on' && libToken !== ''
@@ -2553,6 +2553,14 @@ export default async function handler(req, res) {
       // `degraded` is this loop's own closed vocabulary of reason codes, and every other field is
       // a number, a boolean or a word written in this file.
       let readerText = out.text;
+      if (removedIdentityQuestion) {
+        // B4 P3-27: an introduction carries no fiqh-disagreement notice. Its
+        // units were held above, so removing this exact server tail cannot
+        // invalidate text already accepted by the reader.
+        const { REVIEW_KHILAF_TAIL } = await import('../lib/output-reviewer.js');
+        const tail = String(REVIEW_KHILAF_TAIL || '').trim();
+        if (tail) readerText = String(readerText || '').split(tail).join('').trim();
+      }
       if (!readerText) {
         console.warn('[free-brain/empty]', {
           kind: 'reader-gets-the-apology',

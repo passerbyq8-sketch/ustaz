@@ -252,7 +252,7 @@ async function main() {
       /generalizeSystemBlocks\(system, depthInstruction, effectiveDepth\)/.test(askSource) && (askSource.match(/buildTodayBlock\(/g) || []).length === 1
       // POSTSHIP ITEM 8 (a) -- 2026-10-24: the instruction call also carries the schools rule on a fiqh runtime; the general
       // system is still the one handed to the free brain, exactly as this check asks.
-      && /system: appendDepthBlock\(generalSystem \|\| system, buildFreeBrainInstruction\(\{ band, fiqh: !generalSystem && currentRuntime === 'STORED_FIQH' \}\)\)/.test(askSource)
+      && /system: appendDepthBlock\(generalSystem \|\| system, buildFreeBrainInstruction\(\{ band, fiqh: !generalSystem && currentRuntime === 'STORED_FIQH', removedPerson: removedPersonQuestion \}\)\)/.test(askSource)
       && /\n          system,\n          model,\n          maxTokens,\n          usePremium,\n          effort: round2Effort,\n          providerUrl: ANTHROPIC_URL,/.test(askSource));
     ok('F9 the classifyImpermissibleRequest site is untouched', /const impermissible = effectiveRoute === 'GEN'/.test(askSource));
     ok('F10 the route log keeps base fields and closed tags only in the final answer-log note',
