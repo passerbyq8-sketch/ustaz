@@ -2195,7 +2195,7 @@ export default async function handler(req, res) {
       // linkedom/Readability only if the model actually calls a web tool, and a turn that
       // answers a sum from memory must not pay for loading them.
       const {
-        runFreeBrainTurn, pickReaderCards, pickBookCards, reviewerEvidence, encyclopediaTail,
+        runFreeBrainTurn, shouldAppendC3NotCovered, pickReaderCards, pickBookCards, reviewerEvidence, encyclopediaTail,
         citedDeliveryLedger, pickEncyclopediaCards,
       } = await import('../lib/free-brain/loop.js');
       const { buildFreeBrainInstruction } = await import('../lib/free-brain/instructions.js');
@@ -2790,7 +2790,7 @@ export default async function handler(req, res) {
       // ITEM C3 (axis row 5) -- 2026-10-15 brain-line: the draft stated rulings and none sourced was left
       // (lib/free-brain/loop.js withoutUnsourcedRulings): what stays is followed by the one server-owned
       // not-covered sentence, and the search offer goes out with it, as before writing ends the same case.
-      if (out.notCovered === true && !out.streamedThisTurn && freeBrainVisibleSourceCount === 0) {
+      if (shouldAppendC3NotCovered(out, removedPersonQuestion, freeBrainVisibleSourceCount)) {
         const { BW2_NOT_COVERED } = await import('../lib/before-writing-v2.js');
         readerText = (String(readerText || '').trim() ? String(readerText).trim() + '\n\n' : '') + BW2_NOT_COVERED;
         out.degraded.push('unsourced_ruling:not_covered');

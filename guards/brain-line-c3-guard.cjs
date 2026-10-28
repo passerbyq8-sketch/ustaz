@@ -68,9 +68,21 @@ const ADAB = 'ومن حسن الخلق أن تبدأ أخاك بالسلام.';
     ok('the loop runs it after the citation retry, for a non-general domain, before the review',
       /if \(domain !== 'general' && !streamedThisTurn\) \{\s*const sourcing = withoutUnsourcedRulings\(answer, citedRefs\);/.test(loop)
       && loop.indexOf('withoutUnsourcedRulings(answer, citedRefs)') < loop.indexOf('let proposedRows = citedRefs.map'));
+    const c3 = LOOP.shouldAppendC3NotCovered;
+    ok('the C3 fallback decision is exported for behavior checks', typeof c3 === 'function');
+    if (typeof c3 === 'function') {
+      const noCover = { notCovered: true, streamedThisTurn: false };
+      const role = { role: 'removed_person' };
+      ok('a general not-covered answer keeps the C3 fallback without a card', c3(noCover, null, 0));
+      ok('a general not-covered answer keeps the prior C3 fallback even with a visible card', c3(noCover, null, 1));
+      ok('a removed-person answer with a visible card does not append the C3 sentence', !c3(noCover, role, 1));
+      ok('a removed-person answer without a visible card keeps the C3 fallback', c3(noCover, role, 0));
+      ok('covered or streamed answers do not append the C3 sentence', !c3({ notCovered: false, streamedThisTurn: false }, null, 0)
+        && !c3({ notCovered: true, streamedThisTurn: true }, null, 0));
+    }
     const ask = read('api/ask.js');
-    ok('api/ask.js appends BW2_NOT_COVERED and sends the search offer for a notCovered free-brain turn',
-      /if \(out\.notCovered === true && !out\.streamedThisTurn\) \{[\s\S]{0,400}BW2_NOT_COVERED[\s\S]{0,300}ezik_live_offer/.test(ask));
+    ok('api/ask.js wires the C3 decision to BW2_NOT_COVERED and the search offer',
+      /if \(shouldAppendC3NotCovered\(out, removedPersonQuestion, freeBrainVisibleSourceCount\)\) \{[\s\S]{0,400}BW2_NOT_COVERED[\s\S]{0,300}ezik_live_offer/.test(ask));
   }
 
   console.log('');

@@ -19,6 +19,8 @@ const questions = [
   ['sibling_3', A('645 627 20 645 648 642 641 20 639 645 631 20 628 646 20 639 628 62f 20 627 644 643 627 641 64a 20 645 646 20 627 644 627 62e 62a 644 627 637 61f')],
   ['sibling_4', A('647 644 20 64a 631 649 20 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a 20 62c 648 627 632 20 627 644 62a 635 648 64a 631 61f')],
   ['sibling_5', A('642 648 644 20 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a 20 641 64a 20 635 644 627 629 20 627 644 62c 645 639 629 61f')],
+  ['G_opinion_backbiting', A('645 627 20 631 623 64a 20 627 644 634 64a 62e 20 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a 20 641 64a 20 627 644 63a 64a 628 629 61f')],
+  ['H_opinion_singing', A('645 627 20 631 623 64a 20 639 645 631 20 639 628 62f 20 627 644 643 627 641 64a 20 641 64a 20 627 644 63a 646 627 621 61f')],
 ];
 
 (async () => {
@@ -35,6 +37,14 @@ const questions = [
       && unblocked === sample + '\n\n' + note && unblocked.split(note).length === 2);
     ok(id + ' suppresses the note when the answer is blocked', blocked === sample);
   }
+  const genericRuling = A('645 627 20 62d 643 645 20 627 644 63a 646 627 621 61f');
+  ok('I an ordinary ruling question stays outside the removed-person role',
+    R.removedPersonAttribution(genericRuling) === null && R.removedPersonAnswerNote(genericRuling) === '');
+  const opinionQuestion = questions.find(([id]) => id === 'G_opinion_backbiting')[1];
+  ok('J a reader-visible answer keeps the removed-person source note',
+    R.appendRemovedPersonAnswerNote(sample, opinionQuestion).includes(R.removedPersonAnswerNote(opinionQuestion)));
+  ok('J an empty answer does not manufacture the removed-person source note',
+    R.appendRemovedPersonAnswerNote('', opinionQuestion) === '');
   const sayForm = A('64a 642 648 644');
   ok('shared BW2 scholar triggers remain at the c14 count', S.TRIGGERS.size === 11);
   ok('the measured say-form is not a shared BW2 scholar trigger', !S.TRIGGERS.has(sayForm));
