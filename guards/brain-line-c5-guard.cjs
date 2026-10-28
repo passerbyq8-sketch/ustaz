@@ -79,7 +79,14 @@ const cards = { max: 3, encyclopediaCards: true, buildBookTag: (b) => ({ tag: '<
       const all = FOUR.map(([, s]) => s + '.').join(' ') + '\nومن الأدب أن يتوضأ المسلم بعد ذلك.';
       const out = LOOP.withoutUnretrievedBooks(all, [ENC_MASS]);
       ok('the four sentences are removed whole', out.removed === 4 && !/المجموع|المغني|بدائع/u.test(out.text), JSON.stringify(out));
-      ok('the sentence that names no book stays', out.text.includes('ومن الأدب'), JSON.stringify(out));
+      // B4 item4 permits only this listed opening's one-letter repair.
+      const keptBody = '\u0645\u0646 \u0627\u0644\u0623\u062f\u0628 \u0623\u0646 \u064a\u062a\u0648\u0636\u0623 \u0627\u0644\u0645\u0633\u0644\u0645 \u0628\u0639\u062f \u0630\u0644\u0643.';
+      ok('the whole book-free sentence stays after the listed connective repair',
+        out.removed === 4 && out.text.trim() === keptBody, JSON.stringify(out));
+      const untouchedBody = '\u0648' + keptBody;
+      const untouched = LOOP.withoutUnretrievedBooks(untouchedBody, [ENC_MASS]);
+      ok('the book-free opening retains its waw when no sentence was removed',
+        untouched.removed === 0 && untouched.text === untouchedBody, JSON.stringify(untouched));
       const kept = LOOP.withoutUnretrievedBooks(FOUR[0][1] + '.', [MAJMU]);
       ok('with al-Majmu\' among the rows it stays', kept.removed === 0, JSON.stringify(kept));
     }
