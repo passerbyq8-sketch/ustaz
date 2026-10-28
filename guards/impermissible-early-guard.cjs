@@ -146,8 +146,8 @@ async function main() {
     ok('F3 the answer is the fixed text through the one writer the hazard uses', /if \(pornBlocked\) \{[\s\S]{0,420}return emitOnce\(PORN_REFUSAL_TEXT\);/.test(askSource));
     ok('F4 the old classifier\'s site is as it was (songs, films, the minors\' path)', iOld > iEmit
       && /const impermissible = effectiveRoute === 'GEN'\s*\?\s*classifyImpermissibleRequest\(questionText\)/.test(askSource) && /return emitOnce\(impermissibleCounsel\(audienceBand\)\);/.test(askSource));
-    ok('F5 the route logger defaults the field to none and lets the block override it',
-      /impermissible: 'none', tags: routeTags,\s*\.\.\.final/.test(askSource)
+    ok('F5 the route logger defaults the field to none and lets the block override it without route tags',
+      /impermissible: 'none',\s*\.\.\.final/.test(askSource)
         && /logRoute\(\{ impermissible: 'porn_blocked' \}\);/.test(askSource));
     // FOLLOWUP 49 item 3 (the owner's decision 2). THE OLD ROW WAS EMPTY: its pattern was written with the BACKSPACE character (U+0008) where the word boundary «\b» belongs, so it matched nothing and a
     // module reading `band` passed (the order's 'seen on the way' 1; at the head the row stood at line 151, not 123). It is a real guard now: the module's CODE — no comment, no string, no regular
