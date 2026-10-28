@@ -2043,7 +2043,9 @@ const SEALED = {
 //   2026-10-28 -- KUNUZ-PHOTO-FIX ship: cache ezik-v117 -> ezik-v118 after YAHIMMAK-FIX1; app.js 2356281 bytes, sha256 847dd4d9..ea5bf6; CORE_BYTES remains 3542295.
 //   2026-10-28 -- APPLE-REVIEW release prep: cache ezik-v118 -> ezik-v119; app.js 2356281 bytes, sha256 7713fe7c..f2262fe8; CORE_BYTES remains 3542295.
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57787 bytes).
-  'sw.js': 'ab9b53c56fbaa8a5536fa197c702ab3790f5cc79abd1571204ac7f190c9ce53e',
+// 2026-10-29 P3-SHIP: cache v119 -> v120; app.js 2356281 bytes, SHA-256 6b72ad5d..3e32a3c3; CORE_BYTES remains 3542295.
+// No CORE membership changed; seal below is measured with CR=0 (sw.js 57787 bytes).
+  'sw.js': '370f19f96d3750ccb5a6f94179b392061b3ffa539884f404122e6cfae10f4fe1',
 };
 
 // ---------------------------------------------------------------------------
