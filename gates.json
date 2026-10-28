@@ -1055,5 +1055,10 @@
     "name": "compassmath",
     "script": "guards/compass-math-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "locationauto",
+    "script": "guards/location-auto-guard.cjs",
+    "args": ""
   }
 ]

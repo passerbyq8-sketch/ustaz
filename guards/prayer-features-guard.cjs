@@ -59,10 +59,14 @@ function memStore(seed) {
 function sectionPlace() {
   say('F1  the place a reader chooses, and the zone it belongs to');
   const store = memStore();
+  // PRAYER REBUILD (29 October 2026): the zone comes through prayerZoneOf -- the default position keeps a FIXED Asia/Kuwait
   const A = lifted(['prayerZoneFmt', 'prayerZoneWall', 'prayerZoneOffset', 'readPrayerPlaceFor', 'writePrayerPlace',
-    'prayerTzOn', 'prayerTodayParts', 'prayerInstant', 'prayerTzNow', 'readQiblaLoc', 'writeQiblaLoc', 'clearQiblaLoc'],
-  ['QIBLA_LOC_KEY', 'QIBLA_DEFAULT_LAT', 'QIBLA_DEFAULT_LNG', 'PRAYER_PLACE_KEY', 'PRAYER_ZONE_FMT'],
+    'prayerTzOn', 'prayerTodayParts', 'prayerInstant', 'prayerTzNow', 'readQiblaLoc', 'writeQiblaLoc', 'clearQiblaLoc', 'prayerZoneOf'],
+  ['QIBLA_LOC_KEY', 'QIBLA_DEFAULT_LAT', 'QIBLA_DEFAULT_LNG', 'PRAYER_PLACE_KEY', 'PRAYER_ZONE_FMT', 'PRAYER_DEFAULT_ZONE'],
   { localStorage: store, ezikWidgetDataChanged() {} });
+  t('the default position keeps Kuwait\'s zone wherever the device is (the third incidental fault)', A.prayerTzNow(new Date(Date.UTC(2026, 9, 29, 12)), { lat: 29.3759, lng: 47.9774, by: 'default' }), 180);
+  t('...and a device fix keeps the device\'s own clock', A.prayerTzNow(new Date(Date.UTC(2026, 9, 29, 12)), { lat: 29.3759, lng: 47.9774, by: 'device' }), -new Date(Date.UTC(2026, 9, 29, 12)).getTimezoneOffset());
+  t('the zone of each kind of position', [A.prayerZoneOf({ by: 'default' }).tz, A.prayerZoneOf({ by: 'device' }), A.prayerZoneOf({ by: 'place', place: { tz: 'Asia/Jakarta' } }).tz], ['Asia/Kuwait', null, 'Asia/Jakarta']);
   t('Kuwait zone offset', A.prayerZoneOffset('Asia/Kuwait', 2026, 10, 4), 180);
   t('Jakarta zone offset', A.prayerZoneOffset('Asia/Jakarta', 2026, 10, 4), 420);
   t('London in summer time', A.prayerZoneOffset('Europe/London', 2026, 10, 4), 60);
@@ -168,9 +172,9 @@ function sectionScreen() {
   say('F4  where the reader is in the day: current, next, countdown, clock');
   const names = ['prayerStatus', 'prayerTodayParts', 'prayerTzOn', 'prayerInstant', 'prayerTimesFor', 'prayerMethodTable',
     'prayerMethodIds', 'prayerMethodOf', 'prayerSunPosition', 'prayerSunAngleTime', 'prayerAsrAngle', 'hijriJdnFromCivil',
-    'prayerZoneFmt', 'prayerZoneWall', 'prayerZoneOffset', 'prayerCountdownText', 'prayerClockL', 'prayerClock'];
+    'prayerZoneFmt', 'prayerZoneWall', 'prayerZoneOffset', 'prayerCountdownText', 'prayerClockL', 'prayerClock', 'prayerZoneOf'];
   const consts = ['PRAYER_METHOD_DEFAULT', 'PRAYER_ASR_DEFAULT', 'PRAYER_OFFSET_MIN', 'PRAYER_OFFSET_MAX', 'PRAYER_KEYS',
-    'PRAYER_OFFSETTABLE', 'PRAYER_HORIZON', 'PRAYER_ROUND_UP', 'PRAYER_ZONE_FMT', 'ADHAN_KEYS', 'toArabicDigits'];
+    'PRAYER_OFFSETTABLE', 'PRAYER_HORIZON', 'PRAYER_ROUND_UP', 'PRAYER_ZONE_FMT', 'ADHAN_KEYS', 'toArabicDigits', 'PRAYER_DEFAULT_ZONE'];
   const A = lifted(names, consts, { EZ_LANG: 'ar', ezikBrowseNum: (v) => String(v) });
   const place = { tz: 'Asia/Kuwait' };
   const loc = { lat: 29.3759, lng: 47.9774, by: 'place', place };

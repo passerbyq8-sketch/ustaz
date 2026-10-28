@@ -106,7 +106,22 @@ const C_REQ = topConst('SHELL_LOC_REQUEST');
 const C_RES = topConst('SHELL_LOC_RESULT');
 const C_TMO = topConst('SHELL_LOC_TIMEOUT_MS');
 const V_ASK = innerConst('QiblaPanel', 'askLocation');
-const V_VIA = innerConst('QiblaPanel', 'askLocationViaShell');
+// PRAYER REBUILD (29 October 2026) -- THE ROAD HAS ONE ASKER NOW. prayerLocate() is the one function that reaches
+// the platform (the bridge in the shell, geolocation in a browser); prayerLocateApply() lands a fix (three-kilometre
+// rule, the manual city kept unless the press forces it); prayerLocateAndApply() joins them and runs the silent fresh
+// fix behind a browser's quick one. The press (askLocation) and the two doors (usePrayerAutoLocate on the section,
+// usePrayerBootLocate at the root) all go through it; nothing else may.
+const FN_LOCATE = topFunction('prayerLocate');
+const FN_LOCATE_APPLY = topFunction('prayerLocateApply');
+const FN_LOCATE_AND = topFunction('prayerLocateAndApply');
+const FN_DIST = topFunction('prayerDistanceKm');
+const FN_WANTED = topFunction('prayerAutoLocateWanted');
+const C_LOC_QUICK = topConst('PRAYER_LOCATE_QUICK');
+const C_LOC_FRESH = topConst('PRAYER_LOCATE_FRESH');
+const C_LOC_MOVE = topConst('PRAYER_LOCATE_MOVE_KM');
+const C_LOC_AGAIN = topConst('PRAYER_LOCATE_AGAIN_MS');
+const C_LOC_NAMEKM = topConst('PRAYER_PLACE_NAME_KM');
+const C_LOC_LAST = topConst('PRAYER_LOCATE_LAST_AT');
 const FN_HEADING = topFunction('shellHeadingOf');
 const FN_NEEDLE_VISUAL = topFunction('qiblaNeedleVisual');
 const FN_HEADING_SEND = topFunction('sendShellHeadingCommand');
@@ -145,6 +160,11 @@ const HARNESS = [
   'const retryShellHeading = env.retryShellHeading;',
   'const setLoc = env.setLoc;',
   'const setLocState = env.setLocState;',
+  'const writePrayerPrefs = env.writePrayerPrefs;',
+  'const readPrayerPrefs = env.readPrayerPrefs;',
+  'const prayerNameFix = env.prayerNameFix;',
+  'const ezikSchedArm = env.ezikSchedArm;',
+  'const ezikWidgetDataChanged = env.ezikWidgetDataChanged;',
   text(C_KEY),
   text(C_PLACE_KEY),
   text(C_ZONE_FMT),
@@ -160,9 +180,12 @@ const HARNESS = [
   text(C_RES),
   text(C_TMO),
   text(FN_COORDS),
-  'const ' + text(V_VIA) + ';',
+  text(C_LOC_QUICK), text(C_LOC_FRESH), text(C_LOC_MOVE), text(C_LOC_AGAIN), text(C_LOC_NAMEKM), text(C_LOC_LAST),
+  text(FN_DIST), text(FN_LOCATE), text(FN_LOCATE_APPLY), text(FN_LOCATE_AND), text(FN_WANTED),
   'const ' + text(V_ASK) + ';',
-  'return { askLocation: askLocation, readQiblaLoc: readQiblaLoc,',
+  'return { askLocation: askLocation, readQiblaLoc: readQiblaLoc, prayerLocate: prayerLocate,',
+  '  prayerLocateAndApply: prayerLocateAndApply, prayerAutoLocateWanted: prayerAutoLocateWanted,',
+  '  PRAYER_LOCATE_QUICK: PRAYER_LOCATE_QUICK, PRAYER_LOCATE_FRESH: PRAYER_LOCATE_FRESH,',
   '  SHELL_LOC_REQUEST: SHELL_LOC_REQUEST, SHELL_LOC_RESULT: SHELL_LOC_RESULT,',
   '  SHELL_LOC_TIMEOUT_MS: SHELL_LOC_TIMEOUT_MS };',
 ].join('\n');
@@ -296,6 +319,9 @@ function scene(opts) {
   const locs = [];
   const writes = [];
   const rearms = [];
+  const prefsWrites = [];
+  const names = [];
+  const arms = [];
   const clock = fakeClock();
 
   let bridge = null;
@@ -321,11 +347,18 @@ function scene(opts) {
     // THE RE-ARM, RECORDED RATHER THAN RE-IMPLEMENTED. The real retryShellHeading() lives in
     // QiblaPanel and closes over its state; the fact this file can measure is the CALL.
     retryShellHeading: () => { rearms.push('start'); },
+    // the landing's neighbours, recorded: the device-name record, the name lookup (never answered here), the re-arm
+    writePrayerPrefs: (p) => { prefsWrites.push(p); },
+    readPrayerPrefs: () => ({ src: o.src || 'auto', dev: null }),
+    prayerNameFix: (lat, lng) => { names.push([lat, lng]); },
+    ezikSchedArm: () => { arms.push(1); },
+    ezikWidgetDataChanged: () => {},
   };
   return {
     h: (o.harness ? makeMutant(o.harness) : makeHarness)(env),
     env: env, win: win, clock: clock,
     sent: sent, geoCalls: geoCalls, states: states, locs: locs, writes: writes, rearms: rearms,
+    prefsWrites: prefsWrites, names: names, arms: arms,
   };
 }
 
@@ -379,22 +412,33 @@ run('shell absent: geolocation exactly as before, and nothing is posted', () => 
   eq(s.sent.length, 0, 'messages posted through the bridge');
   eq(s.win.live('ezik:location:result'), 0, 'listeners waiting for the result');
   eq(s.clock.pending(), 0, 'timers the web owns on this path');
-  eq(s.geoCalls[0].opts, { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 },
+  // PRAYER REBUILD (29 October 2026): the quick fix of the order (a cached position up to ten minutes old, eight
+  // seconds), and behind it a silent fresh one (no cache, high accuracy, fifteen seconds) that lands only if it moved
+  eq(s.geoCalls[0].opts, { enableHighAccuracy: false, maximumAge: 600000, timeout: 8000 },
     'the options handed to getCurrentPosition');
   eq(s.states, ['asking'], 'locState after the press');
   // And the browser callbacks still do what they did.
   s.geoCalls[0].ok({ coords: { latitude: LAT, longitude: LON } });
   eq(s.writes, [[LAT, LON]], 'the browser path arguments to writeQiblaLoc');
   eq(s.states, ['asking', ''], 'locState after the browser answered');
-  return '1 geolocation call, 0 messages, options unchanged, browser write intact';
+  eq(s.geoCalls.length, 2, 'getCurrentPosition calls after the quick fix landed (the silent fresh one)');
+  eq(s.geoCalls[1].opts, { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }, 'the fresh fix\'s options');
+  s.geoCalls[1].ok({ coords: { latitude: LAT + 0.001, longitude: LON } });
+  eq(s.writes.length, 1, 'a fresh fix a hundred metres away writes nothing (the three-kilometre rule)');
+  s.geoCalls[0].ok({ coords: { latitude: 0, longitude: 0 } });
+  eq(s.writes.length, 1, 'a second answer to the quick request is ignored (one answer per ask)');
+  eq(s.names, [[LAT, LON]], 'the fix was handed to the name lookup once');
+  eq(s.arms, [1], 'the schedule was re-armed once');
+  return '2 geolocation calls (quick then fresh), 0 messages, browser write intact, 3 km rule held';
 });
 
 run('shell absent and geolocation missing: denied, exactly as today', () => {
   const s = scene({ shell: null, geo: 'none' });
   s.h.askLocation();
-  eq(s.states, ['denied'], 'locState');
+  // PRAYER REBUILD (29 October 2026): the press says asking first, then the one refusal
+  eq(s.states, ['asking', 'denied'], 'locState');
   eq(s.sent.length, 0, 'messages posted');
-  return 'denied, 0 messages';
+  return 'asking then denied, 0 messages';
 });
 
 run('ok:true: writeQiblaLoc(lat, lng) in that order, lon renamed exactly once', () => {
@@ -555,7 +599,7 @@ run('the detector reads the bridge, never the user agent', () => {
     eq(s2.geoCalls.length, 1, 'getCurrentPosition calls for ' + JSON.stringify(shape));
   }
   const ua = /navigator\s*\.\s*userAgent/;
-  is(!ua.test(text(FN_BRIDGE)) && !ua.test(text(V_ASK)) && !ua.test(text(V_VIA)),
+  is(!ua.test(text(FN_BRIDGE)) && !ua.test(text(V_ASK)) && !ua.test(text(FN_LOCATE)) && !ua.test(text(FN_LOCATE_AND)),
     'the location path reads navigator.userAgent somewhere');
   return '0 userAgent reads on the whole path; 3 non-bridges rejected';
 });
@@ -718,9 +762,13 @@ run('no bridge keeps the existing DeviceOrientation path and never wraps it in s
 // SILENCE AT BOOT -- a static proof, because it is a static claim: the press is the only caller.
 // ---------------------------------------------------------------------------
 run('nothing on this path runs before the press', () => {
-  const NAMES = ['askLocation', 'askLocationViaShell'];
+  // PRAYER REBUILD (29 October 2026) -- RE-POINTED, NOT RELAXED. The press is still a button's own; what changed is
+  // that the position is ALSO asked for at two doors the owner named (the app's and the section's), each a hook whose
+  // effect is guarded by prayerAutoLocateWanted (never over a manual city, never with the source set to manual, never
+  // twice within ten minutes). So: askLocation is referenced from JSX alone; prayerLocate from prayerLocateAndApply
+  // alone; and prayerLocateAndApply from exactly four owners -- the press, the times panel's refresh, and the two doors.
+  const NAMES = ['askLocation'];
   const askRange = [startLine(V_ASK), endLine(V_ASK)];
-  const viaRange = [startLine(V_VIA), endLine(V_VIA)];
   const sites = [];
   walk(ast.program, (n, parent) => {
     if (n.type !== 'Identifier' || NAMES.indexOf(n.name) === -1) return;
@@ -732,25 +780,85 @@ run('nothing on this path runs before the press', () => {
   for (const st of sites) {
     const onButton = st.parent === 'JSXExpressionContainer';
     const insideAsk = st.line >= askRange[0] && st.line <= askRange[1];
-    const insideVia = st.line >= viaRange[0] && st.line <= viaRange[1];
-    is(onButton || insideAsk || insideVia,
+    is(onButton || insideAsk,
       st.name + ' is referenced at app.jsx:' + st.line + ' from a ' + st.parent
-      + ' -- neither the button nor the two functions behind it');
+      + ' -- neither the button nor the function behind it');
   }
-  // And no effect anywhere in the file mentions either location function or request. The shared
+  const within = (line, node) => line >= startLine(node) && line <= endLine(node);
+  const OWNERS = [['askLocation', V_ASK], ['PrayerTimesPanel', topFunction('PrayerTimesPanel')],
+    ['usePrayerAutoLocate', topFunction('usePrayerAutoLocate')], ['usePrayerBootLocate', topFunction('usePrayerBootLocate')]];
+  const callers = [];
+  walk(ast.program, (n, parent) => {
+    if (n.type !== 'Identifier' || n.name !== 'prayerLocateAndApply') return;
+    if (parent && parent.type === 'FunctionDeclaration' && parent.id === n) return;
+    const owner = OWNERS.find((o) => within(startLine(n), o[1]));
+    is(!!owner, 'prayerLocateAndApply is reached from app.jsx:' + startLine(n) + ', outside the press, the refresh and the two doors');
+    callers.push(owner[0]);
+  });
+  eq(callers.sort(), ['PrayerTimesPanel', 'askLocation', 'usePrayerAutoLocate', 'usePrayerBootLocate'], 'the owners of prayerLocateAndApply');
+  let locateSites = 0;
+  walk(ast.program, (n, parent) => {
+    if (n.type !== 'Identifier' || n.name !== 'prayerLocate') return;
+    if (parent && parent.type === 'FunctionDeclaration' && parent.id === n) return;
+    is(within(startLine(n), FN_LOCATE_AND), 'prayerLocate is called from app.jsx:' + startLine(n) + ', outside prayerLocateAndApply');
+    locateSites++;
+  });
+  eq(locateSites, 2, 'calls of prayerLocate inside prayerLocateAndApply (the quick, the fresh)');
+  // and both doors are guarded by the one gate
+  is(/if \(!prayerAutoLocateWanted\(loc\)\) return undefined;/.test(text(topFunction('usePrayerAutoLocate')))
+    && /if \(!prayerAutoLocateWanted\(readQiblaLoc\(\)\)\) return undefined;/.test(text(topFunction('usePrayerBootLocate'))),
+  'a door asks without passing prayerAutoLocateWanted');
+  is(/navigator\.permissions\.query\(\{ name: 'geolocation' \}\)\.then\(\(st\) => \{ if \(st && st\.state === 'granted'\) go\(\); \}/.test(text(topFunction('usePrayerBootLocate'))),
+    'the app\'s door asks a browser without the permission already granted');
+  // And no effect anywhere in the file names the press, the request or the platform call. The shared
   // bridge detector is deliberately allowed in the qibla heading effect added by item 108-b.
   let effectHit = null;
   walk(ast.program, (n) => {
     if (n.type !== 'CallExpression') return;
     if (!(n.callee.type === 'Identifier' && n.callee.name === 'useEffect')) return;
     const body = text(n);
-    for (const nm of NAMES.concat(['SHELL_LOC_REQUEST', 'getCurrentPosition'])) {
+    for (const nm of NAMES.concat(['SHELL_LOC_REQUEST', 'getCurrentPosition', 'prayerLocate('])) {
       if (body.indexOf(nm) !== -1) effectHit = nm + ' inside a useEffect at app.jsx:' + startLine(n);
     }
   });
   is(!effectHit, 'a boot-time caller exists: ' + effectHit);
-  return sites.length + ' location reference site(s), all inside the press or on the button: '
-    + sites.map((x) => x.name + '@' + x.line + ':' + x.parent).join(', ');
+  return sites.length + ' press site(s) on the button; prayerLocateAndApply owned by ' + callers.length + ' functions';
+});
+
+run('the doors ask only when the position is the device\'s business: not over a manual city, not on manual, not twice in ten minutes', () => {
+  const s = scene({ shell: null, geo: 'recording' });
+  is(s.h.prayerAutoLocateWanted({ by: 'default' }) === true, 'the default position is not asked for');
+  is(s.h.prayerAutoLocateWanted({ by: 'device' }) === true, 'a device fix is not refreshed');
+  is(s.h.prayerAutoLocateWanted({ by: 'place', place: { n: 'Jakarta' } }) === false, 'a manual city is asked over');
+  const m = scene({ shell: null, geo: 'recording', src: 'manual' });
+  is(m.h.prayerAutoLocateWanted({ by: 'default' }) === false, 'a reader who chose «manual» is asked anyway');
+  s.h.prayerLocateAndApply({}, () => {});
+  is(s.h.prayerAutoLocateWanted({ by: 'default' }) === false, 'a second ask within ten minutes is not refused');
+  return 'default/device yes, manual city no, source manual no, repeat within ten minutes no';
+});
+
+run('a quick fix lands only when it moved: the three-kilometre rule, and a manual city only by force', () => {
+  const s = scene({ shell: null, geo: 'recording' });
+  s.env.localStorage.setItem('ezik_qibla_loc_v1', JSON.stringify({ lat: LAT, lng: LON }));
+  s.h.prayerLocateAndApply({}, () => {});
+  s.geoCalls[0].ok({ coords: { latitude: LAT + 0.01, longitude: LON } });
+  eq(s.writes, [], 'writes for a fix one kilometre away');
+  s.geoCalls[1].ok({ coords: { latitude: LAT + 0.05, longitude: LON } });
+  eq(s.writes.length, 1, 'writes for a fix five kilometres away');
+  const p = scene({ shell: null, geo: 'recording' });
+  p.env.localStorage.setItem('ezik_qibla_loc_v1', JSON.stringify({ lat: 1, lng: 2 }));
+  p.env.localStorage.setItem('ezik_prayer_place_v1', JSON.stringify({ n: 'X', tz: 'Asia/Jakarta', lat: 1, lng: 2 }));
+  p.h.prayerLocateAndApply({}, () => {});
+  p.geoCalls[0].ok({ coords: { latitude: LAT, longitude: LON } });
+  eq(p.writes, [], 'writes over a manual city without force');
+  const f = scene({ shell: null, geo: 'recording' });
+  f.env.localStorage.setItem('ezik_qibla_loc_v1', JSON.stringify({ lat: 1, lng: 2 }));
+  f.env.localStorage.setItem('ezik_prayer_place_v1', JSON.stringify({ n: 'X', tz: 'Asia/Jakarta', lat: 1, lng: 2 }));
+  f.h.askLocation();
+  f.geoCalls[0].ok({ coords: { latitude: LAT, longitude: LON } });
+  eq(f.writes, [[LAT, LON]], 'writes over a manual city when the press forces it');
+  eq(f.h.readQiblaLoc().by, 'device', 'the position after the forced press');
+  return '1 km: nothing; 5 km: written; manual city: kept unless the press forces it';
 });
 
 run('a granted position re-arms the heading, and a refusal does not', () => {
@@ -779,7 +887,7 @@ run('a granted position re-arms the heading, and a refusal does not', () => {
 
   // AND THE MUTANT, BUILT FROM THE SAME LIFTED SOURCE WITH THAT ONE LINE TAKEN OUT. It is the
   // tree as it stood before this round. If it still re-arms, this case is measuring nothing.
-  const original = text(V_VIA);
+  const original = text(V_ASK);
   const stripped = original.replace(/\n\s*retryShellHeading\(\);/, '');
   is(stripped !== original, 'the mutant changed nothing -- the re-arm call was not found');
   const mutantSrc = HARNESS.replace(original, stripped);
@@ -821,7 +929,8 @@ console.log('source:  app.jsx  ' + Buffer.byteLength(source, 'utf8') + ' bytes, 
   + source.split('\n').length + ' lines');
 console.log('lifted:  ezikShellBridge@' + startLine(FN_BRIDGE)
   + '  shellLocResultCoords@' + startLine(FN_COORDS)
-  + '  askLocationViaShell@' + startLine(V_VIA)
+  + '  prayerLocate@' + startLine(FN_LOCATE)
+  + '  prayerLocateAndApply@' + startLine(FN_LOCATE_AND)
   + '  askLocation@' + startLine(V_ASK));
 console.log('');
 

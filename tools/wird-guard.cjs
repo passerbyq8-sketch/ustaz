@@ -1675,10 +1675,14 @@ if (qLifted) {
       QPANEL.indexOf('const needleVisual = qiblaNeedleVisual(compass);') !== -1
       && QPANEL.indexOf('data-ezik-heading-untrusted={needleVisual.untrusted}') !== -1
       && QPANEL.indexOf('strokeDasharray={needleVisual.strokeDasharray}') !== -1);
+    // PRAYER REBUILD (29 October 2026): the panel asks for the position through prayerLocateAndApply and from its press
+    // alone; its one effect names neither that nor the platform call (the section's and the app's doors are hooks of
+    // their own, guarded by prayerAutoLocateWanted -- gate locationbridge holds them)
     ok('108-a: the position is never asked for at mount',
-      QPANEL.indexOf('getCurrentPosition') !== -1
+      QPANEL.indexOf('prayerLocateAndApply(') !== -1 && QPANEL.indexOf('getCurrentPosition') === -1
       && QPANEL.indexOf('useEffect') < QPANEL.indexOf('askLocation')
-      && !/useEffect\([^)]*getCurrentPosition/.test(QPANEL));
+      && (() => { const a = QPANEL.indexOf('useEffect(() => {'); const b = QPANEL.indexOf('}, []);', a); const eff = a !== -1 && b > a ? QPANEL.slice(a, b) : 'x';
+        return eff !== 'x' && eff.indexOf('prayerLocateAndApply') === -1 && eff.indexOf('getCurrentPosition') === -1 && eff.indexOf('SHELL_LOC_REQUEST') === -1; })());
     ok('108-b: the panel owns one heading stream effect, from start through stop and detach',
       (QPANEL.match(/useEffect\(/g) || []).length === 1
       && /addEventListener\(SHELL_HEADING_RESULT, onHeadingResult\)/.test(QPANEL)
@@ -1780,7 +1784,9 @@ const T_CONSTS = ['PRAYER_PREFS_KEY', 'PRAYER_METHOD_DEFAULT', 'PRAYER_ASR_DEFAU
   'PRAYER_LABELS', 'PRAYER_ASR_LABELS', 'PRAYER_HORIZON', 'PRAYER_ROUND_UP', 'PRAYER_ALERT_MIN_MAX', 'toArabicDigits'];
 const T_FNS = ['hijriJdnFromCivil', 'prayerMethodTable', 'prayerMethodIds', 'prayerMethodOf',
   'prayerSunPosition', 'prayerSunAngleTime', 'prayerAsrAngle', 'prayerTimesFor', 'prayerClock',
-  'prayerAlertBlank', 'prayerAlertRead', 'prayerAlertMerge', 'readPrayerPrefs', 'writePrayerPrefs', 'prayerNudgeOffset'];
+  'prayerAlertBlank', 'prayerAlertRead', 'prayerAlertMerge', 'readPrayerPrefs', 'writePrayerPrefs', 'prayerNudgeOffset',
+  // PRAYER REBUILD (29 October 2026): the five device fields the record gained read through these
+  'prayerPerBlank', 'prayerPerRead', 'prayerPerMerge', 'prayerDevRead'];
 
 const tConsts = {};
 const tFns = {};
@@ -2192,10 +2198,11 @@ if (tLifted) {
 // IT IS RUN, NOT READ. Every claim below drives the lifted functions against a fake store and
 // a fake clock. A claim about a table is worth what the table it produced is worth.
 
-const N_CONSTS = ['PRAYER_SCHEDULE_KEY', 'PRAYER_SCHEDULE_DAYS', 'PRAYER_SCHEDULE_RENEW_AT', 'PRAYER_CALC_VERSION', 'PRAYER_ZONE_FMT'];
+const N_CONSTS = ['PRAYER_SCHEDULE_KEY', 'PRAYER_SCHEDULE_DAYS', 'PRAYER_SCHEDULE_RENEW_AT', 'PRAYER_CALC_VERSION', 'PRAYER_ZONE_FMT',
+  'PRAYER_DEFAULT_ZONE'];   // PRAYER REBUILD (29 October 2026): the default position's fixed zone
 const N_FNS = ['prayerDayKey', 'prayerScheduleStamp', 'buildPrayerSchedule',
   'readPrayerSchedule', 'writePrayerSchedule', 'prayerScheduleRemaining', 'ensurePrayerSchedule',
-  'prayerZoneFmt', 'prayerZoneWall', 'prayerZoneOffset', 'prayerTodayParts', 'prayerTzNow'];
+  'prayerZoneFmt', 'prayerZoneWall', 'prayerZoneOffset', 'prayerTodayParts', 'prayerTzNow', 'prayerZoneOf'];
 
 const nConsts = {};
 const nFns = {};

@@ -2069,6 +2069,18 @@ const EZ_I18N = {
     'qibla.sun': '\u0627\u0644\u0634\u0645\u0633',
     'qibla.pin': '\u062A\u062B\u0628\u064A\u062A \u0627\u0644\u0625\u0628\u0631\u0629',
     'qibla.unpin': '\u062A\u062D\u0631\u064A\u0631 \u0627\u0644\u0625\u0628\u0631\u0629',
+    // PRAYER REBUILD (29 October 2026) -- the location (the owner's word of 29 October)
+    'place.locating': '\u062C\u0627\u0631\u064D \u062A\u062D\u062F\u064A\u062F \u0645\u0648\u0642\u0639\u0643\u2026',
+    'place.located': '\u062A\u0645',
+    'place.fail.denied': '\u0625\u0630\u0646 \u0627\u0644\u0645\u0648\u0642\u0639 \u0645\u0631\u0641\u0648\u0636',
+    'place.fail.nopos': '\u0644\u0627 \u0625\u0634\u0627\u0631\u0629 \u0644\u0644\u0645\u0648\u0642\u0639',
+    'place.fail.timeout': '\u0627\u0646\u062A\u0647\u062A \u0645\u0647\u0644\u0629 \u062A\u062D\u062F\u064A\u062F \u0627\u0644\u0645\u0648\u0642\u0639',
+    'place.fail.unsupported': '\u0647\u0630\u0627 \u0627\u0644\u062C\u0647\u0627\u0632 \u0644\u0627 \u064A\u062D\u062F\u0651\u062F \u0627\u0644\u0645\u0648\u0642\u0639',
+    'place.refresh': '\u062A\u062D\u062F\u064A\u062B \u0627\u0644\u0645\u0648\u0642\u0639',
+    'place.auto.short': '\u062A\u0644\u0642\u0627\u0626\u064A',
+    'place.manual.short': '\u064A\u062F\u0648\u064A',
+    'place.here': '\u0645\u0648\u0642\u0639\u0643 \u0627\u0644\u062D\u0627\u0644\u064A\u0651',
+    'place.src': '\u0645\u0635\u062F\u0631 \u0627\u0644\u0645\u0648\u0642\u0639',
   },
   en: {
     'common.close': 'Close',
@@ -3721,6 +3733,18 @@ const EZ_I18N = {
     'qibla.sun': 'Sun',
     'qibla.pin': 'Pin the needle',
     'qibla.unpin': 'Release the needle',
+    // PRAYER REBUILD (29 October 2026) -- the location (the owner's word of 29 October)
+    'place.locating': 'Locating you\u2026',
+    'place.located': 'Done',
+    'place.fail.denied': 'Location permission denied',
+    'place.fail.nopos': 'No location signal',
+    'place.fail.timeout': 'Locating timed out',
+    'place.fail.unsupported': 'This device cannot locate',
+    'place.refresh': 'Refresh location',
+    'place.auto.short': 'Automatic',
+    'place.manual.short': 'Manual',
+    'place.here': 'Your current location',
+    'place.src': 'Location source',
   },
 };
 
@@ -10171,7 +10195,7 @@ function Ez110PrayerCard({ onOpen, hijri }) {
   const prefs = readPrayerPrefs();
   const now = new Date();
   useEzikTick(true);
-  const place = loc.by === 'place' ? loc.place : null;
+  const place = prayerZoneOf(loc);
   const today = prayerTodayParts(now, place);
   const t = prayerTimesFor(today.y, today.m, today.d, loc.lat, loc.lng, prayerTzNow(now, loc), prefs.method, prefs.asr, prefs.off);
   const status = prayerStatus(now, loc, prefs);
@@ -12955,7 +12979,7 @@ function EzWidgetPrayer({ nav }) {
   const loc = readQiblaLoc();
   const prefs = readPrayerPrefs();
   const now = new Date();
-  const today = prayerTodayParts(now, loc.by === 'place' ? loc.place : null);
+  const today = prayerTodayParts(now, prayerZoneOf(loc));
   const t = prayerTimesFor(today.y, today.m, today.d,
     loc.lat, loc.lng, prayerTzNow(now, loc), prefs.method, prefs.asr, prefs.off);
   // A time that could not be computed at this latitude draws an em dash through prayerClock and
@@ -19709,6 +19733,9 @@ function App() {
   // 67 / 43-b / 47-b: the schedule pipe, armed at the root. It owns no screen state and renders
   // nothing; a reader who never opens the prayer sheet still has a day that needs arming.
   useEzikSchedRoot();
+  // PRAYER REBUILD (29 October 2026): the app's door asks for the position -- the shell through its bridge, a browser
+  // only where the permission is already granted -- so the times move within seconds of opening (owner, 29 October).
+  usePrayerBootLocate();
   // THE FIFTH CHANNEL, LISTENED FOR AT THE ROOT. The shell speaks first on it, so there is no
   // press and no one screen to hang it on; it owns no screen state and renders nothing.
   useEzikNativeAuthRoot();
@@ -28841,9 +28868,36 @@ function prayerAlertsOn(prefs) {
   }
   return false;
 }
+// PRAYER REBUILD (29 October 2026) -- FIVE MORE DEVICE FIELDS IN THE SAME RECORD, THE SYNCED THREE UNTOUCHED.
+// `per` (the call to prayer per prayer, panel 1's bells), `digits` (Western or Arabic-Indic in the section, Western by
+// default), `clock` (12 or 24), `src` (auto or manual location) and `dev` (the device-found place's name and zone,
+// standing only on the stored position). Every field checked on the way in and out, as the rest of the record is;
+// the sync still carries method, asr and off alone (EZIK_SYNC_PRAYER_FIELDS), and the backup never carries `dev`.
+function prayerPerBlank() {
+  const out = {};
+  for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) out[PRAYER_OFFSETTABLE[i]] = true;
+  return out;
+}
+function prayerPerRead(raw) {
+  const out = prayerPerBlank();
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
+  for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) { const k = PRAYER_OFFSETTABLE[i]; if (raw[k] === false) out[k] = false; }
+  return out;
+}
+function prayerPerMerge(cur, next) {
+  const out = {};
+  for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) { const k = PRAYER_OFFSETTABLE[i]; out[k] = typeof next[k] === 'boolean' ? next[k] : cur[k]; }
+  return out;
+}
+function prayerDevRead(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  if (typeof raw.lat !== 'number' || typeof raw.lng !== 'number' || !isFinite(raw.lat) || !isFinite(raw.lng)) return null;
+  return { n: typeof raw.n === 'string' ? raw.n : '', a: typeof raw.a === 'string' ? raw.a : '', cc: typeof raw.cc === 'string' ? raw.cc : '',
+    tz: typeof raw.tz === 'string' ? raw.tz : '', lat: raw.lat, lng: raw.lng };
+}
 function readPrayerPrefs() {
   const out = { method: PRAYER_METHOD_DEFAULT, asr: PRAYER_ASR_DEFAULT, off: {}, adhanSound: true,
-    iq: prayerAlertBlank(), pre: prayerAlertBlank() };
+    iq: prayerAlertBlank(), pre: prayerAlertBlank(), per: prayerPerBlank(), digits: 'latn', clock: 12, src: 'auto', dev: null };
   for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) out.off[PRAYER_OFFSETTABLE[i]] = 0;
   let raw = null;
   try { raw = localStorage.getItem(PRAYER_PREFS_KEY); } catch (e) { return out; }
@@ -28856,6 +28910,11 @@ function readPrayerPrefs() {
   if (typeof rec.adhanSound === 'boolean') out.adhanSound = rec.adhanSound;
   out.iq = prayerAlertRead(rec.iq);
   out.pre = prayerAlertRead(rec.pre);
+  out.per = prayerPerRead(rec.per);
+  if (rec.digits === 'arab' || rec.digits === 'latn') out.digits = rec.digits;
+  if (rec.clock === 24 || rec.clock === 12) out.clock = rec.clock;
+  if (rec.src === 'manual' || rec.src === 'auto') out.src = rec.src;
+  out.dev = prayerDevRead(rec.dev);
   const o = rec.off;
   if (o && typeof o === 'object' && !Array.isArray(o)) {
     for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) {
@@ -28870,12 +28929,19 @@ function readPrayerPrefs() {
 function writePrayerPrefs(next) {
   const cur = readPrayerPrefs();
   if (!next || typeof next !== 'object') return cur;
-  const rec = { method: cur.method, asr: cur.asr, off: cur.off, adhanSound: cur.adhanSound, iq: cur.iq, pre: cur.pre };
+  const rec = { method: cur.method, asr: cur.asr, off: cur.off, adhanSound: cur.adhanSound, iq: cur.iq, pre: cur.pre,
+    per: cur.per, digits: cur.digits, clock: cur.clock, src: cur.src, dev: cur.dev };
   if (next.iq && typeof next.iq === 'object') rec.iq = prayerAlertMerge(cur.iq, next.iq);
   if (next.pre && typeof next.pre === 'object') rec.pre = prayerAlertMerge(cur.pre, next.pre);
+  if (next.per && typeof next.per === 'object') rec.per = prayerPerMerge(cur.per, next.per);
   if (typeof next.method === 'string' && prayerMethodIds().indexOf(next.method) !== -1) rec.method = next.method;
   if (next.asr === 'hanafi' || next.asr === 'standard') rec.asr = next.asr;
   if (typeof next.adhanSound === 'boolean') rec.adhanSound = next.adhanSound;
+  if (next.digits === 'arab' || next.digits === 'latn') rec.digits = next.digits;
+  if (next.clock === 24 || next.clock === 12) rec.clock = next.clock;
+  if (next.src === 'manual' || next.src === 'auto') rec.src = next.src;
+  if (next.dev === null) rec.dev = null;
+  else if (next.dev && typeof next.dev === 'object') rec.dev = prayerDevRead(next.dev);
   if (next.off && typeof next.off === 'object') {
     for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) {
       const k = PRAYER_OFFSETTABLE[i];
@@ -29002,7 +29068,7 @@ function prayerScheduleRemaining(rec, todayKey) {
 // to build one and why -- so the panel reports what actually happened rather than what it asked
 // for, the same discipline writePrayerPrefs() already keeps.
 function ensurePrayerSchedule(loc, prefs, now) {
-  const place = loc.by === 'place' ? loc.place : null;
+  const place = prayerZoneOf(loc);
   const today = prayerTodayParts(now, place);
   const dayDt = place ? new Date(today.y, today.m - 1, today.d) : now;
   const tz = prayerTzNow(now, loc);
@@ -29190,18 +29256,35 @@ function PrayerAlertsControl() {
 // steps, the times) on the section's first page, 'rest' (the minute offsets, the call-to-prayer switch, the alerts,
 // the thirty days) in its settings sheet, 'notify' (the switch alone) in the empty chat's card. Unset: the whole panel,
 // exactly as it was. Every control is the same element over the same store; only its place moves.
-function PrayerTimesPanel({ loc, day, onDay, part }) {
+const PRAYER_ICON_LOCATE = <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7" /><circle cx="12" cy="12" r="2" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></svg>;
+function PrayerTimesPanel({ loc, day, onDay, part, onLoc }) {
   // The position and the preferences both move HERE, so the pipe is re-armed from here.
   useEzikSchedWatch();
   useEzLang();
   const [prefs, setPrefs] = useState(readPrayerPrefs);
   const [open, setOpen] = useState(false);
+  // PRAYER REBUILD (29 October 2026): the city chip's refresh -- a fresh fix (maximumAge 0, high accuracy, 15 s) with
+  // its states shown: locating, the new place with «done», or the reason it failed and the door to allow the location
+  // -- and the way back to the automatic source over a manual city. The press is the only caller besides the doors.
+  const [fix, setFix] = useState({ state: '', at: 0, error: '' });
+  const fixStopRef = useRef(null);
+  const refresh = () => {
+    if (fixStopRef.current) fixStopRef.current();
+    setFix({ state: 'asking', at: Date.now(), error: '' });
+    fixStopRef.current = prayerLocateAndApply({ fresh: true, force: true }, (r, next) => {
+      fixStopRef.current = null;
+      if (!r.ok) { setFix({ state: 'failed', at: Date.now(), error: r.error }); return; }
+      if (onLoc) onLoc(next);
+      setFix({ state: 'done', at: Date.now(), error: '' });
+    });
+  };
+  const toAuto = () => { writePrayerPrefs({ src: 'auto' }); refresh(); };
   const now = new Date();
   // The table is derived, not fetched. It is recomputed only when an input it depends on moves,
   // and ensurePrayerSchedule() is the one place that decides whether that means a rebuild.
   const sched = React.useMemo(() => ensurePrayerSchedule(loc, prefs, new Date()),
     [loc.lat, loc.lng, prefs.method, prefs.asr, JSON.stringify(prefs.off)]);
-  const place = loc.by === 'place' ? loc.place : null;
+  const place = prayerZoneOf(loc);
   const today = prayerTodayParts(now, place);
   // The day on show: the one the reader stepped or picked to, else today in the place's own calendar.
   const view = day && day.y ? day : today;
@@ -29224,7 +29307,26 @@ function PrayerTimesPanel({ loc, day, onDay, part }) {
       <div style={s.prayerRow} data-ezik-city="name">
         <span style={s.prayerName}>{ezT('panel.city')}</span>
         <span style={s.prayerTime}>{prayerCityName(loc)}</span>
+        <button type="button" onClick={refresh} disabled={fix.state === 'asking'} data-ezik-city="refresh" aria-label={ezT('place.refresh')}
+          className="ezik-focus ez110-prayer-refresh" style={s.prayerStepBtn}>{PRAYER_ICON_LOCATE}</button>
       </div>
+      {fix.state === 'asking' || fix.state === 'failed' || (fix.state === 'done' && now.getTime() - fix.at < 4000) ? (
+        <div style={s.qiblaNote} role="status" data-ezik-city="state" data-ezik-city-fix={fix.state}>
+          {fix.state === 'asking' ? ezT('place.locating') : fix.state === 'done' ? ezT('place.located')
+            : ezT(fix.error === 'permission-denied' ? 'place.fail.denied' : fix.error === 'timeout' ? 'place.fail.timeout'
+              : fix.error === 'unsupported' ? 'place.fail.unsupported' : 'place.fail.nopos')}
+        </div>
+      ) : null}
+      {fix.state === 'failed' && fix.error === 'permission-denied' ? (
+        <div className="ez-hit" style={s.prayerOptRow}>
+          <button type="button" onClick={refresh} data-ezik-city="allow" className="ezik-focus" style={s.prayerOpt}>{ezT('qibla.allowLoc')}</button>
+        </div>
+      ) : null}
+      {loc.by === 'place' ? (
+        <div className="ez-hit" style={s.prayerOptRow}>
+          <button type="button" onClick={toAuto} data-ezik-city="auto" className="ezik-focus" style={s.prayerOpt}>{ezT('place.auto.short')}</button>
+        </div>
+      ) : null}
       {status && status.next ? (
         <div style={s.prayerRow} data-ezik-next="head">
           <span style={s.prayerName}>{ezT('panel.next')}: <span data-ezik-next="name">{label(status.next.key)}</span></span>
@@ -29602,7 +29704,7 @@ function prayerInstant(y, m, d, total, place, tzMin) {
 // stretch between isha and the next fajr belongs to somebody), the last one already past, the first one still
 // ahead, and how long until it. Same calculator, same place/zone arithmetic: not a second calculation.
 function prayerStatus(now, loc, prefs) {
-  const place = loc.by === 'place' ? loc.place : null;
+  const place = prayerZoneOf(loc);
   const today = prayerTodayParts(now, place);
   const list = [];
   for (let n = -1; n <= 1; n++) {
@@ -29643,9 +29745,16 @@ function prayerClockL(mins) {
   return (h24 % 12 === 0 ? 12 : h24 % 12) + ':' + (mm < 10 ? '0' : '') + mm + ' ' + (h24 < 12 ? 'AM' : 'PM');
 }
 // The city's name as the sheet says it.
+// PRAYER REBUILD (29 October 2026): a device fix is named by the nearest listed city (the preferences' device record,
+// believed only on the stored position), else «your current location» with its coordinates.
 function prayerCityName(loc) {
   if (loc && loc.by === 'place') return placeLabel(loc.place);
-  if (loc && loc.by === 'device') return ezT('place.device');
+  if (loc && loc.by === 'device') {
+    let dev = null;
+    try { dev = readPrayerPrefs().dev; } catch (e) { dev = null; }
+    if (dev && dev.lat === loc.lat && dev.lng === loc.lng && (dev.n || dev.a)) return placeLabel({ n: dev.n, a: dev.a });
+    return ezT('place.here') + ' (' + prayerNum(Math.round(loc.lat * 100) / 100) + ', ' + prayerNum(Math.round(loc.lng * 100) / 100) + ')';
+  }
   return ezT('place.default');
 }
 // One second per tick, only while the sheet shows today, and gone with the sheet.
@@ -29691,10 +29800,13 @@ function prayerDayLabel(v) {
   return h ? g + ' \u00b7 ' + h : g;
 }
 // The offset for "now": the place's zone at its own today, else the device's offset right now (the old line).
+// PRAYER REBUILD (29 October 2026): the zone is prayerZoneOf's -- the manual city's, the default's FIXED Asia/Kuwait,
+// the device's for a device fix.
 function prayerTzNow(now, loc) {
-  if (loc && loc.by === 'place') {
-    const t = prayerTodayParts(now, loc.place);
-    const o = prayerZoneOffset(loc.place.tz, t.y, t.m, t.d);
+  const zone = prayerZoneOf(loc);
+  if (zone) {
+    const t = prayerTodayParts(now, zone);
+    const o = prayerZoneOffset(zone.tz, t.y, t.m, t.d);
     if (o !== null) return o;
   }
   return -now.getTimezoneOffset();
@@ -29749,6 +29861,186 @@ function shellLocResultCoords(detail) {
   if (typeof lat !== 'number' || typeof lng !== 'number') return null;
   if (!isFinite(lat) || !isFinite(lng)) return null;
   return { lat: lat, lng: lng };
+}
+
+// ============================================================
+// PRAYER REBUILD (29 October 2026) -- THE LOCATION, ASKED FOR WHEN THE APP OPENS AND WHEN THE SECTION OPENS
+// ============================================================
+// THE OWNER'S WORD (29 October 2026, 01:54): the section was weak at knowing where he is; a refresh of the GPS in the
+// section, or merely opening the app for a few seconds, must find his place and move the times. So the position is
+// asked for at both doors -- through the bridge in the shell, through geolocation in a browser -- whenever the reader
+// has not chosen a city by hand (a manual city always wins) and has not switched the source to «manual». The quick fix
+// comes first (a cached position up to ten minutes old, eight seconds at most), then a silent fresh fix where a browser
+// gives one. A fix farther than three kilometres from the one standing replaces it; the place is named by the nearest
+// entry of places.json within forty kilometres, else «your current location» with its coordinates. The default «Kuwait
+// City» keeps a FIXED zone, Asia/Kuwait, so a reader abroad on the default no longer sees Kuwait's times on another
+// clock (measure report, the third incidental fault); a device-found place takes the device's own zone (Intl); a manual
+// city keeps its own, as before. The stores do not change: the position is still ezik_qibla_loc_v1 through
+// writeQiblaLoc, the manual city still ezik_prayer_place_v1; the device-found NAME is a device field of the prayer
+// preferences (`dev`), never synced.
+const PRAYER_LOCATE_QUICK = { enableHighAccuracy: false, maximumAge: 600000, timeout: 8000 };
+const PRAYER_LOCATE_FRESH = { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 };
+const PRAYER_LOCATE_MOVE_KM = 3;        // a fix nearer than this to the one standing changes nothing
+const PRAYER_PLACE_NAME_KM = 40;        // the nearest listed city names the fix only within this
+const PRAYER_LOCATE_AGAIN_MS = 600000;  // a door opened twice within ten minutes asks once
+const PRAYER_DEFAULT_ZONE = { tz: 'Asia/Kuwait' };
+let PRAYER_LOCATE_LAST_AT = 0;
+// The zone a calculation runs in: the manual city's own, the fixed zone of the default, the device's for a device fix
+// (null: the device's clock, the line every caller had).
+function prayerZoneOf(loc) {
+  if (loc && loc.by === 'place') return loc.place;
+  if (loc && loc.by === 'default') return PRAYER_DEFAULT_ZONE;
+  return null;
+}
+// Great-circle distance in kilometres (haversine), for the three-kilometre and forty-kilometre rules.
+function prayerDistanceKm(lat1, lng1, lat2, lng2) {
+  const R = Math.PI / 180;
+  const a = Math.sin((lat2 - lat1) * R / 2), b = Math.sin((lng2 - lng1) * R / 2);
+  return 2 * 6371 * Math.asin(Math.sqrt(a * a + Math.cos(lat1 * R) * Math.cos(lat2 * R) * b * b));
+}
+// ONE FIX, FROM EITHER SOURCE, AND THE ONE PLACE THE PLATFORM IS ASKED. `onDone` is called exactly once with
+// {ok:true, lat, lng, source} or {ok:false, error}; the return is the stop. The shell owns no deadline, so the web
+// keeps one (SHELL_LOC_TIMEOUT_MS); `slowMs` -- the lit first-grant case, where the dialog plus a fresh fix outlive
+// ten seconds -- lets the caller say «still locating» at the first deadline and keep listening until the second.
+// Errors are five named words: permission-denied, no-position, timeout, unsupported, error.
+function prayerLocate(opts, onDone) {
+  const o = opts || {};
+  let over = false;
+  const done = (r) => { if (over) return; over = true; try { onDone(r); } catch (e) {} };
+  const bridge = ezikShellBridge();
+  if (bridge) {
+    let timer = null;
+    const stop = () => {
+      if (timer) { clearTimeout(timer); timer = null; }
+      try { window.removeEventListener(SHELL_LOC_RESULT, onResult); } catch (e) {}
+    };
+    const onResult = (ev) => {
+      const coords = shellLocResultCoords(ev && ev.detail);
+      stop();
+      if (coords) { done({ ok: true, lat: coords.lat, lng: coords.lng, source: 'shell' }); return; }
+      const err = String((ev && ev.detail && ev.detail.error) || '');
+      done({ ok: false, error: /^permission/.test(err) ? 'permission-denied' : (/^no-position/.test(err) ? 'no-position' : 'error') });
+    };
+    try { window.addEventListener(SHELL_LOC_RESULT, onResult); }
+    catch (e) { done({ ok: false, error: 'error' }); return () => {}; }
+    timer = setTimeout(() => {
+      if (o.slowMs > 0) {
+        timer = setTimeout(() => { stop(); done({ ok: false, error: 'no-position' }); }, o.slowMs);
+        if (typeof o.onSlow === 'function') { try { o.onSlow(); } catch (e) {} }
+        return;
+      }
+      stop(); done({ ok: false, error: 'timeout' });
+    }, SHELL_LOC_TIMEOUT_MS);
+    try { bridge.postMessage(JSON.stringify({ type: SHELL_LOC_REQUEST })); }
+    catch (e) { stop(); done({ ok: false, error: 'error' }); }
+    return () => { stop(); over = true; };
+  }
+  if (typeof navigator === 'undefined' || !navigator.geolocation) { done({ ok: false, error: 'unsupported' }); return () => {}; }
+  try {
+    navigator.geolocation.getCurrentPosition((pos) => {
+      const c = pos && pos.coords;
+      if (!c || typeof c.latitude !== 'number' || typeof c.longitude !== 'number') { done({ ok: false, error: 'no-position' }); return; }
+      done({ ok: true, lat: c.latitude, lng: c.longitude, source: 'browser' });
+    }, (err) => {
+      const code = err && err.code;
+      done({ ok: false, error: code === 1 ? 'permission-denied' : (code === 3 ? 'timeout' : 'no-position') });
+    }, o.fresh ? PRAYER_LOCATE_FRESH : PRAYER_LOCATE_QUICK);
+  } catch (e) { done({ ok: false, error: 'error' }); }
+  return () => { over = true; };
+}
+// THE NAME OF A FIX: the nearest city of places.json within PRAYER_PLACE_NAME_KM, else none. Asynchronous (the list
+// is fetched once, when first needed) and silent: a failed download leaves the fix nameless, never unused.
+function prayerNameFix(lat, lng, onName) {
+  let p = null;
+  try { p = loadEzikPlaces(); } catch (e) { p = null; }
+  if (!p || typeof p.then !== 'function') { onName(null); return; }
+  p.then((data) => {
+    const P = data.raw.p;
+    let best = null;
+    for (let i = 0; i < P.length; i++) {
+      const km = prayerDistanceKm(lat, lng, P[i][5], P[i][6]);
+      if (best === null || km < best.km) best = { km: km, r: P[i] };
+    }
+    if (!best || best.km > PRAYER_PLACE_NAME_KM) { onName(null); return; }
+    onName({ n: best.r[1], a: best.r[2], cc: best.r[4], tz: data.raw.tz[best.r[7]], km: best.km });
+  }, () => onName(null));
+}
+// THE FIX LANDS. A device fix is written when none stands, or when it moved more than PRAYER_LOCATE_MOVE_KM from the
+// one standing; a manual city never moves unless the press says so (`force`: the reader asked for the device). The
+// name follows a moment later into the preferences' device record, and the schedule is re-armed because its stamp
+// holds the position. Returns the position now in effect.
+function prayerLocateApply(fix, force) {
+  const cur = readQiblaLoc();
+  if (cur.by === 'place' && !force) return cur;
+  if (cur.by === 'device' && prayerDistanceKm(cur.lat, cur.lng, fix.lat, fix.lng) < PRAYER_LOCATE_MOVE_KM) return cur;
+  const next = writeQiblaLoc(fix.lat, fix.lng);
+  if (next.by !== 'device') return next;
+  const dev = { n: '', a: '', cc: '', tz: '', lat: fix.lat, lng: fix.lng };
+  writePrayerPrefs({ dev: dev });
+  prayerNameFix(fix.lat, fix.lng, (name) => {
+    const now = readQiblaLoc();
+    if (now.by !== 'device' || now.lat !== fix.lat || now.lng !== fix.lng) return;   // moved on meanwhile
+    writePrayerPrefs({ dev: { n: name ? name.n : '', a: name ? name.a : '', cc: name ? name.cc : '', tz: name ? name.tz : '', lat: fix.lat, lng: fix.lng } });
+    try { ezikWidgetDataChanged(); } catch (e) {}
+  });
+  try { ezikSchedArm(); } catch (e) {}
+  return next;
+}
+// Quick first, then -- in a browser -- a silent fresh fix; the shell's request is already its best answer. `onDone`
+// gets the result and the position now in effect (null on a refusal); `onImproved` the position after the fresh fix
+// moved it. Every ask passes here, so the ten-minute throttle of the automatic doors is read from here.
+function prayerLocateAndApply(opts, onDone) {
+  const o = opts || {};
+  PRAYER_LOCATE_LAST_AT = Date.now();
+  let fresh = null;
+  const stop = prayerLocate(o, (r) => {
+    if (!r.ok) { onDone(r, null); return; }
+    const loc = prayerLocateApply(r, o.force === true);
+    onDone(r, loc);
+    if (!o.fresh && r.source === 'browser') {
+      fresh = prayerLocate({ fresh: true }, (r2) => {
+        if (!r2.ok) return;
+        const l2 = prayerLocateApply(r2, o.force === true);
+        if (l2 !== loc && typeof o.onImproved === 'function') { try { o.onImproved(l2); } catch (e) {} }
+      });
+    }
+  });
+  return () => { stop(); if (fresh) fresh(); };
+}
+// WHEN TO ASK WITHOUT A PRESS: never over a manual city, never when the reader set the source to «manual», and not
+// twice within ten minutes.
+function prayerAutoLocateWanted(loc) {
+  if (!loc || loc.by === 'place') return false;
+  let src = 'auto';
+  try { src = readPrayerPrefs().src; } catch (e) { src = 'auto'; }
+  if (src === 'manual') return false;
+  return Date.now() - PRAYER_LOCATE_LAST_AT > PRAYER_LOCATE_AGAIN_MS;
+}
+// THE SECTION'S DOOR: the sheet asks once when it opens, and hands the position it got to its own state.
+function usePrayerAutoLocate(loc, onLoc) {
+  useEffect(() => {
+    if (!prayerAutoLocateWanted(loc)) return undefined;
+    let live = true;
+    const stop = prayerLocateAndApply({ onImproved: (l) => { if (live && onLoc) onLoc(l); } }, (r, next) => { if (live && next && onLoc) onLoc(next); });
+    return () => { live = false; stop(); };
+  }, []);
+}
+// THE APP'S DOOR, at the root. The shell asks through its bridge, which owns the permission and raises its dialog;
+// a browser is asked only where the permission is already granted -- the prompt belongs to the section the reader
+// opened, not to a chat he came for. The card on the menu re-reads the position on its own tick.
+function usePrayerBootLocate() {
+  useEffect(() => {
+    if (!prayerAutoLocateWanted(readQiblaLoc())) return undefined;
+    let live = true, stop = null;
+    const go = () => { if (!live) return; stop = prayerLocateAndApply({}, () => {}); };
+    if (ezikShellBridge()) { go(); return () => { live = false; if (stop) stop(); }; }
+    try {
+      if (typeof navigator !== 'undefined' && navigator.permissions && typeof navigator.permissions.query === 'function') {
+        navigator.permissions.query({ name: 'geolocation' }).then((st) => { if (st && st.state === 'granted') go(); }, () => {});
+      }
+    } catch (e) {}
+    return () => { live = false; if (stop) stop(); };
+  }, []);
 }
 
 // ITEM 108-ب. THE HEADING HANDSHAKE. Unlike the one-shot location request above, this result is a
@@ -31746,7 +32038,7 @@ function ezikAdhanItems(now) {
   if (!(now instanceof Date) || !isFinite(now.getTime())) return items;
   const loc = readQiblaLoc();
   const prefs = readPrayerPrefs();
-  const place = loc.by === 'place' ? loc.place : null;
+  const place = prayerZoneOf(loc);
   const today = prayerTodayParts(now, place);
   for (let i = 0; i < ADHAN_WINDOW_DAYS; i++) {
     const dt = new Date(today.y, today.m - 1, today.d + i);
@@ -31786,7 +32078,7 @@ function ezikPrayerAlertItems(now) {
   const prefs = readPrayerPrefs();
   if (!prayerAlertsOn(prefs)) return items;
   const loc = readQiblaLoc();
-  const place = loc.by === 'place' ? loc.place : null;
+  const place = prayerZoneOf(loc);
   const today = prayerTodayParts(now, place);
   for (let i = 0; i < ADHAN_WINDOW_DAYS; i++) {
     const dt = new Date(today.y, today.m - 1, today.d + i);
@@ -32108,7 +32400,7 @@ function ezikWirdAlertItems(now) {
   const rec = readWirdAlerts();
   const loc = readQiblaLoc();
   const prefs = readPrayerPrefs();
-  const place = loc.by === 'place' ? loc.place : null;
+  const place = prayerZoneOf(loc);
   const today = prayerTodayParts(now, place);
   for (let i = 0; i < ADHAN_WINDOW_DAYS; i++) {
     const dt = new Date(today.y, today.m - 1, today.d + i);
@@ -32249,7 +32541,7 @@ function ezikPrayerAlertFeed() {
 function ezikSchedWindow(tiers, now) {
   if (!prayerAlertsOn(readPrayerPrefs())) return { days: ADHAN_WINDOW_DAYS, tiers: tiers };
   const loc = readQiblaLoc();
-  const place = loc.by === 'place' ? loc.place : null;
+  const place = prayerZoneOf(loc);
   const today = prayerTodayParts(now, place);
   const tz0 = prayerTzOn(today.y, today.m, today.d, place);
   const cutoffOf = (n) => prayerInstant(today.y, today.m, today.d + n, 0, place, tz0);
@@ -32554,7 +32846,7 @@ function ezikWidgetPrayerDays(now) {
   const prefs = readPrayerPrefs();
   const offset = readHijriOffset();
   const days = [];
-  const place = loc.by === 'place' ? loc.place : null;
+  const place = prayerZoneOf(loc);
   const today = prayerTodayParts(now, place);
   for (let i = 0; i < EZIK_WIDGET_DATA_DAYS; i++) {
     // Local noon selects the offset used during this day's prayers, including a DST change.
@@ -33134,77 +33426,37 @@ function QiblaPanel({ loc, onLoc, full }) {
     };
   }, []);
 
-  // THE SHELL ARM OF THE ONE BUTTON. Attached inside the press and nowhere else, and one shot:
-  // the first result detaches it, the timeout detaches it, unmount detaches it, and a second press
-  // detaches whatever the first press left before it attaches its own. So no listener outlives the
-  // press that made it, and a result that arrives after its deadline finds nothing listening and
-  // writes nothing -- the stale position that would otherwise overwrite a fresh one never lands.
-  const askLocationViaShell = (bridge) => {
+  // THE ONE BUTTON, ONE DOOR, TWO SOURCES BEHIND IT. This is the same press the reader always had; the platform is
+  // asked through prayerLocate (the bridge in the shell, geolocation in a browser), the fix lands through
+  // prayerLocateApply -- the position written, the manual city replaced because the press said so (`force`), the
+  // name fetched silently -- and the state the reader sees is set here. One listener at a time: a second press, the
+  // deadline and the unmount all reach the same stop. Nothing on this path runs at mount.
+  //
+  // ITEM 110 ROUND 2 (127 note m14), part fix: on a FIRST grant the shell has no last position and waits for a fresh
+  // fix, so the dialog plus the fix outlived the 10 s deadline and a granted permission read "not granted". Lit, the
+  // deadline says "still locating" and keeps listening (up to 60 s in all); a late answer is taken like an on-time
+  // one; a refusal still says "not granted", and a fix that never comes says so -- not "not granted". Read by typeof:
+  // gate locationbridge runs this function in a sandbox that has no such name, where it stays dark.
+  const askLocation = () => {
     if (locStopRef.current) { locStopRef.current(); locStopRef.current = null; }
     setLocState('asking');
-    let timer = null;
-    // ITEM 110 ROUND 2 (127 note m14), part fix: on a FIRST grant the shell has no last position and waits for a fresh
-    // fix, so the dialog plus the fix outlived the 10 s deadline and a granted permission read "not granted". Lit, the
-    // deadline says "still locating" and keeps listening (up to 60 s in all); a late answer is taken like an on-time
-    // one; a refusal still says "not granted", and a fix that never comes says so -- not "not granted". Read by typeof:
-    // gate locationbridge runs this function in a sandbox that has no such name, where it stays dark.
     const lit = typeof EZIK_FIX_LIT !== 'undefined' && EZIK_FIX_LIT === true;
-    const stopListening = () => {
-      if (timer) { clearTimeout(timer); timer = null; }
-      try { window.removeEventListener(SHELL_LOC_RESULT, onResult); } catch (e) {}
+    locStopRef.current = prayerLocateAndApply({ force: true, slowMs: lit ? 50000 : 0, onSlow: () => setLocState('slow'), onImproved: (l) => setLoc(l) }, (r, next) => {
       locStopRef.current = null;
-    };
-    const onResult = (ev) => {
-      const coords = shellLocResultCoords(ev && ev.detail);
-      stopListening();
-      // ok:false IS A LAWFUL ANSWER, NOT A FAULT. A refusal ends exactly where the browser's own
-      // refusal ends today: the same one line of prose, the default position still standing. No
-      // error screen, no silence, nothing thrown.
-      if (!coords) { setLocState(lit && !/^permission/.test(String((ev && ev.detail && ev.detail.error) || '')) ? 'nopos' : 'denied'); return; }
-      setLoc(writeQiblaLoc(coords.lat, coords.lng));
+      // ok:false IS A LAWFUL ANSWER, NOT A FAULT. A refusal ends exactly where the browser's own refusal ends: one
+      // line of prose, the position standing as it was. No error screen, no silence, nothing thrown.
+      if (!r.ok) { setLocState(lit && r.error !== 'permission-denied' && r.error !== 'unsupported' ? 'nopos' : 'denied'); return; }
+      setLoc(next);
       setLocState('');
       // 🔴 AND THE HEADING IS RE-ARMED FROM HERE, WHICH IS THE WHOLE OF THE FIRST-VISIT FIX.
       // The shell answers `ezik:heading:start` out of the LOCATION permission -- its own refusal
       // line says exactly that in QIBLA_COMPASS_PERMISSION_DENIED -- and on a first-ever open
       // that permission has never been granted. So the ONE start this panel sends, in its one
-      // mount effect, is answered `permission-denied`, and the panel is finished for that visit:
-      // no dial, no control, no second start. The way out the reader was left with was to LEAVE
-      // THE SCREEN AND COME BACK -- which is literally what the sentence they are shown tells
-      // them to do, and it is why the compass has always worked on the second visit and never on
-      // the first. The press that has just granted that very permission is the moment to ask
-      // again, so it asks again, on the same visit, through the one sender that already exists.
+      // mount effect, is answered `permission-denied`, and the panel is finished for that visit.
+      // The press that has just granted that very permission is the moment to ask again, so it
+      // asks again, on the same visit, through the one sender that already exists.
       retryShellHeading();
-    };
-    try { window.addEventListener(SHELL_LOC_RESULT, onResult); }
-    catch (e) { setLocState('denied'); return; }
-    timer = setTimeout(() => {
-      if (lit) { setLocState('slow'); timer = setTimeout(() => { stopListening(); setLocState('nopos'); }, 50000); return; }
-      stopListening(); setLocState('denied');
-    }, SHELL_LOC_TIMEOUT_MS);
-    locStopRef.current = stopListening;
-    try { bridge.postMessage(JSON.stringify({ type: SHELL_LOC_REQUEST })); }
-    catch (e) { stopListening(); setLocState('denied'); }
-  };
-
-  // EXPLICIT TOUCH, THEN THE PERMISSION. Nothing on this path runs at mount.
-  //
-  // ONE DOOR, TWO SOURCES BEHIND IT. This is the same button the reader already presses; the only
-  // thing that changed is that the answer may now come from the shell instead of the tab. Which
-  // one is decided here, on the bridge's presence, and nowhere else -- and when there is no shell
-  // the lines below are the ones that were always here, unchanged down to the timeout.
-  const askLocation = () => {
-    const bridge = ezikShellBridge();
-    if (bridge) { askLocationViaShell(bridge); return; }
-    if (typeof navigator === 'undefined' || !navigator.geolocation) { setLocState('denied'); return; }
-    setLocState('asking');
-    try {
-      navigator.geolocation.getCurrentPosition((pos) => {
-        const c = pos && pos.coords;
-        if (!c) { setLocState('denied'); return; }
-        setLoc(writeQiblaLoc(c.latitude, c.longitude));
-        setLocState('');
-      }, () => { setLocState('denied'); }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 });
-    } catch (e) { setLocState('denied'); }
+    });
   };
   const useDefault = () => { setLoc(clearQiblaLoc()); setLocState(''); };
 
@@ -33450,6 +33702,8 @@ function PrayerSheet({ onClose, onOpenCompass }) {
   const [loc, setLoc] = useState(readQiblaLoc);
   const [day, setDay] = useState(null);
   const [rev, setRev] = useState(0);
+  // PRAYER REBUILD (29 October 2026): the section's door asks for the position (the owner's word of 29 October)
+  usePrayerAutoLocate(loc, setLoc);
   // ROUND 3 §3-10: the sheet's pieces, made once, so «ب» draws the first page here and the rest in its settings sheet
   const times = <PrayerTimesPanel loc={loc} day={day} onDay={setDay} />;
   const place = <PrayerPlaceSearch loc={loc} onLoc={setLoc} />;
@@ -33476,7 +33730,7 @@ function PrayerSheet({ onClose, onOpenCompass }) {
         </>
       ) : null}>
       <React.Fragment key={rev}>
-      {ez110.id ? <PrayerTimesPanel part="main" loc={loc} day={day} onDay={setDay} /> : times}
+      {ez110.id ? <PrayerTimesPanel part="main" loc={loc} day={day} onDay={setDay} onLoc={setLoc} /> : times}
       <PrayerDateConverter onShowDay={setDay} />
       {ez110.id ? null : place}
       {ez110.id ? null : qibla}
@@ -33739,7 +33993,9 @@ function PrayerDateConverter({ onShowDay }) {
 // single key is written; one bad part and nothing changes. The writes then go through the same writers the screens use.
 const PRAYER_BACKUP_TAG = 'prayer-settings';
 function prayerBackupText() {
-  const keys = { prefs: readPrayerPrefs() };
+  const prefs = readPrayerPrefs();
+  delete prefs.dev;   // PRAYER REBUILD: the device-found name stands on this device's position and is not a setting
+  const keys = { prefs: prefs };
   const loc = readQiblaLoc();
   if (loc.by !== 'default') keys.loc = { lat: loc.lat, lng: loc.lng };
   if (loc.by === 'place') keys.place = { n: loc.place.n, a: loc.place.a, cc: loc.place.cc, tz: loc.place.tz, lat: loc.lat, lng: loc.lng };
@@ -33760,11 +34016,19 @@ function prayerBackupCheck(text) {
   if (K.prefs !== undefined) {
     const p = K.prefs;
     if (!prayerPlainObject(p)) return { ok: false, why: 'prefs' };
-    const fields = ['method', 'asr', 'off', 'adhanSound', 'iq', 'pre'];
+    const fields = ['method', 'asr', 'off', 'adhanSound', 'iq', 'pre', 'per', 'digits', 'clock', 'src'];
     for (const name of Object.keys(p)) if (fields.indexOf(name) === -1) return { ok: false, why: 'prefs.' + name };
     if (p.method !== undefined && (typeof p.method !== 'string' || prayerMethodIds().indexOf(p.method) === -1)) return { ok: false, why: 'prefs.method' };
     if (p.asr !== undefined && p.asr !== 'standard' && p.asr !== 'hanafi') return { ok: false, why: 'prefs.asr' };
     if (p.adhanSound !== undefined && typeof p.adhanSound !== 'boolean') return { ok: false, why: 'prefs.adhanSound' };
+    // PRAYER REBUILD (29 October 2026): the four new settings, each within its pair
+    if (p.digits !== undefined && p.digits !== 'latn' && p.digits !== 'arab') return { ok: false, why: 'prefs.digits' };
+    if (p.clock !== undefined && p.clock !== 12 && p.clock !== 24) return { ok: false, why: 'prefs.clock' };
+    if (p.src !== undefined && p.src !== 'auto' && p.src !== 'manual') return { ok: false, why: 'prefs.src' };
+    if (p.per !== undefined) {
+      if (!prayerPlainObject(p.per)) return { ok: false, why: 'prefs.per' };
+      for (const k of Object.keys(p.per)) if (PRAYER_OFFSETTABLE.indexOf(k) === -1 || typeof p.per[k] !== 'boolean') return { ok: false, why: 'prefs.per.' + k };
+    }
     if (p.off !== undefined) {
       if (!prayerPlainObject(p.off)) return { ok: false, why: 'prefs.off' };
       for (const k of Object.keys(p.off)) {
