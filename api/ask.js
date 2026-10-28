@@ -2553,14 +2553,6 @@ export default async function handler(req, res) {
       // `degraded` is this loop's own closed vocabulary of reason codes, and every other field is
       // a number, a boolean or a word written in this file.
       let readerText = out.text;
-      if (removedIdentityQuestion) {
-        // B4 P3-27: an introduction carries no fiqh-disagreement notice. Its
-        // units were held above, so removing this exact server tail cannot
-        // invalidate text already accepted by the reader.
-        const { REVIEW_KHILAF_TAIL } = await import('../lib/output-reviewer.js');
-        const tail = String(REVIEW_KHILAF_TAIL || '').trim();
-        if (tail) readerText = String(readerText || '').split(tail).join('').trim();
-      }
       if (!readerText) {
         console.warn('[free-brain/empty]', {
           kind: 'reader-gets-the-apology',

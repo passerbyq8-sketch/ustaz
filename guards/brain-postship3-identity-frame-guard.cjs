@@ -148,7 +148,7 @@ async function b4IdentityRuntime(REM, FS) {
   };
   let sequence = 0;
   const OFFLINE_FIXTURE_CREDENTIAL = 'b4-offline-fixture';
-  async function drive(question, { available = true, hostile = false, streaming = false, includeKhilaf = false } = {}) {
+  async function drive(question, { available = true, hostile = false, streaming = false, includeKhilaf = false, tailOnly = false } = {}) {
     for (const key of envKeys) delete process.env[key];
     Object.assign(process.env, {
       ANTHROPIC_API_KEY: OFFLINE_FIXTURE_CREDENTIAL, BRAVE_API_KEY: OFFLINE_FIXTURE_CREDENTIAL, FREE_BRAIN_V1: 'on',
@@ -206,7 +206,7 @@ async function b4IdentityRuntime(REM, FS) {
           ] }, body.stream);
         }
         const offered = JSON.stringify(body.messages || []).includes(BIO_MARK);
-        const answer = question.includes(CONTROL) ? 'Ordinary identity answer.'
+        const answer = tailOnly ? khilaf : question.includes(CONTROL) ? 'Ordinary identity answer.'
           : offered ? general + ' [[1]].' : (sysText(body).includes(noFacts) ? general : invented);
         return providerResponse(url, { stop_reason: 'end_turn', content: [{ type: 'text', text: answer + (includeKhilaf && khilaf ? '\n\n' + khilaf : '') }] }, body.stream);
       }
@@ -328,22 +328,28 @@ async function b4IdentityRuntime(REM, FS) {
       && hostile.providerBodies.length >= 2 && hostile.counts.forbiddenFetch === 0
       && [OWN_URL, CHANNEL_URL, LESSON_URL, OWN_MARK, CHANNEL_MARK, LESSON_MARK].every((value) => !allWriterMaterial.includes(value)));
     ok('B4 identity restrictions follow the reader question despite an escaped tool query', hostile.searches.length > 0
-      && hostile.searches.every((query) => !query.includes(ESCAPE_QUERY)) && hostile.prose.endsWith(EXPECTED_NOTE));
+      && hostile.searches.every((query) => query.length > 0 && !query.includes(ESCAPE_QUERY)) && hostile.prose.endsWith(EXPECTED_NOTE));
 
     const streamed = await drive(forms[0][1], { streaming: true, includeKhilaf: true });
     ok('B4 streaming identity finishes its introduction card and final note without a disagreement tail', !streamed.crashed
       && streamed.target.ended === 1 && streamed.prose.includes(general) && streamed.shown.includes(BIO_URL)
       && streamed.prose.endsWith(EXPECTED_NOTE) && !!khilaf && !streamed.prose.includes(khilaf));
 
+    const onlyTail = await drive(forms[0][1], { tailOnly: true });
+    ok('B4 a malformed tail-only writer does not create an empty loop delivery', !onlyTail.crashed
+      && !onlyTail.logs.some((entry) => entry[0] === '[free-brain/empty]')
+      && onlyTail.prose.trim().length > 0 && !onlyTail.prose.includes(khilaf)
+      && onlyTail.prose.endsWith(EXPECTED_NOTE));
+
     const controlQuestion = A('639 631 651 641 646 64a 20 628 627 644 634 64a 62e 20') + CONTROL;
     const control = await drive(controlQuestion);
     ok('B4 Shaarawi keeps the ordinary classifier and no removed identity note', !control.crashed
       && control.counts.sorter === 1 && control.providerBodies.length > 0
       && control.providerBodies.every((body) => !sysText(body).includes(noFacts)) && !control.shown.includes(EXPECTED_NOTE));
-    const scenarioDiagnostics = [ ['sourced', sourced], ['empty', empty], ['hostile', hostile], ['streamed', streamed], ['control', control] ]
+    const scenarioDiagnostics = [ ['sourced', sourced], ['empty', empty], ['hostile', hostile], ['streamed', streamed], ['tail-only', onlyTail], ['control', control] ]
       .map(([name, result]) => ({ name, counts: result.counts, unmatchedUrls: result.unmatchedUrls }));
     console.log('  B4 transport diagnostics ' + JSON.stringify(scenarioDiagnostics));
-    ok('B4 all scenario transports stayed inside the offline fixtures', [sourced, empty, hostile, streamed, control]
+    ok('B4 all scenario transports stayed inside the offline fixtures', [sourced, empty, hostile, streamed, onlyTail, control]
       .every((result) => result.counts.unmatched === 0), JSON.stringify(scenarioDiagnostics));
   } finally {
     globalThis.fetch = realFetch; Object.assign(console, realConsole);
