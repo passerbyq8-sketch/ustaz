@@ -2223,7 +2223,7 @@ export default async function handler(req, res) {
           // ITEM O3a (132) -- 2026-10-15 brain-line: the turn names its stages to the reader.
           onStage: (stage) => answerStatus.status(stage),
           messages: body.messages,
-          system: appendDepthBlock(generalSystem || system, buildFreeBrainInstruction({ band, fiqh: !generalSystem && currentRuntime === 'STORED_FIQH' })),
+          system: appendDepthBlock(generalSystem || system, buildFreeBrainInstruction({ band, fiqh: !generalSystem && currentRuntime === 'STORED_FIQH', removedPerson: removedPersonQuestion })),
           model,
           maxTokens,
           usePremium,

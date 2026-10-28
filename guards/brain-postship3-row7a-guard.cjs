@@ -23,6 +23,8 @@ async function main() {
   const opening = await import(pathToFileURL(path.join(root, 'lib/opening-conjunction.js')).href);
   const removed = await import(pathToFileURL(path.join(root, 'lib/removed-sources.js')).href);
   const books = await import(pathToFileURL(path.join(root, 'lib/named-books.js')).href);
+  const instructions = await import(pathToFileURL(path.join(root, 'lib/free-brain/instructions.js')).href);
+  const bw2 = await import(pathToFileURL(path.join(root, 'lib/before-writing-v2.js')).href);
   check(fixture.excerpts.length === 3, 'expected three measured excerpts');
   check(typeof opening.cleanDanglingOpeningConnective === 'function', 'opening cleanup helper is exported');
   check(typeof loop.withoutRemovedPersonAttributions === 'function', 'removed-person sentence filter is exported');
@@ -195,6 +197,171 @@ async function main() {
   const ordinaryTurn = await driveFreeTurn({ answer: namedAnswer, question: ordinaryQuestion, module: loop });
   check(typeof ordinaryTurn.text === 'string' && ordinaryTurn.text.includes(rawName) && ordinaryTurn.text.includes('KEEP'),
     'ordinary free-brain question completes and keeps the answer');
+
+  // B4 P3-26: the writer is told before writing; the sentence filter remains the safety net.
+  {
+    const namedIssueQuestion = namedQuestion + ' ' + A('639 646 20 627 644 63a 64a 628 629 61f');
+    const attribution = removed.removedPersonAttribution(namedIssueQuestion);
+    const ruleMarker = A('627 644 633 627 626 644 20 633 623 644 20 639 646 20 631 623 64a');
+    const clauses = [
+      ruleMarker + ' ' + rawName,
+      A('644 64a 633 20 639 646 62f 646 627 20 645 646 20 643 644 627 645 647 20 645 635 62f 631'),
+      A('644 627 20 62a 630 643 631 20 627 633 645 647'),
+      A('644 627 20 62a 646 633 628 20 625 644 64a 647 20 634 64a 626 627'),
+      A('644 627 20 62a 634 631 20 625 644 64a 647 20 628 636 645 64a 631'),
+      A('627 643 62a 628 20 62c 648 627 628 20 627 644 645 633 623 644 629 20 646 641 633 647 627 20 645 646 20 627 644 645 635 627 62f 631 20 645 628 627 634 631 629'),
+      A('627 644 62a 646 628 64a 647 20 64a 636 64a 641 647 20 627 644 62e 627 62f 645'),
+    ].map(removed.normalizeRemovedName);
+    const hasWriterRule = (text) => clauses.every((clause) => removed.normalizeRemovedName(text).includes(clause));
+    const hasRuleMarker = (text) => removed.normalizeRemovedName(text).includes(removed.normalizeRemovedName(ruleMarker));
+    check(attribution && attribution.role === 'removed_person' && attribution.name === rawName,
+      'B4 instruction fixture resolves the canonical removed_person');
+    const namedInstruction = instructions.buildFreeBrainInstruction({ band: 'adult', fiqh: true, removedPerson: attribution });
+    const ordinaryInstruction = instructions.buildFreeBrainInstruction({ band: 'adult', fiqh: true });
+    const identityInstruction = instructions.buildFreeBrainInstruction({
+      band: 'adult', fiqh: true, removedPerson: { ...attribution, role: 'removed_identity' },
+    });
+    check(hasWriterRule(namedInstruction),
+      'B4 free-brain instruction names the canonical person and forbids names, attribution and pronouns');
+    check(!hasRuleMarker(ordinaryInstruction) && !hasRuleMarker(identityInstruction),
+      'B4 free-brain writer rule is absent for ordinary and removed_identity roles');
+
+    // Capture the actual writer body from runBw2Turn; no exported rules helper or source scan.
+    const captureBw2Writer = async (question) => {
+      let writerBody = null;
+      let writerCalls = 0;
+      let sent = '';
+      const source = {
+        kind: 'fatwa', title: A('627 644 63a 64a 628 629'),
+        url: 'https://fixture.invalid/fatwa/row7a', publisher: 'fixture',
+        text: 'A supplied source paragraph.', passage: 'A supplied source paragraph.',
+      };
+      const wire = {
+        status() { return true; },
+        delta(piece) { sent += String(piece || ''); return true; },
+        liveOffer() { return true; },
+        replace(text) { sent = String(text); return true; },
+        finish() { return true; },
+        get sent() { return sent; },
+        get opened() { return sent.length > 0; },
+        get dead() { return false; },
+      };
+      await bw2.runBw2Turn({
+        question, messages: [{ role: 'user', content: question }],
+        band: 'adult', mode: 'brief', runtime: 'STORED_FIQH',
+        system: 'SYSTEM', model: 'offline-writer', maxTokens: 1024,
+        providerUrl: 'https://stub.invalid/bw2-writer', headers: {}, wire,
+        env: { BW2_RETRIEVAL_MS: '400', BW2_JUDGE_MS: '400' },
+        deps: {
+          runTool: async (name, input, ctx) => ({
+            text: '', calls: 0,
+            added: name === 'search_fatawa' ? [ctx.table.add({ ...source })] : [],
+          }),
+          warmEncyclopedia: async () => true,
+          encyclopediaReady: () => true,
+          searchStoredCorpus: async () => ({ records: [] }),
+          ask: async ({ user }) => {
+            const count = (user.match(/^\[\d+\] /gmu) || []).length;
+            return JSON.stringify({ d: Object.fromEntries(Array.from({ length: count }, (_, i) => [String(i + 1), 1])) });
+          },
+          callWriter: async ({ body, onText }) => {
+            writerCalls += 1;
+            writerBody = body;
+            onText('KEEP [[1]].');
+            return { stop_reason: 'end_turn', usage: { output_tokens: 5 }, content: [] };
+          },
+          fetchImpl: async () => { throw new Error('offline guard forbids transport'); },
+        },
+      });
+      const last = writerBody && [...writerBody.messages].reverse().find((message) => message.role === 'user');
+      const blocks = last && Array.isArray(last.content) ? last.content : [];
+      // The first block is the reader's question; only subsequent blocks are server instructions/evidence.
+      const writerContext = blocks.slice(1).filter((block) => block && block.type === 'text')
+        .map((block) => block.text).join('\n');
+      return { writerCalls, writerContext };
+    };
+    const namedBw2 = await captureBw2Writer(namedIssueQuestion);
+    const ordinaryBw2 = await captureBw2Writer(ordinaryQuestion);
+    check(namedBw2.writerCalls === 1 && hasWriterRule(namedBw2.writerContext),
+      'B4 actual BW2 writer payload carries the canonical removed-person instruction');
+    check(ordinaryBw2.writerCalls === 1 && !hasRuleMarker(ordinaryBw2.writerContext),
+      'B4 actual ordinary BW2 writer payload has no removed-person instruction');
+  }
+
+  // The order's entire closed list: strip exactly one initial waw/fa after a removed sentence.
+  {
+    const words = [
+      '648 645 627', '648 645 646', '648 647 648', '648 647 64a', '648 647 630 627',
+      '648 647 630 647', '648 630 644 643', '648 62a 644 643', '648 642 62f',
+      '648 644 642 62f', '648 625 646', '648 623 646', '648 625 630 627',
+      '648 644 627', '648 644 645', '648 644 646', '648 641 64a', '648 639 644 649',
+      '648 639 646', '648 625 644 649', '648 623 645 627', '648 625 646 645 627',
+      '641 645 627', '641 645 646', '641 647 648', '641 647 64a', '641 647 630 627',
+      '641 647 630 647', '641 630 644 643', '641 62a 644 643', '641 644 642 62f',
+      '641 625 646', '641 625 630 627', '641 644 627', '641 644 646', '641 641 64a',
+      '641 639 644 649', '641 639 646', '641 625 644 649', '641 623 645 627',
+      '641 625 646 645 627',
+    ].map(A);
+    const namedSentence = A('642 627 644') + ' ' + rawName + ' ' + A('643 644 627 645') + '.';
+    check(words.length === 41 && new Set(words).size === 41, 'B4 closed opening list has exactly 41 distinct forms');
+    for (let i = 0; i < words.length; i += 1) {
+      const word = words[i];
+      const next = word + ' KEEP.';
+      const expectedNext = word.slice(1) + ' KEEP.';
+      const first = loop.withoutRemovedPersonAttributions(namedSentence + ' ' + next, namedQuestion);
+      const middle = loop.withoutRemovedPersonAttributions('KEEP. ' + namedSentence + ' ' + next, namedQuestion);
+      check(first.removed === 1 && first.text === expectedNext, 'B4 closed form ' + (i + 1) + ' after first-sentence removal');
+      check(middle.removed === 1 && middle.text === 'KEEP. ' + expectedNext, 'B4 closed form ' + (i + 1) + ' after middle removal');
+      const unchanged = loop.withoutRemovedPersonAttributions(next, namedQuestion);
+      check(unchanged.removed === 0 && unchanged.text === next,
+        'B4 closed form ' + (i + 1) + ' stays unchanged without deletion');
+      check(opening.cleanDanglingOpeningConnective(next) === next,
+        'B4 closed form ' + (i + 1) + ' default helper does not strip');
+      check(opening.cleanDanglingOpeningConnective(' \t' + word + ', KEEP.', { afterRemoval: true })
+        === ' \t' + word.slice(1) + ', KEEP.',
+      'B4 closed form ' + (i + 1) + ' preserves whitespace and punctuation');
+      check(opening.cleanDanglingOpeningConnective(word, { afterRemoval: true }) === word.slice(1),
+        'B4 closed form ' + (i + 1) + ' matches a whole word at end');
+      const longer = word + A('646') + ' KEEP.';
+      const keptLonger = loop.withoutRemovedPersonAttributions(namedSentence + ' ' + longer, namedQuestion);
+      check(keptLonger.removed === 1 && keptLonger.text === longer,
+        'B4 closed form ' + (i + 1) + ' does not match the start of a longer word');
+      check(opening.cleanDanglingOpeningConnective('KEEP ' + next, { afterRemoval: true }) === 'KEEP ' + next,
+        'B4 closed form ' + (i + 1) + ' is untouched outside the first word');
+    }
+    const controls = [
+      '641 647 645', '648 647 645', '641 642 62f', '641 644 645', '648 643 644',
+      '648 627 644 62f 647', '648 636 648 621', '648 628 631', '641 636 644',
+    ].map(A);
+    for (let i = 0; i < controls.length; i += 1) {
+      const sentence = controls[i] + ' KEEP.';
+      const out = loop.withoutRemovedPersonAttributions(namedSentence + ' ' + sentence, namedQuestion);
+      check(out.removed === 1 && out.text === sentence,
+        'B4 excluded opening word ' + (i + 1) + ' survives deletion byte for byte');
+      check(opening.cleanDanglingOpeningConnective(sentence, { afterRemoval: true }) === sentence,
+        'B4 excluded opening word ' + (i + 1) + ' survives direct cleanup');
+    }
+    const requiredControls = [
+      '641 642 62f 20 627 644 628 644 627 621 20 646 639 645 629 2e',
+      '641 647 645 20 627 644 646 635 20 623 648 644 627 2e',
+      '648 628 631 20 627 644 648 627 644 62f 64a 646 20 648 627 62c 628 2e',
+    ].map(A);
+    for (let i = 0; i < requiredControls.length; i += 1) {
+      const sentence = requiredControls[i];
+      const out = loop.withoutRemovedPersonAttributions(namedSentence + ' ' + sentence, namedQuestion);
+      check(out.removed === 1 && out.text === sentence, 'B4 required complete control sentence ' + (i + 1) + ' is unchanged');
+    }
+    const wama = A('648 645 627 20 648 642 641 62a 20 639 644 64a 647') + ' KEEP.';
+    const after = loop.withoutRemovedPersonAttributions(namedSentence + ' ' + wama, namedQuestion);
+    check(after.removed === 1 && after.text === wama.slice(1),
+      'B4 measured wama opening loses exactly its first waw after deletion');
+    const mixed = loop.withoutRemovedPersonAttributions(wama + ' ' + namedSentence + ' ' + A('641 647 630 627') + ' KEEP.', namedQuestion);
+    check(mixed.removed === 1 && mixed.text === wama + ' ' + A('647 630 627') + ' KEEP.',
+      'B4 middle deletion keeps an unrelated initial listed word and repairs only its following sentence');
+    const marked = A('648 64e 645 64e 627') + ' KEEP.';
+    check(opening.cleanDanglingOpeningConnective(marked, { afterRemoval: true }) === A('645 64e 627') + ' KEEP.',
+      'B4 stripping preserves marks on the remaining word');
+  }
 
   if (fail.length) {
     for (const message of fail) process.stderr.write('FAIL ' + message + '\n');
