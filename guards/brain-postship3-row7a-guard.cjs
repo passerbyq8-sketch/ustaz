@@ -117,24 +117,28 @@ async function main() {
   }
 
   {
-    const input = A('627 644 63a 646 627 621 20 645 62d 631 645 629 20 639 646 62f 20 62c 645 647 648 631 20 627 644 639 644 645 627 621 2e')
+    const ruling = A('627 644 63a 646 627 621 20 645 62d 631 645 20 639 646 62f 20 62c 645 647 648 631 20 627 644 639 644 645 627 621 2e');
+    const input = 'KEEP. ' + ruling
       + ' ' + A('644 643 646 20 628 639 636 647 645 20 623 628 627 62d 647 20 628 634 631 648 637 20 5b 5b 31 5d 5d 2e');
-    const expected = A('628 639 636 647 645 20 623 628 627 62d 647 20 628 634 631 648 637 20 5b 5b 31 5d 5d 2e');
+    const expected = 'KEEP. ' + A('628 639 636 647 645 20 623 628 627 62d 647 20 628 634 631 648 637 20 5b 5b 31 5d 5d 2e');
     const out = loop.withoutUnsourcedRulings(input, [1]);
     check(out.removed === 1 && out.text === expected,
-      'unsourced-ruling removal also removes the leading connective from the kept sentence');
+      'middle unsourced-ruling removal cleans the next sentence connective');
+    check(!loop.statesRulingSentence(A('645 62d 631 645 629')) && loop.statesRulingSentence(A('645 62d 631 645')),
+      'the ruling fixture uses a recognized ruling word, not the feminine descriptive form');
   }
 
   {
     const title = (books.SHORT_NAMES || []).find((name) => name
-      && books.attributedBooks(A('642 627 644') + ' ' + name + '.').length > 0);
+      && books.attributedBooks(A('642 627 644 20 641 64a') + ' ' + name + '.').length > 0);
     check(!!title, 'book fixture has a recognized attribution frame');
     if (title) {
       const next = A('644 643 646 20 645 633 62a 645 631 629 20 631 637 631 62d 627 646');
-      const input = A('642 627 644') + ' ' + title + '. ' + next;
+      const expectedNext = A('645 633 62a 645 631 629 20 631 637 631 62d 627 646');
+      const input = 'KEEP. ' + A('642 627 644 20 641 64a') + ' ' + title + '. ' + next;
       const out = loop.withoutUnretrievedBooks(input, []);
-      check(out.removed === 1 && out.text === next,
-        'unretrieved-book removal also removes the leading connective from the kept sentence');
+      check(out.removed === 1 && out.text === 'KEEP. ' + expectedNext,
+        'middle unretrieved-book removal cleans the next sentence connective');
     }
   }
 
@@ -164,6 +168,11 @@ async function main() {
       : { removed: -1, text: '' };
     check(ordinary.removed === 0 && ordinary.text === b3.text,
       'B3 remains unchanged outside the removed_person role');
+    const b3Sentence = b3.text.replace(/\u060c$/u, '.');
+    const trailing = A('644 643 646 647 645 20 639 627 645');
+    const middle = loop.withoutRemovedPersonAttributions('KEEP. ' + b3Sentence + ' ' + trailing + '.', queryFrame + ' ' + rawName);
+    check(middle.removed === 1 && middle.text === 'KEEP. ' + A('625 646 647 645 20 639 627 645') + '.',
+      'middle removed-person attribution cleanup preserves the sentence and repairs its connective');
   }
 
   const reviewDiff = spawnSync('git', ['diff', '--quiet', 'HEAD', '--', 'lib/free-brain/review.js'], { cwd: root });
