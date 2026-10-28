@@ -15,6 +15,7 @@ const check = (condition, message) => {
   if (!condition) fail.push(message);
 };
 const A = (hex) => String.fromCodePoint(...hex.trim().split(/\s+/).map((x) => parseInt(x, 16)));
+const { driveFreeTurn } = require(path.join(root, 'guards/replaced-law-lib.cjs'));
 
 async function main() {
   const loop = await import(pathToFileURL(path.join(root, 'lib/free-brain/loop.js')).href);
@@ -165,15 +166,26 @@ async function main() {
       'B3 remains unchanged outside the removed_person role');
   }
 
-  const loopSource = fs.readFileSync(path.join(root, 'lib/free-brain/loop.js'), 'utf8');
   const reviewDiff = spawnSync('git', ['diff', '--quiet', 'HEAD', '--', 'lib/free-brain/review.js'], { cwd: root });
   check(reviewDiff.status === 0, 'review.js is untouched');
-  check(loopSource.includes('answer = cleanDanglingOpeningConnective(answer);')
-    && loopSource.indexOf('answer = cleanDanglingOpeningConnective(answer);') < loopSource.indexOf('const beforeLines = answer;'),
-  'initial cleanup runs before sentence filters on nonstreamed text');
-  check(loopSource.includes('answer = withoutRemovedPersonAttributions(answer, question);')
-    && loopSource.indexOf('withoutRemovedPersonAttributions(answer, question)') < loopSource.indexOf('let proposedRows = citedRefs.map'),
-  'removed-person sentences are removed before the cited source rows are gathered');
+  const rawName = A('639 645 631 20 639 628 62f 20 627 644 643 627 641 64a');
+  const namedQuestion = A('645 627 20 642 627 644') + ' ' + rawName;
+  const ordinaryQuestion = A('645 627 20 62d 643 645 20 627 644 63a 64a 628 629');
+  const namedAnswer = fixture.excerpts.find((entry) => entry.label === 'B3').text.replace(/\u060c$/u, '.') + ' KEEP.';
+  const namedTurn = await driveFreeTurn({ answer: namedAnswer, question: namedQuestion, module: loop });
+  const namedRuntimePass = typeof namedTurn.text === 'string'
+    && !namedTurn.text.includes(rawName) && namedTurn.text.includes('KEEP');
+  check(namedRuntimePass,
+    'free-brain runtime removes the named sentence and keeps the following sentence'
+      + ' (name=' + (typeof namedTurn.text === 'string' && namedTurn.text.includes(rawName))
+      + ', keep=' + (typeof namedTurn.text === 'string' && namedTurn.text.includes('KEEP'))
+      + ', streamed=' + namedTurn.streamedThisTurn
+      + ', notCovered=' + namedTurn.notCovered
+      + ', role=' + !!removed.removedPersonAttribution(namedQuestion)
+      + ', keys=' + Object.keys(namedTurn).join(',') + ')');
+  const ordinaryTurn = await driveFreeTurn({ answer: namedAnswer, question: ordinaryQuestion, module: loop });
+  check(typeof ordinaryTurn.text === 'string' && ordinaryTurn.text.includes(rawName) && ordinaryTurn.text.includes('KEEP'),
+    'ordinary free-brain question completes and keeps the answer');
 
   if (fail.length) {
     for (const message of fail) process.stderr.write('FAIL ' + message + '\n');

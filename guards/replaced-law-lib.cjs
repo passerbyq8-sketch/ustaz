@@ -67,7 +67,7 @@ const searchPayload = (query) => ({
  * @param {string} [spec.route]  the lexical route reported to the reviewer
  * @param {object} spec.module   the loop module to drive (the real one, or a mutant twin)
  */
-async function driveFreeTurn({ answer, search = '', route = 'DEEN', module: loopModule }) {
+async function driveFreeTurn({ answer, question, search = '', route = 'DEEN', module: loopModule }) {
   const realFetch = globalThis.fetch;
   let call = 0;
   globalThis.fetch = async (input) => {
@@ -79,7 +79,7 @@ async function driveFreeTurn({ answer, search = '', route = 'DEEN', module: loop
   };
   try {
     return await loopModule.runFreeBrainTurn({
-      messages: [{ role: 'user', content: 'سؤال' }],
+      messages: [{ role: 'user', content: question === undefined ? 'سؤال' : question }],
       system: 'أنت أستاذ.', model: 'stub', maxTokens: 1024,
       mode: 'عادي', lexicalRoute: route, providerUrl: PROVIDER, headers: {},
     });
