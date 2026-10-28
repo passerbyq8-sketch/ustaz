@@ -147,15 +147,16 @@ async function b4IdentityRuntime(REM, FS) {
       body: { getReader: () => ({ read: async () => read ? { done: true } : (read = true, { done: false, value: bytes }), cancel: async () => {} }) } };
   };
   let sequence = 0;
+  const OFFLINE_FIXTURE_CREDENTIAL = 'b4-offline-fixture';
   async function drive(question, { available = true, hostile = false, streaming = false, includeKhilaf = false } = {}) {
     for (const key of envKeys) delete process.env[key];
     Object.assign(process.env, {
-      ANTHROPIC_API_KEY: 'b4-offline-key', BRAVE_API_KEY: 'b4-offline-key', FREE_BRAIN_V1: 'on',
+      ANTHROPIC_API_KEY: OFFLINE_FIXTURE_CREDENTIAL, BRAVE_API_KEY: OFFLINE_FIXTURE_CREDENTIAL, FREE_BRAIN_V1: 'on',
       FRONT_SORTER_V1: 'on', BEFORE_WRITING_V2: 'off', STREAM_V1: streaming ? 'on' : 'off',
       TAKHRIJ_V1: 'off', PROPHET_ASCRIPTION_BLOCK: 'off', LEDGER_RAG: 'off',
       LIB_QUOTE_V1: 'off', LIB_MUJAZ_V1: 'off', ENCYC_V1: 'off', SHAMELA_BRAIN: 'on',
-      SEARCH_API_TOKEN: 'b4-offline-token', DEPTH_FREE_TRIAL: 'on', LIVE_WORLD_V2: 'off',
-      VERCEL_ENV: 'preview', SEARCH_BUDGET_IDENTITY_SECRET: 'b4-offline-budget-secret',
+      SEARCH_API_TOKEN: OFFLINE_FIXTURE_CREDENTIAL, DEPTH_FREE_TRIAL: 'on', LIVE_WORLD_V2: 'off',
+      VERCEL_ENV: 'preview', SEARCH_BUDGET_IDENTITY_SECRET: OFFLINE_FIXTURE_CREDENTIAL,
       SEARCH_BUDGET_GLOBAL_PREVIEW: '1000', SEARCH_BUDGET_PER_CALLER: '100',
     });
     const rows = new Map();
@@ -278,7 +279,7 @@ async function b4IdentityRuntime(REM, FS) {
     SAFE.__setResolverForTest(async () => [{ address: '8.8.8.8', family: 4 }]);
     let libraryFixtureCalls = 0, libraryFixtureUrl = '';
     const libraryFixture = await LIBRARY.searchLibrary(CANONICAL, {
-      flagValue: 'on', token: 'b4-offline-token', fetchImpl: async (input) => {
+      flagValue: 'on', token: OFFLINE_FIXTURE_CREDENTIAL, fetchImpl: async (input) => {
         libraryFixtureCalls += 1; libraryFixtureUrl = String(input && input.url || input);
         if (libraryFixtureUrl !== librarySearchUrl) throw new Error('B4 library fixture endpoint mismatch');
         return json(libraryFixtureUrl, { hits: bookHits, total: bookHits.length });
