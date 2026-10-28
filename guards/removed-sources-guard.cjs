@@ -96,7 +96,7 @@ assert.deepEqual(data.lessons, []);
   for (const form of person.forms) {
     const result = await quote.answerQuoteRequest(request(missingTitle, form));
     assert.equal(result.outcome, 'no_book');
-    assert.equal(result.text, quote.noBookReply(missingTitle, form).split('. ')[0] + '.', 'each removed author form gets only the first sentence');
+    assert.equal(result.text, quote.noBookReply(missingTitle, person.canonical).split('. ')[0] + '.', 'each removed author form uses the canonical author name');
   }
   // A synthetic open work shares an exact removed title but belongs to another author.
   const sharedTitle = expectedTitles['FC-005049'];
