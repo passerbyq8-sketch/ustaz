@@ -154,24 +154,127 @@ const QUESTION = 'ما حكمُ الفطرِ في رمضانَ لمريضِ ال
     }
   }
   {
-    // Finalizer replay can pause on drain and request end after run() returns.
+    // B4 P3-24, final attempt: real finalizer replay can pause after run()
+    // returns. The row must wait for logical replay completion, while physical
+    // response completion must wait for the row and day index. No future symbol
+    // is imported, so this same behavior guard runs on the original B4 head.
     const { EventEmitter } = require('node:events');
     const { createFinalizedSseResponse } = await esm('lib/finalized-sse-writer.js');
-    const res = new EventEmitter();
-    let writes = 0, ends = 0, callbacks = 0;
-    res.write = () => ++writes !== 1;
-    res.end = (chunk, callback) => { ends++; (typeof chunk === 'function' ? chunk : callback)?.(); return res; };
-    res.setHeader = () => res;
-    res.status = () => res;
-    const req = { body: { messages: [{ role: 'user', content: 'drain fixture' }] } };
-    await AL.withAnswerLog(req, res, async () => {
-      const facade = createFinalizedSseResponse(res, { finalize: ({ text }) => ({ ok: true, text }) });
-      facade.write(frame({ type: 'content_block_delta', delta: { type: 'text_delta', text: 'Complete fixture answer.' } }));
-      facade.end(() => { callbacks++; });
-    }, null, { store: { async setex() { return true; }, async lpushCapped() { return true; } } });
-    ok('B4 finalizer replay waits on drain', writes === 1 && ends === 0);
-    res.emit('drain');
-    ok('B4 a late end after persistence closes once and calls back', ends === 1 && callbacks === 1);
+    const turn = () => new Promise((resolve) => setImmediate(resolve));
+    async function bounded(promise) {
+      let timer;
+      const result = await Promise.race([
+        promise.then(() => ({ settled: true, threw: false }), () => ({ settled: true, threw: true })),
+        new Promise((resolve) => { timer = setTimeout(() => resolve({ settled: false, threw: false }), 500); }),
+      ]);
+      clearTimeout(timer);
+      return result;
+    }
+    function startReplay({ label, text, cardTags = [], pauseAt = 1, throwAt = 0, signal = null, prefix = '' }) {
+      const res = new EventEmitter();
+      const records = new Map(), index = [], accepted = [], warnings = [];
+      const state = { writes: 0, ends: 0, callbacks: 0, callbackErrors: 0, rowsAtEnd: -1, indexAtEnd: -1, returned: false };
+      let physicalEnd = false;
+      res.write = (chunk) => {
+        state.writes += 1;
+        if (state.writes === throwAt) throw new Error('B4 replay write failed');
+        accepted.push(String(chunk));
+        return state.writes !== pauseAt;
+      };
+      res.end = (chunk, encoding, callback) => {
+        physicalEnd = true;
+        state.ends += 1;
+        state.rowsAtEnd = records.size;
+        state.indexAtEnd = index.length;
+        const done = [chunk, encoding, callback].find((value) => typeof value === 'function');
+        if (done) done();
+        return res;
+      };
+      res.setHeader = () => res;
+      res.status = () => res;
+      const store = {
+        async setex(key, ttl, value) {
+          await Promise.resolve();
+          if (physicalEnd) return false;
+          records.set(key, JSON.parse(value));
+          return true;
+        },
+        async lpushCapped(key, trace) {
+          await Promise.resolve();
+          if (physicalEnd) return false;
+          index.push(trace);
+          return true;
+        },
+      };
+      // POST is essential: without it withAnswerLog deliberately bypasses its wrapper.
+      const req = { method: 'POST', body: { messages: [{ role: 'user', content: label }] } };
+      const promise = AL.withAnswerLog(req, res, async () => {
+        const facade = createFinalizedSseResponse(res, {
+          finalize: ({ text: value }) => ({ ok: true, text: value }),
+          context: () => ({ allowWireOwnedCards: true, sourceCards: cardTags.map((tag) => ({ tag })) }),
+          signal,
+        });
+        facade.write(frame({ type: 'message_start', message: { id: 'B4', type: 'message', role: 'assistant', content: [] } }));
+        facade.write(frame({ type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } }));
+        const pieces = prefix ? [prefix, text.slice(prefix.length)] : [text];
+        for (const piece of pieces) facade.write(frame({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: piece } }));
+        facade.write(frame({ type: 'content_block_stop', index: 0 }));
+        facade.write(frame({ type: 'message_delta', delta: { stop_reason: 'end_turn' }, usage: { output_tokens: 17 } }));
+        facade.write(frame({ type: 'message_stop' }));
+        facade.end((error) => { state.callbacks += 1; if (error) state.callbackErrors += 1; });
+        req.__answerLog.note({ path: 'free-brain', route: 'DEEN', runtime: 'STORED_FIQH', cited: cardTags.length });
+      }, () => ({ lang: 'ar' }), { store });
+      promise.then(() => { state.returned = true; }, () => { state.returned = true; });
+      return { res, records, index, state, accepted, warnings, promise };
+    }
+    const tail = '\u0627\u0644\u0645\u0635\u062f\u0631: \u0627\u0644\u0645\u0648\u0633\u0648\u0639\u0629 \u0627\u0644\u0641\u0642\u0647\u064a\u0629 \u0627\u0644\u0643\u0648\u064a\u062a\u064a\u0629.';
+    const cards = [1, 2, 3].map((n) => '<book id="FC-09999' + n + '" title="B4 fixture"></book>');
+    const verse = '<quran sura="94" aya="5">\u0641\u0625\u0646 \u0645\u0639 \u0627\u0644\u0639\u0633\u0631 \u064a\u0633\u0631\u0627</quran>';
+    const shapes = [
+      ['S3 complete verse, three books and encyclopedia', verse + '\nExplanation.\n' + tail + '\n' + cards.join('\n'), cards, 4],
+      ['sibling complete verse', '<quran sura="93" aya="5">Fixture verse.</quran>\nExplanation.\n' + cards.join('\n'), cards, 3],
+      ['fiqh complete encyclopedia', 'Sourced fiqh answer.\n' + tail + '\n' + cards[0], [cards[0]], 2],
+      ['hadith complete grade', 'Hadith grade with evidence.\n' + cards[0], [cards[0]], 1],
+    ];
+    for (const [label, text, cardTags, expectedCited] of shapes) {
+      const active = startReplay({ label, text, cardTags });
+      await turn();
+      ok('B4 ' + label + ': replay paused, no premature row or physical end',
+        active.state.writes === 1 && active.records.size === 0 && active.index.length === 0
+          && active.state.ends === 0 && active.state.returned === false,
+        JSON.stringify({ writes: active.state.writes, rows: active.records.size, index: active.index.length, ends: active.state.ends, returned: active.state.returned }));
+      active.res.emit('drain');
+      const finished = await bounded(active.promise);
+      const saved = [...active.records.values()][0];
+      ok('B4 ' + label + ': one complete indexed row before physical end', finished.settled && !finished.threw
+        && active.records.size === 1 && active.index.length === 1 && active.state.rowsAtEnd === 1 && active.state.indexAtEnd === 1
+        && active.state.ends === 1 && active.state.callbacks === 1 && active.state.callbackErrors === 0
+        && saved && saved.out_chars === text.length && saved.cited === expectedCited && saved.status === 'ended'
+        && saved.path === 'free-brain' && saved.stop_reason === 'end_turn' && saved.out_tokens === 17,
+        JSON.stringify({ settled: finished.settled, state: active.state, saved }));
+    }
+    const prefix = 'Accepted answer prefix. ';
+    const partialText = prefix + 'Rejected later delta.\n' + cards[0];
+    for (const reason of ['write-error', 'signal-abort', 'socket-close']) {
+      const abort = new AbortController();
+      const active = startReplay({ label: reason, text: partialText, cardTags: [cards[0]], prefix,
+        pauseAt: 3, throwAt: reason === 'write-error' ? 4 : 0, signal: abort.signal });
+      await turn();
+      ok('B4 ' + reason + ': accepted prefix waits for terminal replay outcome',
+        active.state.writes === 3 && active.records.size === 0 && active.index.length === 0
+          && active.state.ends === 0 && active.state.returned === false);
+      if (reason === 'write-error') active.res.emit('drain');
+      else if (reason === 'signal-abort') abort.abort();
+      else active.res.emit('close');
+      const finished = await bounded(active.promise);
+      const saved = [...active.records.values()][0];
+      ok('B4 ' + reason + ': replay settles and stores only accepted text once', finished.settled && !finished.threw
+        && active.records.size === 1 && active.index.length === 1 && active.state.ends === 0
+        && active.state.callbacks === 1 && active.state.callbackErrors === 1
+        && active.res.listenerCount('drain') === 0 && saved && saved.out_chars === prefix.length
+        && saved.cited === 0 && saved.status === 'open',
+        JSON.stringify({ settled: finished.settled, state: active.state, drains: active.res.listenerCount('drain'), saved }));
+    }
   }
   console.log('-- 4. the wiring');
   const ask = fs.readFileSync(path.join(REPO, 'api/ask.js'), 'utf8');
