@@ -113,6 +113,66 @@ const QUESTION = 'ما حكمُ الفطرِ في رمضانَ لمريضِ ال
     ok('no store: nothing fails, nothing is written', (await AL.createAnswerLog({ question: 'x', key: '' }).flush()) === false);
   } finally { REDIS.__resetRedis(); }
 
+  // B4 P3-24: the store is available only until physical response completion.
+  // This models the serverless lifetime boundary without network or model calls.
+  console.log('-- B4. persistence before physical response completion');
+  {
+    const verseQuestion = '\u0645\u0627 \u0645\u0639\u0646\u0649 \u0642\u0648\u0644\u0647 \u062a\u0639\u0627\u0644\u0649: \u0625\u0646 \u0645\u0639 \u0627\u0644\u0639\u0633\u0631 \u064a\u0633\u0631\u0627\u061f';
+    const verse = '<quran sura="94" aya="5">\u0641\u0625\u0646 \u0645\u0639 \u0627\u0644\u0639\u0633\u0631 \u064a\u0633\u0631\u0627</quran>';
+    const tail = '\u0627\u0644\u0645\u0635\u062f\u0631: \u0627\u0644\u0645\u0648\u0633\u0648\u0639\u0629 \u0627\u0644\u0641\u0642\u0647\u064a\u0629 \u0627\u0644\u0643\u0648\u064a\u062a\u064a\u0629.';
+    const cards = [1, 2, 3].map(n => '<book id="FC-00999' + n + '" title="fixture"/>').join('\n');
+    const shapes = [
+      ['S3 verse, three books and encyclopedia', verseQuestion, verse + '\nExplanation.\n' + tail + '\n' + cards, 'bw2'],
+      ['sibling verse', verseQuestion + ' 2', '<quran sura="93" aya="5">Fixture verse.</quran>\nExplanation.\n' + cards, 'free-brain'],
+      ['fiqh with encyclopedia', 'fiqh fixture', 'Sourced fiqh answer.\n' + tail + '\n' + cards, 'stored'],
+      ['hadith grade', 'hadith fixture', 'Hadith grade with evidence.\n' + cards, 'bw2'],
+    ];
+    for (const [label, question, text, pathName] of shapes) {
+      let ended = false, ends = 0, rowsAtEnd = -1, indexAtEnd = -1;
+      const records = new Map(), index = [], warnings = [];
+      const res = { write() { return true; }, end() { ended = true; ends += 1; rowsAtEnd = records.size; indexAtEnd = index.length; return this; } };
+      const store = {
+        async setex(k, ttl, value) { await Promise.resolve(); if (ended) return false; records.set(k, JSON.parse(value)); return true; },
+        async lpushCapped(k, trace) { await Promise.resolve(); if (ended) return false; index.push(trace); return true; },
+      };
+      const req = { method: 'POST', body: { messages: [{ role: 'user', content: question }] } };
+      const warn = console.warn; console.warn = line => warnings.push(String(line));
+      try {
+        await AL.withAnswerLog(req, res, async () => {
+          req.__answerLog.note({ route: 'DEEN', runtime: 'STORED_FIQH' });
+          res.write(frame({ type: 'content_block_delta', delta: { type: 'text_delta', text } }));
+          res.end();
+          // BW2 notes these facts after its wire requested response completion.
+          req.__answerLog.note({ path: pathName, cited: 3, hits: { library: 3 } });
+        }, () => ({ lang: 'ar' }), { store });
+      } finally { console.warn = warn; }
+      const saved = [...records.values()][0];
+      ok('B4 ' + label + ': one indexed row before physical end',
+        records.size === 1 && index.length === 1 && rowsAtEnd === 1 && indexAtEnd === 1 && ends === 1
+          && saved.path === pathName && saved.status === 'ended' && warnings.length === 0,
+        'rows=' + records.size + ' index=' + index.length + ' rowsAtEnd=' + rowsAtEnd + ' warnings=' + warnings.length);
+    }
+  }
+  {
+    // Finalizer replay can pause on drain and request end after run() returns.
+    const { EventEmitter } = require('node:events');
+    const { createFinalizedSseResponse } = await esm('lib/finalized-sse-writer.js');
+    const res = new EventEmitter();
+    let writes = 0, ends = 0, callbacks = 0;
+    res.write = () => ++writes !== 1;
+    res.end = (chunk, callback) => { ends++; (typeof chunk === 'function' ? chunk : callback)?.(); return res; };
+    res.setHeader = () => res;
+    res.status = () => res;
+    const req = { body: { messages: [{ role: 'user', content: 'drain fixture' }] } };
+    await AL.withAnswerLog(req, res, async () => {
+      const facade = createFinalizedSseResponse(res, { finalize: ({ text }) => ({ ok: true, text }) });
+      facade.write(frame({ type: 'content_block_delta', delta: { type: 'text_delta', text: 'Complete fixture answer.' } }));
+      facade.end(() => { callbacks++; });
+    }, null, { store: { async setex() { return true; }, async lpushCapped() { return true; } } });
+    ok('B4 finalizer replay waits on drain', writes === 1 && ends === 0);
+    res.emit('drain');
+    ok('B4 a late end after persistence closes once and calls back', ends === 1 && callbacks === 1);
+  }
   console.log('-- 4. the wiring');
   const ask = fs.readFileSync(path.join(REPO, 'api/ask.js'), 'utf8');
   ok('opened as the handler\'s first act, inside the gate the exported handler is',
