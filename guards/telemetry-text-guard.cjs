@@ -101,6 +101,8 @@ const ALLOWED_FIELDS = [
   'repaired', 'requested', 'requestedDepth', 'resolvedScholar', 'retrievalOutcome', 'role',
   'retrieved', 'rounds', 'route', 'rows', 'scholar', 'score', 'searchCompleted', 'searched',
   'source', 'sourceIds', 'sourcePolicy', 'sources', 'supporting', 'tools', 'topic', 'transfer',
+  // routeLogFields() emits only closed route, lexical and sorter tokens (lib/route-log.js).
+  'tags',
   'truncated', 'turn', 'used', 'verdict',
 ];
 // ── RULE B, CONTINUED: THE STREAMING TURN'S OWN COUNTERS ──────────────────────
@@ -313,6 +315,8 @@ const ANSWER_LOG_ALLOWED = new Set([
   'out_chars', 'out_tokens', 'first_byte_ms', 'max_gap_ms', 'status_events', 'flags',
   // the sources `hits` counts, by name
   'fatwa', 'library', 'encyclopedia', 'lessons', 'candidates', 'evidence', 'world',
+  // Numeric visible-source count from takhrijProvenRows.length; no source or reader text.
+  'takhrijEvidence',
 ]);
 const NOTE_CALL = /\banswerLog\s*\.\s*note\s*\(/;
 const sweepNotes = (source, file) => {
