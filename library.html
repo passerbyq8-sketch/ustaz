@@ -1221,7 +1221,10 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
         body.appendChild(cardEl);
         body.appendChild(el('h3', { class: 'sec-title', text: T('toc') }));
         body.appendChild(tocList(b.toc, b.access === 'full' ? function (seq) { go('#/read/' + b.book_id + '/' + seq); } : null));
-      }).catch(function () { errorView(body, load); });
+      }).catch(function (e) {
+        body.setAttribute('data-error-key', e && e.status === 404 ? 'book_not_found' : 'load_error');
+        errorView(body, load);
+      });
     }
     load();
     return {};
