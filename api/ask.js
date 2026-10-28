@@ -150,7 +150,7 @@ import { bw2ScopeExclusion } from '../lib/bw2-scope.js';
 // THE FRONT SORTER AND THE GENERAL FRAME (order EZIK-SORTER-ORDER-2026-10-01). One fast-model call
 // separates a worldly request that carries a religious-looking word from a religious one BEFORE it is
 // framed; a turn that ends GENERAL is then answered in the general frame. Both modules are pure.
-import { frontSorterDecision, sorterEligibility, startSorter, runtimeAfterSorter, frameAfterSorter } from '../lib/front-sorter.js';
+import { frontSorterDecision, sorterEligibility, startSorter, runtimeAfterSorter } from '../lib/front-sorter.js';
 // The hard rule for pornography (order EZIK-IMPERMISSIBLE-ORDER-2026-10-01): a request for the content is answered with a fixed text,
 // for every reader, with no model call; a QUESTION about it (its ruling, its harm, quitting it) goes on to its own path.
 import { impermissibleEarlyDecision, classifyPornographyRequest, classifyYoungPornographyDoubt, PORN_REFUSAL_TEXT } from '../lib/policy/porn-request.js';
@@ -1220,9 +1220,7 @@ export default async function handler(req, res) {
   // (and never with the switch off).
   // ITEM C1 (axis row 1) -- 2026-10-15 brain-line: and only where the sorter itself said WORLDLY. A turn the
   // lexicon alone called general, with no verdict behind it, keeps the shari'a frame.
-  const frameFor = (runtime, sorter = sorterPlan.sorter) => frameAfterSorter(runtime, sorter, {
-    enabled: frontSorter.enabled, band, freeBrainEnabled: freeBrainOnAtSorter,
-  });
+  const frameFor = (runtime, sorter) => (sorter === 'removed_identity' && band === 'adult' && freeBrainOnAtSorter ? 'general' : (frontSorter.enabled && band === 'adult' && freeBrainOnAtSorter && runtime === 'GENERAL' && sorter === 'worldly' ? 'general' : 'sharia'));
   const logRoute = (final = {}) => {
     const finalRuntime = final.runtime || currentRuntime;
     const finalRoute = final.route || (finalRuntime === 'GENERAL' ? 'GEN' : 'DEEN');
@@ -1236,7 +1234,7 @@ export default async function handler(req, res) {
       purpose: currentPlan.purpose, mode: currentPlan.attributionMode,
       entity: currentPlan.namedEntity || null, officialDomain: currentPlan.officialDomain || null,
       lexicalRuntime: currentRuntime, runtime: currentRuntime,
-      sorter: sorterPlan.sorter, sorterMs: 0, frame: frameFor(currentRuntime),
+      sorter: sorterPlan.sorter, sorterMs: 0, frame: frameFor(currentRuntime, sorterPlan.sorter),
       impermissible: 'none', tags: routeTags,
       ...final,
     });
