@@ -50,6 +50,12 @@ function makeWorld(src, DATA, screens, o) {
     scrollTo() {}, innerWidth: 360, innerHeight: 740,
     addEventListener: (t, f) => { (win._l[t] = win._l[t] || []).push(f); },
     removeEventListener: (t, f) => { if (win._l[t]) win._l[t] = win._l[t].filter(x => x !== f); },
+    Image: class TestImage extends El {
+      constructor() { super('img', doc); this.complete = false; this.naturalWidth = 0; this.naturalHeight = 0; this.fetchPriority = ''; }
+      set src(url) { this.setAttribute('src', url); this.complete = !!url; this.naturalWidth = url ? 1200 : 0; this.naturalHeight = url ? 800 : 0; }
+      get src() { return this.getAttribute('src') || ''; }
+      get isConnected() { return attached(this); }
+    },
     DATA, Math: M, JSON, String, Number, Array, Object, Date, parseInt, parseFloat, isNaN, isFinite, Error, Promise, Set, Map
   };
   ctx.window = ctx; ctx.self = ctx;

@@ -19,6 +19,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0001.webp",
+        "ratio": 0.75,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -51,6 +52,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0002.webp",
+        "ratio": 0.75,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -83,6 +85,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0003.webp",
+        "ratio": 1.517067,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -115,6 +118,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0004.webp",
+        "ratio": 0.666667,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -147,6 +151,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0005.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -179,6 +184,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0006.webp",
+        "ratio": 0.75,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -211,6 +217,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0007.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -243,6 +250,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0008.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -275,6 +283,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0009.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -307,6 +316,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0010.webp",
+        "ratio": 2.150538,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -339,6 +349,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0011.webp",
+        "ratio": 0.75,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -371,6 +382,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0012.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -403,6 +415,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0013.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -435,6 +448,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0014.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -467,6 +481,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0015.webp",
+        "ratio": 1.777778,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -499,6 +514,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0016.webp",
+        "ratio": 1.846154,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -531,6 +547,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0017.webp",
+        "ratio": 1.570681,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -563,6 +580,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0018.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -595,6 +613,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0019.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -627,6 +646,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0020.webp",
+        "ratio": 1.481481,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -659,6 +679,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0021.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -691,6 +712,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0022.webp",
+        "ratio": 2.197802,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -723,6 +745,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0023.webp",
+        "ratio": 1.967213,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -755,6 +778,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0024.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -787,6 +811,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0025.webp",
+        "ratio": 1.336303,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -819,6 +844,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0026.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -851,6 +877,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0027.webp",
+        "ratio": 0.75,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -883,6 +910,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0028.webp",
+        "ratio": 1.534527,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -915,6 +943,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0029.webp",
+        "ratio": 1.520913,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -947,6 +976,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0030.webp",
+        "ratio": 1.459854,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -979,6 +1009,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0031.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1011,6 +1042,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0032.webp",
+        "ratio": 1.666667,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1043,6 +1075,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0033.webp",
+        "ratio": 1.498127,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1075,6 +1108,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0034.webp",
+        "ratio": 1.777778,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1107,6 +1141,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0035.webp",
+        "ratio": 1.420118,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1139,6 +1174,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0036.webp",
+        "ratio": 1.505646,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1171,6 +1207,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0037.webp",
+        "ratio": 2.376238,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1203,6 +1240,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0038.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1235,6 +1273,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0039.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1267,6 +1306,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0040.webp",
+        "ratio": 1.777778,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1299,6 +1339,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0041.webp",
+        "ratio": 0.75,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1331,6 +1372,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0042.webp",
+        "ratio": 4.013378,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1363,6 +1405,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0043.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1395,6 +1438,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0044.webp",
+        "ratio": 1.542416,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1427,6 +1471,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0045.webp",
+        "ratio": 1.509434,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1459,6 +1504,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0046.webp",
+        "ratio": 0.5625,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1491,6 +1537,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0047.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1523,6 +1570,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0048.webp",
+        "ratio": 1.630435,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1555,6 +1603,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0049.webp",
+        "ratio": 2.247191,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1587,6 +1636,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0050.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1619,6 +1669,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0051.webp",
+        "ratio": 0.666667,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1651,6 +1702,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0052.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1683,6 +1735,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0053.webp",
+        "ratio": 1.336303,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1715,6 +1768,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0054.webp",
+        "ratio": 0.75,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1747,6 +1801,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0055.webp",
+        "ratio": 0.75,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1779,6 +1834,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0056.webp",
+        "ratio": 1.354402,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1811,6 +1867,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0057.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1843,6 +1900,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0058.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1875,6 +1933,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0059.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1907,6 +1966,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0060.webp",
+        "ratio": 0.666667,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1939,6 +1999,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0061.webp",
+        "ratio": 1.327434,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -1971,6 +2032,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0062.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2003,6 +2065,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0063.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2035,6 +2098,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0064.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2067,6 +2131,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0065.webp",
+        "ratio": 1.777778,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2099,6 +2164,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0066.webp",
+        "ratio": 0.75,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2131,6 +2197,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0067.webp",
+        "ratio": 2.294455,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2163,6 +2230,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0068.webp",
+        "ratio": 1.318681,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2195,6 +2263,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0069.webp",
+        "ratio": 0.75,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2227,6 +2296,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0070.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2259,6 +2329,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0071.webp",
+        "ratio": 1.872075,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2291,6 +2362,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0072.webp",
+        "ratio": 0.75,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2323,6 +2395,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0073.webp",
+        "ratio": 1.775148,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2355,6 +2428,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0074.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2387,6 +2461,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0075.webp",
+        "ratio": 1.494396,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2419,6 +2494,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0076.webp",
+        "ratio": 1.503759,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2451,6 +2527,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0077.webp",
+        "ratio": 6.976744,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2483,6 +2560,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0078.webp",
+        "ratio": 1.485149,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2515,6 +2593,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0079.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2547,6 +2626,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0080.webp",
+        "ratio": 2.255639,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2579,6 +2659,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0081.webp",
+        "ratio": 1.438849,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2611,6 +2692,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0082.webp",
+        "ratio": 1.509434,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2643,6 +2725,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0083.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2675,6 +2758,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0084.webp",
+        "ratio": 1.334816,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2707,6 +2791,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0085.webp",
+        "ratio": 1.775148,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2739,6 +2824,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0086.webp",
+        "ratio": 2.44898,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2771,6 +2857,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0087.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2803,6 +2890,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0088.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2835,6 +2923,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0089.webp",
+        "ratio": 1.494396,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2867,6 +2956,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0090.webp",
+        "ratio": 1.777778,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2899,6 +2989,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0091.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2931,6 +3022,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0092.webp",
+        "ratio": 1.595745,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2963,6 +3055,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0093.webp",
+        "ratio": 2.521008,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -2995,6 +3088,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0094.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3027,6 +3121,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0095.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3059,6 +3154,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0096.webp",
+        "ratio": 1.498127,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3091,6 +3187,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0097.webp",
+        "ratio": 3.389831,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3123,6 +3220,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0098.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3155,6 +3253,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0099.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3187,6 +3286,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0100.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3219,6 +3319,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0101.webp",
+        "ratio": 1.498127,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3251,6 +3352,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0102.webp",
+        "ratio": 1.503759,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3283,6 +3385,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0103.webp",
+        "ratio": 1.505646,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3315,6 +3418,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0104.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3347,6 +3451,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0105.webp",
+        "ratio": 1.503759,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3379,6 +3484,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0106.webp",
+        "ratio": 0.75,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3411,6 +3517,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0107.webp",
+        "ratio": 0.75,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3443,6 +3550,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0108.webp",
+        "ratio": 1.775148,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3475,6 +3583,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0109.webp",
+        "ratio": 1.503759,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3507,6 +3616,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0110.webp",
+        "ratio": 0.666667,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3539,6 +3649,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0111.webp",
+        "ratio": 1.498127,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3571,6 +3682,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0112.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3603,6 +3715,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0113.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3635,6 +3748,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0114.webp",
+        "ratio": 1.498127,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3667,6 +3781,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0115.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3699,6 +3814,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0116.webp",
+        "ratio": 0.666667,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3731,6 +3847,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0117.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3763,6 +3880,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0118.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3795,6 +3913,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0119.webp",
+        "ratio": 0.99,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3827,6 +3946,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0120.webp",
+        "ratio": 1.494396,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3859,6 +3979,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0121.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3891,6 +4012,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0122.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3923,6 +4045,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0123.webp",
+        "ratio": 1.377727,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3955,6 +4078,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0124.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -3987,6 +4111,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0125.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -4019,6 +4144,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0126.webp",
+        "ratio": 1.334816,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -4051,6 +4177,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0127.webp",
+        "ratio": 0.668333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -4083,6 +4210,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0128.webp",
+        "ratio": 0.75,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -4115,6 +4243,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0129.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -4147,6 +4276,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0130.webp",
+        "ratio": 0.673333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -4179,6 +4309,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0131.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -4211,6 +4342,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0132.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -4243,6 +4375,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0133.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -4275,6 +4408,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0134.webp",
+        "ratio": 2.264151,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -4307,6 +4441,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0135.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -4339,6 +4474,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0136.webp",
+        "ratio": 1.466993,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -4371,6 +4507,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0137.webp",
+        "ratio": 0.730833,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -4403,6 +4540,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0138.webp",
+        "ratio": 1.333333,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -4435,6 +4573,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0139.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -4467,6 +4606,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0140.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -4499,6 +4639,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0141.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -4531,6 +4672,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0142.webp",
+        "ratio": 3,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -4563,6 +4705,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0143.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -4595,6 +4738,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0144.webp",
+        "ratio": 1.5,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -4627,6 +4771,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0145.webp",
+        "ratio": 1.59787,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -4659,6 +4804,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0146.webp",
+        "ratio": 1.6,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -4691,6 +4837,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0147.webp",
+        "ratio": 1.466993,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -4723,6 +4870,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0148.webp",
+        "ratio": 0.7425,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -4755,6 +4903,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0149.webp",
+        "ratio": 1.630435,
         "mask": {
           "x": 99.75,
           "y": 99.75,
@@ -4787,6 +4936,7 @@ KZV.register({
       "vis": {
         "kind": "photo",
         "src": "quest-img/landmarks/landmark-photos-0150.webp",
+        "ratio": 1.532567,
         "mask": {
           "x": 99.75,
           "y": 99.75,

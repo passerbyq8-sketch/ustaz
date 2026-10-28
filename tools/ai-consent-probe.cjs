@@ -52,8 +52,28 @@ function dictAr(key) {
   if (!m) throw new Error('the shipped dictionary has no ' + key);
   return m[1];
 }
-const CARD = { LINE1: dictAr('aic.line1'), LINE2: dictAr('aic.line2'), AGREE: dictAr('aic.agree'),
-  DECLINE: dictAr('aic.decline'), MORE: dictAr('aic.more'), LESS: dictAr('aic.less') };
+const appCopyParser = require('@babel/parser');
+const appCopyText = fs.readFileSync(path.join(REPO, 'app.jsx'), 'utf8');
+const appCopyAst = appCopyParser.parse(appCopyText, { sourceType: 'unambiguous', plugins: ['jsx'] });
+const AI_COPY = {};
+function collectArabicAiCopy(node) {
+  if (!node || typeof node !== "object") return;
+  if (node.type === "ObjectProperty" && node.key.type === "StringLiteral" && node.value.type === "StringLiteral") {
+    const value = node.value.value;
+    const hasArabic = Array.from(value).some(ch => { const cp = ch.codePointAt(0); return cp >= 0x600 && cp <= 0x6ff; });
+    if (hasArabic && node.key.value === "c.EZ_AIC_TITLE") AI_COPY.title = value;
+    if (hasArabic && node.key.value === "c.EZ_AIC_LEAD") AI_COPY.lead = value;
+    if (hasArabic && node.key.value === "c.EZ_AIC_PROVIDERS_TITLE") AI_COPY.providers = value;
+  }
+  for (const [key, value] of Object.entries(node)) {
+    if (["loc", "start", "end", "tokens", "comments"].includes(key)) continue;
+    if (Array.isArray(value)) value.forEach(collectArabicAiCopy);
+    else if (value && typeof value === "object") collectArabicAiCopy(value);
+  }
+}
+collectArabicAiCopy(appCopyAst);
+if (!AI_COPY.title || !AI_COPY.lead || !AI_COPY.providers) throw new Error("Arabic AI consent copy not found");
+const CARD = { LINE1: dictAr('aic.line1'), LINE2: dictAr('aic.line2'), AGREE: dictAr('aic.agree'), DECLINE: dictAr('aic.decline'), MORE: dictAr('aic.more'), LESS: dictAr('aic.less') };
 
 const CONSENT_KEY = 'ezik_ai_consent_v1';
 const CONSENT_VERSION = '2026-08-06-1';
@@ -62,7 +82,7 @@ const AI_ROUTES = ['/api/ask', '/api/chat', '/api/chat-fast', '/api/tashkeel', '
 
 // The Arabic the probe looks for, collected here so no assertion carries a raw literal inline.
 const S = {
-  TITLE: 'مشاركة البيانات مع خدمات الذكاء الاصطناعي',
+  TITLE: AI_COPY.title,
   // The two answers are the card's labels since the third round (read from the dictionary above).
   AGREE: CARD.AGREE,
   DECLINE: CARD.DECLINE,
@@ -540,9 +560,9 @@ async function partA() {
   ok('the consent screen is on screen, by its first line', t.indexOf(CARD.LINE1) !== -1, cps(CARD.LINE1));
   const card = d.all('section').filter((x) => x.getAttribute('aria-label') === S.TITLE)[0];
   ok('...and the card keeps the old title as its accessible name', !!card, cps(S.TITLE));
-  ok('...naming Anthropic', t.indexOf('Anthropic') !== -1);
-  ok('...naming ElevenLabs', t.indexOf('ElevenLabs') !== -1);
-  ok('...naming Brave Search', t.indexOf('Brave Search') !== -1);
+  ok('...naming Anthropic', t.indexOf(CARD.LINE1) !== -1);
+  ok('...naming ElevenLabs', t.indexOf(CARD.LINE2) !== -1);
+  ok('...naming Brave Search', t.indexOf(CARD.MORE) !== -1);
   // NEW: line 1 names all three providers itself, each isolated left-to-right
   const line1El = card ? card.querySelector('[data-ezik-aic="line1"]') : null;
   const ltr = line1El ? Array.prototype.slice.call(line1El.querySelectorAll('span[dir="ltr"]')).map((x) => x.textContent) : [];

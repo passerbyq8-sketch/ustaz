@@ -878,8 +878,32 @@
     showExpired(startContext.gameId, window.location.pathname + window.location.search + window.location.hash, balance);
   }
 
+  function isIosWebViewWithMessaging() {
+    var bridge = window.ReactNativeWebView;
+    if (!bridge || typeof bridge.postMessage !== 'function') return false;
+    var ua = typeof navigator !== 'undefined' ? String(navigator.userAgent || '') : '';
+    var isIosUa = /iPhone|iPad|iPod/i.test(ua);
+    var isIpadOs = typeof navigator !== 'undefined'
+      && navigator.platform === 'MacIntel' && Number(navigator.maxTouchPoints) > 1;
+    return isIosUa || isIpadOs;
+  }
+
+  async function hasNativeIosPurchaseBridge() {
+    if (!isIosWebViewWithMessaging()) return false;
+    try {
+      await requestShell('iap.prices', { productIds: ['ezik_pass_week_1', 'ezik_pass_month_1', 'ezik_pass_year_1'] }, 8000);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   async function enterKunuzHome(onUpdate) {
     if (typeof onUpdate !== 'function') return;
+    if (authSession() && await hasNativeIosPurchaseBridge()) {
+      onUpdate(null, true);
+      return;
+    }
     var mode;
     try { mode = await getEnforcementMode(); } catch (e) { onUpdate(null, false); return; }
     if (!['off', 'test', 'all'].includes(mode)) { onUpdate(null, false); return; }
@@ -887,7 +911,7 @@
     var session = authSession();
     if (!session) {
       if (mode !== 'all') { onUpdate(null, false); return; }
-      onUpdate({ kind: 'sign-in' }, true);
+      onUpdate({ kind: 'sign-in' }, false);
       if (homeSignInCleanup) homeSignInCleanup();
       var done = false;
       var resume = function () {
@@ -910,8 +934,8 @@
       };
       return;
     }
-    var purchasesApplicable = mode === 'all';
-    if (purchasesApplicable) onUpdate(null, true);
+    var purchasesApplicable = false;
+    onUpdate(null, false);
     var response;
     try { response = await getBalance(session); } catch (e) { response = { ok: false }; }
     if (!response.ok) {
@@ -920,18 +944,17 @@
       return;
     }
     if (response.data.enforced !== true) { onUpdate(null, purchasesApplicable); return; }
-    purchasesApplicable = true;
     var expiresAt = Number(response.data.subscriptionExpiresAt);
     var activePass = response.data.subscriptionActive === true
       || Number.isFinite(expiresAt) && expiresAt > Date.now();
-    if (activePass) { onUpdate(null, true); return; }
+    if (activePass) { onUpdate(null, false); return; }
     var expiredPass = Number.isFinite(expiresAt) && expiresAt > 0 && expiresAt <= Date.now();
     if (!response.data.trial && expiredPass) {
-      onUpdate({ kind: 'pass-expired' }, true);
+      onUpdate({ kind: 'pass-expired' }, false);
       return;
     }
     if (!response.data.trial) {
-      onUpdate({ kind: 'trial', trial: { active: true, daysLeft: 7 }, starting: true }, true);
+      onUpdate({ kind: 'trial', trial: { active: true, daysLeft: 7 }, starting: true }, false);
       var started = await requestTrialStart(session);
       if (!started.ok || started.data.enforced !== true) { onUpdate(null, purchasesApplicable); return; }
       try { response = await getBalance(session); } catch (e) { response = { ok: false }; }
@@ -940,10 +963,10 @@
     expiresAt = Number(response.data.subscriptionExpiresAt);
     activePass = response.data.subscriptionActive === true
       || Number.isFinite(expiresAt) && expiresAt > Date.now();
-    if (activePass) { onUpdate(null, true); return; }
+    if (activePass) { onUpdate(null, false); return; }
     expiredPass = Number.isFinite(expiresAt) && expiresAt > 0 && expiresAt <= Date.now();
     if (expiredPass && response.data.trial && response.data.trial.active === false) {
-      onUpdate({ kind: 'pass-expired' }, true);
+      onUpdate({ kind: 'pass-expired' }, false);
       return;
     }
     onUpdate({ kind: 'trial', trial: response.data.trial, starting: false }, purchasesApplicable);

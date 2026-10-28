@@ -63,7 +63,7 @@
   const app = document.createElement('div'); app.className = 'journey-app'; app.dataset.game = game;
   document.body.classList.add('ezik-treasure-theme'); document.body.append(app);
   const themeMeta = document.querySelector('meta[name="theme-color"]'); if (themeMeta) themeMeta.content = '#082c38';
-  const OFFLINE_VERSION = '20261027-kfix1';
+  const OFFLINE_VERSION = '20261028-kfix1';
   const THEME_VERSION = OFFLINE_VERSION;
   const IAP_HOST_RESUME_KEY = 'kunuz_iap_host_resume_v1';
   const IAP_EXPIRED_NOTICE_KEY = 'kunuz_iap_expired_notice_v1';
@@ -551,17 +551,49 @@
       error: () => '<div class="j-error" role="alert">' + esc(M.error || 'تعذّر تجهيز المغامرة') + '</div><div class="j-actions">' + button('حاولوا مرة ثانية', 'reload') + '</div>', room: () => '' };
     app.dataset.stage = M.stage;
     app.innerHTML = (M.stage === 'board-question' ? '' : M.stage === 'room-code' ? '<header class="j-header">' + button('›', 'back', 'j-icon-btn j-back', 'aria-label="رجوع"') + '<h1>إنشاء غرفة</h1></header>' : header()) + stepper() + '<main class="j-content" id="journey-main">' + (screens[M.stage] || screens.error)() + '</main>' + (M.stage === 'board-question' ? boardQuestion() : '') + dialog();
+    if (M.question?.photoPrepareStarted !== null && M.question?.photoPrepareStarted !== undefined && !M.question.photoPreparing && M.question.photoQuestionShownAt === null) M.question.photoQuestionShownAt = performance.now();
+    app.classList.toggle('kzv-photo-preparing', !!M.question?.photoPreparing);
+    if (M.question?.photoPreparing) {
+      const visual = app.querySelector('#qvis'), paper = visual?.closest('.j-paper');
+      if (paper) {
+        paper.classList.add('kzv-photo-preparing');
+        Array.from(paper.children).forEach(el => { if (el !== visual) { el.inert = true; el.setAttribute('aria-hidden', 'true'); } });
+      }
+      app.querySelectorAll('.j-tools,.j-actions').forEach(el => { el.inert = true; el.setAttribute('aria-hidden', 'true'); });
+    }
     app.querySelectorAll('[data-color]').forEach(el => { el.style.backgroundColor = el.dataset.color; });
     app.querySelectorAll('[data-team-color]').forEach(el => { el.style.setProperty('--team-color', M.teams[+el.dataset.teamColor]?.c || colors[0]); });
     app.querySelectorAll('[data-category-color]').forEach(el => { el.style.setProperty('--c', catColors[+el.dataset.categoryColor % catColors.length]); });
     app.querySelectorAll('[data-bubble]').forEach(el => { const i = +el.dataset.bubble, n = 6 + i % 6 * 2; el.style.left = (i * 79 + 7) % 95 + '%'; el.style.bottom = 10 + i * 43 % 220 + 'px'; el.style.width = n + 'px'; el.style.height = n + 'px'; });
+    if ((game === 'board' || game === 'hanna') && M.stage === 'board' && global.KZV?.prefetch) {
+      const photoCategory = global.DATA.cats.findIndex(category => category[0] === 'landmark-photos');
+      if (photoCategory >= 0 && M.cats.includes(photoCategory)) {
+        const photoQuestions = M.slots.filter(slot => slot.cat === photoCategory && Number.isInteger(slot.index)).slice(0, 6).map(slot => global.DATA.qs[slot.index]);
+        global.KZV.prefetch(photoQuestions, 6);
+      }
+    }
     if (M.question && app.querySelector('#qvis')) {
+      const currentQuestion = M.question;
       const q = questionText(M.question);
       if (global.KZV) {
-        global.KZV.show(q);
+        global.KZV.show(q, () => {
+          if (currentQuestion.photoPreparing) {
+            currentQuestion.photoPreparing = false; currentQuestion.photoPrepareReason = 'paint';
+            if (currentQuestion.photoPrepareFallback) clearTimeout(currentQuestion.photoPrepareFallback);
+            currentQuestion.photoPrepareFallback = null; render(); return;
+          }
+          startPhotoTimer(currentQuestion, 'paint');
+        }, () => {
+          if (M.question !== currentQuestion || !currentQuestion.photoPreparing) return;
+          currentQuestion.photoPreparing = false; currentQuestion.photoPrepareReason = 'error';
+          if (currentQuestion.photoPrepareFallback) clearTimeout(currentQuestion.photoPrepareFallback);
+          currentQuestion.photoPrepareFallback = null; render();
+        });
         app.querySelectorAll('[data-choice]').forEach(el => global.KZV.choice(el, q, +el.dataset.choice));
         if (M.question.answerRevealed) global.KZV.reveal(q);
       }
+      if (currentQuestion.photoPreparing) armPhotoPrepareFallback(currentQuestion);
+      else if (currentQuestion.photoPending) armPhotoTimer(currentQuestion);
       app.querySelectorAll('[data-explanation]').forEach(el => renderExplanation(el, q));
     } else if (M.question && app.querySelector('[data-explanation]')) {
       const q = questionText(M.question); app.querySelectorAll('[data-explanation]').forEach(el => renderExplanation(el, q));
@@ -603,6 +635,9 @@
   function clearTimer() {
     if (M.timer) clearInterval(M.timer); M.timer = null;
     if (M.quizAdvance) clearTimeout(M.quizAdvance); M.quizAdvance = null;
+    if (M.question?.photoTimerFallback) clearTimeout(M.question.photoTimerFallback);
+    if (M.question?.photoPrepareFallback) clearTimeout(M.question.photoPrepareFallback);
+    if (M.question) { M.question.photoTimerFallback = null; M.question.photoPrepareFallback = null; }
   }
   function scheduleQuizNext(q, delay = 900) {
     M.quizAdvance = setTimeout(() => {
@@ -613,7 +648,9 @@
     }, delay);
   }
   function startTimer() {
-    clearTimer(); const q = M.question;
+    const q = M.question;
+    if (q?.photoPending && !q.photoTimerStarted) return;
+    clearTimer();
     if (!q?.duration) return;
     M.timer = setInterval(() => {
       if (M.dialog || document.hidden) return;
@@ -636,15 +673,41 @@
   }
   function paintTime() {
     const q = M.question; if (!q) return;
-    const left = Math.max(0, q.deadline - performance.now());
+    const left = q.photoPending && !q.photoTimerStarted ? q.duration : Math.max(0, q.deadline - performance.now());
     const bar = app.querySelector('[data-timer-bar]'), label = app.querySelector('[data-timer-text]');
     if (bar) bar.style.width = q.duration ? Math.max(0, Math.min(100, left / q.duration * 100)) + '%' : '100%';
     if (label) label.textContent = q.duration ? ar(Math.ceil(left / 1000)) + ' ثانية' : 'بلا وقت';
   }
   function makeQuestion(index, actorIndex, slotIndex, duration) {
-    const started = performance.now();
-    M.question = { index, actor: actorIndex, activeTeam: actorIndex, slotIndex, selected: null, showTeams: new Set(), burned: new Set(), answerRevealed: false, settled: false, correct: null, started, duration, deadline: started + duration, confidence: null, submissions: {}, beat: '', scored: false, timedOut: false };
-    M.used.add(index); M.history.mark(index); startTimer();
+    clearTimer();
+    const photoPending = global.DATA.qs[index]?.kzPack?.vis?.kind === 'photo';
+    const photoPreparing = photoPending && ['ghaws', 'harb', 'test'].includes(game);
+    const photoPrepareStarted = photoPreparing ? performance.now() : null;
+    const started = photoPending ? null : performance.now();
+    M.question = { index, actor: actorIndex, activeTeam: actorIndex, slotIndex, selected: null, showTeams: new Set(), burned: new Set(), answerRevealed: false, settled: false, correct: null, started, duration, deadline: photoPending ? null : started + duration, confidence: null, submissions: {}, beat: '', scored: false, timedOut: false, photoPending, photoPreparing, photoPrepareStarted, photoQuestionShownAt: null, photoPrepareReason: null, photoPrepareFallback: null, photoTimerStarted: !photoPending, photoTimerFallback: null };
+    M.used.add(index); M.history.mark(index);
+    if (photoPending) global.KZV?.prefetch?.([global.DATA.qs[index]], 1);
+    else startTimer();
+  }
+  function startPhotoTimer(q, reason = 'paint') {
+    if (M.question !== q || !q.photoPending || q.photoTimerStarted || q.settled || q.answerRevealed || q.beat) return;
+    q.photoPending = false; q.photoTimerStarted = true; q.photoTimerReason = reason; q.started = performance.now(); q.deadline = q.started + q.duration;
+    startTimer();
+  }
+  function armPhotoTimer(q) {
+    if (M.question !== q || !q.photoPending || q.photoTimerStarted || q.photoTimerFallback) return;
+    q.photoTimerFallback = setTimeout(() => {
+      q.photoTimerFallback = null;
+      startPhotoTimer(q, 'timeout');
+    }, 3000);
+  }
+  function armPhotoPrepareFallback(q) {
+    if (M.question !== q || !q.photoPreparing || q.photoPrepareFallback) return;
+    q.photoPrepareFallback = setTimeout(() => {
+      q.photoPrepareFallback = null;
+      if (M.question !== q || !q.photoPreparing) return;
+      q.photoPreparing = false; q.photoPrepareReason = 'timeout'; render();
+    }, Math.max(0, 3000 - (performance.now() - (q.photoPrepareStarted ?? performance.now()))));
   }
   function setStage(stage, step = M.step, push = false) {
     if (usesRoomBank()) {
@@ -661,7 +724,7 @@
   }
   function closeDialog(confirmed) {
     const dialog = M.dialog; if (!dialog) return; M.dialog = null;
-    if (M.question) { const pause = performance.now() - dialog.at; M.question.deadline += pause; M.question.started += pause; }
+    if (M.question && M.question.photoTimerStarted) { const pause = performance.now() - dialog.at; M.question.deadline += pause; M.question.started += pause; }
     if (confirmed) dialog.yes(); else { dialog.no(); render(); }
   }
   function cancelPlay() {
@@ -786,13 +849,14 @@
       if (!M.question) { history.replaceState({ journey: true, quiz: true, stage: 'settings', step: 2 }, ''); setStage('settings', 2); return; }
       if (M.quizPausedAt !== null) {
         const pause = performance.now() - M.quizPausedAt;
-        M.question.started += pause; M.question.deadline += pause; M.quizPausedAt = null;
+        if (M.question.photoTimerStarted) { M.question.started += pause; M.question.deadline += pause; }
+        M.quizPausedAt = null;
       }
     }
     setStage(stage, step);
     if (stage === 'test-question' && M.running) {
       if (M.question.settled) scheduleQuizNext(M.question);
-      else if (!M.question.answerRevealed) startTimer();
+      else if (!M.question.answerRevealed && !M.question.photoPending) startTimer();
     }
   }
   function reserveQuiz() {
@@ -1517,7 +1581,7 @@
   let hiddenAt = 0;
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { hiddenAt = performance.now(); stopSounds(); cancelVisuals(); }
-    else { if (hiddenAt && M.question) { M.question.deadline += performance.now() - hiddenAt; M.question.started += performance.now() - hiddenAt; } hiddenAt = 0; if (M.stage === 'hub' || M.stage === 'dive') render(); }
+    else { if (hiddenAt && M.question && M.question.photoTimerStarted) { M.question.deadline += performance.now() - hiddenAt; M.question.started += performance.now() - hiddenAt; } hiddenAt = 0; if (M.stage === 'hub' || M.stage === 'dive') render(); }
   });
   document.addEventListener('click', event => {
     if (M.stage !== 'room') return;
@@ -1536,7 +1600,7 @@
   const motionPreference = global.matchMedia('(prefers-reduced-motion: reduce)');
   motionPreference.addEventListener('change', () => { cancelVisuals(); if (!document.hidden) render(); });
   global.addEventListener('pagehide', event => { clearTimer(); stopSounds(); cancelVisuals(); if (!event.persisted) Motion?.dispose(); });
-  global.addEventListener('pageshow', event => { if (event.persisted) { render(); if (game === 'test' && M.stage !== 'test-question') return; if (game === 'test' && M.question?.settled && M.running) scheduleQuizNext(M.question); else if (M.question && !M.question.settled && !M.question.answerRevealed && !M.question.beat) startTimer(); } });
+  global.addEventListener('pageshow', event => { if (event.persisted) { render(); if (game === 'test' && M.stage !== 'test-question') return; if (game === 'test' && M.question?.settled && M.running) scheduleQuizNext(M.question); else if (M.question && !M.question.settled && !M.question.answerRevealed && !M.question.beat && !M.question.photoPending) startTimer(); } });
   global.KunuzJourney = Object.freeze({ get state() { return M; }, get boardRooms() { return boardRooms?.diagnostics || null; }, get diagnostics() { return { bankStamp: typeof global.seenStamp === 'function' ? global.seenStamp() : '', offlineReady: M.offlineReady, excluded: M.excluded, fallback: M.fallback, categories: game === 'hub' ? [] : Model.categories().map(c => ({ name: c.name, total: c.count })) }; } });
   function loadLocalScript(src) {
     return new Promise((resolve, reject) => {

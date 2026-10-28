@@ -695,9 +695,9 @@ const EZ_I18N = {
     'c.EZIK_QUOTE_LABEL': 'اقتباس',
     'c.AYAH_CARD_LABEL': 'قَالَ اللهُ تَعَالَى',
     'c.SUNNAH_CARD_LABEL': 'من السنة النبوية',
-    'c.EZ_AIC_TITLE': 'مشاركة البيانات مع خدمات الذكاء الاصطناعي',
-    'c.EZ_AIC_LEAD': 'عند تشغيل المحادثة الذكية أو الصوت أو رفع الملفات، قد تُرسَل البيانات التالية إلى الجهات المذكورة أدناه لتنفيذ طلبك:',
-    'c.EZ_AIC_PROVIDERS_TITLE': 'الجهات التي تستقبل هذه البيانات، ووظيفة كلٍّ منها:',
+    'c.EZ_AIC_TITLE': 'إشعار ميزات الذكاء الاصطناعي',
+    'c.EZ_AIC_LEAD': 'بحسب ميزة الذكاء الاصطناعي التي تختارها، يُرسل النص أو الملفات التي تقدمها إلى المزوّدين المعنيين لمعالجة طلبك. اختر موافق لتفعيل هذه الميزات أو رفض لإبقائها متوقفة.',
+    'c.EZ_AIC_PROVIDERS_TITLE': 'مزوّدو خدمات الذكاء الاصطناعي',
     'c.EZ_AIC_GUARDIAN_LINE': 'يجب على ولي الأمر مراجعة هذه المعلومات والموافقة قبل تشغيل ميزات الذكاء الاصطناعي للطفل.',
     'c.EZ_AIC_AGREE': 'أوافق وأفعّل ميزات الذكاء الاصطناعي',
     'c.EZ_AIC_DECLINE': 'استخدام عزك دون الذكاء الاصطناعي',
@@ -706,8 +706,8 @@ const EZ_I18N = {
     'c.EZ_AIC_LINK_SUPPORT': 'الدعم',
     'c.EZ_AIC_VERSION_LABEL': 'نسخة الموافقة:',
     // THIRD ROUND -- the small consent card (owner-approved texts, decoded from the order's JSON, never retyped).
-    'aic.line1': 'ليجيبك عزك ويحادثك بالصوت، يرسل سؤالك ومحادثتك وصوتك وما ترفعه وبيانات ملفك إلى Anthropic (Claude) وElevenLabs وBrave Search.',
-    'aic.line2': 'لا يستخدمها عزك للإعلانات ولا لتتبعك، ويمكنك سحب موافقتك من الإعدادات، والمصحف والأذكار تعمل من دونها.',
+    'aic.line1': 'بحسب ميزة الذكاء الاصطناعي التي تختارها، يُرسل النص أو الملفات التي تقدمها إلى Anthropic (Claude) أو ElevenLabs أو Brave Search لمعالجة طلبك.',
+    'aic.line2': 'راجع التفاصيل، ثم اختر موافق لتفعيل هذه الميزات أو رفض لإبقائها متوقفة.',
     'aic.agree': 'موافق',
     'aic.decline': 'غير موافق',
     'aic.more': 'اقرأ المزيد',
@@ -2397,9 +2397,9 @@ const EZ_I18N = {
     'c.EZIK_QUOTE_LABEL': 'Quote',
     'c.AYAH_CARD_LABEL': 'Allah the Most High says',
     'c.SUNNAH_CARD_LABEL': 'From the Prophetic Sunnah',
-    'c.EZ_AIC_TITLE': 'Sharing data with AI services',
-    'c.EZ_AIC_LEAD': 'When you turn on the smart chat, voice or file upload, the following data may be sent to the parties named below to carry out your request:',
-    'c.EZ_AIC_PROVIDERS_TITLE': 'The parties that receive this data, and what each one does:',
+    'c.EZ_AIC_TITLE': 'AI feature notice',
+    'c.EZ_AIC_LEAD': 'Depending on the AI feature you choose, the text or files you submit are sent to the relevant providers to process your request. Choose Agree to enable these features or Decline to keep them off.',
+    'c.EZ_AIC_PROVIDERS_TITLE': 'AI service providers',
     'c.EZ_AIC_GUARDIAN_LINE': 'A parent or guardian must review this information and agree before AI features are turned on for a child.',
     'c.EZ_AIC_AGREE': 'I agree and turn on the AI features',
     'c.EZ_AIC_DECLINE': 'Use Ezik without AI',
@@ -2408,8 +2408,8 @@ const EZ_I18N = {
     'c.EZ_AIC_LINK_SUPPORT': 'Support',
     'c.EZ_AIC_VERSION_LABEL': 'Consent version:',
     // THIRD ROUND -- the small consent card.
-    'aic.line1': 'To answer you and talk with you by voice, Ezik sends your question, your conversation, your voice, what you upload and your profile details to Anthropic (Claude), ElevenLabs and Brave Search.',
-    'aic.line2': 'Ezik does not use them for ads or to track you; you can withdraw your consent in Settings, and the Mushaf and adhkar work without it.',
+    'aic.line1': 'Depending on the AI feature you choose, the text or files you submit are sent to Anthropic (Claude), ElevenLabs or Brave Search to process your request.',
+    'aic.line2': 'Review the details, then choose Agree to enable these features or Decline to keep them off.',
     'aic.agree': 'Agree',
     'aic.decline': 'Disagree',
     'aic.more': 'Read more',
@@ -15715,8 +15715,8 @@ function yahimmakItemShowable(item, pages) {
 // The whole file through the rule, once: refused items are dropped, a card left empty is
 // dropped, a lesson left with no card is dropped. Nothing is reordered and nothing is added.
 function yahimmakPrepare(data, book) {
-  const pages = {};
-  (book && Array.isArray(book.pages) ? book.pages : []).forEach((p) => { if (p && Number.isInteger(p.page)) pages[p.page] = p.text; });
+  const pages = {}, notes = {};
+  (book && Array.isArray(book.pages) ? book.pages : []).forEach((p) => { if (p && Number.isInteger(p.page)) { pages[p.page] = p.text; if (typeof p.note === 'string' && p.note.trim()) notes[p.page] = p.note; } });
   const ok = (x) => yahimmakItemShowable(x, pages);
   const lessons = (data && Array.isArray(data.lessons) ? data.lessons : []).map((L) => {
     const cards = (Array.isArray(L.cards) ? L.cards : []).map((c) => {
@@ -15730,7 +15730,7 @@ function yahimmakPrepare(data, book) {
     return { ...L, cards, quiz, summary };
   }).filter((L) => L.cards.length);
   const pm = (data && data.prayer_map) || {};
-  return { lessons, pages, book: (data && data.book) || {}, credit: (data && data.audio_credit) || null,
+  return { lessons, pages, notes, book: (data && data.book) || {}, credit: (data && data.audio_credit) || null,
     stations: (data && Array.isArray(data.stations)) ? data.stations : [],
     positions: Array.isArray(pm.positions) ? pm.positions : [], entries: (Array.isArray(pm.entries) ? pm.entries : []).filter(ok) };
 }
@@ -16398,7 +16398,8 @@ function EzikYahimmakSection({ onBack, onOpenSurah }) {
           <div style={s.yhKicker}>{ezT('yahimmak.fromBook')} · {tx.book_heading}</div>
           {Object.keys(P.pages).map(Number).filter((p) => p >= tx.pages[0] && p <= tx.pages[1]).map((p) => (
             <div key={p} style={s.yhPage}><div style={s.yhSubLine}>{ezT('yahimmak.page', { n: toArabicDigits(p) })}</div>
-              <p style={s.yhPageText} data-ez-keep="1">{P.pages[p]}</p></div>
+              <p style={s.yhPageText} data-ez-keep="1">{P.pages[p]}</p>
+              {P.notes[p] ? <div style={s.yhSubLine} data-ez-keep="1">{P.notes[p]}</div> : null}</div>
           ))}
           <div style={s.yhSubLine}>{P.book.title} · {P.book.author}</div>
         </YhSheet>

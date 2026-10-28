@@ -361,6 +361,10 @@
 .ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-cell{display:grid;min-width:40px;min-height:44px;place-items:center;padding:4px 2px;border:1px solid #ffffff42;border-radius:10px;background:var(--c,#287286);box-shadow:0 3px 0 #04172a50;color:#fff;font-size:16px;font-weight:700;line-height:1.2;touch-action:manipulation}
 .ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-cell:focus-visible{outline:3px solid #fff0a9;outline-offset:2px}
 .ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-cell.j-used{border-style:dashed;background:#1b2d36;box-shadow:none;color:#ffe29a;opacity:.56}
+.ezik-treasure-theme .journey-app .j-paper .kzv.kzv-photo{height:auto;min-height:0;max-height:45vh;width:calc(100% + 42px);max-width:none;margin-inline:-21px;padding:0}
+.ezik-treasure-theme .journey-app .j-paper .kzv.kzv-photo .kzv-photo-frame{background:var(--journey-paper,#fff8eb)}
+.ezik-treasure-theme .journey-app.kzv-photo-preparing .j-paper.kzv-photo-preparing>:not(#qvis){visibility:hidden}
+.ezik-treasure-theme .journey-app.kzv-photo-preparing .j-actions,.ezik-treasure-theme .journey-app.kzv-photo-preparing .j-tools,.ezik-treasure-theme .journey-app.kzv-photo-preparing .j-quiz-screen>:not(.j-quiz-question){visibility:hidden;pointer-events:none}
 @media(min-width:760px){
   .ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-board-scroll{overflow:visible}
   .ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-list>.j-teambar{grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
