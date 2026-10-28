@@ -156,7 +156,7 @@ import { frontSorterDecision, sorterEligibility, startSorter, runtimeAfterSorter
 import { impermissibleEarlyDecision, classifyPornographyRequest, classifyYoungPornographyDoubt, PORN_REFUSAL_TEXT } from '../lib/policy/porn-request.js';
 // POSTSHIP ITEM 4 -- 2026-10-24: the owner's support address, a fixed text with no model (lib/policy/support-contact.js).
 import { isSupportContactRequest, SUPPORT_CONTACT_TEXT } from '../lib/policy/support-contact.js';
-import { removedPersonAttribution, removedPersonIdentity, appendRemovedPersonAnswerNote, appendRemovedPersonIdentityNote } from '../lib/removed-sources.js';
+import { removedPersonAttribution, removedPersonIdentity, removedPersonAnswerNote, appendRemovedPersonAnswerNote, appendRemovedPersonIdentityNote } from '../lib/removed-sources.js';
 import { generalizeSystemBlocks } from '../lib/general-frame.js';
 import { takhrijDecision, TAKHRIJ_SKIPPED_STREAMED } from '../lib/takhrij.js';
 // BATCH 4 [b18] — on its own line: guards/takhrij-contract-guard.cjs row 19 pins the line above.
@@ -2803,7 +2803,8 @@ export default async function handler(req, res) {
         appendRemovedPersonAnswerNote(
           readerText + (out.truncated === true ? TRUNCATED_MARK : ''),
           questionText,
-          { blocked: (out.notCovered === true && freeBrainVisibleSourceCount === 0) || out.refused === true || out.unsourcedWithheld === true },
+          { blocked: (out.notCovered === true && freeBrainVisibleSourceCount === 0) || out.refused === true || out.unsourcedWithheld === true,
+            hasReaderCard: finalizerContext.readerCards.length > 0 },
         ),
         removedIdentityQuestion,
       );
@@ -2906,7 +2907,9 @@ export default async function handler(req, res) {
         budgetEnvironment: storedOut.diagnostics?.budget?.environment || null,
         elapsedMs: storedOut.elapsedMs || null,
       });
-      return emitOnce(storedOut.text || NO_STORED_EVIDENCE);
+      return emitOnce(appendRemovedPersonAnswerNote(storedOut.text || NO_STORED_EVIDENCE, questionText, {
+        blocked: storedOut.outcome !== 'ANSWER', hasReaderCard: cards.length > 0,
+      }));
     }
 
     // ── GENERAL_CHILD_BENIGN (RFC v0.5-R2 §10) ─────────────────────────────
@@ -4569,6 +4572,7 @@ export default async function handler(req, res) {
     // the whole guarantee: on the DEEN route the reader either gets a verified card or
     // gets told plainly that we could not verify one.
     const canonicalSources = registerOwnedCards(pickVerifiedSources(retrievedSources.filter(Boolean).flat()));
+    if (removedPersonQuestion) attributionNote = removedPersonAnswerNote(questionText, { hasReaderCard: canonicalSources.length > 0 });
     // THE PAGES THIS REPLY WILL BE DRAFTED OVER decide who it may name. Computed from the gated
     // pages themselves — their extracted byline, their host, their extracted text — and never from
     // the question, the plan, or anything the model said.

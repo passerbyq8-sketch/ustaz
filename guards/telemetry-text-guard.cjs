@@ -101,8 +101,6 @@ const ALLOWED_FIELDS = [
   'repaired', 'requested', 'requestedDepth', 'resolvedScholar', 'retrievalOutcome', 'role',
   'retrieved', 'rounds', 'route', 'rows', 'scholar', 'score', 'searchCompleted', 'searched',
   'source', 'sourceIds', 'sourcePolicy', 'sources', 'supporting', 'tools', 'topic', 'transfer',
-  // routeLogFields() emits only closed route, lexical and sorter tokens (lib/route-log.js).
-  'tags',
   'truncated', 'turn', 'used', 'verdict',
 ];
 // ── RULE B, CONTINUED: THE STREAMING TURN'S OWN COUNTERS ──────────────────────
