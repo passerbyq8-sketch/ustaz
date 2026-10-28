@@ -85,10 +85,13 @@ assert.deepEqual(data.lessons, []);
     'FC-007063': '\u062f\u0631\u0648\u0633 \u0627\u0644\u062f\u0643\u062a\u0648\u0631 \u0639\u0645\u0631 \u0639\u0628\u062f \u0627\u0644\u0643\u0627\u0641\u064a',
   };
   assert.deepEqual(data.bookTitles, expectedTitles, 'removed titles must match the four baseline catalogue titles');
-  for (const title of Object.values(expectedTitles)) {
+  for (const [id, title] of Object.entries(expectedTitles)) {
     const result = await quote.answerQuoteRequest(request(title));
     assert.equal(result.outcome, 'no_book');
-    assert.equal(result.text, firstSentence(title.replace(' - ', ' ')), 'removed title gets only the first sentence');
+    const expectedReply = id === 'FC-004992'
+      ? '\u0644\u064a\u0633 \u0639\u0646\u062f\u064a \u0643\u062a\u0627\u0628 \u0628\u0627\u0633\u0645 \u00ab\u0627\u0644\u062f\u0627\u0631 \u0627\u0644\u0622\u062e\u0631\u0629\u00bb \u0644\u0640\u0639\u0645\u0631 \u0639\u0628\u062f \u0627\u0644\u0643\u0627\u0641\u064a.'
+      : firstSentence(title);
+    assert.equal(result.text, expectedReply, 'removed title gets its required first sentence');
   }
   for (const form of person.forms) {
     const result = await quote.answerQuoteRequest(request(missingTitle, form));
