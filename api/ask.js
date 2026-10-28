@@ -1229,14 +1229,14 @@ export default async function handler(req, res) {
     const routeTags = routeLogFields({
       lexicalRuntime: lexicalRuntimeOfRequest, runtime: finalRuntime, sorter: final.sorter || null,
     });
-    answerLog.note({ route: finalRoute, runtime: finalRuntime, flags: routeTags });
-    console.log('[route]', {
-      route: finalRoute, lexicalRoute: route, band,
+    return answerLog.note({ route: effectiveRoute, runtime: currentRuntime })
+      && answerLog.note({ route: finalRoute, runtime: finalRuntime, flags: routeTags })
+      && console.log('[route]', {
+      route: effectiveRoute, lexicalRoute: route, band,
       purpose: currentPlan.purpose, mode: currentPlan.attributionMode,
       entity: currentPlan.namedEntity || null, officialDomain: currentPlan.officialDomain || null,
-      lexicalRuntime: lexicalRuntimeOfRequest, runtime: finalRuntime,
-      sorter: final.sorter || sorterPlan.sorter, sorterMs: final.sorterMs || 0,
-      frame: frameFor(finalRuntime, final.sorter || sorterPlan.sorter),
+      lexicalRuntime: currentRuntime, runtime: currentRuntime,
+      sorter: sorterPlan.sorter, sorterMs: 0, frame: frameFor(currentRuntime),
       impermissible: 'none', tags: routeTags,
       ...final,
     });
@@ -2170,7 +2170,7 @@ export default async function handler(req, res) {
           // SPEED FIX 3, C4: units released by a hadith proof.
           unitsProvedHadith: t.unitsProvedHadith,
           heldEmpty: t.heldEmpty, heldToolAnnouncement: t.heldToolAnnouncement, heldReviewFailed: t.heldReviewFailed, heldUnsupportedAttribution: t.heldUnsupportedAttribution,
-          heldUncitedAttribution: t.heldUncitedAttribution, heldUncitedRuling: t.heldUncitedRuling, heldUnsupportedGroup: t.heldUnsupportedGroup, heldUnsupportedConsensus: t.heldUnsupportedConsensus,
+          heldUncitedAttribution: t.heldUncitedAttribution, heldUncitedRuling: t.heldUncitedRuling, heldRemovedPerson: t.heldRemovedPerson, heldUnsupportedGroup: t.heldUnsupportedGroup, heldUnsupportedConsensus: t.heldUnsupportedConsensus,
           heldUnsupportedSchool: t.heldUnsupportedSchool, heldUnsupportedMatn: t.heldUnsupportedMatn, heldTakhrijRefused: t.heldTakhrijRefused, heldTakhrijEmptied: t.heldTakhrijEmptied,
           heldGradeRuleFailed: t.heldGradeRuleFailed, heldGradeEmptied: t.heldGradeEmptied, heldRepeat: t.heldRepeat, heldDependentOnHeld: t.heldDependentOnHeld,
           heldDependentOpening: t.heldDependentOpening, heldDanglingLeadIn: t.heldDanglingLeadIn, heldNotCovered: t.heldNotCovered, heldNotCoveredSentence: t.heldNotCoveredSentence,

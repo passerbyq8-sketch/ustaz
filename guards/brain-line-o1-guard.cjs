@@ -70,9 +70,10 @@ const QUESTION = 'ما حكمُ الفطرِ في رمضانَ لمريضِ ال
     const keys = Object.keys(rec).sort();
     ok(p + ': the whole schema (every field, fp included with a key)', JSON.stringify(keys) === JSON.stringify([...FIELDS].sort()), keys.join(','));
     ok(p + ': no Arabic and no question in the stored JSON', !/[؀-ۿ]/.test(json), json);
-    ok(p + ': path, measures and stop as given', rec.path === p && rec.out_chars === 'الجوابُ هنا. وتمامُه.'.length && rec.first_byte_ms === 800
+    ok(p + ': path, measures, stop, delivered citations and visible unit count match', rec.path === p && rec.out_chars === 'الجوابُ هنا. وتمامُه.'.length && rec.first_byte_ms === 800
       && rec.max_gap_ms === 2500 && rec.status_events === 1 && rec.stop_reason === 'end_turn' && rec.out_tokens === 41
-      && rec.hits.fatwa === 3 && rec.hits.library === 2 && rec.held.unsupportedMatn === 2 && rec.flags.join() === 'live_offer', json);
+      && rec.hits.fatwa === 3 && rec.hits.library === 2 && rec.cited === 0 && rec.held.unsupportedMatn === 2
+      && rec.flags.join() === 'live_offer,units:2', json);
   }
   const bare = AL.createAnswerLog({ question: QUESTION, key: 'k', now: () => 5 });
   bare.note({ route: 'GEN' });

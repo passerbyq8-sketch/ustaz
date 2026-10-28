@@ -262,7 +262,10 @@ const BW2_FIELDS = [
   'takhrijLookups', 'takhrijMs', 'takhrijMatched', 'pinnedRows', 'pinnedChars', 'encyclopediaCold',
   // one count per hold reason, held<Reason> over the closed list lib/bw2-units.js BW2_HOLD_REASONS.
   'heldEmpty', 'heldToolAnnouncement', 'heldReviewFailed', 'heldUnsupportedAttribution',
-  'heldUncitedAttribution', 'heldUncitedRuling', 'heldUnsupportedGroup', 'heldUnsupportedConsensus',
+  'heldUncitedAttribution', 'heldUncitedRuling',
+  // Count of before-writing units that name the removed person asked about; no sentence text.
+  'heldRemovedPerson',
+  'heldUnsupportedGroup', 'heldUnsupportedConsensus',
   'heldUnsupportedSchool', 'heldUnsupportedMatn', 'heldTakhrijRefused', 'heldTakhrijEmptied',
   'heldGradeRuleFailed', 'heldGradeEmptied', 'heldRepeat', 'heldDependentOnHeld',
   'heldDependentOpening', 'heldDanglingLeadIn', 'heldNotCovered', 'heldNotCoveredSentence',
