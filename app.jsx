@@ -10337,7 +10337,7 @@ function ez110Countdown(ms) {
   // no field ever starts with a zero: the last minute is its seconds alone
   return ezikBrowseNum(h > 0 ? h + ':' + p2(m) + ':' + p2(x) : m > 0 ? m + ':' + p2(x) : String(x));
 }
-function Ez110PrayerCard({ onOpen, hijri }) {
+function Ez110PrayerCard({ onOpen, hijri, onQibla }) {
   useEzLang();
   const loc = readQiblaLoc();
   const prefs = readPrayerPrefs();
@@ -10356,32 +10356,53 @@ function Ez110PrayerCard({ onOpen, hijri }) {
     nextTime = prayerTimesFor(tm.y, tm.m, tm.d, loc.lat, loc.lng, prayerTzOn(tm.y, tm.m, tm.d, place), prefs.method, prefs.asr, prefs.off).fajr;
   }
   const five = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+  // PRAYER REBUILD (29 October 2026) -- PANEL 8: the city (it was absent), the Gregorian day under the Hijri one (the
+  // Hijri stays in its \u00ABgap\u00BB, the owner's word of 10 October), today's log on the five dots (on time green, late gold,
+  // the current prayer dashed), and the qibla's own shortcut that opens the compass screen straight away -- through the
+  // same press that spends the iOS gesture (qiblaCompassGesture, panel 2). The card stays the section's door.
+  const log = readPrayerLog()[prayerDayIso(today)] || null;
+  const dayStart = prayerInstant(today.y, today.m, today.d, 0, place, prayerTzOn(today.y, today.m, today.d, place));
+  const curKey = status && status.current && typeof status.currentAt === 'number' && status.currentAt >= dayStart ? status.current : null;
   return (
-    <button type="button" className="ez110-prayer" onClick={onOpen} aria-label={ezT('panel.next') + (next ? ': ' + ezT('widget.prayer.' + next) : '')}>
+    <div className="ez110-prayer" data-ez110-prayer-card="1">
       <span className="ez110-prayer-arch" aria-hidden="true" />
-      <span className="ez110-prayer-top">
-        <span className="ez110-prayer-head">{ezT('panel.next')}</span>
-        {hijri ? <span className="ez110-prayer-hijri">{hijri}</span> : null}
-      </span>
-      {next ? (
-        <span className="ez110-prayer-main">
-          <span className="ez110-prayer-name">{ezT('widget.prayer.' + next)}</span>
-          <span className="ez110-prayer-time">{prayerClock(nextTime)}</span>
-          {status.remainingMs != null ? (
-            <span className="ez110-prayer-left">{ezT('panel.in')} <bdi dir="ltr">{ez110Countdown(status.remainingMs)}</bdi></span>
-          ) : null}
-        </span>
-      ) : null}
-      <span className="ez110-prayer-row">
-        {five.map((k) => (
-          <span key={k} className={'ez110-prayer-cell' + (k === next ? ' is-next' : '')}>
-            <span className="ez110-prayer-dot" aria-hidden="true" />
-            <span className="ez110-prayer-cname">{ezT('widget.prayer.' + k)}</span>
-            <span className="ez110-prayer-ctime">{prayerClock(t[k])}</span>
+      <button type="button" className="ez110-prayer-open" onClick={onOpen} aria-label={ezT('panel.next') + (next ? ': ' + ezT('widget.prayer.' + next) : '')}>
+        <span className="ez110-prayer-top">
+          <span className="ez110-prayer-headcol">
+            <span className="ez110-prayer-head">{ezT('panel.next')}</span>
+            <span className="ez110-prayer-city" data-ezik-card="city"><span className="ez110-prayer-pin" aria-hidden="true">{PRAYER_ICON_PIN}</span>{prayerCityName(loc)}</span>
           </span>
-        ))}
-      </span>
-    </button>
+          <span className="ez110-prayer-datecol">
+            {hijri ? <span className="ez110-prayer-hijri">{hijri}</span> : null}
+            <span className="ez110-prayer-greg" data-ezik-card="greg">{prayerGregLabel(today)}</span>
+          </span>
+        </span>
+        {next ? (
+          <span className="ez110-prayer-main">
+            <span className="ez110-prayer-name">{ezT('widget.prayer.' + next)}</span>
+            <span className="ez110-prayer-time">{prayerClock(nextTime)}</span>
+            {status.remainingMs != null ? (
+              <span className="ez110-prayer-left">{ezT('panel.in')} <bdi dir="ltr">{ez110Countdown(status.remainingMs)}</bdi></span>
+            ) : null}
+          </span>
+        ) : null}
+        <span className="ez110-prayer-row">
+          {five.map((k) => {
+            const mark = log ? log[k] : null;
+            return (
+              <span key={k} className={'ez110-prayer-cell' + (k === next ? ' is-next' : '') + (mark === 'on' ? ' is-on' : mark === 'late' ? ' is-late' : '') + (k === curKey ? ' is-cur' : '')} data-ezik-card-dot={k} data-ezik-card-mark={mark || 'none'}>
+                <span className="ez110-prayer-dot" aria-hidden="true" />
+                <span className="ez110-prayer-cname">{ezT('widget.prayer.' + k)}</span>
+                <span className="ez110-prayer-ctime">{prayerClock(t[k])}</span>
+              </span>
+            );
+          })}
+        </span>
+      </button>
+      {onQibla ? (
+        <button type="button" className="ezik-focus ez110-prayer-qibla" onClick={onQibla} aria-label={EZH_NAV_COMPASS} data-ezik-card="qibla">{EZH_ICON_PRAYER}</button>
+      ) : null}
+    </div>
   );
 }
 
@@ -10606,7 +10627,7 @@ function Ez110Home(v) {
       <div style={s.ezistScroll}>
         <div className="ezist-wrap ez110-wrap">
           <Ez110Hello name={v.name} />
-          <Ez110PrayerCard onOpen={v.onOpenPrayer} hijri={v.hijri} />
+          <Ez110PrayerCard onOpen={v.onOpenPrayer} hijri={v.hijri} onQibla={v.onOpenQibla} />
           {/* ROUND 3 §3-1 (owner): no «الأقسام» title, and «ترتيب القائمة» is the last thing on the page, under the last tile */}
           {edit ? <p className="ez110-hint" role="status">{ezT('ez110.order.hint')} {ezT(slotSel === null ? 'ez110.bar.hint' : 'ez110.bar.pick')}</p> : null}
           {shelf}
@@ -13708,6 +13729,8 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
     onOpenTreasure: () => { window.location.href = '/quest.html'; },
     onOpenLibrary: () => { window.location.href = '/library.html'; },
     onOpenPrayer: () => setPrayerOpen(true),
+    // PRAYER REBUILD (29 October 2026): the card's qibla shortcut opens the compass screen itself (panel 8)
+    onOpenQibla: () => { qiblaCompassGesture(); setCompassOpen(true); },
     widgets: widgets,
   };
   // S87 -- THE MODULE SET IS BUILT HERE, ONCE, AND NOWHERE ELSE. Both styles receive this exact

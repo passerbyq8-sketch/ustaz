@@ -700,6 +700,25 @@ SCENES.month = async () => {
   ok('share and copy are offered', !!c.q('[data-ezik-month="share"]') && !!c.q('[data-ezik-month="copy"]'));
   t('nothing threw', c.caught(), null);
 };
+SCENES.card = async () => {
+  say('S16 the menu\'s prayer card (panel 8): the city, the Gregorian day under the Hijri, today\'s log on the dots, the qibla door');
+  const today = (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); })();
+  const log = {}; log[today] = { fajr: 'on', dhuhr: 'late', asr: null, maghrib: null, isha: null };
+  const c = boot({ seed: { ezik_prayer_log_v1: JSON.stringify(log) } });
+  await c.waitFor(() => c.q('.ezc-rail') || c.q('[data-ezik-home-module]') || c.q('.ez110-home'));
+  c.open('home');
+  await c.waitFor(() => c.q('[data-ez110-prayer-card]'));
+  const card = c.q('[data-ez110-prayer-card]');
+  ok('the card is on the menu', !!card);
+  ok('it names the city', c.q('[data-ezik-card="city"]') && c.q('[data-ezik-card="city"]').textContent.indexOf(c.read("ezT('place.default')")) >= 0, c.q('[data-ezik-card="city"]') && c.q('[data-ezik-card="city"]').textContent);
+  ok('the Hijri date keeps its gap and the Gregorian day sits under it', !!card.querySelector('.ez110-prayer-hijri') && c.q('[data-ezik-card="greg"]') && c.q('[data-ezik-card="greg"]').textContent.length > 4);
+  t('five dots carry today\'s log', c.qa('[data-ezik-card-dot]').map((e) => e.getAttribute('data-ezik-card-mark')), ['on', 'late', 'none', 'none', 'none']);
+  ok('the card is still the section\'s door', !!card.querySelector('.ez110-prayer-open'));
+  await c.click(c.q('[data-ezik-card="qibla"]'));
+  await c.waitFor(() => c.q('.ez110-qibla-dialwrap.is-full svg[data-ezik-compass="dial"]'));
+  ok('the qibla door opens the compass screen itself', !!c.q('.ez110-qibla-dialwrap.is-full svg[data-ezik-compass="dial"]'));
+  t('nothing threw', c.caught(), null);
+};
 SCENES['iqama-noshell'] = async () => {
   say('S5  in a browser tab the alert controls are not drawn');
   const one = blank5(); one.dhuhr = { on: true, min: 10 };

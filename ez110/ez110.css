@@ -1047,6 +1047,26 @@ html[data-ez110] .ez110-plog-name { font-size: calc(11.5px * var(--ez-fs, 1)); c
 html[data-ez110] .ez110-plog-dot.is-on .ez110-plog-name, html[data-ez110] .ez110-plog-dot.is-late .ez110-plog-name { color: var(--vt-ink); font-weight: 600; }
 html[data-ez110] .ez110-plog-hint { font-size: calc(11.5px * var(--ez-fs, 1)); color: var(--vt-muted); }
 
+/* ---- panel 8: the menu's prayer card -- the city, the Gregorian day, today's log on the dots, the qibla shortcut ---- */
+html[data-ez110] .ez110-prayer { padding: 0; }
+html[data-ez110] .ez110-prayer-open {
+  display: flex; flex-direction: column; align-items: stretch; gap: 6px; width: 100%; padding: 11px 14px 10px;
+  border: 0; background: transparent; color: inherit; font: inherit; text-align: start; cursor: pointer;
+}
+html[data-ez110] .ez110-prayer-headcol { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+html[data-ez110] .ez110-prayer-datecol { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; margin-inline-end: 46px; }
+html[data-ez110] .ez110-prayer-city { display: inline-flex; align-items: center; gap: 4px; font-size: calc(12.5px * var(--ez-fs, 1)); font-weight: 500; color: var(--ez110-prayer-sub, rgba(255,255,255,.94)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 48vw; }
+html[data-ez110] .ez110-prayer-pin { display: inline-flex; }
+html[data-ez110] .ez110-prayer-greg { font-size: calc(11.5px * var(--ez-fs, 1)); color: var(--ez110-prayer-sub, rgba(255,255,255,.8)); white-space: nowrap; }
+html[data-ez110] .ez110-prayer-qibla {
+  position: absolute; top: 10px; inset-inline-end: 10px; width: 40px; height: 40px; border: 0; border-radius: 14px;
+  background: rgba(255,255,255,.18); color: var(--ez110-prayer-ink, #FFFFFF); display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+}
+html[data-ez110="c"] .ez110-prayer-qibla, html[data-ez110="d"] .ez110-prayer-qibla, html[data-ez110="e"] .ez110-prayer-qibla { background: var(--vt-soft); color: var(--vt-accent-ink); }
+html[data-ez110] .ez110-prayer-cell.is-on .ez110-prayer-dot { background: #1E8E5A; border-color: #1E8E5A; box-shadow: none; }
+html[data-ez110] .ez110-prayer-cell.is-late .ez110-prayer-dot { background: #C48A27; border-color: #C48A27; box-shadow: none; }
+html[data-ez110] .ez110-prayer-cell.is-cur .ez110-prayer-dot { border-style: dashed; }
+
 /* ==== 40-b-answer.css ==== */
 /* 40 -- THE ANSWER (board B3). The answer's markup and inline styles are pinned byte for byte by
    speedclient/speedintegration, so «ب» restyles it here, through classes, and touches nothing inside.
