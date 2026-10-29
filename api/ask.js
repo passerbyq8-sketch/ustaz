@@ -27,6 +27,8 @@ import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
 import { languageGate, decideLanguage } from '../lib/lang/gate.js';
 import { withAnswerLog, heldFromTelemetry, hitsFromSpend } from '../lib/answer-log.js';
 import { readerSources, readerSourceKindsFromMask } from '../lib/reader-sources.js';
+import { visibleSourceCount } from '../lib/reader-sources.js';
+import { routeLogFields } from '../lib/route-log.js';
 import { createContinuationRelay } from '../lib/continuation.js';
 import { installAnswerStatus } from '../lib/answer-status.js';
 // ITEM 58 -- the address line from the gender the asker wrote in «ملفّك», behind SYNC_SWITCH.
@@ -154,7 +156,7 @@ import { frontSorterDecision, sorterEligibility, startSorter, runtimeAfterSorter
 import { impermissibleEarlyDecision, classifyPornographyRequest, classifyYoungPornographyDoubt, PORN_REFUSAL_TEXT } from '../lib/policy/porn-request.js';
 // POSTSHIP ITEM 4 -- 2026-10-24: the owner's support address, a fixed text with no model (lib/policy/support-contact.js).
 import { isSupportContactRequest, SUPPORT_CONTACT_TEXT } from '../lib/policy/support-contact.js';
-import { removedPersonAttribution, appendRemovedPersonAnswerNote } from '../lib/removed-sources.js';
+import { removedPersonAttribution, removedPersonIdentity, removedPersonAnswerNote, appendRemovedPersonAnswerNote, appendRemovedPersonIdentityNote } from '../lib/removed-sources.js';
 import { generalizeSystemBlocks } from '../lib/general-frame.js';
 import { takhrijDecision, TAKHRIJ_SKIPPED_STREAMED } from '../lib/takhrij.js';
 // BATCH 4 [b18] — on its own line: guards/takhrij-contract-guard.cjs row 19 pins the line above.
@@ -1151,6 +1153,7 @@ export default async function handler(req, res) {
   const legacyPolicy = await decideLegacyPolicy(req);
   const currentQuestionText = lastUserText(body.messages);
   const removedPersonQuestion = removedPersonAttribution(currentQuestionText);
+  const removedIdentityQuestion = removedPersonIdentity(currentQuestionText);
   if (removedPersonQuestion) console.log('[removed-person]', { role: 'removed_person', action: 'library_source_excluded' });
   // The legacy paths keep their thread IR, but domain/retrieval owns a separate current-turn IR.
   // No entity inferred from older turns may enter the stored query, prompt, answer or telemetry.
@@ -1211,20 +1214,31 @@ export default async function handler(req, res) {
     // `hazard === true`. Harmless while a hazard turn was lexically GENERAL and never asked; with GENERAL asked,
     // the class has to arrive as the boolean the eligibility reads.
     closedDeen: closedDeenAnswers, hazard: !!graveHazardClass, porn: pornBlocked, support: supportContact,
+    removedIdentity: !!removedIdentityQuestion,
   });
   // The frame the free-brain seat answers in: the general one for an adult whose FINAL runtime is GENERAL
   // (and never with the switch off).
   // ITEM C1 (axis row 1) -- 2026-10-15 brain-line: and only where the sorter itself said WORLDLY. A turn the
   // lexicon alone called general, with no verdict behind it, keeps the shari'a frame.
-  const frameFor = (runtime, sorter) => (frontSorter.enabled && band === 'adult' && freeBrainOnAtSorter && runtime === 'GENERAL' && sorter === 'worldly' ? 'general' : 'sharia');
-  const logRoute = (final = {}) => answerLog.note({ route: effectiveRoute, runtime: currentRuntime }) && console.log('[route]', {
-    route: effectiveRoute, lexicalRoute: route, band,
-    purpose: currentPlan.purpose, mode: currentPlan.attributionMode,
-    entity: currentPlan.namedEntity || null, officialDomain: currentPlan.officialDomain || null,
-    lexicalRuntime: currentRuntime, runtime: currentRuntime, sorter: sorterPlan.sorter, sorterMs: 0, frame: frameFor(currentRuntime),
-    impermissible: 'none',
-    ...final,
-  });
+  const frameFor = (runtime, sorter) => (sorter === 'removed_identity' && band === 'adult' && freeBrainOnAtSorter ? 'general' : (frontSorter.enabled && band === 'adult' && freeBrainOnAtSorter && runtime === 'GENERAL' && sorter === 'worldly' ? 'general' : 'sharia'));
+  const logRoute = (final = {}) => {
+    const finalRuntime = final.runtime || currentRuntime;
+    const finalRoute = final.route || (finalRuntime === 'GENERAL' ? 'GEN' : 'DEEN');
+    const routeTags = routeLogFields({
+      lexicalRuntime: lexicalRuntimeOfRequest, runtime: finalRuntime, sorter: final.sorter || null,
+    });
+    return answerLog.note({ route: effectiveRoute, runtime: currentRuntime })
+      && answerLog.note({ route: finalRoute, runtime: finalRuntime, flags: routeTags })
+      && console.log('[route]', {
+      route: effectiveRoute, lexicalRoute: route, band,
+      purpose: currentPlan.purpose, mode: currentPlan.attributionMode,
+      entity: currentPlan.namedEntity || null, officialDomain: currentPlan.officialDomain || null,
+      lexicalRuntime: currentRuntime, runtime: currentRuntime,
+      sorter: sorterPlan.sorter, sorterMs: 0, frame: frameFor(currentRuntime, sorterPlan.sorter),
+      impermissible: 'none',
+      ...final,
+    });
+  };
 
   // ── LIB_QUOTE_V1 · «انقل لي من كتاب …» ANSWERED WITH THE BOOK'S OWN WORDS ──────────────
   // An adult who asks for the text of a named book gets a SERVER-COMPOSED reply and no model
@@ -2154,7 +2168,7 @@ export default async function handler(req, res) {
           // SPEED FIX 3, C4: units released by a hadith proof.
           unitsProvedHadith: t.unitsProvedHadith,
           heldEmpty: t.heldEmpty, heldToolAnnouncement: t.heldToolAnnouncement, heldReviewFailed: t.heldReviewFailed, heldUnsupportedAttribution: t.heldUnsupportedAttribution,
-          heldUncitedAttribution: t.heldUncitedAttribution, heldUncitedRuling: t.heldUncitedRuling, heldUnsupportedGroup: t.heldUnsupportedGroup, heldUnsupportedConsensus: t.heldUnsupportedConsensus,
+          heldUncitedAttribution: t.heldUncitedAttribution, heldUncitedRuling: t.heldUncitedRuling, heldRemovedPerson: t.heldRemovedPerson, heldUnsupportedGroup: t.heldUnsupportedGroup, heldUnsupportedConsensus: t.heldUnsupportedConsensus,
           heldUnsupportedSchool: t.heldUnsupportedSchool, heldUnsupportedMatn: t.heldUnsupportedMatn, heldTakhrijRefused: t.heldTakhrijRefused, heldTakhrijEmptied: t.heldTakhrijEmptied,
           heldGradeRuleFailed: t.heldGradeRuleFailed, heldGradeEmptied: t.heldGradeEmptied, heldRepeat: t.heldRepeat, heldDependentOnHeld: t.heldDependentOnHeld,
           heldDependentOpening: t.heldDependentOpening, heldDanglingLeadIn: t.heldDanglingLeadIn, heldNotCovered: t.heldNotCovered, heldNotCoveredSentence: t.heldNotCoveredSentence,
@@ -2179,7 +2193,7 @@ export default async function handler(req, res) {
       // linkedom/Readability only if the model actually calls a web tool, and a turn that
       // answers a sum from memory must not pay for loading them.
       const {
-        runFreeBrainTurn, pickReaderCards, pickBookCards, reviewerEvidence, encyclopediaTail,
+        runFreeBrainTurn, shouldAppendC3NotCovered, pickReaderCards, pickBookCards, reviewerEvidence, encyclopediaTail,
         citedDeliveryLedger, pickEncyclopediaCards,
       } = await import('../lib/free-brain/loop.js');
       const { buildFreeBrainInstruction } = await import('../lib/free-brain/instructions.js');
@@ -2209,7 +2223,7 @@ export default async function handler(req, res) {
           // ITEM O3a (132) -- 2026-10-15 brain-line: the turn names its stages to the reader.
           onStage: (stage) => answerStatus.status(stage),
           messages: body.messages,
-          system: appendDepthBlock(generalSystem || system, buildFreeBrainInstruction({ band, fiqh: !generalSystem && currentRuntime === 'STORED_FIQH' })),
+          system: appendDepthBlock(generalSystem || system, buildFreeBrainInstruction({ band, fiqh: !generalSystem && currentRuntime === 'STORED_FIQH', removedPerson: removedPersonQuestion })),
           model,
           maxTokens,
           usePremium,
@@ -2252,7 +2266,7 @@ export default async function handler(req, res) {
           // religious key). The offer above is untouched; this is the prefetch, not the tool.
           lessonsPrefetch: band === 'adult' && libToken !== '' ? { token: libToken } : null,
           // POSTSHIP ITEM 12 -- 2026-10-24: a shari'a turn streams nothing before its sources are known (holdUnsourced below).
-          onWriteUnit: (detail) => (holdUnsourced ? false : liveFreeBrainUnits.push(detail)),
+          onWriteUnit: (detail) => ((holdUnsourced || !!removedPersonQuestion || !!removedIdentityQuestion) ? false : liveFreeBrainUnits.push(detail)),
           // BATCH 4 [b18] — the takhrij pass below runs on a streamed turn too, so the stream holds
           // the units it could change. The same three conditions the pass itself is gated on.
           takhrijHold: takhrijDecision().enabled && band === 'adult' && libFlagValue === 'on' && libToken !== ''
@@ -2758,8 +2772,13 @@ export default async function handler(req, res) {
         })),
       ];
       const freeBrainSourceSummary = readerSources('free-brain', freeBrainSourceRows);
-      answerLog.note({ path: 'free-brain', ...sourceNoteFields(freeBrainSourceSummary) });
-      if (holdUnsourced && freeBrainSourceSummary.count === 0) {
+      const freeBrainVisibleSourceCount = visibleSourceCount({
+        readerCards: String(readerText || '').trim() ? finalizerContext.readerCards : [],
+        readerSuffix: finalizerContext.readerSuffix,
+        takhrijEvidence: takhrijProvenRows.length,
+      });
+      answerLog.note({ path: 'free-brain', ...sourceNoteFields(freeBrainSourceSummary), takhrijEvidence: takhrijProvenRows.length });
+      if ((holdUnsourced || (removedPersonQuestion && !String(readerText || '').trim())) && freeBrainVisibleSourceCount === 0) {
         const { BW2_NOT_COVERED } = await import('../lib/before-writing-v2.js');
         answerLog.note({ flags: ['unsourced_withheld'] });
         out.degraded.push('unsourced:not_covered');
@@ -2769,7 +2788,7 @@ export default async function handler(req, res) {
       // ITEM C3 (axis row 5) -- 2026-10-15 brain-line: the draft stated rulings and none sourced was left
       // (lib/free-brain/loop.js withoutUnsourcedRulings): what stays is followed by the one server-owned
       // not-covered sentence, and the search offer goes out with it, as before writing ends the same case.
-      if (out.notCovered === true && !out.streamedThisTurn) {
+      if (shouldAppendC3NotCovered(out, removedPersonQuestion, freeBrainVisibleSourceCount)) {
         const { BW2_NOT_COVERED } = await import('../lib/before-writing-v2.js');
         readerText = (String(readerText || '').trim() ? String(readerText).trim() + '\n\n' : '') + BW2_NOT_COVERED;
         out.degraded.push('unsourced_ruling:not_covered');
@@ -2780,10 +2799,14 @@ export default async function handler(req, res) {
       readerText = withPatientReferral(readerText, questionText, audienceBand);
       // ITEM r2-7 -- 2026-10-17 brain-line R2: a question about suicide ends on the one comfort sentence (lib/policy/core.js).
       readerText = withSuicideComfort(readerText, questionText);
-      const freeBrainBody = appendRemovedPersonAnswerNote(
-        readerText + (out.truncated === true ? TRUNCATED_MARK : ''),
-        questionText,
-        { blocked: out.notCovered === true || out.refused === true || out.unsourcedWithheld === true },
+      const freeBrainBody = appendRemovedPersonIdentityNote(
+        appendRemovedPersonAnswerNote(
+          readerText + (out.truncated === true ? TRUNCATED_MARK : ''),
+          questionText,
+          { blocked: (out.notCovered === true && freeBrainVisibleSourceCount === 0) || out.refused === true || out.unsourcedWithheld === true,
+            hasReaderCard: finalizerContext.readerCards.length > 0 },
+        ),
+        removedIdentityQuestion,
       );
       if (takhrijDisclosureOnce(freeBrainBody, takhrijNote)) out.degraded.push('takhrij:limit_declared');
       return emitFreeBrain(freeBrainBody, out.readerUnits);
@@ -2884,7 +2907,9 @@ export default async function handler(req, res) {
         budgetEnvironment: storedOut.diagnostics?.budget?.environment || null,
         elapsedMs: storedOut.elapsedMs || null,
       });
-      return emitOnce(storedOut.text || NO_STORED_EVIDENCE);
+      return emitOnce(appendRemovedPersonAnswerNote(storedOut.text || NO_STORED_EVIDENCE, questionText, {
+        blocked: storedOut.outcome !== 'ANSWER', hasReaderCard: cards.length > 0,
+      }));
     }
 
     // ── GENERAL_CHILD_BENIGN (RFC v0.5-R2 §10) ─────────────────────────────
@@ -3187,7 +3212,9 @@ export default async function handler(req, res) {
       canonicalId: resolvedNameIdentity ? (resolvedNameIdentity.canonicalId || '')
         : (registryNameIdentity.status === 'resolved' ? registryNameIdentity.domain : ''),
     };
-    const nameShape = probeShape(questionText, unregisteredName, nameIdentityTrust);
+    const nameShape = removedIdentityQuestion
+      ? { probe: false, name: '', kind: PRESENCE.NOT_PROBED }
+      : probeShape(questionText, unregisteredName, nameIdentityTrust);
     let namePresence = {
       probed: false, searchCompleted: false, outcome: PRESENCE.NOT_PROBED,
       retrievalOutcome: 'INCONCLUSIVE',
@@ -4545,6 +4572,7 @@ export default async function handler(req, res) {
     // the whole guarantee: on the DEEN route the reader either gets a verified card or
     // gets told plainly that we could not verify one.
     const canonicalSources = registerOwnedCards(pickVerifiedSources(retrievedSources.filter(Boolean).flat()));
+    if (removedPersonQuestion) attributionNote = removedPersonAnswerNote(questionText, { hasReaderCard: canonicalSources.length > 0 });
     // THE PAGES THIS REPLY WILL BE DRAFTED OVER decide who it may name. Computed from the gated
     // pages themselves — their extracted byline, their host, their extracted text — and never from
     // the question, the plan, or anything the model said.

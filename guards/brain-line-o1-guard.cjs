@@ -70,9 +70,10 @@ const QUESTION = 'ما حكمُ الفطرِ في رمضانَ لمريضِ ال
     const keys = Object.keys(rec).sort();
     ok(p + ': the whole schema (every field, fp included with a key)', JSON.stringify(keys) === JSON.stringify([...FIELDS].sort()), keys.join(','));
     ok(p + ': no Arabic and no question in the stored JSON', !/[؀-ۿ]/.test(json), json);
-    ok(p + ': path, measures and stop as given', rec.path === p && rec.out_chars === 'الجوابُ هنا. وتمامُه.'.length && rec.first_byte_ms === 800
+    ok(p + ': path, measures, stop, delivered citations and visible unit count match', rec.path === p && rec.out_chars === 'الجوابُ هنا. وتمامُه.'.length && rec.first_byte_ms === 800
       && rec.max_gap_ms === 2500 && rec.status_events === 1 && rec.stop_reason === 'end_turn' && rec.out_tokens === 41
-      && rec.hits.fatwa === 3 && rec.hits.library === 2 && rec.held.unsupportedMatn === 2 && rec.flags.join() === 'live_offer', json);
+      && rec.hits.fatwa === 3 && rec.hits.library === 2 && rec.cited === 0 && rec.held.unsupportedMatn === 2
+      && rec.flags.join() === 'live_offer,units:2', json);
   }
   const bare = AL.createAnswerLog({ question: QUESTION, key: 'k', now: () => 5 });
   bare.note({ route: 'GEN' });
@@ -112,6 +113,169 @@ const QUESTION = 'ما حكمُ الفطرِ في رمضانَ لمريضِ ال
     ok('no store: nothing fails, nothing is written', (await AL.createAnswerLog({ question: 'x', key: '' }).flush()) === false);
   } finally { REDIS.__resetRedis(); }
 
+  // B4 P3-24: the store is available only until physical response completion.
+  // This models the serverless lifetime boundary without network or model calls.
+  console.log('-- B4. persistence before physical response completion');
+  {
+    const verseQuestion = '\u0645\u0627 \u0645\u0639\u0646\u0649 \u0642\u0648\u0644\u0647 \u062a\u0639\u0627\u0644\u0649: \u0625\u0646 \u0645\u0639 \u0627\u0644\u0639\u0633\u0631 \u064a\u0633\u0631\u0627\u061f';
+    const verse = '<quran sura="94" aya="5">\u0641\u0625\u0646 \u0645\u0639 \u0627\u0644\u0639\u0633\u0631 \u064a\u0633\u0631\u0627</quran>';
+    const tail = '\u0627\u0644\u0645\u0635\u062f\u0631: \u0627\u0644\u0645\u0648\u0633\u0648\u0639\u0629 \u0627\u0644\u0641\u0642\u0647\u064a\u0629 \u0627\u0644\u0643\u0648\u064a\u062a\u064a\u0629.';
+    const cards = [1, 2, 3].map(n => '<book id="FC-00999' + n + '" title="fixture"/>').join('\n');
+    const shapes = [
+      ['S3 verse, three books and encyclopedia', verseQuestion, verse + '\nExplanation.\n' + tail + '\n' + cards, 'bw2'],
+      ['sibling verse', verseQuestion + ' 2', '<quran sura="93" aya="5">Fixture verse.</quran>\nExplanation.\n' + cards, 'free-brain'],
+      ['fiqh with encyclopedia', 'fiqh fixture', 'Sourced fiqh answer.\n' + tail + '\n' + cards, 'stored'],
+      ['hadith grade', 'hadith fixture', 'Hadith grade with evidence.\n' + cards, 'bw2'],
+    ];
+    for (const [label, question, text, pathName] of shapes) {
+      let ended = false, ends = 0, rowsAtEnd = -1, indexAtEnd = -1;
+      const records = new Map(), index = [], warnings = [];
+      const res = { write() { return true; }, end() { ended = true; ends += 1; rowsAtEnd = records.size; indexAtEnd = index.length; return this; } };
+      const store = {
+        async setex(k, ttl, value) { await Promise.resolve(); if (ended) return false; records.set(k, JSON.parse(value)); return true; },
+        async lpushCapped(k, trace) { await Promise.resolve(); if (ended) return false; index.push(trace); return true; },
+      };
+      const req = { method: 'POST', body: { messages: [{ role: 'user', content: question }] } };
+      const warn = console.warn; console.warn = line => warnings.push(String(line));
+      try {
+        await AL.withAnswerLog(req, res, async () => {
+          req.__answerLog.note({ route: 'DEEN', runtime: 'STORED_FIQH' });
+          res.write(frame({ type: 'content_block_delta', delta: { type: 'text_delta', text } }));
+          res.end();
+          // BW2 notes these facts after its wire requested response completion.
+          req.__answerLog.note({ path: pathName, cited: 3, hits: { library: 3 } });
+        }, () => ({ lang: 'ar' }), { store });
+      } finally { console.warn = warn; }
+      const saved = [...records.values()][0];
+      ok('B4 ' + label + ': one indexed row before physical end',
+        records.size === 1 && index.length === 1 && rowsAtEnd === 1 && indexAtEnd === 1 && ends === 1
+          && saved.path === pathName && saved.status === 'ended' && warnings.length === 0,
+        'rows=' + records.size + ' index=' + index.length + ' rowsAtEnd=' + rowsAtEnd + ' warnings=' + warnings.length);
+    }
+  }
+  {
+    // B4 P3-24, final attempt: real finalizer replay can pause after run()
+    // returns. The row must wait for logical replay completion, while physical
+    // response completion must wait for the row and day index. No future symbol
+    // is imported, so this same behavior guard runs on the original B4 head.
+    const { EventEmitter } = require('node:events');
+    const { createFinalizedSseResponse } = await esm('lib/finalized-sse-writer.js');
+    const turn = () => new Promise((resolve) => setImmediate(resolve));
+    async function bounded(promise) {
+      let timer;
+      const result = await Promise.race([
+        promise.then(() => ({ settled: true, threw: false }), () => ({ settled: true, threw: true })),
+        new Promise((resolve) => { timer = setTimeout(() => resolve({ settled: false, threw: false }), 500); }),
+      ]);
+      clearTimeout(timer);
+      return result;
+    }
+    function startReplay({ label, text, cardTags = [], pauseAt = 1, throwAt = 0, signal = null, prefix = '' }) {
+      const res = new EventEmitter();
+      const records = new Map(), index = [], accepted = [], warnings = [];
+      const state = { writes: 0, ends: 0, callbacks: 0, callbackErrors: 0, rowsAtEnd: -1, indexAtEnd: -1, returned: false };
+      let physicalEnd = false;
+      res.write = (chunk) => {
+        state.writes += 1;
+        if (state.writes === throwAt) throw new Error('B4 replay write failed');
+        accepted.push(String(chunk));
+        return state.writes !== pauseAt;
+      };
+      res.end = (chunk, encoding, callback) => {
+        physicalEnd = true;
+        state.ends += 1;
+        state.rowsAtEnd = records.size;
+        state.indexAtEnd = index.length;
+        const done = [chunk, encoding, callback].find((value) => typeof value === 'function');
+        if (done) done();
+        return res;
+      };
+      res.setHeader = () => res;
+      res.status = () => res;
+      const store = {
+        async setex(key, ttl, value) {
+          await Promise.resolve();
+          if (physicalEnd) return false;
+          records.set(key, JSON.parse(value));
+          return true;
+        },
+        async lpushCapped(key, trace) {
+          await Promise.resolve();
+          if (physicalEnd) return false;
+          index.push(trace);
+          return true;
+        },
+      };
+      // POST is essential: without it withAnswerLog deliberately bypasses its wrapper.
+      const req = { method: 'POST', body: { messages: [{ role: 'user', content: label }] } };
+      const promise = AL.withAnswerLog(req, res, async () => {
+        const facade = createFinalizedSseResponse(res, {
+          finalize: ({ text: value }) => ({ ok: true, text: value }),
+          context: () => ({ allowWireOwnedCards: true, sourceCards: cardTags.map((tag) => ({ tag })) }),
+          signal,
+        });
+        facade.write(frame({ type: 'message_start', message: { id: 'B4', type: 'message', role: 'assistant', content: [] } }));
+        facade.write(frame({ type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } }));
+        const pieces = prefix ? [prefix, text.slice(prefix.length)] : [text];
+        for (const piece of pieces) facade.write(frame({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: piece } }));
+        facade.write(frame({ type: 'content_block_stop', index: 0 }));
+        facade.write(frame({ type: 'message_delta', delta: { stop_reason: 'end_turn' }, usage: { output_tokens: 17 } }));
+        facade.write(frame({ type: 'message_stop' }));
+        facade.end((error) => { state.callbacks += 1; if (error) state.callbackErrors += 1; });
+        req.__answerLog.note({ path: 'free-brain', route: 'DEEN', runtime: 'STORED_FIQH', cited: cardTags.length });
+      }, () => ({ lang: 'ar' }), { store });
+      promise.then(() => { state.returned = true; }, () => { state.returned = true; });
+      return { res, records, index, state, accepted, warnings, promise };
+    }
+    const tail = '\u0627\u0644\u0645\u0635\u062f\u0631: \u0627\u0644\u0645\u0648\u0633\u0648\u0639\u0629 \u0627\u0644\u0641\u0642\u0647\u064a\u0629 \u0627\u0644\u0643\u0648\u064a\u062a\u064a\u0629.';
+    const cards = [1, 2, 3].map((n) => '<book id="FC-09999' + n + '" title="B4 fixture"></book>');
+    const verse = '<quran sura="94" aya="5">\u0641\u0625\u0646 \u0645\u0639 \u0627\u0644\u0639\u0633\u0631 \u064a\u0633\u0631\u0627</quran>';
+    const shapes = [
+      ['S3 complete verse, three books and encyclopedia', verse + '\nExplanation.\n' + tail + '\n' + cards.join('\n'), cards, 4],
+      ['sibling complete verse', '<quran sura="93" aya="5">Fixture verse.</quran>\nExplanation.\n' + cards.join('\n'), cards, 3],
+      ['fiqh complete encyclopedia', 'Sourced fiqh answer.\n' + tail + '\n' + cards[0], [cards[0]], 2],
+      ['hadith complete grade', 'Hadith grade with evidence.\n' + cards[0], [cards[0]], 1],
+    ];
+    for (const [label, text, cardTags, expectedCited] of shapes) {
+      const active = startReplay({ label, text, cardTags });
+      await turn();
+      ok('B4 ' + label + ': replay paused, no premature row or physical end',
+        active.state.writes === 1 && active.records.size === 0 && active.index.length === 0
+          && active.state.ends === 0 && active.state.returned === false,
+        JSON.stringify({ writes: active.state.writes, rows: active.records.size, index: active.index.length, ends: active.state.ends, returned: active.state.returned }));
+      active.res.emit('drain');
+      const finished = await bounded(active.promise);
+      const saved = [...active.records.values()][0];
+      ok('B4 ' + label + ': one complete indexed row before physical end', finished.settled && !finished.threw
+        && active.records.size === 1 && active.index.length === 1 && active.state.rowsAtEnd === 1 && active.state.indexAtEnd === 1
+        && active.state.ends === 1 && active.state.callbacks === 1 && active.state.callbackErrors === 0
+        && saved && saved.out_chars === text.length && saved.cited === expectedCited && saved.status === 'ended'
+        && saved.path === 'free-brain' && saved.stop_reason === 'end_turn' && saved.out_tokens === 17,
+        JSON.stringify({ settled: finished.settled, state: active.state, saved }));
+    }
+    const prefix = 'Accepted answer prefix. ';
+    const partialText = prefix + 'Rejected later delta.\n' + cards[0];
+    for (const reason of ['write-error', 'signal-abort', 'socket-close']) {
+      const abort = new AbortController();
+      const active = startReplay({ label: reason, text: partialText, cardTags: [cards[0]], prefix,
+        pauseAt: 3, throwAt: reason === 'write-error' ? 4 : 0, signal: abort.signal });
+      await turn();
+      ok('B4 ' + reason + ': accepted prefix waits for terminal replay outcome',
+        active.state.writes === 3 && active.records.size === 0 && active.index.length === 0
+          && active.state.ends === 0 && active.state.returned === false);
+      if (reason === 'write-error') active.res.emit('drain');
+      else if (reason === 'signal-abort') abort.abort();
+      else active.res.emit('close');
+      const finished = await bounded(active.promise);
+      const saved = [...active.records.values()][0];
+      ok('B4 ' + reason + ': replay settles and stores only accepted text once', finished.settled && !finished.threw
+        && active.records.size === 1 && active.index.length === 1 && active.state.ends === 0
+        && active.state.callbacks === 1 && active.state.callbackErrors === 1
+        && active.res.listenerCount('drain') === 0 && saved && saved.out_chars === prefix.length
+        && saved.cited === 0 && saved.status === 'open',
+        JSON.stringify({ settled: finished.settled, state: active.state, drains: active.res.listenerCount('drain'), saved }));
+    }
+  }
   console.log('-- 4. the wiring');
   const ask = fs.readFileSync(path.join(REPO, 'api/ask.js'), 'utf8');
   ok('opened as the handler\'s first act, inside the gate the exported handler is',

@@ -109,8 +109,9 @@ const CONTROLS = [
     ok('the switch off keeps the lexical value (disabled)', FS.runtimeAfterSorter('GENERAL', 'disabled') === 'GENERAL');
     for (const rt of ['LOCAL_QURAN', 'LOCAL_ADHKAR', 'LOCAL_WORSHIP']) ok(rt + ' is still not asked', FS.sorterEligibility({ enabled: true, band: 'adult', freeBrainEnabled: true, runtime: rt, text: 'x' }).ask === false);
     const askSrc = fs.readFileSync(path.join(REPO, 'api/ask.js'), 'utf8');
-    ok('api/ask.js: the general frame only where the sorter said WORLDLY',
-      /const frameFor = \(runtime, sorter\) => \([^\n]*runtime === 'GENERAL' && sorter === 'worldly'/.test(askSrc)
+    ok('api/ask.js: removed identity and WORLDLY are the only general frames',
+      /const frameFor = \(runtime, sorter\) => \(sorter === 'removed_identity' && band === 'adult' && freeBrainOnAtSorter \? 'general' : \(frontSorter\.enabled && band === 'adult' && freeBrainOnAtSorter && runtime === 'GENERAL' && sorter === 'worldly' \? 'general' : 'sharia'\)\);/.test(askSrc)
+      && /frameFor\(currentRuntime, sorterPlan\.sorter\)/.test(askSrc)
       && /frameFor\(currentRuntime, sorterState\) === 'general'/.test(askSrc));
   }
 

@@ -2043,13 +2043,17 @@ const SEALED = {
 //   2026-10-28 -- KUNUZ-PHOTO-FIX ship: cache ezik-v117 -> ezik-v118 after YAHIMMAK-FIX1; app.js 2356281 bytes, sha256 847dd4d9..ea5bf6; CORE_BYTES remains 3542295.
 //   2026-10-28 -- APPLE-REVIEW release prep: cache ezik-v118 -> ezik-v119; app.js 2356281 bytes, sha256 7713fe7c..f2262fe8; CORE_BYTES remains 3542295.
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57787 bytes).
+// 2026-10-29 P3-SHIP: cache v119 -> v120; app.js 2356281 bytes, SHA-256 6b72ad5d..3e32a3c3; CORE_BYTES remains 3542295.
+// No CORE membership changed; seal below is measured with CR=0 (sw.js 57787 bytes).
 //   2026-10-29 -- PRAYER REBUILD (side/prayer-20261029: the prayer section rebuilt in twelve parts -- compass, automatic location, first page, settings, Hijri calendar, converter, month table, prayer log, home card, 21 languages): cache ezik-v119 -> ezik-v120 (config/app-version.json and sw.js CACHE, app.js line 6 rebuilt); app.js 2356281 -> 2447141 bytes, sha256 8f29ea15..2e8e; node tools/core-bytes.cjs --write: CORE_BYTES 3542295 -> 3633155.
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57787 bytes).
 //   2026-10-29 -- PRAYER REBUILD follow-up (the interim city text is the phrase alone, no coordinates): cache stays ezik-v120; app.js 2447141 -> 2447137 bytes, sha256 71e98d13..877b; node tools/core-bytes.cjs --write: CORE_BYTES 3633155 -> 3633151.
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57787 bytes).
 //   2026-10-29 -- PRAYER REBUILD follow-up (the section's digits follow the display setting: the qibla degree line, the hijri offset control, the month row head): cache stays ezik-v120; app.js 2447137 -> 2447611 bytes, sha256 2a3b424b..7514; node tools/core-bytes.cjs --write: CORE_BYTES 3633151 -> 3633625.
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57787 bytes).
-  'sw.js': 'f3796b38936178abad4c7d9cbb9cb677910e8eb2155db469df8e4c6bb990f30e',
+//   2026-10-29 -- PRAYER SHIP (side/prayer-20261029 merged on main 34b6278e, which had taken P3-SHIP to ezik-v120 while the prayer section was built; the merge keeps main outside the section and the branch inside it): cache ezik-v120 -> ezik-v121 (config/app-version.json and sw.js CACHE, app.js line 6 rebuilt); app.js 2447611 -> 2447611 bytes, sha256 8574f561..83dc; node tools/core-bytes.cjs --write: CORE_BYTES 3633625 -> 3633625.
+//                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57787 bytes).
+  'sw.js': '48ed998d9ff86df335480adb11f58f5e4211476e4e05ec5cd1bcb2e110f3012a',
 };
 
 // ---------------------------------------------------------------------------

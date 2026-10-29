@@ -1052,6 +1052,41 @@
     "args": ""
   },
   {
+    "name": "postship3removedtitle",
+    "script": "guards/brain-postship3-removed-title-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "postship3library404",
+    "script": "guards/brain-postship3-library-404-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "postship3answerlog",
+    "script": "guards/brain-postship3-answer-log-visibility-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "postship3identityframes",
+    "script": "guards/brain-postship3-identity-frame-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "postship3attributiontrigger",
+    "script": "guards/brain-postship3-attribution-trigger-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "postship3row7a",
+    "script": "guards/brain-postship3-row7a-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "postship3routelog",
+    "script": "guards/brain-postship3-route-log-guard.cjs",
+    "args": ""
+  },
+  {
     "name": "compassmath",
     "script": "guards/compass-math-guard.cjs",
     "args": ""

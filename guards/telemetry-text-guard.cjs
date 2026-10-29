@@ -260,7 +260,10 @@ const BW2_FIELDS = [
   'takhrijLookups', 'takhrijMs', 'takhrijMatched', 'pinnedRows', 'pinnedChars', 'encyclopediaCold',
   // one count per hold reason, held<Reason> over the closed list lib/bw2-units.js BW2_HOLD_REASONS.
   'heldEmpty', 'heldToolAnnouncement', 'heldReviewFailed', 'heldUnsupportedAttribution',
-  'heldUncitedAttribution', 'heldUncitedRuling', 'heldUnsupportedGroup', 'heldUnsupportedConsensus',
+  'heldUncitedAttribution', 'heldUncitedRuling',
+  // Count of before-writing units that name the removed person asked about; no sentence text.
+  'heldRemovedPerson',
+  'heldUnsupportedGroup', 'heldUnsupportedConsensus',
   'heldUnsupportedSchool', 'heldUnsupportedMatn', 'heldTakhrijRefused', 'heldTakhrijEmptied',
   'heldGradeRuleFailed', 'heldGradeEmptied', 'heldRepeat', 'heldDependentOnHeld',
   'heldDependentOpening', 'heldDanglingLeadIn', 'heldNotCovered', 'heldNotCoveredSentence',
@@ -313,6 +316,8 @@ const ANSWER_LOG_ALLOWED = new Set([
   'out_chars', 'out_tokens', 'first_byte_ms', 'max_gap_ms', 'status_events', 'flags',
   // the sources `hits` counts, by name
   'fatwa', 'library', 'encyclopedia', 'lessons', 'candidates', 'evidence', 'world',
+  // Numeric visible-source count from takhrijProvenRows.length; no source or reader text.
+  'takhrijEvidence',
 ]);
 const NOTE_CALL = /\banswerLog\s*\.\s*note\s*\(/;
 const sweepNotes = (source, file) => {

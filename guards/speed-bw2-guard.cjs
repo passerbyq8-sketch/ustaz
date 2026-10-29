@@ -78,6 +78,8 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e\n]/g, '~').slice(0, 300);
 
 // -- fixtures (Arabic written as escapes: this file stays ASCII) -------------------------------
 const Q_MASAH = '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0631\u0628\u061f';
+const REMOVED_PERSON_QUESTION = '\u0645\u0627\u0630\u0627 \u0642\u0627\u0644 \u0639\u0645\u0631 \u0639\u0628\u062f \u0627\u0644\u0643\u0627\u0641\u064a \u0639\u0646 \u0627\u0644\u063a\u064a\u0628\u0629\u061f';
+const REMOVED_PERSON_UNIT = '\u0648\u0642\u0627\u0644 \u0639\u0645\u0631 \u0639\u0628\u062f \u0627\u0644\u0643\u0627\u0641\u064a \u0625\u0646 \u0627\u0644\u063a\u064a\u0628\u0629 \u0645\u062d\u0631\u0645\u0629 [[1]].';
 const MASAH_RULING = '\u064a\u062c\u0648\u0632 \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0631\u0628 \u0625\u0630\u0627 \u0644\u0628\u0633\u0647\u0627 \u0639\u0644\u0649 \u0637\u0647\u0627\u0631\u0629';
 const MASAH_TERM = '\u0648\u0645\u062f\u062a\u0647 \u064a\u0648\u0645 \u0648\u0644\u064a\u0644\u0629 \u0644\u0644\u0645\u0642\u064a\u0645 \u0648\u062b\u0644\u0627\u062b\u0629 \u0623\u064a\u0627\u0645 \u0628\u0644\u064a\u0627\u0644\u064a\u0647\u0627 \u0644\u0644\u0645\u0633\u0627\u0641\u0631';
 const FASTING_MATN = '\u0645\u0646 \u0646\u0633\u064a \u0648\u0647\u0648 \u0635\u0627\u0626\u0645 \u0641\u0623\u0643\u0644 \u0623\u0648 \u0634\u0631\u0628 \u0641\u0644\u064a\u062a\u0645 \u0635\u0648\u0645\u0647\u060c \u0641\u0625\u0646\u0645\u0627 \u0623\u0637\u0639\u0645\u0647 \u0627\u0644\u0644\u0647 \u0648\u0633\u0642\u0627\u0647';
@@ -1235,6 +1237,12 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         'pinnedRows', 'pinnedChars', 'encyclopediaCold', ...UNITS.BW2_HOLD_REASONS.map(UNITS.heldFieldOf)];
       ok('C3g api/ask.js prints every new field from the telemetry object, and the turn builds every one of them',
         NEW.every((n) => block.includes(n + ': t.' + n + ',') && n in t), JSON.stringify(NEW.filter((n) => !block.includes(n + ': t.' + n + ','))));
+      const removedPerson = await run({ question: REMOVED_PERSON_QUESTION, writerText: REMOVED_PERSON_UNIT });
+      ok('C3h a before-writing unit that names the removed person is held and counted before release',
+        removedPerson.out.telemetry.heldRemovedPerson === 1 && removedPerson.out.telemetry.unitsHeld === 1
+        && !removedPerson.deltas.join('').includes(REMOVED_PERSON_UNIT.split(' [[')[0]),
+        JSON.stringify({ held: removedPerson.out.telemetry.heldRemovedPerson, unitsHeld: removedPerson.out.telemetry.unitsHeld,
+          text: ascii(removedPerson.deltas.join('')) }));
     }
 
     // ---------------------------------------------------------------- SPEED FIX 3: C4

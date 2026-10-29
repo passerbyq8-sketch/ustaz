@@ -209,7 +209,14 @@ async function checkActiveRelaysHistorical() {
       get headersSent() { return r.chunks.length > 0 || r.ended; },
       flushHeaders() {},
       write(c) { r.chunks.push(Buffer.from(c)); return true; },
-      end(c) { if (c) r.chunks.push(Buffer.from(c)); r.ended = true; return r; },
+      end(c, encoding, callback) {
+        if (typeof c === 'function') { callback = c; c = undefined; }
+        else if (typeof encoding === 'function') callback = encoding;
+        if (c) r.chunks.push(Buffer.from(c));
+        r.ended = true;
+        callback?.();
+        return r;
+      },
       json(o) { r.chunks.push(Buffer.from(JSON.stringify(o))); r.ended = true; return r; },
     };
     return r;
@@ -698,7 +705,14 @@ async function checkModelRouting() {
       get headersSent() { return r.chunks.length > 0 || r.ended; },
       flushHeaders() {},
       write(c) { r.chunks.push(Buffer.isBuffer(c) ? c : Buffer.from(c)); return true; },
-      end(c) { if (c) r.chunks.push(Buffer.from(c)); r.ended = true; return r; },
+      end(c, encoding, callback) {
+        if (typeof c === 'function') { callback = c; c = undefined; }
+        else if (typeof encoding === 'function') callback = encoding;
+        if (c) r.chunks.push(Buffer.from(c));
+        r.ended = true;
+        callback?.();
+        return r;
+      },
       json(o) { r.chunks.push(Buffer.from(JSON.stringify(o))); r.ended = true; return r; },
       on() { return r; }, once() { return r; }, removeListener() { return r; },
     };

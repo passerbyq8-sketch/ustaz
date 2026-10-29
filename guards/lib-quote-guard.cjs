@@ -547,7 +547,8 @@ const hit0 = (key) => FIX.atoms[key].response.hits[0];
     if (M3) ok('E3  MUTANT KILLED: a blocked book planned for a search',
       detectPlan(M3, 'انقل لي من كتاب مجلة الأستاذ ما جاء في التعليم').outcome !== 'blocked');
     const M4 = await mutant('weak-shape-taken', (s) => s.replace(
-      'if (!ask.explicitBook && (r.tier < 2 || !c.topic)) return null;', 'if (false) return null; // mutant-weak'), 'mutant-weak');
+      'if (!ask.explicitBook && (r.tier < 2 || !c.topic) && !removedBookRequest(c.title, c.author)) return null;',
+      'if (false) return null; // mutant-weak'), 'mutant-weak');
     if (M4) ok('E4  MUTANT KILLED: an ordinary «نص كلام العلماء في …» question taken as a book request',
       detectPlan(M4, 'ما نص كلام العلماء في حكم الغناء؟') !== null);
     const M5 = await mutant('cut-unmarked', (s) => s.replace(

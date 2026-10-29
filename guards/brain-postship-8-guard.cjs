@@ -67,7 +67,7 @@ const LONG = [
   ok('the free brain: the text of a turn that is not fiqh is byte for byte what it was', FB.buildFreeBrainInstruction({ band: 'adult' }) === FB.buildFreeBrainInstruction({ band: 'adult', fiqh: false }));
   const fs = require('fs');
   const askSrc = fs.readFileSync(path.join(REPO, 'api/ask.js'), 'utf8');
-  ok('api/ask.js gives the free brain the rule on a fiqh runtime only', askSrc.includes("buildFreeBrainInstruction({ band, fiqh: !generalSystem && currentRuntime === 'STORED_FIQH' })"));
+  ok('api/ask.js gives the free brain the rule on a fiqh runtime only', askSrc.includes("buildFreeBrainInstruction({ band, fiqh: !generalSystem && currentRuntime === 'STORED_FIQH', removedPerson: removedPersonQuestion })"));
   const RT = await esm('lib/stored-deen.js');
   const PL = await esm('lib/ask-plan.js');
   const RC = await esm('lib/route-classify.js');
