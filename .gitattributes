@@ -8,14 +8,16 @@
 # .mjs 21/21 LF, .js 251 LF + 10 with no line ending at all, .json 141 LF + 611 with no line ending;
 # CRLF 0, mixed 0. The 21 lang/*.json are LF in the index and served LF by production
 # (ezik.app/lang/am.json 110939 bytes, CR 0 = the blob); their CRLF on the build machine was
-# core.autocrlf=true alone. They are pinned CRLF in the working tree below so what the guards and
-# the build read there stays as it was. Every explicit line further down this file still wins over
-# these four (a later rule overrides an earlier one), so no pin above or below changes meaning.
+# core.autocrlf=true alone. Every explicit line further down this file still wins over these four
+# (a later rule overrides an earlier one), so no pin above or below changes meaning.
+# PRAYER-FIX2 (2026-10-29): the lang/*.json line below was eol=crlf for one push (ef871454) and Vercel's
+# checkout honoured it, so production served each lang file with one CR more than its blob
+# (am.json 110940, not 110939). It is eol=lf now, explicitly: production serves the blob as it did.
 *.cjs text eol=lf
 *.mjs text eol=lf
 *.js text eol=lf
 *.json text eol=lf
-lang/*.json text eol=crlf
+lang/*.json text eol=lf
 
 # Byte-compared or SHA-pinned by the guards. LF forever, on every machine.
 tests/iap-ios-purchase-visibility.test.cjs text eol=lf
