@@ -2057,7 +2057,9 @@ const SEALED = {
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57787 bytes).
 //   2026-10-29 -- PRAYER-FIX2 (side/prayer-fix2-20261029: the menu's prayer card writes its digits and its clock through the section's display functions -- prayerClockUi / prayerDigits -- so it follows the «display» setting as the section does; the cache takes the next value no branch ever used, ezik-v121 being the launch branch's and ezik-v122 the prayer ship's): cache ezik-v122 -> ezik-v123 (config/app-version.json and sw.js CACHE, app.js line 6 rebuilt); app.js 2447611 -> 2448129 bytes, sha256 afcd102c..ae2c; node tools/core-bytes.cjs --write: CORE_BYTES 3633625 -> 3634143.
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57787 bytes).
-  'sw.js': '4d9610868d94715e459b08a7e312ba82f4093ec78aaeb977d087a3c19cb45ab1',
+//   2026-10-29 -- IAP LAUNCH REBUILD 2 (rebuilt on main 88154f94): cache ezik-v123 -> ezik-v124 (config/app-version.json and sw.js CACHE, app.js rebuilt); app.js 2448129 bytes, sha256 4343ebbe..d77200; CORE_BYTES remains 3634143.
+//                    NO CORE membership changed; the sw.js seal is measured from the committed blob.
+  'sw.js': '37f95c62c89fdb21f76909d8d25a22afcb1be1b732cd1f20f08d63bc51fbc563',
 };
 
 // ---------------------------------------------------------------------------

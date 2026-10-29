@@ -5,7 +5,7 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
 REPO = r"C:\Users\passe\projects\ustaz-wt-iap-launch"
-OUT = r"C:\Users\passe\projects\_iap-orders\shots-iap-launch-rebuild"
+OUT = r"C:\Users\passe\projects\_iap-orders\shots-iap-launch-rebuild2"
 BASE = "http://127.0.0.1:4175"
 MOCK_WORKER_CATALOG_URL = "https://hanna-laha.hl-worker.workers.dev/api/board/catalog"
 CHROMIUM = r"C:\Users\passe\AppData\Local\ms-playwright\chromium-1248\chrome-win64\chrome.exe"
@@ -505,7 +505,7 @@ def main():
     assert all(row["trialCalls"] == 0 and row["consumeCalls"] == 0 for row in results["games"])
     assert results["roomJoin"] and results["roomJoin"]["joined"]
     results["ok"] = True
-    with open(r"C:\Users\passe\projects\_iap-orders\shots-iap-launch-rebuild\iap-launch-browser-evidence.json", "w", encoding="utf-8") as f:
+    with open(r"C:\Users\passe\projects\_iap-orders\shots-iap-launch-rebuild2\iap-launch-browser-evidence.json", "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
         f.write("\n")
     print("A_HOME_CELLS=" + str(len(results["matrices"]["A"])) + " B_HOME_CELLS=" + str(len(results["matrices"]["B"])) + " C_HOME_CELLS=" + str(sum(1 for row in results["matrices"]["C"] if row.get("name", "").startswith("C-"))) + " C_LOCK_CASES=6")
