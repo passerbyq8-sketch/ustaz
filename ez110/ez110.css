@@ -873,6 +873,66 @@ html[data-ez110] .ez110-qibla-door:disabled { opacity: .55; }
 html[data-ez110] .ezsh-nav .ez110-prayer-compassbtn { background: #12327A; color: #FFFFFF; border-radius: 14px; }
 html[data-ez110] .ezsh-nav .ez110-prayer-compassbtn svg { width: 24px; height: 24px; }
 
+/* ---- panel 1: the first page -- the navy card, the date strip, the six rows ---- */
+html[data-ez110] .ez110-sr { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+html[data-ez110] .ez110-pmain { display: flex; flex-direction: column; }
+html[data-ez110] .ez110-pcard {
+  position: relative; display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border-radius: 22px;
+  background: #12327A; color: #FFFFFF; box-shadow: 0 10px 24px rgba(18, 50, 122, .22); font-family: var(--ez110-font-ui);
+}
+html[data-ez110] .ez110-pcard-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+html[data-ez110] .ez110-pcard-city {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 36px; max-width: 72%; padding: 4px 12px 4px 10px;
+  border: 0; border-radius: 999px; background: rgba(255,255,255,.14); color: #FFFFFF; font: inherit;
+  font-size: calc(13.5px * var(--ez-fs, 1)); font-weight: 600; cursor: pointer;
+}
+html[data-ez110] .ez110-pcard-cityname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html[data-ez110] .ez110-pcard-refresh {
+  width: 40px; height: 40px; border: 0; border-radius: 14px; background: rgba(255,255,255,.14); color: #FFFFFF;
+  display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+}
+html[data-ez110] .ez110-pcard-refresh.is-busy svg { animation: ez110-spin 1.2s linear infinite; }
+@keyframes ez110-spin { to { transform: rotate(360deg); } }
+html[data-ez110] .ez110-pcard-state { font-size: calc(12.5px * var(--ez-fs, 1)); color: rgba(255,255,255,.88); }
+html[data-ez110] .ez110-pcard-pill {
+  align-self: flex-start; min-height: 34px; padding: 4px 14px; border: 1px solid rgba(255,255,255,.45); border-radius: 999px;
+  background: transparent; color: #FFFFFF; font: inherit; font-size: calc(13px * var(--ez-fs, 1)); font-weight: 600; cursor: pointer;
+}
+html[data-ez110] .ez110-pcard-pill.is-ink { border-color: var(--vt-line); color: var(--vt-accent-ink); background: var(--vt-soft); }
+html[data-ez110] .ez110-pcard-prev { font-size: calc(13px * var(--ez-fs, 1)); color: rgba(255,255,255,.8); }
+html[data-ez110] .ez110-pcard-main { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+html[data-ez110] .ez110-pcard-nextcol { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+html[data-ez110] .ez110-pcard-label { font-size: calc(12.5px * var(--ez-fs, 1)); color: rgba(255,255,255,.8); }
+html[data-ez110] .ez110-pcard-nextname { font-family: var(--ez110-font-head); font-size: calc(26px * var(--ez-fs, 1)); font-weight: 700; line-height: 1.2; }
+html[data-ez110] .ez110-pcard-nexttime { font-size: calc(16px * var(--ez-fs, 1)); font-weight: 600; }
+html[data-ez110] .ez110-pcard-left { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 14px; border-radius: 16px; background: rgba(255,255,255,.12); }
+html[data-ez110] .ez110-pcard-count { font-family: var(--ez110-font-head); font-size: calc(22px * var(--ez-fs, 1)); font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+html[data-ez110] .ez110-pcard-bar { height: 6px; border-radius: 3px; background: rgba(255,255,255,.18); overflow: hidden; }
+html[data-ez110] .ez110-pcard-bar > i { display: block; height: 100%; border-radius: 3px; background: #FFFFFF; transition: width .6s linear; }
+html[data-ez110] .ez110-pdate { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 12px; padding: 4px 2px; }
+html[data-ez110] .ez110-pdate-arrow {
+  width: 44px; height: 44px; flex: 0 0 auto; border: 0; border-radius: 14px; background: var(--vt-soft); color: var(--vt-accent-ink);
+  display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+}
+html[dir="ltr"][data-ez110] .ez110-pdate-arrow svg { transform: scaleX(-1); }
+html[data-ez110] .ez110-pdate-mid { position: relative; flex: 1; min-width: 0; text-align: center; }
+html[data-ez110] .ez110-pdate-h { font-family: var(--ez110-font-head); font-size: calc(18px * var(--ez-fs, 1)); font-weight: 700; color: var(--vt-ink); line-height: 1.3; }
+html[data-ez110] .ez110-pdate-g { font-size: calc(12.5px * var(--ez-fs, 1)); color: var(--vt-muted); }
+html[data-ez110] .ez110-pdate-pick { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+html[data-ez110] .ez110-pdate-back { display: flex; justify-content: center; margin-top: 2px; }
+html[data-ez110] .ez110-pdate-back .ez110-pcard-pill { align-self: center; }
+html[data-ez110] .ez110-plist { display: flex; flex-direction: column; margin-top: 10px; border-radius: 18px; overflow: hidden; border: 1px solid var(--vt-line); background: var(--vt-surface); }
+html[data-ez110] .ez110-prow { display: flex; align-items: center; gap: 8px; min-height: 50px; padding: 6px 12px 6px 6px; border-top: 1px solid var(--vt-line); }
+html[data-ez110] .ez110-prow:first-child { border-top: 0; }
+html[data-ez110] .ez110-prow.is-now { background: #EDF1FA; font-weight: 700; }
+html[data-ez110] .ez110-prow-name { order: 1; flex: 1; min-width: 0; font-size: calc(15px * var(--ez-fs, 1)); color: var(--vt-ink); }
+html[data-ez110] .ez110-prow-badge { order: 2; padding: 2px 9px; border-radius: 999px; background: var(--vt-soft); color: var(--vt-accent-ink); font-size: calc(11.5px * var(--ez-fs, 1)); font-weight: 700; white-space: nowrap; }
+html[data-ez110] .ez110-prow-badge.is-now { background: #12327A; color: #FFFFFF; }
+html[data-ez110] .ez110-prow-time { order: 3; font-size: calc(16px * var(--ez-fs, 1)); font-weight: 700; color: var(--vt-ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+html[data-ez110] .ez110-prow-bell { order: 4; width: 40px; height: 40px; flex: 0 0 auto; border: 0; border-radius: 12px; background: transparent; color: var(--vt-muted); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+html[data-ez110] .ez110-prow-bell.is-on { color: #12327A; }
+html[data-ez110] .ez110-prow-bell.is-blank { width: 40px; height: 40px; }
+
 /* ==== 40-b-answer.css ==== */
 /* 40 -- THE ANSWER (board B3). The answer's markup and inline styles are pinned byte for byte by
    speedclient/speedintegration, so «ب» restyles it here, through classes, and touches nothing inside.

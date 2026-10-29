@@ -316,7 +316,7 @@ SCENES.day = async () => {
   await openPrayer(c);
   const KEYS = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
   const shown = () => KEYS.map((k) => c.q('[data-ezik-prayer="' + k + '"]').querySelectorAll('span')[1].textContent);
-  const expect = (y, m, d) => KEYS.map((k) => c.read('prayerClockL(prayerTimesFor(' + [y, m, d].join(',') + ', QIBLA_DEFAULT_LAT, QIBLA_DEFAULT_LNG, prayerTzOn(' + [y, m, d].join(',') + ', null), "kuwait", "standard", null)["' + k + '"])'));
+  const expect = (y, m, d) => KEYS.map((k) => c.read('prayerClockUi(prayerTimesFor(' + [y, m, d].join(',') + ', QIBLA_DEFAULT_LAT, QIBLA_DEFAULT_LNG, prayerTzOn(' + [y, m, d].join(',') + ', null), "kuwait", "standard", null)["' + k + '"])'));
   const today = c.read('prayerTodayParts(new Date(), null)');
   t('the sheet opens on today\'s times', shown(), expect(today.y, today.m, today.d));
   t('there is no "back to today" button on today', c.q('[data-ezik-day="today"]'), null);
@@ -459,10 +459,10 @@ SCENES.conv = async () => {
   await c.type(c.q('[data-ezik-conv="hd"]'), String(h.d));
   t('a Hijri date reads as its Gregorian date', c.q('[data-ezik-conv="greg-out"]').textContent, c.read('prayerDayLabel({y:2026,m:10,d:4})'));
   await c.click(c.q('[data-ezik-conv="show-hijri"]'));
-  t('"show the times" sends the sheet to that day', c.q('[data-ezik-day="head"]').textContent, c.read('prayerDayLabel({y:2026,m:10,d:4})'));
+  t('"show the times" sends the sheet to that day', c.q('[data-ezik-day="head"]').getAttribute('data-ezik-day-iso'), '2026-10-04');
   const KEYS = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
   const shown = KEYS.map((k) => c.q('[data-ezik-prayer="' + k + '"]').querySelectorAll('span')[1].textContent);
-  const expect = KEYS.map((k) => c.read('prayerClockL(prayerTimesFor(2026,10,4, QIBLA_DEFAULT_LAT, QIBLA_DEFAULT_LNG, prayerTzOn(2026,10,4,null), "kuwait", "standard", null)["' + k + '"])'));
+  const expect = KEYS.map((k) => c.read('prayerClockUi(prayerTimesFor(2026,10,4, QIBLA_DEFAULT_LAT, QIBLA_DEFAULT_LNG, prayerTzOn(2026,10,4,null), "kuwait", "standard", null)["' + k + '"])'));
   t('...and the times on show are that day\'s', shown, expect);
   await c.type(c.q('[data-ezik-conv="hd"]'), '31');
   t('a day of 31 says the date does not exist', c.q('[data-ezik-conv="greg-out"]').textContent, c.read("ezT('conv.invalidHijri')"));
@@ -568,10 +568,11 @@ SCENES.next = async () => {
   t('the city line names the default city', c.q('[data-ezik-city="name"]').textContent.indexOf(c.read("ezT('place.default')")) >= 0, true);
   t('the next prayer is named', c.q('[data-ezik-next="name"]').textContent, c.read("ezT('widget.prayer.' + '" + st.next.key + "')"));
   const first = countdownSecs(c.q('[data-ezik-next="count"]').textContent);
-  ok('the countdown is hh:mm:ss in Arabic-Indic digits', first !== null && /[\u0660-\u0669]/.test(c.q('[data-ezik-next="count"]').textContent));
+  // PRAYER REBUILD (29 October 2026): the section writes Western digits by default (panel 6), Arabic-Indic by choice
+  ok('the countdown is hh:mm:ss in the section\'s digits (Western by default)', first !== null && /^\d\d:\d\d:\d\d$/.test(c.q('[data-ezik-next="count"]').textContent));
   const marked = c.qa('[data-ezik-current="1"]');
   t('exactly the current prayer is marked', marked.map((e) => e.getAttribute('data-ezik-prayer')), st.current ? [st.current] : []);
-  ok('...and it says so in words and for assistive tech', marked.length === 0 || (marked[0].getAttribute('aria-current') === 'true' && marked[0].textContent.indexOf(c.read("ezT('panel.current')")) >= 0));
+  ok('...and it says so in words and for assistive tech', marked.length === 0 || (marked[0].getAttribute('aria-current') === 'true' && marked[0].textContent.indexOf(c.read("ezT('panel.now')")) >= 0));
   await tick(2300);
   const later = countdownSecs(c.q('[data-ezik-next="count"]').textContent);
   ok('the countdown runs by itself (it fell by one to three seconds)', first !== null && later !== null && first - later >= 1 && first - later <= 3, first + ' -> ' + later);
@@ -599,7 +600,7 @@ SCENES['next-en'] = async () => {
   const cnt = c.q('[data-ezik-next="count"]').textContent;
   ok('the countdown is Latin digits', /^\d\d:\d\d:\d\d$/.test(cnt), cnt);
   if (LIT_EN) {
-    ok('R4A the next-prayer words are English (b draws the countdown as its own line: in <time>)', text.indexOf('Next prayer') >= 0 && /in \d/.test(text));
+    ok('R4A the next-prayer words are English (the card: next prayer, remaining)', text.indexOf('Next prayer') >= 0 && text.indexOf('Remaining') >= 0);
     await openPrayerGearB(c, 'next-en');
     const sheet = c.root.textContent;
     ok('R4A the offsets heading is English, in the prayer settings sheet of b', sheet.indexOf('Manual offset in minutes') >= 0);
@@ -611,6 +612,23 @@ SCENES['next-en'] = async () => {
   }
   const arabicInPanel = Array.from(c.root.querySelectorAll('[data-ezik-prayer],[data-ezik-next],[data-ezik-city]')).filter((e) => /[\u0600-\u06FF]/.test(e.textContent));
   t('no Arabic letter inside the rows, the next-prayer strip or the city line', arabicInPanel.length, 0);
+  t('nothing threw', c.caught(), null);
+};
+SCENES.bells = async () => {
+  say('S13 the bell of one prayer turns that prayer\'s call alone (panel 1)');
+  const c = boot({ shell: true, seed: { ezik_prayer_notify_v1: 'on' } });
+  await openPrayer(c);
+  t('six rows, five bells, the sunrise without one', [c.qa('[data-ezik-prayer]').length, c.qa('[data-ezik-bell]').length, c.q('[data-ezik-bell="sunrise"]')], [6, 5, null]);
+  t('every bell starts on', c.qa('[data-ezik-bell]').map((b) => b.getAttribute('aria-checked')), ['true', 'true', 'true', 'true', 'true']);
+  t('the pipe carries thirty-five calls', c.read('ezikSchedItems().filter((x) => /^adhan:(fajr|dhuhr|asr|maghrib|isha):/.test(x.id)).length'), 35);
+  await c.click(c.q('[data-ezik-bell="dhuhr"]'));
+  t('the bell of dhuhr is off in the preferences, the others on', JSON.parse(c.store.getItem('ezik_prayer_prefs_v1')).per, { fajr: true, dhuhr: false, asr: true, maghrib: true, isha: true });
+  t('...and drawn off', c.q('[data-ezik-bell="dhuhr"]').getAttribute('aria-checked'), 'false');
+  t('...and the pipe carries twenty-eight calls, none for dhuhr', [c.read('ezikSchedItems().filter((x) => /^adhan:(fajr|dhuhr|asr|maghrib|isha):/.test(x.id)).length'), c.read('ezikSchedItems().filter((x) => /^adhan:dhuhr:/.test(x.id)).length')], [28, 0]);
+  await c.click(c.q('[data-ezik-bell="dhuhr"]'));
+  t('a second press turns it back on', JSON.parse(c.store.getItem('ezik_prayer_prefs_v1')).per.dhuhr, true);
+  t('the current row carries «now» and the next row «next», never both on one row', c.qa('.ez110-prow.is-now.is-next').length, 0);
+  t('the card draws the remaining box, never an elapsed one', !!c.q('[data-ezik-next="count"]'), true);
   t('nothing threw', c.caught(), null);
 };
 SCENES['iqama-noshell'] = async () => {

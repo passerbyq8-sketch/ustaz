@@ -2081,6 +2081,13 @@ const EZ_I18N = {
     'place.manual.short': '\u064A\u062F\u0648\u064A',
     'place.here': '\u0645\u0648\u0642\u0639\u0643 \u0627\u0644\u062D\u0627\u0644\u064A\u0651',
     'place.src': '\u0645\u0635\u062F\u0631 \u0627\u0644\u0645\u0648\u0642\u0639',
+    // PRAYER REBUILD (29 October 2026) -- the first page (panel 1)
+    'panel.prev': '\u0627\u0644\u0633\u0627\u0628\u0642\u0629',
+    'panel.remaining': '\u0627\u0644\u0645\u062A\u0628\u0642\u0651\u064A',
+    'panel.now': '\u0627\u0644\u0622\u0646',
+    'panel.nextShort': '\u0627\u0644\u0642\u0627\u062F\u0645\u0629',
+    'panel.today': '\u0627\u0644\u064A\u0648\u0645',
+    'panel.bell': '\u0627\u0644\u0623\u0630\u0627\u0646 \u0644\u0635\u0644\u0627\u0629 {name}',
   },
   en: {
     'common.close': 'Close',
@@ -3745,6 +3752,13 @@ const EZ_I18N = {
     'place.manual.short': 'Manual',
     'place.here': 'Your current location',
     'place.src': 'Location source',
+    // PRAYER REBUILD (29 October 2026) -- the first page (panel 1)
+    'panel.prev': 'Previous',
+    'panel.remaining': 'Remaining',
+    'panel.now': 'Now',
+    'panel.nextShort': 'Next',
+    'panel.today': 'Today',
+    'panel.bell': 'Call to prayer for {name}',
   },
 };
 
@@ -29256,8 +29270,51 @@ function PrayerAlertsControl() {
 // steps, the times) on the section's first page, 'rest' (the minute offsets, the call-to-prayer switch, the alerts,
 // the thirty days) in its settings sheet, 'notify' (the switch alone) in the empty chat's card. Unset: the whole panel,
 // exactly as it was. Every control is the same element over the same store; only its place moves.
+// PRAYER REBUILD (29 October 2026) -- THE SECTION'S OWN DIGITS AND CLOCK (panel 6): Western digits and a 12-hour clock
+// by default, Arabic-Indic and 24 hours by the reader's choice in the prayer settings -- two device fields of the prayer
+// preferences. prayerClock and prayerClockL are untouched (gates lang and prayerfeatures lift them alone); these wrap
+// them, and in a sandbox that lifts one of these alone the choice reads as the default.
+const PRAYER_AR_DIGITS = '\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669';
+function prayerDigits(str) {
+  const sv = String(str == null ? '' : str);
+  let d = 'latn';
+  try { d = readPrayerPrefs().digits; } catch (e) { d = 'latn'; }
+  if (d === 'arab') return sv.replace(/[0-9]/g, (c) => PRAYER_AR_DIGITS[c]);
+  return sv.replace(/[\u0660-\u0669]/g, (c) => String(c.charCodeAt(0) - 0x0660)).replace(/[\u06F0-\u06F9]/g, (c) => String(c.charCodeAt(0) - 0x06F0));
+}
+function prayerClockUi(mins) {
+  if (typeof mins !== 'number' || !isFinite(mins)) return String.fromCharCode(0x2014);
+  let clock = 12;
+  try { clock = readPrayerPrefs().clock; } catch (e) { clock = 12; }
+  if (clock === 24) {
+    const m = ((Math.round(mins) % 1440) + 1440) % 1440;
+    return prayerDigits(String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'));
+  }
+  return prayerDigits(prayerClockL(mins));
+}
+function prayerCountdownUi(ms) { return prayerDigits(prayerCountdownText(ms)); }
+// The Gregorian line of the date strip, in the interface language; the Hijri line is hijriLabel's.
+function prayerGregLabel(v) {
+  try {
+    return prayerDigits(new Intl.DateTimeFormat(EZ_LANG === 'ar' ? 'ar-u-ca-gregory-nu-arab' : (EZ_LANG + '-u-ca-gregory'),
+      { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(Date.UTC(v.y, v.m - 1, v.d)));
+  } catch (e) { return prayerDayIso(v); }
+}
+// A moment's minutes-of-day in the zone the section reads (the place's wall clock, else the device's).
+function prayerInstantMinutes(at, loc) {
+  if (typeof at !== 'number' || !isFinite(at)) return null;
+  const zone = prayerZoneOf(loc);
+  if (zone) { const w = prayerZoneWall(zone.tz, at); if (w) return w.h * 60 + w.mi; }
+  const d = new Date(at);
+  return d.getHours() * 60 + d.getMinutes();
+}
+const PRAYER_ICON_BELL = <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15Z" /><path d="M10 20a2 2 0 0 0 4 0" /></svg>;
+const PRAYER_ICON_BELL_OFF = <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15Z" /><path d="M10 20a2 2 0 0 0 4 0" /><path d="M4 4l16 16" /></svg>;
+const PRAYER_ICON_PIN = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 21s-6-5.3-6-11a6 6 0 0 1 12 0c0 5.7-6 11-6 11Z" /><circle cx="12" cy="10" r="2.2" /></svg>;
+const PRAYER_ICON_CHEV = <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg>;
+const PRAYER_ICON_CHEV_BACK = <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6" /></svg>;
 const PRAYER_ICON_LOCATE = <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7" /><circle cx="12" cy="12" r="2" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></svg>;
-function PrayerTimesPanel({ loc, day, onDay, part, onLoc }) {
+function PrayerTimesPanel({ loc, day, onDay, part, onLoc, onCity }) {
   // The position and the preferences both move HERE, so the pipe is re-armed from here.
   useEzikSchedWatch();
   useEzLang();
@@ -29279,6 +29336,8 @@ function PrayerTimesPanel({ loc, day, onDay, part, onLoc }) {
     });
   };
   const toAuto = () => { writePrayerPrefs({ src: 'auto' }); refresh(); };
+  // the bell of one prayer: that prayer's call alone (ezikAdhanItems reads prefs.per); the watch above re-arms the pipe
+  const toggleBell = (k) => { const per = {}; per[k] = !(prefs.per && prefs.per[k] !== false); setPrefs(writePrayerPrefs({ per: per })); };
   const now = new Date();
   // The table is derived, not fetched. It is recomputed only when an input it depends on moves,
   // and ensurePrayerSchedule() is the one place that decides whether that means a rebuild.
@@ -29304,62 +29363,99 @@ function PrayerTimesPanel({ loc, day, onDay, part, onLoc }) {
   const body = (
     <>
       {showMain ? <>
-      <div style={s.prayerRow} data-ezik-city="name">
-        <span style={s.prayerName}>{ezT('panel.city')}</span>
-        <span style={s.prayerTime}>{prayerCityName(loc)}</span>
-        <button type="button" onClick={refresh} disabled={fix.state === 'asking'} data-ezik-city="refresh" aria-label={ezT('place.refresh')}
-          className="ezik-focus ez110-prayer-refresh" style={s.prayerStepBtn}>{PRAYER_ICON_LOCATE}</button>
-      </div>
-      {fix.state === 'asking' || fix.state === 'failed' || (fix.state === 'done' && now.getTime() - fix.at < 4000) ? (
-        <div style={s.qiblaNote} role="status" data-ezik-city="state" data-ezik-city-fix={fix.state}>
-          {fix.state === 'asking' ? ezT('place.locating') : fix.state === 'done' ? ezT('place.located')
-            : ezT(fix.error === 'permission-denied' ? 'place.fail.denied' : fix.error === 'timeout' ? 'place.fail.timeout'
-              : fix.error === 'unsupported' ? 'place.fail.unsupported' : 'place.fail.nopos')}
+      <h2 className="ez110-sr">{ezT('panel.title')}</h2>
+      {/* PANEL 1 -- THE NAVY CARD: the city chip and its refresh, the previous prayer, the next one with its time, the
+          remaining box (always the remaining, never \u00ABelapsed\u00BB: prayerStatus moves to the next prayer the moment the
+          time comes, on the same tick), and the progress between the two. */}
+      <section className="ez110-pcard" data-ezik-prayer-card="main">
+        <div className="ez110-pcard-top">
+          <button type="button" className="ezik-focus ez110-pcard-city" data-ezik-city="name" onClick={onCity}
+            aria-label={ezT('panel.city') + ': ' + prayerCityName(loc)}>
+            <span className="ez110-pcard-pin" aria-hidden="true">{PRAYER_ICON_PIN}</span>
+            <span className="ez110-pcard-cityname">{prayerCityName(loc)}</span>
+          </button>
+          <button type="button" onClick={refresh} disabled={fix.state === 'asking'} data-ezik-city="refresh" aria-label={ezT('place.refresh')}
+            className={'ezik-focus ez110-pcard-refresh' + (fix.state === 'asking' ? ' is-busy' : '')}>{PRAYER_ICON_LOCATE}</button>
         </div>
-      ) : null}
-      {fix.state === 'failed' && fix.error === 'permission-denied' ? (
-        <div className="ez-hit" style={s.prayerOptRow}>
-          <button type="button" onClick={refresh} data-ezik-city="allow" className="ezik-focus" style={s.prayerOpt}>{ezT('qibla.allowLoc')}</button>
-        </div>
-      ) : null}
-      {loc.by === 'place' ? (
-        <div className="ez-hit" style={s.prayerOptRow}>
-          <button type="button" onClick={toAuto} data-ezik-city="auto" className="ezik-focus" style={s.prayerOpt}>{ezT('place.auto.short')}</button>
-        </div>
-      ) : null}
-      {status && status.next ? (
-        <div style={s.prayerRow} data-ezik-next="head">
-          <span style={s.prayerName}>{ezT('panel.next')}: <span data-ezik-next="name">{label(status.next.key)}</span></span>
-          <span style={s.prayerTime}>{ezT('panel.in')} <span data-ezik-next="count">{prayerCountdownText(status.remainingMs)}</span></span>
-        </div>
-      ) : null}
-      <div style={s.prayerRow} data-ezik-day="head">
-        <span style={s.prayerName}>{prayerDayLabel(view)}</span>
-      </div>
-      <div className="ez-hit" style={s.prayerOptRow}>
+        {fix.state === 'asking' || fix.state === 'failed' || (fix.state === 'done' && now.getTime() - fix.at < 4000) ? (
+          <div className="ez110-pcard-state" role="status" data-ezik-city="state" data-ezik-city-fix={fix.state}>
+            {fix.state === 'asking' ? ezT('place.locating') : fix.state === 'done' ? ezT('place.located')
+              : ezT(fix.error === 'permission-denied' ? 'place.fail.denied' : fix.error === 'timeout' ? 'place.fail.timeout'
+                : fix.error === 'unsupported' ? 'place.fail.unsupported' : 'place.fail.nopos')}
+          </div>
+        ) : null}
+        {fix.state === 'failed' && fix.error === 'permission-denied' ? (
+          <button type="button" onClick={refresh} data-ezik-city="allow" className="ezik-focus ez110-pcard-pill">{ezT('qibla.allowLoc')}</button>
+        ) : null}
+        {loc.by === 'place' ? (
+          <button type="button" onClick={toAuto} data-ezik-city="auto" className="ezik-focus ez110-pcard-pill">{ezT('place.auto.short')}</button>
+        ) : null}
+        {status && status.current ? (
+          <div className="ez110-pcard-prev" data-ezik-prev="head">
+            {ezT('panel.prev')} {'\u00B7'} <span data-ezik-prev="name">{label(status.current)}</span> <bdi dir="ltr" data-ezik-prev="time">{prayerClockUi(prayerInstantMinutes(status.currentAt, loc))}</bdi>
+          </div>
+        ) : null}
+        {status && status.next ? (
+          <div className="ez110-pcard-main" data-ezik-next="head">
+            <div className="ez110-pcard-nextcol">
+              <span className="ez110-pcard-label">{ezT('panel.next')}</span>
+              <span className="ez110-pcard-nextname" data-ezik-next="name">{label(status.next.key)}</span>
+              <bdi dir="ltr" className="ez110-pcard-nexttime" data-ezik-next="time">{prayerClockUi(prayerInstantMinutes(status.next.at, loc))}</bdi>
+            </div>
+            <div className="ez110-pcard-left">
+              <span className="ez110-pcard-label">{ezT('panel.remaining')}</span>
+              <bdi dir="ltr" className="ez110-pcard-count" data-ezik-next="count">{prayerCountdownUi(status.remainingMs)}</bdi>
+            </div>
+          </div>
+        ) : null}
+        {status && status.next && typeof status.currentAt === 'number' ? (
+          <div className="ez110-pcard-bar" aria-hidden="true"><i style={{ width: Math.max(0, Math.min(100, Math.round(100 * (now.getTime() - status.currentAt) / Math.max(1, status.next.at - status.currentAt)))) + '%' }} /></div>
+        ) : null}
+      </section>
+      {/* THE DATE STRIP: the Hijri day in the heading face, the Gregorian under it with \u00ABtoday\u00BB, the two day arrows, and
+          the picker over the date itself (a press on the date opens it; \u00ABtoday\u00BB comes back). */}
+      <div className="ez110-pdate" data-ezik-day="head" data-ezik-day-iso={prayerDayIso(view)}>
         <button type="button" onClick={() => goDay(prayerShiftDay(view, -1))} data-ezik-day="prev"
-          className="ezik-focus" style={s.prayerOpt}>{ezT('day.prev')}</button>
+          className="ezik-focus ez110-pdate-arrow" aria-label={ezT('day.prev')}>{PRAYER_ICON_CHEV}</button>
+        <div className="ez110-pdate-mid">
+          <div className="ez110-pdate-h">{prayerDigits(hijriLabel(hijriForCivilDay(view.y, view.m, view.d, readHijriOffset())))}</div>
+          <div className="ez110-pdate-g">{prayerGregLabel(view)}{isToday ? ' \u00B7 ' + ezT('panel.today') : ''}</div>
+          <input type="date" value={prayerDayIso(view)} min={PRAYER_DAY_MIN_YEAR + '-01-01'} max={PRAYER_DAY_MAX_YEAR + '-12-31'}
+            onChange={(e) => { const v = prayerDayFromIso(e && e.target ? e.target.value : ''); if (v) goDay(v); }}
+            data-ezik-day="pick" aria-label={ezT('day.pick')} className="ezik-focus ez110-pdate-pick" />
+        </div>
         <button type="button" onClick={() => goDay(prayerShiftDay(view, 1))} data-ezik-day="next"
-          className="ezik-focus" style={s.prayerOpt}>{ezT('day.next')}</button>
-        <input type="date" value={prayerDayIso(view)} min={PRAYER_DAY_MIN_YEAR + '-01-01'} max={PRAYER_DAY_MAX_YEAR + '-12-31'}
-          onChange={(e) => { const v = prayerDayFromIso(e && e.target ? e.target.value : ''); if (v) goDay(v); }}
-          data-ezik-day="pick" aria-label={ezT('day.pick')} className="ezik-focus"
-          style={{ ...s.drawerSearch, width: 'auto', minHeight: 34, padding: '4px 8px' }} />
-        {isToday ? null : (
-          <button type="button" onClick={() => goDay(null)} data-ezik-day="today"
-            className="ezik-focus" style={s.prayerOpt}>{ezT('day.today')}</button>
-        )}
+          className="ezik-focus ez110-pdate-arrow" aria-label={ezT('day.next')}>{PRAYER_ICON_CHEV_BACK}</button>
       </div>
+      {isToday ? null : (
+        <div className="ez110-pdate-back">
+          <button type="button" onClick={() => goDay(null)} data-ezik-day="today" className="ezik-focus ez110-pcard-pill is-ink">{ezT('day.today')}</button>
+        </div>
+      )}
+      {/* THE SIX TIMES: the current row shaded with \u00ABnow\u00BB, the next with \u00ABnext\u00BB, and a bell per prayer that turns that
+          prayer's call alone (prefs.per, read by ezikAdhanItems); the sunrise has no bell. The time is the row's second
+          span, as the guards read it. */}
+      <div className="ez110-plist" role="list">
       {PRAYER_KEYS.map((k) => {
         const isCur = !!status && status.current === k;
+        const isNext = !!status && !!status.next && status.next.key === k && !isCur;
+        const bellOn = !prefs.per || prefs.per[k] !== false;
         return (
-          <div key={k} style={isCur ? { ...s.prayerRow, background: 'var(--a3-ice)', fontWeight: 700 } : s.prayerRow}
+          <div key={k} role="listitem" className={'ez110-prow' + (isCur ? ' is-now' : '') + (isNext ? ' is-next' : '')}
             data-ezik-prayer={k} data-ezik-current={isCur ? '1' : '0'} aria-current={isCur ? 'true' : undefined}>
-            <span style={s.prayerName}>{label(k)}{isCur ? ' \u00b7 ' + ezT('panel.current') : ''}</span>
-            <span style={s.prayerTime}>{prayerClockL(t[k])}</span>
+            <span className="ez110-prow-name">{label(k)}</span>
+            <span className="ez110-prow-time">{prayerClockUi(t[k])}</span>
+            {isCur ? <span className="ez110-prow-badge is-now">{ezT('panel.now')}</span> : isNext ? <span className="ez110-prow-badge">{ezT('panel.nextShort')}</span> : null}
+            {k === 'sunrise' ? <span className="ez110-prow-bell is-blank" aria-hidden="true" /> : (
+              <button type="button" role="switch" aria-checked={bellOn ? 'true' : 'false'} aria-label={ezT('panel.bell', { name: label(k) })}
+                onClick={() => toggleBell(k)} data-ezik-bell={k} className={'ezik-focus ez110-prow-bell' + (bellOn ? ' is-on' : '')}>
+                {bellOn ? PRAYER_ICON_BELL : PRAYER_ICON_BELL_OFF}
+              </button>
+            )}
           </div>
         );
       })}
+      </div>
       {anyMissing ? <div style={s.qiblaNote}>{ezT('panel.none')}</div> : null}
       </> : null}
       {showRest ? <>
@@ -29397,6 +29493,7 @@ function PrayerTimesPanel({ loc, day, onDay, part, onLoc }) {
     </>
   );
   if (part === 'notify') return body;
+  if (part === 'main') return <div className="ez110-pmain" data-ezik-prayer-main="1">{body}</div>;
   return <EzShellGroup title={part === 'rest' ? ezT('ez110.prayer.more') : ezT('panel.title')}>{body}</EzShellGroup>;
 }
 
@@ -29726,7 +29823,7 @@ function prayerStatus(now, loc, prefs) {
     if (list[i].at <= ms) cur = list[i];
     else { nxt = list[i]; break; }
   }
-  return { current: cur ? cur.key : null, next: nxt ? { key: nxt.key, at: nxt.at } : null,
+  return { current: cur ? cur.key : null, currentAt: cur ? cur.at : null, next: nxt ? { key: nxt.key, at: nxt.at } : null,
     remainingMs: nxt ? nxt.at - ms : null };
 }
 // hh:mm:ss in the reader's digits.
@@ -32048,6 +32145,8 @@ function ezikAdhanItems(now) {
     for (let j = 0; j < ADHAN_KEYS.length; j++) {
       const k = ADHAN_KEYS[j];
       const mins = t[k];
+      // PRAYER REBUILD (29 October 2026): the bell of that prayer is off -- no item for it (panel 1)
+      if (prefs.per && prefs.per[k] === false) continue;
       // A prayer the calculator could not place at this latitude is NOT a notification. `null` is
       // the real answer there and it is carried through as silence rather than as a guess.
       if (typeof mins !== 'number' || !isFinite(mins)) continue;
@@ -33097,14 +33196,7 @@ function prayerSunAzimuth(ms, lat, lng) {
 }
 // The section's own digits (ROUND 29 October, panel 6: Western by default, Arabic-Indic by the reader's choice in the
 // prayer settings). Read through the prayer preferences; in a sandbox that lifts this function alone it is Western.
-function prayerNum(v) {
-  const sv = String(v == null ? '' : v);
-  let d = 'latn';
-  try { d = readPrayerPrefs().digits; } catch (e) { d = 'latn'; }
-  if (d !== 'arab') return sv;
-  const z = '٠١٢٣٤٥٦٧٨٩';
-  return sv.replace(/[0-9]/g, (c) => z[c]);
-}
+function prayerNum(v) { return prayerDigits(String(v == null ? '' : v)); }
 // ============================================================
 // WMM2025 -- MAGNETIC DECLINATION, FOR THE BROWSER'S READINGS ALONE (measure report F6)
 // ============================================================
@@ -33730,7 +33822,7 @@ function PrayerSheet({ onClose, onOpenCompass }) {
         </>
       ) : null}>
       <React.Fragment key={rev}>
-      {ez110.id ? <PrayerTimesPanel part="main" loc={loc} day={day} onDay={setDay} onLoc={setLoc} /> : times}
+      {ez110.id ? <PrayerTimesPanel part="main" loc={loc} day={day} onDay={setDay} onLoc={setLoc} onCity={() => setSetOpen(true)} /> : times}
       <PrayerDateConverter onShowDay={setDay} />
       {ez110.id ? null : place}
       {ez110.id ? null : qibla}
