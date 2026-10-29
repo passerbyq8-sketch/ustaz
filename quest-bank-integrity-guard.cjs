@@ -2043,7 +2043,9 @@ const SEALED = {
 //   2026-10-28 -- KUNUZ-PHOTO-FIX ship: cache ezik-v117 -> ezik-v118 after YAHIMMAK-FIX1; app.js 2356281 bytes, sha256 847dd4d9..ea5bf6; CORE_BYTES remains 3542295.
 //   2026-10-28 -- APPLE-REVIEW release prep: cache ezik-v118 -> ezik-v119; app.js 2356281 bytes, sha256 7713fe7c..f2262fe8; CORE_BYTES remains 3542295.
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57787 bytes).
-  'sw.js': 'ab9b53c56fbaa8a5536fa197c702ab3790f5cc79abd1571204ac7f190c9ce53e',
+//   2026-10-29 -- PRAYER REBUILD (side/prayer-20261029: the prayer section rebuilt in twelve parts -- compass, automatic location, first page, settings, Hijri calendar, converter, month table, prayer log, home card, 21 languages): cache ezik-v119 -> ezik-v120 (config/app-version.json and sw.js CACHE, app.js line 6 rebuilt); app.js 2356281 -> 2447141 bytes, sha256 8f29ea15..2e8e; node tools/core-bytes.cjs --write: CORE_BYTES 3542295 -> 3633155.
+//                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57787 bytes).
+  'sw.js': 'b33bb2b2407b121cfc6d5b4ef0102a5622e116ecfe7c11877e59ed59996dc048',
 };
 
 // ---------------------------------------------------------------------------
@@ -3232,7 +3234,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2356281, of: 'app.js' },
+      { n: 2447141, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
