@@ -2053,7 +2053,9 @@ const SEALED = {
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57787 bytes).
 //   2026-10-29 -- PRAYER SHIP (side/prayer-20261029 merged on main 34b6278e, which had taken P3-SHIP to ezik-v120 while the prayer section was built; the merge keeps main outside the section and the branch inside it): cache ezik-v120 -> ezik-v121 (config/app-version.json and sw.js CACHE, app.js line 6 rebuilt); app.js 2447611 -> 2447611 bytes, sha256 8574f561..83dc; node tools/core-bytes.cjs --write: CORE_BYTES 3633625 -> 3633625.
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57787 bytes).
-  'sw.js': '48ed998d9ff86df335480adb11f58f5e4211476e4e05ec5cd1bcb2e110f3012a',
+//   2026-10-29 -- PRAYER SHIP re-cut (ORG NOTE 11:20: the launch branch iap-launch-free reserved ezik-v121 unpushed, so the prayer ship takes the next value no branch ever used): cache ezik-v121 -> ezik-v122 (config/app-version.json and sw.js CACHE, app.js line 6 rebuilt); app.js 2447611 -> 2447611 bytes, sha256 9b0dc125..cc12; node tools/core-bytes.cjs --write: CORE_BYTES 3633625 -> 3633625.
+//                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57787 bytes).
+  'sw.js': 'a0192b08efc51908126316eebb22f9f2fe5d051811aa4cf41280744e76d0c948',
 };
 
 // ---------------------------------------------------------------------------
