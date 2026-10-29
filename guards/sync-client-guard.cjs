@@ -52,6 +52,16 @@ function fakeLocal(seed) {
 
 let ROUTE = null;
 let serverCalls = [];
+// PRAYER-FIX1 (2026-10-29) -- A TIMER BELONGS TO THE PAGE THAT SET IT. Linkedom windows in one process
+// share their expandos (window, localStorage, fetch), so a product timer set by an EARLIER device --
+// the boot kick (setTimeout(ezikSyncBoot, 1500) then 1200 ms), ezikSyncArmNext -- fired later ran a
+// whole cycle in the old context over the CURRENT device's storage and fetch. Measured on 254a0fdc,
+// 60 instrumented solo runs: a second pull 14-46 ms after the driven cycle resolved, cursor 0 -> 3
+// under R1b and R2 ("changed: ezik_sync_state_v1", "same: false"), and a second quiet sign-out under
+// R1b (signedOutEvents 2); 1 red in 6 on main before this. A device is a page: its timers fire only
+// while it is the device being driven, and a handle that was re-opened is page-gone.
+let CURRENT = null;
+const NATIVE_SET_TIMEOUT = setTimeout;
 function makeDevice(seed, deviceId, opts) {
   const o = opts || {};
   const { window } = parseHTML('<!DOCTYPE html><html><body><div id="root"></div></body></html>');
@@ -88,6 +98,11 @@ function makeDevice(seed, deviceId, opts) {
   load('react.umd.js'); load('react-dom.umd.js');
   vm.runInContext('ReactDOM.createRoot = function () { return { render: function () {}, unmount: function () {} }; };', ctx);
   window.console.error = () => {}; window.console.warn = () => {};
+  // linkedom's window.setTimeout IS the process's own setTimeout, so the wrapper sits over the native
+  // timer captured once (never over the previous device's wrapper) and gates on the device alone.
+  const token = {};
+  window.setTimeout = function (fn, ms) { const args = Array.prototype.slice.call(arguments, 2); return NATIVE_SET_TIMEOUT(function () { if (CURRENT !== token) return undefined; return typeof fn === 'function' ? fn.apply(this, args) : undefined; }, ms); };
+  CURRENT = token;
   vm.runInContext(transformed, ctx, { filename: 'app.jsx' });
   // Linkedom windows in one process share what is set on them, so a device whose change-watcher
   // (sync fix 1) armed a timer could run a cycle inside a LATER device. The watcher is therefore
@@ -137,7 +152,7 @@ const LANG_KEY = ['ezik', 'ui', 'lang', 'v1'].join('_');
 const settle = () => new Promise((r) => setTimeout(r, 30));
 // Two linkedom windows in one process cross-talk, so a device is RE-OPENED (a fresh window over the
 // same storage and the same IndexedDB) every time the test turns back to it -- an app restart.
-function reopen(d, deviceId) { const n = makeDevice({}, deviceId, { idb: d.idb }); for (const k of Object.keys(n.local._data)) delete n.local._data[k]; Object.assign(n.local._data, d.local._data); return n; }
+function reopen(d, deviceId) { d.ctl.pageGone = true; const n = makeDevice({}, deviceId, { idb: d.idb }); for (const k of Object.keys(n.local._data)) delete n.local._data[k]; Object.assign(n.local._data, d.local._data); return n; }
 
 async function main() {
   process.env.VERCEL_ENV = 'preview';
