@@ -7,6 +7,7 @@ from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeo
 REPO = r"C:\Users\passe\projects\ustaz-wt-iap-launch"
 OUT = r"C:\Users\passe\projects\_iap-orders\shots-iap-launch-rebuild"
 BASE = "http://127.0.0.1:4175"
+MOCK_WORKER_CATALOG_URL = "https://hanna-laha.hl-worker.workers.dev/api/board/catalog"
 CHROMIUM = r"C:\Users\passe\AppData\Local\ms-playwright\chromium-1248\chrome-win64\chrome.exe"
 OWNER = "synthetic-account-owner"
 OTHER = "synthetic-account-other"
@@ -46,7 +47,7 @@ def mobile_settings(platform, native):
 def set_routes(page, config, state):
     def route_api(route):
         url = route.request.url
-        if not url.startswith(BASE + "/"):
+        if not url.startswith(BASE + "/") and url.split("?", 1)[0] != MOCK_WORKER_CATALOG_URL:
             state["external_requests"].append(url)
             EXTERNAL_REQUESTS.append(url)
         path = "/" + url.split("/", 3)[-1].split("?", 1)[0] if "://" in url else url.split("?", 1)[0]
