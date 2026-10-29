@@ -50,8 +50,13 @@ function liftConst(src, name) {
   return m[0].replace(/\s*\/\/[^\n]*$/, '');
 }
 const ALL = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
-const dayKey = (d) => d.toISOString().slice(0, 10);
-const daysAgo = (n) => { const d = new Date(); d.setUTCDate(d.getUTCDate() - n); return dayKey(d); };
+const dayKey = (d) => [d.getUTCFullYear(), String(d.getUTCMonth() + 1).padStart(2, '0'), String(d.getUTCDate()).padStart(2, '0')].join('-');
+const KUWAIT_TODAY = (() => {
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en', { timeZone: 'Asia/Kuwait', year: 'numeric', month: '2-digit', day: '2-digit' })
+    .formatToParts(new Date()).map((x) => [x.type, x.value]));
+  return Date.UTC(Number(p.year), Number(p.month) - 1, Number(p.day));
+})();
+const daysAgo = (n) => dayKey(new Date(KUWAIT_TODAY - n * 86400000));
 const full = (m) => ({ fajr: m, dhuhr: m, asr: m, maghrib: m, isha: m });
 
 function boot(opts) {
