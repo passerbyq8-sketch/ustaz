@@ -29,7 +29,8 @@ const ask = fs.readFileSync(path.join(ROOT, 'api/ask.js'), 'utf8');
 ok('ask route logs the captured lexical runtime and final route tags', ask.includes('routeLogFields({') && ask.includes('lexicalRuntime: lexicalRuntimeOfRequest, runtime: finalRuntime, sorter: final.sorter || null') && ask.includes('flags: routeTags'));
 const roster = JSON.parse(fs.readFileSync(path.join(ROOT, 'gates.json'), 'utf8'));
 ok('route log guard is registered once', roster.filter((x) => x.name === 'postship3routelog' && x.script === 'guards/brain-postship3-route-log-guard.cjs').length === 1);
-ok('gate inventory count is 216', roster.length === 216);
+// PRAYER REBUILD (2026-10-29): 216 -> 220 after side/prayer-20261029 merged on main 34b6278e (compassmath, locationauto, hijrievents, prayerlog).
+ok('gate inventory count is 220', roster.length === 220);
 const attrs = fs.readFileSync(path.join(ROOT, '.gitattributes'), 'utf8');
 ok('route helper and guard are pinned to LF', /lib\/route-log\.js text eol=lf/.test(attrs) && /guards\/brain-postship3-route-log-guard\.cjs text eol=lf/.test(attrs));
 console.log(String.fromCharCode(10) + (checks - failures) + '/' + checks + ' checks passed');
