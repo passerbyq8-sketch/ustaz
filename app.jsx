@@ -28926,10 +28926,13 @@ function EzShell({ title, onBack, backLabel, lead, actions, children }) {
 // THE METHODS ARE WRITTEN OUT, BY NAME AND BY VALUE, in prayerMethodTable() below. Nothing is
 // fetched and nothing is defaulted from a table living elsewhere.
 //
-// 🔴 NOTHING HERE IS CLAIMED TO MATCH THE KUWAITI AWQAF CALENDAR. The reference table was not in
-// hand. The default is «الكويت» because it is the method named for this app's own city — NOT
-// because it was compared against anything. The batch report prints thirty days at Kuwait City
-// coordinates for every method offered, so the owner can make that comparison and then choose.
+// THE KUWAIT METHOD IS HELD AGAINST THE OJEIRI CALENDAR (since 4 October 2026, ITEM 124 phase 2): gate
+// prayerojeiri (guards/prayer-ojeiri-guard.cjs) evaluates this calculator verbatim at the app's default
+// position against two months fetched from alojeiri.com (October 2026 fitted, November 2026 verified) under
+// the owner's rule -- dhuhr, asr, maghrib and isha never BEFORE Ojeiri, fajr and sunrise never AFTER it, at
+// most two minutes on the safe side. The default is «الكويت» because it is the method named for this app's
+// own city, and it is the one method so compared; the other methods are offered as their formulas state them.
+// (Before that date this comment said nothing here was compared against the Kuwaiti calendar; that was true then.)
 //
 // The calculator supplies the native scheduler and widgets below. The native shell schedules
 // notifications and owns sound playback; browser tabs calculate and display these times locally.

@@ -430,10 +430,6 @@
    "cat": "speech-formatter"
   },
   {
-   "text": "الجمعة",
-   "cat": "surah-map-or-normaliser"
-  },
-  {
    "text": "الجن",
    "cat": "surah-map-or-normaliser"
   },
@@ -527,10 +523,6 @@
   },
   {
    "text": "الشعراء",
-   "cat": "surah-map-or-normaliser"
-  },
-  {
-   "text": "الشمس",
    "cat": "surah-map-or-normaliser"
   },
   {
@@ -1330,10 +1322,6 @@
    "cat": "scripture-or-vocalised-data"
   },
   {
-   "text": "ق",
-   "cat": "surah-map-or-normaliser"
-  },
-  {
    "text": "قريش",
    "cat": "surah-map-or-normaliser"
   },
@@ -1847,10 +1835,6 @@
   },
   {
    "text": "ار",
-   "cat": "language-row-own-name"
-  },
-  {
-   "text": "ش",
    "cat": "language-row-own-name"
   },
   {
