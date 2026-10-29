@@ -29529,6 +29529,14 @@ function prayerClockUi(mins) {
   }
   return prayerDigits(prayerClockL(mins));
 }
+// The bearing's digits follow the same setting: a dot and one decimal in Western digits, or the Arabic formatting of
+// qiblaDegreeText when the reader chose the Arabic-Indic digits (or the number is not one).
+function prayerDegUi(b) {
+  if (typeof b !== 'number' || !isFinite(b)) return qiblaDegreeText(b);
+  let arab = false;
+  try { arab = readPrayerPrefs().digits === 'arab'; } catch (e) { arab = false; }
+  return arab ? qiblaDegreeText(b) : b.toFixed(1);
+}
 function prayerCountdownUi(ms) { return prayerDigits(prayerCountdownText(ms)); }
 // The Gregorian line of the date strip, in the interface language; the Hijri line is hijriLabel's.
 function prayerGregLabel(v) {
@@ -33947,7 +33955,7 @@ function QiblaPanel({ loc, onLoc, full }) {
     <EzShellGroup title={bare ? '' : QIBLA_SECTION}>
       {bare || bearing === null ? null : (
         <>
-          <div style={s.qiblaDeg}>{qiblaDegreeText(bearing)} {QIBLA_DEG_SUFFIX}</div>
+          <div style={s.qiblaDeg}>{prayerDegUi(bearing)} {QIBLA_DEG_SUFFIX}</div>
           <div style={s.qiblaDir}>{QIBLA_TOWARD} {qiblaDirName(bearing)}</div>
         </>
       )}
@@ -34290,7 +34298,7 @@ function PrayerMonthSheet({ onClose, loc }) {
             return (
               <div key={r.iso} role="row" className={'ez110-month-row' + (isToday ? ' is-today' : '') + (r.wd === 5 ? ' is-fri' : '')} data-ezik-month-row={r.iso} data-ezik-month-hijri={r.hijri.y + '-' + r.hijri.m + '-' + r.hijri.d}>
                 <span className="ez110-month-day" role="rowheader">
-                  <span className="ez110-month-h">{prayerNum(r.hijri.d)} {ezT('hijri.m' + r.hijri.m)}</span>
+                  <span className="ez110-month-h">{r.hijri.d === 1 ? prayerNum(1) + ' ' + ezT('hijri.m' + r.hijri.m) : prayerNum(r.hijri.d)}</span>
                   <span className="ez110-month-g">{wdShort(r.wd)} {prayerNum(r.civil.d)}/{prayerNum(r.civil.m)}</span>
                 </span>
                 {PRAYER_KEYS.map((k) => <bdi key={k} dir="ltr" className="ez110-month-cell" role="cell">{prayerClockUi(r.t[k])}</bdi>)}
@@ -35219,11 +35227,11 @@ function HijriOffsetControl() {
             className="ezik-focus"
             style={{ ...s.a11yOpt, ...(off === v ? s.themeOptActive : {}) }}
           >
-            {v === 0 ? toArabicDigits(0) : (v > 0 ? '+' : '−') + toArabicDigits(Math.abs(v))}
+            {prayerDigits(v === 0 ? toArabicDigits(0) : (v > 0 ? '+' : '−') + toArabicDigits(Math.abs(v)))}
           </button>
         ))}
       </div>
-      <div style={s.hijriNow}>{HIJRI_SET_NOW} {today}</div>
+      <div style={s.hijriNow}>{HIJRI_SET_NOW} {prayerDigits(today)}</div>
     </>
   );
 }

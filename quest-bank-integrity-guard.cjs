@@ -2047,7 +2047,9 @@ const SEALED = {
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57787 bytes).
 //   2026-10-29 -- PRAYER REBUILD follow-up (the interim city text is the phrase alone, no coordinates): cache stays ezik-v120; app.js 2447141 -> 2447137 bytes, sha256 71e98d13..877b; node tools/core-bytes.cjs --write: CORE_BYTES 3633155 -> 3633151.
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57787 bytes).
-  'sw.js': 'a694b1c300e088c0e66e3ffa1bb699fa705ed1df89737a1ccc4d86982b856249',
+//   2026-10-29 -- PRAYER REBUILD follow-up (the section's digits follow the display setting: the qibla degree line, the hijri offset control, the month row head): cache stays ezik-v120; app.js 2447137 -> 2447611 bytes, sha256 2a3b424b..7514; node tools/core-bytes.cjs --write: CORE_BYTES 3633151 -> 3633625.
+//                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57787 bytes).
+  'sw.js': 'f3796b38936178abad4c7d9cbb9cb677910e8eb2155db469df8e4c6bb990f30e',
 };
 
 // ---------------------------------------------------------------------------
@@ -3236,7 +3238,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2447137, of: 'app.js' },
+      { n: 2447611, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
