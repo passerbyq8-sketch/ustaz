@@ -104,3 +104,16 @@ html[data-ez110] .ez110-prow-time { order: 3; font-size: calc(16px * var(--ez-fs
 html[data-ez110] .ez110-prow-bell { order: 4; width: 40px; height: 40px; flex: 0 0 auto; border: 0; border-radius: 12px; background: transparent; color: var(--vt-muted); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
 html[data-ez110] .ez110-prow-bell.is-on { color: #12327A; }
 html[data-ez110] .ez110-prow-bell.is-blank { width: 40px; height: 40px; }
+
+/* ---- panel 6: the prayer settings -- the call per prayer, the «soon» rows ---- */
+html[data-ez110] .ez110-pset-bells { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 6px; }
+html[data-ez110] .ez110-pset-bell {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 6px 12px; border-radius: 12px;
+  border: 1px solid var(--vt-line); background: var(--vt-surface); color: var(--vt-muted); font: inherit; font-size: calc(14px * var(--ez-fs, 1)); cursor: pointer;
+}
+html[data-ez110] .ez110-pset-bell.is-on { color: #12327A; border-color: #12327A; background: #EDF1FA; font-weight: 700; }
+html[data-ez110] .ez110-pset-bell-ico { display: inline-flex; }
+html[data-ez110] .ez110-pset-soon { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; padding: 6px 0; border-bottom: 1px solid var(--vt-line); opacity: .62; }
+html[data-ez110] .ez110-pset-soon:last-child { border-bottom: 0; }
+html[data-ez110] .ez110-pset-soon-name { font-size: calc(15px * var(--ez-fs, 1)); color: var(--vt-ink); }
+html[data-ez110] .ez110-pset-soon-badge { flex: 0 0 auto; padding: 2px 10px; border-radius: 999px; background: var(--vt-soft); color: var(--vt-accent-ink); font-size: calc(12px * var(--ez-fs, 1)); font-weight: 700; }

@@ -745,13 +745,13 @@ const MUTANTS = [
   { name: 'widget-late-ack-reenables', scene: 'widget-legacy-session', edits: [
     ["      if (ezikWidgetDataCapability !== 'pending' || d.op !== SHELL_SCHED_RESULT_OP", '      if (d.op !== SHELL_SCHED_RESULT_OP']] },
   { name: 'sound-browser-incorrectly-shown', scene: 'adhan-browser-hidden', edits: [
-    ['      {widgetDataSupported && ezikSchedBridge() ? <>', '      {true ? <>']] },
+    ['      {showSound && widgetDataSupported && ezikSchedBridge() ? <>', '      {showSound ? <>']] },
   { name: 'sound-legacy-incorrectly-shown', scene: 'adhan-legacy-hidden', edits: [
     ["    const sync = () => setWidgetDataSupported(ezikWidgetDataCapability === 'supported');", "    const sync = () => setWidgetDataSupported(ezikWidgetDataCapability === 'supported' || ezikWidgetDataCapability === 'disabled');"]] },
   { name: 'sound-supported-success-hidden', scene: 'adhan-supported-true', edits: [
-    ['      {widgetDataSupported && ezikSchedBridge() ? <>', '      {false ? <>']] },
+    ['      {showSound && widgetDataSupported && ezikSchedBridge() ? <>', '      {false ? <>']] },
   { name: 'sound-supported-failure-hidden', scene: 'adhan-supported-false', edits: [
-    ['      {widgetDataSupported && ezikSchedBridge() ? <>', '      {false ? <>']] },
+    ['      {showSound && widgetDataSupported && ezikSchedBridge() ? <>', '      {false ? <>']] },
   { name: 'sound-hidden-saved-value-changed', scene: 'adhan-browser-hidden', edits: [
     ["    const sync = () => setWidgetDataSupported(ezikWidgetDataCapability === 'supported');", "    const sync = () => { if (ezikWidgetDataCapability !== 'supported') writePrayerPrefs({adhanSound:!readPrayerPrefs().adhanSound}); setWidgetDataSupported(ezikWidgetDataCapability === 'supported'); };"]] },
   { name: 'sound-reply-subscription-missing', scene: 'adhan-supported-true', edits: [
