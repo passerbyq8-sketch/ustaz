@@ -3,6 +3,20 @@
 # 77 CR into worship-golden.json (SHA8 A13C34BA -> F48CB7C7) and 55 CR into
 # worship-display.json (64B8A2C9 -> 9A56CC5B), and gate 7 exits 1.
 
+# PRAYER-FIX1 (2026-10-29) -- the four script and data types are LF by rule, not by chance. Measured on
+# 254a0fdc over every tracked blob (git show HEAD:<path>, not the disk): 1365 files -- .cjs 331/331 LF,
+# .mjs 21/21 LF, .js 251 LF + 10 with no line ending at all, .json 141 LF + 611 with no line ending;
+# CRLF 0, mixed 0. The 21 lang/*.json are LF in the index and served LF by production
+# (ezik.app/lang/am.json 110939 bytes, CR 0 = the blob); their CRLF on the build machine was
+# core.autocrlf=true alone. They are pinned CRLF in the working tree below so what the guards and
+# the build read there stays as it was. Every explicit line further down this file still wins over
+# these four (a later rule overrides an earlier one), so no pin above or below changes meaning.
+*.cjs text eol=lf
+*.mjs text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+lang/*.json text eol=crlf
+
 # Byte-compared or SHA-pinned by the guards. LF forever, on every machine.
 tests/iap-ios-purchase-visibility.test.cjs text eol=lf
 worship-golden.json      text eol=lf
