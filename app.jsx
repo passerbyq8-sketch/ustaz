@@ -2111,6 +2111,34 @@ const EZ_I18N = {
     'soon.file': '\u0623\u0630\u0627\u0646 \u0645\u0646 \u0645\u0644\u0641\u0651\u0627\u062A \u0627\u0644\u062C\u0647\u0627\u0632',
     'soon.silent': '\u0627\u0644\u0635\u0627\u0645\u062A \u0623\u062B\u0646\u0627\u0621 \u0627\u0644\u0635\u0644\u0627\u0629',
     'soon.wake': '\u0645\u0646\u0628\u0651\u0647 \u0627\u0644\u0641\u062C\u0631 \u00AB\u0642\u0639\u062F\u0646\u064A\u00BB',
+    // PRAYER REBUILD (29 October 2026) -- the Hijri calendar (panel 4) and the first page's doors
+    'cal.title': '\u0627\u0644\u062A\u0642\u0648\u064A\u0645 \u0627\u0644\u0647\u062C\u0631\u064A',
+    'cal.base.hijri': '\u0647\u062C\u0631\u064A',
+    'cal.base.greg': '\u0645\u064A\u0644\u0627\u062F\u064A',
+    'cal.prevMonth': '\u0627\u0644\u0634\u0647\u0631 \u0627\u0644\u0633\u0627\u0628\u0642',
+    'cal.nextMonth': '\u0627\u0644\u0634\u0647\u0631 \u0627\u0644\u062A\u0627\u0644\u064A',
+    'cal.friday': '\u0627\u0644\u062C\u0645\u0639\u0629',
+    'cal.events': '\u0645\u0646\u0627\u0633\u0628\u0627\u062A \u0642\u0627\u062F\u0645\u0629',
+    'cal.today': '\u0627\u0644\u064A\u0648\u0645',
+    'cal.tomorrow': '\u063A\u062F\u064B\u0627',
+    'cal.in2': '\u0628\u0639\u062F \u064A\u0648\u0645\u064A\u0646',
+    'cal.inFew': '\u0628\u0639\u062F {n} \u0623\u064A\u0651\u0627\u0645',
+    'cal.inMany': '\u0628\u0639\u062F {n} \u064A\u0648\u0645\u064B\u0627',
+    'cal.timesOf': '\u0645\u0648\u0627\u0642\u064A\u062A {d}',
+    'cal.monThu': '\u0627\u0644\u0627\u062B\u0646\u064A\u0646 \u0648\u0627\u0644\u062E\u0645\u064A\u0633: \u064A\u064F\u0633\u062A\u062D\u0628\u0651 \u0635\u064A\u0627\u0645\u0647\u0645\u0627.',
+    'cal.umm': '\u0628\u062D\u0633\u0628 \u062A\u0642\u0648\u064A\u0645 \u0623\u0645\u0651 \u0627\u0644\u0642\u0631\u0649\u060C \u0648\u0628\u0625\u0632\u0627\u062D\u062A\u0643 \u0645\u0646 \u0627\u0644\u0625\u0639\u062F\u0627\u062F\u0627\u062A.',
+    'cal.save': '\u062D\u0641\u0638 \u0627\u0644\u0634\u0647\u0631',
+    'cal.saved': '\u0646\u064F\u0633\u062E \u0627\u0644\u0634\u0647\u0631 \u0625\u0644\u0649 \u0627\u0644\u062D\u0627\u0641\u0638\u0629.',
+    'cal.shared': '\u0634\u064F\u0648\u0631\u0643 \u0627\u0644\u0634\u0647\u0631.',
+    'ev.ashura': '\u0639\u0627\u0634\u0648\u0631\u0627\u0621',
+    'ev.ramadan': '\u0623\u0648\u0651\u0644 \u0631\u0645\u0636\u0627\u0646',
+    'ev.fitr': '\u0639\u064A\u062F \u0627\u0644\u0641\u0637\u0631',
+    'ev.arafah': '\u064A\u0648\u0645 \u0639\u0631\u0641\u0629',
+    'ev.adha': '\u0639\u064A\u062F \u0627\u0644\u0623\u0636\u062D\u0649',
+    'ev.white': '\u0627\u0644\u0623\u064A\u0651\u0627\u0645 \u0627\u0644\u0628\u064A\u0636',
+    'ev.month1': '\u0623\u0648\u0651\u0644 {m}',
+    'panel.openCalendar': '\u0627\u0644\u062A\u0642\u0648\u064A\u0645 \u0627\u0644\u0647\u062C\u0631\u064A',
+    'panel.openMonth': '\u062C\u062F\u0648\u0644 \u0627\u0644\u0634\u0647\u0631',
   },
   en: {
     'common.close': 'Close',
@@ -3805,6 +3833,34 @@ const EZ_I18N = {
     'soon.file': 'A call to prayer from the device\'s files',
     'soon.silent': 'Silent during prayer',
     'soon.wake': 'The Fajr alarm \u00ABwake me\u00BB',
+    // PRAYER REBUILD (29 October 2026) -- the Hijri calendar (panel 4) and the first page's doors
+    'cal.title': 'Hijri calendar',
+    'cal.base.hijri': 'Hijri',
+    'cal.base.greg': 'Gregorian',
+    'cal.prevMonth': 'Previous month',
+    'cal.nextMonth': 'Next month',
+    'cal.friday': 'Friday',
+    'cal.events': 'Upcoming occasions',
+    'cal.today': 'Today',
+    'cal.tomorrow': 'Tomorrow',
+    'cal.in2': 'In 2 days',
+    'cal.inFew': 'In {n} days',
+    'cal.inMany': 'In {n} days',
+    'cal.timesOf': 'Times of {d}',
+    'cal.monThu': 'Monday and Thursday: fasting them is recommended.',
+    'cal.umm': 'By the Umm al-Qura calendar, with your offset from the settings.',
+    'cal.save': 'Save the month',
+    'cal.saved': 'The month was copied.',
+    'cal.shared': 'The month was shared.',
+    'ev.ashura': 'Ashura',
+    'ev.ramadan': 'First of Ramadan',
+    'ev.fitr': 'Eid al-Fitr',
+    'ev.arafah': 'Day of Arafah',
+    'ev.adha': 'Eid al-Adha',
+    'ev.white': 'The white days',
+    'ev.month1': 'First of {m}',
+    'panel.openCalendar': 'Hijri calendar',
+    'panel.openMonth': 'Month table',
   },
 };
 
@@ -29433,6 +29489,7 @@ const PRAYER_ICON_BELL_OFF = <svg width="20" height="20" viewBox="0 0 24 24" fil
 const PRAYER_ICON_PIN = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 21s-6-5.3-6-11a6 6 0 0 1 12 0c0 5.7-6 11-6 11Z" /><circle cx="12" cy="10" r="2.2" /></svg>;
 const PRAYER_ICON_CHEV = <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg>;
 const PRAYER_ICON_CHEV_BACK = <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6" /></svg>;
+const PRAYER_ICON_CAL = <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>;
 const PRAYER_ICON_LOCATE = <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7" /><circle cx="12" cy="12" r="2" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></svg>;
 function PrayerTimesPanel({ loc, day, onDay, part, onLoc, onCity }) {
   // The position and the preferences both move HERE, so the pipe is re-armed from here.
@@ -33911,6 +33968,195 @@ function QiblaPanel({ loc, onLoc, full }) {
   );
 }
 
+
+// ============================================================
+// PRAYER REBUILD (29 October 2026) -- PANEL 4: THE HIJRI CALENDAR, AND THE OCCASIONS COMPUTED ON IT
+// ============================================================
+// The grid follows either calendar (the reader's switch), starts on Sunday, writes the base date large and the other
+// small; today is navy, the white days (13-15 of the Hijri month) take a gold frame, Fridays are shaded; a pressed day
+// shows its six times at the reader's place. The occasions are COMPUTED on the app's own calendar (Umm al-Qura through
+// Intl, the named fallback) with the reader's offset -- never stored and never fetched: the first of every month, the
+// white days, Ashura (10 Muharram), the first of Ramadan, Eid al-Fitr (1 Shawwal), Arafah (9 Dhul-Hijjah) and Eid
+// al-Adha (10 Dhul-Hijjah); \u00ABMonday and Thursday\u00BB is a line of information, not an event. Gate hijrievents holds the
+// civil days of 1448 and the shift of the offset.
+const PRAYER_EVENTS = [
+  { key: 'ashura', m: 1, d: 10 },
+  { key: 'ramadan', m: 9, d: 1 },
+  { key: 'fitr', m: 10, d: 1 },
+  { key: 'arafah', m: 12, d: 9 },
+  { key: 'adha', m: 12, d: 10 },
+];
+// The named occasions of one Hijri year, each with its civil day (null when the calendar has no such day).
+function prayerHijriEvents(hy, offset) {
+  const out = [];
+  for (let i = 0; i < PRAYER_EVENTS.length; i++) {
+    const e = PRAYER_EVENTS[i];
+    out.push({ key: e.key, hy: hy, hm: e.m, hd: e.d, civil: hijriToCivil(hy, e.m, e.d, offset) });
+  }
+  return out;
+}
+// The three white days of one Hijri month, as civil days.
+function prayerWhiteDays(hy, hm, offset) {
+  const out = [];
+  for (let d = 13; d <= 15; d++) { const c = hijriToCivil(hy, hm, d, offset); if (c) out.push(c); }
+  return out;
+}
+// The next occasions from a civil day on: this Hijri year's and the next's, those not yet past, nearest first.
+function prayerUpcomingEvents(from, offset, limit) {
+  const h = hijriForCivilDay(from.y, from.m, from.d, offset);
+  const j0 = hijriJdnFromCivil(from.y, from.m, from.d);
+  const all = prayerHijriEvents(h.y, offset).concat(prayerHijriEvents(h.y + 1, offset));
+  const out = [];
+  for (let i = 0; i < all.length; i++) {
+    const e = all[i];
+    if (!e.civil) continue;
+    const days = hijriJdnFromCivil(e.civil.y, e.civil.m, e.civil.d) - j0;
+    if (days < 0) continue;
+    out.push({ key: e.key, hy: e.hy, hm: e.hm, hd: e.hd, civil: e.civil, days: days });
+  }
+  out.sort((a, b) => a.days - b.days);
+  return out.slice(0, limit || 6);
+}
+// \u00ABin N days\u00BB, in the interface's own forms.
+function prayerDaysAway(n) {
+  if (n === 0) return ezT('cal.today');
+  if (n === 1) return ezT('cal.tomorrow');
+  if (n === 2) return ezT('cal.in2');
+  if (n >= 3 && n <= 10) return ezT('cal.inFew', { n: prayerNum(n) });
+  return ezT('cal.inMany', { n: prayerNum(n) });
+}
+function prayerDaysInMonth(y, m) { return new Date(y, m, 0).getDate(); }
+function prayerWeekdayNames() {
+  const out = [];
+  try {
+    const f = new Intl.DateTimeFormat(EZ_LANG === 'ar' ? 'ar' : EZ_LANG, { weekday: 'short', timeZone: 'UTC' });
+    for (let i = 0; i < 7; i++) out.push(f.format(Date.UTC(2023, 0, 1 + i)));   // 1 January 2023 was a Sunday
+  } catch (e) { for (let i = 0; i < 7; i++) out.push(String(i)); }
+  return out;
+}
+function PrayerCalendarSheet({ onClose, loc, onShowDay, onOpenConverter }) {
+  useEzLang();
+  const off = readHijriOffset();
+  const zone = prayerZoneOf(loc);
+  const todayP = prayerTodayParts(new Date(), zone);
+  const todayH = hijriForCivilDay(todayP.y, todayP.m, todayP.d, off);
+  const [base, setBase] = useState('hijri');
+  const [hAt, setHAt] = useState({ y: todayH.y, m: todayH.m });
+  const [gAt, setGAt] = useState({ y: todayP.y, m: todayP.m });
+  const [sel, setSel] = useState(null);
+  const [said, setSaid] = useState('');
+  const isHijri = base === 'hijri';
+  // the month's cells: {civil, hijri, primary, secondary, first, white, friday, today, event}
+  const cells = [];
+  if (isHijri) {
+    for (let d = 1; d <= 30; d++) {
+      const c = hijriToCivil(hAt.y, hAt.m, d, off);
+      if (!c) break;
+      cells.push({ civil: c, hijri: { y: hAt.y, m: hAt.m, d: d } });
+    }
+  } else {
+    const n = prayerDaysInMonth(gAt.y, gAt.m);
+    for (let d = 1; d <= n; d++) cells.push({ civil: { y: gAt.y, m: gAt.m, d: d }, hijri: hijriForCivilDay(gAt.y, gAt.m, d, off) });
+  }
+  const eventOf = (h) => { for (let i = 0; i < PRAYER_EVENTS.length; i++) if (PRAYER_EVENTS[i].m === h.m && PRAYER_EVENTS[i].d === h.d) return PRAYER_EVENTS[i].key; return null; };
+  for (let i = 0; i < cells.length; i++) {
+    const x = cells[i];
+    const wd = new Date(x.civil.y, x.civil.m - 1, x.civil.d).getDay();
+    x.wd = wd;
+    x.friday = wd === 5;
+    x.white = x.hijri.d >= 13 && x.hijri.d <= 15;
+    x.first = x.hijri.d === 1;
+    x.today = x.civil.y === todayP.y && x.civil.m === todayP.m && x.civil.d === todayP.d;
+    x.event = eventOf(x.hijri);
+    x.key = prayerDayIso(x.civil);
+  }
+  const lead = cells.length ? cells[0].wd : 0;   // blanks before the first cell: the grid starts on Sunday
+  const monthTitle = isHijri ? (ezT('hijri.m' + hAt.m) + ' ' + prayerNum(hAt.y)) : (() => { try { return prayerDigits(new Intl.DateTimeFormat(EZ_LANG === 'ar' ? 'ar-u-ca-gregory-nu-arab' : (EZ_LANG + '-u-ca-gregory'), { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(Date.UTC(gAt.y, gAt.m - 1, 1))); } catch (e) { return gAt.y + '-' + gAt.m; } })();
+  const step = (n) => {
+    setSel(null);
+    if (isHijri) { let m = hAt.m + n, y = hAt.y; if (m < 1) { m = 12; y -= 1; } if (m > 12) { m = 1; y += 1; } if (y >= HIJRI_CONV_MIN_YEAR && y <= HIJRI_CONV_MAX_YEAR) setHAt({ y: y, m: m }); }
+    else { let m = gAt.m + n, y = gAt.y; if (m < 1) { m = 12; y -= 1; } if (m > 12) { m = 1; y += 1; } if (y >= PRAYER_DAY_MIN_YEAR && y <= PRAYER_DAY_MAX_YEAR) setGAt({ y: y, m: m }); }
+  };
+  const toToday = () => { setSel(null); setHAt({ y: todayH.y, m: todayH.m }); setGAt({ y: todayP.y, m: todayP.m }); };
+  const selTimes = sel ? prayerTimesFor(sel.y, sel.m, sel.d, loc.lat, loc.lng, prayerTzOn(sel.y, sel.m, sel.d, zone), readPrayerPrefs().method, readPrayerPrefs().asr, readPrayerPrefs().off) : null;
+  const upcoming = prayerUpcomingEvents(todayP, off, 6);
+  const eventName = (e) => (e.key === 'month1' ? ezT('ev.month1', { m: ezT('hijri.m' + e.hm) }) : ezT('ev.' + e.key));
+  const monthText = () => {
+    const lines = [monthTitle];
+    for (let i = 0; i < cells.length; i++) { const x = cells[i]; lines.push(prayerNum(x.hijri.d) + ' ' + ezT('hijri.m' + x.hijri.m) + ' = ' + prayerDayIso(x.civil) + (x.white ? ' *' : '') + (x.event ? ' ' + ezT('ev.' + x.event) : '')); }
+    return lines.join('\n');
+  };
+  const save = () => {
+    const text = monthText();
+    try {
+      if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') { navigator.share({ title: monthTitle, text: text }).then(() => setSaid('shared'), () => {}); return; }
+      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(() => setSaid('copied'), () => setSaid('')); return; }
+    } catch (e) {}
+    setSaid('');
+  };
+  const wdNames = prayerWeekdayNames();
+  const blanks = [];
+  for (let i = 0; i < lead; i++) blanks.push(<span key={'b' + i} className="ez110-cal-cell is-blank" aria-hidden="true" />);
+  return (
+    <EzShell title={ezT('cal.title')} onBack={onClose} backLabel={QIBLA_BACK}>
+      <div className="ez110-cal" data-ezik-cal="sheet" data-ezik-cal-base={base}>
+        <div className="ez110-cal-switch" role="radiogroup" aria-label={ezT('cal.title')}>
+          <button type="button" role="radio" aria-checked={isHijri ? 'true' : 'false'} onClick={() => { setBase('hijri'); setSel(null); }} data-ezik-cal="base-hijri" className={'ezik-focus ez110-cal-seg' + (isHijri ? ' is-on' : '')}>{ezT('cal.base.hijri')}</button>
+          <button type="button" role="radio" aria-checked={isHijri ? 'false' : 'true'} onClick={() => { setBase('greg'); setSel(null); }} data-ezik-cal="base-greg" className={'ezik-focus ez110-cal-seg' + (isHijri ? '' : ' is-on')}>{ezT('cal.base.greg')}</button>
+        </div>
+        <div className="ez110-cal-head">
+          <button type="button" onClick={() => step(-1)} data-ezik-cal="prev" className="ezik-focus ez110-pdate-arrow" aria-label={ezT('cal.prevMonth')}>{PRAYER_ICON_CHEV}</button>
+          <button type="button" onClick={toToday} data-ezik-cal="month" className="ezik-focus ez110-cal-month">{monthTitle}</button>
+          <button type="button" onClick={() => step(1)} data-ezik-cal="next" className="ezik-focus ez110-pdate-arrow" aria-label={ezT('cal.nextMonth')}>{PRAYER_ICON_CHEV_BACK}</button>
+        </div>
+        <div className="ez110-cal-grid" role="grid" aria-label={monthTitle}>
+          {wdNames.map((w, i) => <span key={'w' + i} className={'ez110-cal-wd' + (i === 5 ? ' is-fri' : '')} role="columnheader">{w}</span>)}
+          {blanks}
+          {cells.map((x) => (
+            <button key={x.key} type="button" role="gridcell" onClick={() => setSel(x.civil)} data-ezik-cal="day" data-ezik-cal-iso={x.key} data-ezik-cal-hijri={x.hijri.y + '-' + x.hijri.m + '-' + x.hijri.d}
+              aria-pressed={sel && prayerDayIso(sel) === x.key ? 'true' : 'false'}
+              className={'ezik-focus ez110-cal-cell' + (x.today ? ' is-today' : '') + (x.white ? ' is-white' : '') + (x.friday ? ' is-fri' : '') + (x.event ? ' is-event' : '') + (x.first ? ' is-first' : '') + (sel && prayerDayIso(sel) === x.key ? ' is-sel' : '')}>
+              <span className="ez110-cal-big">{prayerNum(isHijri ? x.hijri.d : x.civil.d)}</span>
+              <span className="ez110-cal-small">{prayerNum(isHijri ? x.civil.d : x.hijri.d)}</span>
+            </button>
+          ))}
+        </div>
+        <div className="ez110-cal-legend">
+          <span className="ez110-cal-key is-white">{ezT('ev.white')}</span>
+          <span className="ez110-cal-key is-fri">{ezT('cal.friday')}</span>
+          <span className="ez110-cal-key is-event">{ezT('cal.events')}</span>
+        </div>
+        {sel && selTimes ? (
+          <div className="ez110-cal-times" data-ezik-cal="times" data-ezik-cal-sel={prayerDayIso(sel)}>
+            <div className="ez110-cal-times-head">{ezT('cal.timesOf', { d: prayerDigits(hijriLabel(hijriForCivilDay(sel.y, sel.m, sel.d, off))) })}</div>
+            <div className="ez110-cal-times-row">
+              {PRAYER_KEYS.map((k) => <span key={k} className="ez110-cal-time"><span>{ezT('widget.prayer.' + k)}</span><bdi dir="ltr">{prayerClockUi(selTimes[k])}</bdi></span>)}
+            </div>
+            <button type="button" onClick={() => { if (onShowDay) onShowDay(sel); }} data-ezik-cal="show" className="ezik-focus ez110-pcard-pill is-ink">{ezT('conv.show')}</button>
+          </div>
+        ) : null}
+        <div className="ez110-cal-events" data-ezik-cal="events">
+          <div className="ez110-cal-events-head">{ezT('cal.events')}</div>
+          {upcoming.map((e) => (
+            <div key={e.key + e.hy} className="ez110-cal-event" data-ezik-cal-event={e.key} data-ezik-cal-event-iso={prayerDayIso(e.civil)}>
+              <span className="ez110-cal-event-name">{eventName(e)}</span>
+              <span className="ez110-cal-event-when">{prayerDaysAway(e.days)} {'\u00B7'} {prayerGregLabel(e.civil)}</span>
+            </div>
+          ))}
+          <div className="ez110-cal-note">{ezT('cal.monThu')}</div>
+          <div className="ez110-cal-note">{ezT('cal.umm')}</div>
+        </div>
+        <div className="ez110-cal-acts">
+          <button type="button" onClick={onOpenConverter} data-ezik-cal="conv" className="ezik-focus ez110-pcard-pill is-ink">{ezT('conv.title')}</button>
+          <button type="button" onClick={save} data-ezik-cal="save" className="ezik-focus ez110-pcard-pill is-ink">{ezT('cal.save')}</button>
+        </div>
+        {said === 'copied' ? <div className="ez110-cal-note" role="status" data-ezik-cal="saved">{ezT('cal.saved')}</div> : null}
+        {said === 'shared' ? <div className="ez110-cal-note" role="status" data-ezik-cal="saved">{ezT('cal.shared')}</div> : null}
+      </div>
+    </EzShell>
+  );
+}
+
 // THE SHEET, AND WHY IT IS A SHEET RATHER THAN A SCREEN. index.html's screen inventory is a
 // CROSS-FILE contract: theme-coverage-guard reads EZIK-THEME-33-HANDOFF.md and requires its
 // table and its Arabic screen count to match the set of `screen === '...'` branches in this
@@ -33923,6 +34169,9 @@ function PrayerSheet({ onClose, onOpenCompass }) {
   const ez110 = useEz110();
   const [setOpen, setSetOpen] = useState(false);
   useEzikBackLayer(setOpen, () => setSetOpen(false));
+  // PRAYER REBUILD (29 October 2026): the calendar (panel 4), a layer of this sheet like the settings
+  const [calOpen, setCalOpen] = useState(false);
+  useEzikBackLayer(calOpen, () => setCalOpen(false));
   // ONE POSITION FOR BOTH PANELS. The times and the qibla are two readings of the same place,
   // so the place is state here and the controls that change it stay where item 108-أ put them.
   const [loc, setLoc] = useState(readQiblaLoc);
@@ -33935,6 +34184,9 @@ function PrayerSheet({ onClose, onOpenCompass }) {
   const place = <PrayerPlaceSearch loc={loc} onLoc={setLoc} />;
   const qibla = <QiblaPanel loc={loc} onLoc={setLoc} />;
   const backup = <PrayerBackup onRestored={(l) => { setLoc(l); setDay(null); setRev(rev + 1); }} />;
+  if (calOpen) return (
+    <PrayerCalendarSheet onClose={ezikGoBack} loc={loc} onShowDay={(v) => { setDay(v); ezikGoBack(); }} onOpenConverter={() => { ezikGoBack(); }} />
+  );
   if (setOpen) return (
     <Ez110PrayerSettingsSheet onClose={ezikGoBack} loc={loc} onLoc={setLoc} day={day} onDay={setDay} qibla={qibla} backup={backup} rev={rev} />
   );
@@ -33956,6 +34208,11 @@ function PrayerSheet({ onClose, onOpenCompass }) {
       ) : null}>
       <React.Fragment key={rev}>
       {ez110.id ? <PrayerTimesPanel part="main" loc={loc} day={day} onDay={setDay} onLoc={setLoc} onCity={() => setSetOpen(true)} /> : times}
+      {ez110.id ? (
+        <div className="ez110-pdoors">
+          <button type="button" onClick={() => setCalOpen(true)} data-ezik-open="calendar" className="ezik-focus ez110-pdoor">{PRAYER_ICON_CAL}<span>{ezT('panel.openCalendar')}</span></button>
+        </div>
+      ) : null}
       <PrayerDateConverter onShowDay={setDay} />
       {ez110.id ? null : place}
       {ez110.id ? null : qibla}

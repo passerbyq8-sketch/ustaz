@@ -946,6 +946,56 @@ html[data-ez110] .ez110-pset-soon:last-child { border-bottom: 0; }
 html[data-ez110] .ez110-pset-soon-name { font-size: calc(15px * var(--ez-fs, 1)); color: var(--vt-ink); }
 html[data-ez110] .ez110-pset-soon-badge { flex: 0 0 auto; padding: 2px 10px; border-radius: 999px; background: var(--vt-soft); color: var(--vt-accent-ink); font-size: calc(12px * var(--ez-fs, 1)); font-weight: 700; }
 
+/* ---- panel 4: the Hijri calendar ---- */
+html[data-ez110] .ez110-cal { display: flex; flex-direction: column; gap: 10px; }
+html[data-ez110] .ez110-cal-switch { display: flex; gap: 6px; padding: 4px; border-radius: 999px; background: var(--vt-soft); align-self: center; }
+html[data-ez110] .ez110-cal-seg { min-height: 36px; padding: 4px 18px; border: 0; border-radius: 999px; background: transparent; color: var(--vt-accent-ink); font: inherit; font-size: calc(14px * var(--ez-fs, 1)); font-weight: 600; cursor: pointer; }
+html[data-ez110] .ez110-cal-seg.is-on { background: #12327A; color: #FFFFFF; }
+html[data-ez110] .ez110-cal-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+html[data-ez110] .ez110-cal-month { flex: 1; min-height: 44px; border: 0; background: transparent; color: var(--vt-ink); font-family: var(--ez110-font-head); font-size: calc(18px * var(--ez-fs, 1)); font-weight: 700; cursor: pointer; }
+html[data-ez110] .ez110-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+html[data-ez110] .ez110-cal-wd { text-align: center; font-size: calc(11.5px * var(--ez-fs, 1)); color: var(--vt-muted); padding: 2px 0; }
+html[data-ez110] .ez110-cal-wd.is-fri { color: var(--vt-accent-ink); font-weight: 700; }
+html[data-ez110] .ez110-cal-cell {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; min-height: 48px; padding: 3px 0;
+  border: 1.5px solid transparent; border-radius: 12px; background: var(--vt-surface); color: var(--vt-ink); font: inherit; cursor: pointer;
+}
+html[data-ez110] .ez110-cal-cell.is-blank { background: transparent; }
+html[data-ez110] .ez110-cal-cell.is-fri { background: var(--vt-soft); }
+html[data-ez110] .ez110-cal-cell.is-white { border-color: #C48A27; }
+html[data-ez110] .ez110-cal-cell.is-event .ez110-cal-big::after { content: ""; display: inline-block; width: 5px; height: 5px; margin-inline-start: 2px; border-radius: 50%; background: #C48A27; vertical-align: super; }
+html[data-ez110] .ez110-cal-cell.is-first .ez110-cal-small { font-weight: 700; color: var(--vt-accent-ink); }
+html[data-ez110] .ez110-cal-cell.is-today { background: #12327A; color: #FFFFFF; }
+html[data-ez110] .ez110-cal-cell.is-today .ez110-cal-small { color: rgba(255,255,255,.85); }
+html[data-ez110] .ez110-cal-cell.is-sel { box-shadow: 0 0 0 2px #12327A inset; }
+html[data-ez110] .ez110-cal-big { font-family: var(--ez110-font-head); font-size: calc(16px * var(--ez-fs, 1)); font-weight: 700; line-height: 1.2; }
+html[data-ez110] .ez110-cal-small { font-size: calc(10.5px * var(--ez-fs, 1)); color: var(--vt-muted); line-height: 1.2; }
+html[data-ez110] .ez110-cal-legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: calc(12px * var(--ez-fs, 1)); color: var(--vt-muted); }
+html[data-ez110] .ez110-cal-key::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-inline-end: 5px; border-radius: 3px; vertical-align: middle; border: 1.5px solid transparent; background: var(--vt-surface); }
+html[data-ez110] .ez110-cal-key.is-white::before { border-color: #C48A27; }
+html[data-ez110] .ez110-cal-key.is-fri::before { background: var(--vt-soft); }
+html[data-ez110] .ez110-cal-key.is-event::before { background: #C48A27; border-radius: 50%; }
+html[data-ez110] .ez110-cal-times { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 16px; background: var(--vt-surface); border: 1px solid var(--vt-line); }
+html[data-ez110] .ez110-cal-times-head { font-weight: 700; color: var(--vt-ink); font-size: calc(14px * var(--ez-fs, 1)); }
+html[data-ez110] .ez110-cal-times-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+html[data-ez110] .ez110-cal-time { display: flex; flex-direction: column; align-items: center; gap: 1px; font-size: calc(12.5px * var(--ez-fs, 1)); color: var(--vt-muted); }
+html[data-ez110] .ez110-cal-time bdi { font-size: calc(15px * var(--ez-fs, 1)); font-weight: 700; color: var(--vt-ink); }
+html[data-ez110] .ez110-cal-events { display: flex; flex-direction: column; gap: 6px; padding: 12px; border-radius: 16px; background: var(--vt-surface); border: 1px solid var(--vt-line); }
+html[data-ez110] .ez110-cal-events-head { font-weight: 700; color: var(--vt-ink); font-size: calc(14px * var(--ez-fs, 1)); }
+html[data-ez110] .ez110-cal-event { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 4px 0; border-top: 1px solid var(--vt-line); }
+html[data-ez110] .ez110-cal-event-name { font-weight: 700; color: var(--vt-ink); font-size: calc(14px * var(--ez-fs, 1)); }
+html[data-ez110] .ez110-cal-event-when { font-size: calc(12px * var(--ez-fs, 1)); color: var(--vt-muted); text-align: end; }
+html[data-ez110] .ez110-cal-note { font-size: calc(12px * var(--ez-fs, 1)); color: var(--vt-muted); line-height: 1.6; }
+html[data-ez110] .ez110-cal-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+html[data-ez110] .ez110-cal-acts .ez110-pcard-pill { align-self: auto; }
+/* the first page's two doors (panels 4 and 7) and the converter strip (panel 5) */
+html[data-ez110] .ez110-pdoors { display: flex; gap: 8px; margin-top: 10px; }
+html[data-ez110] .ez110-pdoor {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 8px 12px;
+  border: 1px solid var(--vt-line); border-radius: 16px; background: var(--vt-surface); color: var(--vt-ink); font: inherit; font-size: calc(14px * var(--ez-fs, 1)); font-weight: 700; cursor: pointer;
+}
+html[data-ez110] .ez110-pdoor svg { color: #12327A; }
+
 /* ==== 40-b-answer.css ==== */
 /* 40 -- THE ANSWER (board B3). The answer's markup and inline styles are pinned byte for byte by
    speedclient/speedintegration, so «ب» restyles it here, through classes, and touches nothing inside.

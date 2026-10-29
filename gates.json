@@ -1060,5 +1060,10 @@
     "name": "locationauto",
     "script": "guards/location-auto-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "hijrievents",
+    "script": "guards/hijri-events-guard.cjs",
+    "args": ""
   }
 ]

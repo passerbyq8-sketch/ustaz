@@ -880,6 +880,8 @@ guards/prayer-features-guard.cjs text eol=lf
 
 # PRAYER BUILD (29 October 2026): the compass arithmetic of the rebuilt prayer section.
 guards/compass-math-guard.cjs text eol=lf
+# PRAYER BUILD (29 October 2026): the occasions of the Hijri calendar (panel 4).
+guards/hijri-events-guard.cjs text eol=lf
 # PRAYER BUILD (29 October 2026): the position found by itself at the two doors.
 guards/location-auto-guard.cjs text eol=lf
 places.json text eol=lf
