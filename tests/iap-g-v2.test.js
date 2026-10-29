@@ -310,13 +310,14 @@ test('new non-renewing pass ids grant month/year access and their cancellation w
   }
 });
 
-function makeBridge({ mode = 'all', accountSession = null, balance = {}, prices = null, pathname = '/quest.html', search = '', statusError = false, balanceError = false } = {}) {
+function makeBridge({ mode = 'all', accountSession = null, balance = {}, prices = null, pathname = '/quest.html', search = '', statusError = false, balanceError = false, localState = {} } = {}) {
   const sourcePromise = readFile(new URL('../hanna-laha/assets/iap-bridge-v1.js', import.meta.url), 'utf8');
   return sourcePromise.then((source) => {
     const { document } = parseHTML('<html><body></body></html>');
     document.readyState = 'complete';
     document.visibilityState = 'visible';
-    const values = new Map(accountSession ? [['ezik_auth_session_v1', JSON.stringify(accountSession)]] : []);
+    const values = new Map(Object.entries(localState));
+    if (accountSession) values.set('ezik_auth_session_v1', JSON.stringify(accountSession));
     const localStorage = { getItem: (key) => values.get(key) || null, setItem: (key, value) => values.set(key, String(value)), removeItem: (key) => values.delete(key) };
     const sessionValues = new Map();
     const sessionStorage = { getItem: (key) => sessionValues.get(key) || null, setItem: (key, value) => sessionValues.set(key, String(value)), removeItem: (key) => sessionValues.delete(key) };
@@ -351,7 +352,7 @@ function makeBridge({ mode = 'all', accountSession = null, balance = {}, prices 
     const fetch = async (url, options = {}) => {
       calls.push({ url: String(url), options });
       if (String(url).endsWith('/api/iap-status')) return statusError ? { ok: false, status: 503, json: async () => ({}) } : { ok: true, status: 200, json: async () => ({ mode }) };
-      if (String(url).endsWith('/api/iap-balance')) return balanceError ? { ok: false, status: 503, json: async () => ({}) } : { ok: true, status: 200, json: async () => ({ appUserId: account, enforced: state.enforced !== false, credits: Number(state.credits) || 0, subscriptionExpiresAt: state.subscriptionExpiresAt || null, subscriptionActive: Number(state.subscriptionExpiresAt) > Date.now(), trial: state.trial ?? null }) };
+      if (String(url).endsWith('/api/iap-balance')) return balanceError ? { ok: false, status: 503, json: async () => ({}) } : { ok: true, status: 200, json: async () => ({ appUserId: account, enforced: state.enforced !== false, purchaseEntry: state.purchaseEntry === true, credits: Number(state.credits) || 0, subscriptionExpiresAt: state.subscriptionExpiresAt || null, subscriptionActive: Number(state.subscriptionExpiresAt) > Date.now(), trial: state.trial ?? null }) };
       if (String(url).endsWith('/api/iap-trial-start')) { state.trial = { startedAt: Date.now(), endsAt: Date.now() + 7 * 86400000, active: true, daysLeft: 7 }; return { ok: true, status: 200, json: async () => ({ ok: true, enforced: true, created: true, trial: state.trial }) }; }
       if (String(url).endsWith('/api/iap-consume')) return { ok: true, status: 200, json: async () => ({ ok: true, mode: 'credit' }) };
       throw new Error('unexpected-fetch: ' + String(url));
@@ -425,6 +426,59 @@ test('home purchase visibility requires a confirmed native iOS bridge and gates 
   assert.match(fallbackScript, /window\.ezikIapEnterHome\(function \(_notice, applicable\)/);
   assert.match(fallbackScript, /link\.hidden = applicable !== true/);
   assert.match(fallbackScript, /status !== 'fallback'/);
+});
+
+test('free mode keeps games public and lists passes only for the server-authorized native account', async () => {
+  const prices = {
+    ezik_pass_week_1: { priceString: '$1', price: 1, currencyCode: 'USD' },
+    ezik_pass_month_1: { priceString: '$2', price: 2, currencyCode: 'USD' },
+    ezik_pass_year_1: { priceString: '$3', price: 3, currencyCode: 'USD' },
+  };
+  const owner = await makeBridge({ mode: 'free', accountSession: { session }, balance: { enforced: false, purchaseEntry: true }, prices });
+  const updates = [];
+  await owner.window.ezikIapEnterHome((notice, applicable) => updates.push({ notice, applicable }));
+  assert.deepEqual(updates.at(-1), { notice: null, applicable: true });
+  assert.equal(owner.calls.some((call) => call.url.endsWith('/api/iap-trial-start')), false);
+
+  owner.window.ezikIapOpenPurchase();
+  await new Promise((resolve) => setTimeout(resolve, 30));
+  const ownerRows = [...owner.document.querySelectorAll('.ezik-iap-row')];
+  assert.equal(ownerRows.length, 3);
+  assert.deepEqual(ownerRows.map((row) => row.querySelector('h3').textContent), ['أسبوع لعب غير محدود', 'شهر لعب غير محدود', 'سنة لعب غير محدودة']);
+  assert.deepEqual(owner.posted.find((message) => message.type === 'iap.prices').productIds, ['ezik_pass_week_1', 'ezik_pass_month_1', 'ezik_pass_year_1']);
+
+  const other = await makeBridge({ mode: 'free', accountSession: { session }, balance: { enforced: false, purchaseEntry: false }, prices });
+  const otherUpdates = [];
+  await other.window.ezikIapEnterHome((notice, applicable) => otherUpdates.push({ notice, applicable }));
+  assert.deepEqual(otherUpdates.at(-1), { notice: null, applicable: false });
+  other.window.ezikIapOpenPurchase();
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  assert.equal(other.document.querySelector('[role="dialog"]'), null, 'direct open stays hidden for an unlisted account');
+
+  const visitor = await makeBridge({ mode: 'free', accountSession: null, balance: { enforced: false, purchaseEntry: true }, prices });
+  const visitorUpdates = [];
+  await visitor.window.ezikIapEnterHome((notice, applicable) => visitorUpdates.push({ notice, applicable }));
+  assert.deepEqual(visitorUpdates.at(-1), { notice: null, applicable: false });
+  assert.equal(visitor.document.querySelector('[role="dialog"]'), null);
+
+  const webOwner = await makeBridge({ mode: 'free', accountSession: { session }, balance: { enforced: false, purchaseEntry: true } });
+  const webUpdates = [];
+  await webOwner.window.ezikIapEnterHome((notice, applicable) => webUpdates.push({ notice, applicable }));
+  assert.deepEqual(webUpdates.at(-1), { notice: null, applicable: false });
+
+  const deniedOffline = await makeBridge({
+    statusError: true, balanceError: true, accountSession: { session: 'other-session' }, prices,
+    localState: {
+      ezik_iap_verified_mode_v1: JSON.stringify({ schema: 1, mode: 'free', verifiedAt: Date.now() }),
+      ezik_iap_entry_decision_v1: JSON.stringify({ schema: 1, sessions: {
+        unmatched: { appUserId: 'acct:test:other', purchaseEntry: false, verifiedAt: Date.now() },
+      } }),
+    },
+  });
+  deniedOffline.window.ezikIapOpenPurchase();
+  await new Promise((resolve) => setTimeout(resolve, 25));
+  assert.equal(deniedOffline.document.querySelector('[role="dialog"]'), null, 'failed mode and balance lookups do not expose the purchase list');
+  assert.equal(deniedOffline.posted.some((message) => message.type === 'iap.prices'), false, 'failed lookups do not probe store products for an unlisted account');
 });
 
 test('first direct game entry discloses the week before starting it, and expired no-credit accounts are blocked', async () => {

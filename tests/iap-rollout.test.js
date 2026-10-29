@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import vm from 'node:vm';
 import { parseHTML } from 'linkedom';
+import * as iapStore from '../lib/iap/store.js';
 
 import { handleIapBalance } from '../api/iap-balance.js';
 import { handleIapConsume } from '../api/iap-consume.js';
@@ -16,11 +17,13 @@ import {
   readBalance,
 } from '../lib/iap/store.js';
 
+const canShowIapPurchaseEntry = (...args) => iapStore.canShowIapPurchaseEntry(...args);
+
 const accountA = 'acct:v1:google:rollout-a';
 const accountB = 'acct:v1:apple:rollout-b';
 
 async function withEnv(values, operation) {
-  const keys = ['IAP_ENFORCE', 'IAP_TEST_ACCOUNTS', 'REVENUECAT_WEBHOOK_SECRET'];
+  const keys = ['IAP_ENFORCE', 'IAP_TEST_ACCOUNTS', 'IAP_ENTRY_ACCOUNTS', 'REVENUECAT_WEBHOOK_SECRET'];
   const before = Object.fromEntries(keys.map((key) => [key, process.env[key]]));
   for (const key of keys) {
     if (Object.prototype.hasOwnProperty.call(values, key)) process.env[key] = values[key];
@@ -133,7 +136,7 @@ class MemoryIapStore {
   }
 }
 
-test('rollout mode defaults to off and honors only the three exact values', async () => {
+test('rollout mode defaults to off and preserves the existing test/all decisions', async () => {
   await withEnv({}, async () => {
     assert.equal(iapEnforcementMode(), 'off');
     assert.equal(isIapEnforced(accountA), false);
@@ -154,9 +157,56 @@ test('rollout mode defaults to off and honors only the three exact values', asyn
     assert.equal(isIapEnforced(accountA), true);
     assert.equal(isIapEnforced(accountB), true);
   });
+  await withEnv({ IAP_ENFORCE: 'free', IAP_TEST_ACCOUNTS: accountA }, async () => {
+    assert.equal(iapEnforcementMode(), 'free');
+    assert.equal(isIapEnforced(accountA), false);
+    assert.equal(isIapEnforced(accountB), false);
+  });
   await withEnv({ IAP_ENFORCE: 'garbage', IAP_TEST_ACCOUNTS: accountA }, async () => {
     assert.equal(iapEnforcementMode(), 'off');
     assert.equal(isIapEnforced(accountA), false);
+  });
+});
+
+test('launch decision guard: free entry is owner-list-only, removable, and leaves today test enforcement unchanged', async () => {
+  const owner = 'acct:v1:google:102115118171853528569';
+  const appReview = 'acct:v1:google:108003346546807022640';
+  assert.equal(typeof iapStore.canShowIapPurchaseEntry, 'function', 'server must expose the free-entry decision');
+  assert.doesNotMatch(await readFile(new URL('../lib/iap/store.js', import.meta.url), 'utf8'), /acct:v1:google:102115118171853528569/);
+
+  await withEnv({ IAP_ENFORCE: 'free', IAP_ENTRY_ACCOUNTS: owner }, async () => {
+    assert.equal(iapEnforcementMode(), 'free');
+    for (const account of [owner, accountA, accountB, '']) {
+      assert.equal(isIapEnforced(account), false, account + ': no free-week trial or game lock');
+      assert.equal(canShowIapPurchaseEntry(account), account === owner, account + ': entry is owner-only');
+    }
+    for (const account of [owner, accountA]) {
+      const res = responseDouble();
+      await handleIapBalance(request('GET', { 'x-ezik-session': 's'.repeat(32) }), res, {
+        sessionState: async () => ({ state: 'live', record: { accountKey: account } }),
+        readBalance: async () => ({ credits: 0, subscriptionExpiresAt: null, trial: { active: false } }),
+        isIapEnforced,
+      });
+      assert.equal(res.body.enforced, false, account + ': server leaves games unlocked');
+      assert.equal(res.body.trial, null, account + ': free state does not expose or start a week');
+      assert.equal(res.body.purchaseEntry, account === owner, account + ': authenticated balance carries only its own entry decision');
+    }
+  });
+
+  await withEnv({ IAP_ENFORCE: 'free', IAP_ENTRY_ACCOUNTS: '' }, async () => {
+    assert.equal(canShowIapPurchaseEntry(owner), false, 'empty list removes the owner entry');
+    assert.equal(canShowIapPurchaseEntry(accountA), false, 'empty list hides the entry from every other account');
+  });
+  await withEnv({ IAP_ENFORCE: 'free' }, async () => {
+    assert.equal(canShowIapPurchaseEntry(owner), false, 'absent list removes the owner entry');
+  });
+
+  await withEnv({ IAP_ENFORCE: 'test', IAP_TEST_ACCOUNTS: `${owner},${appReview}` }, async () => {
+    assert.equal(iapEnforcementMode(), 'test');
+    assert.equal(isIapEnforced(owner), true, 'today owner remains test-enforced');
+    assert.equal(isIapEnforced(appReview), true, 'today review account remains test-enforced');
+    assert.equal(isIapEnforced(accountA), false, 'today unlisted account remains unenforced');
+    assert.equal(canShowIapPurchaseEntry(owner), false, 'new entry env does not alter today legacy entry behavior');
   });
 });
 
@@ -200,38 +250,40 @@ test('balance marks listed and unlisted test accounts', async () => {
   });
 });
 
-test('purchase webhook credits an account while enforcement is off', async () => {
+test('purchase webhook credits an account while enforcement is off or free', async () => {
   const webhookFixture = ['rollout', 'test', 'secret'].join('-');
-  await withEnv({ IAP_ENFORCE: 'off', REVENUECAT_WEBHOOK_SECRET: webhookFixture }, async () => {
-    assert.equal(isIapEnforced(accountA), false);
-    const store = new MemoryIapStore();
-    __setIapStoreForTest(store);
-    try {
-      const res = responseDouble();
-      await handleIapWebhook(request('POST', { authorization: webhookFixture }, {
-        event: {
-          type: 'NON_RENEWING_PURCHASE',
-          product_id: 'ezik_games_3',
-          app_user_id: accountA,
-          store: 'APP_STORE',
-          transaction_id: 'rollout-off-purchase-1',
-          event_timestamp_ms: Date.now(),
-        },
-      }), res, {
-        readJsonStrict: async (key) => {
-          assert.equal(key, accountA);
-          return { ok: true, value: { v: 1 } };
-        },
-      });
-      assert.equal(res.statusCode, 200);
-      assert.deepEqual(res.body, { ok: true, status: 'applied' });
-      assert.equal((await readBalance(accountA)).credits, 3);
-      assert.equal(store.ledger.length, 1);
-      assert.equal(store.ledger[0].creditsDelta, 3);
-    } finally {
-      __resetIapStore();
-    }
-  });
+  for (const [mode, transactionId] of [['off', 'rollout-off-purchase-1'], ['free', 'rollout-free-purchase-1']]) {
+    await withEnv({ IAP_ENFORCE: mode, REVENUECAT_WEBHOOK_SECRET: webhookFixture }, async () => {
+      assert.equal(isIapEnforced(accountA), false);
+      const store = new MemoryIapStore();
+      __setIapStoreForTest(store);
+      try {
+        const res = responseDouble();
+        await handleIapWebhook(request('POST', { authorization: webhookFixture }, {
+          event: {
+            type: 'NON_RENEWING_PURCHASE',
+            product_id: 'ezik_games_3',
+            app_user_id: accountA,
+            store: 'APP_STORE',
+            transaction_id: transactionId,
+            event_timestamp_ms: Date.now(),
+          },
+        }), res, {
+          readJsonStrict: async (key) => {
+            assert.equal(key, accountA);
+            return { ok: true, value: { v: 1 } };
+          },
+        });
+        assert.equal(res.statusCode, 200);
+        assert.deepEqual(res.body, { ok: true, status: 'applied' });
+        assert.equal((await readBalance(accountA)).credits, 3);
+        assert.equal(store.ledger.length, 1);
+        assert.equal(store.ledger[0].creditsDelta, 3);
+      } finally {
+        __resetIapStore();
+      }
+    });
+  }
 });
 
 test('public IAP status contains only the mode and reveals no account ids', async () => {

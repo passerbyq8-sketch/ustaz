@@ -132,6 +132,7 @@ function makeBridge({
           json: async () => ({
             appUserId: account,
             enforced: state.enforced !== false,
+            purchaseEntry: state.purchaseEntry === true,
             credits: Number(state.credits) || 0,
             subscriptionExpiresAt: state.subscriptionExpiresAt || null,
             subscriptionActive: Number(state.subscriptionExpiresAt) > Date.now(),
@@ -306,6 +307,33 @@ test('active passes hide the home notice, and closing a completed purchase refre
   await new Promise((resolve) => setTimeout(resolve, 30));
   assert.equal(home.calls.filter((url) => url.endsWith('/api/iap-balance')).length, readsBeforeClose + 1);
   assert.equal(updates.at(-1).notice, null);
+});
+
+test('free mode unlocks games and room starts without a trial, balance prompt, or consume request', async () => {
+  const visitor = await makeBridge({ mode: 'free', accountSession: null, balance: { enforced: false } });
+  let allowed = 0;
+  assert.equal(await visitor.window.ezikIapCheckGameAccess('ghaws', () => { allowed += 1; }, '/quest-ghaws.html'), true);
+  assert.equal(allowed, 1);
+  assert.equal(visitor.document.querySelector('[role="dialog"]'), null);
+
+  let started = 0;
+  visitor.window.ezikIapStart(() => { started += 1; return true; }, 'free-room', 'harb');
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  assert.equal(started, 1);
+  assert.equal(visitor.calls.filter((url) => url.endsWith('/api/iap-trial-start')).length, 0);
+  assert.equal(visitor.calls.filter((url) => url.endsWith('/api/iap-consume')).length, 0);
+  assert.equal(visitor.document.querySelector('[role="dialog"]'), null);
+
+  const prices = {
+    ezik_pass_week_1: { price: 1, currencyCode: 'USD' },
+    ezik_pass_month_1: { price: 2, currencyCode: 'USD' },
+    ezik_pass_year_1: { price: 3, currencyCode: 'USD' },
+  };
+  const owner = await makeBridge({ mode: 'free', balance: { enforced: false, purchaseEntry: true }, prices });
+  const homeUpdates = [];
+  await owner.window.ezikIapEnterHome((notice, applicable) => homeUpdates.push({ notice, applicable }));
+  assert.deepEqual(homeUpdates.at(-1), { notice: null, applicable: true });
+  assert.equal(owner.calls.filter((url) => url.endsWith('/api/iap-trial-start')).length, 0);
 });
 
 test('expired pass and free-week notices and locks keep their distinct wording and once-per-session rule', async () => {

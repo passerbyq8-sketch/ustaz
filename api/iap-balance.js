@@ -1,6 +1,6 @@
 import { applyCorsOrigin } from '../lib/ratelimit.js';
 import { sessionState } from '../lib/auth/account.js';
-import { isIapEnforced, readBalance } from '../lib/iap/store.js';
+import { canShowIapPurchaseEntry, isIapEnforced, readBalance } from '../lib/iap/store.js';
 
 const SESSION_HEADER = 'x-ezik-session';
 
@@ -8,6 +8,7 @@ export async function handleIapBalance(req, res, dependencies = {}) {
   const getSessionState = dependencies.sessionState || sessionState;
   const read = dependencies.readBalance || readBalance;
   const enforced = dependencies.isIapEnforced || isIapEnforced;
+  const canShowEntry = dependencies.canShowIapPurchaseEntry || canShowIapPurchaseEntry;
   applyCorsOrigin(req, res);
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -38,6 +39,7 @@ export async function handleIapBalance(req, res, dependencies = {}) {
       subscriptionActive: Number(balance.subscriptionExpiresAt) > Date.now(),
       appUserId: state.record.accountKey,
       enforced: isEnforced,
+      purchaseEntry: canShowEntry(state.record.accountKey),
     });
   } catch (e) {
     return res.status(503).json({ ok: false, error: 'iap-unavailable' });

@@ -1105,5 +1105,10 @@
     "name": "prayerlog",
     "script": "guards/prayer-log-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "iaplaunch",
+    "script": "tools/iap-launch-tests.cjs",
+    "args": ""
   }
 ]

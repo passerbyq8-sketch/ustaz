@@ -212,15 +212,72 @@
   var cachedEnforcementMode = '';
   var cachedEnforcementAt = 0;
   var VERIFIED_MODE_KEY = 'ezik_iap_verified_mode_v1';
+  var VERIFIED_ENTRY_DECISION_KEY = 'ezik_iap_entry_decision_v1';
+
+  function readVerifiedMode() {
+    try {
+      var verified = JSON.parse(localStorage.getItem(VERIFIED_MODE_KEY) || 'null');
+      if (verified && verified.schema === 1 && ['off', 'test', 'all', 'free'].includes(verified.mode)
+        && Number.isFinite(verified.verifiedAt) && verified.verifiedAt > 0) return verified;
+    } catch (e) {}
+    return null;
+  }
+
+  function sessionFingerprint(session) {
+    if (typeof session !== 'string' || !session) return '';
+    var first = 2166136261;
+    var second = 2246822519;
+    for (var i = 0; i < session.length; i++) {
+      var code = session.charCodeAt(i);
+      first = Math.imul(first ^ code, 16777619);
+      second = Math.imul(second ^ code, 3266489917);
+    }
+    return (first >>> 0).toString(16).padStart(8, '0') + (second >>> 0).toString(16).padStart(8, '0');
+  }
+
+  function rememberEntryDecision(session, balance) {
+    if (!session || !balance || typeof balance.appUserId !== 'string' || !balance.appUserId
+      || typeof balance.purchaseEntry !== 'boolean') return;
+    var fingerprint = sessionFingerprint(session);
+    if (!fingerprint) return;
+    try {
+      var stored = JSON.parse(localStorage.getItem(VERIFIED_ENTRY_DECISION_KEY) || 'null');
+      var sessions = stored && stored.schema === 1 && stored.sessions && typeof stored.sessions === 'object'
+        ? stored.sessions : {};
+      sessions[fingerprint] = {
+        appUserId: balance.appUserId,
+        purchaseEntry: balance.purchaseEntry,
+        verifiedAt: Date.now(),
+      };
+      var fingerprints = Object.keys(sessions).sort(function (left, right) {
+        return (Number(sessions[left] && sessions[left].verifiedAt) || 0)
+          - (Number(sessions[right] && sessions[right].verifiedAt) || 0);
+      });
+      while (fingerprints.length > 32) delete sessions[fingerprints.shift()];
+      localStorage.setItem(VERIFIED_ENTRY_DECISION_KEY, JSON.stringify({ schema: 1, sessions: sessions }));
+    } catch (e) {}
+  }
+
+  function lastEntryDecisionForSession(session) {
+    var fingerprint = sessionFingerprint(session);
+    if (!fingerprint) return null;
+    try {
+      var stored = JSON.parse(localStorage.getItem(VERIFIED_ENTRY_DECISION_KEY) || 'null');
+      var decision = stored && stored.schema === 1 && stored.sessions && typeof stored.sessions === 'object'
+        ? stored.sessions[fingerprint] : null;
+      if (decision
+        && typeof decision.appUserId === 'string' && decision.appUserId
+        && typeof decision.purchaseEntry === 'boolean' && Number.isFinite(decision.verifiedAt)
+        && decision.verifiedAt > 0) return decision.purchaseEntry;
+    } catch (e) {}
+    return null;
+  }
 
   async function getEnforcementMode() {
-    // Cache only the public server mode, never account balances or entitlements.
-    // Every online visit still uses the existing server check and memory TTL.
+    // Keep the last public mode and account-scoped entry decision for offline home rendering.
     if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-      try {
-        var verified = JSON.parse(localStorage.getItem(VERIFIED_MODE_KEY) || 'null');
-        if (verified && verified.schema === 1 && ['off', 'test', 'all'].includes(verified.mode) && Number.isFinite(verified.verifiedAt) && verified.verifiedAt > 0) return verified.mode;
-      } catch (e) {}
+      var verified = readVerifiedMode();
+      if (verified) return verified.mode;
       throw new Error('iap-status-unavailable');
     }
     if (cachedEnforcementMode && Date.now() - cachedEnforcementAt < 30000) {
@@ -232,7 +289,7 @@
       cache: 'default',
     });
     var data = await response.json().catch(function () { return {}; });
-    if (!response.ok || !['off', 'test', 'all'].includes(data.mode)) {
+    if (!response.ok || !['off', 'test', 'all', 'free'].includes(data.mode)) {
       throw new Error('iap-status-unavailable');
     }
     cachedEnforcementMode = data.mode;
@@ -263,6 +320,7 @@
     var data = await response.json().catch(function () { return {}; });
     if (!response.ok) return { ok: false, status: response.status, data: data };
     if (typeof data.appUserId !== 'string') return { ok: false, status: 503, data: {} };
+    rememberEntryDecision(session, data);
     return { ok: true, data: data };
   }
 
@@ -448,7 +506,7 @@
     if (active) return false;
     var mode;
     try { mode = await getEnforcementMode(); } catch (e) { mode = 'all'; }
-    if (mode === 'off' || mode === 'test' && !authSession()) return continueIfAllowed();
+    if (mode === 'off' || mode === 'free' || mode === 'test' && !authSession()) return continueIfAllowed();
     var session = authSession();
     if (!session) { showSignIn(function () { return checkGameAccess(gameId, onAllowed, returnPath); }); return false; }
     var response;
@@ -530,16 +588,34 @@
   }
 
   async function initializePurchase() {
+    var mode = '';
+    try { mode = await getEnforcementMode(); } catch (e) {}
+    var lastMode = mode ? null : readVerifiedMode();
+    var freeMode = mode === 'free' || !!(lastMode && lastMode.mode === 'free');
     var session = authSession();
-    if (!session) { showSignIn(initializePurchase); return; }
+    if (!session) {
+      if (freeMode) return;
+      showSignIn(initializePurchase);
+      return;
+    }
     if (!window.ReactNativeWebView || typeof window.ReactNativeWebView.postMessage !== 'function') {
+      if (freeMode) return;
       showWebBuyPanel();
       return;
     }
 
+    var freeEntryBalance = null;
+    if (freeMode) {
+      var entryResponse;
+      try { entryResponse = await getBalance(session); } catch (e) { entryResponse = { ok: false }; }
+      if (!entryResponse.ok || entryResponse.data.purchaseEntry !== true) return;
+      rememberEntryDecision(session, entryResponse.data);
+      freeEntryBalance = entryResponse;
+    }
+
     var modal = openModal('خيارات الشراء', 'الحساب: ' + accountLabel() + '. الأسعار المعروضة من المتجر، ويُفتح تأكيد الدفع لكل عملية شراء.');
     line(modal.content, 'جارٍ تحميل الحساب والأسعار…', 'ezik-iap-status');
-    var currentBalance = await getBalance(session);
+    var currentBalance = freeEntryBalance || await getBalance(session);
     if (active !== modal) return;
     if (!currentBalance.ok) {
       if (currentBalance.status === 401) { showSignIn(initializePurchase); return; }
@@ -850,7 +926,7 @@
     var mode;
     try { mode = await getEnforcementMode(); }
     catch (e) { mode = 'all'; }
-    if (mode === 'off' || mode === 'test' && !authSession()) {
+    if (mode === 'off' || mode === 'free' || mode === 'test' && !authSession()) {
       stopSignInWatch();
       await startWithoutIap(startContext);
       return;
@@ -898,14 +974,42 @@
     }
   }
 
+  async function hasNativePurchaseBridge() {
+    if (!window.ReactNativeWebView || typeof window.ReactNativeWebView.postMessage !== 'function') return false;
+    try {
+      await requestShell('iap.prices', { productIds: ['ezik_pass_week_1', 'ezik_pass_month_1', 'ezik_pass_year_1'] }, 8000);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   async function enterKunuzHome(onUpdate) {
     if (typeof onUpdate !== 'function') return;
+    var mode;
+    try { mode = await getEnforcementMode(); } catch (e) { mode = ''; }
+    if (!mode) {
+      var lastMode = typeof readVerifiedMode === 'function' ? readVerifiedMode() : null;
+      if (lastMode && lastMode.mode === 'free') mode = 'free';
+    }
+    if (mode === 'free') {
+      var freeSession = authSession();
+      if (!freeSession || !await hasNativePurchaseBridge()) { onUpdate(null, false); return; }
+      var freeBalance;
+      try { freeBalance = await getBalance(freeSession); } catch (e) { freeBalance = { ok: false }; }
+      if (freeBalance.ok && freeBalance.data && typeof freeBalance.data.purchaseEntry === 'boolean') {
+        rememberEntryDecision(freeSession, freeBalance.data);
+        onUpdate(null, freeBalance.data.purchaseEntry === true);
+      } else {
+        onUpdate(null, lastEntryDecisionForSession(freeSession) === true);
+      }
+      return;
+    }
     if (authSession() && await hasNativeIosPurchaseBridge()) {
       onUpdate(null, true);
       return;
     }
-    var mode;
-    try { mode = await getEnforcementMode(); } catch (e) { onUpdate(null, false); return; }
+    if (!mode) { onUpdate(null, false); return; }
     if (!['off', 'test', 'all'].includes(mode)) { onUpdate(null, false); return; }
     if (mode === 'off') { onUpdate(null, false); return; }
     var session = authSession();
