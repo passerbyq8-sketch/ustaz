@@ -185,3 +185,19 @@ html[data-ez110] .ez110-pstrip {
 }
 html[data-ez110] .ez110-pstrip-t { font-weight: 700; font-size: calc(14px * var(--ez-fs, 1)); white-space: nowrap; }
 html[data-ez110] .ez110-pstrip-v { font-size: calc(12.5px * var(--ez-fs, 1)); color: var(--vt-muted); text-align: end; }
+
+/* ---- panel 7: the month table ---- */
+html[data-ez110] .ez110-month { display: flex; flex-direction: column; gap: 10px; }
+html[data-ez110] .ez110-month-head { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border-radius: 16px; background: #12327A; color: #FFFFFF; }
+html[data-ez110] .ez110-month-name { font-family: var(--ez110-font-head); font-size: calc(17px * var(--ez-fs, 1)); font-weight: 700; }
+html[data-ez110] .ez110-month-sub { font-size: calc(12.5px * var(--ez-fs, 1)); color: rgba(255,255,255,.85); }
+html[data-ez110] .ez110-month-table { display: flex; flex-direction: column; border-radius: 16px; overflow: hidden; border: 1px solid var(--vt-line); background: var(--vt-surface); font-size: calc(12px * var(--ez-fs, 1)); }
+html[data-ez110] .ez110-month-row { display: grid; grid-template-columns: 1.6fr repeat(6, 1fr); align-items: center; gap: 2px; padding: 5px 6px; border-top: 1px solid var(--vt-line); color: var(--vt-ink); }
+html[data-ez110] .ez110-month-row.is-head { border-top: 0; background: var(--vt-soft); color: var(--vt-accent-ink); font-weight: 700; }
+html[data-ez110] .ez110-month-row.is-fri { opacity: .72; background: var(--vt-soft); }
+html[data-ez110] .ez110-month-row.is-today { background: #12327A; color: #FFFFFF; opacity: 1; font-weight: 700; }
+html[data-ez110] .ez110-month-row.is-today .ez110-month-g { color: rgba(255,255,255,.85); }
+html[data-ez110] .ez110-month-day { display: flex; flex-direction: column; gap: 0; min-width: 0; }
+html[data-ez110] .ez110-month-h { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html[data-ez110] .ez110-month-g { font-size: calc(10.5px * var(--ez-fs, 1)); color: var(--vt-muted); white-space: nowrap; }
+html[data-ez110] .ez110-month-cell { text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap; }

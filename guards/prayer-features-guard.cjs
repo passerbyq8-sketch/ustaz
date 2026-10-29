@@ -677,6 +677,29 @@ SCENES.calendar = async () => {
   t('"show the times" lands the first page on that day', c.q('[data-ezik-day="head"]') && c.q('[data-ezik-day="head"]').getAttribute('data-ezik-day-iso'), sel);
   t('nothing threw', c.caught(), null);
 };
+SCENES.month = async () => {
+  say('S15 the month table (panel 7): thirty days from today at the reader\'s place, today navy, the Fridays faint, the month names in the interface\'s language');
+  const c = boot({ seed: { ezik_prayer_schedule_v1: JSON.stringify({ v: 1, stamp: 'stale', from: '2020-01-01', days: [] }) } });
+  await openPrayer(c);
+  await c.click(c.q('[data-ezik-open="month"]'));
+  await c.waitFor(() => c.q('[data-ezik-month="sheet"]'));
+  const todayIso = c.read('prayerDayIso(prayerTodayParts(new Date(), prayerZoneOf(readQiblaLoc())))');
+  const rows = c.qa('[data-ezik-month-row]');
+  t('thirty rows', rows.length, 30);
+  t('the first row is today, whatever the stored table starts at', rows[0].getAttribute('data-ezik-month-row'), todayIso);
+  t('...and today\'s row is the navy one', c.q('.ez110-month-row.is-today') && c.q('.ez110-month-row.is-today').getAttribute('data-ezik-month-row'), todayIso);
+  const fris = c.qa('.ez110-month-row.is-fri');
+  ok('the Fridays are faint, and they are Fridays', fris.length >= 4 && fris.every((e) => new Date(e.getAttribute('data-ezik-month-row') + 'T12:00:00').getDay() === 5));
+  const r7 = rows[7];
+  const iso7 = r7.getAttribute('data-ezik-month-row');
+  const cells = Array.from(r7.querySelectorAll('[role="cell"]')).map((e) => e.textContent);
+  const want = c.read('(function(){const l=readQiblaLoc();const v=prayerDayFromIso(' + JSON.stringify(iso7) + ');const p=readPrayerPrefs();const t=prayerTimesFor(v.y,v.m,v.d,l.lat,l.lng,prayerTzOn(v.y,v.m,v.d,prayerZoneOf(l)),p.method,p.asr,p.off);return PRAYER_KEYS.map((k)=>prayerClockUi(t[k]));})()');
+  t('a row\'s six times are the calculator\'s for that day at the reader\'s place', cells, want);
+  ok('the head names the city and the method', c.q('[data-ezik-month="city"]').textContent.indexOf(c.read("ezT('place.default')")) >= 0 && c.q('[data-ezik-month="method"]').textContent.length > 0);
+  ok('the head names the Hijri month in the interface\'s language, computed now', c.q('.ez110-month-name').textContent.indexOf(c.read('ezT("hijri.m" + hijriForCivilDay(prayerTodayParts(new Date(), prayerZoneOf(readQiblaLoc())).y, prayerTodayParts(new Date(), prayerZoneOf(readQiblaLoc())).m, prayerTodayParts(new Date(), prayerZoneOf(readQiblaLoc())).d, readHijriOffset()).m)')) >= 0);
+  ok('share and copy are offered', !!c.q('[data-ezik-month="share"]') && !!c.q('[data-ezik-month="copy"]'));
+  t('nothing threw', c.caught(), null);
+};
 SCENES['iqama-noshell'] = async () => {
   say('S5  in a browser tab the alert controls are not drawn');
   const one = blank5(); one.dhuhr = { on: true, min: 10 };

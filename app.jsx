@@ -2142,6 +2142,12 @@ const EZ_I18N = {
     // PRAYER REBUILD (29 October 2026) -- the converter sheet (panel 5)
     'conv.shortcuts': '\u0627\u062E\u062A\u0635\u0627\u0631\u0627\u062A',
     'conv.strip': '\u0647\u062C\u0631\u064A \u21C4 \u0645\u064A\u0644\u0627\u062F\u064A',
+    // PRAYER REBUILD (29 October 2026) -- the month table (panel 7)
+    'month.from': '\u062B\u0644\u0627\u062B\u0648\u0646 \u064A\u0648\u0645\u064B\u0627 \u0645\u0646 \u0627\u0644\u064A\u0648\u0645',
+    'month.share': '\u0645\u0634\u0627\u0631\u0643\u0629',
+    'month.copy': '\u0646\u0633\u062E',
+    'month.copied': '\u0646\u064F\u0633\u062E \u0627\u0644\u062C\u062F\u0648\u0644 \u0625\u0644\u0649 \u0627\u0644\u062D\u0627\u0641\u0638\u0629.',
+    'month.shared': '\u0634\u064F\u0648\u0631\u0643 \u0627\u0644\u062C\u062F\u0648\u0644.',
   },
   en: {
     'common.close': 'Close',
@@ -3867,6 +3873,12 @@ const EZ_I18N = {
     // PRAYER REBUILD (29 October 2026) -- the converter sheet (panel 5)
     'conv.shortcuts': 'Shortcuts',
     'conv.strip': 'Hijri \u21C4 Gregorian',
+    // PRAYER REBUILD (29 October 2026) -- the month table (panel 7)
+    'month.from': 'Thirty days from today',
+    'month.share': 'Share',
+    'month.copy': 'Copy',
+    'month.copied': 'The table was copied.',
+    'month.shared': 'The table was shared.',
   },
 };
 
@@ -29496,6 +29508,7 @@ const PRAYER_ICON_PIN = <svg width="16" height="16" viewBox="0 0 24 24" fill="no
 const PRAYER_ICON_CHEV = <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg>;
 const PRAYER_ICON_CHEV_BACK = <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6" /></svg>;
 const PRAYER_ICON_CAL = <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>;
+const PRAYER_ICON_TABLE = <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3" /><path d="M3 9h18M3 14h18M9 4v16M15 4v16" /></svg>;
 const PRAYER_ICON_LOCATE = <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7" /><circle cx="12" cy="12" r="2" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></svg>;
 function PrayerTimesPanel({ loc, day, onDay, part, onLoc, onCity }) {
   // The position and the preferences both move HERE, so the pipe is re-armed from here.
@@ -34163,6 +34176,95 @@ function PrayerCalendarSheet({ onClose, loc, onShowDay, onOpenConverter }) {
   );
 }
 
+
+// ============================================================
+// PRAYER REBUILD (29 October 2026) -- PANEL 7: THE MONTH TABLE, ON ITS OWN SHEET
+// ============================================================
+// Thirty days FROM TODAY, computed at the moment the sheet opens by the one calculator at the reader's place and zone
+// -- never the stored thirty-day table, which starts where it was built and is kept for the scheduler and the widgets
+// (the measure report's second incidental fault: a table that began up to twenty-three days ago). The head names the
+// Hijri month (two when the thirty days cross one), the city and the method; today's row is navy and the Fridays are
+// faint; the month names are written at render time in the interface's language (the report's frozen-language fault).
+// Share hands the text to the system; copy puts it on the clipboard.
+function prayerMonthRows(loc, prefs, from, n) {
+  const zone = prayerZoneOf(loc);
+  const off = readHijriOffset();
+  const rows = [];
+  for (let i = 0; i < n; i++) {
+    const dt = new Date(from.y, from.m - 1, from.d + i);
+    const y = dt.getFullYear(), m = dt.getMonth() + 1, d = dt.getDate();
+    const t = prayerTimesFor(y, m, d, loc.lat, loc.lng, prayerTzOn(y, m, d, zone), prefs.method, prefs.asr, prefs.off);
+    rows.push({ civil: { y: y, m: m, d: d }, iso: prayerDayIso({ y: y, m: m, d: d }), hijri: hijriForCivilDay(y, m, d, off), wd: dt.getDay(), t: t });
+  }
+  return rows;
+}
+function PrayerMonthSheet({ onClose, loc }) {
+  useEzLang();
+  const prefs = readPrayerPrefs();
+  const today = prayerTodayParts(new Date(), prayerZoneOf(loc));
+  const rows = prayerMonthRows(loc, prefs, today, PRAYER_SCHEDULE_DAYS);
+  const [said, setSaid] = useState('');
+  const months = [];
+  for (let i = 0; i < rows.length; i++) { const k = rows[i].hijri.m + '/' + rows[i].hijri.y; if (months.indexOf(k) === -1) months.push(k); }
+  const monthNames = months.map((k) => { const p = k.split('/'); return ezT('hijri.m' + p[0]) + ' ' + prayerNum(p[1]); }).join(' \u2013 ');
+  const methodName = prayerMethodOf(prefs.method).name;
+  const wdShort = (wd) => { try { return new Intl.DateTimeFormat(EZ_LANG === 'ar' ? 'ar' : EZ_LANG, { weekday: 'short', timeZone: 'UTC' }).format(Date.UTC(2023, 0, 1 + wd)); } catch (e) { return ''; } };
+  const text = () => {
+    const lines = [ezT('panel.openMonth') + ' \u00B7 ' + monthNames + ' \u00B7 ' + prayerCityName(loc) + ' \u00B7 ' + methodName,
+      PRAYER_KEYS.map((k) => ezT('widget.prayer.' + k)).join(' | ')];
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      lines.push(prayerNum(r.hijri.d) + ' ' + ezT('hijri.m' + r.hijri.m) + ' = ' + r.iso + ': ' + PRAYER_KEYS.map((k) => prayerClockUi(r.t[k])).join(' | '));
+    }
+    return lines.join('\n');
+  };
+  const share = () => {
+    const body = text();
+    try { if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') { navigator.share({ title: ezT('panel.openMonth'), text: body }).then(() => setSaid('shared'), () => {}); return; } } catch (e) {}
+    copy();
+  };
+  const copy = () => {
+    try { if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text()).then(() => setSaid('copied'), () => setSaid('')); return; } } catch (e) {}
+    setSaid('');
+  };
+  return (
+    <EzShell title={ezT('panel.openMonth')} onBack={onClose} backLabel={QIBLA_BACK}>
+      <div className="ez110-month" data-ezik-month="sheet" data-ezik-month-from={rows.length ? rows[0].iso : ''}>
+        <div className="ez110-month-head" data-ezik-month="head">
+          <span className="ez110-month-name">{monthNames}</span>
+          <span className="ez110-month-sub"><span data-ezik-month="city">{prayerCityName(loc)}</span> {'\u00B7'} <span data-ezik-month="method">{methodName}</span></span>
+          <span className="ez110-month-sub">{ezT('month.from')}</span>
+        </div>
+        <div className="ez110-month-table" role="table" aria-label={ezT('panel.openMonth')}>
+          <div className="ez110-month-row is-head" role="row">
+            <span className="ez110-month-day" role="columnheader">{ezT('conv.day')}</span>
+            {PRAYER_KEYS.map((k) => <span key={k} className="ez110-month-cell" role="columnheader">{ezT('widget.prayer.' + k)}</span>)}
+          </div>
+          {rows.map((r) => {
+            const isToday = r.civil.y === today.y && r.civil.m === today.m && r.civil.d === today.d;
+            return (
+              <div key={r.iso} role="row" className={'ez110-month-row' + (isToday ? ' is-today' : '') + (r.wd === 5 ? ' is-fri' : '')} data-ezik-month-row={r.iso} data-ezik-month-hijri={r.hijri.y + '-' + r.hijri.m + '-' + r.hijri.d}>
+                <span className="ez110-month-day" role="rowheader">
+                  <span className="ez110-month-h">{prayerNum(r.hijri.d)} {ezT('hijri.m' + r.hijri.m)}</span>
+                  <span className="ez110-month-g">{wdShort(r.wd)} {prayerNum(r.civil.d)}/{prayerNum(r.civil.m)}</span>
+                </span>
+                {PRAYER_KEYS.map((k) => <bdi key={k} dir="ltr" className="ez110-month-cell" role="cell">{prayerClockUi(r.t[k])}</bdi>)}
+              </div>
+            );
+          })}
+        </div>
+        <div className="ez110-cal-acts">
+          <button type="button" onClick={share} data-ezik-month="share" className="ezik-focus ez110-pcard-pill is-ink">{ezT('month.share')}</button>
+          <button type="button" onClick={copy} data-ezik-month="copy" className="ezik-focus ez110-pcard-pill is-ink">{ezT('month.copy')}</button>
+        </div>
+        {said === 'copied' ? <div className="ez110-cal-note" role="status" data-ezik-month="said">{ezT('month.copied')}</div> : null}
+        {said === 'shared' ? <div className="ez110-cal-note" role="status" data-ezik-month="said">{ezT('month.shared')}</div> : null}
+        <div className="ez110-cal-note">{ezT('cal.umm')}</div>
+      </div>
+    </EzShell>
+  );
+}
+
 // THE SHEET, AND WHY IT IS A SHEET RATHER THAN A SCREEN. index.html's screen inventory is a
 // CROSS-FILE contract: theme-coverage-guard reads EZIK-THEME-33-HANDOFF.md and requires its
 // table and its Arabic screen count to match the set of `screen === '...'` branches in this
@@ -34182,6 +34284,9 @@ function PrayerSheet({ onClose, onOpenCompass }) {
   // hand-off from it ("the times of this day") spends its own entry and, when the calendar stands beneath, that one too
   const [convOpen, setConvOpen] = useState(false);
   useEzikBackLayer(convOpen, () => setConvOpen(false));
+  // PRAYER REBUILD (29 October 2026): the month table (panel 7), a layer of this sheet
+  const [monthOpen, setMonthOpen] = useState(false);
+  useEzikBackLayer(monthOpen, () => setMonthOpen(false));
   const convChainRef = useRef(false);
   useEffect(() => { if (!convOpen && convChainRef.current) { convChainRef.current = false; ezikGoBack(); } }, [convOpen]);
   // ONE POSITION FOR BOTH PANELS. The times and the qibla are two readings of the same place,
@@ -34199,6 +34304,7 @@ function PrayerSheet({ onClose, onOpenCompass }) {
   const qibla = <QiblaPanel loc={loc} onLoc={setLoc} />;
   const backup = <PrayerBackup onRestored={(l) => { setLoc(l); setDay(null); setRev(rev + 1); }} />;
   if (convOpen) return <PrayerConverterSheet onClose={ezikGoBack} loc={loc} onShowDay={convShow} />;
+  if (monthOpen) return <PrayerMonthSheet onClose={ezikGoBack} loc={loc} />;
   if (calOpen) return (
     <PrayerCalendarSheet onClose={ezikGoBack} loc={loc} onShowDay={(v) => { setDay(v); ezikGoBack(); }} onOpenConverter={() => setConvOpen(true)} />
   );
@@ -34232,6 +34338,7 @@ function PrayerSheet({ onClose, onOpenCompass }) {
       {ez110.id ? (
         <div className="ez110-pdoors">
           <button type="button" onClick={() => setCalOpen(true)} data-ezik-open="calendar" className="ezik-focus ez110-pdoor">{PRAYER_ICON_CAL}<span>{ezT('panel.openCalendar')}</span></button>
+          <button type="button" onClick={() => setMonthOpen(true)} data-ezik-open="month" className="ezik-focus ez110-pdoor">{PRAYER_ICON_TABLE}<span>{ezT('panel.openMonth')}</span></button>
         </div>
       ) : null}
       {ez110.id ? null : <PrayerDateConverter onShowDay={setDay} />}
