@@ -2139,6 +2139,9 @@ const EZ_I18N = {
     'ev.month1': '\u0623\u0648\u0651\u0644 {m}',
     'panel.openCalendar': '\u0627\u0644\u062A\u0642\u0648\u064A\u0645 \u0627\u0644\u0647\u062C\u0631\u064A',
     'panel.openMonth': '\u062C\u062F\u0648\u0644 \u0627\u0644\u0634\u0647\u0631',
+    // PRAYER REBUILD (29 October 2026) -- the converter sheet (panel 5)
+    'conv.shortcuts': '\u0627\u062E\u062A\u0635\u0627\u0631\u0627\u062A',
+    'conv.strip': '\u0647\u062C\u0631\u064A \u21C4 \u0645\u064A\u0644\u0627\u062F\u064A',
   },
   en: {
     'common.close': 'Close',
@@ -3861,6 +3864,9 @@ const EZ_I18N = {
     'ev.month1': 'First of {m}',
     'panel.openCalendar': 'Hijri calendar',
     'panel.openMonth': 'Month table',
+    // PRAYER REBUILD (29 October 2026) -- the converter sheet (panel 5)
+    'conv.shortcuts': 'Shortcuts',
+    'conv.strip': 'Hijri \u21C4 Gregorian',
   },
 };
 
@@ -34172,6 +34178,12 @@ function PrayerSheet({ onClose, onOpenCompass }) {
   // PRAYER REBUILD (29 October 2026): the calendar (panel 4), a layer of this sheet like the settings
   const [calOpen, setCalOpen] = useState(false);
   useEzikBackLayer(calOpen, () => setCalOpen(false));
+  // PRAYER REBUILD (29 October 2026): the converter (panel 5), a layer over the first page or over the calendar; a
+  // hand-off from it ("the times of this day") spends its own entry and, when the calendar stands beneath, that one too
+  const [convOpen, setConvOpen] = useState(false);
+  useEzikBackLayer(convOpen, () => setConvOpen(false));
+  const convChainRef = useRef(false);
+  useEffect(() => { if (!convOpen && convChainRef.current) { convChainRef.current = false; ezikGoBack(); } }, [convOpen]);
   // ONE POSITION FOR BOTH PANELS. The times and the qibla are two readings of the same place,
   // so the place is state here and the controls that change it stay where item 108-أ put them.
   const [loc, setLoc] = useState(readQiblaLoc);
@@ -34179,13 +34191,16 @@ function PrayerSheet({ onClose, onOpenCompass }) {
   const [rev, setRev] = useState(0);
   // PRAYER REBUILD (29 October 2026): the section's door asks for the position (the owner's word of 29 October)
   usePrayerAutoLocate(loc, setLoc);
+  const convShow = (v) => { setDay(v); if (calOpen) convChainRef.current = true; ezikGoBack(); };
+  const todayP = prayerTodayParts(new Date(), prayerZoneOf(loc));
   // ROUND 3 §3-10: the sheet's pieces, made once, so «ب» draws the first page here and the rest in its settings sheet
   const times = <PrayerTimesPanel loc={loc} day={day} onDay={setDay} />;
   const place = <PrayerPlaceSearch loc={loc} onLoc={setLoc} />;
   const qibla = <QiblaPanel loc={loc} onLoc={setLoc} />;
   const backup = <PrayerBackup onRestored={(l) => { setLoc(l); setDay(null); setRev(rev + 1); }} />;
+  if (convOpen) return <PrayerConverterSheet onClose={ezikGoBack} loc={loc} onShowDay={convShow} />;
   if (calOpen) return (
-    <PrayerCalendarSheet onClose={ezikGoBack} loc={loc} onShowDay={(v) => { setDay(v); ezikGoBack(); }} onOpenConverter={() => { ezikGoBack(); }} />
+    <PrayerCalendarSheet onClose={ezikGoBack} loc={loc} onShowDay={(v) => { setDay(v); ezikGoBack(); }} onOpenConverter={() => setConvOpen(true)} />
   );
   if (setOpen) return (
     <Ez110PrayerSettingsSheet onClose={ezikGoBack} loc={loc} onLoc={setLoc} day={day} onDay={setDay} qibla={qibla} backup={backup} rev={rev} />
@@ -34209,11 +34224,17 @@ function PrayerSheet({ onClose, onOpenCompass }) {
       <React.Fragment key={rev}>
       {ez110.id ? <PrayerTimesPanel part="main" loc={loc} day={day} onDay={setDay} onLoc={setLoc} onCity={() => setSetOpen(true)} /> : times}
       {ez110.id ? (
+        <button type="button" onClick={() => setConvOpen(true)} data-ezik-open="converter" className="ezik-focus ez110-pstrip">
+          <span className="ez110-pstrip-t">{ezT('conv.title')}</span>
+          <span className="ez110-pstrip-v">{prayerDigits(hijriLabel(hijriForCivilDay(todayP.y, todayP.m, todayP.d, readHijriOffset())))} {'\u21c4'} {prayerGregLabel(todayP)}</span>
+        </button>
+      ) : null}
+      {ez110.id ? (
         <div className="ez110-pdoors">
           <button type="button" onClick={() => setCalOpen(true)} data-ezik-open="calendar" className="ezik-focus ez110-pdoor">{PRAYER_ICON_CAL}<span>{ezT('panel.openCalendar')}</span></button>
         </div>
       ) : null}
-      <PrayerDateConverter onShowDay={setDay} />
+      {ez110.id ? null : <PrayerDateConverter onShowDay={setDay} />}
       {ez110.id ? null : place}
       {ez110.id ? null : qibla}
       </React.Fragment>
@@ -34400,65 +34421,96 @@ function PrayerPlaceSearch({ loc, onLoc, lead }) {
 // the calendar the rest of the app reads (Umm al-Qura by Intl, the arithmetical one as the named fallback) and the
 // reader's own offset from Settings. The answer can differ by a day or two from the calendar people actually use,
 // and the card says so. "Show the times of that day" hands the civil date to the prayer panel above.
-function PrayerDateConverter({ onShowDay }) {
+//
+// PRAYER REBUILD (29 October 2026) -- PANEL 5: the same two directions and the same check back and forth, on a sheet
+// of their own in the design's shape -- three lists for the Hijri date, a date input for the civil one, each answer
+// written as a weekday and a date, and five shortcuts computed on the same calendar (today, the next first of
+// Ramadan, Eid al-Fitr, Arafah and Eid al-Adha). The month list reads the dictionary (hijri.m1..12), which closes the
+// one leak the measure report found: \u00ABSafar\u00BB stayed Arabic in the English interface because the list read HIJRI_MONTHS.
+function prayerWeekdayLabel(v) {
+  try {
+    return new Intl.DateTimeFormat(EZ_LANG === 'ar' ? 'ar-u-ca-gregory-nu-arab' : (EZ_LANG + '-u-ca-gregory'), { weekday: 'long', timeZone: 'UTC' }).format(Date.UTC(v.y, v.m - 1, v.d));
+  } catch (e) { return ''; }
+}
+function PrayerDateConverter({ onShowDay, loc }) {
   useEzLang();
-  const nowP = prayerTodayParts(new Date(), null);
+  const off = readHijriOffset();
+  const nowP = prayerTodayParts(new Date(), loc ? prayerZoneOf(loc) : null);
   const [greg, setGreg] = useState(prayerDayIso(nowP));
-  const hNow = hijriForCivilDay(nowP.y, nowP.m, nowP.d, readHijriOffset());
+  const hNow = hijriForCivilDay(nowP.y, nowP.m, nowP.d, off);
   const [hy, setHy] = useState(String(hNow.y));
   const [hm, setHm] = useState(String(hNow.m));
   const [hd, setHd] = useState(String(hNow.d));
-  const off = readHijriOffset();
   const gDay = prayerDayFromIso(greg);
-  const toHijri = gDay ? hijriLabel(hijriForCivilDay(gDay.y, gDay.m, gDay.d, off)) : '';
+  const toHijri = gDay ? prayerWeekdayLabel(gDay) + ' ' + prayerDigits(hijriLabel(hijriForCivilDay(gDay.y, gDay.m, gDay.d, off))) : '';
   const cDay = hijriToCivil(Number(hy), Number(hm), Number(hd), off);
-  const toGreg = cDay ? prayerDayLabel(cDay) : '';
+  const toGreg = cDay ? prayerGregLabel(cDay) : '';
   const months = [];
   for (let i = 1; i <= 12; i++) months.push(i);
+  const days = [];
+  for (let i = 1; i <= 30; i++) days.push(i);
+  const years = [];
+  for (let y = HIJRI_CONV_MIN_YEAR; y <= HIJRI_CONV_MAX_YEAR; y++) years.push(y);
+  const setH = (h) => { setHy(String(h.y)); setHm(String(h.m)); setHd(String(h.d)); };
+  const jump = (key) => {
+    if (key === 'today') { setGreg(prayerDayIso(nowP)); setH(hNow); return; }
+    const up = prayerUpcomingEvents(nowP, off, 12).find((e) => e.key === key);
+    if (!up) return;
+    setH({ y: up.hy, m: up.hm, d: up.hd });
+    setGreg(prayerDayIso(up.civil));
+  };
+  const field = { ...s.drawerSearch, width: 'auto', minHeight: 40, padding: '6px 10px' };
   return (
-    <EzShellGroup title={ezT('conv.title')}>
-      <div style={s.a11yGroupLabel}>{ezT('conv.greg')}</div>
-      <div className="ez-hit" style={s.prayerOptRow}>
-        <input type="date" value={greg} min={PRAYER_DAY_MIN_YEAR + '-01-01'} max={PRAYER_DAY_MAX_YEAR + '-12-31'}
-          onChange={(e) => setGreg(e && e.target ? e.target.value : '')} data-ezik-conv="greg" aria-label={ezT('conv.greg')}
-          className="ezik-focus" style={{ ...s.drawerSearch, width: 'auto', minHeight: 34, padding: '4px 8px' }} />
+    <div className="ez110-conv" data-ezik-conv="sheet">
+      <div className="ez110-conv-short" role="group" aria-label={ezT('conv.shortcuts')}>
+        {['today', 'ramadan', 'fitr', 'arafah', 'adha'].map((k) => (
+          <button key={k} type="button" onClick={() => jump(k)} data-ezik-conv-jump={k} className="ezik-focus ez110-conv-chip">{k === 'today' ? ezT('cal.today') : ezT('ev.' + k)}</button>
+        ))}
       </div>
-      <div style={s.prayerRow}>
-        <span style={s.prayerName}>{ezT('conv.toHijri')}</span>
-        <span style={s.prayerTime} data-ezik-conv="hijri-out">{toHijri || ezT('conv.invalidGreg')}</span>
-      </div>
-      {gDay ? (
-        <div className="ez-hit" style={s.prayerOptRow}>
-          <button type="button" onClick={() => { if (onShowDay) onShowDay(gDay); }} data-ezik-conv="show-greg"
-            className="ezik-focus" style={s.prayerOpt}>{ezT('conv.show')}</button>
+      <section className="ez110-conv-card" data-ezik-conv="from-hijri">
+        <h3 className="ez110-conv-h">{ezT('conv.hijri')}</h3>
+        <div className="ez-hit ez110-conv-fields">
+          <select value={hd} onChange={(e) => setHd(e && e.target ? e.target.value : '1')} data-ezik-conv="hd" aria-label={ezT('conv.day')} className="ezik-focus" style={field}>
+            {days.map((n) => <option key={n} value={String(n)}>{prayerNum(n)}</option>)}
+          </select>
+          <select value={hm} onChange={(e) => setHm(e && e.target ? e.target.value : '1')} data-ezik-conv="hm" aria-label={ezT('conv.month')} className="ezik-focus" style={field}>
+            {months.map((n) => <option key={n} value={String(n)}>{ezT('hijri.m' + n)}</option>)}
+          </select>
+          <select value={hy} onChange={(e) => setHy(e && e.target ? e.target.value : String(hNow.y))} data-ezik-conv="hy" aria-label={ezT('conv.year')} className="ezik-focus" style={field}>
+            {years.map((n) => <option key={n} value={String(n)}>{prayerNum(n)}</option>)}
+          </select>
         </div>
-      ) : null}
-      <div style={s.a11yGroupLabel}>{ezT('conv.hijri')}</div>
-      <div className="ez-hit" style={s.prayerOptRow}>
-        <input type="number" value={hy} min={HIJRI_CONV_MIN_YEAR} max={HIJRI_CONV_MAX_YEAR}
-          onChange={(e) => setHy(e && e.target ? e.target.value : '')} data-ezik-conv="hy" aria-label={ezT('conv.year')}
-          className="ezik-focus" style={{ ...s.drawerSearch, width: 90, minHeight: 34, padding: '4px 8px' }} />
-        <select value={hm} onChange={(e) => setHm(e && e.target ? e.target.value : '1')} data-ezik-conv="hm"
-          aria-label={ezT('conv.month')} className="ezik-focus"
-          style={{ ...s.drawerSearch, width: 'auto', minHeight: 34, padding: '4px 8px' }}>
-          {months.map((n) => <option key={n} value={String(n)}>{HIJRI_MONTHS[n - 1]}</option>)}
-        </select>
-        <input type="number" value={hd} min="1" max="30"
-          onChange={(e) => setHd(e && e.target ? e.target.value : '')} data-ezik-conv="hd" aria-label={ezT('conv.day')}
-          className="ezik-focus" style={{ ...s.drawerSearch, width: 70, minHeight: 34, padding: '4px 8px' }} />
+        <div className="ez110-conv-out" data-ezik-conv="greg-out">{toGreg || ezT('conv.invalidHijri')}</div>
+        {cDay ? (
+          <button type="button" onClick={() => { if (onShowDay) onShowDay(cDay); }} data-ezik-conv="show-hijri" className="ezik-focus ez110-pcard-pill is-ink">{ezT('conv.show')}</button>
+        ) : null}
+      </section>
+      <div className="ez110-conv-swap" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3" /></svg>
       </div>
-      <div style={s.prayerRow}>
-        <span style={s.prayerName}>{ezT('conv.toGreg')}</span>
-        <span style={s.prayerTime} data-ezik-conv="greg-out">{toGreg || ezT('conv.invalidHijri')}</span>
-      </div>
-      {cDay ? (
-        <div className="ez-hit" style={s.prayerOptRow}>
-          <button type="button" onClick={() => { if (onShowDay) onShowDay(cDay); }} data-ezik-conv="show-hijri"
-            className="ezik-focus" style={s.prayerOpt}>{ezT('conv.show')}</button>
+      <section className="ez110-conv-card" data-ezik-conv="from-greg">
+        <h3 className="ez110-conv-h">{ezT('conv.greg')}</h3>
+        <div className="ez-hit ez110-conv-fields">
+          <input type="date" value={greg} min={PRAYER_DAY_MIN_YEAR + '-01-01'} max={PRAYER_DAY_MAX_YEAR + '-12-31'}
+            onChange={(e) => setGreg(e && e.target ? e.target.value : '')} data-ezik-conv="greg" aria-label={ezT('conv.greg')}
+            className="ezik-focus" style={field} />
         </div>
-      ) : null}
-      <div style={s.qiblaNote}>{ezT('conv.hint')}</div>
-    </EzShellGroup>
+        <div className="ez110-conv-out" data-ezik-conv="hijri-out">{toHijri || ezT('conv.invalidGreg')}</div>
+        {gDay ? (
+          <button type="button" onClick={() => { if (onShowDay) onShowDay(gDay); }} data-ezik-conv="show-greg" className="ezik-focus ez110-pcard-pill is-ink">{ezT('conv.show')}</button>
+        ) : null}
+      </section>
+      <div className="ez110-cal-note">{ezT('conv.hint')}</div>
+    </div>
+  );
+}
+// The sheet the first page's strip and the calendar's door open.
+function PrayerConverterSheet({ onClose, loc, onShowDay }) {
+  useEzLang();
+  return (
+    <EzShell title={ezT('conv.title')} onBack={onClose} backLabel={QIBLA_BACK}>
+      <PrayerDateConverter onShowDay={onShowDay} loc={loc} />
+    </EzShell>
   );
 }
 

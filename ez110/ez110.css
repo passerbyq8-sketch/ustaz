@@ -996,6 +996,24 @@ html[data-ez110] .ez110-pdoor {
 }
 html[data-ez110] .ez110-pdoor svg { color: #12327A; }
 
+/* ---- panel 5: the date converter, and the strip on the first page that opens it ---- */
+html[data-ez110] .ez110-conv { display: flex; flex-direction: column; gap: 10px; }
+html[data-ez110] .ez110-conv-short { display: flex; flex-wrap: wrap; gap: 6px; }
+html[data-ez110] .ez110-conv-chip { min-height: 34px; padding: 4px 12px; border: 1px solid var(--vt-line); border-radius: 999px; background: var(--vt-surface); color: var(--vt-accent-ink); font: inherit; font-size: calc(13px * var(--ez-fs, 1)); font-weight: 600; cursor: pointer; }
+html[data-ez110] .ez110-conv-card { display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 18px; background: var(--vt-surface); border: 1px solid var(--vt-line); box-shadow: var(--vt-shadow); }
+html[data-ez110] .ez110-conv-h { margin: 0; font-family: var(--ez110-font-head); font-size: calc(16px * var(--ez-fs, 1)); font-weight: 700; color: var(--vt-ink); }
+html[data-ez110] .ez110-conv-fields { display: flex; flex-wrap: wrap; gap: 6px; }
+html[data-ez110] .ez110-conv-fields select, html[data-ez110] .ez110-conv-fields input { max-width: 100%; }
+html[data-ez110] .ez110-conv-out { font-family: var(--ez110-font-head); font-size: calc(17px * var(--ez-fs, 1)); font-weight: 700; color: #12327A; line-height: 1.5; }
+html[data-ez110] .ez110-conv-card .ez110-pcard-pill { align-self: flex-start; }
+html[data-ez110] .ez110-conv-swap { display: flex; justify-content: center; color: var(--vt-muted); }
+html[data-ez110] .ez110-pstrip {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 48px; margin-top: 10px; padding: 8px 14px;
+  border: 1px solid var(--vt-line); border-radius: 16px; background: var(--vt-surface); color: var(--vt-ink); font: inherit; text-align: start; cursor: pointer;
+}
+html[data-ez110] .ez110-pstrip-t { font-weight: 700; font-size: calc(14px * var(--ez-fs, 1)); white-space: nowrap; }
+html[data-ez110] .ez110-pstrip-v { font-size: calc(12.5px * var(--ez-fs, 1)); color: var(--vt-muted); text-align: end; }
+
 /* ==== 40-b-answer.css ==== */
 /* 40 -- THE ANSWER (board B3). The answer's markup and inline styles are pinned byte for byte by
    speedclient/speedintegration, so «ب» restyles it here, through classes, and touches nothing inside.
