@@ -30104,7 +30104,7 @@ function prayerCityName(loc) {
     let dev = null;
     try { dev = readPrayerPrefs().dev; } catch (e) { dev = null; }
     if (dev && dev.lat === loc.lat && dev.lng === loc.lng && (dev.n || dev.a)) return placeLabel({ n: dev.n, a: dev.a });
-    return ezT('place.here') + ' (' + prayerNum(Math.round(loc.lat * 100) / 100) + ', ' + prayerNum(Math.round(loc.lng * 100) / 100) + ')';
+    return ezT('place.here');   // the phrase alone (ج٢): no coordinates while the nearest place is still being named
   }
   return ezT('place.default');
 }
