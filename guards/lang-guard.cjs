@@ -555,6 +555,18 @@ const V = '﴿', W = '﴾';
     ok('the interface\'s digits follow the language (Latin in English, Arabic-Indic in Arabic), and scripture\'s digits are Arabic-Indic in both', cEn.dig(2026) === '2026' && cAr.dig(2026) === '٢٠٢٦' && cEn.sc(7) === '٧' && cAr.sc(7) === '٧');
     ok('the prayer clock writes its digits and its half-day marks from the language\'s row', cEn.clock(4 * 60 + 21) === '4:21 AM' && cEn.clock(15 * 60 + 5) === '3:05 PM' && cAr.clock(4 * 60 + 21) === '٤:٢١ ص', cEn.clock(4 * 60 + 21) + ' | ' + cAr.clock(4 * 60 + 21));
     ok('the English row of the table carries the half-day marks, and no scripture site writes its verse numbers with the interface\'s digits', /code: 'en'[^}]*meridiem: \['AM', 'PM'\]/.test(appSrc) && !/۝['`$ ]*[{+ ]*toArabicDigits\(/.test(appSrc) && !/۝\$\{toArabicDigits/.test(appSrc));
+    // PRAYER-FIX2 (29 October 2026, the owner's word 13:19): the menu's prayer card is EXCLUDED from «the interface's digits
+    // follow the language». Every number it draws -- the five times, the next time, the countdown, the Hijri and the Gregorian
+    // day -- goes through the SECTION's display functions (prayerClockUi, prayerDigits), so it follows the «display» setting
+    // (Western digits by default, Arabic-Indic by choice; a 12- or 24-hour clock) exactly as the section does: one system in
+    // the whole app. prayerClock itself still follows the language (the line above) for the places that keep it. The DOM
+    // proof -- card = section under each setting -- is scene card-digits of guards/prayer-features-guard.cjs.
+    const cardSrc = sliceBetween('function Ez110PrayerCard(', '\n}\n');
+    ok('the menu\'s prayer card writes no number through the language\'s digits: its five times and its next time go through prayerClockUi, its countdown, its Hijri and its Gregorian day through prayerDigits, and prayerClock / toArabicDigits / ezNum appear nowhere in it',
+      cardSrc.indexOf('prayerClockUi(nextTime)') >= 0 && cardSrc.indexOf('prayerClockUi(t[k])') >= 0 && cardSrc.indexOf('prayerDigits(ez110Countdown(') >= 0
+      && cardSrc.indexOf('prayerDigits(hijri)') >= 0 && cardSrc.indexOf('prayerGregLabel(today)') >= 0 && /prayerDigits\(new Intl\.DateTimeFormat/.test(sliceBetween('function prayerGregLabel(v) {', '\n}\n'))
+      && !/[^a-zA-Z]prayerClock\(/.test(cardSrc) && cardSrc.indexOf('toArabicDigits(') < 0 && cardSrc.indexOf('ezNum(') < 0 && cardSrc.indexOf('ezikBrowseNum(') < 0 && cardSrc.indexOf('{hijri}') < 0,
+      'prayerClock( x' + (cardSrc.split('prayerClock(').length - 1) + ', prayerClockUi( x' + (cardSrc.split('prayerClockUi(').length - 1) + ', prayerDigits( x' + (cardSrc.split('prayerDigits(').length - 1));
   }
 
   // AMENDMENT A3 (2026-10-07). EVERY LANGUAGE AFTER ENGLISH IS ONE STATIC FILE, NOT PART OF app.js.

@@ -10360,6 +10360,10 @@ function Ez110PrayerCard({ onOpen, hijri, onQibla }) {
   // Hijri stays in its \u00ABgap\u00BB, the owner's word of 10 October), today's log on the five dots (on time green, late gold,
   // the current prayer dashed), and the qibla's own shortcut that opens the compass screen straight away -- through the
   // same press that spends the iOS gesture (qiblaCompassGesture, panel 2). The card stays the section's door.
+  // PRAYER-FIX2 (29 October 2026, the owner's word 13:19): every number on this card is written by the SECTION's display
+  // functions -- prayerClockUi for the five times and the next time (the «digits» and the «clock» settings), prayerDigits
+  // over the countdown, the Hijri date and the Gregorian day (the «digits» setting) -- never by the language's digits
+  // alone. One system in the whole app: what the section shows, the card shows (guards: lang, prayerfeatures card-digits).
   const log = readPrayerLog()[prayerDayIso(today)] || null;
   const dayStart = prayerInstant(today.y, today.m, today.d, 0, place, prayerTzOn(today.y, today.m, today.d, place));
   const curKey = status && status.current && typeof status.currentAt === 'number' && status.currentAt >= dayStart ? status.current : null;
@@ -10373,16 +10377,16 @@ function Ez110PrayerCard({ onOpen, hijri, onQibla }) {
             <span className="ez110-prayer-city" data-ezik-card="city"><span className="ez110-prayer-pin" aria-hidden="true">{PRAYER_ICON_PIN}</span>{prayerCityName(loc)}</span>
           </span>
           <span className="ez110-prayer-datecol">
-            {hijri ? <span className="ez110-prayer-hijri">{hijri}</span> : null}
+            {hijri ? <span className="ez110-prayer-hijri">{prayerDigits(hijri)}</span> : null}
             <span className="ez110-prayer-greg" data-ezik-card="greg">{prayerGregLabel(today)}</span>
           </span>
         </span>
         {next ? (
           <span className="ez110-prayer-main">
             <span className="ez110-prayer-name">{ezT('widget.prayer.' + next)}</span>
-            <span className="ez110-prayer-time">{prayerClock(nextTime)}</span>
+            <span className="ez110-prayer-time">{prayerClockUi(nextTime)}</span>
             {status.remainingMs != null ? (
-              <span className="ez110-prayer-left">{ezT('panel.in')} <bdi dir="ltr">{ez110Countdown(status.remainingMs)}</bdi></span>
+              <span className="ez110-prayer-left">{ezT('panel.in')} <bdi dir="ltr">{prayerDigits(ez110Countdown(status.remainingMs))}</bdi></span>
             ) : null}
           </span>
         ) : null}
@@ -10393,7 +10397,7 @@ function Ez110PrayerCard({ onOpen, hijri, onQibla }) {
               <span key={k} className={'ez110-prayer-cell' + (k === next ? ' is-next' : '') + (mark === 'on' ? ' is-on' : mark === 'late' ? ' is-late' : '') + (k === curKey ? ' is-cur' : '')} data-ezik-card-dot={k} data-ezik-card-mark={mark || 'none'}>
                 <span className="ez110-prayer-dot" aria-hidden="true" />
                 <span className="ez110-prayer-cname">{ezT('widget.prayer.' + k)}</span>
-                <span className="ez110-prayer-ctime">{prayerClock(t[k])}</span>
+                <span className="ez110-prayer-ctime">{prayerClockUi(t[k])}</span>
               </span>
             );
           })}

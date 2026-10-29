@@ -719,6 +719,50 @@ SCENES.card = async () => {
   ok('the qibla door opens the compass screen itself', !!c.q('.ez110-qibla-dialwrap.is-full svg[data-ezik-compass="dial"]'));
   t('nothing threw', c.caught(), null);
 };
+// PRAYER-FIX2 (29 October 2026, the owner's word 13:19 «with your recommendation»): the menu's prayer card writes its digits and
+// its clock as the section does -- the «display» setting, never the language. Three boots over the same store the section reads:
+// Western digits (the shipped default), Arabic-Indic digits, the 24-hour clock. In each the card's five times are read off the
+// DOM and compared to the section's own function AND to the section's own DOM for the same day; then the next time, the
+// countdown, the Hijri and the Gregorian day are checked for the digit system. (The owner's examples 4:39 / ٤:٣٩ / 17:05
+// are shapes: the real values are today's times at the default place.)
+SCENES['card-digits'] = async () => {
+  say('S17 the menu\'s prayer card: its digits and its clock follow the display setting, as the section\'s do (PRAYER-FIX2)');
+  const KEYS = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+  const ARAB = /[\u0660-\u0669]/, LATN = /[0-9]/, H24 = /^[0-9]{2}:[0-9]{2}$/;
+  const txt = (el) => (el ? el.textContent : '');
+  const run = async (name, extra, check) => {
+    const c = boot({ seed: { ezik_prayer_prefs_v1: prefsWith(extra) } });
+    await c.waitFor(() => c.q('.ezc-rail') || c.q('[data-ezik-home-module]') || c.q('.ez110-home'));
+    c.open('home');
+    await c.waitFor(() => c.q('[data-ez110-prayer-card] .ez110-prayer-ctime'));
+    const card = c.q('[data-ez110-prayer-card]');
+    const five = KEYS.map((k) => txt(c.q('[data-ezik-card-dot="' + k + '"] .ez110-prayer-ctime')));
+    const next = txt(card.querySelector('.ez110-prayer-time'));
+    const left = txt(card.querySelector('.ez110-prayer-left bdi'));
+    const hijri = txt(card.querySelector('.ez110-prayer-hijri'));
+    const greg = txt(c.q('[data-ezik-card="greg"]'));
+    const want = c.read('(function(){const l=readQiblaLoc();const p=readPrayerPrefs();const n=new Date();const v=prayerTodayParts(n, prayerZoneOf(l));const t=prayerTimesFor(v.y,v.m,v.d,l.lat,l.lng,prayerTzNow(n,l),p.method,p.asr,p.off);return ' + JSON.stringify(KEYS) + '.map((k)=>prayerClockUi(t[k]));})()');
+    t(name + ': the card\'s five times are what the section\'s own function prayerClockUi writes', five, want);
+    ok(name + ': the card names a next prayer with its time', next.length >= 4, next);
+    c.open('prayer');
+    await c.waitFor(() => c.q('[data-ezik-prayer="fajr"] .ez110-prow-time'));
+    const sect = KEYS.map((k) => txt(c.q('[data-ezik-prayer="' + k + '"] .ez110-prow-time')));
+    t(name + ': the section\'s own DOM writes the same five, digit for digit', sect, five);
+    check(five, next, left, hijri, greg);
+    t(name + ': nothing threw', c.caught(), null);
+  };
+  await run('Western digits (the shipped default)', {}, (five, next, left, hijri, greg) => {
+    ok('Western: every card time is Western digits only (the shape 4:39)', five.every((s) => LATN.test(s) && !ARAB.test(s)) && LATN.test(next) && !ARAB.test(next), five.join(' ') + ' | ' + next);
+    ok('Western: the countdown, the Hijri and the Gregorian day carry no Arabic-Indic digit', !ARAB.test(left) && !ARAB.test(hijri) && !ARAB.test(greg) && LATN.test(hijri) && LATN.test(greg), [left, hijri, greg].join(' | '));
+  });
+  await run('Arabic-Indic digits (chosen)', { digits: 'arab' }, (five, next, left, hijri, greg) => {
+    ok('Arabic-Indic: every card time is Arabic-Indic digits only (the shape ٤:٣٩)', five.every((s) => ARAB.test(s) && !LATN.test(s)) && ARAB.test(next) && !LATN.test(next), five.join(' ') + ' | ' + next);
+    ok('Arabic-Indic: the countdown, the Hijri and the Gregorian day carry no Western digit', !LATN.test(left) && !LATN.test(hijri) && !LATN.test(greg) && ARAB.test(hijri) && ARAB.test(greg), [left, hijri, greg].join(' | '));
+  });
+  await run('the 24-hour clock', { clock: 24 }, (five, next) => {
+    ok('24-hour: every card time is hh:mm with no half-day mark (the shape 17:05)', five.every((s) => H24.test(s)) && H24.test(next), five.join(' ') + ' | ' + next);
+  });
+};
 SCENES['iqama-noshell'] = async () => {
   say('S5  in a browser tab the alert controls are not drawn');
   const one = blank5(); one.dhuhr = { on: true, min: 10 };
