@@ -2055,7 +2055,9 @@ const SEALED = {
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57787 bytes).
 //   2026-10-29 -- PRAYER SHIP re-cut (ORG NOTE 11:20: the launch branch iap-launch-free reserved ezik-v121 unpushed, so the prayer ship takes the next value no branch ever used): cache ezik-v121 -> ezik-v122 (config/app-version.json and sw.js CACHE, app.js line 6 rebuilt); app.js 2447611 -> 2447611 bytes, sha256 9b0dc125..cc12; node tools/core-bytes.cjs --write: CORE_BYTES 3633625 -> 3633625.
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57787 bytes).
-  'sw.js': 'a0192b08efc51908126316eebb22f9f2fe5d051811aa4cf41280744e76d0c948',
+//   2026-10-29 -- PRAYER-FIX2 (side/prayer-fix2-20261029: the menu's prayer card writes its digits and its clock through the section's display functions -- prayerClockUi / prayerDigits -- so it follows the «display» setting as the section does; the cache takes the next value no branch ever used, ezik-v121 being the launch branch's and ezik-v122 the prayer ship's): cache ezik-v122 -> ezik-v123 (config/app-version.json and sw.js CACHE, app.js line 6 rebuilt); app.js 2447611 -> 2448129 bytes, sha256 afcd102c..ae2c; node tools/core-bytes.cjs --write: CORE_BYTES 3633625 -> 3634143.
+//                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57787 bytes).
+  'sw.js': '4d9610868d94715e459b08a7e312ba82f4093ec78aaeb977d087a3c19cb45ab1',
 };
 
 // ---------------------------------------------------------------------------
@@ -3244,7 +3246,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2447611, of: 'app.js' },
+      { n: 2448129, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
