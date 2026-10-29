@@ -196,7 +196,7 @@ async function main() {
   // K -- the table, key by key
   const kv = d1.api.kv(), ctr = d1.api.ctr(), dev = d1.api.deviceOnly();
   const OWNER_SYNC = ['ezik_visual_theme_v2', LANG_KEY, 'ezik_home_widgets_v1', 'ezik_home_order_v1', 'ezik_hijri_offset_v1', 'ezik_fatwa_scholars_v1', 'mushaf_bookmark_v1', 'mushaf_last_page_v1', 'mushaf_wird_target_v1', 'ezik_daily_wird_v1', 'ezik_wird_list_v1', 'adhkar_favorites_v1', 'adhkar_place_v1', 'ezik_tasbih_session_v1', 'ezlib_pos_v1'];
-  const OWNER_CTR = ['ezik_khatmah_v1', 'mushaf_wird_day_v1', 'adhkar_daily_progress_v1', 'adhkar_usage_v1', 'ezik_adhkar_streak_v1', 'ezik_tasbih_log_v1'];
+  const OWNER_CTR = ['ezik_khatmah_v1', 'mushaf_wird_day_v1', 'adhkar_daily_progress_v1', 'adhkar_usage_v1', 'ezik_adhkar_streak_v1', 'ezik_tasbih_log_v1', 'ezik_prayer_log_v1'];   // PRAYER REBUILD: the prayer log travels as a counter
   const OWNER_DEVICE = ['ezik_qibla_loc_v1', 'ezik_prayer_place_v1', 'ezik_prayer_notify_v1', 'ezik_reminders_v1', 'ezik_wird_alerts_v1', 'ezik_ai_consent_v1', 'parent_pin_hash', 'directConvoLocked'];
   check('K1 every setting, position and list of decision 2 is in the synced table', OWNER_SYNC.every((k) => kv.includes(k)), OWNER_SYNC.filter((k) => !kv.includes(k)).join(','));
   check('K2 every counter (khatmah, wird day, adhkar, tasbih) is synced as a counter', OWNER_CTR.every((k) => ctr.includes(k)));

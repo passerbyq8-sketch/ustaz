@@ -2148,6 +2148,13 @@ const EZ_I18N = {
     'month.copy': '\u0646\u0633\u062E',
     'month.copied': '\u0646\u064F\u0633\u062E \u0627\u0644\u062C\u062F\u0648\u0644 \u0625\u0644\u0649 \u0627\u0644\u062D\u0627\u0641\u0638\u0629.',
     'month.shared': '\u0634\u064F\u0648\u0631\u0643 \u0627\u0644\u062C\u062F\u0648\u0644.',
+    // PRAYER REBUILD (29 October 2026) -- your prayers today (the log, panel 8)
+    'log.title': '\u0635\u0644\u0627\u062A\u0643 \u0627\u0644\u064A\u0648\u0645',
+    'log.on': '\u0641\u064A \u0648\u0642\u062A\u0647\u0627',
+    'log.late': '\u0645\u062A\u0623\u062E\u0651\u0631\u0629',
+    'log.clear': '\u063A\u064A\u0631 \u0645\u0633\u062C\u0651\u0644\u0629',
+    'log.streak': '\u0623\u064A\u0651\u0627\u0645 \u0645\u062A\u062A\u0627\u0644\u064A\u0629: {n}',
+    'log.hint': '\u0627\u0644\u0645\u0633 \u0627\u0644\u062F\u0627\u0626\u0631\u0629 \u0628\u0639\u062F \u0627\u0644\u0635\u0644\u0627\u0629: \u0641\u064A \u0648\u0642\u062A\u0647\u0627\u060C \u062B\u0645\u0651 \u0645\u062A\u0623\u062E\u0651\u0631\u0629\u060C \u062B\u0645\u0651 \u0645\u062D\u0648.',
   },
   en: {
     'common.close': 'Close',
@@ -3879,6 +3886,13 @@ const EZ_I18N = {
     'month.copy': 'Copy',
     'month.copied': 'The table was copied.',
     'month.shared': 'The table was shared.',
+    // PRAYER REBUILD (29 October 2026) -- your prayers today (the log, panel 8)
+    'log.title': 'Your prayers today',
+    'log.on': 'On time',
+    'log.late': 'Late',
+    'log.clear': 'Not recorded',
+    'log.streak': 'Days in a row: {n}',
+    'log.hint': 'Tap a circle after praying: on time, then late, then clear.',
   },
 };
 
@@ -23890,6 +23904,9 @@ function App() {
       try { localStorage.removeItem(PRAYER_SCHEDULE_KEY); } catch (e) {}
       // ITEM 124-1: the name and zone of a place chosen from the list are part of the saved position.
       try { localStorage.removeItem(PRAYER_PLACE_KEY); } catch (e) {}
+      // PRAYER REBUILD (29 October 2026): the prayer log -- which prayers this reader prayed and when -- is a record of
+      // one person and goes with the rest, on the owner's standing rule for every device key.
+      try { localStorage.removeItem(PRAYER_LOG_KEY); } catch (e) {}
       // THE SIGN-IN SESSION. delete.html:94 / :138 promise everything is wiped, and :95 / :139
       // name exactly ONE thing that remains afterwards -- the digest of the parental code. A
       // session left standing here would quietly have made it two, so "delete all my data"
@@ -29509,6 +29526,7 @@ const PRAYER_ICON_CHEV = <svg width="18" height="18" viewBox="0 0 24 24" fill="n
 const PRAYER_ICON_CHEV_BACK = <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6" /></svg>;
 const PRAYER_ICON_CAL = <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>;
 const PRAYER_ICON_TABLE = <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3" /><path d="M3 9h18M3 14h18M9 4v16M15 4v16" /></svg>;
+const PRAYER_ICON_FLAME = <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1 4 5 5.5 5 10.5A5 5 0 0 1 7 12.5c0-1.5.5-2.5 1-3.5.5 2 1.5 2.5 2 2.5 0-3 .5-6 2-9.5Z" /></svg>;
 const PRAYER_ICON_LOCATE = <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7" /><circle cx="12" cy="12" r="2" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></svg>;
 function PrayerTimesPanel({ loc, day, onDay, part, onLoc, onCity }) {
   // The position and the preferences both move HERE, so the pipe is re-armed from here.
@@ -30897,6 +30915,7 @@ function ezikSyncKv() { return [
 ]; }
 function ezikSyncCtr() { return [
   KHATMAH_KEY, WIRD_DAY_KEY, ADHKAR_PROGRESS_KEY, ADHKAR_USAGE_KEY, ADHKAR_STREAK_KEY, TASBIH_LOG_KEY,
+  PRAYER_LOG_KEY,   // PRAYER REBUILD (29 October 2026): the prayer log travels as a counter (days merge key by key)
 ]; }
 // The four records that are SHAPED rather than copied, because their device copy carries a
 // device-only half: the profile (its pid files this device's conversations and consent), the
@@ -34265,6 +34284,116 @@ function PrayerMonthSheet({ onClose, loc }) {
   );
 }
 
+
+// ============================================================
+// PRAYER REBUILD (29 October 2026) -- PANEL 1's \u00ABYOUR PRAYERS TODAY\u00BB: THE LOG AND THE STREAK (panel 8 of the brief)
+// ============================================================
+// The one feature taken from com.salati.prayertracker this session: five circles for today's prayers, a touch on a
+// prayer whose time has come marks it \u00ABon time\u00BB, a second \u00ABlate\u00BB, a third clears it; the days in a row that are
+// complete are the streak. The record is ONE device key, ezik_prayer_log_v1 -- { "YYYY-MM-DD": { fajr, dhuhr, asr,
+// maghrib, isha } } with "on" | "late" | null -- capped at the last PRAYER_LOG_DAYS days. It is SYNCED as a counter
+// (decision 24+58: the tracking travels with the account; the server merges counters key by key, so a day marked on
+// one phone and another day on a second both survive), erased by \u00ABdelete all my data\u00BB, and listed in gate deletetruth.
+// No wider statistics in this session.
+const PRAYER_LOG_KEY = 'ezik_prayer_log_v1';
+const PRAYER_LOG_DAYS = 400;
+const PRAYER_LOG_MARKS = ['on', 'late'];
+function prayerLogDayBlank() {
+  const out = {};
+  for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) out[PRAYER_OFFSETTABLE[i]] = null;
+  return out;
+}
+function prayerLogDayRead(raw) {
+  const out = prayerLogDayBlank();
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
+  for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) { const k = PRAYER_OFFSETTABLE[i]; if (PRAYER_LOG_MARKS.indexOf(raw[k]) !== -1) out[k] = raw[k]; }
+  return out;
+}
+// The whole record, every day checked, the oldest beyond the cap dropped; a broken store reads as empty.
+function readPrayerLog() {
+  let raw = null;
+  try { raw = localStorage.getItem(PRAYER_LOG_KEY); } catch (e) { return {}; }
+  if (typeof raw !== 'string' || !raw) return {};
+  let rec = null;
+  try { rec = JSON.parse(raw); } catch (e) { return {}; }
+  if (!rec || typeof rec !== 'object' || Array.isArray(rec)) return {};
+  const keys = Object.keys(rec).filter((k) => prayerDayFromIso(k) !== null).sort();   // a real day in range, not merely the shape
+  const out = {};
+  for (let i = Math.max(0, keys.length - PRAYER_LOG_DAYS); i < keys.length; i++) out[keys[i]] = prayerLogDayRead(rec[keys[i]]);
+  return out;
+}
+function writePrayerLog(rec) {
+  try { localStorage.setItem(PRAYER_LOG_KEY, JSON.stringify(rec)); } catch (e) { return readPrayerLog(); }
+  return rec;
+}
+// One touch: nothing -> on time -> late -> nothing. Returns the record now in effect.
+function markPrayerLog(dayKey, k, mark) {
+  const log = readPrayerLog();
+  if (prayerDayFromIso(dayKey) === null || PRAYER_OFFSETTABLE.indexOf(k) === -1) return log;
+  const day = prayerLogDayRead(log[dayKey]);
+  day[k] = PRAYER_LOG_MARKS.indexOf(mark) !== -1 ? mark : null;
+  log[dayKey] = day;
+  return writePrayerLog(log);
+}
+function prayerLogNextMark(cur) { return cur === null || cur === undefined ? 'on' : (cur === 'on' ? 'late' : null); }
+function prayerLogDayComplete(rec) {
+  if (!rec || typeof rec !== 'object') return false;
+  for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) if (PRAYER_LOG_MARKS.indexOf(rec[PRAYER_OFFSETTABLE[i]]) === -1) return false;
+  return true;
+}
+// The days in a row that are complete, counted back from today (today itself only when it is complete).
+function prayerLogStreak(log, todayKey) {
+  let d = prayerDayFromIso(todayKey);
+  if (!d) return 0;
+  let n = 0;
+  if (!prayerLogDayComplete(log[todayKey])) d = prayerShiftDay(d, -1);
+  while (n <= PRAYER_LOG_DAYS && prayerLogDayComplete(log[prayerDayIso(d)])) { n++; d = prayerShiftDay(d, -1); }
+  return n;
+}
+function PrayerLogCard({ loc }) {
+  useEzLang();
+  useEzikTick(true);
+  const [, setN] = useState(0);
+  const now = new Date();
+  const zone = prayerZoneOf(loc);
+  const today = prayerTodayParts(now, zone);
+  const todayKey = prayerDayIso(today);
+  const prefs = readPrayerPrefs();
+  const log = readPrayerLog();
+  const day = prayerLogDayRead(log[todayKey]);
+  const status = prayerStatus(now, loc, prefs);
+  // a prayer may be marked once its time has come TODAY: the current one (dashed) and the ones before it
+  const dayStart = prayerInstant(today.y, today.m, today.d, 0, zone, prayerTzOn(today.y, today.m, today.d, zone));
+  const curIdx = status && status.current && typeof status.currentAt === 'number' && status.currentAt >= dayStart ? ADHAN_KEYS.indexOf(status.current) : -1;
+  const streak = prayerLogStreak(log, todayKey);
+  const press = (k) => { markPrayerLog(todayKey, k, prayerLogNextMark(day[k])); setN((n) => n + 1); };
+  const stateOf = (mark) => (mark === 'on' ? ezT('log.on') : mark === 'late' ? ezT('log.late') : ezT('log.clear'));
+  return (
+    <section className="ez110-plog" data-ezik-log="card" data-ezik-log-day={todayKey}>
+      <div className="ez110-plog-head">
+        <span className="ez110-plog-title">{ezT('log.title')}</span>
+        <span className={'ez110-plog-streak' + (streak > 0 ? ' is-lit' : '')} data-ezik-log="streak" data-ezik-log-streak={streak}>{PRAYER_ICON_FLAME}<span>{ezT('log.streak', { n: prayerNum(streak) })}</span></span>
+      </div>
+      <div className="ez110-plog-dots" role="group" aria-label={ezT('log.title')}>
+        {ADHAN_KEYS.map((k, i) => {
+          const mark = day[k];
+          const can = curIdx >= 0 && i <= curIdx;
+          const isCur = curIdx === i;
+          return (
+            <button key={k} type="button" disabled={!can} onClick={() => press(k)} data-ezik-log="dot" data-ezik-log-k={k} data-ezik-log-state={mark || 'none'} data-ezik-log-can={can ? '1' : '0'}
+              aria-label={ezT('widget.prayer.' + k) + ': ' + stateOf(mark)}
+              className={'ezik-focus ez110-plog-dot' + (mark === 'on' ? ' is-on' : mark === 'late' ? ' is-late' : '') + (isCur ? ' is-cur' : '') + (can ? '' : ' is-future')}>
+              <span className="ez110-plog-circle" aria-hidden="true">{mark === 'on' ? '\u2713' : mark === 'late' ? '\u2713' : ''}</span>
+              <span className="ez110-plog-name">{ezT('widget.prayer.' + k)}</span>
+            </button>
+          );
+        })}
+      </div>
+      <div className="ez110-plog-hint">{ezT('log.hint')}</div>
+    </section>
+  );
+}
+
 // THE SHEET, AND WHY IT IS A SHEET RATHER THAN A SCREEN. index.html's screen inventory is a
 // CROSS-FILE contract: theme-coverage-guard reads EZIK-THEME-33-HANDOFF.md and requires its
 // table and its Arabic screen count to match the set of `screen === '...'` branches in this
@@ -34329,6 +34458,7 @@ function PrayerSheet({ onClose, onOpenCompass }) {
       ) : null}>
       <React.Fragment key={rev}>
       {ez110.id ? <PrayerTimesPanel part="main" loc={loc} day={day} onDay={setDay} onLoc={setLoc} onCity={() => setSetOpen(true)} /> : times}
+      {ez110.id ? <PrayerLogCard loc={loc} /> : null}
       {ez110.id ? (
         <button type="button" onClick={() => setConvOpen(true)} data-ezik-open="converter" className="ezik-focus ez110-pstrip">
           <span className="ez110-pstrip-t">{ezT('conv.title')}</span>

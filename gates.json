@@ -1065,5 +1065,10 @@
     "name": "hijrievents",
     "script": "guards/hijri-events-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "prayerlog",
+    "script": "guards/prayer-log-guard.cjs",
+    "args": ""
   }
 ]

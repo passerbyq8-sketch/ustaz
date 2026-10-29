@@ -482,6 +482,9 @@ const MUST_GO_ALREADY = [
   // YAHIMMAK (26 October) -- the lessons this reader finished, the last one opened, today's
   // challenge and today's ticks. A reading record of one person, wiped on the owner's standing rule.
   { c: 'YAHIMMAK_KEY' },
+  // PRAYER REBUILD (29 October 2026) -- the prayer log: which prayers this reader prayed, on time or late, day by day.
+  // A record of one person, synced to the account as a counter, and wiped on the owner's standing rule.
+  { c: 'PRAYER_LOG_KEY' },
 ];
 
 // What delete.html:94 and :138 promise and the code did not keep of its own accord. Each is

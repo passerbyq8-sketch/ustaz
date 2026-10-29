@@ -201,3 +201,20 @@ html[data-ez110] .ez110-month-day { display: flex; flex-direction: column; gap: 
 html[data-ez110] .ez110-month-h { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 html[data-ez110] .ez110-month-g { font-size: calc(10.5px * var(--ez-fs, 1)); color: var(--vt-muted); white-space: nowrap; }
 html[data-ez110] .ez110-month-cell { text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ---- panel 1's «your prayers today»: the log and the streak ---- */
+html[data-ez110] .ez110-plog { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; padding: 12px 14px; border-radius: 18px; background: var(--vt-surface); border: 1px solid var(--vt-line); }
+html[data-ez110] .ez110-plog-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+html[data-ez110] .ez110-plog-title { font-family: var(--ez110-font-head); font-size: calc(15px * var(--ez-fs, 1)); font-weight: 700; color: var(--vt-ink); }
+html[data-ez110] .ez110-plog-streak { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 999px; background: var(--vt-soft); color: var(--vt-muted); font-size: calc(12px * var(--ez-fs, 1)); font-weight: 600; }
+html[data-ez110] .ez110-plog-streak.is-lit { color: #C48A27; background: color-mix(in srgb, #C48A27 14%, var(--vt-surface)); }
+html[data-ez110] .ez110-plog-dots { display: flex; justify-content: space-between; gap: 4px; }
+html[data-ez110] .ez110-plog-dot { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 60px; padding: 4px 0; border: 0; background: transparent; color: var(--vt-ink); font: inherit; cursor: pointer; }
+html[data-ez110] .ez110-plog-dot.is-future { opacity: .45; cursor: default; }
+html[data-ez110] .ez110-plog-circle { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--vt-line); display: inline-flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: #FFFFFF; background: transparent; transition: background .2s, border-color .2s; }
+html[data-ez110] .ez110-plog-dot.is-cur .ez110-plog-circle { border-style: dashed; border-color: #12327A; }
+html[data-ez110] .ez110-plog-dot.is-on .ez110-plog-circle { background: #1E8E5A; border-color: #1E8E5A; border-style: solid; }
+html[data-ez110] .ez110-plog-dot.is-late .ez110-plog-circle { background: #C48A27; border-color: #C48A27; border-style: solid; }
+html[data-ez110] .ez110-plog-name { font-size: calc(11.5px * var(--ez-fs, 1)); color: var(--vt-muted); }
+html[data-ez110] .ez110-plog-dot.is-on .ez110-plog-name, html[data-ez110] .ez110-plog-dot.is-late .ez110-plog-name { color: var(--vt-ink); font-weight: 600; }
+html[data-ez110] .ez110-plog-hint { font-size: calc(11.5px * var(--ez-fs, 1)); color: var(--vt-muted); }
