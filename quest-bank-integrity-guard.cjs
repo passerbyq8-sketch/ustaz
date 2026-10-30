@@ -2059,7 +2059,9 @@ const SEALED = {
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57787 bytes).
 //   2026-10-29 -- IAP LAUNCH REBUILD 2 (rebuilt on main 88154f94): cache ezik-v123 -> ezik-v124 (config/app-version.json and sw.js CACHE, app.js rebuilt); app.js 2448129 bytes, sha256 4343ebbe..d77200; CORE_BYTES remains 3634143.
 //                    NO CORE membership changed; the sw.js seal is measured from the committed blob.
-  'sw.js': '37f95c62c89fdb21f76909d8d25a22afcb1be1b732cd1f20f08d63bc51fbc563',
+//   2026-10-31 -- IAP PAID LAUNCH (Android purchase entry in mode all): cache ezik-v124 -> ezik-v125 (config/app-version.json and sw.js CACHE, app.js rebuilt); app.js 2448129 bytes, sha256 773d48953bdf0ce6874af1aaff069c500c96c1e26ea9d20b4db870fa3572df0a; CORE_BYTES remains 3634143.
+//                    NO CORE membership changed; the sw.js seal is measured from the committed blob.
+  'sw.js': 'f5d08bc218916a96e56d9da4a1b362565998f9cec397404e23a2f88b5d8122cd',
 };
 
 // ---------------------------------------------------------------------------
