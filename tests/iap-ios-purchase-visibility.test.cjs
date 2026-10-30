@@ -134,7 +134,7 @@ async function verify(label, setup, expectedApplicable, expectedModeLookups, exp
   }
 
   await verify('iOS IAP bridge handshake and signed-in account', {
-    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)', bridge: true, iapHandler: true,
+    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)', bridge: true, iapHandler: true, modeError: false, mode: 'all',
   }, true, 1, 1);
   await verify('iOS generic WebView without IAP handler keeps purchase entry hidden', {
     userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)', bridge: true, iapHandler: false, modeError: false, mode: 'all',
@@ -142,9 +142,9 @@ async function verify(label, setup, expectedApplicable, expectedModeLookups, exp
   await verify('iOS without WebView bridge keeps purchase entry hidden', {
     userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)', bridge: false, modeError: false, mode: 'all',
   }, false, 1, 0);
-  await verify('Android IAP handler keeps purchase entry hidden', {
+  await verify('all mode shows the purchase entry on Android when its native IAP bridge answers prices', {
     userAgent: 'Mozilla/5.0 (Linux; Android 15)', bridge: true, iapHandler: true, modeError: false, mode: 'all',
-  }, false, 1, 0);
+  }, true, 1, 1);
   await verify('web keeps purchase entry hidden', {
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', bridge: false, modeError: false, mode: 'all',
   }, false, 1, 0);
@@ -158,9 +158,12 @@ async function verify(label, setup, expectedApplicable, expectedModeLookups, exp
   await verify('free mode hides the entry from another signed-in iOS account', {
     userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)', bridge: true, iapHandler: true, modeError: false, mode: 'free', purchaseEntry: false,
   }, false, 1, 1);
-  const androidOwner = makeHomeEntry({ userAgent: 'Mozilla/5.0 (Linux; Android 15)', bridge: true, iapHandler: true, modeError: false, mode: 'free', purchaseEntry: true });
-  await androidOwner.run();
-  assert.equal(androidOwner.updates.at(-1).applicable, true, 'free owner sees entry in Android with bridge');
+  await verify('free mode shows the server-listed owner entry on Android with a native purchase bridge', {
+    userAgent: 'Mozilla/5.0 (Linux; Android 15)', bridge: true, iapHandler: true, modeError: false, mode: 'free', purchaseEntry: true,
+  }, true, 1, 1);
+  await verify('free mode hides the entry from another signed-in Android account', {
+    userAgent: 'Mozilla/5.0 (Linux; Android 15)', bridge: true, iapHandler: true, modeError: false, mode: 'free', purchaseEntry: false,
+  }, false, 1, 1);
   const freeVisitor = makeHomeEntry({ userAgent: 'Mozilla/5.0 (Linux; Android 15)', bridge: true, iapHandler: true, session: null, modeError: false, mode: 'free', purchaseEntry: true });
   await freeVisitor.run();
   assert.equal(freeVisitor.updates.at(-1).applicable, false, 'free visitor never sees entry');
