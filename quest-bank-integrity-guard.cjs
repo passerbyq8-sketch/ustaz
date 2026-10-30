@@ -1997,8 +1997,9 @@ const SEALED = {
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
   // 2026-10-30 -- Dima joined CORE as dima/dima-v1.json (53863 bytes); app.js 2278440 -> 2309870.
   // 2026-10-31 -- Dima Arabic UI labels replaced literal question marks; data grew to 54164 bytes.
-  // CORE_BYTES was re-cut by tools/core-bytes.cjs --write to 3550048; this sw.js digest was cut last.
-  'sw.js': '0bba8348743863e2703f38e36d692e9d1e22e574ed1b3daf33c9ee2f8034cedb',
+  // 2026-10-31 -- notification status copy now follows the enabled switch; app.js 2309870 -> 2309995.
+  // CORE_BYTES was re-cut by tools/core-bytes.cjs --write to 3550173; this sw.js digest is cut last.
+  'sw.js': 'fb81437d89f8a36dc914d8b7b87c1fdcd12753695cd3070c6d0d3c22bfe690d2',
 };
 
 // ---------------------------------------------------------------------------
@@ -3134,7 +3135,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2309870, of: 'app.js' },
+      { n: 2309995, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

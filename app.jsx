@@ -15683,8 +15683,8 @@ function EzikDimaSection({ onBack }) {
             </div>
             <p style={{ ...muted, marginTop: 10 }}>{say('notifyDaily', 'A quiet reminder once a day, using your chosen prayer time.')}</p>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, padding: '14px 0', borderBottom: '1px solid var(--a3-line)' }}>
-              <span>{say('notifyOn', 'Daily Dima reminder')}</span>
-              <button type="button" role="switch" aria-checked={state.notify.on ? 'true' : 'false'} aria-label={say('notifyOn', 'Daily Dima reminder')} onClick={toggleNotifications} className="ezhome-focus" style={{ ...actionButton, minWidth: 68, background: state.notify.on ? 'var(--a3-ice)' : 'transparent' }}>{state.notify.on ? (english ? 'On' : ((ui.misc && ui.misc.on) || 'On')) : (english ? 'Off' : ((ui.misc && ui.misc.off) || 'Off'))}</button>
+              <span>{state.notify.on ? say('notifyOn', 'Enabled automatically when the schedule updates. You can turn it off.') : say('notifyOff', 'Off. Dima is waiting inside the app.')}</span>
+              <button type="button" role="switch" aria-checked={state.notify.on ? 'true' : 'false'} aria-label={say('notifyDaily', 'Daily Dima reminder')} onClick={toggleNotifications} className="ezhome-focus" style={{ ...actionButton, minWidth: 68, background: state.notify.on ? 'var(--a3-ice)' : 'transparent' }}>{state.notify.on ? (english ? 'On' : ((ui.misc && ui.misc.on) || 'On')) : (english ? 'Off' : ((ui.misc && ui.misc.off) || 'Off'))}</button>
             </div>
             <p style={{ ...muted, marginTop: 12 }}>{say('notifyTime', 'Choose when the reminder arrives')}</p>
             <div role="group" aria-label={say('notifyTime', 'Choose when the reminder arrives')} style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 9, marginTop: 10 }}>
