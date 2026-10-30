@@ -436,6 +436,7 @@ const MUST_GO_ALREADY = [
   // reader's to the next. Nothing on delete.html is edited to make room for it: the page's
   // promise is that everything goes, and this goes.
   { c: 'EZIK_ART_SEEN_KEY' },
+  { c: 'DIMA_KEY' },
   // ITEM 9 -- the reader's own decision to hide the women's section from the shelf. Same rule,
   // same reading: it is a preference of one person on one device, not a permission the system
   // granted and not an answer delete.html promises to keep.

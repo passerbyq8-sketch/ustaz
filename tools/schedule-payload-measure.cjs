@@ -1735,8 +1735,8 @@ run('ON: every prayer carries the C2 sound selection through the existing schedu
   const tiers = topFunction('ezikSchedTiers').body.body;
   eq(tiers.length, 1, 'statements in the tier list');
   eq(text(tiers[0]),
-    'return [ezikAdhanFeed(), ezikPrayerAlertFeed(), ezikWirdAlertItems(now), ezikReminderItems(now), ezikWirdOwnItems(now)];',
-    'the one statement the five feeds are named by, in priority order (item 124 put the iqama/pre-prayer feed second)');
+    'return [ezikAdhanFeed(), ezikPrayerAlertFeed(), ezikWirdAlertItems(now), ezikReminderItems(now), ezikWirdOwnItems(now), ezikDimaNotifyItems(now)];',
+    'the one statement the six feeds are named by, in priority order (item 124 put the iqama/pre-prayer feed second)');
   const joined = text(topFunction('ezikSchedItems'));
   is(joined.indexOf('const tiers = ezikSchedWindow(ezikSchedTiers(now), now).tiers;') !== -1,
     'the join no longer builds its payload from the one tier list');
@@ -1745,7 +1745,7 @@ run('ON: every prayer carries the C2 sound selection through the existing schedu
   is(joined.indexOf('ezikSchedClipSet(cut, names);') !== -1,
     'what would not fit is dropped silently instead of being recorded');
   return (5 * DAYS) + ' items, 1 post, 0 writes; the prayer gate is one early return, '
-    + 'the join five named tiers under one named ceiling';
+    + 'the join six named feeds under one named ceiling';
 });
 
 run('the operation that raises a system prompt has ONE call site, and it is not in an effect', () => {

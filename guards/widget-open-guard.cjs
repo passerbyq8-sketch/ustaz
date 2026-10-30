@@ -32,10 +32,10 @@ const ROUTES = ['mushaf', 'adhkar_sabah', 'adhkar_masaa', 'home', 'adhkar', 'arb
   'memorize', 'fatwa', 'lessons', 'articles', 'women', 'tasbih', 'calc', 'compass',
   'ayah-tafsir', 'asmaa', 'sunan-day', 'wirdi', 'treasure', 'library'];
 const SECTIONS = ['memorize', 'fatwa', 'lessons', 'adhkar', 'arbaeen', 'articles', 'women', 'prayer',
-  'tasbih', 'calc', 'compass', 'ayah-tafsir', 'asmaa', 'sunan-day', 'treasure'];
+  'tasbih', 'calc', 'compass', 'ayah-tafsir', 'asmaa', 'sunan-day', 'dima', 'treasure'];
 const PROFILE_PID = 'W45-GUARD';
 const PROFILE = { name: 'Noor', age: 30, gender: 'male', birthYear: 1996, pid: PROFILE_PID, createdAt: '2026-01-01T00:00:00.000Z' };
-const FIXTURES = new Set(['/adhkar.json', '/adhkar-split-27.json', '/arbaeen.json']);
+const FIXTURES = new Set(['/adhkar.json', '/adhkar-split-27.json', '/arbaeen.json', '/dima/dima-v1.json']);
 const destination = (r) => /^adhkar_(sabah|masaa)$/.test(r) ? 'adhkar' : r;
 // R4A: where a route lands for THIS fixture's reader (he answered «male») when «ب» is lit for a guest
 const womenClosed = (c, r) => r === 'women' && (c.read('EZ110_PARTS') || {}).b === 'public' && PROFILE.gender === 'male';
@@ -349,7 +349,7 @@ function assertWidgetData(c, t, message) {
   const book = JSON.parse(fs.readFileSync(path.join(REPO, 'arbaeen.json'), 'utf8'));
   t('every hadith copied without rewriting', d.arbaeen, book.hadith.map(({ n, title, text }) => ({ n, title, text })));
   t('exact section-widget roster', d.sections.map((x) => x.route), SECTIONS);
-  const labels = ['EZH_MEMORIZE','EZH_FATWA','EZH_LESSONS','EZH_ADHKAR','EZH_ARBAEEN','EZH_ARTICLES','EZH_WOMEN','EZH_PRAYER',"ezT('tasbih.card.title')","ezT('calc.card.title')",'EZH_NAV_COMPASS',"ezT('home.verseOfDay2')",'EZH_ASMAA','EZH_SUNAN','EZH_TREASURE'];
+  const labels = ['EZH_MEMORIZE','EZH_FATWA','EZH_LESSONS','EZH_ADHKAR','EZH_ARBAEEN','EZH_ARTICLES','EZH_WOMEN','EZH_PRAYER',"ezT('tasbih.card.title')","ezT('calc.card.title')",'EZH_NAV_COMPASS',"ezT('home.verseOfDay2')",'EZH_ASMAA','EZH_SUNAN','EZH_DIMA','EZH_TREASURE'];
   t('every section label uses display text', d.sections.map((x) => x.label), labels.map((x) => c.read(x)));
 }
 SCENES['widget-data'] = async (c, t, notes) => {
@@ -381,7 +381,8 @@ SCENES['no-shell'] = async (c, t) => {
   c.window.dispatchEvent(new c.window.Event('focus')); await tick(400);
   t('no widget-data without shell', c.widgetPosts().length, 0);
   t('no browser postMessage fallback', c.browserPosts.filter((wire) => { try { return JSON.parse(wire).op === 'widget-data'; } catch (_) { return false; } }).length, 0);
-  t('no widget loaders outside shell', c.requests.filter((url) => FIXTURES.has(url)).length, 0);
+  // Dima is an independent local schedule feed; only the listed widget fixtures belong to the shell bridge.
+  t('no widget loaders outside shell', c.requests.filter((url) => FIXTURES.has(url) && url !== '/dima/dima-v1.json').length, 0);
 };
 SCENES['widget-reply-silence'] = async (c, t, notes) => {
   await c.until('chat');

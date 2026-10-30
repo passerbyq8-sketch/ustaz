@@ -188,6 +188,7 @@ function ezLangRelabel() {
     EZH_WOMEN = ezT("module.women");
     EZH_ASMAA = ezT("asmaa.title");
     EZH_SUNAN = ezT("sunan.title");
+    EZH_DIMA = ezT("dima.title");
     EZIST_SUB_ARTICLES = ezT("module.articles.sub");
     EZIST_SUB_WOMEN = ezT("module.women.sub");
     EZIST_SUB_MEMORIZE = ezT("module.memorize.sub");
@@ -201,7 +202,8 @@ function ezLangRelabel() {
     // plain strings, not ezT lookups -- but they must still be CARRIED. This is a whole-table
     // replacement, so an id left out of it is not left at its old wording: it is deleted, and
     // the prayer card lost its second line on the first language switch of every session.
-    EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, arbaeen: EZIST_SUB_ARBAEEN, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, asmaa: EZIST_SUB_ASMAA, prayer: EZIST_SUB_PRAYER };
+    EZIST_SUB_DIMA = ezT('dima.subtitle');
+    EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, arbaeen: EZIST_SUB_ARBAEEN, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, asmaa: EZIST_SUB_ASMAA, dima: EZIST_SUB_DIMA, prayer: EZIST_SUB_PRAYER };
     A2_BACK = ezT("common.back");
     EZIK_FAV_TITLE = ezT("favorites.title");
     EZIK_FAV_HEADING = ezT("favorites.heading");
@@ -1411,6 +1413,8 @@ const EZ_I18N = {
     'articles.deleted': 'حُذِف.',
     'khatmah.labelMuraja': 'مراجعتي',
     'asmaa.title': 'أسماءُ اللهِ الحسنى',
+    'dima.title': 'ديمة',
+    'dima.subtitle': 'قليلٌ دائم، كالمطر الهادئ',
     'asmaa.searchPlaceholder': 'ابحثْ في الأسماء',
     'asmaa.searchAria': 'بحثٌ في أسماءِ اللهِ الحسنى',
     'asmaa.gridAria': 'أسماءُ اللهِ الحسنى',
@@ -2974,6 +2978,8 @@ const EZ_I18N = {
     'articles.deleted': 'Deleted.',
     'khatmah.labelMuraja': 'My revision',
     'asmaa.title': 'The most beautiful names of Allah',
+    'dima.title': 'Dima',
+    'dima.subtitle': 'Little and lasting, like gentle rain.',
     'asmaa.searchPlaceholder': 'Search the names',
     'asmaa.searchAria': 'Search the most beautiful names of Allah',
     'asmaa.gridAria': 'The most beautiful names of Allah',
@@ -4907,6 +4913,59 @@ const loadDailyTafsir = () => {
   return __tafsirPromise;
 };
 const ASMAA_NAMES_URL = '/asmaa-dataset-final-r3.json';
+const DIMA_DATA_URL = '/dima/dima-v1.json';
+let __dimaData = null;
+let __dimaDataPromise = null;
+const loadDima = () => {
+  if (__dimaData) return Promise.resolve(__dimaData);
+  if (!__dimaDataPromise) {
+    __dimaDataPromise = Promise.resolve()
+      .then(() => fetch(DIMA_DATA_URL))
+      .then((r) => { if (!r.ok) throw new Error('dima fetch ' + r.status); return r.json(); })
+      .then((raw) => { if (!raw || !Array.isArray(raw.days) || !Array.isArray(raw.lisan)) throw new Error('invalid dima data'); __dimaData = raw; return raw; })
+      .catch((e) => { __dimaDataPromise = null; throw e; });
+  }
+  return __dimaDataPromise;
+};
+const DIMA_KEY = 'ezik_dima_v1';
+const DIMA_SLOT_RULES = {
+  fajr30: { anchor: 'fajr', offset: 30 },
+  duha: { anchor: 'sunrise', offset: 90 },
+  asr: { anchor: 'asr', offset: 15 },
+  isha: { anchor: 'isha', offset: 15 },
+};
+function dimaDateKey(date) {
+  return String(date.getFullYear()).padStart(4, '0') + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+}
+function dimaShiftDate(date, by) { return new Date(date.getFullYear(), date.getMonth(), date.getDate() + by, 12); }
+function dimaDayNumber(start, key) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(start || '') || !/^\d{4}-\d{2}-\d{2}$/.test(key || '')) return 0;
+  const a = start.split('-').map(Number), b = key.split('-').map(Number);
+  return Math.floor((Date.UTC(b[0], b[1] - 1, b[2]) - Date.UTC(a[0], a[1] - 1, a[2])) / 86400000) + 1;
+}
+function readDima() {
+  let rec = null;
+  try { rec = JSON.parse(localStorage.getItem(DIMA_KEY) || 'null'); } catch (e) {}
+  if (!rec || typeof rec !== 'object' || Array.isArray(rec)) rec = {};
+  const startDate = /^\d{4}-\d{2}-\d{2}$/.test(rec.startDate || '') ? rec.startDate : '';
+  const log = {};
+  if (rec.log && typeof rec.log === 'object' && !Array.isArray(rec.log)) Object.keys(rec.log).forEach((key) => {
+    const x = rec.log[key];
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(key) || !x || typeof x !== 'object') return;
+    log[key] = { l: x.l === 1 || Number(x.lisan) > 0 ? 1 : 0, q: x.q === 1 || x.qalb === true ? 1 : 0, j: x.j === 1 || x.jawarih === true ? 1 : 0, taps: Math.max(0, Math.min(99999, Number(x.taps) || Number(x.lisan) || 0)) };
+  });
+  const slotDefault = (__dimaData && __dimaData.notifications && __dimaData.notifications.defaultSlot) || 'asr';
+  const slot = rec.notify && DIMA_SLOT_RULES[rec.notify.slot] ? rec.notify.slot : slotDefault;
+  const on = rec.notify && typeof rec.notify.on === 'boolean' ? rec.notify.on : readPrayerNotify();
+  const reminder = rec.reminder && /^\d{4}-\d{2}-\d{2}$/.test(rec.reminder.date || '') && isFinite(Number(rec.reminder.at))
+    ? { date: rec.reminder.date, at: Number(rec.reminder.at) } : null;
+  return { startDate: startDate, log: log, notify: { on: on, slot: slot }, reminder: reminder };
+}
+function writeDima(next) {
+  try { localStorage.setItem(DIMA_KEY, JSON.stringify(next)); } catch (e) {}
+  return readDima();
+}
+function dimaTaskDone(log, id) { return id === 'lisan' ? !!(log && log.l === 1) : !!(log && log[id === 'qalb' ? 'q' : 'j'] === 1); }
 const ASMAA_RULES_URL = '/asmaa-rules-page-r2.json';
 let __asmaaNames = null;
 let __asmaaNamesPromise = null;
@@ -9742,7 +9801,7 @@ function Ez110Mark() {
 // ez110names pins this table and its readers.
 const EZ110_SECTION_NAMES = {
   asmaa: 'asmaa.title', articles: 'module.articles', memorize: 'module.memorize', adhkar: 'module.adhkar',
-  'sunan-day': 'sunan.title', arbaeen: 'module.arbaeen', mushaf: 'module.mushaf', treasure: 'ez110.name.treasure',
+  'sunan-day': 'sunan.title', dima: 'dima.title', arbaeen: 'module.arbaeen', mushaf: 'module.mushaf', treasure: 'ez110.name.treasure',
   fatwa: 'module.fatwa', lessons: 'module.lessons', library: 'module.library', prayer: 'ez110.name.prayer',
   women: 'module.women', tasbih: 'tasbih.card.title', calc: 'ez110.name.calc',
 };
@@ -10003,7 +10062,7 @@ function ez110WirdIcon(wird) {
 // names lands at the end of the last group, so a section added tomorrow is never dropped.
 const EZ110_GROUPS = [
   { key: 'ez110.grp.quran', ids: ['memorize', 'arbaeen', 'sunan-day', 'asmaa'] },
-  { key: 'ez110.grp.dhikr', ids: ['wird', 'adhkar', 'tasbih'] },
+  { key: 'ez110.grp.dhikr', ids: ['wird', 'dima', 'adhkar', 'tasbih'] },
   { key: 'ez110.grp.know', ids: ['fatwa', 'lessons', 'library', 'articles', 'women', 'calc', 'treasure'] },
 ];
 const EZ110_BAR_IDS = ['mushaf', 'prayer'];
@@ -10577,6 +10636,10 @@ const EZH_ICON_WOMEN = (
 // and the screen it opens can never disagree, and it is rebound by ezLangRelabel() beside the
 // nine above it. No new dictionary key was added for the shelf.
 let EZH_ASMAA = ezT("asmaa.title");
+let EZH_DIMA = ezT("dima.title");
+const EZH_ICON_DIMA = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21V10" /><path d="M12 14c-5 0-8-3-8-8 5 0 8 3 8 8Z" /><path d="M12 18c0-5 3-8 8-8 0 5-3 8-8 8Z" /></svg>
+);
 // The mark. Same 24x24 box, same 1.8 stroke and the same round caps as the nine beside it,
 // and it is the SAME path the menu row for this section already draws -- a page with a ribbon
 // in it, so it reads as neither the mushaf (a closed book) nor the fatwa document (a page
@@ -10741,6 +10804,7 @@ function ezHomeModules(v) {
     // LAYER and not a screen: the handler App threads down sets one boolean, exactly as the
     // asmaa row's does, so the screens inventory is untouched by this tile.
     { id: 'sunan-day', label: EZH_SUNAN, icon: EZH_ICON_SUNAN, onClick: v.onOpenSunan, meta: null },
+    { id: 'dima', label: EZH_DIMA, icon: EZH_ICON_DIMA, onClick: v.onOpenDima, meta: null },
     // ITEM 89: IMMEDIATELY AFTER THE ADHKAR, which is the owner's placement and not a
     // judgement made here. The descriptor is the shape of the ten around it -- an id, a label
     // key, a mark and a handler threaded from App -- and it carries no `meta` and no `fresh`,
@@ -10791,8 +10855,9 @@ let EZIST_SUB_LESSONS = ezT("module.lessons.sub");
 let EZIST_SUB_ARTICLES = ezT("module.articles.sub");
 let EZIST_SUB_WOMEN = ezT("module.women.sub");
 let EZIST_SUB_ASMAA = 'تسعةٌ وتسعون اسمًا، بمعانيها ومصادرها';
+let EZIST_SUB_DIMA = ezT('dima.subtitle');
 let EZIST_SUB_PRAYER = ezT('c.EZIST_SUB_PRAYER');
-let EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, arbaeen: EZIST_SUB_ARBAEEN, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, asmaa: EZIST_SUB_ASMAA, prayer: EZIST_SUB_PRAYER };
+let EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, arbaeen: EZIST_SUB_ARBAEEN, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, asmaa: EZIST_SUB_ASMAA, dima: EZIST_SUB_DIMA, prayer: EZIST_SUB_PRAYER };
 
 // THE TOP NAVIGATION. TWO ELEMENTS AND NO THIRD -- the daily verse, and the menu button.
 //
@@ -13011,7 +13076,7 @@ function EzikHomeWidgetArrange({ widgets, onWidgets, arrangeOpen, onArrange }) {
   );
 }
 
-function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, onOpenArbaeen, onOpenMushaf, onOpenFatwa, onOpenLessons, onOpenAsmaa, onOpenSettings, onOpenTafsir }) {
+function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, onOpenDima, onOpenArbaeen, onOpenMushaf, onOpenFatwa, onOpenLessons, onOpenAsmaa, onOpenSettings, onOpenTafsir }) {
   const ez110 = useEz110();   // ITEM 110: the lit identity draws its own menu below
   // THE OWNER. Every prop it was handed is handed straight on, and the treasure entry resolves
   // to the same href it always did. There is no second router here and no duplicated navigation
@@ -13186,6 +13251,7 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
     // ITEM 87 / ORDER 87D: handed straight on, like the six around it. The layer this opens is
     // owned by App, which is where the boolean and its history entry already live.
     onOpenSunan: onOpenSunan,
+    onOpenDima: onOpenDima,
     // ITEM 89: handed straight on, like the six around it. The screen it sets lives in App,
     // which is where every other feature section's screen key is set.
     onOpenArbaeen: onOpenArbaeen,
@@ -15435,6 +15501,313 @@ function EzikSunanSection({ onBack }) {
     </EzShell>
   );
 }
+function EzikDimaSection({ onBack }) {
+  const lang = useEzLang();
+  const [data, setData] = useState(__dimaData);
+  const [state, setState] = useState(readDima);
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  const [loading, setLoading] = useState(!__dimaData);
+  const [failed, setFailed] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [today, setToday] = useState(() => new Date());
+  const todayKey = dimaDateKey(today);
+  const [selectedDate, setSelectedDate] = useState(todayKey);
+  const selectedRef = useRef(selectedDate);
+  selectedRef.current = selectedDate;
+  const lastTodayRef = useRef(todayKey);
+  const [activeTask, setActiveTask] = useState('qalb');
+  const [notice, setNotice] = useState('');
+  const moveTimerRef = useRef(null);
+
+  useEffect(() => {
+    let live = true;
+    loadDima().then((raw) => { if (live) { setData(raw); setLoading(false); setFailed(false); } })
+      .catch(() => { if (live) { setFailed(true); setLoading(false); } });
+    return () => { live = false; };
+  }, []);
+  useEffect(() => {
+    const id = setInterval(() => setToday(new Date()), 60000);
+    return () => clearInterval(id);
+  }, []);
+  useEffect(() => {
+    const prior = lastTodayRef.current;
+    if (selectedRef.current === prior) setSelectedDate(todayKey);
+    lastTodayRef.current = todayKey;
+  }, [todayKey]);
+  useEffect(() => () => {
+    if (moveTimerRef.current) { clearTimeout(moveTimerRef.current); moveTimerRef.current = null; }
+  }, []);
+
+  const ui = data && data.ui ? data.ui : {};
+  const english = lang !== 'ar';
+  const say = (key, en) => english ? en : (ui[key] || en);
+  const label = (id) => {
+    if (!english && Array.isArray(ui.pills)) return ui.pills[['lisan', 'qalb', 'jawarih'].indexOf(id)] || id;
+    return ({ lisan: 'Tongue', qalb: 'Heart', jawarih: 'Actions' })[id] || id;
+  };
+  const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12);
+  const startDate = state.startDate;
+  const isStarted = !!startDate;
+  const viewDate = selectedDate;
+  const dayNumber = isStarted ? dimaDayNumber(startDate, viewDate) : 0;
+  const eligible = dayNumber >= 1 && dayNumber <= 30;
+  const isToday = viewDate === todayKey;
+  const isPast = isStarted && dayNumber > 0 && !isToday;
+  const dayLog = state.log[viewDate] || { l: 0, q: 0, j: 0, taps: 0 };
+  const selected = data && eligible ? data.days[dayNumber - 1] : null;
+  const viewDateObject = (() => { const p = viewDate.split('-').map(Number); return new Date(p[0], p[1] - 1, p[2], 12); })();
+  const friday = viewDateObject.getDay() === 5;
+  const dayPlan = selected ? [
+    { id: 'lisan', data: friday && data.overrides && data.overrides.friday ? data.overrides.friday.lisan : data.lisan[(dayNumber - 1) % data.lisan.length] },
+    { id: 'qalb', data: friday && data.overrides && data.overrides.friday ? data.overrides.friday.qalb : selected.qalb },
+    { id: 'jawarih', data: friday && data.overrides && data.overrides.friday ? data.overrides.friday.jawarih : selected.jawarih },
+  ] : [];
+  const allDone = dayPlan.length === 3 && dayPlan.every((x) => dimaTaskDone(dayLog, x.id));
+  const active = dayPlan.find((x) => x.id === activeTask) || dayPlan.find((x) => !dimaTaskDone(dayLog, x.id)) || dayPlan[0] || null;
+  const nextMissing = (log) => ['lisan', 'qalb', 'jawarih'].find((id) => !dimaTaskDone(log, id)) || 'qalb';
+
+  const commit = (next) => {
+    const saved = writeDima(next);
+    stateRef.current = saved;
+    setState(saved);
+    try { ezikSchedArm(); } catch (e) {}
+    return saved;
+  };
+  const saveLog = (key, log) => {
+    const cur = stateRef.current;
+    const next = { ...cur, log: { ...cur.log, [key]: log } };
+    return commit(next);
+  };
+  const delayedMove = (log) => {
+    if (moveTimerRef.current) clearTimeout(moveTimerRef.current);
+    moveTimerRef.current = setTimeout(() => { moveTimerRef.current = null; setActiveTask(nextMissing(log)); }, 850);
+  };
+  const tapLisan = () => {
+    if (!active || active.id !== 'lisan' || !isToday || !eligible) return;
+    const log = { ...dayLog, l: 1, taps: (Number(dayLog.taps) || 0) + 1 };
+    saveLog(viewDate, log);
+    if (!dayLog.l) delayedMove(log);
+  };
+  const markTask = (id) => {
+    if (!isToday || !eligible || id === 'lisan') return;
+    const field = id === 'qalb' ? 'q' : 'j';
+    const log = { ...dayLog, [field]: dayLog[field] === 1 ? 0 : 1 };
+    saveLog(viewDate, log);
+    if (log[id]) delayedMove(log);
+  };
+  const undoLisan = () => { if (isToday && eligible) saveLog(viewDate, { ...dayLog, l: 0, taps: 0 }); };
+
+  const startJourney = (wantNotify) => {
+    const current = stateRef.current;
+    const on = wantNotify === true && readPrayerNotify();
+    const next = { ...current, startDate: todayKey, reminder: null, notify: { ...current.notify, on: on } };
+    commit(next);
+    setSelectedDate(todayKey);
+    setActiveTask('qalb');
+    setNotice(wantNotify && !on ? (english ? 'Turn on prayer notifications in Prayer settings first.' : (ui.misc && ui.misc.noPrayerNotice)) : '');
+  };
+  const toggleNotifications = () => {
+    const cur = stateRef.current;
+    if (cur.notify.on) {
+      commit({ ...cur, notify: { ...cur.notify, on: false }, reminder: null });
+      setNotice('');
+      return;
+    }
+    if (!readPrayerNotify()) {
+      setNotice(english ? 'Turn on prayer notifications in Prayer settings first.' : (ui.misc && ui.misc.noPrayerNotice));
+      return;
+    }
+    commit({ ...cur, notify: { ...cur.notify, on: true } });
+    setNotice('');
+  };
+  const chooseSlot = (slot) => {
+    if (!DIMA_SLOT_RULES[slot]) return;
+    const cur = stateRef.current;
+    commit({ ...cur, notify: { ...cur.notify, slot: slot } });
+  };
+  const remindLater = () => {
+    const loc = readQiblaLoc();
+    const prefs = readPrayerPrefs();
+    const place = loc.by === 'place' ? loc.place : null;
+    let date = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12);
+    let at = NaN;
+    for (let step = 0; step < 2; step++) {
+      const y = date.getFullYear(), m = date.getMonth() + 1, d = date.getDate();
+      const tz = prayerTzOn(y, m, d, place);
+      const times = prayerTimesFor(y, m, d, loc.lat, loc.lng, tz, prefs.method, prefs.asr, prefs.off);
+      at = prayerInstant(y, m, d, Math.round(times.asr) + 15, place, tz);
+      if (isFinite(at) && at > Date.now()) break;
+      date = dimaShiftDate(date, 1);
+      at = NaN;
+    }
+    if (!isFinite(at)) { setNotice(english ? 'The reminder time is not available.' : ((ui.misc && ui.misc.reminderTimeUnavailable) || 'The reminder time is not available.')); return; }
+    const cur = stateRef.current;
+    commit({ ...cur, reminder: { date: dimaDateKey(date), at: at } });
+    setNotice('');
+  };
+  const cancelLater = () => {
+    const cur = stateRef.current;
+    commit({ ...cur, reminder: null });
+    setNotice('');
+  };
+
+  const box = { background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', borderRadius: 22, padding: 18, boxShadow: 'var(--a3-shadow)' };
+  const muted = { color: 'var(--a3-muted)', lineHeight: 1.7, margin: 0 };
+  const actionButton = { minHeight: 48, borderRadius: 14, border: '1px solid var(--a3-line)', padding: '10px 16px', background: 'var(--tint)', color: 'var(--a3-ink)', font: 'inherit', fontWeight: 700, cursor: 'pointer' };
+  const lightButton = { ...actionButton, background: 'transparent' };
+  const title = ezT('dima.title');
+  const bell = <button type="button" className="ezhome-focus" onClick={() => setSettingsOpen((v) => !v)} aria-label={english ? 'Reminder settings' : ((ui.misc && ui.misc.notificationSettings) || 'Reminder settings')} aria-pressed={settingsOpen ? 'true' : 'false'} style={{ ...lightButton, width: 48, padding: 0, display: 'grid', placeItems: 'center', fontSize: 22 }}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" /><path d="M10 21h4" /></svg></button>;
+  const currentDaily = data && data.notifications ? data.notifications : {};
+  const slotLabels = english ? { fajr30: 'After Fajr', duha: 'After sunrise', asr: 'After Asr', isha: 'After Isha' } : currentDaily.slots || {};
+  const preview = today.getDay() === 5 ? currentDaily.friday : (Array.isArray(currentDaily.daily) ? currentDaily.daily[0] : '');
+  const dateKeys = Array.from({ length: 7 }, (_, i) => dimaDateKey(dimaShiftDate(todayDate, i - 6)));
+  const dayNames = ['lisan', 'qalb', 'jawarih'];
+  const dateShort = (key) => {
+    const p = key.split('-').map(Number);
+    return new Date(p[0], p[1] - 1, p[2], 12).toLocaleDateString(ezLangEntry(EZ_LANG).locale, { weekday: 'short', day: 'numeric' });
+  };
+  const progressLabel = (n) => say('landCount', '{n} days in the garden').replace(/\{n\}/g, toArabicDigits(n));
+
+  return (
+    <EzShell title={title} onBack={onBack} backLabel={ezT('common.back')} actions={bell}>
+      <div style={{ display: 'grid', gap: 16, padding: '12px 0 28px' }}>
+        {loading ? <div role="status" aria-live="polite" style={s.artNote}>{ezT('common.loading')}</div> : null}
+        {failed ? <div role="alert" style={s.artError}><span>{english ? 'Dima could not be loaded.' : ((ui.misc && ui.misc.loadFailed) || 'Dima could not be loaded.')}</span><button type="button" className="ezhome-focus" style={s.artRetry} onClick={() => { setLoading(true); setFailed(false); loadDima().then((raw) => { setData(raw); setLoading(false); }).catch(() => { setLoading(false); setFailed(true); }); }}>{ezT('common.retry')}</button></div> : null}
+
+        {!loading && !failed && settingsOpen ? (
+          <section style={box} aria-labelledby="dima-notify-title">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+              <h1 id="dima-notify-title" style={{ margin: 0, fontSize: 23, color: 'var(--a3-ink)' }}>{say('notifyTitle', 'Daily reminders')}</h1>
+              <button type="button" className="ezhome-focus" style={lightButton} onClick={() => setSettingsOpen(false)}>{english ? 'Close' : ((ui.misc && ui.misc.close) || 'Close')}</button>
+            </div>
+            <p style={{ ...muted, marginTop: 10 }}>{say('notifyDaily', 'A quiet reminder once a day, using your chosen prayer time.')}</p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, padding: '14px 0', borderBottom: '1px solid var(--a3-line)' }}>
+              <span>{say('notifyOn', 'Daily Dima reminder')}</span>
+              <button type="button" role="switch" aria-checked={state.notify.on ? 'true' : 'false'} aria-label={say('notifyOn', 'Daily Dima reminder')} onClick={toggleNotifications} className="ezhome-focus" style={{ ...actionButton, minWidth: 68, background: state.notify.on ? 'var(--a3-ice)' : 'transparent' }}>{state.notify.on ? (english ? 'On' : ((ui.misc && ui.misc.on) || 'On')) : (english ? 'Off' : ((ui.misc && ui.misc.off) || 'Off'))}</button>
+            </div>
+            <p style={{ ...muted, marginTop: 12 }}>{say('notifyTime', 'Choose when the reminder arrives')}</p>
+            <div role="group" aria-label={say('notifyTime', 'Choose when the reminder arrives')} style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 9, marginTop: 10 }}>
+              {Object.keys(DIMA_SLOT_RULES).map((slot) => <button key={slot} type="button" className="ezhome-focus" aria-pressed={state.notify.slot === slot ? 'true' : 'false'} onClick={() => chooseSlot(slot)} style={{ ...lightButton, background: state.notify.slot === slot ? 'var(--tint)' : 'transparent' }}>{slotLabels[slot] || slot}</button>)}
+            </div>
+            <p style={{ ...muted, marginTop: 12 }}>{say('notifyTimeNote', 'Times follow the prayer schedule saved on this device.')}</p>
+            <div style={{ marginTop: 14, borderRadius: 16, padding: 14, background: 'var(--tint)', border: '1px solid var(--a3-line)' }}>
+              <div style={{ fontWeight: 700 }}>{say('notifyPreview', 'Preview')}</div>
+              <p style={{ ...muted, marginTop: 5 }}>{preview || (english ? 'A gentle reminder to return to today’s practice.' : '')}</p>
+              <p style={{ ...muted, marginTop: 5 }}>{say('notifyPreviewNote', 'This preview stays on this device.')}</p>
+            </div>
+            {notice ? <p role="status" aria-live="polite" style={{ ...muted, marginTop: 10 }}>{notice}</p> : null}
+            {state.reminder ? <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 12 }}><span style={muted}>{say('remindLine', 'A later reminder is set.')}</span><button type="button" className="ezhome-focus" style={lightButton} onClick={cancelLater}>{say('cancel', 'Cancel')}</button></div> : null}
+          </section>
+        ) : null}
+
+        {!loading && !failed && !settingsOpen && !isStarted ? (
+          <section style={{ ...box, textAlign: 'center', padding: '28px 20px' }}>
+            <div aria-hidden="true" style={{ width: 68, height: 68, margin: '0 auto 12px', borderRadius: 24, display: 'grid', placeItems: 'center', color: 'var(--a3-ice)', background: 'var(--tint)', fontSize: 34 }}>❋</div>
+            <h1 style={{ margin: '0 0 10px', fontSize: 27, color: 'var(--a3-ink)' }}>{ui.intro && ui.intro.title}</h1>
+            <p style={{ ...muted, maxWidth: 430, margin: '0 auto' }}>{english ? 'A gentle thirty-day path of small practices for the tongue, heart, and actions. Your notes and progress stay on this device.' : (ui.intro && ui.intro.body)}</p>
+            <div style={{ display: 'grid', gap: 10, marginTop: 22 }}>
+              <button type="button" className="ezhome-focus" style={actionButton} onClick={() => startJourney(true)}>{english ? 'Start and enable reminders' : (ui.intro && ui.intro.enable)}</button>
+              <button type="button" className="ezhome-focus" style={lightButton} onClick={() => startJourney(false)}>{english ? 'Start without reminders' : (ui.intro && ui.intro.later)}</button>
+            </div>
+            <p style={{ ...muted, fontSize: 13, marginTop: 14 }}>{english ? 'Reminders can be changed at any time.' : (ui.intro && ui.intro.footnote)}</p>
+            {notice ? <p role="status" aria-live="polite" style={muted}>{notice}</p> : null}
+          </section>
+        ) : null}
+
+        {!loading && !failed && !settingsOpen && isStarted ? (
+          <>
+            <section style={{ ...box, padding: 18 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: 12 }}>
+                <div>
+                  <div style={{ fontSize: 13, color: 'var(--a3-muted)', marginBottom: 5 }}>{isToday ? (english ? 'TODAY' : ui.todayBadge) : (english ? 'PAST DAY' : ui.pastBadge)}</div>
+                  <h1 style={{ margin: 0, color: 'var(--a3-ink)', fontSize: 26 }}>{eligible ? progressLabel(dayNumber) : (english ? 'The thirty-day garden' : ui.landTitle)}</h1>
+                </div>
+                <span aria-hidden="true" style={{ fontSize: 29, color: 'var(--a3-ice)' }}>✿</span>
+              </div>
+              {selected && selected.teaser ? <p style={{ ...muted, marginTop: 10 }}>{selected.teaser}</p> : null}
+              <div aria-label={english ? 'Recent days' : ((ui.misc && ui.misc.recentDays) || 'Recent days')} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 6, marginTop: 16 }}>
+                {dateKeys.map((key) => {
+                  const num = dimaDayNumber(startDate, key);
+                  const record = state.log[key] || { l: 0, q: 0, j: 0, taps: 0 };
+                  const inProgram = num >= 1 && num <= 30;
+                  return <button key={key} type="button" className="ezhome-focus" aria-label={dateShort(key) + (key === todayKey ? (english ? ', today' : ((ui.misc && ui.misc.todaySuffix) || ', today')) : '')} aria-current={key === viewDate ? 'date' : undefined} onClick={() => { if (inProgram) { setSelectedDate(key); setActiveTask(nextMissing(record)); } }} style={{ minWidth: 0, minHeight: 44, padding: '5px 2px', borderRadius: 13, border: key === viewDate ? '2px solid var(--a3-ice)' : '1px solid var(--a3-line)', background: key === viewDate ? 'var(--tint)' : 'transparent', color: 'var(--a3-ink)', font: 'inherit', cursor: inProgram ? 'pointer' : 'default', opacity: inProgram ? 1 : 0.45 }}>
+                    <span style={{ display: 'block', fontSize: 11 }}>{dateShort(key)}</span>
+                    <span aria-hidden="true" style={{ display: 'flex', justifyContent: 'center', gap: 3, marginTop: 4 }}>{dayNames.map((id) => <i key={id} style={{ width: 5, height: 5, borderRadius: 99, background: dimaTaskDone(record, id) ? '#688a63' : 'var(--a3-line)' }} />)}</span>
+                  </button>;
+                })}
+              </div>
+            </section>
+
+            <section style={box} aria-label={english ? 'Recent practice garden' : ui.landTitle}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10 }}>
+                <h2 style={{ margin: 0, fontSize: 20, color: 'var(--a3-ink)' }}>{english ? 'A small garden' : ui.landTitle}</h2>
+                <span style={{ ...muted, fontSize: 13 }}>{english ? 'Past seven days' : ((ui.misc && ui.misc.pastSevenDays) || 'Past seven days')}</span>
+              </div>
+              <div role="list" aria-label={english ? 'Twenty-one practice marks' : ((ui.misc && ui.misc.weekMarks) || 'Twenty-one practice marks')} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 8, marginTop: 16 }}>
+                {dateKeys.map((key) => {
+                  const record = state.log[key] || { l: 0, q: 0, j: 0, taps: 0 };
+                  return <div key={key} role="listitem" style={{ display: 'grid', justifyItems: 'center', gap: 7, padding: '8px 3px', borderRadius: 14, background: key === todayKey ? 'var(--tint)' : 'transparent' }}>
+                    {dayNames.map((id) => {
+                      const done = dimaTaskDone(record, id);
+                      return <span key={id} aria-label={dateShort(key) + ': ' + label(id) + (done ? (english ? ' complete' : ((ui.misc && ui.misc.complete) || ' complete')) : (english ? ' not complete' : ((ui.misc && ui.misc.incomplete) || ' not complete')))} style={{ width: 16, height: 19, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <svg width="16" height="19" viewBox="0 0 16 19" aria-hidden="true"><path d="M8 18V5" fill="none" stroke={done ? '#668765' : 'var(--a3-line)'} strokeWidth="1.6" strokeLinecap="round" /><path d="M8 9C3 9 2 6 2 3c4 0 6 2 6 6Z" fill={done ? '#8fae7c' : 'transparent'} stroke={done ? '#668765' : 'var(--a3-line)'} strokeWidth="1.2" /><path d="M8 14c0-4 2-6 6-6 0 4-2 6-6 6Z" fill={done ? '#8fae7c' : 'transparent'} stroke={done ? '#668765' : 'var(--a3-line)'} strokeWidth="1.2" /></svg>
+                      </span>;
+                    })}
+                    <span style={{ fontSize: 10, color: 'var(--a3-muted)', whiteSpace: 'nowrap' }}>{dateShort(key)}</span>
+                  </div>;
+                })}
+              </div>
+            </section>
+
+            {dayNumber > 30 ? <section style={{ ...box, textAlign: 'center' }}><h2 style={{ marginTop: 0, color: 'var(--a3-ink)' }}>{english ? 'Thirty days complete' : ui.doneMonth}</h2><p style={muted}>{english ? 'Your garden holds the marks you chose to leave.' : ui.doneBody}</p>{data.closing && data.closing.text && data.closing.verified ? <blockquote dir="rtl" style={{ margin: '14px 0 0', padding: 14, borderInlineStart: '3px solid var(--a3-ice)', borderRadius: 12, background: 'var(--tint)', color: 'var(--a3-ink)', fontFamily: '"Amiri Quran", "Amiri", "Noto Naskh Arabic", serif', fontSize: 21, lineHeight: 1.8 }}>{data.closing.text}</blockquote> : null}{data.closing && data.closing.verified ? <p style={{ ...muted, fontSize: 12 }}>{data.closing.src} · {data.closing.verified.ref}</p> : null}</section> : null}
+            {eligible && dayPlan.length ? (
+              <>
+                <div role="tablist" aria-label={english ? 'Today’s practices' : ((ui.misc && ui.misc.todayPractices) || 'Today’s practices')} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
+                  {dayPlan.map((x) => <button key={x.id} type="button" role="tab" aria-selected={active && active.id === x.id ? 'true' : 'false'} aria-pressed={active && active.id === x.id ? 'true' : 'false'} className="ezhome-focus" onClick={() => setActiveTask(x.id)} style={{ ...lightButton, padding: '10px 5px', background: active && active.id === x.id ? 'var(--tint)' : 'transparent', borderColor: active && active.id === x.id ? 'var(--a3-ice)' : 'var(--a3-line)' }}>
+                    <span style={{ display: 'block' }}>{label(x.id)}</span><span style={{ display: 'block', marginTop: 4, fontSize: 12, color: dimaTaskDone(dayLog, x.id) ? '#547350' : 'var(--a3-muted)' }}>{x.id === 'lisan' ? toArabicDigits(dayLog.taps || 0) : dimaTaskDone(dayLog, x.id) ? '✓' : '·'}</span>
+                  </button>)}
+                </div>
+                {active ? (() => {
+                  const item = active.data || {};
+                  const isQuran = item.kind === 'quran' || item.kind === 'ayah';
+                  const quote = item.kind === 'quran' ? (item.note || item.ayah || '') : item.kind === 'ayah' ? (item.ayah || item.note || '') : item.kind === 'story' ? (item.text || '') : (item.note || '');
+                  const instruction = item.kind === 'story' ? (item.note || item.action || '') : (item.text && item.text !== quote ? item.text : (item.action || ''));
+                  const hasVerified = !!item.verified;
+                  const sourceLine = isQuran && hasVerified ? (english ? 'Quran ' : ((ui.misc && ui.misc.quran) || 'Quran ')) + toArabicDigits(item.verified.surah) + ':' + toArabicDigits(item.verified.ayah) : (hasVerified ? ((item.src || item.verified.book || '') + (item.verified.ref ? ' · ' + item.verified.ref : '')) : '');
+                  const completed = dimaTaskDone(dayLog, active.id);
+                  return <article style={box} aria-label={label(active.id)}>
+                    <div style={{ color: 'var(--a3-muted)', fontSize: 13 }}>{(Array.isArray(ui.kickers) && ui.kickers[['lisan', 'qalb', 'jawarih'].indexOf(active.id)]) || label(active.id)}</div>
+                    {instruction ? <p style={{ ...muted, marginTop: 9 }}>{instruction}</p> : null}
+                    {quote && hasVerified ? <blockquote dir="rtl" style={{ margin: '16px 0', padding: '16px 14px', borderInlineStart: '3px solid var(--a3-ice)', borderRadius: 12, background: 'var(--tint)', color: 'var(--a3-ink)', fontFamily: '"Amiri Quran", "Amiri", "Noto Naskh Arabic", serif', fontSize: isQuran ? 25 : 21, lineHeight: 1.9, textAlign: 'center' }}>{isQuran ? '﴿ ' : '«'}{quote}{isQuran ? ' ﴾' : ' »'}</blockquote> : null}
+                    {active.id === 'lisan' && item.fadl ? <p dir="rtl" style={{ ...muted, textAlign: 'center', margin: '8px 0' }}>{item.fadl}</p> : null}
+                    {active.id === 'lisan' && item.suggested ? <p style={{ ...muted, textAlign: 'center', fontSize: 13 }}>{english ? 'Suggested count: ' : ((ui.misc && ui.misc.suggestedCount) || 'Suggested count: ')}{toArabicDigits(item.suggested)}</p> : null}
+                    {typeof item.action === 'string' && item.action && item.action !== instruction ? <p style={{ ...muted, textAlign: 'center' }}>{item.action}</p> : null}
+                    {sourceLine ? <p style={{ ...muted, textAlign: 'center', fontSize: 12, marginTop: 10 }}>{sourceLine}</p> : null}
+                    {item.tafsir ? <details style={{ marginTop: 14, borderTop: '1px solid var(--a3-line)', paddingTop: 12 }}><summary className="ezhome-focus" style={{ cursor: 'pointer', color: 'var(--a3-ink)', fontWeight: 700 }}>{english ? 'Read the verified Tafsir' : ((ui.misc && ui.misc.readTafsir) || 'Read the verified Tafsir')}</summary><p dir="rtl" style={{ ...muted, color: 'var(--a3-ink)', marginTop: 12, whiteSpace: 'pre-wrap', lineHeight: 1.9 }}>{item.tafsir}</p><p style={{ ...muted, fontSize: 12, marginTop: 8 }}>{english ? 'Al-Mukhtasar fi Tafsir al-Quran · p. 252 · FC-000142' : ((ui.misc && ui.misc.tafsirCitation) || 'Al-Mukhtasar fi Tafsir al-Quran · p. 252 · FC-000142')}</p></details> : null}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: 9, marginTop: 16 }}>
+                      {active.id === 'lisan' ? <button type="button" className="ezhome-focus" disabled={!isToday} onClick={tapLisan} aria-label={(english ? 'Tap to count, ' : ((ui.misc && ui.misc.tapToCount) || 'Tap to count, ')) + toArabicDigits(dayLog.taps || 0)} style={{ ...actionButton, width: 88, height: 88, minHeight: 88, minWidth: 88, borderRadius: '50%', display: 'grid', placeContent: 'center', gap: 2, padding: 8, opacity: isToday ? 1 : 0.55 }}><span style={{ fontSize: 12 }}>{english ? 'Tap' : ((ui.misc && ui.misc.tap) || 'Tap')}</span><strong style={{ fontSize: 25 }}>{toArabicDigits(dayLog.taps || 0)}</strong></button> : <button type="button" className="ezhome-focus" disabled={!isToday} onClick={() => markTask(active.id)} style={{ ...actionButton, minWidth: 180, opacity: isToday ? 1 : 0.55 }}>{completed ? say('undo', 'Undo') : (item.action || say('dropLanded', 'Mark complete'))}</button>}
+                      {active.id === 'lisan' && completed ? <button type="button" className="ezhome-focus" disabled={!isToday} onClick={undoLisan} style={lightButton}>{say('undo', 'Undo')}</button> : null}
+                      {!completed && isToday ? <button type="button" className="ezhome-focus" onClick={() => setActiveTask(nextMissing(dayLog))} style={lightButton}>{say('nextDrop', 'Next practice')}</button> : null}
+                    </div>
+                    {!isToday ? <p style={{ ...muted, textAlign: 'center', fontSize: 13, marginTop: 12 }}>{english ? 'Past days are read-only.' : ((ui.misc && ui.misc.pastReadOnly) || 'Past days are read-only.')}</p> : null}
+                  </article>;
+                })() : null}
+                {allDone ? <section role="status" aria-live="polite" style={{ ...box, borderColor: 'var(--a3-ice)' }}><h2 style={{ margin: 0, color: 'var(--a3-ink)' }}>{dayNumber === 30 ? (english ? 'Thirty days complete' : ui.doneMonth) : (english ? 'Today is complete' : ui.doneTitle)}</h2><p style={{ ...muted, marginTop: 8 }}>{dayNumber === 30 ? (english ? 'The garden is yours to keep.' : ui.doneBody) : (english ? 'Your three practices have landed for today.' : ui.doneBody)}</p><p style={{ ...muted, marginTop: 8 }}>{dayNumber < 30 ? (english ? 'Tomorrow: ' : ((ui.misc && ui.misc.tomorrowPrefix) || 'Tomorrow: ')) + (ui.tomorrow || '') : ''}</p>{dayNumber === 30 && data.closing && data.closing.text && data.closing.verified ? <blockquote dir="rtl" style={{ margin: '14px 0 0', padding: 14, borderInlineStart: '3px solid var(--a3-ice)', borderRadius: 12, background: 'var(--tint)', color: 'var(--a3-ink)', fontFamily: '"Amiri Quran", "Amiri", "Noto Naskh Arabic", serif', fontSize: 21, lineHeight: 1.8 }}>{data.closing.text}</blockquote> : null}{dayNumber === 30 && data.closing && data.closing.verified ? <p style={{ ...muted, fontSize: 12 }}>{data.closing.src} · {data.closing.verified.ref}</p> : null}</section> : null}
+                {isToday && active && active.data && active.data.later === true ? <section style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                  {state.notify.on ? <button type="button" className="ezhome-focus" onClick={remindLater} style={lightButton}>{say('remindLater', 'Remind me later')}</button> : <button type="button" className="ezhome-focus" onClick={() => setSettingsOpen(true)} style={lightButton}>{english ? 'Set a reminder' : ((ui.misc && ui.misc.setReminder) || 'Set a reminder')}</button>}
+                  {state.reminder ? <button type="button" className="ezhome-focus" onClick={cancelLater} style={lightButton}>{say('cancel', 'Cancel')}</button> : null}
+                  {notice ? <span role="status" aria-live="polite" style={{ ...muted, fontSize: 13 }}>{notice}</span> : null}
+                </section> : null}
+              </>
+            ) : null}
+          </>
+        ) : null}
+      </div>
+    </EzShell>
+  );
+}
+
 // ITEM 87 -- END OF THE DAY, FROM WAKING TO SLEEPING
 
 // ============================================================
@@ -18684,6 +19057,7 @@ function App() {
   // 67 / 43-b / 47-b: the schedule pipe, armed at the root. It owns no screen state and renders
   // nothing; a reader who never opens the prayer sheet still has a day that needs arming.
   useEzikSchedRoot();
+  useEffect(() => { let live = true; loadDima().then(() => { if (live) ezikSchedArm(); }).catch(() => {}); return () => { live = false; }; }, []);
   // THE FIFTH CHANNEL, LISTENED FOR AT THE ROOT. The shell speaks first on it, so there is no
   // press and no one screen to hang it on; it owns no screen state and renders nothing.
   useEzikNativeAuthRoot();
@@ -18734,6 +19108,7 @@ function App() {
   // ITEM 87: the day, from waking to sleeping. A FIFTH panel of exactly the same kind as the
   // four above -- one boolean, one history entry, no `screen` key -- opened from the same menu.
   const [sunanOpen, setSunanOpen] = useState(() => ezikReadResume() === 'sunan-day');
+  const [dimaOpen, setDimaOpen] = useState(false);
   const [inboxUnread, setInboxUnread] = useState(null);
   // DECISION ج١٣'s other half -- the sender's dot. A count of answers this reader has been
   // sent and has not yet opened. It is zero for everybody with no account, because `mine`
@@ -19709,6 +20084,7 @@ function App() {
   // ITEM 87: the fifth, on the identical contract and in the same fixed order -- a hook order
   // that changes with state is a hook order that breaks.
   useEzikBackLayer(sunanOpen, () => setSunanOpen(false));
+  useEzikBackLayer(dimaOpen, () => setDimaOpen(false));
   // ITEM 92: WHAT THE SHARE BUTTON DOES, decided by the injected bridge and by nothing else.
   // In a shell it hands the smart link straight to the platform sheet and returns -- no chooser
   // is opened, so no badge and no store name can reach the page (Apple guideline 2.3.10). In a
@@ -19827,6 +20203,7 @@ function App() {
     setAboutOpen(false);
     setSourcesOpen(false);
     setSunanOpen(route === 'sunan-day');
+    setDimaOpen(route === 'dima');
     setFeedbackOpen(false);
     setInboxOpen(false);
     setShareOpen(false);
@@ -22615,6 +22992,7 @@ function App() {
       // still has it whether or not either section is holding anything today -- and entered on
       // the roster in tools/delete-truth-measure.cjs in the same commit as this line.
       try { localStorage.removeItem(EZIK_ART_SEEN_KEY); } catch (e) {}
+      try { localStorage.removeItem(DIMA_KEY); } catch (e) {}
       // ITEM 9, NOW ABANDONED -- AND SWEPT ANYWAY. This key held the switch item 9 shipped and
       // item 20 §3 removed; nothing in the application reads it any more and its constant went
       // with its reader and its writer. The LITERAL is written out here, once, because this is
@@ -22970,6 +23348,7 @@ function App() {
   // model. A spend gate or a consent notice in front of a static sheet would be a barrier in
   // front of a door that costs nothing to walk through.
   if (asmaaOpen) return <EzikAsmaaSection onHome={ezikGoBack} />;
+  if (dimaOpen) return <EzikDimaSection onBack={() => { if (ezikHistBack()) return; setDimaOpen(false); }} />;
   // ITEM 92-ب -- THE MENU'S THREE PANELS, and they stand HERE for three different reasons.
   //
   // عن عزك and المصادر are fixed text. They send nothing, spend nothing and read no store, so a
@@ -23063,7 +23442,7 @@ function App() {
   // an onOpenChat: the chat is entered from that menu's «محادثة جديدة» row.
   if (screen === 'home') return (
     <>
-      <Home profile={profile} onOpenMenu={openDrawer} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenSunan={() => setSunanOpen(true)} onOpenArbaeen={() => setScreen('arbaeen')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenLessons={() => setScreen('lessons')} onOpenAsmaa={() => setAsmaaOpen(true)} onOpenSettings={() => openEzikSheet('settings')} onOpenTafsir={() => setScreen('ayah-tafsir')} key={homeEpoch} />
+      <Home profile={profile} onOpenMenu={openDrawer} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenSunan={() => setSunanOpen(true)} onOpenDima={() => setDimaOpen(true)} onOpenArbaeen={() => setScreen('arbaeen')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenLessons={() => setScreen('lessons')} onOpenAsmaa={() => setAsmaaOpen(true)} onOpenSettings={() => openEzikSheet('settings')} onOpenTafsir={() => setScreen('ayah-tafsir')} key={homeEpoch} />
       {ezikDrawer()}
     </>
   );
@@ -31011,13 +31390,15 @@ function ezikWirdOwnItems(now) {
 // reminders at one time each is 63 items -- three over -- and the reader was told nothing at all.
 // The far side simply dropped the three farthest and nobody on this side knew a cut had happened.
 //
-// THE PRIORITY IS THE OWNER'S, FIXED, AND IT IS THE WHOLE POLICY:
-//   1  the five prayers    -- the prayer itself outranks everything built around it;
-//   2  the four anchored  -- the alerts the owner ruled open by default;
-//   3  the two clock rows -- «الوِرد اليوميّ» and «المحتوى اليوميّ», which a reader LIT by hand;
-//   4  the reader's own wird alerts, in the order he added them.
-// Inside a tier the NEAREST survive, because the shell cuts the farthest and an item with time left
-// on it is an item a later arm can still schedule.
+// PRIORITY IS FIXED AND THE FEEDS STAY IN THIS ORDER:
+//   1  prayer calls;
+//   2  the separate prayer alert feed;
+//   3  prayer-anchored reminder rows;
+//   4  the reader-lit daily clock rows;
+//   5  the reader's own wird alerts;
+//   6  Dima notices, after the existing feeds.
+// Inside each feed the NEAREST survive. The scheduler drops from the far end, so a later arm
+// can still carry an item that had time left on it.
 const SHELL_SCHED_CEILING = 60;
 // HOW MANY NAMES THE ONE LINE CARRIES. A line naming twenty reminders is a line nobody reads.
 const SCHED_CLIP_NAMES = 3;
@@ -31037,11 +31418,43 @@ function ezikSchedClipSet(cut, names) {
   for (const fn of Array.from(EZ_SCHED_CLIP_SUBS)) { try { fn(); } catch (e) {} }
 }
 
-// THE FOUR TIERS, IN PRIORITY ORDER, BUILT ONCE. Each is a whole feed behind its own switches; the
+// THE SIX FEEDS, IN PRIORITY ORDER, BUILT ONCE. Each is a whole feed behind its own switches; the
 // cut below is the only thing that ever shortens one, and it shortens from the end of the list
 // rather than from the middle of a feed.
+function ezikDimaNotifyItems(now) {
+  const items = [];
+  if (!(now instanceof Date) || !isFinite(now.getTime()) || !__dimaData) return items;
+  const rec = readDima();
+  if (!rec.notify.on) return items;
+  const loc = readQiblaLoc();
+  const prefs = readPrayerPrefs();
+  const place = loc.by === 'place' ? loc.place : null;
+  const today = prayerTodayParts(now, place);
+  const notice = __dimaData.notifications || {};
+  const slot = DIMA_SLOT_RULES[rec.notify.slot] || DIMA_SLOT_RULES.asr;
+  for (let i = 0; i < ADHAN_WINDOW_DAYS; i++) {
+    const dt = new Date(today.y, today.m - 1, today.d + i, 12);
+    const y = dt.getFullYear(), m = dt.getMonth() + 1, d = dt.getDate();
+    const tz = prayerTzOn(y, m, d, place);
+    const times = prayerTimesFor(y, m, d, loc.lat, loc.lng, tz, prefs.method, prefs.asr, prefs.off);
+    const mins = times[slot.anchor];
+    if (typeof mins !== 'number' || !isFinite(mins)) continue;
+    const total = Math.round(mins) + slot.offset;
+    const at = prayerInstant(y, m, d, total, place, tz);
+    if (!isFinite(at)) continue;
+    const daily = Array.isArray(notice.daily) ? notice.daily : [];
+    const body = dt.getDay() === 5 ? notice.friday : (daily.length ? daily[i % daily.length] : '');
+    items.push({ id: 'dima:daily:' + prayerDayKey(dt), type: 'daily', at: at, title: ezT('dima.title'), body: body || '', route: 'dima' });
+  }
+  const rem = rec.reminder;
+  if (rem && rem.at > now.getTime() && rem.date >= dimaDateKey(dimaShiftDate(now, 0)) && rem.date <= dimaDateKey(dimaShiftDate(now, ADHAN_WINDOW_DAYS - 1))) {
+    items.push({ id: 'dima:later:' + rem.date, type: 'reminder', at: rem.at, title: ezT('dima.title'), body: notice.later || '', route: 'dima' });
+  }
+  return items;
+}
+
 function ezikSchedTiers(now) {
-  return [ezikAdhanFeed(), ezikPrayerAlertFeed(), ezikWirdAlertItems(now), ezikReminderItems(now), ezikWirdOwnItems(now)];
+  return [ezikAdhanFeed(), ezikPrayerAlertFeed(), ezikWirdAlertItems(now), ezikReminderItems(now), ezikWirdOwnItems(now), ezikDimaNotifyItems(now)];
 }
 
 // THE PRAYERS, BEHIND THE SWITCH THAT HAS ALWAYS GATED THEM. This is the function ezikSchedItems
@@ -31100,7 +31513,7 @@ function ezikAdhanFeed() {
 // five prayer notifications a day gets exactly that, which is the whole point of four switches.
 function ezikSchedItems() {
   // 🔴 ITEM 8 (side round) -- THE COUNT IS TAKEN BEFORE THE PAYLOAD IS BUILT, ON EVERY RE-ARM.
-  // The join is no longer one concat because it can no longer be: four feeds now ride this pipe
+  // The join is no longer one concat because it can no longer be: six feeds now ride this pipe
   // and their sum is allowed to exceed what the far side will hold. So the tiers are taken in the
   // owner's priority order, filled until the ceiling is reached, and what does not fit is RECORDED
   // rather than dropped into silence. `ezikSchedClipSet` is module state and touches no store.
@@ -31407,6 +31820,7 @@ function ezikWidgetSections() {
     { route: 'ayah-tafsir', label: ezT('home.verseOfDay2') },
     { route: 'asmaa', label: EZH_ASMAA },
     { route: 'sunan-day', label: EZH_SUNAN },
+    { route: 'dima', label: EZH_DIMA },
     { route: 'treasure', label: EZH_TREASURE },
   ];
 }

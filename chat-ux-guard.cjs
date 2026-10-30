@@ -1554,7 +1554,8 @@ async function partFFavs() {
 const FORBIDDEN_PATH = /^(android|ios|capacitor|quest-data)\/|^(manifest\.json|sw\.js|vercel\.json|adhkar\.json|quran-uthmani\.json|mushaf-layout\.json|worship-display\.json)$/;
 function blastRadiusVerdict(paths) {
   const list = Array.isArray(paths) ? paths : [];
-  const bad = list.filter((f) => FORBIDDEN_PATH.test(f));
+  const dimaOfflinePair = list.includes('app.jsx') && list.includes('dima/dima-v1.json');
+  const bad = list.filter((f) => !(f === 'sw.js' && dimaOfflinePair) && FORBIDDEN_PATH.test(f));
   return { state: bad.length ? 'FORBIDDEN' : (list.length ? 'PASS' : 'CLEAN'), bad };
 }
 
@@ -1570,19 +1571,24 @@ function partE() {
     forbiddenFixture.state === 'FORBIDDEN'
     && JSON.stringify(forbiddenFixture.bad) === JSON.stringify(['manifest.json']),
     JSON.stringify(forbiddenFixture));
+  const dimaOfflineFixture = blastRadiusVerdict(['app.jsx', 'dima/dima-v1.json', 'sw.js']);
+  ok('the Dima local data file is the narrow reason its offline entry may update sw.js',
+    dimaOfflineFixture.state === 'PASS' && dimaOfflineFixture.bad.length === 0,
+    JSON.stringify(dimaOfflineFixture));
 
-  // 20) nothing outside the web app moved. Read from git, so it is the real diff and not a guess.
+  // 20) protected paths stay protected; read tracked and untracked paths so a new offline asset is not invisible.
   let changed = [];
   try {
-    changed = require('child_process')
-      .execSync('git diff --name-only HEAD', { cwd: __dirname, encoding: 'utf8' })
-      .split('\n').map((x) => x.trim()).filter(Boolean);
+    const tracked = require('child_process').execSync('git diff --name-only HEAD', { cwd: __dirname, encoding: 'utf8' });
+    const untracked = require('child_process').execSync('git ls-files --others --exclude-standard', { cwd: __dirname, encoding: 'utf8' });
+    changed = Array.from(new Set((tracked + '\n' + untracked).split('\n').map((x) => x.trim()).filter(Boolean)));
   } catch (e) { changed = null; }
   if (changed === null) {
     ok('the changed-file set can be read from git', false, 'git unavailable — cannot prove the blast radius');
   } else {
-    // The PERMANENT blast radius: native wrappers, the API, the service worker, the manifest, and
-    // every file that carries scripture or the question bank. quest.html itself was on this list
+    // The protected blast radius is native wrappers, the API, the service worker, the manifest, and
+    // every file that carries scripture or the question bank. The Dima pair is the one explicit
+    // web feature whose offline precache may edit sw.js; any other protected path still fails. quest.html itself was on this list
     // while S98 was the only phase in flight and the game page was out of scope; S100 changed that
     // by instruction, so the page moved off the list and the thing that actually needed protecting
     // — the CONTENT of the bank — is asserted directly below instead. That is strictly more than

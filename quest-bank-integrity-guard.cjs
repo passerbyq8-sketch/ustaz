@@ -1995,7 +1995,10 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3463582. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
   //   2026-10-18 -- about page: developer name and contact under the built-in-Kuwait line, rows x.659 and x.660 in app.jsx (ar, en) and the 21 lang files; cache ezik-v110 -> ezik-v111 (config/app-version.json and sw.js CACHE, sw.js prose app.js size): app.js 2277568 -> 2278440 bytes, sha256 96ab69ec..f31a; node tools/core-bytes.cjs --write: CORE_BYTES 3464454.
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
-  'sw.js': 'b4476f2a195a0e0b85243deef9b411c9d98b9fdcf5e7a7634a4cdcb07b685232',
+  // 2026-10-30 -- Dima joined CORE as dima/dima-v1.json (53863 bytes); app.js 2278440 -> 2309870.
+  // 2026-10-31 -- Dima Arabic UI labels replaced literal question marks; data grew to 54164 bytes.
+  // CORE_BYTES was re-cut by tools/core-bytes.cjs --write to 3550048; this sw.js digest was cut last.
+  'sw.js': '0bba8348743863e2703f38e36d692e9d1e22e574ed1b3daf33c9ee2f8034cedb',
 };
 
 // ---------------------------------------------------------------------------
@@ -2058,6 +2061,7 @@ const SW_CORE = ['/', '/manifest.json', '/icon-192.png', '/icon-512.png',
   '/icon-maskable-512.png', '/icon-watermark.png', '/adhkar.json',
   '/adhkar-split-27.json', '/arbaeen.json', '/daily-tafsir.json',
   '/sunan-day.json',
+  '/dima/dima-v1.json',
   '/app.js', '/vendor/react.umd.js', '/vendor/react-dom.umd.js',
   '/fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2',
   '/fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2',
@@ -2067,7 +2071,7 @@ const SW_CORE = ['/', '/manifest.json', '/icon-192.png', '/icon-512.png',
 // CORE_BYTES constant that has fallen below it.
 const SW_CORE_FILES = ['index.html', 'manifest.json', 'icon-192.png', 'icon-512.png',
   'icon-maskable-512.png', 'icon-watermark.png', 'adhkar.json', 'adhkar-split-27.json',
-  'arbaeen.json', 'daily-tafsir.json', 'sunan-day.json',
+  'arbaeen.json', 'daily-tafsir.json', 'sunan-day.json', 'dima/dima-v1.json',
   'app.js', 'vendor/react.umd.js', 'vendor/react-dom.umd.js',
   'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2',
   'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2',
@@ -3130,7 +3134,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2278440, of: 'app.js' },
+      { n: 2309870, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
@@ -3148,6 +3152,7 @@ async function compare(bankPath) {
       // ITEM 87. The day from waking to sleeping, the sixth corpus in CORE, stated in the
       // worker's byte table and re-derived here from the file it names.
       { n: 84759, of: 'sunan-day.json' },
+      { n: 54164, of: 'dima/dima-v1.json' },
       { n: 12893, of: 'icon-512.png' },
       { n: 5938, of: 'icon-maskable-512.png' },
       { n: 5053, of: 'icon-192.png' },

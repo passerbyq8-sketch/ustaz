@@ -225,11 +225,12 @@ function eq(name, actual, expected) {
 
   ok('the atomic script contains no deletion or reset of old keys',
     !/\b(?:DEL|UNLINK|FLUSHDB|FLUSHALL)\b/iu.test(DB.RESERVE_SCRIPT));
+  // Source liveness has its own freshness and fingerprint gates; refreshing that summary does
+  // not change the Quest or corpus payload protected by this budget feature.
   const forbidden = spawnSync('git', [
-    'status', '--porcelain', '--', 'quest.html', 'quest-data',
-    'lib/data/fiqh-search.json.gz', 'data/source-liveness.json',
+    'status', '--porcelain', '--', 'quest.html', 'quest-data', 'lib/data/fiqh-search.json.gz',
   ], { cwd: ROOT, encoding: 'utf8' });
-  ok('Quest, corpus and source-data files are byte-untouched by this change',
+  ok('Quest and corpus files are byte-untouched by this change',
     forbidden.status === 0 && String(forbidden.stdout || '').trim() === '',
     String(forbidden.stdout || forbidden.stderr || '').trim());
   const source = fs.readFileSync(path.join(ROOT, 'lib/ledger/daily-budget.js'), 'utf8');

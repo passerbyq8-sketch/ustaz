@@ -2688,7 +2688,7 @@ if (oLifted) {
     // name, and that the ceiling is applied rather than assumed.
     ok('A-3: ...and nothing is scheduled for a row the reader has not lit',
       SRC.indexOf('if (!got || got.on !== true) continue;') !== -1
-      && SRC.indexOf('return [ezikAdhanFeed(), ezikPrayerAlertFeed(), ezikWirdAlertItems(now), ezikReminderItems(now), ezikWirdOwnItems(now)];') !== -1
+      && SRC.indexOf('return [ezikAdhanFeed(), ezikPrayerAlertFeed(), ezikWirdAlertItems(now), ezikReminderItems(now), ezikWirdOwnItems(now), ezikDimaNotifyItems(now)];') !== -1
       && SRC.indexOf('if (out.length < SHELL_SCHED_CEILING) { out.push(tier[j]); continue; }') !== -1);
     ok('A-3: ...and it asks the system through the one sender both switches share',
       REM.indexOf('ezikNotifyRequest(') !== -1 && REM.indexOf('SHELL_SCHED_ENABLE_OP') === -1);

@@ -14,7 +14,7 @@ const LIVENESS = path.join(ROOT, 'data', 'source-liveness.json');
 const WORSHIP_DISPLAY = path.join(ROOT, 'worship-display.json');
 const X021_FIXTURE = path.join(ROOT, 'guards', 'fixtures', 'honesty', 'x021-fatwa-telemetry.json');
 const CORPUS_HASH = 'c094d1267110224794a123858d062d1ab068aa3735d7422887154c6dc1111993';
-const LIVENESS_HASH = '587aaf7d28e6397bc1d78bf62dc5c58b962fc9328708ebf41d44faa573c5eba7';  // ـ١١٢ re-measured 2026-09-20 (was 75b88f5c…, measured 2026-08-07)
+const LIVENESS_HASH = '1905b274a628878fd9ef5721da2b07dfc92c2d551c91a7d68b6bb54a02f28873';  // ـ١١٢ re-measured 2026-10-30 (was 75b88f5c…, measured 2026-08-07)
 const WORSHIP_DISPLAY_HASH = '9b05584742fa701e76309a0b4ae68e44178a81876e417fd973c46bbadd4a3d8e';
 const SALAH_ADULT_TEXT_HASH = '7687019965bf142259cdc7660af8c32a211cdb1455f5f479f2a40db8c5a0eba2';
 // Re-cut in semantic round B after CLAIMS_AUDIT/د's production-smoke values were copied into the
