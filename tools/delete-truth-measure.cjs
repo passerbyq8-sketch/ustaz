@@ -429,6 +429,8 @@ const MUST_GO_ALREADY = [
   // WIRD_LIST_KEY, which is already on this roster further down -- which is the whole reason the
   // order put them there rather than in a key of their own.
   { c: 'WIRD_ALERTS_KEY' },
+  // Dima progress and reminder choices stay on this device and are cleared with its other reading records.
+  { c: 'DIMA_KEY' },
   // ITEM 7 -- the per-section record of what this reader has already been shown. Classified by
   // the same owner's rule the reminder hours are classified by: any new device key is entered
   // here and is wiped with the button. It is not a permission and it is not an answer the page

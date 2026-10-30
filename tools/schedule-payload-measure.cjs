@@ -1735,8 +1735,8 @@ run('ON: every prayer carries the C2 sound selection through the existing schedu
   const tiers = topFunction('ezikSchedTiers').body.body;
   eq(tiers.length, 1, 'statements in the tier list');
   eq(text(tiers[0]),
-    'return [ezikAdhanFeed(), ezikPrayerAlertFeed(), ezikWirdAlertItems(now), ezikReminderItems(now), ezikWirdOwnItems(now)];',
-    'the one statement the five feeds are named by, in priority order (item 124 put the iqama/pre-prayer feed second)');
+    'return [ezikAdhanFeed(), ezikPrayerAlertFeed(), ezikWirdAlertItems(now), ezikReminderItems(now), ezikWirdOwnItems(now), ezikDimaAlertItems(now)];',
+    'the one statement the six feeds are named by, in priority order (item 124 put the iqama/pre-prayer feed second)');
   const joined = text(topFunction('ezikSchedItems'));
   is(joined.indexOf('const tiers = ezikSchedWindow(ezikSchedTiers(now), now).tiers;') !== -1,
     'the join no longer builds its payload from the one tier list');
@@ -1810,7 +1810,7 @@ run('the operation that raises a system prompt has ONE call site, and it is not 
   // copying the ask, which is precisely what this case exists to require. The list is still EXACT
   // and is still a list of switches: nothing here is an effect, a mount or a boot path.
   eq(callers.map((n) => owner(startLine(n))).sort(),
-    ['EzikReminderSettings', 'EzikWirdAlerts', 'PrayerNotifyToggle'],
+    ['EzikDimaSection', 'EzikReminderSettings', 'EzikWirdAlerts', 'PrayerNotifyToggle'],
     'the functions that reach the one sender');
   for (const c of callers) {
     eq(effects.filter((r) => c.start >= r[0] && c.end <= r[1]).length, 0,

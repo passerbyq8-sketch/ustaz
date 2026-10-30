@@ -2059,7 +2059,17 @@ const SEALED = {
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57787 bytes).
 //   2026-10-29 -- IAP LAUNCH REBUILD 2 (rebuilt on main 88154f94): cache ezik-v123 -> ezik-v124 (config/app-version.json and sw.js CACHE, app.js rebuilt); app.js 2448129 bytes, sha256 4343ebbe..d77200; CORE_BYTES remains 3634143.
 //                    NO CORE membership changed; the sw.js seal is measured from the committed blob.
-  'sw.js': '37f95c62c89fdb21f76909d8d25a22afcb1be1b732cd1f20f08d63bc51fbc563',
+  //   2026-10-10 -- ITEM 110 (Dima section build data scheduler and scoped styles): app.js 2448129 -> 2475094 bytes, sha256 183e1526..6f88; index.html 167275.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3672827. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57909 bytes).
+  //   2026-10-10 -- ITEM 110 (Dima section translations scheduler and scoped styles): app.js 2475094 -> 2475123 bytes, sha256 47c67501..9289; index.html 167276.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3672857. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57909 bytes).
+  //   2026-10-10 -- ITEM 110 (Dima section translations scheduler and scoped styles): app.js 2475123 -> 2475123 bytes, sha256 47c67501..9289; index.html 167275.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3672856. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57909 bytes).
+  //   2026-10-10 -- ITEM 110 (Dima section focus palette and scheduler integration): app.js 2475123 -> 2475123 bytes, sha256 47c67501..9289; index.html 167273.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3672854. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57909 bytes).
+  //   2026-10-10 -- ITEM 110 (Dima section final focus and offline bundle): app.js 2475123 -> 2475123 bytes, sha256 47c67501..9289; index.html 167273.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3672854. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57909 bytes).
+  'sw.js': '5d0d4008afede6369d62d7f5761a70f7a1cb3788a3cba071e539269092f0591e',
 };
 
 // ---------------------------------------------------------------------------
@@ -3235,7 +3245,7 @@ async function compare(bankPath) {
     //  { n, sum: [a, b] }  n is the byte sum of those files on disk
     //  { n, dir: 'count' | 'sum' | 'mean' }   n is that statistic over the mushaf page scans
     const SW_PROSE = [
-      { n: 155556, of: 'index.html' },
+      { n: 167273, of: 'index.html' },
       // ITEM 85. The two CORE entries the self-hosted faces added, stated in the worker's byte
       // table beside the rest and re-derived here from the files they name. They are the arabic
       // and latin cuts of Noto Naskh Arabic, which is what the first screen is painted in.
@@ -3248,7 +3258,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2448129, of: 'app.js' },
+      { n: 2475123, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

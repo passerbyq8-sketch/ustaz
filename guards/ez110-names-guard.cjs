@@ -21,8 +21,8 @@ const pass = (m) => { passes++; console.log('PASS ' + m); };
 const fail = (m) => { fails++; console.log('FAIL ' + m); };
 const ok = (c, m) => (c ? pass(m) : fail(m));
 
-// YAHIMMAK (26 October): «يهمّك» is a section of «ب» too, one name and one key -- sixteen.
-const IDS = ['asmaa', 'articles', 'memorize', 'adhkar', 'sunan-day', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'library', 'prayer', 'women', 'tasbih', 'calc', 'yahimmak'];
+// YAHIMMAK (26 October): «يهمّك» is a section of «ب» too, one name and one key -- seventeen.
+const IDS = ['asmaa', 'articles', 'memorize', 'adhkar', 'sunan-day', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'library', 'prayer', 'women', 'tasbih', 'calc', 'yahimmak', 'dima'];
 const m = jsx.match(/const EZ110_SECTION_NAMES = (\{[\s\S]*?\});/);
 let TABLE = null;
 try { TABLE = m ? vm.runInNewContext('(' + m[1] + ')') : null; } catch (e) { TABLE = null; }

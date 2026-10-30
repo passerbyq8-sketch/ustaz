@@ -32,7 +32,7 @@ const ROUTES = ['mushaf', 'adhkar_sabah', 'adhkar_masaa', 'home', 'adhkar', 'arb
   'memorize', 'fatwa', 'lessons', 'articles', 'women', 'tasbih', 'calc', 'compass',
   // YAHIMMAK (26 October): the web door opens the new section, so a bar slot holding it navigates. It sits before
   // the two routes that leave for a page of their own; the shell's widget table does not carry it (SECTIONS below).
-  'ayah-tafsir', 'asmaa', 'sunan-day', 'yahimmak', 'wirdi', 'treasure', 'library'];
+  'ayah-tafsir', 'asmaa', 'sunan-day', 'yahimmak', 'dima', 'wirdi', 'treasure', 'library'];
 const SECTIONS = ['memorize', 'fatwa', 'lessons', 'adhkar', 'arbaeen', 'articles', 'women', 'prayer',
   'tasbih', 'calc', 'compass', 'ayah-tafsir', 'asmaa', 'sunan-day', 'treasure'];
 const PROFILE_PID = 'W45-GUARD';
@@ -809,7 +809,7 @@ function staticChecks() {
   for (const n of ast.program.body) if (n.type === 'VariableDeclaration') for (const d of n.declarations) if (d.id.name === 'EZIK_WIDGET_ROUTES') routes = d.init.elements.map((x) => x.value);
   const a = src.indexOf('// ===== ITEM 45 -- THE WIDGET'), b = src.indexOf('}, [screen, widgetSeq]);', a); const consumer = src.slice(a,b);
   return [
-    ['C1 exact independent 23-route whitelist', JSON.stringify(routes) === JSON.stringify(ROUTES)],
+    ['C1 exact independent 24-route whitelist', JSON.stringify(routes) === JSON.stringify(ROUTES)],
     ['normal routes use resume writer and both boot tools', ['ezikWriteResume(route);','ezikResumeMarkEntered(ezikReadResume());','const next = ezikResumeScreen();','setScreen(next);'].every((s) => consumer.includes(s))],
     ['chat focus waits for SpendGate and consent', src.includes("if (!widgetChatFocusRef.current || screen !== 'chat' || !spendGateOpenState\n      || aiConsent !== EZ_AI_CONSENT_GRANTED || aiConsentReview) return;")],
     ['boot keeps the resume path', src.includes('        ezikResumeMarkEntered(ezikReadResume());\n        setScreen(ezikResumeScreen());')],
