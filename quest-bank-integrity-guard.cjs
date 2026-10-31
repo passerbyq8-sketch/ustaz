@@ -2071,7 +2071,9 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3672854. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57909 bytes).
   //   2026-10-31 -- ITEM 110 (Dima data copy and restored CRLF checkout): app.js 2479504 -> 2477018 bytes, sha256 93673ad4..01a0; index.html 173609.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3681085. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57909 bytes).
-  'sw.js': '953fcf042b506dfa0420c0adc7342453e083bac78abf99a5495c40dbc87c98b3',
+  //   2026-10-10 -- ITEM 110 (item 110 rebuild): app.js 2477018 -> 2477018 bytes, sha256 6fabae6a..bffa; index.html 173609.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3681085. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57909 bytes).
+  'sw.js': '4be8e4cb899b1fe670a7a4a71674a5a7f37482626550067c9912a6d896640778',
 };
 
 // ---------------------------------------------------------------------------

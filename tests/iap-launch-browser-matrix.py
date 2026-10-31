@@ -5,7 +5,7 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
 REPO = r"C:\Users\passe\projects\ustaz-wt-iap-launch"
-OUT = r"C:\Users\passe\projects\_iap-orders\shots-iap-launch-rebuild2"
+OUT = r"C:\Users\passe\projects\_iap-orders\shots-iap-launch-paid-2026-10-31"
 BASE = "http://127.0.0.1:4175"
 MOCK_WORKER_CATALOG_URL = "https://hanna-laha.hl-worker.workers.dev/api/board/catalog"
 CHROMIUM = r"C:\Users\passe\AppData\Local\ms-playwright\chromium-1248\chrome-win64\chrome.exe"
@@ -225,11 +225,19 @@ def home_snapshot(page):
 def run_home_cell(browser, config, name):
     context, page, state = new_page(browser, config)
     try:
-        response = page.goto(BASE + "/quest.html", wait_until="domcontentloaded", timeout=60000)
+        home_path = "/quest.html?iap_purchase=1" if config.get("purchase_query") else "/quest.html"
+        response = page.goto(BASE + home_path, wait_until="domcontentloaded", timeout=60000)
         page.wait_for_function("window.KunuzJourney?.state?.ready === true", timeout=60000)
         page.wait_for_timeout(350)
+        if config.get("purchase_query"):
+            page.locator(".ezik-iap-row").nth(2).wait_for(state="visible", timeout=15000)
         result = home_snapshot(page)
         result.update({"name": name, "http": response.status if response else 0, "mode": config["mode"], "role": config["role"], "platform": config["platform"], "native": bool(config.get("native")), "balanceCalls": state["balance_calls"], "trialCalls": state["trial_calls"], "consumeCalls": state["consume_calls"]})
+        if config.get("purchase_query"):
+            rows = page.locator(".ezik-iap-row")
+            result["purchaseSheetOpen"] = rows.count() == 3
+            result["listedProducts"] = [rows.nth(i).locator("h3").inner_text() for i in range(rows.count())]
+            result["nativeProductListsAfterQuery"] = page.evaluate("window.__iapNativeProductLists")
         save_shot(page, name + ".png")
         if config.get("do_purchases"):
             assert result["entry"], name + ": owner purchase entry should be visible; debug=" + json.dumps({"result": result, "state": state}, ensure_ascii=False)
@@ -393,7 +401,7 @@ def mock_socket_route(ws, state):
     ws.on_message(on_message)
 
 def main():
-    results = {"startedAt": datetime.now(timezone.utc).isoformat(), "simulatedOnly": True, "productionRequests": None, "matrices": {"A": [], "B": [], "C": []}, "games": [], "roomJoin": None}
+    results = {"startedAt": datetime.now(timezone.utc).isoformat(), "simulatedOnly": True, "productionRequests": None, "matrices": {"A": [], "B": [], "C": [], "D": []}, "games": [], "roomJoin": None}
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True, executable_path=CHROMIUM)
         try:
@@ -414,6 +422,10 @@ def main():
                 for role in ("owner", "other", "visitor"):
                     config = {"mode": "test", "role": role, "platform": platform, "native": True, "entry_enabled": False, "enforced": True}
                     results["matrices"]["C"].append(run_home_cell(browser, config, "C-" + platform + "-" + role))
+            # D: paid mode must expose the store entry and open the native sheet from the purchase return URL on both shells.
+            for platform in ("ios", "android"):
+                config = {"mode": "all", "role": "owner", "platform": platform, "native": True, "entry_enabled": False, "enforced": True, "purchase_query": True}
+                results["matrices"]["D"].append(run_home_cell(browser, config, "D-all-" + platform + "-purchase-query"))
             # T4 lock behavior on game start: an expired listed synthetic account is locked, while an unlisted account and visitor enter.
             for platform, role, enforced in (("ios", "owner", True), ("android", "owner", True), ("ios", "other", False), ("android", "other", False), ("ios", "visitor", False), ("android", "visitor", False)):
                 config = {"mode": "test", "role": role, "platform": platform, "native": platform in ("ios", "android"), "entry_enabled": False, "enforced": enforced}
@@ -489,7 +501,7 @@ def main():
     results["externalRequestUrls"] = EXTERNAL_REQUESTS
     assert not EXTERNAL_REQUESTS, "browser attempted external requests: " + repr(EXTERNAL_REQUESTS)
     results["ok"] = True
-    for group in ("A", "B", "C"):
+    for group in ("A", "B", "C", "D"):
         for row in results["matrices"][group]:
             assert row.get("http", 200) == 200, group + ": local home page status"
             if group in ("A", "B"):
@@ -500,17 +512,22 @@ def main():
             if group == "C" and row.get("name", "").startswith("C-"):
                 expected_entry = row["platform"] == "ios" and row["role"] != "visitor"
                 assert row["entry"] == expected_entry, row["name"] + ": today's entry mismatch"
+            if group == "D":
+                assert row["entry"], row["name"] + ": all mode purchase entry should be visible"
+                assert row["purchaseSheetOpen"], row["name"] + ": purchase query should open the native purchase sheet"
+                assert row["listedProducts"] == [row[1] for row in PASSES], row["name"] + ": expected all three passes in the sheet"
+                assert row["nativeProductListsAfterQuery"][-1] == [row[0] for row in PASSES], row["name"] + ": native price request should contain all three pass ids"
         assert True
     assert len(results["games"]) == 70
     assert all(row["trialCalls"] == 0 and row["consumeCalls"] == 0 for row in results["games"])
     assert results["roomJoin"] and results["roomJoin"]["joined"]
     results["ok"] = True
-    with open(r"C:\Users\passe\projects\_iap-orders\shots-iap-launch-rebuild2\iap-launch-browser-evidence.json", "w", encoding="utf-8") as f:
+    with open(os.path.join(OUT, "iap-launch-browser-evidence.json"), "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
         f.write("\n")
-    print("A_HOME_CELLS=" + str(len(results["matrices"]["A"])) + " B_HOME_CELLS=" + str(len(results["matrices"]["B"])) + " C_HOME_CELLS=" + str(sum(1 for row in results["matrices"]["C"] if row.get("name", "").startswith("C-"))) + " C_LOCK_CASES=6")
+    print("A_HOME_CELLS=" + str(len(results["matrices"]["A"])) + " B_HOME_CELLS=" + str(len(results["matrices"]["B"])) + " C_HOME_CELLS=" + str(sum(1 for row in results["matrices"]["C"] if row.get("name", "").startswith("C-"))) + " C_LOCK_CASES=6 D_ALL_HOME_CELLS=" + str(len(results["matrices"]["D"])) + " D_PURCHASE_SHEETS=" + str(sum(1 for row in results["matrices"]["D"] if row.get("purchaseSheetOpen"))))
     print("GAME_FIRST_QUESTIONS=" + str(len(results["games"])) + "/70 ROOM_JOIN_LOCAL_SIMULATION=" + str(results["roomJoin"]["joined"]))
-    for row in results["matrices"]["A"] + results["matrices"]["B"] + results["matrices"]["C"]:
+    for row in results["matrices"]["A"] + results["matrices"]["B"] + results["matrices"]["C"] + results["matrices"]["D"]:
         print(row.get("name", "game-lock") + " entry=" + str(row.get("entry", "")) + " notice=" + str(bool(row.get("notice", ""))) + " signIn=" + str(row.get("signInPrompt", "")))
     print("BROWSER_MATRIX=" + ("PASS" if results["ok"] else "FAIL"))
     server.shutdown()

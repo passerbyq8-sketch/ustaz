@@ -287,8 +287,9 @@ test('active passes hide the home notice, and closing a completed purchase refre
     ezik_pass_month_1: { priceString: '$12.99', price: 12.99, currencyCode: 'USD' },
     ezik_pass_year_1: { priceString: '$35.99', price: 35.99, currencyCode: 'USD' },
   };
+  // Exercise the trial notice path here; all-mode native purchase entry now returns early for both stores.
   const home = await makeBridge({
-    mode: 'all', prices,
+    mode: 'test', prices,
     balance: { credits: 0, trial: { startedAt: 1, endsAt: 2, active: false, daysLeft: 0 } },
   });
   const updates = [];

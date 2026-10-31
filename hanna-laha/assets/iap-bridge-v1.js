@@ -1005,7 +1005,9 @@
       }
       return;
     }
-    if (authSession() && await hasNativeIosPurchaseBridge()) {
+    if (authSession() && (mode === 'all'
+      ? await hasNativePurchaseBridge()
+      : await hasNativeIosPurchaseBridge())) {
       onUpdate(null, true);
       return;
     }
