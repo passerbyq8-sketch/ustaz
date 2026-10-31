@@ -28721,7 +28721,7 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
         {/* THE THREE ERASES LIVE INSIDE THE PANEL THAT IS ALREADY OPEN (ruling م٨) -- no new menu
             row and no new `screen` key. They are drawn only over a list that has something in it,
             because an erase control above «لا رسائلَ هنا» is a control with nothing to act on. */}
-        {kind !== 'answers' && kind !== 'usage' && listState === EZIK_ART_DONE && rows.length > 0 ? (
+        {kind !== 'usage' && kind !== 'answers' && listState === EZIK_ART_DONE && rows.length > 0 ? (
           <div style={s.artChoiceRow}>
             <button type="button" className="ezhome-focus" aria-pressed={picking}
               onClick={() => { if (picking) { stopPicking(); } else { setDelNote(''); setDelErr(''); setPicking(true); } }}

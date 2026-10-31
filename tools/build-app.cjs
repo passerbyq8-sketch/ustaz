@@ -48,7 +48,7 @@ const sha256 = (buf) => crypto.createHash('sha256').update(buf).digest('hex');
 // version, no path, nothing that moves when nothing moved.
 const BANNER = [
   '// GENERATED FILE -- DO NOT EDIT, AND DO NOT PATCH A BUG HERE.',
-  '// Source: the shipped JSX, located by tools/babel-block.cjs. Rebuild: npm run build.',
+  '// Source: app.jsx, usage-client.js and config/usage-sections.json. Rebuild: npm run build:app.',
   '// Verified by `npm run verify:build` and by the gate `babel`, which regenerate this file',
   '// and fail on any difference. An edit made here is overwritten by the next build and is',
   '// reported as a difference by the gate before that.',
@@ -101,7 +101,10 @@ function build() {
     raw: normalised, runtime: block.runtime,
   }, { retainLines: false, configFile: false, babelrc: false });
   const ms = Number(process.hrtime.bigint() - started) / 1e6;
-  const out = BANNER + versionLine() + enabledLine() + code + '\n';
+  // Include the shared logger in the existing bundle: no extra boot request, and it
+  // already survives offline boot through app.js. Standalone pages use usage.js.
+  const usage = require('./build-usage.cjs').build();
+  const out = BANNER + versionLine() + enabledLine() + usage + code + '\n';
   return {
     code: out,
     block: block,

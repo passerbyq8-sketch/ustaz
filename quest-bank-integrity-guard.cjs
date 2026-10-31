@@ -2089,7 +2089,9 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3688195. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57909 bytes).
   //   2026-10-31 -- DIMA production ship (home banner and 30-day section): cache ezik-v125 -> ezik-v126 (config/app-version.json and sw.js CACHE, app.js rebuilt); app.js 2478510 bytes, sha256 a7570578..dc2281; CORE_BYTES remains 3688195.
   //                    NO CORE membership changed; sw.js is 57909 bytes at CR = 0. The seal is measured from the committed blob.
-  'sw.js': '3e170b08aba875e86384dfcac261d98052355922572fa41eb4663d753ecb6d24',
+  // 2026-10-31 usage-log: logger embedded in app.js; CORE list and cache version unchanged.
+  // Refreshed app.js bytes, measured CORE total and this seal; policy assertions are unchanged.
+  'sw.js': 'f03420a24117784f6b890892f8682534431ded37af011f27148cf3797ece7dae',
 };
 
 // ---------------------------------------------------------------------------
@@ -3278,7 +3280,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2478510, of: 'app.js' },
+      { n: 2486080, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

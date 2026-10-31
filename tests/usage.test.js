@@ -209,6 +209,7 @@ test('all standalone pages load the same built logger and direct visits log the 
   }
   assert.equal(clientHarness({ pathname: '/hanna-laha/' }).events[0].section, 'hanna');
   assert.equal(fs.readFileSync(new URL('../usage.js', import.meta.url), 'utf8'), require('../tools/build-usage.cjs').build());
+  assert.ok(fs.readFileSync(new URL('../app.js', import.meta.url), 'utf8').includes(require('../tools/build-usage.cjs').build()));
 });
 
 test('usage list follows the existing owner gate; strangers, readers and editors cannot read it', async () => {

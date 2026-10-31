@@ -103,7 +103,6 @@ const CORE = [
   // this commit the shell was cached and the app it needed was not, so an offline reader met a
   // page that loaded and then never rendered.
   '/app.js',
-  '/usage.js',
   '/vendor/react.umd.js',
   '/vendor/react-dom.umd.js',
   // ITEM 85. The two faces the FIRST SCREEN actually pulls, self-hosted since the boot stopped
@@ -143,7 +142,7 @@ const CORE = [
 // ---------------------------------------------------------------------------
 
 // The measured cost of CORE, byte for byte, at the commit that cut this constant:
-//   /  (index.html) 179227 + app.js 2478510 + icon-watermark.png 368386
+//   /  (index.html) 179227 + app.js 2486080 + icon-watermark.png 368386
 //   + adhkar.json 177392 + vendor/react-dom.umd.js 131835 + sunan-day.json 84759
 //   + arbaeen.json 47288 + daily-tafsir.json 23984 + icon-512.png 12893
 //   + vendor/react.umd.js 10751 + adhkar-split-27.json 7182 + icon-maskable-512.png 5938
@@ -168,7 +167,7 @@ const CORE = [
 // constant, that table, and the sw.js digest in quest-bank-integrity-guard.cjs in the SAME
 // commit -- item 89-b is the worked example. CACHE is untouched by all of it: the store name is
 // a ship decision and the merge round owns the bump.
-const CORE_BYTES = 3688195;
+const CORE_BYTES = 3695765;
 // The safe margin: half again as much as CORE measures. The Cache API stores request and
 // response headers beside every body, a gzipped transfer is stored decompressed, and a constant
 // re-cut by hand always trails the files it describes by some amount.
