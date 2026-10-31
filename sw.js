@@ -103,6 +103,7 @@ const CORE = [
   // this commit the shell was cached and the app it needed was not, so an offline reader met a
   // page that loaded and then never rendered.
   '/app.js',
+  '/usage.js',
   '/vendor/react.umd.js',
   '/vendor/react-dom.umd.js',
   // ITEM 85. The two faces the FIRST SCREEN actually pulls, self-hosted since the boot stopped

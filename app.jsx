@@ -1,6 +1,21 @@
 
 const { useState, useEffect, useRef } = React;
 
+// Track committed navigation, including drawer/widget entries and restored layers.
+// The logger is optional: a missing script or failed request cannot break a section.
+function useUsageSection(name) {
+  useEffect(() => {
+    try {
+      if (window.logSection) {
+        window.logSection(name);
+        // The qibla panel is part of both prayer and compass. Order keeps the card's
+        // event adjacent to the matching committed open, so it is deduplicated.
+        if (name === 'prayer' || name === 'compass') window.logSection('qibla');
+      }
+    } catch (_) {}
+  }, [name]);
+}
+
 // ============================================================
 // S116 -- THE INTERFACE LANGUAGE (ar / en). READ THIS BEFORE ADDING A KEY.
 //
@@ -1724,6 +1739,14 @@ const EZ_I18N = {
     'inbox.tabReports': 'بلاغات',
     // ITEM O1 (91) -- 2026-10-15 brain-line: the answer log's tab (api/inbox.js kind 'answers').
     'inbox.tabAnswers': 'سجلُّ الأجوبة',
+    'inbox.tabUsage': 'الاستخدام',
+    'usage.section': 'القسم',
+    'usage.opens': 'عدد الفتحات',
+    'usage.devices': 'عدد الأجهزة',
+    'usage.day': 'اليوم',
+    'usage.week': 'آخر 7 أيام',
+    'usage.month': 'آخر 30 يومًا',
+    'usage.note': 'حتى اليوم المحدّد بتوقيت UTC. عدد الأجهزة تقديري وفريد خلال الفترة.',
     'inbox.empty': 'لا رسائلَ هنا.',
     'inbox.failed': 'تعذَّرَ فتحُ الصندوق.',
     'inbox.stateNew': 'جديدة',
@@ -3512,6 +3535,14 @@ const EZ_I18N = {
     'inbox.tabFeedback': 'Suggestions and complaints',
     'inbox.tabReports': 'Reports',
     'inbox.tabAnswers': 'Answer log',
+    'inbox.tabUsage': 'Usage',
+    'usage.section': 'Section',
+    'usage.opens': 'Opens',
+    'usage.devices': 'Devices',
+    'usage.day': 'Day',
+    'usage.week': 'Last 7 days',
+    'usage.month': 'Last 30 days',
+    'usage.note': 'Through the selected UTC day. Device counts are approximate and unique across the period.',
     'inbox.empty': 'Nothing here.',
     'inbox.failed': 'The inbox could not be opened.',
     'inbox.stateNew': 'New',
@@ -10508,6 +10539,7 @@ function Ez110Tile({ m, edit, onMove, idx, count, dragging, onPointerDown, onPic
     <div className={'ez110-tile-wrap' + (edit ? ' is-edit' : '') + (dragging ? ' is-drag' : '')} data-ez110-tile={m.id}
       onContextMenu={(e) => e.preventDefault()}>
       <button type="button" className="ez110-tile"
+        onClickCapture={() => { try { if (!edit && window.logSection) window.logSection(m.id); } catch (_) {} }}
         onClick={edit ? onPick : ((m.id === 'library' || m.id === 'treasure') ? () => { ez110NoteReturn('home'); m.onClick(); } : m.onClick)} onPointerDown={onPointerDown}
         aria-label={edit ? ezT('ez110.order.tile').replace('{name}', typeof m.label === 'string' ? m.label : '').replace('{n}', toArabicDigits(idx + 1)).replace('{of}', toArabicDigits(count)) : undefined}>
         <span className="ez110-icon-box" aria-hidden="true">{m.icon}</span>
@@ -11560,6 +11592,7 @@ function EzistModuleCard({ m }) {
          because a tile added tomorrow is recorded without anybody remembering to. The tile's
          own handler is called exactly as before, on the same press, and nothing about what it
          does changed. */
+      onClickCapture={() => { try { if (window.logSection) window.logSection(m.id); } catch (_) {} }}
       onClick={() => { ezikWriteResume(m.id); if (m.onClick) m.onClick(); }} data-ezik-home-module={m.id}
       style={feature ? s.ezistFeature : { ...s.ezistCard, ...(s['ezistCard_' + m.id] || null) }}>
       <span style={s.ezistTileName}>{m.label}</span>
@@ -13727,6 +13760,8 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
   // one real history entry while it is open, so the device back button closes IT.
   const [calcOpen, setCalcOpen] = useState(() => ezikReadResume() === 'calc');
   useEzikBackLayer(calcOpen, () => setCalcOpen(false));
+  useUsageSection(compassOpen ? 'compass' : prayerOpen ? 'prayer' : wirdOpen ? 'wirdi'
+    : tasbihOpen || tasbihLogOpen ? 'tasbih' : calcOpen ? 'calc' : artSection || 'home');
   // DEFECT 14 (item 88) -- WHERE THE RECORD DIES, and it is one place.
   // The reader is standing nowhere in particular exactly when this component has no layer of
   // its own open, which is when it draws the bare shelf; every layer App owns returns before
@@ -21483,6 +21518,10 @@ function App() {
   // YAHIMMAK: the sixth, on the identical contract and in the same fixed order.
   useEzikBackLayer(yahimmakOpen, () => setYahimmakOpen(false));
   useEzikBackLayer(dimaOpen, () => setDimaOpen(false));
+  // Home owns its own layers; the root covers screens and layers opened from any menu.
+  useUsageSection(asmaaOpen ? 'asmaa' : sunanOpen ? 'sunan-day' : dimaOpen ? 'dima'
+    : yahimmakOpen ? 'yahimmak' : aboutOpen || sourcesOpen || feedbackOpen || inboxOpen ? null
+      : screen === 'home' ? null : screen);
   // ITEM 92: WHAT THE SHARE BUTTON DOES, decided by the injected bridge and by nothing else.
   // In a shell it hands the smart link straight to the platform sheet and returns -- no chooser
   // is opened, so no badge and no store name can reach the page (Apple guideline 2.3.10). In a
@@ -21595,6 +21634,8 @@ function App() {
     if (cur === 'onboarding') return;
     // Notification aliases open the index, preserving the cancellation of group deep links.
     const route = requested === 'adhkar_sabah' || requested === 'adhkar_masaa' ? 'adhkar' : requested;
+    // A widget can reopen the current section without changing React's screen state.
+    try { if (window.logSection) window.logSection(route); } catch (_) {}
     if (route !== 'chat') ez110TakeBarNav();
     widgetChatFocusRef.current = false;
     setAsmaaOpen(route === 'asmaa');
@@ -22238,6 +22279,7 @@ function App() {
   // NOTHING IS CLEARED AND NO NEW CONVERSATION IS OPENED: resetThread and newChat are untouched,
   // and «محادثة جديدة» keeps its own route, character for character.
   const openSavedChat = (id) => {
+    try { if (window.logSection) window.logSection('chat'); } catch (_) {}
     try { abortRef.current?.abort(); } catch (e) {}
     abortRef.current = null;
     cancelAudio();
@@ -24518,7 +24560,8 @@ function App() {
                 style={s.drawerSearch}
               />
             </div>
-            <button onClick={() => closeDrawerWith(startChatFromMenu)} style={s.drawerItem}>
+            <button onClickCapture={() => { try { if (window.logSection) window.logSection('chat'); } catch (_) {} }}
+              onClick={() => closeDrawerWith(startChatFromMenu)} style={s.drawerItem}>
               <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 11.5a8.5 8.5 0 0 1-11.8 7.8L3 21l1.7-6.2A8.5 8.5 0 1 1 21 11.5z" />
                 <line x1="12" y1="8" x2="12" y2="14" />
@@ -24526,7 +24569,8 @@ function App() {
               </svg>
               <span>{ezT('chat.newConversation') || '\u0645\u062d\u0627\u062f\u062b\u0629 \u062c\u062f\u064a\u062f\u0629'}</span>
             </button>
-            <button onClick={() => closeDrawerWith(() => setScreen('home'))} style={s.drawerItem}>
+            <button onClickCapture={() => { try { if (window.logSection) window.logSection('home'); } catch (_) {} }}
+              onClick={() => closeDrawerWith(() => setScreen('home'))} style={s.drawerItem}>
               <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="3" y1="6" x2="21" y2="6" />
                 <line x1="3" y1="12" x2="21" y2="12" />
@@ -28294,6 +28338,7 @@ const EZIK_INBOX_TABS = [
   { id: 'reports', k: 'inbox.tabReports' },
   // ITEM O1 (91) -- 2026-10-15 brain-line: the answer log, read only (no erase, no reply, no open).
   { id: 'answers', k: 'inbox.tabAnswers' },
+  { id: 'usage', k: 'inbox.tabUsage' },
 ];
 
 // ITEM O1 (91) -- 2026-10-15 brain-line: ONE ANSWER'S RECORD ON ONE LINE. Every value is a count or a closed word the
@@ -28354,6 +28399,8 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
   const [kind, setKind] = useState('feedback');
   // POSTSHIP ITEM 5: the day the answer-log tab reads (api/inbox.js answersList takes it; it was never sent).
   const [ansDay, setAnsDay] = useState(() => ezikAnswerLogDays()[0]);
+  const [usageDay, setUsageDay] = useState(() => new Date().toISOString().slice(0, 10));
+  const [usageDays, setUsageDays] = useState(1);
   const [listState, setListState] = useState(EZIK_ART_IDLE);
   const [rows, setRows] = useState([]);
   const [win, setWin] = useState(0);
@@ -28397,7 +28444,8 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
     abortRef.current = controller;
     const timer = setTimeout(() => { try { controller.abort(); } catch (e) {} }, EZIK_INBOX_TIMEOUT_MS);
     setListState(EZIK_ART_LOADING);
-    ezikInbox({ session: held.session, action: 'list', kind: which, ...(which === 'answers' ? { day: ansDay } : {}) }, controller.signal).then((res) => {
+    ezikInbox({ session: held.session, action: 'list', kind: which, ...(which === 'answers' ? { day: ansDay }
+      : which === 'usage' ? { day: usageDay.replace(/-/g, ''), days: usageDays } : {}) }, controller.signal).then((res) => {
       clearTimeout(timer);
       if (!aliveRef.current || abortRef.current !== controller) return;
       abortRef.current = null;
@@ -28412,7 +28460,7 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
       setListState(EZIK_ART_DONE);
     });
   };
-  useEffect(() => { load(kind); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [kind, ansDay]);
+  useEffect(() => { load(kind); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [kind, ansDay, usageDay, usageDays]);
 
   // Moving between the two tabs drops everything that belonged to the tab being left: the ticks,
   // the question standing over them, and the last erase's sentence. «الكل» must never be able to
@@ -28673,7 +28721,7 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
         {/* THE THREE ERASES LIVE INSIDE THE PANEL THAT IS ALREADY OPEN (ruling م٨) -- no new menu
             row and no new `screen` key. They are drawn only over a list that has something in it,
             because an erase control above «لا رسائلَ هنا» is a control with nothing to act on. */}
-        {kind !== 'answers' && listState === EZIK_ART_DONE && rows.length > 0 ? (
+        {kind !== 'answers' && kind !== 'usage' && listState === EZIK_ART_DONE && rows.length > 0 ? (
           <div style={s.artChoiceRow}>
             <button type="button" className="ezhome-focus" aria-pressed={picking}
               onClick={() => { if (picking) { stopPicking(); } else { setDelNote(''); setDelErr(''); setPicking(true); } }}
@@ -28732,7 +28780,29 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
           </select>
         </div>
       ) : null}
-      {kind === 'answers' ? (
+      {kind === 'usage' ? (
+        <>
+          <div style={s.artChoiceRow}>
+            <input type="date" value={usageDay} max={new Date().toISOString().slice(0, 10)}
+              min={new Date(Date.now() - 399 * 86400000).toISOString().slice(0, 10)}
+              onChange={(e) => { if (e.target.value) setUsageDay(e.target.value); }}
+              aria-label={ezT('usage.day')} className="ezhome-focus" style={{ font: 'inherit', color: 'inherit', background: 'transparent' }} />
+            {[[1, 'usage.day'], [7, 'usage.week'], [30, 'usage.month']].map(([days, k]) => (
+              <button key={days} type="button" className="ezhome-focus" aria-pressed={usageDays === days}
+                onClick={() => setUsageDays(days)} style={{ ...s.artChoice, ...(usageDays === days ? s.artChoiceOn : null) }}>{ezT(k)}</button>
+            ))}
+          </div>
+          <p style={s.artNote}>{ezT('usage.note')}</p>
+          {listState === EZIK_ART_DONE ? (
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'start' }}>
+              <thead><tr>{['usage.section', 'usage.opens', 'usage.devices'].map((k) => <th key={k} scope="col" style={{ padding: 8 }}>{ezT(k)}</th>)}</tr></thead>
+              <tbody>{rows.map((r) => <tr key={r.section}>
+                <th scope="row" style={{ padding: 8 }}>{r.label}</th><td style={{ padding: 8 }}>{r.opens}</td><td style={{ padding: 8 }}>{r.devices}</td>
+              </tr>)}</tbody>
+            </table>
+          ) : null}
+        </>
+      ) : kind === 'answers' ? (
         listState === EZIK_ART_DONE && rows.length > 0
           ? <div style={s.artList}>{rows.map((r) => <EzikAnswerLogRow key={r.trace} r={r} />)}</div>
           : null

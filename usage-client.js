@@ -1,0 +1,58 @@
+// The build supplies EZIK_USAGE_SECTIONS from config/usage-sections.json before this file.
+(function (root) {
+  'use strict';
+  var anon = '';
+  var lastSection = '';
+  var lastAt = 0;
+  var storageKey = 'ezik_usage_anon_v1';
+  var repeatKey = 'ezik_usage_last_v1';
+  try {
+    var previous = JSON.parse(root.sessionStorage.getItem(repeatKey) || 'null');
+    if (previous && Object.prototype.hasOwnProperty.call(EZIK_USAGE_SECTIONS, previous.section)
+      && Number.isFinite(previous.at)) { lastSection = previous.section; lastAt = previous.at; }
+  } catch (_) {}
+
+  function logSection(name) {
+    try {
+      if (typeof name !== 'string' || !Object.prototype.hasOwnProperty.call(EZIK_USAGE_SECTIONS, name)) return;
+      var now = Date.now();
+      // Only consecutive repeats are suppressed. A -> B -> A is three real opens.
+      if (lastSection === name && now >= lastAt && now - lastAt < 5000) return;
+      lastSection = name;
+      lastAt = now;
+      try { root.sessionStorage.setItem(repeatKey, JSON.stringify({ section: name, at: now })); } catch (_) {}
+      if (!anon) {
+        try {
+          var stored = root.localStorage.getItem(storageKey);
+          if (/^[a-f0-9]{32}$/.test(stored || '')) anon = stored;
+        } catch (_) {}
+        if (!anon) {
+          var bytes = new Uint8Array(16);
+          root.crypto.getRandomValues(bytes);
+          anon = Array.from(bytes, function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+          try { root.localStorage.setItem(storageKey, anon); } catch (_) {}
+        }
+      }
+      var body = JSON.stringify({ section: name, anon: anon });
+      // text/plain avoids a preflight for Beacon. The route parses this tiny JSON string itself.
+      if (root.navigator && typeof root.navigator.sendBeacon === 'function') {
+        try { if (root.navigator.sendBeacon('/api/usage', body)) return; } catch (_) {}
+      }
+      if (typeof root.fetch === 'function') {
+        root.fetch('/api/usage', { method: 'POST', body: body, keepalive: true,
+          credentials: 'omit', referrerPolicy: 'no-referrer', headers: { 'Content-Type': 'text/plain;charset=UTF-8' } })
+          .catch(function () {});
+      }
+    } catch (_) {}
+  }
+
+  root.logSection = logSection;
+  // Direct visits and reloads of standalone pages count, as do links from outside Ezik.
+  var pages = {
+    '/quest.html': 'treasure', '/library.html': 'library',
+    '/quest-ghaws.html': 'ghaws', '/quest-harb.html': 'harb',
+    '/quest-test.html': 'test', '/quest-board.html': 'board',
+    '/hanna-laha/': 'hanna', '/hanna-laha/index.html': 'hanna'
+  };
+  try { if (root.location) logSection(pages[root.location.pathname]); } catch (_) {}
+})(window);
