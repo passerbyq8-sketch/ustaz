@@ -217,6 +217,7 @@ function boot(opts) {
   EP.scrollIntoView = function () {}; EP.focus = function () {};
   if (!window.crypto) window.crypto = require('crypto').webcrypto;
   const requests = [];
+  const usageEvents = [];
   const seed = {};
   seed.child_profile = JSON.stringify({ name: 'Noor', age: 30, gender: 'male', birthYear: 1996, pid: 'PF-GUARD', createdAt: '2026-01-01T00:00:00.000Z' });
   seed.ezik_ai_consent_v1 = JSON.stringify({ status: 'granted', version: '2026-08-06-1', pid: 'PF-GUARD', grantedBy: 'user', at: '2026-08-06T00:00:00.000Z' });
@@ -227,8 +228,13 @@ function boot(opts) {
   const posts = [];
   if (opts.shell) window.ReactNativeWebView = { postMessage: (wire) => posts.push(String(wire)) };
   const FIX = new Set(['/places.json', '/adhkar.json', '/adhkar-split-27.json', '/arbaeen.json']);
-  window.fetch = (url) => {
+  window.fetch = (url, init) => {
     const key = String(url); requests.push(key);
+    if (key === '/api/usage') {
+      let event = null;
+      try { event = JSON.parse(init && init.body); } catch (_) {}
+      usageEvents.push(event);
+    }
     if (!FIX.has(key) || (key === '/places.json' && opts.placesOffline)) return Promise.reject(new TypeError('offline fixture boundary'));
     const value = fs.readFileSync(path.join(REPO, key.slice(1)), 'utf8');
     return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(JSON.parse(value)), text: () => Promise.resolve(value) });
@@ -256,7 +262,7 @@ function boot(opts) {
   const click = async (el) => { if (!el) throw new Error('missing control'); const p = props(el); if (p && p.onClick) p.onClick({ preventDefault() {}, stopPropagation() {}, currentTarget: el, target: el }); await tick(80); };
   const type = async (el, value) => { const p = props(el); p.onChange({ target: { value }, currentTarget: { value } }); await tick(80); };
   const store = window.localStorage;
-  return { window, root, read, open, q, qa, waitFor, click, type, requests, posts, store, props, caught: () => caught, ctx };
+  return { window, root, read, open, q, qa, waitFor, click, type, requests, usageEvents, posts, store, props, caught: () => caught, ctx };
 }
 // R4A: the scenes whose controls are in the prayer settings sheet of «ب» (the place search, the iqama and pre-prayer
 // alerts, the backup); the scene is this process's argument
@@ -307,7 +313,12 @@ SCENES.place = async () => {
   // The automatic-location button exists once a place is chosen, and a device fix replaces the place.
   const auto = c.q('[data-ezik-place="auto"]');
   ok('the automatic-location button is offered beside a chosen place', !!auto);
-  t('the page made no request other than the places list, the static corpora and the home feeds', c.requests.filter((r) => !/^\/[a-z0-9-]+\.json$/.test(r) && !/^\/api\/articles-list\?/.test(r)), []);
+  const sections = require('../config/usage-sections.json');
+  ok('usage requests contain only a closed section slug and anonymous device ID', c.usageEvents.length > 0
+    && c.usageEvents.every((e) => e && Object.keys(e).sort().join(',') === 'anon,section'
+      && typeof e.section === 'string' && Object.hasOwn(sections, e.section)
+      && typeof e.anon === 'string' && /^[a-f0-9]{32}$/.test(e.anon)));
+  t('the page only requested static corpora, home feeds and anonymous usage', c.requests.filter((r) => !/^\/[a-z0-9-]+\.json$/.test(r) && !/^\/api\/articles-list\?/.test(r) && r !== '/api/usage'), []);
   t('nothing threw', c.caught(), null);
 };
 SCENES.day = async () => {
