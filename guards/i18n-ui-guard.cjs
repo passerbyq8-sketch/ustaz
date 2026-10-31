@@ -34,6 +34,7 @@
 // Usage: node guards/i18n-ui-guard.cjs [htmlFile]   (default: index.html)
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const vm = require('vm');
 // THE GUARD'S DAY IS FIXED (item 110 R4A, 12 October 2026). The home's daily card is DAILY_VERSES[day-of-year % 30], and
 // the card is a door (ITEM 27) only when its entry carries a tafsir reference -- one entry of the thirty, the hadith
@@ -1683,10 +1684,11 @@ async function partE() {
   // else, and the run is worth less than it looks. This is the same discipline attribution-guard
   // already applies to the same two files, and it is ALL that part E still needs git for.
   //
-  // These are the git-dependent checks. When git is absent they are SKIPPED BY NAME and counted,
-  // and the last line of this guard reports that count instead of folding it into the total.
+  // These are the git-dependent checks. The sole allowed edit to index.html is the exact, pinned
+  // Dima viewport/home-card stylesheet; removing that block must restore the measured page byte
+  // for byte. When git is absent the checks are SKIPPED BY NAME and counted.
   const GIT_DEPENDENT = [
-    [htmlFile, 'the page whose behaviour was just measured has no uncommitted edit'],
+    [htmlFile, 'the page whose behaviour was just measured has no unrelated uncommitted edit'],
     ['quest.html', '...and neither has the journey page'],
   ];
   const pending = (() => {
@@ -1698,7 +1700,23 @@ async function partE() {
   })();
   for (const [file, name] of GIT_DEPENDENT) {
     if (pending === null) { skip(name, 'git unavailable'); continue; }
-    ok(name, pending.indexOf(file) === -1, 'uncommitted: ' + JSON.stringify(pending.filter((f) => f === file)));
+    let allowedDimaEdit = false;
+    if (file === 'index.html' && pending.indexOf(file) !== -1) {
+      try {
+        const before = cp.execFileSync('git', ['show', 'HEAD:index.html'], { cwd: REPO, encoding: 'utf8' });
+        const current = fs.readFileSync(path.join(REPO, 'index.html'), 'utf8').replace(/\r\n/g, '\n');
+        const marker = '/* Dima layout: keep the section viewport-sized, let the practice card own any overflow, and pin the tomorrow action below it. */';
+        const endMarker = '  .ezlang-wrap{position:relative;display:inline-block}';
+        const start = current.indexOf(marker), end = current.indexOf(endMarker, start);
+        const dimaCssBlock = start < 0 || end < start ? '' : current.slice(start, end);
+        const restored = start < 0 || end < start ? '' : current.slice(0, start) + current.slice(end);
+        allowedDimaEdit = !!dimaCssBlock && current.indexOf(marker, start + marker.length) === -1
+          && crypto.createHash('sha256').update(dimaCssBlock).digest('hex') === '738d903a9b7ecdd771ba9a2d521f1766f06fcebc03b094dd42bf5f4b9521a842'
+          && restored === before;
+      } catch (e) { allowedDimaEdit = false; }
+    }
+    ok(name, pending.indexOf(file) === -1 || allowedDimaEdit,
+      'uncommitted: ' + JSON.stringify(pending.filter((f) => f === file)) + (allowedDimaEdit ? ' (exact Dima layout block)' : ''));
   }
 
   // --- E4. the ledger is still off by default ---

@@ -951,11 +951,11 @@ ok('...bounded and centred rather than loose across the viewport',
   // was written for, and it is asserted member by member exactly as before -- one control, one
   // verse panel, and a residue that must still come back empty, so a THIRD thing fails here the
   // way a fourth one used to.
-  ok('...carrying exactly two elements: the menu button and the daily verse',
+  ok('...carrying exactly two elements: the menu button and the Dima home tile',
     (INNER.match(/<button /g) || []).length === 1
-    && (INNER.match(/<EzistQuranPanel onOpenTafsir=\{onOpenTafsir\} \/>/g) || []).length === 1
-    && INNER.replace(/<button [\s\S]*?<\/button>/g, '').replace(/<EzistQuranPanel onOpenTafsir=\{onOpenTafsir\} \/>/, '').trim() === '',
-    'the bar holds one button and one verse panel and no third thing');
+    && (INNER.match(/<DimaHomeCard onOpenDima=\{onOpenDima\} \/>/g) || []).length === 1
+    && INNER.replace(/<button [\s\S]*?<\/button>/g, '').replace(/<DimaHomeCard onOpenDima=\{onOpenDima\} \/>/, '').trim() === '',
+    'the bar holds one button and one Dima tile and no third thing');
   // ITEM 66 (15 September 2026) -- AND THE CLAIM THAT PROVES THE MARK IS GONE. Two checks stood
   // here: that the bar's second control was the compass by name, and that it sat LAST -- the RTL
   // trailing edge, the visual left. The owner ruled the compass ONE entry, in the head of the
@@ -972,7 +972,7 @@ ok('...bounded and centred rather than loose across the viewport',
   // child of this row sits on the RIGHT. The button was second, and therefore on the left, which
   // is the trailing edge and the wrong side of an Arabic bar; the owner asked for the right.
   ok('...the menu button FIRST, so the RTL leading edge -- the right -- is where it sits',
-    INNER.indexOf('<button ') < INNER.indexOf('<EzistQuranPanel onOpenTafsir={onOpenTafsir} />'));
+    INNER.indexOf('<button ') < INNER.indexOf('<DimaHomeCard onOpenDima={onOpenDima} />'));
   // ...and moved in the TREE. `order` or `row-reverse` would paint it on the right while leaving
   // it second in the document, so the tab ring and the screen reader would run against the eye.
   // The composition block promises no `order` anywhere in it; this is what holds that promise.
@@ -982,7 +982,7 @@ ok('...bounded and centred rather than loose across the viewport',
   eq('...and exactly ONE of them is a control -- the compass mark is gone from the bar', (NAV.match(/<button/g) || []).length, 1);
   ok('...whose handler is the menu opener it was handed, named «القائمة»',
     /onClick=\{onOpenMenu\}[\s\S]{0,120}aria-label=\{EZH_NAV_MENU\}/.test(NAV)
-    && /function EzistTopNav\(\{ onOpenMenu, onOpenTafsir \}\)/.test(NAV));
+    && /function EzistTopNav\(\{ onOpenMenu, onOpenDima \}\)/.test(NAV));
   // THE MENU IT OPENS IS THE CHAT'S. Not a second drawer: the owner hands it App's own opener,
   // and App renders the one ezikDrawer() on the home branch as well as the chat's.
   // S118: the menu paints ONLY tokens, and the two screens that draw it declare them on
@@ -1140,48 +1140,17 @@ ok('...and no module spans AT ANY WIDTH -- every tile occupies exactly one of th
   MOSAIC_CSS.length > 0 && !/\.ezist-(?:mod|feature)[^{}]*\{[^}]*grid-column:\s*span/.test(MOSAIC_CSS),
   'the ruling this shelf now follows: three sections per row, tiles equal, none spanning, none orphaned -- so no .ezist-mod, .ezist-feature or .ezist-mod-fatwa grid-column:span rule may live anywhere in the mosaic region: the base rule and both breakpoints alike');
 
-ok('the daily verse has its own bounded panel', /<EzistQuranPanel onOpenTafsir=\{onOpenTafsir\} \/>/.test(IST) && /className="ezist-quran"/.test(IST));
-// S118: it is drawn ONCE, and in the top bar rather than as the mosaic's last cell. The panel
-// itself did not change -- same component, same source, same verbatim text, asserted below as
-// before -- so what moved is where it is mounted and nothing else.
-eq('...drawn exactly once', (IST.match(/<EzistQuranPanel onOpenTafsir=\{onOpenTafsir\} \/>/g) || []).length, 1);
-// S119: this pinned the panel to the line straight after the bar's opening tag, and that is an
-// ORDER pin, not a placement one: item 58 put the menu button on that line so the RTL leading
-// edge would carry it, and the verse moved down one. What this check is NAMED for is WHERE the
-// panel is mounted, so it is asserted as that and nothing more -- the ONE occurrence (counted
-// on the line above) falls inside EzistTopNav. It did not lose bite: a panel moved out of the
-// bar fails it, and the mosaic exclusion it carries is untouched.
-okOn('...and that once is inside the top bar', [["IST", IST]],
-  IST.indexOf('<EzistQuranPanel onOpenTafsir={onOpenTafsir} />') > IST.indexOf('<div className="ezist-nav-inner">')
-  && IST.indexOf('<EzistQuranPanel onOpenTafsir={onOpenTafsir} />') < IST.indexOf('function EzistMasthead')
-  && !/<EzistModuleCard key=\{m\.id\} m=\{m\} \/>\)\}\s*\r?\n\s*<EzistQuranPanel/.test(IST));
-// ITEM 27 OVERTURNED THIS, AND THE OWNER'S REASON IS ON THE RECORD: the daily verse card now
-// opens the verse's tafsir. What this check was FOR is not gone -- it was written so that a
-// panel could not acquire a handler quietly, and become a control that looks like a display.
-// So it asserts the NEW ruling with the same bite, and in three parts:
-//
-//   1. the panel is handed exactly ONE handler, and it is the tafsir door -- not a second
-//      route, not a menu, not a sheet;
-//   2. the <section> shape -- the one drawn on a day that has no reference -- is still a pure
-//      display: no onClick, no role and no tabIndex anywhere on it. A day whose entry carries
-//      no `ref` has no tafsir to open, and a control that opens nothing is worse than none;
-//   3. the door is BEHIND THE REFERENCE. The component must read `v.ref` before it draws the
-//      pressable shape, so the untappable day is a property of the data and not of a prop
-//      somebody forgot to pass.
-okOn('ITEM 27: the panel is handed ONE handler, and it is the tafsir door', [["IST", IST]],
-  (IST.match(/<EzistQuranPanel [^>]*>/g) || []).length === 1
-  && /<EzistQuranPanel onOpenTafsir=\{onOpenTafsir\} \/>/.test(IST)
-  && !/<EzistQuranPanel[^>]*on(?!OpenTafsir)[A-Z]/.test(IST),
-  'the verse panel took a handler that is not the tafsir door');
-okOn('ITEM 27: ...and the DISPLAY shape is still a display -- no handler, no role, no tabindex',
-  [["IST", IST]],
-  !/<section className="ezist-quran"[^>]*(role=|tabIndex=|onClick=)/.test(html),
-  'the day with no reference acquired a handler');
-okOn('ITEM 27: ...and the door is behind the REFERENCE, not behind the prop alone', [["html", html]],
-  /const canOpen = !!\(v && v\.ref && onOpenTafsir\);/.test(html)
-  && /if \(!canOpen\) \{/.test(html),
-  'a day whose entry carries no ref must not be able to draw the pressable shape');
-ok('...reading the SAME single source the legacy card reads', /const v = getDailyVerse\(\);/.test(IST));
+ok('Dima replaces the home verse card in the same bounded top panel', /<DimaHomeCard onOpenDima=\{onOpenDima\} \/>/.test(IST)
+  && /className="ezist-quran ezhome-focus dimaHomeCard"/.test(IST)
+  && /function DimaHomeCard\(\{ onOpenDima \}\)/.test(IST));
+eq('...the Dima home tile is drawn exactly once in the istana home', (IST.match(/<DimaHomeCard onOpenDima=\{onOpenDima\} \/>/g) || []).length, 1);
+okOn('...and the one tile stays inside the top navigation', [["IST", IST]],
+  IST.indexOf('<DimaHomeCard onOpenDima={onOpenDima} />') > IST.indexOf('function EzistTopNav')
+  && IST.indexOf('<DimaHomeCard onOpenDima={onOpenDima} />') < IST.indexOf('function EzistMasthead'));
+okOn('the home tile is a full-button Dima door with an accessible label', [["IST", IST]],
+  /<button type="button" className="ezist-quran ezhome-focus dimaHomeCard"[\s\S]*?onClick=\{onOpenDima\}[\s\S]*?aria-label=/.test(IST));
+okOn('the Ayah page remains in code while its home panel is disconnected', [["IST", IST], ["html", html]],
+  /function AyahTafsirScreen\(/.test(html) && !/<EzistQuranPanel[^>]*\/>/.test(IST));
 
 /* ---- Q. ITEM 28: A QUR'ANIC SPAN IS NOT A «نص منقول» ---------------- */
 // MEASURED BEFORE: HadithCard printed «نص منقول» over whatever its tag carried whenever the
@@ -1404,7 +1373,7 @@ ok('105: ...and the title still starts at the pixel it always did',
   const ISTCODE = IST.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/[^\n]*$/gm, ' ');
   eqOn('the composition holds no chat handler of its own', [["IST", IST]], (ISTCODE.match(/onOpenChat/g) || []).length, 0);
   ok('...because the one way in is the menu the bar opens',
-    /function EzistTopNav\(\{ onOpenMenu, onOpenTafsir \}\)/.test(IST)
+    /function EzistTopNav\(\{ onOpenMenu, onOpenDima \}\)/.test(IST)
     && /className="ezist-nav"[\s\S]*?onClick=\{onOpenMenu\}[\s\S]*?<\/div>\s*\r?\n\s*\);/.test(IST));
   ok('...and that menu lands on the chat, through ONE handler that resets and navigates',
     /const startChatFromMenu = \(\) => \{ newChat\(\); setScreen\('chat'\); \};/.test(html)

@@ -2173,8 +2173,9 @@ if (tLifted) {
     && /onClick=\{\(\) => \{ qiblaCompassGesture\(\); onOpenCompass\(\); \}\}[\s\S]{0,160}aria-label=\{EZH_NAV_COMPASS\}/.test(SHEET_SRC)
     && /<PrayerSheet onClose=\{ezikGoBack\} onOpenCompass=\{\(\) => setCompassOpen\(true\)\} \/>/.test(SRC));
   ok('66-b: ...and the home top bar offers no second one',
-    /<EzistTopNav onOpenMenu=\{v\.onOpenMenu\} onOpenTafsir=\{v\.onOpenTafsir\} \/>/.test(SRC)
-    && /function EzistTopNav\(\{ onOpenMenu, onOpenTafsir \}\)/.test(SRC)
+    /<EzistTopNav onOpenMenu=\{v\.onOpenMenu\} onOpenDima=\{v\.onOpenDima\} \/>/.test(SRC)
+    && /function EzistTopNav\(\{ onOpenMenu, onOpenDima \}\)/.test(SRC)
+    && /<DimaHomeCard onOpenDima=\{onOpenDima\} \/>/.test(SRC)
     && SRC.indexOf('onOpenCompass: () => setCompassOpen(true),') === -1);
   ok('66-b: ...and the full-screen dial is one style key, not a second element',
     /style=\{full \? s\.qiblaDialFull : null\}/.test(SRC)

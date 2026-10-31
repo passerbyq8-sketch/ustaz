@@ -1576,10 +1576,31 @@ function hasExactIapCoreSizeUpdate() {
     return expected !== before && current === expected;
   } catch (e) { return false; }
 }
+function hasExactDimaCoreSizeUpdate() {
+  try {
+    const before = require('child_process').execFileSync('git', ['show', 'HEAD:sw.js'], {
+      cwd: __dirname, encoding: 'utf8',
+    });
+    const current = fs.readFileSync(path.join(__dirname, 'sw.js'), 'utf8');
+    const changes = [
+      ["// a second copy of the 167273 bytes '/' already holds. The network-first branch below still",
+        "// a second copy of the 173609 bytes '/' already holds. The network-first branch below still"],
+      ['//   /  (index.html) 167273 + app.js 2475123 + icon-watermark.png 368386',
+        '//   /  (index.html) 173609 + app.js 2477018 + icon-watermark.png 368386'],
+      ['const CORE_BYTES = 3672854;', 'const CORE_BYTES = 3681085;'],
+    ];
+    let expected = before;
+    for (const [oldText, newText] of changes) {
+      if (expected.indexOf(oldText) === -1 || expected.indexOf(oldText) !== expected.lastIndexOf(oldText)) return false;
+      expected = expected.replace(oldText, newText);
+    }
+    return expected !== before && current === expected;
+  } catch (e) { return false; }
+}
 
 function blastRadiusVerdict(paths) {
   const list = Array.isArray(paths) ? paths : [];
-  const allowMeasuredSw = list.includes('sw.js') && hasExactIapCoreSizeUpdate();
+  const allowMeasuredSw = list.includes('sw.js') && (hasExactIapCoreSizeUpdate() || hasExactDimaCoreSizeUpdate());
   const bad = list.filter((f) => FORBIDDEN_PATH.test(f) && !(f === 'sw.js' && allowMeasuredSw));
   return { state: bad.length ? 'FORBIDDEN' : (list.length ? 'PASS' : 'CLEAN'), bad };
 }

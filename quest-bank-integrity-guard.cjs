@@ -2069,7 +2069,9 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3672854. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57909 bytes).
   //   2026-10-10 -- ITEM 110 (Dima section final focus and offline bundle): app.js 2475123 -> 2475123 bytes, sha256 47c67501..9289; index.html 167273.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3672854. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57909 bytes).
-  'sw.js': '5d0d4008afede6369d62d7f5761a70f7a1cb3788a3cba071e539269092f0591e',
+  //   2026-10-31 -- ITEM 110 (Dima data copy and restored CRLF checkout): app.js 2479504 -> 2477018 bytes, sha256 93673ad4..01a0; index.html 173609.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3681085. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57909 bytes).
+  'sw.js': '953fcf042b506dfa0420c0adc7342453e083bac78abf99a5495c40dbc87c98b3',
 };
 
 // ---------------------------------------------------------------------------
@@ -3245,7 +3247,7 @@ async function compare(bankPath) {
     //  { n, sum: [a, b] }  n is the byte sum of those files on disk
     //  { n, dir: 'count' | 'sum' | 'mean' }   n is that statistic over the mushaf page scans
     const SW_PROSE = [
-      { n: 167273, of: 'index.html' },
+      { n: 173609, of: 'index.html' },
       // ITEM 85. The two CORE entries the self-hosted faces added, stated in the worker's byte
       // table beside the rest and re-derived here from the files they name. They are the arabic
       // and latin cuts of Noto Naskh Arabic, which is what the first screen is painted in.
@@ -3258,7 +3260,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2475123, of: 'app.js' },
+      { n: 2477018, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

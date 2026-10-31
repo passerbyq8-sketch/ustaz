@@ -34,7 +34,7 @@ const ROUTES = ['mushaf', 'adhkar_sabah', 'adhkar_masaa', 'home', 'adhkar', 'arb
   // the two routes that leave for a page of their own; the shell's widget table does not carry it (SECTIONS below).
   'ayah-tafsir', 'asmaa', 'sunan-day', 'yahimmak', 'dima', 'wirdi', 'treasure', 'library'];
 const SECTIONS = ['memorize', 'fatwa', 'lessons', 'adhkar', 'arbaeen', 'articles', 'women', 'prayer',
-  'tasbih', 'calc', 'compass', 'ayah-tafsir', 'asmaa', 'sunan-day', 'treasure'];
+  'tasbih', 'calc', 'compass', 'dima', 'asmaa', 'sunan-day', 'treasure'];
 const PROFILE_PID = 'W45-GUARD';
 const PROFILE = { name: 'Noor', age: 30, gender: 'male', birthYear: 1996, pid: PROFILE_PID, createdAt: '2026-01-01T00:00:00.000Z' };
 const FIXTURES = new Set(['/adhkar.json', '/adhkar-split-27.json', '/arbaeen.json']);
@@ -354,7 +354,7 @@ function assertWidgetData(c, t, message) {
   const book = JSON.parse(fs.readFileSync(path.join(REPO, 'arbaeen.json'), 'utf8'));
   t('every hadith copied without rewriting', d.arbaeen, book.hadith.map(({ n, title, text }) => ({ n, title, text })));
   t('exact section-widget roster', d.sections.map((x) => x.route), SECTIONS);
-  const labels = ['EZH_MEMORIZE','EZH_FATWA','EZH_LESSONS','EZH_ADHKAR','EZH_ARBAEEN','EZH_ARTICLES','EZH_WOMEN','EZH_PRAYER',"ezT('tasbih.card.title')","ezT('calc.card.title')",'EZH_NAV_COMPASS',"ezT('home.verseOfDay2')",'EZH_ASMAA','EZH_SUNAN','EZH_TREASURE'];
+  const labels = ['EZH_MEMORIZE','EZH_FATWA','EZH_LESSONS','EZH_ADHKAR','EZH_ARBAEEN','EZH_ARTICLES','EZH_WOMEN','EZH_PRAYER',"ezT('tasbih.card.title')","ezT('calc.card.title')",'EZH_NAV_COMPASS','EZH_DIMA','EZH_ASMAA','EZH_SUNAN','EZH_TREASURE'];
   t('every section label uses display text', d.sections.map((x) => x.label), labels.map((x) => c.read(x)));
 }
 SCENES['widget-data'] = async (c, t, notes) => {
@@ -682,7 +682,7 @@ const MUTANTS = [
     ['  const [homeEpoch, setHomeEpoch] = useState(0);\n', '  const [homeEpoch, setHomeEpoch] = useState(0);\n  useEffect(() => { ezikWidgetListenLate(); }, []);\n']] },
   { name: 'no-onboarding-drop', scene: 'onboarding', edits: [["    if (cur === 'onboarding') return;", '']] },
   { name: 'applies-during-loading', scene: 'onboarding', edits: [["    if (cur === 'loading') return;\n    const requested = ezikWidgetTake();", '    const requested = ezikWidgetTake();']] },
-  { name: 'no-home-remount', scene: 'warm-home', edits: [["onOpenTafsir={() => setScreen('ayah-tafsir')} key={homeEpoch} />", "onOpenTafsir={() => setScreen('ayah-tafsir')} />"]] },
+  { name: 'no-home-remount', scene: 'warm-home', edits: [["onOpenSettings={() => openEzikSheet('settings')} key={homeEpoch} />", "onOpenSettings={() => openEzikSheet('settings')} />"]] },
   { name: 'any-route', scene: 'foreign', edits: [["if (typeof d.route !== 'string' || EZIK_WIDGET_ROUTES.indexOf(d.route) === -1) return;", "if (typeof d.route !== 'string' || !d.route) return;"]] },
   { name: 'any-op', scene: 'foreign', edits: [[' || d.op !== SHELL_SCHED_OPEN_OP) return;', ') return;']] },
   { name: 'asmaa-not-opened', scene: 'cold-asmaa', edits: [["    setAsmaaOpen(route === 'asmaa');", '    setAsmaaOpen(false);']] },
