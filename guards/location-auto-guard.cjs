@@ -55,6 +55,7 @@ function boot(opts) {
   EP.scrollIntoView = function () {}; EP.focus = function () {};
   if (!window.crypto) window.crypto = require('crypto').webcrypto;
   const requests = [];
+  const usageEvents = [];
   const seed = {};
   seed.child_profile = JSON.stringify({ name: 'Noor', age: 30, gender: 'male', birthYear: 1996, pid: 'PF-GUARD', createdAt: '2026-01-01T00:00:00.000Z' });
   seed.ezik_ai_consent_v1 = JSON.stringify({ status: 'granted', version: '2026-08-06-1', pid: 'PF-GUARD', grantedBy: 'user', at: '2026-08-06T00:00:00.000Z' });
@@ -81,8 +82,13 @@ function boot(opts) {
   }
   if (opts.permission) Object.defineProperty(NP, 'permissions', { configurable: true, get: () => ({ query: () => Promise.resolve({ state: opts.permission }) }) });
   const FIX = new Set(['/places.json', '/adhkar.json', '/adhkar-split-27.json', '/arbaeen.json']);
-  window.fetch = (url) => {
+  window.fetch = (url, init) => {
     const key = String(url); requests.push(key);
+    if (key === '/api/usage') {
+      let event = null;
+      try { event = JSON.parse(init && init.body); } catch (_) {}
+      usageEvents.push(event);
+    }
     if (!FIX.has(key)) return Promise.reject(new TypeError('offline fixture boundary'));
     const value = fs.readFileSync(path.join(REPO, key.slice(1)), 'utf8');
     return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(JSON.parse(value)), text: () => Promise.resolve(value) });
@@ -111,7 +117,7 @@ function boot(opts) {
   const click = async (el) => { if (!el) throw new Error('missing control'); const p = props(el); if (p && p.onClick) p.onClick({ preventDefault() {}, stopPropagation() {}, currentTarget: el, target: el }); await tick(80); };
   const store = window.localStorage;
   const sendLoc = (detail) => vm.runInContext('window.dispatchEvent(new CustomEvent("ezik:location:result",{detail:' + JSON.stringify(detail) + '}))', ctx);
-  return { window, root, read, open, q, qa, waitFor, click, requests, posts, geoCalls, store, props, sendLoc, t0, caught: () => caught, ctx };
+  return { window, root, read, open, q, qa, waitFor, click, requests, usageEvents, posts, geoCalls, store, props, sendLoc, t0, caught: () => caught, ctx };
 }
 async function openPrayer(c) {
   await c.waitFor(() => c.q('.ezc-rail') || c.q('[data-ezik-home-module]') || c.q('.ez110-home'));
@@ -133,7 +139,12 @@ SCENES.section = async () => {
   ok('the city line says Salmiya in Arabic', !!city, c.q('[data-ezik-city="name"]') && c.q('[data-ezik-city="name"]').textContent);
   t('the silent fresh fix followed and, a hundred metres off, changed nothing', [c.geoCalls.length, c.geoCalls[1] && c.geoCalls[1].opts.enableHighAccuracy, JSON.parse(c.store.getItem('ezik_qibla_loc_v1')).lat], [2, true, SALMIYA.lat]);
   t('the manual-city record was not invented', c.store.getItem('ezik_prayer_place_v1'), null);
-  t('no request left the page but the places list and the static corpora', c.requests.filter((r) => !/^\/[a-z0-9-]+\.json$/.test(r) && !/^\/api\/articles-list\?/.test(r)), []);
+  const sections = require('../config/usage-sections.json');
+  ok('usage contains no position or account: only section and anonymous ID', c.usageEvents.length > 0
+    && c.usageEvents.every((e) => e && Object.keys(e).sort().join(',') === 'anon,section'
+      && typeof e.section === 'string' && Object.hasOwn(sections, e.section)
+      && typeof e.anon === 'string' && /^[a-f0-9]{32}$/.test(e.anon)));
+  t('only static corpora, home feeds and anonymous usage were requested', c.requests.filter((r) => !/^\/[a-z0-9-]+\.json$/.test(r) && !/^\/api\/articles-list\?/.test(r) && r !== '/api/usage'), []);
   t('nothing threw', c.caught(), null);
 };
 SCENES.manual = async () => {

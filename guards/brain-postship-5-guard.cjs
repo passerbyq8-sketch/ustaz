@@ -69,13 +69,14 @@ function ok(name, cond, detail) {
 
   console.log('-- 2. the tab chooses the day');
   const app = fs.readFileSync(path.join(REPO, 'app.jsx'), 'utf8');
-  ok('the answers list call sends the chosen day', /action: 'list', kind: which(?:, \.\.\.\(which === 'answers' \? \{ day: ansDay \} : \{\}\))/u.test(app));
+  ok('the answers list call sends the chosen day', /action: 'list', kind: which, \.\.\.\(which === 'answers' \? \{ day: ansDay \}\s*:/u.test(app));
+  ok('usage has its own UTC day and selected period', /which === 'usage' \? \{ day: usageDay\.replace\(\/-\/g, ''\), days: usageDays \} : \{\}/u.test(app));
   ok('the day keys are the server\'s: UTC, YYYYMMDD, today and the 29 before', /function ezikAnswerLogDays\(/u.test(app) && /toISOString\(\)\.slice\(0, 10\)\.replace\(\/-\/g, ''\)/u.test(app.slice(app.indexOf('function ezikAnswerLogDays('), app.indexOf('function ezikAnswerLogDays(') + 600)));
   const m = /function ezikAnswerLogDays\([^)]*\)\s*\{([\s\S]*?)\n\}/u.exec(app);
   let days = null;
   try { days = m ? new Function('now', m[1])(Date.UTC(2026, 9, 24, 23, 30)) : null; } catch (e) { days = null; }
   ok('thirty days, today first (UTC)', Array.isArray(days) && days.length === 30 && days[0] === '20261024' && days[29] === '20260925', JSON.stringify(days && [days[0], days[29], days.length]));
-  ok('a changed day reloads the list', /\[kind, ansDay\]\)/u.test(app));
+  ok('a changed answer day, usage day or usage period reloads the list', /\[kind, ansDay, usageDay, usageDays\]\)/u.test(app));
   ok('the server takes the day it is sent (api/inbox.js)', /body\.day/u.test(fs.readFileSync(path.join(REPO, 'api/inbox.js'), 'utf8')));
 
   console.log('\n' + (checks - failures) + '/' + checks + ' checks passed');
