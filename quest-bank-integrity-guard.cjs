@@ -2091,7 +2091,8 @@ const SEALED = {
   //                    NO CORE membership changed; sw.js is 57909 bytes at CR = 0. The seal is measured from the committed blob.
   // 2026-10-31 usage-log: logger embedded in app.js; CORE list and cache version unchanged.
   // Refreshed app.js bytes, measured CORE total and this seal; policy assertions are unchanged.
-  'sw.js': 'f03420a24117784f6b890892f8682534431ded37af011f27148cf3797ece7dae',
+  // 2026-10-31 USAGE production ship: reserved cache ezik-v127; app.js rebuilt; CORE membership unchanged; worker seal remeasured.
+  'sw.js': 'bab4f12ddb654153cf9635a18a11e4f510fdfcd0c453fedce8f8736fecc5b6ee',
 };
 
 // ---------------------------------------------------------------------------
