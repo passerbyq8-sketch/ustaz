@@ -2087,7 +2087,9 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3688195. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57909 bytes).
   //   2026-10-10 -- ITEM 110 (item 110 rebuild): app.js 2478510 -> 2478510 bytes, sha256 bfcb7519..4a1b; index.html 179227.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3688195. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57909 bytes).
-  'sw.js': '138ed6512925c154071998b967606b0c4eabb0edade7ec8f021eb712f0694cd3',
+  //   2026-10-31 -- DIMA production ship (home banner and 30-day section): cache ezik-v125 -> ezik-v126 (config/app-version.json and sw.js CACHE, app.js rebuilt); app.js 2478510 bytes, sha256 a7570578..dc2281; CORE_BYTES remains 3688195.
+  //                    NO CORE membership changed; sw.js is 57909 bytes at CR = 0. The seal is measured from the committed blob.
+  'sw.js': '3e170b08aba875e86384dfcac261d98052355922572fa41eb4663d753ecb6d24',
 };
 
 // ---------------------------------------------------------------------------
