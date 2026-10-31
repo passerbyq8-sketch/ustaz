@@ -29403,7 +29403,7 @@ function EzShell({ title, onBack, backLabel, lead, actions, children }) {
         <div className="ezsh-nav-inner">
           <div className="ezsh-nav-side">
             {onBack ? (
-              <button type="button" className="ezhome-focus" onClick={onBack} style={s.ezshNavBtn}
+              <button type="button" className="ezhome-focus" onClick={onBack} style={EZ_LANG_DIR[EZ_LANG] === 'ltr' ? { ...s.ezshNavBtn, transform: 'scaleX(-1)' } : s.ezshNavBtn}
                 aria-label={backLabel}>{A2_ICON_BACK}</button>
             ) : null}
             {lead || null}
@@ -36767,7 +36767,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
             year alone. Empty is a lawful answer for all three. */}
         <EzShellGroup title={ezT('settings.profile')} hint={ezT('settings.profileHint')} grp="account">
           <input value={pfName} onChange={(e) => { setPfName(e.target.value); setPfMsg(''); }}
-            placeholder={ezT('onboarding.name')} aria-label={ezT('onboarding.name')} style={s.welcomeInput} />
+            placeholder={ezT('onboarding.name')} aria-label={ezT('onboarding.name')} style={EZ_LANG_DIR[EZ_LANG] === 'ltr' ? { ...s.welcomeInput, direction: 'ltr' } : s.welcomeInput} />
           {/* ITEM 9 / F10 -- THREE CHOICES, and the third is not decoration. A press now SELECTS
               rather than toggling: pressing the chosen word a second time used to clear the row
               to null, which is the state the third button now says out loud, so the toggle was
