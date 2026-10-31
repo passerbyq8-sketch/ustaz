@@ -1724,47 +1724,54 @@
 .dimaNotifySettings{overflow-y:auto;overscroll-behavior:contain}
 .dimaPreview{flex:0 0 auto}
 .dimaPreviewFriday{border-color:var(--dima-accent)}
-.ezist-nav[data-dima-home-banner="true"] .ezist-nav-inner{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:44px 168px;align-items:center;justify-content:stretch;gap:8px;padding:6px 12px 8px;min-height:0}
-.ezist-nav[data-dima-home-banner="true"] .ezist-nav-inner>button:first-child{grid-column:1;grid-row:1;justify-self:start;width:44px;height:44px;min-width:44px;min-height:44px;padding:0}
-.ezist-nav[data-dima-home-banner="true"] .dimaHomeBanner{grid-column:1;grid-row:2;display:block!important;flex:0 0 168px!important;width:calc(100% + 24px);height:168px;min-height:168px;margin-inline:-12px;padding:0!important;border:0!important;border-radius:22px!important;background:var(--dima-home-sky)!important;color:var(--dima-home-text)!important;box-shadow:0 8px 22px var(--dima-home-shadow)!important}
+.ezist-nav[data-dima-home-banner="true"]{background:transparent;border-bottom:0}
+.ezist-nav[data-dima-home-banner="true"] .ezist-nav-inner{display:block;padding:14px 16px 0;min-height:0}
+.ezist-nav[data-dima-home-banner="true"] .dimaHomeBanner{display:block;width:100%;height:176px;min-height:176px;margin:0;padding:0;border:0;border-radius:22px;background:var(--dima-home-sky);color:var(--dima-home-text);box-shadow:0 8px 22px var(--dima-home-shadow)}
 .dimaHomeBanner{--dima-home-sky:#E3EDF1;--dima-home-cloud:#FFFFFF;--dima-home-rain:#6E9DB3;--dima-home-ground:#D8CBB3;--dima-home-spot:#EAE1CD;--dima-home-text:#17201C;--dima-home-muted:#3F4A45;--dima-home-accent:#1F5F7A;--dima-home-outline:#8A9A94;--dima-home-accent-soft:rgba(31,95,122,.12);--dima-home-done-bg:#E4F1E8;--dima-home-done-ink:#245A38;--dima-home-shadow:rgba(31,95,122,.14);position:relative;isolation:isolate;overflow:hidden;box-sizing:border-box;text-align:right;direction:rtl;text-decoration:none;cursor:pointer;font:inherit;font-family:inherit}
-.dimaHomeBanner:focus-visible{outline:3px solid var(--ez-focus);outline-offset:2px}
-.dimaHomeCloud{position:absolute;z-index:0;display:block}
-.dimaHomeCloudLarge{top:12px;left:14px}
-.dimaHomeCloudSmall{top:40px;left:112px;opacity:.85}
-.dimaHomeRain{position:absolute;z-index:1;display:block;overflow:visible;animation:dimaHomeFall 2.8s linear infinite}
+.dimaHomeTopRow{position:absolute;z-index:4;top:10px;right:8px;display:flex;align-items:center;gap:6px;pointer-events:none}
+.dimaHomeMenuButton{position:relative;z-index:5;display:flex;flex:0 0 44px;align-items:center;justify-content:center;width:44px;height:44px;min-width:44px;min-height:44px;padding:0;border:0;background:transparent;color:var(--dima-home-text);cursor:pointer;pointer-events:auto}
+.dimaHomeMenuButton svg{width:24px;height:24px}
+.dimaHomeGreeting{display:flex;flex-direction:column;gap:1px;pointer-events:none}
+.dimaHomeGreetingSalam{font-size:12.5px;line-height:1.3;color:var(--dima-home-muted)}
+.dimaHomeGreetingName{font-size:16px;line-height:1.3;font-weight:700;color:var(--dima-home-text)}
+.dimaHomeOpen{position:absolute;z-index:2;inset:0;display:block;width:100%;height:100%;padding:0;border:0;border-radius:inherit;background:transparent;cursor:pointer}
+.dimaHomeOpen:focus-visible{outline:3px solid var(--ez-focus);outline-offset:-3px}
+.dimaHomeCloud{position:absolute;z-index:0;display:block;pointer-events:none}
+.dimaHomeCloudLarge{top:18px;left:14px}
+.dimaHomeCloudSmall{top:50px;left:112px;opacity:.85}
+.dimaHomeRain{position:absolute;z-index:1;display:block;overflow:visible;pointer-events:none;animation:dimaHomeFall 2.8s linear infinite}
 .dimaHomeRain--2{animation-delay:.6s}.dimaHomeRain--3{animation-delay:1.2s}.dimaHomeRain--4{animation-delay:1.8s}.dimaHomeRain--5{animation-delay:.9s}.dimaHomeRain--6{animation-delay:2.2s}
 @keyframes dimaHomeFall{0%{transform:translateY(-6px);opacity:0}20%{opacity:.85}100%{transform:translateY(46px);opacity:0}}
 @keyframes dimaHomePulse{0%{transform:scale(1);opacity:.6}70%{transform:scale(1.32);opacity:0}100%{transform:scale(1.32);opacity:0}}
 @keyframes dimaHomeSway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
-.dimaHomeSoil{position:absolute;z-index:1;left:0;right:0;bottom:0;height:22px;background:var(--dima-home-ground)}
-.dimaHomePlants{position:absolute;z-index:2;left:16px;bottom:22px;width:160px;height:43px;display:flex;flex-direction:row-reverse;align-items:flex-end;justify-content:space-between;direction:ltr}
+.dimaHomeSoil{position:absolute;z-index:1;left:0;right:0;bottom:0;height:22px;background:var(--dima-home-ground);pointer-events:none}
+.dimaHomePlants{position:absolute;z-index:2;left:16px;bottom:22px;width:160px;height:43px;display:flex;flex-direction:row-reverse;align-items:flex-end;justify-content:space-between;direction:ltr;pointer-events:none}
 .dimaHomePlant{position:relative;display:flex;flex:0 0 18px;width:18px;height:30px;align-items:flex-end;justify-content:center}
 .dimaHomePlantToday{flex-basis:28px;width:28px;height:43px;transform-origin:50% 100%;animation:dimaHomeSway 3.4s ease-in-out infinite}
 .dimaHomePlant .dimaPlant{width:18px;height:30px;flex:0 0 18px}
 .dimaHomePlantToday .dimaPlant{width:21px;height:34px;flex:0 0 21px}
 .dimaHomeSpot{position:absolute;z-index:0;left:50%;bottom:-9px;width:34px;height:10px;border-radius:50%;transform:translateX(-50%);background:var(--dima-home-spot)}
 .dimaHomeSeed{position:absolute;z-index:1;bottom:0;width:4px;height:4px;border-radius:50%;background:#B9A784}
-.dimaHomeText{position:absolute;z-index:3;top:14px;right:16px;width:186px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;color:var(--dima-home-text)}
+.dimaHomeText{position:absolute;z-index:3;top:62px;right:16px;width:232px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;color:var(--dima-home-text);pointer-events:none}
+.dimaHomeText.is-complete{width:244px}
 .dimaHomeBrand{display:flex;align-items:center;gap:8px}
 .dimaHomeBrandIcon{width:32px;height:32px;flex:0 0 32px;border-radius:50%;background:var(--dima-home-accent-soft);color:var(--dima-home-accent);display:flex;align-items:center;justify-content:center}
 .dimaHomeBrandIcon svg{display:block;width:18px;height:18px}
 .dimaHomeBrandTitle{font-size:15px;font-weight:700;color:var(--dima-home-accent)}
-.dimaHomeHeadline{font-size:18px;line-height:1.3;font-weight:700;color:var(--dima-home-text)}
 .dimaHomeProgress{display:flex;align-items:center;gap:5px;color:var(--dima-home-muted);font-size:12.5px;line-height:1.3;white-space:nowrap}
 .dimaHomeProgressDrops{display:flex;flex:0 0 auto;align-items:center;gap:3px;direction:ltr}
 .dimaHomeProgressDrop{display:block;fill:none;stroke:var(--dima-home-outline);stroke-width:1.7}
 .dimaHomeProgressDrop.is-filled{fill:var(--dima-home-accent);stroke:var(--dima-home-accent)}
 .dimaHomeProgressLabel{font-size:12.5px;color:var(--dima-home-muted)}
-.dimaHomeAction,.dimaHomeMeet{height:36px;box-sizing:border-box;padding:0 14px;border-radius:18px;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:700;white-space:nowrap}
-.dimaHomeAction{position:relative;margin-top:4px;background:var(--dima-home-accent);color:#FFFFFF}
+.dimaHomeProgressRow{width:100%;margin-top:2px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.dimaHomeAction{position:relative;height:32px;box-sizing:border-box;padding:0 14px;border-radius:16px;display:inline-flex;align-items:center;gap:4px;background:var(--dima-home-accent);color:#FFFFFF;font-size:14px;font-weight:700;white-space:nowrap}
 .dimaHomeAction.is-pulse:after{content:"";position:absolute;inset:-4px;border:2px solid var(--dima-home-accent);border-radius:999px;animation:dimaHomePulse 1.9s ease-out infinite}
 .dimaHomeAction>span:last-child{font-size:16px;line-height:1}
 .dimaHomeDoneBadge{height:24px;box-sizing:border-box;padding:0 10px;border-radius:12px;display:inline-flex;align-items:center;gap:5px;background:var(--dima-home-done-bg);color:var(--dima-home-done-ink);font-size:12.5px;font-weight:600}
-.dimaHomeMeet{border:1px solid var(--dima-home-accent);background:transparent;color:var(--dima-home-accent)}
-.dimaHomeMeet svg{flex:0 0 16px}
+.dimaHomeMeet{margin-top:2px;font-size:12.5px;line-height:1.4;color:var(--dima-home-muted)}
+.dimaHomeMeetGreeting{font-weight:700;color:var(--dima-home-accent)}
 :root[data-theme="dark"] .dimaHomeBanner{--dima-home-sky:#24363B;--dima-home-cloud:#DDE7E3;--dima-home-rain:#93C5D9;--dima-home-ground:#554E42;--dima-home-spot:#534B3C;--dima-home-text:#F2F5F3;--dima-home-muted:#C0CAC5;--dima-home-accent:#8BC4DD;--dima-home-outline:#A4B2AC;--dima-home-accent-soft:rgba(139,196,221,.14);--dima-home-done-bg:#24392D;--dima-home-done-ink:#B7DCC2;--dima-home-shadow:rgba(0,0,0,.32)}
-@media (min-width:1000px){.ezist-nav[data-dima-home-banner="true"] .ezist-nav-inner{padding:6px 20px 8px}.ezist-nav[data-dima-home-banner="true"] .dimaHomeBanner{width:calc(100% + 40px);margin-inline:-20px}}
+@media (min-width:1000px){.ezist-nav[data-dima-home-banner="true"] .ezist-nav-inner{padding:14px 20px 0}}
 @media (prefers-reduced-motion:reduce){.dimaHomeRain,.dimaHomePlantToday,.dimaHomeAction.is-pulse:after{animation:none!important}}
 @media (max-height:700px){.dimaScene{flex-basis:88px;height:88px}.dimaPlants{height:44px}.dimaSceneTop{top:5px}.dimaPage{padding-top:6px;gap:6px}.dimaCard{padding:10px;gap:6px}.dimaVerse{min-height:42px;font-size:19px}.dimaVerse.is-quran{font-size:20px}.dimaActions{min-height:56px}.dimaTomorrowBar{flex-basis:44px}}
 @media (max-height:700px){.dimaIntro .dimaScene,.dimaNotifyIntro .dimaScene,.dimaNotifySettings .dimaScene{flex-basis:88px;height:88px}}

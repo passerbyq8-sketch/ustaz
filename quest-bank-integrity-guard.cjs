@@ -2079,7 +2079,15 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3691021. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57909 bytes).
   //   2026-10-10 -- ITEM 110 (item 110 rebuild): app.js 2481892 -> 2481892 bytes, sha256 c9ad93d9..10c0; index.html 178671.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3691021. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57909 bytes).
-  'sw.js': 'c9e89514f0bbb7e4219447dc9456bfa0829158a2863b18ad52d5f31f48aa584a',
+  //   2026-10-10 -- ITEM 110 (item 110 rebuild): app.js 2481892 -> 2481981 bytes, sha256 c5898e7f..3867; index.html 179227.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3691666. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57909 bytes).
+  //   2026-10-10 -- ITEM 110 (item 110 rebuild): app.js 2481981 -> 2481981 bytes, sha256 c5898e7f..3867; index.html 179227.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3691666. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57909 bytes).
+  //   2026-10-10 -- ITEM 110 (item 110 rebuild): app.js 2481981 -> 2478510 bytes, sha256 3a9afe9d..3e39; index.html 179227.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3688195. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57909 bytes).
+  //   2026-10-10 -- ITEM 110 (item 110 rebuild): app.js 2478510 -> 2478510 bytes, sha256 bfcb7519..4a1b; index.html 179227.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3688195. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57909 bytes).
+  'sw.js': '138ed6512925c154071998b967606b0c4eabb0edade7ec8f021eb712f0694cd3',
 };
 
 // ---------------------------------------------------------------------------
@@ -3255,7 +3263,7 @@ async function compare(bankPath) {
     //  { n, sum: [a, b] }  n is the byte sum of those files on disk
     //  { n, dir: 'count' | 'sum' | 'mean' }   n is that statistic over the mushaf page scans
     const SW_PROSE = [
-      { n: 178671, of: 'index.html' },
+      { n: 179227, of: 'index.html' },
       // ITEM 85. The two CORE entries the self-hosted faces added, stated in the worker's byte
       // table beside the rest and re-derived here from the files they name. They are the arabic
       // and latin cuts of Noto Naskh Arabic, which is what the first screen is painted in.
@@ -3268,7 +3276,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2481892, of: 'app.js' },
+      { n: 2478510, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

@@ -1059,8 +1059,8 @@ async function partD() {
           ok('R4A ...and the tile is titled with the articles name', String(artTile.textContent || '').indexOf(S.ARTICLES) !== -1, cps(String(artTile.textContent || '').slice(0, 40)));
         }
         eq('R4A ...and the daily verse is NOT one of its tiles', grid.querySelectorAll('.ezist-quran').length, 0);
-        eq('R4A ...it is in the top bar, drawn exactly once on the screen', d.all('.ezist-quran').length, 1);
-        ok('R4A ...and the bar is where it is', !!d.all('.ezist-nav .ezist-quran')[0]);
+        eq('R4A ...the daily verse stays out of the Dima banner', d.all('.ezist-quran').length, 0);
+        eq('R4A ...and the Dima banner occupies the home header', d.all('.ezist-nav .dimaHomeBanner').length, 1);
       }
     } else {
     const mosaic = d.all('.ezist-mosaic')[0];
@@ -1113,8 +1113,8 @@ async function partD() {
           cps(String(artTile.textContent || '').slice(0, 40)));
       }
       eq('...and the daily verse is NOT one of its cells any more', mosaic.querySelectorAll('.ezist-quran').length, 0);
-      eq('...it is in the top bar, drawn exactly once on the screen', d.all('.ezist-quran').length, 1);
-      ok('...and the bar is where it is', !!d.all('.ezist-nav .ezist-quran')[0]);
+      eq('...the daily verse stays out of the Dima banner', d.all('.ezist-quran').length, 0);
+      eq('...and the Dima banner occupies the home header', d.all('.ezist-nav .dimaHomeBanner').length, 1);
     }
     }
     // S118 -- THE BAR HOLDS TWO ELEMENTS AND NO THIRD, and this drives the one that is a
@@ -1129,24 +1129,25 @@ async function partD() {
     // bar's mark away. Re-pointed rather than relaxed: the count is still EXACT and never `>=`,
     // the verse is still driven as a control below, and the mark's ABSENCE is a claim of its own
     // further down, written by accessible name so it cannot return unnoticed.
-    eq('the top bar carries exactly two elements', d.all('.ezist-nav-inner')[0].children.length, 2);
+    eq('the home header contains exactly the Dima banner', d.all('.ezist-nav-inner')[0].children.length, 1);
     // ITEM 27: BOTH OF THEM ARE CONTROLS NOW. The owner ruled the daily verse a door -- it opens
     // that verse's tafsir -- so the member that used to be the bar's one display is its second
     // control. The count is still exact and is not relaxed: two members, two controls, and each
     // of the two named on its own line below so a third cannot hide inside the number.
     eq('ITEM 27: the day this guard runs on is its fixed day, and that day\'s entry has a tafsir reference',
       [c.grab('new Date().toDateString()'), !!c.grab('getDailyVerse().ref')], [GUARD_DAY.toDateString(), true]);
-    eq('ITEM 27: ...and both of them are controls now', d.all('.ezist-nav button').length, 2);
+    eq('ITEM 27: ...the banner carries exactly its menu and Dima controls', d.all('.ezist-nav button').length, 2);
     // ...AND THE VERSE IS A REAL BUTTON, not a div wearing a handler. What the old display
     // checks were protecting -- that this member is never a thing you can press without the
     // platform knowing -- is what these assert: it is a <button>, so it is focusable, in the
     // tab ring and announced as a control, and it states no role or tabindex of its own to
     // contradict that. It also still holds no SECOND control inside it.
-    eq('ITEM 27: ...the daily verse being one of them, and a real button', d.all('.ezist-nav .ezist-quran')[0].tagName.toLowerCase(), 'button');
-    eq('...stating no role of its own', d.all('.ezist-nav .ezist-quran')[0].getAttribute('role'), null);
-    eq('...no tabindex', d.all('.ezist-nav .ezist-quran')[0].getAttribute('tabindex'), null);
-    eq('...and nothing clickable INSIDE it -- a control in a control is unreachable',
-      d.all('.ezist-nav .ezist-quran button, .ezist-nav .ezist-quran a').length, 0);
+    eq('...the menu remains a real button', d.all('.dimaHomeMenuButton')[0].tagName.toLowerCase(), 'button');
+    eq('...the banner opener remains a real button', d.all('.dimaHomeOpen')[0].tagName.toLowerCase(), 'button');
+    ok('...the greeting is inside the banner top row',
+      !!d.all('.dimaHomeTopRow .dimaHomeMenuButton')[0] && !!d.all('.dimaHomeTopRow .dimaHomeGreeting')[0]);
+    eq('...neither banner control nests another control',
+      d.all('.dimaHomeMenuButton button, .dimaHomeOpen button, .dimaHomeMenuButton a, .dimaHomeOpen a').length, 0);
     eq('the four controls the bar used to carry are gone from it',
       d.all('.ezist-nav button').filter((b) => ['عزك', 'الرئيسية', 'الإعدادات', 'الحساب']
         .indexOf(String(b.getAttribute('aria-label') || '')) !== -1).length, 0);
@@ -1165,8 +1166,8 @@ async function partD() {
         .filter((b) => String(b.getAttribute('aria-label') || '') === '\u0627\u0644\u0628\u0648\u0635\u0644\u0629').length, 0);
     const navMenu = d.all('.ezist-nav button')[0];
     if (ok('the top nav carries the menu button', !!navMenu)) {
-      eq('...and IT is the first member -- the RTL leading edge, the visual right',
-        Array.prototype.slice.call(d.all('.ezist-nav-inner')[0].children).indexOf(navMenu), 0);
+      eq('...and IT is first in the banner top row -- the RTL leading edge, the visual right',
+        Array.prototype.slice.call(d.all('.dimaHomeTopRow')[0].children).indexOf(navMenu), 0);
       eq('...as a type="button"', navMenu.getAttribute('type'), 'button');
       eq('...named «القائمة»', navMenu.getAttribute('aria-label'), 'القائمة');
       ok('...drawn as an icon, with no text of its own', !String(navMenu.textContent || '').trim() && !!navMenu.querySelector('svg'));
@@ -1817,14 +1818,14 @@ async function partN() {
 
   // The three edits, each a single insertion into the shipped source.
   const SETTER = 'function ezLangSet(v) {\n  if (!ezLangValid(v) || v === EZ_LANG) return;\n  EZ_LANG = v;';
-  const MENU_BTN = 'onClick={onOpenMenu} style={s.ezistNavBtn}';
+  const MENU_BTN = 'className="dimaHomeMenuButton ezhome-focus" onClick={onOpenMenu}';
   const fetchOnSwitch = (url) => (src) => {
     if (src.indexOf(SETTER) === -1) throw new Error('partN: the language setter moved; the mutant is stale');
     return src.replace(SETTER, SETTER + "\n  fetch(" + url + ");");
   };
   const fetchOnMenu = (src) => {
     if (src.indexOf(MENU_BTN) === -1) throw new Error('partN: the home menu button moved; the mutant is stale');
-    return src.replace(MENU_BTN, "onClick={(ev) => { fetch('/menu-open-ping'); return onOpenMenu(ev); }} style={s.ezistNavBtn}");
+    return src.replace(MENU_BTN, 'className="dimaHomeMenuButton ezhome-focus" onClick={(ev) => { fetch("/menu-open-ping"); return onOpenMenu(ev); }}');
   };
   const LOCAL_DICT = "'/i18n/' + v + '.json'";
   const REMOTE_DICT = "'https://i18n.example.test/' + v + '.json'";

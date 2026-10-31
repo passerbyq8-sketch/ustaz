@@ -1408,7 +1408,10 @@ if (hLifted) {
     /\{hijri \? <div style=\{s\.ezistHijri\}>\{hijri\}<\/div> : null\}/.test(SRC));
   ok('109: ...from a prop the OWNER read, not from a store the presentation opened',
     /const hijri = hijriTodayLabel\(\);/.test(SRC)
-    && /<EzistMasthead name=\{v\.name\} g=\{v\.greeting\} hijri=\{v\.hijri\} onOpenAdhkar=\{v\.onOpenAdhkar\} \/>/.test(SRC));
+    && /<EzistMasthead g=\{v\.greeting\} hijri=\{v\.hijri\} onOpenAdhkar=\{v\.onOpenAdhkar\} \/>/.test(SRC)
+    && /<EzistTopNav onOpenMenu=\{v\.onOpenMenu\} onOpenDima=\{v\.onOpenDima\} name=\{v\.name\} \/>/.test(SRC)
+    && /function DimaHomeCard\(\{ onOpenDima, onOpenMenu, name \}\)/.test(SRC)
+    && /\{EZH_SALAM\}[\s\S]{0,180}\{EZH_HELLO\}/.test(SRC));
   ok('109: ...and no screen was added for it',
     SRC.indexOf("screen === 'hijri'") === -1 && SRC.indexOf("setScreen('hijri')") === -1);
   const settingsAt = SRC.indexOf('function SettingsSheet(');
@@ -2173,10 +2176,12 @@ if (tLifted) {
     && /onClick=\{\(\) => \{ qiblaCompassGesture\(\); onOpenCompass\(\); \}\}[\s\S]{0,160}aria-label=\{EZH_NAV_COMPASS\}/.test(SHEET_SRC)
     && /<PrayerSheet onClose=\{ezikGoBack\} onOpenCompass=\{\(\) => setCompassOpen\(true\)\} \/>/.test(SRC));
   ok('66-b: ...and the home top bar offers no second one',
-    /<EzistTopNav onOpenMenu=\{v\.onOpenMenu\} onOpenDima=\{v\.onOpenDima\} \/>/.test(SRC)
-    && /function EzistTopNav\(\{ onOpenMenu, onOpenDima \}\)/.test(SRC)
-    && /<DimaHomeCard onOpenDima=\{onOpenDima\} \/>/.test(SRC)
+    (SRC.match(/<EzistTopNav onOpenMenu=\{v\.onOpenMenu\} onOpenDima=\{v\.onOpenDima\} name=\{v\.name\} \/>/g) || []).length === 2
+    && /function EzistTopNav\(\{ onOpenMenu, onOpenDima, name \}\)/.test(SRC)
+    && /<DimaHomeCard onOpenDima=\{onOpenDima\} onOpenMenu=\{onOpenMenu\} name=\{name\} \/>/.test(SRC)
     && SRC.indexOf('onOpenCompass: () => setCompassOpen(true),') === -1);
+  ok('F: the home menu button and greeting are inside the Dima banner',
+    /function DimaHomeCard\(\{ onOpenDima, onOpenMenu, name \}\) \{[\s\S]*?<div className="dimaHomeTopRow">[\s\S]*?<button type="button" className="dimaHomeMenuButton ezhome-focus" onClick=\{onOpenMenu\} aria-label=\{EZH_NAV_MENU\}>[\s\S]*?\{EZH_ICON_MENU\}[\s\S]*?\{EZH_SALAM\}[\s\S]*?\{EZH_HELLO\}[\s\S]*?<button type="button" className="dimaHomeOpen/.test(SRC));
   ok('66-b: ...and the full-screen dial is one style key, not a second element',
     /style=\{full \? s\.qiblaDialFull : null\}/.test(SRC)
     && /qiblaDialFull: \{ width: '100%'/.test(SRC));

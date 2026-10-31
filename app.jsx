@@ -10529,14 +10529,6 @@ function Ez110Tile({ m, edit, onMove, idx, count, dragging, onPointerDown, onPic
 // the evening line, and the day line between them -- one row, three texts, measured in
 // getHomeGreeting), and the Hijri date moved into the next-prayer card. EzistMasthead, which the
 // dark menu draws, is not touched.
-function Ez110Hello({ name }) {
-  return (
-    <section className="ez110-hello">
-      <span className="ez110-hello-salam">{EZH_SALAM}</span>
-      <h1 className="ez110-hello-name">{name ? <>{EZH_HELLO} {name}</> : EZH_HELLO_NO_NAME}</h1>
-    </section>
-  );
-}
 // The order in effect over the menu's tiles: the stored ids that are tiles here, once each, then
 // every other tile in the default order -- the semantics of ezHomeOrderApply, over the menu's ids
 // (the modules plus wird, tasbih and calc). A stored order written before AMEND-01 (modules
@@ -10676,10 +10668,9 @@ function Ez110Home(v) {
   const shelf = <div className="ez110-grid">{items}</div>;
   return (
     <div className="theme-dark ezhome ez110-home" style={s.ezistContainer}>
-      <EzistTopNav onOpenMenu={v.onOpenMenu} onOpenDima={v.onOpenDima} />
+      <EzistTopNav onOpenMenu={v.onOpenMenu} onOpenDima={v.onOpenDima} name={v.name} />
       <div style={s.ezistScroll}>
         <div className="ezist-wrap ez110-wrap">
-          <Ez110Hello name={v.name} />
           <Ez110PrayerCard onOpen={v.onOpenPrayer} hijri={v.hijri} onQibla={v.onOpenQibla} />
           {/* ROUND 3 §3-1 (owner): no «الأقسام» title, and «ترتيب القائمة» is the last thing on the page, under the last tile */}
           {edit ? <p className="ez110-hint" role="status">{ezT('ez110.order.hint')} {ezT(slotSel === null ? 'ez110.bar.hint' : 'ez110.bar.pick')}</p> : null}
@@ -11369,55 +11360,10 @@ let EZIST_SUB_ASMAA = 'تسعةٌ وتسعون اسمًا، بمعانيها و�
 let EZIST_SUB_PRAYER = ezT('c.EZIST_SUB_PRAYER');
 let EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, arbaeen: EZIST_SUB_ARBAEEN, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, asmaa: EZIST_SUB_ASMAA, prayer: EZIST_SUB_PRAYER };
 
-// THE TOP NAVIGATION. TWO ELEMENTS AND NO THIRD -- the daily verse, and the menu button.
-//
-// WHAT WAS HERE, and where each piece went. The bar carried five things: a home button that was
-// already on the screen it pointed at and so had no handler at all; a chat icon; the centred
-// brand; a settings icon; and a profile icon whose onClick was CHARACTER FOR CHARACTER the
-// settings icon's -- two controls, one destination. Not one of them is lost:
-//   home     -> the menu's «القائمة» row, which is what it always was
-//   chat     -> the menu's «محادثة جديدة» row, which now navigates as well as resets
-//   settings -> the menu's pinned row, already labelled «الإعدادات»
-//   profile  -> the SAME pinned row; it was the same destination before this batch
-//   brand    -> the menu's own head, which draws the identical mark and word
-// A function that disappears quietly is a defect, not a tidy-up, so each of the five was walked
-// to its destination and driven there before this bar was emptied.
-//
-// THE MENU IT OPENS IS THE CHAT'S MENU. Not a second drawer built for the home: App owns
-// drawerOpen, openDrawer and closeDrawerWith, and the panel is now rendered from one place that
-// both screens draw. There is one history entry, one search box, one conversation list.
-//
-// THE VERSE IS A DISPLAY AND NOTHING ELSE. It is the same EzistQuranPanel, reading the same
-// getDailyVerse() and printing the same text verbatim; it carries no handler, no role and no
-// tabindex, and pressing it does nothing, deliberately.
-//
-// THE MENU BUTTON IS FIRST, and first is the RIGHT: the document lays out RTL (body carries
-// direction:rtl in the sheet, which outranks any dir attribute), so the leading edge of this
-// flex row is the right edge and the first child is what sits on it. The button used to be
-// second and therefore on the left, which is the trailing edge and the wrong side of an Arabic
-// bar. NOTHING ELSE MOVED: .ezist-nav-inner is the same space-between row, the verse still
-// takes the width the button leaves (flex:1 1 auto, min-width:0), and the verse itself -- its
-// component, its source, its text, its label and its rule -- is not touched by this.
-//
-// AND IT IS THE DOM ORDER, NOT `order` AND NOT `row-reverse`. Either of those would put the
-// button on the right while leaving it second in the tree, so what a screen reader announces
-// and what the tab ring visits would run against what the eye reads. The composition block
-// states that no `order` property is used anywhere in it and that tab order follows what is on
-// screen; moving the element is what keeps that true.
-// ITEM 66 (15 September 2026) -- AND THE COMPASS MARK IS GONE FROM THIS ROW.
-//
-// A compass mark was ruled into this bar as its last child -- the RTL trailing edge, the visual
-// left -- and it was the bar's third member. On 15 September 2026 the owner ruled the compass
-// ONE entry instead: a single mark in the head of the «الصلاة والقبلة» sheet, beside its back
-// control. So the mark, its handler and its prop come out of here entirely, and the row is the
-// two members it was before: the menu button first, and the verse taking the width it leaves.
-//
-// NOTHING SHARED WAS DELETED WITH IT. EZH_ICON_PRAYER is still drawn by the prayer module tile
-// and by the sheet's own mark, and EZH_NAV_COMPASS is still that mark's accessible name and the
-// title of the screen it opens -- so both constants keep readers and neither is removed. What
-// had no other reader went: this row's button, `onOpenCompass` on this component, and the
-// handler key the home's view object carried for it alone.
-function DimaHomeCard({ onOpenDima }) {
+// The Dima banner keeps its existing open action and now contains the home menu and greeting.
+// The menu is the first RTL control in the top row; the separate banner opener remains outside it.
+
+function DimaHomeCard({ onOpenDima, onOpenMenu, name }) {
   const [todayKey, setTodayKey] = useState(() => dimaDateKey(new Date()));
   const [, setRefreshVersion] = useState(0);
   useEffect(() => {
@@ -11456,25 +11402,33 @@ function DimaHomeCard({ onOpenDima }) {
   const todayCount = plants[0].stage;
   const complete = !!(store.startDate && todayCount === 3);
   const dimaName = ezT('dima.title');
-  const statusLabel = complete ? 'اكتملت ديمتك اليوم' : 'لا تنسَ ديمتك اليوم';
-  const ariaLabel = dimaName + ' — ' + statusLabel;
-  const progressLabel = toArabicDigits(String(todayCount)) + ' من ٣ قطرات · دقيقة واحدة';
+  const completeLabel = '\u0627\u0643\u062a\u0645\u0644\u062a \u062f\u064a\u0645\u062a\u0643 \u0627\u0644\u064a\u0648\u0645 \u00b7 \u0663 \u0645\u0646 \u0663 \u0642\u0637\u0631\u0627\u062a';
+  const actionLabel = todayCount === 0 ? '\u0627\u0628\u062f\u0623' : '\u0623\u0643\u0645\u0644';
+  const progressLabel = toArabicDigits(String(todayCount)) + ' \u0645\u0646 \u0663 \u0642\u0637\u0631\u0627\u062a';
+  const ariaLabel = dimaName + ' — ' + (complete ? completeLabel : actionLabel + ' ' + progressLabel);
   const slotLabel = {
-    fajr30: 'بعد الفجر بنصف ساعة',
-    duha: 'وقت الضحى',
-    asr: 'بعد العصر',
-    isha: 'بعد العشاء',
+    fajr30: '\u0628\u0639\u062f \u0635\u0644\u0627\u0629 \u0627\u0644\u0641\u062c\u0631 \u0628\u0646\u0635\u0641 \u0633\u0627\u0639\u0629',
+    duha: '\u0648\u0642\u062a \u0627\u0644\u0636\u062d\u0649',
+    asr: '\u0628\u0639\u062f \u0635\u0644\u0627\u0629 \u0627\u0644\u0639\u0635\u0631',
+    isha: '\u0628\u0639\u062f \u0635\u0644\u0627\u0629 \u0627\u0644\u0639\u0634\u0627\u0621',
   };
-  const reminderLabel = store.notify.on
-    ? 'نلتقي بكرة ' + (slotLabel[store.notify.slot] || slotLabel.fajr30)
-    : 'نلتقي بكرة';
+  const reminderGreeting = '\u0646\u0644\u062a\u0642\u064a \u063a\u062f\u064b\u0627 \u0628\u0625\u0630\u0646 \u0627\u0644\u0644\u0647';
   const rain = [
-    { top: 48, left: 40 }, { top: 48, left: 58 }, { top: 48, left: 76 },
-    { top: 48, left: 94 }, { top: 64, left: 134 }, { top: 64, left: 156 },
+    { top: 56, left: 40 }, { top: 56, left: 58 }, { top: 56, left: 76 },
+    { top: 56, left: 94 }, { top: 76, left: 134 }, { top: 76, left: 156 },
   ];
   return (
-    <button type="button" className="ezist-quran ezhome-focus dimaHomeBanner"
-      onClick={onOpenDima} aria-label={ariaLabel} dir="rtl">
+    <div className="dimaHomeBanner" dir="rtl">
+      <div className="dimaHomeTopRow">
+        <button type="button" className="dimaHomeMenuButton ezhome-focus" onClick={onOpenMenu} aria-label={EZH_NAV_MENU}>
+          {EZH_ICON_MENU}
+        </button>
+        <span className="dimaHomeGreeting">
+          <span className="dimaHomeGreetingSalam">{EZH_SALAM}</span>
+          <span className="dimaHomeGreetingName">{name ? <>{EZH_HELLO} {name}</> : EZH_HELLO_NO_NAME}</span>
+        </span>
+      </div>
+      <button type="button" className="dimaHomeOpen ezhome-focus" onClick={onOpenDima} aria-label={ariaLabel} />
       <svg aria-hidden="true" width="110" height="40" viewBox="0 0 110 40" className="dimaHomeCloud dimaHomeCloudLarge"><g fill="var(--dima-home-cloud)"><circle cx="34" cy="24" r="13" /><circle cx="56" cy="18" r="17" /><circle cx="78" cy="25" r="11" /><rect x="22" y="24" width="66" height="13" rx="6.5" /></g></svg>
       <svg aria-hidden="true" width="76" height="28" viewBox="0 0 110 40" className="dimaHomeCloud dimaHomeCloudSmall"><g fill="var(--dima-home-cloud)"><circle cx="34" cy="24" r="13" /><circle cx="56" cy="18" r="17" /><circle cx="78" cy="25" r="11" /><rect x="22" y="24" width="66" height="13" rx="6.5" /></g></svg>
       {!complete ? rain.map((drop, index) => <svg key={index} aria-hidden="true" width="6" height="10" viewBox="0 0 6 10" className={'dimaHomeRain' + (index ? ' dimaHomeRain--' + (index + 1) : '')} style={{ top: drop.top, left: drop.left }}><path d="M3 0C3 0 6 5 6 7a3 3 0 0 1-6 0C0 5 3 0 3 0z" fill="var(--dima-home-rain)" /></svg>) : null}
@@ -11487,35 +11441,33 @@ function DimaHomeCard({ onOpenDima }) {
             : <DimaPlant stage={plant.stage} today={index === 0} instant={false} />}
         </span>)}
       </span>
-      <span className="dimaHomeText">
+      <span className={'dimaHomeText' + (complete ? ' is-complete' : '')}>
         <span className="dimaHomeBrand">
           <span className="dimaHomeBrandIcon" aria-hidden="true"><DimaDropMark size={18} /></span>
           <span className="dimaHomeBrandTitle">{dimaName}</span>
         </span>
-        <span className="dimaHomeHeadline">{statusLabel}</span>
         {!complete ? <>
-          <span className="dimaHomeProgress">
+          <span className="dimaHomeProgressRow">
+            <span className="dimaHomeProgress">
             <span className="dimaHomeProgressDrops" aria-hidden="true">{[0, 1, 2].map((drop) => <svg key={drop} width="14" height="14" viewBox="0 0 24 24" className={drop < todayCount ? 'dimaHomeProgressDrop is-filled' : 'dimaHomeProgressDrop'}><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" /></svg>)}</span>
             <span className="dimaHomeProgressLabel">{progressLabel}</span>
+            </span>
+            <span className="dimaHomeAction is-pulse"><span>{actionLabel}</span><span aria-hidden="true">‹</span></span>
           </span>
-          <span className="dimaHomeAction is-pulse"><span>{todayCount === 0 ? 'ابدأ ديمتك' : 'أكمل ديمتك'}</span><span aria-hidden="true">‹</span></span>
         </> : <>
-          <span className="dimaHomeDoneBadge"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg><span>٣ من ٣ قطرات</span></span>
-          <span className="dimaHomeMeet"><span>{reminderLabel}</span><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg></span>
+          <span className="dimaHomeDoneBadge"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg><span>{completeLabel}</span></span>
+          <span className="dimaHomeMeet"><span className="dimaHomeMeetGreeting">{reminderGreeting}</span>{store.notify.on ? ' ' + (slotLabel[store.notify.slot] || slotLabel.fajr30) : ''}</span>
         </>}
       </span>
-    </button>
+    </div>
   );
 }
 
-function EzistTopNav({ onOpenMenu, onOpenDima }) {
+function EzistTopNav({ onOpenMenu, onOpenDima, name }) {
   return (
     <div className="ezist-nav" data-dima-home-banner="true">
       <div className="ezist-nav-inner">
-        <button type="button" className="ezhome-focus" onClick={onOpenMenu} style={s.ezistNavBtn} aria-label={EZH_NAV_MENU}>
-          {EZH_ICON_MENU}
-        </button>
-        <DimaHomeCard onOpenDima={onOpenDima} />
+        <DimaHomeCard onOpenDima={onOpenDima} onOpenMenu={onOpenMenu} name={name} />
       </div>
     </div>
   );
@@ -11523,10 +11475,10 @@ function EzistTopNav({ onOpenMenu, onOpenDima }) {
 
 // THE MASTHEAD. The arch is the approved signature radius and nothing else; the tulip is three
 // bounded boxes inside a 34x40 span inside a clipped section, so it cannot become a page motif.
-// The greeting and the daily line are the ones the app already picked -- getHomeGreeting() ran
-// once in the owner, and this draws its text. The two adhkar windows stay buttons to the
-// adhkar screen; the day line is a button too, and what it does is replace its own text.
-function EzistMasthead({ name, g, hijri, onOpenAdhkar }) {
+// The date and daily line stay on this strip. The greeting now lives in the Dima banner.
+// The two adhkar windows stay buttons to the adhkar screen; the day line is a button too,
+// and what it does is replace its own text.
+function EzistMasthead({ g, hijri, onOpenAdhkar }) {
   const tap = !!(g && g.tappable);
   // ITEM 97 -- THE PRESS STAYS ON THIS SCREEN. The morning and evening lines are untouched:
   // same string, same onOpenAdhkar, same rect. Only the DAY line is different, and what it
@@ -11552,11 +11504,6 @@ function EzistMasthead({ name, g, hijri, onOpenAdhkar }) {
   return (
     <section className="ezist-masthead">
       <div className="ezist-hello">
-        <div style={s.ezistSalam}>{EZH_SALAM}</div>
-        {/* DEFECT 13 (item 88): a vocative is never drawn bare. With a name the greeting is
-            what it always was, character for character; without one it is the whole-sentence
-            key beside it rather than a half sentence with a space where a person should be. */}
-        <h1 style={s.ezistName}>{name ? <>{EZH_HELLO} {name}</> : EZH_HELLO_NO_NAME}</h1>
         {/* ITEM 109: the date, on the screen that already speaks about the day — MEASURED
             first: this app displayed no date at all before this line, so there was no existing
             place to join. It is a prop, not a read: the owner below reads the store, exactly as
@@ -11743,10 +11690,10 @@ function EzikIstanaHome(v) {
   return (
     <div className="theme-dark ezhome" style={s.ezistContainer}>
       {/* S101-home-istana */}
-      <EzistTopNav onOpenMenu={v.onOpenMenu} onOpenDima={v.onOpenDima} />
+      <EzistTopNav onOpenMenu={v.onOpenMenu} onOpenDima={v.onOpenDima} name={v.name} />
       <div style={s.ezistScroll}>
         <div className="ezist-wrap">
-          <EzistMasthead name={v.name} g={v.greeting} hijri={v.hijri} onOpenAdhkar={v.onOpenAdhkar} />
+          <EzistMasthead g={v.greeting} hijri={v.hijri} onOpenAdhkar={v.onOpenAdhkar} />
           {/* ITEM 05-E2 -- «وِردي اليوم» IS A SECTION YOU ENTER, AND THIS IS THE DOOR.
               The owner ruled that the wird is wrong in KIND on this screen: it is not a card, it
               is a section, the `+` lives INSIDE it, and nothing he adds appears on the home at

@@ -927,62 +927,46 @@ ok('EzikIstanaHome is the ONLY reachable home', /return <EzikIstanaHome \{\.\.\.
 ok('it has a real TOP NAVIGATION bar', /<EzistTopNav /.test(IST) && /className="ezist-nav"/.test(IST));
 ok('...bounded and centred rather than loose across the viewport',
   /\.ezist-nav-inner\{[^}]*max-width:1100px[^}]*margin:0 auto/.test(css));
-// S118 -- TWO ELEMENTS AND NO THIRD. This asserted FOUR actions in the bar: home (which had no
-// handler at all, because it pointed at the screen already showing), chat, settings, and a
-// profile entry whose onClick was character for character the settings entry's. The bar now
-// carries the daily verse and one button, and those four actions live in the menu that button
-// opens -- where two of them already were. The check is not relaxed: it is the shape itself,
-// asserted member by member and then ordered on its own line, plus a sweep proving the removed
-// names survive nowhere.
+// F -- THE HEADER NOW CARRIES THE BANNER ALONE. The menu button and the existing greeting are
+// inside the banner's top row; the Dima entry remains the one banner card in this nav. Keep the
+// composition pinned at both levels: the nav has one banner child, and the banner has the menu
+// opener plus its own Dima opener. The menu stays first in the RTL top row and keeps its handler.
 {
   const NAV = IST.slice(IST.indexOf('function EzistTopNav'), IST.indexOf('function EzistMasthead'));
   ok('the bar was located as one unit', NAV.length > 200 && NAV.length < 3000, 'len=' + NAV.length);
-  // S119: this pinned the two in ONE order -- verse, then button -- and the order is precisely
-  // what item 58 changed, so an order-shaped regex would have had to be DELETED for the fix to
-  // land. It is narrowed to the members instead, and it did not lose bite: the inner block is
-  // cut out and must hold one button and one panel AND NOTHING ELSE, which is a stricter reading
-  // of 'exactly two' than the regex it replaces gave. What the order meant is asserted on its
-  // own two lines below, where it can say why it is the right and not the left.
   const INNER = (NAV.match(/<div className="ezist-nav-inner">([\s\S]*?)\r?\n\s*<\/div>/) || [])[1] || '';
-  // ITEM 66 (15 September 2026) -- BACK TO TWO MEMBERS, AND NO THIRD. A compass mark was ruled
-  // into this row and made it three; on 15 September 2026 the owner ruled the compass ONE entry
-  // instead -- in the head of the prayer sheet -- and lifted the bar's mark away. This check is
-  // not relaxed and it is not deleted: it is re-pointed at the shape that replaced the one it
-  // was written for, and it is asserted member by member exactly as before -- one control, one
-  // verse panel, and a residue that must still come back empty, so a THIRD thing fails here the
-  // way a fourth one used to.
-  ok('...carrying exactly two elements: the menu button and the Dima home tile',
-    (INNER.match(/<button /g) || []).length === 1
-    && (INNER.match(/<DimaHomeCard onOpenDima=\{onOpenDima\} \/>/g) || []).length === 1
-    && INNER.replace(/<button [\s\S]*?<\/button>/g, '').replace(/<DimaHomeCard onOpenDima=\{onOpenDima\} \/>/, '').trim() === '',
-    'the bar holds one button and one Dima tile and no third thing');
-  // ITEM 66 (15 September 2026) -- AND THE CLAIM THAT PROVES THE MARK IS GONE. Two checks stood
-  // here: that the bar's second control was the compass by name, and that it sat LAST -- the RTL
-  // trailing edge, the visual left. The owner ruled the compass ONE entry, in the head of the
-  // prayer sheet, and lifted this mark away, so both are REPLACED by the assertion that proves
-  // the new state, written by the same two names they read it by: neither the handler nor the
-  // accessible name appears in this row at all. A mark creeping back under any position fails
-  // here, which is the bite the two lines it replaces had.
-  ok('...and NOT ONE of them is the compass mark, by handler or by name',
-    INNER.length > 0
-    && INNER.indexOf('onOpenCompass') === -1
-    && INNER.indexOf('EZH_NAV_COMPASS') === -1
-    && INNER.indexOf('EZH_ICON_PRAYER') === -1);
-  // S119 -- AND THE BUTTON IS THE FIRST OF THE TWO. The document lays out RTL, so the first
-  // child of this row sits on the RIGHT. The button was second, and therefore on the left, which
-  // is the trailing edge and the wrong side of an Arabic bar; the owner asked for the right.
-  ok('...the menu button FIRST, so the RTL leading edge -- the right -- is where it sits',
-    INNER.indexOf('<button ') < INNER.indexOf('<DimaHomeCard onOpenDima={onOpenDima} />'));
-  // ...and moved in the TREE. `order` or `row-reverse` would paint it on the right while leaving
-  // it second in the document, so the tab ring and the screen reader would run against the eye.
-  // The composition block promises no `order` anywhere in it; this is what holds that promise.
+  const DIMA_CARD = IST.slice(IST.indexOf('function DimaHomeCard('), IST.indexOf('function EzistTopNav('));
+  const TOP_ROW = (DIMA_CARD.match(/<div className="dimaHomeTopRow">([\s\S]*?)<\/div>/) || [])[1] || '';
+  const HOME_CARD_CALL = '<DimaHomeCard onOpenDima={onOpenDima} onOpenMenu={onOpenMenu} name={name} />';
+  ok('the nav contains one Dima banner and no adjacent controls',
+    (INNER.match(/<DimaHomeCard\b/g) || []).length === 1
+    && INNER.replace(HOME_CARD_CALL, '').trim() === '',
+    'the menu and banner controls must live inside the one Dima banner');
+  ok('...the menu and greeting are children of the Dima banner top row',
+    DIMA_CARD.length > 500
+    && /<div className="dimaHomeTopRow">/.test(DIMA_CARD)
+    && /className="dimaHomeMenuButton ezhome-focus"/.test(TOP_ROW)
+    && /className="dimaHomeGreeting"/.test(TOP_ROW)
+    && /\{EZH_SALAM\}/.test(TOP_ROW)
+    && /\{EZH_HELLO\}/.test(TOP_ROW));
+  ok('...and the two banner controls are the menu and Dima openers only',
+    (DIMA_CARD.match(/<button\b/g) || []).length === 2
+    && /className="dimaHomeMenuButton ezhome-focus" onClick=\{onOpenMenu\}/.test(DIMA_CARD)
+    && /className="dimaHomeOpen ezhome-focus" onClick=\{onOpenDima\}/.test(DIMA_CARD)
+    && DIMA_CARD.indexOf('onOpenCompass') === -1
+    && DIMA_CARD.indexOf('EZH_NAV_COMPASS') === -1
+    && DIMA_CARD.indexOf('EZH_ICON_PRAYER') === -1);
+  // The top row inherits RTL from the banner. Its DOM order is the visual order: menu at right,
+  // greeting to its left. The outer nav is not used to fake that order.
   ok('...and moved in the tree, not faked with order or flex-direction',
     !/\.ezist-nav(-inner)?\{(?:[^}]*[;{])?\s*(order|flex-direction):/.test(css)
+    && !/\.dimaHomeTopRow\{[^}]*;\s*order\s*:/.test(css)
     && !/ezistNavBtn: \{(?:[^}]*[,{])?\s*order:/.test(html));
-  eq('...and exactly ONE of them is a control -- the compass mark is gone from the bar', (NAV.match(/<button/g) || []).length, 1);
-  ok('...whose handler is the menu opener it was handed, named «القائمة»',
-    /onClick=\{onOpenMenu\}[\s\S]{0,120}aria-label=\{EZH_NAV_MENU\}/.test(NAV)
-    && /function EzistTopNav\(\{ onOpenMenu, onOpenDima \}\)/.test(NAV));
+  eq('...the menu row has exactly its menu button and greeting', (TOP_ROW.match(/<button\b/g) || []).length, 1);
+  ok('...whose handler remains the supplied menu opener and accessible label',
+    /onClick=\{onOpenMenu\}[\s\S]{0,120}aria-label=\{EZH_NAV_MENU\}/.test(DIMA_CARD)
+    && /function EzistTopNav\(\{ onOpenMenu, onOpenDima, name \}\)/.test(NAV)
+    && /<DimaHomeCard onOpenDima=\{onOpenDima\} onOpenMenu=\{onOpenMenu\} name=\{name\} \/>/.test(NAV));
   // THE MENU IT OPENS IS THE CHAT'S. Not a second drawer: the owner hands it App's own opener,
   // and App renders the one ezikDrawer() on the home branch as well as the chat's.
   // S118: the menu paints ONLY tokens, and the two screens that draw it declare them on
@@ -1140,17 +1124,22 @@ ok('...and no module spans AT ANY WIDTH -- every tile occupies exactly one of th
   MOSAIC_CSS.length > 0 && !/\.ezist-(?:mod|feature)[^{}]*\{[^}]*grid-column:\s*span/.test(MOSAIC_CSS),
   'the ruling this shelf now follows: three sections per row, tiles equal, none spanning, none orphaned -- so no .ezist-mod, .ezist-feature or .ezist-mod-fatwa grid-column:span rule may live anywhere in the mosaic region: the base rule and both breakpoints alike');
 
-ok('Dima replaces the home verse card with the approved banner in the same bounded top panel', /<DimaHomeCard onOpenDima=\{onOpenDima\} \/>/.test(IST)
-  && /className="ezist-quran ezhome-focus dimaHomeBanner"/.test(IST)
-  && /function DimaHomeCard\(\{ onOpenDima \}\)/.test(IST));
-eq('...the Dima home banner is drawn exactly once in the istana home', (IST.match(/<DimaHomeCard onOpenDima=\{onOpenDima\} \/>/g) || []).length, 1);
-okOn('...and the one tile stays inside the top navigation', [["IST", IST]],
-  IST.indexOf('<DimaHomeCard onOpenDima={onOpenDima} />') > IST.indexOf('function EzistTopNav')
-  && IST.indexOf('<DimaHomeCard onOpenDima={onOpenDima} />') < IST.indexOf('function EzistMasthead'));
-okOn('the home banner is a full-width 168px Dima button with an accessible label and dark tokens', [["IST", IST], ["html", html]],
-  /<button type="button" className="ezist-quran ezhome-focus dimaHomeBanner"[\s\S]*?onClick=\{onOpenDima\}[\s\S]*?aria-label=/.test(IST)
-  && /\.dimaHomeBanner\{[^}]*height:168px/.test(html)
-  && /:root\[data-theme="dark"\] \.dimaHomeBanner\{[^}]*--dima-home-sky:/.test(html));
+ok('Dima replaces the home verse entry with the approved banner in the top navigation',
+  /<DimaHomeCard onOpenDima=\{onOpenDima\} onOpenMenu=\{onOpenMenu\} name=\{name\} \/>/.test(IST)
+  && /className="dimaHomeBanner"/.test(IST)
+  && /function DimaHomeCard\(\{ onOpenDima, onOpenMenu, name \}\)/.test(IST));
+eq('...the Dima banner component is declared once', (IST.match(/function DimaHomeCard\(/g) || []).length, 1);
+eq('...and it is mounted once inside the shared nav', (IST.match(/<DimaHomeCard\b/g) || []).length, 1);
+okOn('...and the Dima banner is inside the top navigation', [["IST", IST]],
+  IST.indexOf('<DimaHomeCard onOpenDima={onOpenDima} onOpenMenu={onOpenMenu} name={name} />') > IST.indexOf('function EzistTopNav')
+  && IST.indexOf('<DimaHomeCard onOpenDima={onOpenDima} onOpenMenu={onOpenMenu} name={name} />') < IST.indexOf('function EzistMasthead'));
+okOn('both home variants render the same top nav with the registered name', [["IST", IST], ["html", html]],
+  (html.match(/<EzistTopNav onOpenMenu=\{v\.onOpenMenu\} onOpenDima=\{v\.onOpenDima\} name=\{v\.name\} \/>/g) || []).length === 2);
+okOn('the home banner is full-width and 176px, with separate menu and Dima controls', [["IST", IST], ["html", html]],
+  /<div className="dimaHomeBanner"[\s\S]*?<button type="button" className="dimaHomeMenuButton ezhome-focus" onClick=\{onOpenMenu\} aria-label=\{EZH_NAV_MENU\}>[\s\S]*?<button type="button" className="dimaHomeOpen ezhome-focus" onClick=\{onOpenDima\} aria-label=\{ariaLabel\}/.test(IST)
+  && /\.ezist-nav\[data-dima-home-banner="true"\] \.dimaHomeBanner\{[^}]*height:176px/.test(css)
+  && /\.dimaHomeOpen\{[^}]*inset:0/.test(css)
+  && /:root\[data-theme="dark"\] \.dimaHomeBanner\{[^}]*--dima-home-sky:/.test(css));
 okOn('the Ayah page remains in code while its home panel is disconnected', [["IST", IST], ["html", html]],
   /function AyahTafsirScreen\(/.test(html) && !/<EzistQuranPanel[^>]*\/>/.test(IST));
 
@@ -1374,9 +1363,10 @@ ok('105: ...and the title still starts at the pixel it always did',
   // scan that counted it would be answered by deleting the explanation rather than the defect.
   const ISTCODE = IST.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/[^\n]*$/gm, ' ');
   eqOn('the composition holds no chat handler of its own', [["IST", IST]], (ISTCODE.match(/onOpenChat/g) || []).length, 0);
-  ok('...because the one way in is the menu the bar opens',
-    /function EzistTopNav\(\{ onOpenMenu, onOpenDima \}\)/.test(IST)
-    && /className="ezist-nav"[\s\S]*?onClick=\{onOpenMenu\}[\s\S]*?<\/div>\s*\r?\n\s*\);/.test(IST));
+  ok('...because the one way in is the menu button inside the Dima banner',
+    /function EzistTopNav\(\{ onOpenMenu, onOpenDima, name \}\)/.test(IST)
+    && /<DimaHomeCard onOpenDima=\{onOpenDima\} onOpenMenu=\{onOpenMenu\} name=\{name\} \/>/.test(IST)
+    && /className="dimaHomeMenuButton ezhome-focus" onClick=\{onOpenMenu\} aria-label=\{EZH_NAV_MENU\}/.test(IST));
   ok('...and that menu lands on the chat, through ONE handler that resets and navigates',
     /const startChatFromMenu = \(\) => \{ newChat\(\); setScreen\('chat'\); \};/.test(html)
     && (html.match(/closeDrawerWith\(startChatFromMenu\)/g) || []).length === 1

@@ -1970,47 +1970,37 @@
    "cat": "stored-content-kept-arabic"
   },
   {
-   "text": "اكتملت ديمتك اليوم",
-   "cat": "home-banner-kept-arabic",
-   "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
-  },
-  {
-   "text": "لا تنسَ ديمتك اليوم",
-   "cat": "home-banner-kept-arabic",
-   "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
-  },
-  {
-   "text": "من ٣ قطرات · دقيقة واحدة",
-   "cat": "home-banner-kept-arabic",
-   "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
-  },
-  {
-   "text": "بعد الفجر بنصف ساعة",
-   "cat": "home-banner-kept-arabic",
-   "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
-  },
-  {
    "text": "وقت الضحى",
    "cat": "home-banner-kept-arabic",
    "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
   },
   {
-   "text": "بعد العصر",
+   "text": "أكمل",
    "cat": "home-banner-kept-arabic",
    "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
   },
   {
-   "text": "بعد العشاء",
+   "text": "من ٣ قطرات",
    "cat": "home-banner-kept-arabic",
    "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
   },
   {
-   "text": "نلتقي بكرة",
+   "text": "بعد صلاة الفجر بنصف ساعة",
    "cat": "home-banner-kept-arabic",
    "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
   },
   {
-   "text": "أكمل ديمتك",
+   "text": "بعد صلاة العصر",
+   "cat": "home-banner-kept-arabic",
+   "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
+  },
+  {
+   "text": "بعد صلاة العشاء",
+   "cat": "home-banner-kept-arabic",
+   "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
+  },
+  {
+   "text": "نلتقي غدًا بإذن الله",
    "cat": "home-banner-kept-arabic",
    "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
   }
