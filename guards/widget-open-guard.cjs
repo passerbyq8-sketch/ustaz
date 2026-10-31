@@ -160,6 +160,7 @@ function boot(opts) {
     const bookBrand = root.querySelector('.ezia-brand');
     if (bookBrand && bookBrand.textContent.trim() === read('EZH_ARBAEEN')) return 'arbaeen';
     if (/\badhkar3\b/.test(cls)) return 'adhkar';
+    if (root.querySelector('.dimaRoot')) return 'dima';
     if (root.querySelector('.ezc-rail')) return 'chat';
     if (root.querySelector('[data-ezik-home-module]')) return 'home';
     if (LIT_B && root.querySelector('.ez110-home')) return 'home';
@@ -226,7 +227,7 @@ SCENES['pages'] = async (c, t) => {
   else { c.read('window.dispatchEvent(new Event("pagehide"))'); t('R4A library leaves the menu it was opened from as the way back (fix, round 4 N1)', c.ledger(), 'home'); }
 };
 SCENES['top-layer'] = async (c, t) => {
-  for (const layer of ['asmaa', 'sunan-day', 'yahimmak']) {
+  for (const layer of ['asmaa', 'sunan-day', 'yahimmak', 'dima']) {
     c.open(layer); t(layer + ' opens explicitly', await c.until(layer), layer);
     c.open('adhkar'); t(layer + ' closes before next destination', await c.until('adhkar'), 'adhkar');
     c.open('home'); t(layer + ' stays closed on home', await c.until('home'), 'home');
