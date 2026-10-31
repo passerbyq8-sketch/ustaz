@@ -6,7 +6,8 @@
 //   H3 the folder hanna-laha/ holds only the files of that build (the page, build-info.json, the notice, two small images and
 //      hashed assets of the kinds a build writes).
 //   H4 no root-absolute URL leaves /hanna-laha/ except "/" (Ezik's home), "/quest.html" (the Kunuz page) and the question-report
-//      endpoint "/api/report"; the game's own API paths are joined to the Worker's origin by the build, which must be set.
+//      endpoint "/api/report", plus the shared "/usage.js" anonymous section logger; the game's own API paths are
+//      joined to the Worker's origin by the build, which must be set. tests/usage.test.js checks the logger's closed payload.
 //   H5 vercel.json carries the rewrite of the game's routes and its headers, and only under /hanna-laha .
 //
 // The folder is written by scripts/ezik-sync.mjs of the hanna-laha project and is never edited by hand.
@@ -21,7 +22,7 @@ const ROOT = path.join(__dirname, '..');
 const GAME = 'hanna-laha';
 const FRONT_FILES = new Set(['index.html', 'build-info.json', 'favicon.svg', 'og.png', 'NOTICE.txt']);
 const ASSET_EXT = /\.(js|css|woff2?)$/;
-const ROOT_ALLOWED = new Set(['/', '/quest.html', '/api/report']);
+const ROOT_ALLOWED = new Set(['/', '/quest.html', '/api/report', '/usage.js']);
 const IAP_GAME_PATHS = new Set(['/quest-ghaws.html', '/quest-harb.html', '/quest-test.html', '/quest-board.html']);
 const GAME_API = new Set(['/api/rooms', '/api/categories', '/api/client-error', '/api/health']);
 
@@ -112,7 +113,7 @@ if (problems.length) {
   problems.forEach((p) => console.log('  ' + p));
   process.exit(1);
 }
-console.log('hanna-laha-in-ezik: PASS -- five cards in quest.html, build ' + JSON.parse(realRead(GAME + '/build-info.json')).gitSha + ', ' + realList().length + ' files, nothing leaves /' + GAME + '/ except the three allowed targets');
+console.log('hanna-laha-in-ezik: PASS -- five cards in quest.html, build ' + JSON.parse(realRead(GAME + '/build-info.json')).gitSha + ', ' + realList().length + ' files, nothing leaves /' + GAME + '/ except the ' + ROOT_ALLOWED.size + ' allowed targets');
 
 if (process.argv.includes('--self-test')) {
   const mutants = [

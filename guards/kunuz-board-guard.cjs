@@ -16,7 +16,8 @@
 //   B5 whole games with 2, 3 and 4 teams to the end, the tie named, «إنهاء اللعبة» (two taps), a new game keeps the setup
 //   B6 no repeat: games on one record, with Ghaws dives on the same record, until small categories are drained
 //   B7 no number about the questions on any screen
-//   B8 nothing leaves the device; Arabic; the way back; the entity rule; the card in quest.html; no difficulty
+//   B8 gameplay stays local; fixed assets include /usage.js for anonymous section opens only;
+//      Arabic; the way back; the entity rule; the card in quest.html; no difficulty
 //   B9 the icons: stroke drawings with no living thing and no image, one per group and a general one
 //   B10 the layout rules: three columns, two up to 900, one up to 560; left-to-right inside a card; 44px touch
 //   B11 the gate bites: mutants of the page are each caught
@@ -475,7 +476,7 @@ function checkB8(pageText) {
   // KUNUZ-LEVELS-POETRY (2026-10-19, C): the deferred shared loader requests the optional levels file after setup mounts;
   // kunuzlevels L4/L5 check its switch and single source entry.
   // Visual engine: four fixed same-origin assets; kunuzvisual checks their loaders and switch.
-  if (srcs.join(',') !== '/quest-theme/motion-kit.js?v=20261022-roomsfix2,/quest-theme/icons.js?v=20261026-kfix6,/quest-theme/model.js?v=20261025-kfix5,/iap-pending.js?v=20261023-iapf,/hanna-laha/assets/iap-bridge-v1.js?v=20261031-iaplaunch3,/quest-theme/board-rooms.js?v=20261028-kfix1,/quest-theme/journey.js?v=20261028-kfix1') f.push('scripts loaded: ' + srcs.join(','));
+  if (srcs.join(',') !== '/quest-theme/motion-kit.js?v=20261022-roomsfix2,/quest-theme/icons.js?v=20261026-kfix6,/quest-theme/model.js?v=20261025-kfix5,/iap-pending.js?v=20261023-iapf,/hanna-laha/assets/iap-bridge-v1.js?v=20261031-iaplaunch3,/quest-theme/board-rooms.js?v=20261028-kfix1,/quest-theme/journey.js?v=20261028-kfix1,/usage.js') f.push('scripts loaded: ' + srcs.join(','));
   { const mod = fs.readFileSync(path.join(REPO, 'quest-levels.js'), 'utf8'); bad.forEach((re) => { if (re.test(mod.replace('s.src="/quest-data/kunuz-levels-3147.js";', ''))) f.push('the levels module reaches out: ' + re); });
     if ((mod.match(/\.src="([^"]*)"/g) || []).join() !== '.src="/quest-data/kunuz-levels-3147.js"') f.push('the levels module loads something else than its file'); }
   if (!/<html lang="ar" dir="rtl">/.test(pageText)) f.push('not declared Arabic right to left');
@@ -545,7 +546,7 @@ run('B4', 'the board: cards, columns, icon, turn pill, team bar, question window
 run('B5', 'whole games with 2, 3, 4 teams, the named tie, quit in two taps, new game', checkB5, SRC);
 run('B6', 'no repeat: games and Ghaws dives on one record until small categories run short', checkB6, SRC);
 run('B7', 'no number about the questions on any screen', checkB7, SRC);
-run('B8', 'nothing leaves the device; Arabic; the way back; the entity rule; one name; no level; the card', checkB8, PAGE_TEXT);
+run('B8', 'gameplay stays local; approved anonymous usage helper; Arabic; the way back; the entity rule; one name; no level; the card', checkB8, PAGE_TEXT);
 run('B9', 'icons: stroke drawings, one per group and a general one', checkB9, SRC);
 run('B10', 'scoped reference gradient, phone/wide grid, two point columns, 44px tiles', checkB10, PAGE_TEXT);
 

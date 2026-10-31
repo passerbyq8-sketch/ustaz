@@ -22,7 +22,8 @@
 //      no question twice, every shown question is marked, nothing after exhaustion
 //   T10 no number about the questions on any screen (the bank size, a category size, what is left); the owner's own
 //      settings, the score and the game's progress are allowed
-//   T11 nothing leaves the device: no fetch, no XMLHttpRequest, no beacon, no socket, no /api/ path, one script file (the bank);
+//   T11 gameplay stays on the device: no transport in the game script; only the fixed assets,
+//       including /usage.js for anonymous section opens (its payload is checked by tests/usage.test.js).
 //      the page names no Israeli entity; quest.html carries the card, without a digit in its text
 //   T12 the gate bites: mutants of the page (turn that does not move, credit taken from every team, a seen record one byte
 //      off, a switch that does not mark the left question, a timer that scores right, a question count that only a screen
@@ -502,7 +503,7 @@ function checkT11(pageText) {
   // KUNUZ-LEVELS-POETRY (2026-10-19, C): the deferred shared loader requests the optional levels file after setup mounts;
   // kunuzlevels L4/L5 check its switch and single source entry.
   // Visual engine: four fixed same-origin assets; kunuzvisual checks their loaders and switch.
-  if (srcs.join(',') !== '/quest-theme/motion-kit.js?v=20261022-roomsfix2,/quest-theme/icons.js?v=20261026-kfix6,/quest-theme/model.js?v=20261025-kfix5,/iap-pending.js?v=20261023-iapf,/hanna-laha/assets/iap-bridge-v1.js?v=20261031-iaplaunch3,/quest-theme/journey.js?v=20261028-kfix1') f.push('scripts loaded: ' + srcs.join(','));
+  if (srcs.join(',') !== '/quest-theme/motion-kit.js?v=20261022-roomsfix2,/quest-theme/icons.js?v=20261026-kfix6,/quest-theme/model.js?v=20261025-kfix5,/iap-pending.js?v=20261023-iapf,/hanna-laha/assets/iap-bridge-v1.js?v=20261031-iaplaunch3,/quest-theme/journey.js?v=20261028-kfix1,/usage.js') f.push('scripts loaded: ' + srcs.join(','));
   { const mod = fs.readFileSync(path.join(REPO, 'quest-levels.js'), 'utf8'); bad.forEach((re) => { if (re.test(mod.replace('s.src="/quest-data/kunuz-levels-3147.js";', ''))) f.push('the levels module reaches out: ' + re); });
     if ((mod.match(/\.src="([^"]*)"/g) || []).join() !== '.src="/quest-data/kunuz-levels-3147.js"') f.push('the levels module loads something else than its file'); }
   if (!/<html lang="ar" dir="rtl">/.test(pageText)) f.push('not declared Arabic right to left');
@@ -533,7 +534,7 @@ run('T7', 'the timer: running out is wrong and shows the answer', checkT7, SRC);
 run('T8', 'the end: solo score, ranking, winner, tie, new game keeps the choices', checkT8, SRC);
 run('T9', 'no repeat: 200 games over random categories, then games and Ghaws dives on one record until three categories are drained', checkT9, SRC);
 run('T10', 'no number about the questions on any screen', checkT10, SRC);
-run('T11', 'nothing leaves the device; Arabic; the way back; the entity rule; the card', checkT11, PAGE_TEXT);
+run('T11', 'gameplay stays local; approved anonymous usage helper; Arabic; the way back; the entity rule; the card', checkT11, PAGE_TEXT);
 
 // ---------- T12: the gate bites ----------
 {
