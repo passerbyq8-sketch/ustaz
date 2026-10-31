@@ -1597,10 +1597,32 @@ function hasExactDimaCoreSizeUpdate() {
     return expected !== before && current === expected;
   } catch (e) { return false; }
 }
+function hasExactDimaHomeBannerCoreSizeUpdate() {
+  try {
+    const before = require('child_process').execFileSync('git', ['show', 'HEAD:sw.js'], {
+      cwd: __dirname, encoding: 'utf8',
+    });
+    const current = fs.readFileSync(path.join(__dirname, 'sw.js'), 'utf8');
+    const changes = [
+      ["// a second copy of the 173609 bytes '/' already holds. The network-first branch below still",
+        "// a second copy of the 178671 bytes '/' already holds. The network-first branch below still"],
+      ['//   /  (index.html) 173609 + app.js 2477018 + icon-watermark.png 368386',
+        '//   /  (index.html) 178671 + app.js 2481892 + icon-watermark.png 368386'],
+      ['const CORE_BYTES = 3681085;', 'const CORE_BYTES = 3691021;'],
+    ];
+    let expected = before;
+    for (const [oldText, newText] of changes) {
+      if (expected.indexOf(oldText) === -1 || expected.indexOf(oldText) !== expected.lastIndexOf(oldText)) return false;
+      expected = expected.replace(oldText, newText);
+    }
+    return expected !== before && current === expected;
+  } catch (e) { return false; }
+}
 
 function blastRadiusVerdict(paths) {
   const list = Array.isArray(paths) ? paths : [];
-  const allowMeasuredSw = list.includes('sw.js') && (hasExactIapCoreSizeUpdate() || hasExactDimaCoreSizeUpdate());
+  const allowMeasuredSw = list.includes('sw.js') && (hasExactIapCoreSizeUpdate() || hasExactDimaCoreSizeUpdate()
+    || hasExactDimaHomeBannerCoreSizeUpdate());
   const bad = list.filter((f) => FORBIDDEN_PATH.test(f) && !(f === 'sw.js' && allowMeasuredSw));
   return { state: bad.length ? 'FORBIDDEN' : (list.length ? 'PASS' : 'CLEAN'), bad };
 }
@@ -1643,8 +1665,8 @@ function partE() {
     // attribution-guard. What remains here is the set that no web phase and no server phase may
     // move: the native wrappers, the manifest, the deployment config, and every file carrying
     // scripture or the question bank. A bundle rebuild may also require recutting the two measured
-    // CORE size values in sw.js; that exact IAP-D size-only edit is accepted, and every other
-    // service-worker change remains forbidden.
+    // CORE size values in sw.js; only the exact measured IAP-D, Dima, and Dima home banner
+    // size-only edits are accepted, and every other service-worker change remains forbidden.
     const verdict = blastRadiusVerdict(changed);
     eq('no unrelated manifest, service worker, platform or scripture file is modified', verdict.bad, []);
     // The SHA-256 seal on those same thirteen files used to sit right here, inside this `else`.

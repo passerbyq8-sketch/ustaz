@@ -11418,34 +11418,99 @@ let EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize
 // had no other reader went: this row's button, `onOpenCompass` on this component, and the
 // handler key the home's view object carried for it alone.
 function DimaHomeCard({ onOpenDima }) {
-  const [data, setData] = useState(__dimaData);
+  const [todayKey, setTodayKey] = useState(() => dimaDateKey(new Date()));
+  const [, setRefreshVersion] = useState(0);
   useEffect(() => {
-    let live = true;
-    loadDima().then((next) => { if (live) setData(next); }).catch(() => {});
-    return () => { live = false; };
+    let timer = 0;
+    const refresh = () => {
+      setTodayKey(dimaDateKey(new Date()));
+      setRefreshVersion((version) => version + 1);
+    };
+    const scheduleMidnight = () => {
+      const now = new Date();
+      const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 1, 0);
+      timer = window.setTimeout(() => { refresh(); scheduleMidnight(); }, Math.max(1000, next.getTime() - now.getTime()));
+    };
+    scheduleMidnight();
+    window.addEventListener('focus', refresh);
+    window.addEventListener('storage', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      if (timer) window.clearTimeout(timer);
+      window.removeEventListener('focus', refresh);
+      window.removeEventListener('storage', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+    };
   }, []);
-  const today = dimaDateKey(new Date());
   const store = dimaReadStore();
-  const log = dimaLogFor(store, today);
-  const complete = !!(store.startDate && log.l && log.q && log.j);
-  const english = typeof document !== 'undefined' && document.documentElement.lang === 'en';
-  const home = data && data.ui ? (english && data.ui.en ? data.ui.en.home : data.ui.home) : null;
-  const label = home ? (complete ? home.complete : home.reminder) : ezT('dima.todayPractices');
+  const todayDate = dimaDateFromKey(todayKey) || new Date();
+  const plants = Array.from({ length: 7 }, (_, index) => {
+    const date = dimaDateAdd(todayDate, -index);
+    const dayIndex = store.startDate ? dimaIndexForDate(store.startDate, date) : 0;
+    const dayLog = dimaLogFor(store, dimaDateKey(date));
+    const stage = index === 0
+      ? (store.startDate ? dayLog.l + dayLog.q + dayLog.j : 0)
+      : (dayIndex > 0 ? dayLog.l + dayLog.q + dayLog.j : 0);
+    return { key: dimaDateKey(date), stage: stage, today: index === 0 };
+  });
+  const todayCount = plants[0].stage;
+  const complete = !!(store.startDate && todayCount === 3);
+  const dimaName = ezT('dima.title');
+  const statusLabel = complete ? 'اكتملت ديمتك اليوم' : 'لا تنسَ ديمتك اليوم';
+  const ariaLabel = dimaName + ' — ' + statusLabel;
+  const progressLabel = toArabicDigits(String(todayCount)) + ' من ٣ قطرات · دقيقة واحدة';
+  const slotLabel = {
+    fajr30: 'بعد الفجر بنصف ساعة',
+    duha: 'وقت الضحى',
+    asr: 'بعد العصر',
+    isha: 'بعد العشاء',
+  };
+  const reminderLabel = store.notify.on
+    ? 'نلتقي بكرة ' + (slotLabel[store.notify.slot] || slotLabel.fajr30)
+    : 'نلتقي بكرة';
+  const rain = [
+    { top: 48, left: 40 }, { top: 48, left: 58 }, { top: 48, left: 76 },
+    { top: 48, left: 94 }, { top: 64, left: 134 }, { top: 64, left: 156 },
+  ];
   return (
-    <button type="button" className="ezist-quran ezhome-focus dimaHomeCard" style={s.ezistQuran}
-      onClick={onOpenDima} aria-label={ezT('dima.title') + ', ' + label}>
-      <span className="dimaHomeIcon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" /></svg>
+    <button type="button" className="ezist-quran ezhome-focus dimaHomeBanner"
+      onClick={onOpenDima} aria-label={ariaLabel} dir="rtl">
+      <svg aria-hidden="true" width="110" height="40" viewBox="0 0 110 40" className="dimaHomeCloud dimaHomeCloudLarge"><g fill="var(--dima-home-cloud)"><circle cx="34" cy="24" r="13" /><circle cx="56" cy="18" r="17" /><circle cx="78" cy="25" r="11" /><rect x="22" y="24" width="66" height="13" rx="6.5" /></g></svg>
+      <svg aria-hidden="true" width="76" height="28" viewBox="0 0 110 40" className="dimaHomeCloud dimaHomeCloudSmall"><g fill="var(--dima-home-cloud)"><circle cx="34" cy="24" r="13" /><circle cx="56" cy="18" r="17" /><circle cx="78" cy="25" r="11" /><rect x="22" y="24" width="66" height="13" rx="6.5" /></g></svg>
+      {!complete ? rain.map((drop, index) => <svg key={index} aria-hidden="true" width="6" height="10" viewBox="0 0 6 10" className={'dimaHomeRain' + (index ? ' dimaHomeRain--' + (index + 1) : '')} style={{ top: drop.top, left: drop.left }}><path d="M3 0C3 0 6 5 6 7a3 3 0 0 1-6 0C0 5 3 0 3 0z" fill="var(--dima-home-rain)" /></svg>) : null}
+      <span className="dimaHomeSoil" aria-hidden="true" />
+      <span className="dimaHomePlants" aria-hidden="true">
+        {plants.map((plant, index) => <span key={plant.key} className={index === 0 ? 'dimaHomePlant dimaHomePlantToday' : 'dimaHomePlant dimaHomePlantPast'}>
+          {index === 0 ? <span className="dimaHomeSpot" /> : null}
+          {index === 0 && plant.stage === 0
+            ? <span className="dimaHomeSeed" />
+            : <DimaPlant stage={plant.stage} today={index === 0} instant={false} />}
+        </span>)}
       </span>
-      <span className="dimaHomeCopy"><strong>{ezT('dima.title')}</strong><small>{label}</small></span>
-      {complete ? <svg className="dimaHomeCheck" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg> : null}
+      <span className="dimaHomeText">
+        <span className="dimaHomeBrand">
+          <span className="dimaHomeBrandIcon" aria-hidden="true"><DimaDropMark size={18} /></span>
+          <span className="dimaHomeBrandTitle">{dimaName}</span>
+        </span>
+        <span className="dimaHomeHeadline">{statusLabel}</span>
+        {!complete ? <>
+          <span className="dimaHomeProgress">
+            <span className="dimaHomeProgressDrops" aria-hidden="true">{[0, 1, 2].map((drop) => <svg key={drop} width="14" height="14" viewBox="0 0 24 24" className={drop < todayCount ? 'dimaHomeProgressDrop is-filled' : 'dimaHomeProgressDrop'}><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" /></svg>)}</span>
+            <span className="dimaHomeProgressLabel">{progressLabel}</span>
+          </span>
+          <span className="dimaHomeAction is-pulse"><span>{todayCount === 0 ? 'ابدأ ديمتك' : 'أكمل ديمتك'}</span><span aria-hidden="true">‹</span></span>
+        </> : <>
+          <span className="dimaHomeDoneBadge"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg><span>٣ من ٣ قطرات</span></span>
+          <span className="dimaHomeMeet"><span>{reminderLabel}</span><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg></span>
+        </>}
+      </span>
     </button>
   );
 }
 
 function EzistTopNav({ onOpenMenu, onOpenDima }) {
   return (
-    <div className="ezist-nav">
+    <div className="ezist-nav" data-dima-home-banner="true">
       <div className="ezist-nav-inner">
         <button type="button" className="ezhome-focus" onClick={onOpenMenu} style={s.ezistNavBtn} aria-label={EZH_NAV_MENU}>
           {EZH_ICON_MENU}

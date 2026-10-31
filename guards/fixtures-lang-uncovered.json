@@ -1,5 +1,5 @@
 {
- "note": "Arabic string literals of app.jsx that the English interface does NOT cover through the dictionary (c./x./f./p. entries): data, scripture, normalisers, model prompts, speech formatting, voice lines (voice is deferred) and the rest. The guard lang fails on a literal that is not here and not covered: a new interface string goes into the dictionary, a new data literal goes here with its reason. Generated 2026-10-06 by tools in the session folder. 2026-10-06 (finish): the entries of category stored-content-kept-arabic are works, scholars and sources that the owner ruled stay Arabic (stored content is not translated outside an answer); they are named here, so the count that can only fall is the count of the OTHER categories.",
+ "note": "Arabic string literals of app.jsx that the English interface does NOT cover through the dictionary (c./x./f./p. entries): data, scripture, normalisers, model prompts, speech formatting, voice lines (voice is deferred) and the rest. The guard lang fails on a literal that is not here and not covered: a new interface string goes into the dictionary, a new data literal goes here with its reason. Generated 2026-10-06 by tools in the session folder. 2026-10-06 (finish): the entries of category stored-content-kept-arabic are works, scholars and sources that the owner ruled stay Arabic (stored content is not translated outside an answer); they are named here, so the count that can only fall is the count of the OTHER categories. The home-banner-kept-arabic entries are approved Dima banner phrases kept in Arabic; only the banner title uses the interface dictionary.",
  "literals": [
   {
    "text": "(?:ا[ً-ْٰـ]*)?",
@@ -1968,6 +1968,51 @@
   {
    "text": "صوتيات الشرح: قناة الشيخ محمد بن صالح العثيمين — youtube.com/@ALUthaymeen",
    "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "اكتملت ديمتك اليوم",
+   "cat": "home-banner-kept-arabic",
+   "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
+  },
+  {
+   "text": "لا تنسَ ديمتك اليوم",
+   "cat": "home-banner-kept-arabic",
+   "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
+  },
+  {
+   "text": "من ٣ قطرات · دقيقة واحدة",
+   "cat": "home-banner-kept-arabic",
+   "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
+  },
+  {
+   "text": "بعد الفجر بنصف ساعة",
+   "cat": "home-banner-kept-arabic",
+   "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
+  },
+  {
+   "text": "وقت الضحى",
+   "cat": "home-banner-kept-arabic",
+   "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
+  },
+  {
+   "text": "بعد العصر",
+   "cat": "home-banner-kept-arabic",
+   "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
+  },
+  {
+   "text": "بعد العشاء",
+   "cat": "home-banner-kept-arabic",
+   "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
+  },
+  {
+   "text": "نلتقي بكرة",
+   "cat": "home-banner-kept-arabic",
+   "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
+  },
+  {
+   "text": "أكمل ديمتك",
+   "cat": "home-banner-kept-arabic",
+   "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
   }
  ]
 }

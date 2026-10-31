@@ -1140,15 +1140,17 @@ ok('...and no module spans AT ANY WIDTH -- every tile occupies exactly one of th
   MOSAIC_CSS.length > 0 && !/\.ezist-(?:mod|feature)[^{}]*\{[^}]*grid-column:\s*span/.test(MOSAIC_CSS),
   'the ruling this shelf now follows: three sections per row, tiles equal, none spanning, none orphaned -- so no .ezist-mod, .ezist-feature or .ezist-mod-fatwa grid-column:span rule may live anywhere in the mosaic region: the base rule and both breakpoints alike');
 
-ok('Dima replaces the home verse card in the same bounded top panel', /<DimaHomeCard onOpenDima=\{onOpenDima\} \/>/.test(IST)
-  && /className="ezist-quran ezhome-focus dimaHomeCard"/.test(IST)
+ok('Dima replaces the home verse card with the approved banner in the same bounded top panel', /<DimaHomeCard onOpenDima=\{onOpenDima\} \/>/.test(IST)
+  && /className="ezist-quran ezhome-focus dimaHomeBanner"/.test(IST)
   && /function DimaHomeCard\(\{ onOpenDima \}\)/.test(IST));
-eq('...the Dima home tile is drawn exactly once in the istana home', (IST.match(/<DimaHomeCard onOpenDima=\{onOpenDima\} \/>/g) || []).length, 1);
+eq('...the Dima home banner is drawn exactly once in the istana home', (IST.match(/<DimaHomeCard onOpenDima=\{onOpenDima\} \/>/g) || []).length, 1);
 okOn('...and the one tile stays inside the top navigation', [["IST", IST]],
   IST.indexOf('<DimaHomeCard onOpenDima={onOpenDima} />') > IST.indexOf('function EzistTopNav')
   && IST.indexOf('<DimaHomeCard onOpenDima={onOpenDima} />') < IST.indexOf('function EzistMasthead'));
-okOn('the home tile is a full-button Dima door with an accessible label', [["IST", IST]],
-  /<button type="button" className="ezist-quran ezhome-focus dimaHomeCard"[\s\S]*?onClick=\{onOpenDima\}[\s\S]*?aria-label=/.test(IST));
+okOn('the home banner is a full-width 168px Dima button with an accessible label and dark tokens', [["IST", IST], ["html", html]],
+  /<button type="button" className="ezist-quran ezhome-focus dimaHomeBanner"[\s\S]*?onClick=\{onOpenDima\}[\s\S]*?aria-label=/.test(IST)
+  && /\.dimaHomeBanner\{[^}]*height:168px/.test(html)
+  && /:root\[data-theme="dark"\] \.dimaHomeBanner\{[^}]*--dima-home-sky:/.test(html));
 okOn('the Ayah page remains in code while its home panel is disconnected', [["IST", IST], ["html", html]],
   /function AyahTafsirScreen\(/.test(html) && !/<EzistQuranPanel[^>]*\/>/.test(IST));
 
