@@ -459,8 +459,10 @@
   // ayah. Nothing is reworded; entries are only left out. A file with no quotations at all is shown whole.
   const WAQF_HEADS = ['الوقفات التدبرية', 'التوجيهات', 'العمل بالآيات', 'معاني الكلمات'];
   function waqfatForAyah(text, key) {
-    const hay = [normalize(Q[key] || ''), normalize((IML && IML[key]) || '')].filter(Boolean);
-    const quoted = (para) => (String(para).match(/﴿[^﴾]*﴾/g) || []).join(' ').split(/[﴿﴾]|\([٠-٩0-9]+\)/).map(normalize).filter((q) => q.length > 1);
+    // Two spellings of one word (the mushaf's and the plain one) differ in their long vowels and seats, so both sides drop them.
+    const loose = (s) => normalize(s).replace(/[۞ۖ-ۭء-ئاويى\s]/g, '');
+    const hay = [loose(Q[key] || ''), loose((IML && IML[key]) || '')].filter(Boolean);
+    const quoted = (para) => (String(para).match(/﴿[^﴾]*﴾/g) || []).join(' ').split(/[﴿﴾]|\([٠-٩0-9]+\)|\.{2,}|…/).map(loose).filter((q) => q.length > 1);
     const hit = (qs) => qs.some((q) => hay.some((h) => h.indexOf(q) >= 0 || q.indexOf(h) >= 0));
     const groups = []; let head = null, cur = null, sawQuote = false;
     const paras = String(text).split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
