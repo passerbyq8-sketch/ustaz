@@ -8721,7 +8721,11 @@ const SHELL_HEADING_START='ezik:heading:start';const SHELL_HEADING_STOP='ezik:he
 // read, one after the watch promise) -- and nothing over there ever resends. So a page
 // that posts one start and then only listens owns a state it can never be told to leave, and the
 // clock that ends that state has to be this side's.
-const SHELL_HEADING_WAIT_MS=7000;// Qibla bearing is clockwise from TRUE north (qiblaBearing above). Expo may publish -1 for an
+const SHELL_HEADING_WAIT_MS=7000;// DEVICE CHECK O4: on Android the WebView reports every history change as a page load, and the shell stops the compass
+// on a page load, so the start sent at mount can be cancelled by the screen's own history step and the needle then
+// waited for the seven-second resend (7.4 to 7.9 s measured). These quick resends follow it; a start while the stream
+// runs is answered «already started» by the shell, and none is sent once a reading has arrived.
+const SHELL_HEADING_NUDGE_MS=[250,700,1500];// Qibla bearing is clockwise from TRUE north (qiblaBearing above). Expo may publish -1 for an
 // unavailable trueHeading, so a valid true heading wins and the magnetic heading is the named
 // fallback. No accuracy threshold appears here: calibration remains the shell's judgment.
 function shellHeadingOf(detail){if(!detail||typeof detail!=='object'||detail.type!==SHELL_HEADING_RESULT)return null;const trueHeading=detail.trueHeading;if(typeof trueHeading==='number'&&isFinite(trueHeading)&&trueHeading>=0&&trueHeading<=360){return(trueHeading%360+360)%360;}const magHeading=detail.magHeading;if(typeof magHeading==='number'&&isFinite(magHeading)&&magHeading>=0&&magHeading<=360){return(magHeading%360+360)%360;}return null;}function sendShellHeadingCommand(bridge,type){if(!bridge||type!==SHELL_HEADING_START&&type!==SHELL_HEADING_STOP)return false;try{bridge.postMessage(JSON.stringify({type:type}));return true;}catch(e){return false;}}// ============================================================
@@ -9814,7 +9818,7 @@ const dialRef=useRef(null);const needleRef=useRef(null);const sunRef=useRef(null
 // that went unanswered left this screen waiting with no door in it for as long as the reader
 // cared to look at it. That is the screen the owner described, and its one visible sentence is
 // the one he quoted. These two functions are the door.
-const headingWaitRef=useRef(null);const stopHeadingWait=()=>{if(headingWaitRef.current===null)return;clearTimeout(headingWaitRef.current);headingWaitRef.current=null;};// THE DEADLINE IS SPENT ON A RESEND BEFORE IT IS SPENT ON A BUTTON. A lost message costs the
+const headingWaitRef=useRef(null);const headingNudgeRef=useRef([]);const stopHeadingWait=()=>{headingNudgeRef.current.forEach(t=>clearTimeout(t));headingNudgeRef.current=[];if(headingWaitRef.current===null)return;clearTimeout(headingWaitRef.current);headingWaitRef.current=null;};// THE DEADLINE IS SPENT ON A RESEND BEFORE IT IS SPENT ON A BUTTON. A lost message costs the
 // reader nothing to send again; a control costs them a press and a decision. So the first leg
 // carries `retry` and re-sends once, and the leg it arms behind itself carries `false` and ends
 // at `heading-error` -- the state that ALREADY owns a visible retry and already says, in the
@@ -9828,7 +9832,7 @@ const headingWaitRef=useRef(null);const stopHeadingWait=()=>{if(headingWaitRef.c
 // with nothing left to say. Armed first, the re-render that answer causes is what cancels it --
 // and a send that fails takes its own timer down with it on the next line.
 const armHeadingWait=retry=>{const bridge=headingBridgeRef.current||null;if(!bridge)return;// the browser path keeps QIBLA_NEEDLE_MS and is not touched
-stopHeadingWait();headingWaitRef.current=setTimeout(()=>{headingWaitRef.current=null;if(!retry){setCompass(c=>c==='wait'?'heading-error':c);return;}armHeadingWait(false);if(!sendShellHeadingCommand(bridge,SHELL_HEADING_START)){stopHeadingWait();setCompass('heading-error');}},SHELL_HEADING_WAIT_MS);};// AND THE FIRST ANSWER ENDS IT -- from here, in the render body, and NOT from inside
+stopHeadingWait();if(retry)headingNudgeRef.current=SHELL_HEADING_NUDGE_MS.map(ms=>setTimeout(()=>{if(compassRef.current==='wait'&&readsRef.current.n===0)sendShellHeadingCommand(bridge,SHELL_HEADING_START);},ms));headingWaitRef.current=setTimeout(()=>{headingWaitRef.current=null;if(!retry){setCompass(c=>c==='wait'?'heading-error':c);return;}armHeadingWait(false);if(!sendShellHeadingCommand(bridge,SHELL_HEADING_START)){stopHeadingWait();setCompass('heading-error');}},SHELL_HEADING_WAIT_MS);};// AND THE FIRST ANSWER ENDS IT -- from here, in the render body, and NOT from inside
 // onHeadingResult. tools/location-bridge-measure.cjs lifts that handler ALONE, into a scope that
 // holds nothing but its setters and the intake, so a call to anything else from inside it would be
 // a ReferenceError in a gate rather than a bug in the app. This line needs no such help: all five

@@ -31375,6 +31375,11 @@ const SHELL_HEADING_STATUSES = ['ready', 'calibration-needed', 'sensor-unavailab
 // that posts one start and then only listens owns a state it can never be told to leave, and the
 // clock that ends that state has to be this side's.
 const SHELL_HEADING_WAIT_MS = 7000;
+// DEVICE CHECK O4: on Android the WebView reports every history change as a page load, and the shell stops the compass
+// on a page load, so the start sent at mount can be cancelled by the screen's own history step and the needle then
+// waited for the seven-second resend (7.4 to 7.9 s measured). These quick resends follow it; a start while the stream
+// runs is answered «already started» by the shell, and none is sent once a reading has arrived.
+const SHELL_HEADING_NUDGE_MS = [250, 700, 1500];
 
 // Qibla bearing is clockwise from TRUE north (qiblaBearing above). Expo may publish -1 for an
 // unavailable trueHeading, so a valid true heading wins and the magnetic heading is the named
@@ -34589,7 +34594,10 @@ function QiblaPanel({ loc, onLoc, full }) {
   // cared to look at it. That is the screen the owner described, and its one visible sentence is
   // the one he quoted. These two functions are the door.
   const headingWaitRef = useRef(null);
+  const headingNudgeRef = useRef([]);
   const stopHeadingWait = () => {
+    headingNudgeRef.current.forEach((t) => clearTimeout(t));
+    headingNudgeRef.current = [];
     if (headingWaitRef.current === null) return;
     clearTimeout(headingWaitRef.current);
     headingWaitRef.current = null;
@@ -34611,6 +34619,9 @@ function QiblaPanel({ loc, onLoc, full }) {
     const bridge = headingBridgeRef.current || null;
     if (!bridge) return;              // the browser path keeps QIBLA_NEEDLE_MS and is not touched
     stopHeadingWait();
+    if (retry) headingNudgeRef.current = SHELL_HEADING_NUDGE_MS.map((ms) => setTimeout(() => {
+      if (compassRef.current === 'wait' && readsRef.current.n === 0) sendShellHeadingCommand(bridge, SHELL_HEADING_START);
+    }, ms));
     headingWaitRef.current = setTimeout(() => {
       headingWaitRef.current = null;
       if (!retry) { setCompass((c) => (c === 'wait' ? 'heading-error' : c)); return; }
