@@ -2093,8 +2093,8 @@ const SEALED = {
   // Refreshed app.js bytes, measured CORE total and this seal; policy assertions are unchanged.
   // 2026-10-31 USAGE production ship: reserved cache ezik-v127; app.js rebuilt; CORE membership unchanged; worker seal remeasured.
   // 2026-11-01 LANGS round C: reserved cache ezik-v128; app.js rebuilt (enabled list); CORE membership unchanged; worker seal remeasured.
-  // 2026-11-01 usage dashboard: app.js rebuilt; CORE membership unchanged.
-  'sw.js': '57f61f57b532beaf3a496c92ad25b7ae227202bd13309a36ee06d056d5b48274',
+  // 2026-11-01 USAGE dashboard ship: reserved cache ezik-v129; app.js rebuilt; CORE membership unchanged.
+  'sw.js': '50fee5e60fd87ca94640699f6b487b1bfcb2cedcb234279c09d65cdbe8079e41',
 };
 
 // ---------------------------------------------------------------------------
