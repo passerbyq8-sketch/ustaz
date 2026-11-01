@@ -2094,8 +2094,8 @@ const SEALED = {
   // 2026-10-31 USAGE production ship: reserved cache ezik-v127; app.js rebuilt; CORE membership unchanged; worker seal remeasured.
   // 2026-11-01 LANGS round C: reserved cache ezik-v128; app.js rebuilt (enabled list); CORE membership unchanged; worker seal remeasured.
   // 2026-11-01 USAGE dashboard ship: reserved cache ezik-v129; app.js rebuilt; CORE membership unchanged.
-  // 2026-11-02 TRANSLATE4 integrate: reserved cache ezik-v130; /lang/content/ network-first, no precache; app.js rebuilt; CORE membership unchanged.
-  'sw.js': '2cb674e19fb4d437a2d212aa0e08138a39811ca4531aec4b584b2abc0800fa66',
+  // 2026-11-02 TRANSLATE4 integrate: reserved cache ezik-v131; /lang/content/ network-first, no precache; app.js rebuilt; CORE membership unchanged.
+  'sw.js': '1f8199a92024afaf776ec78fd19bea3366b2145e2f6dd3f32b542c657ba04b1f',
 };
 
 // ---------------------------------------------------------------------------
