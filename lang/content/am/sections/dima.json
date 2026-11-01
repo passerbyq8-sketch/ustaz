@@ -1,0 +1,4972 @@
+{
+  "schema": "ezik-tr4/1",
+  "lang": "am",
+  "section": "dima",
+  "title": {
+    "ar": "ديمة",
+    "tr": "ዲማ"
+  },
+  "agent": "K02",
+  "generated": "2026-11-01T21:39:49.182Z",
+  "source_files": [
+    "dima/dima-v1.json"
+  ],
+  "items": [
+    {
+      "id": "h:592e78c41de1",
+      "kind": "text",
+      "ar": "قليلٌ دائم، كالمطر الهادئ",
+      "tr": "እንደ ጸጥተኛ ዝናብ፣ ጥቂት ነገር ግን ዘላቂ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:91d929efa2fd",
+      "kind": "title",
+      "ar": "ديمتك تصلك كل يوم",
+      "tr": "ዲማዎ በየቀኑ ይደርስዎታል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a8036d1e33f7",
+      "kind": "text",
+      "ar": "تنبيهٌ واحدٌ في اليوم، بالوقت الذي تختاره، ويمكنك إيقافه متى شئت.",
+      "tr": "እርስዎ በመረጡት ሰዓት በቀን አንድ ማሳወቂያ። በፈለጉት ጊዜ ማቆም ይችላሉ።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1d2b22848624",
+      "kind": "text",
+      "ar": "فعّل التنبيه",
+      "tr": "ማሳወቂያን አንቃ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:289acec23c22",
+      "kind": "text",
+      "ar": "ليس الآن",
+      "tr": "አሁን አይደለም",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b7e375461a32",
+      "kind": "text",
+      "ar": "عند التفعيل يطلب الجهاز إذنك مرّة واحدة فقط.",
+      "tr": "ሲያነቁት መሣሪያው ፈቃድዎን አንድ ጊዜ ብቻ ይጠይቃል።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5aa990b8cc5b",
+      "kind": "text",
+      "ar": "قطرة اللسان",
+      "tr": "የምላስ ጠብታ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4aed9b40406d",
+      "kind": "text",
+      "ar": "قطرة القلب",
+      "tr": "የልብ ጠብታ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:768a154bb99f",
+      "kind": "text",
+      "ar": "قطرة الجوارح",
+      "tr": "የአካል ተግባር ጠብታ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:524fe4800568",
+      "kind": "text",
+      "ar": "قُلها",
+      "tr": "በል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf57739c9691",
+      "kind": "text",
+      "ar": "تأمّلها",
+      "tr": "አስተውልባት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f3fb3f7cd932",
+      "kind": "text",
+      "ar": "افعلها",
+      "tr": "አድርጋት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1c0b39a032b8",
+      "kind": "text",
+      "ar": "أرضك",
+      "tr": "መሬትዎ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:07242796bbcd",
+      "kind": "text",
+      "ar": "{n} من {total} قطرات اليوم",
+      "tr": "ከዛሬዎቹ {total} ጠብታዎች {n}",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fbe03626ef7f",
+      "kind": "text",
+      "ar": "يومٌ مضى",
+      "tr": "ያለፈ ቀን",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6f043424b3ac",
+      "kind": "text",
+      "ar": "نزلت قطرةٌ في أرضك",
+      "tr": "በመሬትዎ ላይ አንድ ጠብታ ወረደች",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98df46fbd83b",
+      "kind": "text",
+      "ar": "تراجع",
+      "tr": "መልስ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:58f2a96a17bb",
+      "kind": "text",
+      "ar": "القطرة التالية",
+      "tr": "የሚቀጥለው ጠብታ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a1bf10b61436",
+      "kind": "text",
+      "ar": "ختام اليوم",
+      "tr": "የቀኑ መዝጊያ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:41cc3479d671",
+      "kind": "text",
+      "ar": "ذكّرني لاحقًا",
+      "tr": "በኋላ አስታውሰኝ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4c417f1a159c",
+      "kind": "text",
+      "ar": "سنذكّرك بعد العصر",
+      "tr": "ከዐስር ሶላት (የከሰዓት በኋላ ጸሎት) በኋላ እናስታውስዎታለን",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:64f4fe2ecbd8",
+      "kind": "text",
+      "ar": "اضغط مع كل مرّة تقولها",
+      "tr": "በተናገሩ ቁጥር ይጫኑ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:155749b610a4",
+      "kind": "text",
+      "ar": "مقترح: {n}",
+      "tr": "የተጠቆመ፦ {n}",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1e9283ae4577",
+      "kind": "text",
+      "ar": "اكتملت ديمة اليوم",
+      "tr": "የዛሬው ዲማ ተጠናቋል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:adc6e0e1137b",
+      "kind": "text",
+      "ar": "أتممتَ شهرك الأول",
+      "tr": "የመጀመሪያ ወርዎን ጨርሰዋል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fc8633a1d1f4",
+      "kind": "text",
+      "ar": "ثلاث قطراتٍ نزلت في أرضك",
+      "tr": "በመሬትዎ ላይ ሦስት ጠብታዎች ወረዱ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1106aa8631d8",
+      "kind": "text",
+      "ar": "تنبيهك القادم: بكرة {slot}",
+      "tr": "ቀጣዩ ማሳወቂያዎ፦ ነገ {slot}",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:448ccf482a83",
+      "kind": "text",
+      "ar": "بكرة",
+      "tr": "ነገ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fb35a6c70521",
+      "kind": "text",
+      "ar": "تنبيه ديمة",
+      "tr": "የዲማ ማሳወቂያ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9c08e36a6898",
+      "kind": "text",
+      "ar": "التنبيه اليومي",
+      "tr": "የዕለት ማሳወቂያ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d672210ef6a7",
+      "kind": "text",
+      "ar": "مفعَّلٌ تلقائيًّا مع التحديث، ويمكنك إيقافه",
+      "tr": "ከማዘመኑ ጋር በራሱ ነቅቷል፤ ማቆምም ይችላሉ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:107866a9b3ff",
+      "kind": "text",
+      "ar": "موقوف، وديمتك تنتظرك داخل التطبيق",
+      "tr": "ቆሟል፤ ዲማዎ በመተግበሪያው ውስጥ ይጠብቅዎታል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a9b9ce80ff8f",
+      "kind": "text",
+      "ar": "وقت التنبيه",
+      "tr": "የማሳወቂያ ሰዓት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4da801b1128b",
+      "kind": "text",
+      "ar": "أوقات الصلاة تُحسب من موقعك، كما في قسم الصلاة",
+      "tr": "የሶላት ሰዓቶች እንደ ሶላት ክፍሉ ከቦታዎ ይሰላሉ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ef256a3c3b68",
+      "kind": "text",
+      "ar": "هكذا يصلك",
+      "tr": "እንዲህ ይደርስዎታል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2eedd6ae577f",
+      "kind": "text",
+      "ar": "رسالة هادئة تتغيّر كل يوم، بلا إلحاح",
+      "tr": "በየቀኑ የሚለወጥ ጸጥተኛ መልእክት፣ ያለ ውትወታ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:507770131e72",
+      "kind": "text",
+      "ar": "وقت التذكير غير متاح.",
+      "tr": "የማስታወሻው ሰዓት አይገኝም።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f901ccb2564e",
+      "kind": "text",
+      "ar": "تعذّر تحميل ديمة.",
+      "tr": "ዲማን መጫን አልተቻለም።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1b388b1d5c9d",
+      "kind": "text",
+      "ar": "مفعّل",
+      "tr": "ነቅቷል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bafc44588818",
+      "kind": "text",
+      "ar": "متوقف",
+      "tr": "ቆሟል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cd834082470d",
+      "kind": "text",
+      "ar": "الأيام الأخيرة",
+      "tr": "የቅርብ ቀናት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ae0bbc700f31",
+      "kind": "text",
+      "ar": "، اليوم",
+      "tr": "፣ ዛሬ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:881aeb7099b3",
+      "kind": "text",
+      "ar": "الأيام السبعة الماضية",
+      "tr": "ያለፉት ሰባት ቀናት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7e9c1b26dc01",
+      "kind": "text",
+      "ar": "علامات ممارسات الأيام السبعة الماضية",
+      "tr": "ባለፉት ሰባት ቀናት የተደረጉ ተግባሮች ምልክቶች",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf5148ef5b1e",
+      "kind": "text",
+      "ar": " مكتمل",
+      "tr": " ተጠናቋል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3ca833b33415",
+      "kind": "text",
+      "ar": " غير مكتمل",
+      "tr": " አልተጠናቀቀም",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6d76cfa3f443",
+      "kind": "text",
+      "ar": "ممارسات اليوم",
+      "tr": "የዛሬ ተግባሮች",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0618181d807f",
+      "kind": "text",
+      "ar": "القرآن ",
+      "tr": "ቁርአን ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:871943736352",
+      "kind": "text",
+      "ar": "العدد المقترح: ",
+      "tr": "የተጠቆመው ቁጥር፦ ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6af4196f3fa4",
+      "kind": "text",
+      "ar": "اقرأ التفسير الموثّق",
+      "tr": "የተረጋገጠውን ተፍሲር (የቁርአን ማብራሪያ) ያንብቡ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dfa98f40e8f1",
+      "kind": "text",
+      "ar": "المختصر في تفسير القرآن · ص 252 · FC-000142",
+      "tr": "አልሙኽተሶር ፊ ተፍሲሪል ቁርአን · ገጽ 252 · FC-000142",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3b4c90d0223b",
+      "kind": "text",
+      "ar": "اضغط للعدّ، ",
+      "tr": "ለመቁጠር ይጫኑ፣ ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:950edb07da8c",
+      "kind": "text",
+      "ar": "الأيام الماضية للقراءة فقط.",
+      "tr": "ያለፉት ቀናት ለማንበብ ብቻ ናቸው።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ada140502b2a",
+      "kind": "text",
+      "ar": "اضبط تذكيرًا",
+      "tr": "ማስታወሻ ያዘጋጁ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f63f0957977f",
+      "kind": "text",
+      "ar": "غدًا: ",
+      "tr": "ነገ፦ ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f8e84b2074b3",
+      "kind": "text",
+      "ar": "فعّل التنبيهات من إعدادات الصلاة أولًا.",
+      "tr": "መጀመሪያ ከሶላት ቅንብሮች ማሳወቂያዎችን ያንቁ።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dcb542c15808",
+      "kind": "text",
+      "ar": "لا تنسَ ديمتك اليوم",
+      "tr": "የዛሬውን ዲማዎን አይርሱ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7e9051a2c063",
+      "kind": "text",
+      "ar": "اكتملت ديمتك اليوم",
+      "tr": "የዛሬውን ዲማዎን አጠናቀዋል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e7af6ad9e8bb",
+      "kind": "text",
+      "ar": "الأول",
+      "tr": "አንደኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:39321e817feb",
+      "kind": "text",
+      "ar": "الثاني",
+      "tr": "ሁለተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c3e1b4edd4ac",
+      "kind": "text",
+      "ar": "الثالث",
+      "tr": "ሦስተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:50ed00343085",
+      "kind": "text",
+      "ar": "الرابع",
+      "tr": "አራተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5fad8aa224ce",
+      "kind": "text",
+      "ar": "الخامس",
+      "tr": "አምስተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:45d8094bf9b9",
+      "kind": "text",
+      "ar": "السادس",
+      "tr": "ስድስተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ef114d4296bc",
+      "kind": "text",
+      "ar": "السابع",
+      "tr": "ሰባተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2db27d05d3a7",
+      "kind": "text",
+      "ar": "الثامن",
+      "tr": "ስምንተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3bcce3aeea5f",
+      "kind": "text",
+      "ar": "التاسع",
+      "tr": "ዘጠነኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:20024c546493",
+      "kind": "text",
+      "ar": "العاشر",
+      "tr": "አሥረኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a792050b141f",
+      "kind": "text",
+      "ar": "الحادي عشر",
+      "tr": "አሥራ አንደኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3d4fabeb9270",
+      "kind": "text",
+      "ar": "الثاني عشر",
+      "tr": "አሥራ ሁለተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:04fea95f2af7",
+      "kind": "text",
+      "ar": "الثالث عشر",
+      "tr": "አሥራ ሦስተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4e2208a2c195",
+      "kind": "text",
+      "ar": "الرابع عشر",
+      "tr": "አሥራ አራተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f39f78ef305e",
+      "kind": "text",
+      "ar": "الخامس عشر",
+      "tr": "አሥራ አምስተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c9d13c6b6622",
+      "kind": "text",
+      "ar": "السادس عشر",
+      "tr": "አሥራ ስድስተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c2ccae600214",
+      "kind": "text",
+      "ar": "السابع عشر",
+      "tr": "አሥራ ሰባተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7350a028a419",
+      "kind": "text",
+      "ar": "الثامن عشر",
+      "tr": "አሥራ ስምንተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d56656f461b5",
+      "kind": "text",
+      "ar": "التاسع عشر",
+      "tr": "አሥራ ዘጠነኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c600e14ee149",
+      "kind": "text",
+      "ar": "العشرون",
+      "tr": "ሃያኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3fcd86f89850",
+      "kind": "text",
+      "ar": "الحادي والعشرون",
+      "tr": "ሃያ አንደኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d128c1b3d520",
+      "kind": "text",
+      "ar": "الثاني والعشرون",
+      "tr": "ሃያ ሁለተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:69753081d75f",
+      "kind": "text",
+      "ar": "الثالث والعشرون",
+      "tr": "ሃያ ሦስተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ab577aaaa016",
+      "kind": "text",
+      "ar": "الرابع والعشرون",
+      "tr": "ሃያ አራተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:05d8e10f8f73",
+      "kind": "text",
+      "ar": "الخامس والعشرون",
+      "tr": "ሃያ አምስተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2f38a6804aa2",
+      "kind": "text",
+      "ar": "السادس والعشرون",
+      "tr": "ሃያ ስድስተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:217372974e36",
+      "kind": "text",
+      "ar": "السابع والعشرون",
+      "tr": "ሃያ ሰባተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:97fbcd610785",
+      "kind": "text",
+      "ar": "الثامن والعشرون",
+      "tr": "ሃያ ስምንተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1c0a5a0a9caa",
+      "kind": "text",
+      "ar": "التاسع والعشرون",
+      "tr": "ሃያ ዘጠነኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:91ccc8db263e",
+      "kind": "text",
+      "ar": "الثلاثون",
+      "tr": "ሠላሳኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a9abf57dbb0d",
+      "kind": "text",
+      "ar": "لا تنسَ ديمتك غدًا",
+      "tr": "የነገውን ዲማዎን አይርሱ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c6b29634bec7",
+      "kind": "text",
+      "ar": "سنذكّرك غدًا {slot}",
+      "tr": "ነገ {slot} እናስታውስዎታለን",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1e3d6e18312e",
+      "kind": "text",
+      "ar": "ديمتك لليوم جاهزة، دقيقة واحدة تكفي",
+      "tr": "የዛሬው ዲማዎ ዝግጁ ነው፤ አንድ ደቂቃ ይበቃል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1ba202784993",
+      "kind": "text",
+      "ar": "قطرةٌ جديدة تنتظرك في أرضك",
+      "tr": "በመሬትዎ ላይ አዲስ ጠብታ ይጠብቅዎታል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:41ca9a30513e",
+      "kind": "text",
+      "ar": "قليلٌ دائمٌ خيرٌ من كثيرٍ منقطع، ديمة اليوم جاهزة",
+      "tr": "ጥቂት ሆኖ የሚቀጥል ከብዙ ሆኖ ከሚቋረጥ ይሻላል፤ የዛሬው ዲማ ዝግጁ ነው",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:874722223daa",
+      "kind": "text",
+      "ar": "جمعة مباركة، ديمة الجمعة جاهزة",
+      "tr": "የተባረከ ጁሙዓ፤ የጁሙዓ ዲማ ዝግጁ ነው",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cd6e0869b954",
+      "kind": "text",
+      "ar": "تذكير ديمة: قطرة الجوارح تنتظرك",
+      "tr": "የዲማ ማስታወሻ፦ የአካል ተግባር ጠብታ ይጠብቅዎታል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:995bb15601b1",
+      "kind": "text",
+      "ar": "بعد الفجر بنصف ساعة",
+      "tr": "ከፈጅር ሶላት (የጎህ ጸሎት) ከግማሽ ሰዓት በኋላ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a65e23474be8",
+      "kind": "text",
+      "ar": "وقت الضحى",
+      "tr": "የዱሓ ሰዓት (ከፀሐይ መውጣት በኋላ ከቀትር በፊት)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:135e943b0801",
+      "kind": "text",
+      "ar": "بعد العصر",
+      "tr": "ከዐስር ሶላት (የከሰዓት በኋላ ጸሎት) በኋላ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0df562a36ec6",
+      "kind": "text",
+      "ar": "بعد العشاء",
+      "tr": "ከዒሻእ ሶላት (የሌሊት ጸሎት) በኋላ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l01",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده، سبحان الله العظيم",
+      "tr": "አላህ ከጉድለት ሁሉ የጠራ ነው፣ ምስጋናም ለእርሱ ነው። ታላቁ አላህ ከጉድለት ሁሉ የጠራ ነው።",
+      "translit": "ሱብሓነላሂ ወቢሐምዲሂ ሱብሓነላሂል ዐዚም",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:46bf599f3e53",
+      "kind": "hadith",
+      "ar": "كَلِمَتَانِ خَفِيفَتَانِ عَلَى اللِّسَانِ، ثَقِيلَتَانِ فِي المِيزَانِ، حَبِيبَتَانِ إِلَى الرَّحْمَنِ",
+      "tr": "በምላስ ላይ ቀላል፣ በሚዛን ላይ ከባድ፣ ለአርረሕማን ተወዳጅ የሆኑ ሁለት ቃላት አሉ።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a70fe204e5f6",
+      "kind": "text",
+      "ar": "قلتُها",
+      "tr": "አልኳት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3bd5b604195e",
+      "kind": "text",
+      "ar": "متفق عليه",
+      "tr": "ቡኻሪና ሙስሊም ዘግበውታል።",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "HadeethEnc.com; hadith 66234; field attribution; API v1; retrieved 2026-11-01 (no content version supplied)",
+        "url": "https://hadeethenc.com/api/v1/hadeeths/one/?language=am&id=66234",
+        "rights": "Contents of the translations can be downloaded and republished under the following terms: 1. No modification, addition, or deletion of the content. 2. Clearly refer to the publisher and source (HadeethEnc.com). 3. Mention the version number when republishing the translation. 4. Keep the translation version information inside the document. 5. Notify the source (HadeethEnc.com) of any note on the translation. 6. Update translations according to the latest version issued by the source. 7. Do not include inappropriate advertisements when displaying the content.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "l02",
+      "kind": "dhikr",
+      "ar": "لا حول ولا قوة إلا بالله",
+      "tr": "በአላህ እርዳታ ቢሆን እንጂ ሁኔታን የመቀየር ችሎታም ኃይልም የለም።",
+      "translit": "ላ ሐውለ ወላ ቁወተ ኢላ ቢላህ",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:060e76db5d17",
+      "kind": "hadith",
+      "ar": "أَلاَ أَدُلُّكَ عَلَى كَلِمَةٍ مِنْ كَنْزِ الجَنَّةِ \" قُلْتُ: بَلَى، قَالَ: «لاَ حَوْلَ وَلاَ قُوَّةَ إِلَّا بِاللَّهِ",
+      "tr": "ከጀነት (ገነት) ሀብት የሆነ ቃል ልጠቁምህን? አሉኝ። አዎን አልኩ። እርሳቸውም፦ ኃይልም ችሎታም በአላህ ብቻ ነው አሉ።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l03",
+      "kind": "dua",
+      "ar": "اللهم صلِّ وسلِّم على نبيّنا محمد",
+      "tr": "አላህ ሆይ፣ በነቢያችን ሙሐመድ ላይ ሶለዋትንና ሰላምን አውርድ።",
+      "translit": "አላሁመ ሶሊ ወሰሊም ዐላ ነቢዪና ሙሐመድ",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b2a097607bf2",
+      "kind": "hadith",
+      "ar": "مَنْ صَلَّى عَلَيَّ وَاحِدَةً صَلَّى الله عَلَيْهِ عَشْرًا",
+      "tr": "በእኔ ላይ አንድ ሰለዋት (የክብርና የበረከት ዱዓ) ያደረገ፣ አላህ በእርሱ ላይ አሥር ሰለዋት ያደርጋል።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a6763adf156f",
+      "kind": "text",
+      "ar": "صلّيتُ عليه",
+      "tr": "በእርሳቸው ላይ ሶለዋት አወረድኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1f83b246bbe2",
+      "kind": "text",
+      "ar": "مسلم",
+      "tr": "ሙስሊም",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l04",
+      "kind": "dhikr",
+      "ar": "أستغفر الله وأتوب إليه",
+      "tr": "አላህን ይቅርታ እለምናለሁ፤ ወደ እርሱም በንስሐ እመለሳለሁ።",
+      "translit": "አስተግፊሩላሀ ወአቱቡ ኢለይህ",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:16759e2c8a1f",
+      "kind": "hadith",
+      "ar": "يَا أَيُّهَا النَّاسُ تُوبُوا إِلَى اللهِ، فَإِنِّي أَتُوبُ، فِي الْيَوْمِ إِلَيْهِ مِائَةَ، مَرَّةٍ",
+      "tr": "እናንተ ሰዎች ሆይ! ወደ አላህ ተመለሱ (ተውበት አድርጉ)፤ እኔ በቀን መቶ ጊዜ ወደርሱ እመለሳለሁ (ተውበት አደርጋለሁ።)",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "HadeethEnc.com; hadith 4809; field title; API v1; retrieved 2026-11-01 (no content version supplied)",
+        "url": "https://hadeethenc.com/api/v1/hadeeths/one/?language=am&id=4809",
+        "rights": "Contents of the translations can be downloaded and republished under the following terms: 1. No modification, addition, or deletion of the content. 2. Clearly refer to the publisher and source (HadeethEnc.com). 3. Mention the version number when republishing the translation. 4. Keep the translation version information inside the document. 5. Notify the source (HadeethEnc.com) of any note on the translation. 6. Update translations according to the latest version issued by the source. 7. Do not include inappropriate advertisements when displaying the content.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "l05",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده",
+      "tr": "አላህ ከጉድለት ሁሉ የጠራ ነው፣ ምስጋናም ለእርሱ ነው።",
+      "translit": "ሱብሓነላሂ ወቢሐምዲህ",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98035c1c8607",
+      "kind": "hadith",
+      "ar": "مَنْ قَالَ: سُبْحَانَ اللَّهِ وَبِحَمْدِهِ، فِي يَوْمٍ مِائَةَ مَرَّةٍ، حُطَّتْ خَطَايَاهُ، وَإِنْ كَانَتْ مِثْلَ زَبَدِ البَحْرِ",
+      "tr": "በቀን ውስጥ መቶ ጊዜ ሱብሓነላሂ ወቢሐምዲሂ \"ጥራት ምስጋና ለአላህ ይገባው።\" ያለ ሰው (የወንጀሉ ብዛት) የባህር ዓረፋ አምሳያ ቢሆን እንኳ ወንጀሉ ይታበስለታል።",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "HadeethEnc.com; hadith 5516; field title; API v1; retrieved 2026-11-01 (no content version supplied)",
+        "url": "https://hadeethenc.com/api/v1/hadeeths/one/?language=am&id=5516",
+        "rights": "Contents of the translations can be downloaded and republished under the following terms: 1. No modification, addition, or deletion of the content. 2. Clearly refer to the publisher and source (HadeethEnc.com). 3. Mention the version number when republishing the translation. 4. Keep the translation version information inside the document. 5. Notify the source (HadeethEnc.com) of any note on the translation. 6. Update translations according to the latest version issued by the source. 7. Do not include inappropriate advertisements when displaying the content.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "l06",
+      "kind": "dhikr",
+      "ar": "لا إله إلا الله وحده لا شريك له، له الملك وله الحمد، وهو على كل شيء قدير",
+      "tr": "ብቸኛ ከሆነው፣ አጋር ከሌለው አላህ በቀር ሌላ በእውነት የሚመለክ የለም። መንግሥት የእርሱ ነው፣ ምስጋናም ለእርሱ ነው፤ እርሱም በሁሉም ነገር ላይ ቻይ ነው።",
+      "translit": "ላ ኢላሀ ኢለላሁ ወሕደሁ ላ ሸሪከ ለህ፣ ለሁል ሙልኩ ወለሁል ሐምዱ ወሁወ ዐላ ኩሊ ሸይኢን ቀዲር",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6f7c464022f9",
+      "kind": "hadith",
+      "ar": "مَنْ قَالَ: لاَ إِلَهَ إِلَّا اللَّهُ، وَحْدَهُ لاَ شَرِيكَ لَهُ، لَهُ المُلْكُ وَلَهُ الحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، فِي يَوْمٍ مِائَةَ مَرَّةٍ، كَانَتْ لَهُ عَدْلَ عَشْرِ رِقَابٍ",
+      "tr": "በአንድ ቀን መቶ ጊዜ፦ ከአላህ በቀር የሚመለክ አምላክ የለም፣ እርሱ ብቻውን ነው፣ ተጋሪ የለውም፣ ንግሥና የእርሱ ነው፣ ምስጋናም ለእርሱ ነው፣ እርሱም በሁሉም ነገር ላይ ቻይ ነው ያለ፣ አሥር ባሪያዎችን ነፃ ከማውጣት ጋር እኩል ምንዳ ይኖረዋል።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l07",
+      "kind": "dhikr",
+      "ar": "الحمد لله",
+      "tr": "ምስጋና ሁሉ ለአላህ ነው።",
+      "translit": "አልሐምዱ ሊላህ",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d3878266dc9e",
+      "kind": "hadith",
+      "ar": "وَالْحَمْدُ لِلَّهِ تَمْلَأُ الْمِيزَانَ",
+      "tr": "አልሐምዱ ሊላህ (ምስጋና ለአላህ ነው) ማለት ሚዛኑን ይሞላል።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l08",
+      "kind": "dhikr",
+      "ar": "سبحان الله، والحمد لله، ولا إله إلا الله، والله أكبر",
+      "tr": "አላህ ከጉድለት ሁሉ የጠራ ነው፣ ምስጋና ለአላህ ነው፣ ከአላህ በቀር ሌላ በእውነት የሚመለክ የለም፣ አላህም ከሁሉ የላቀ ነው።",
+      "translit": "ሱብሓነላህ ወልሐምዱ ሊላህ ወላ ኢላሀ ኢለላህ ወላሁ አክበር",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:17c849f1f429",
+      "kind": "hadith",
+      "ar": "أَحَبُّ الْكَلَامِ إِلَى اللهِ أَرْبَعٌ: سُبْحَانَ اللهِ، وَالْحَمْدُ لِلَّهِ، وَلَا إِلَهَ إِلَّا اللهُ، وَاللهُ أَكْبَرُ",
+      "tr": "ለአላህ ከሁሉ የተወደዱ ቃላት አራት ናቸው፦ ሱብሓነላህ (አላህ ከጉድለት የጠራ ነው)፣ አልሐምዱ ሊላህ (ምስጋና ለአላህ ነው)፣ ላ ኢላሀ ኢለላህ (ከአላህ በቀር የሚመለክ አምላክ የለም)፣ አላሁ አክበር (አላህ ከሁሉ ታላቅ ነው)።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l09",
+      "kind": "dua",
+      "ar": "اللهم أعنّي على ذكرك وشكرك وحسن عبادتك",
+      "tr": "አላህ ሆይ፣ አንተን ለማውሳት፣ ለማመስገንና በመልካም ሁኔታ ለማምለክ እርዳኝ።",
+      "translit": "አላሁመ አዒንኒ ዐላ ዚክሪከ ወሹክሪከ ወሑስኒ ዒባደቲክ",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:07c644dd8a43",
+      "kind": "hadith",
+      "ar": "أُوصِيكَ يَا مُعَاذُ لَا تَدَعَنَّ فِي دُبُرِ كُلِّ صَلَاةٍ أَنْ تَقُولَ: اللهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ",
+      "tr": "ሙዓዝ ሆይ፣ ከእያንዳንዱ ሶላት (የአምልኮ ጸሎት) በኋላ፦ አላህ ሆይ፣ አንተን ለማውሳት፣ ለማመስገንና በመልካም ሁኔታ ለማምለክ እርዳኝ ማለትን እንዳትተው እመክርሃለሁ።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:27a277f0e101",
+      "kind": "text",
+      "ar": "النسائي",
+      "tr": "አንነሳኢ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l10",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده عدد خلقه، ورضا نفسه، وزنة عرشه، ومداد كلماته",
+      "tr": "በፍጥረታቱ ብዛት፣ በራሱ እርካታ፣ በዐርሹ ክብደትና በቃላቱ ቀለም መጠን አላህ ከጉድለት ሁሉ የጠራ ነው፣ ምስጋናም ለእርሱ ነው።",
+      "translit": "ሱብሓነላሂ ወቢሐምዲሂ ዐደደ ኸልቂሂ ወሪዳ ነፍሲሂ ወዚነተ ዐርሺሂ ወሚዳደ ከሊማቲህ",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:14ecc6f7775a",
+      "kind": "hadith",
+      "ar": "لَقَدْ قُلْتُ بَعْدَكِ أَرْبَعَ كَلِمَاتٍ، ثَلَاثَ مَرَّاتٍ، لَوْ وُزِنَتْ بِمَا قُلْتِ مُنْذُ الْيَوْمِ لَوَزَنَتْهُنَّ",
+      "tr": "ካንቺ በኋላ አራት ቃላትን ሦስት ጊዜ ተናግሬአለሁ፤ ከዛሬ ጀምሮ ከተናገርሽው ጋር ቢመዘኑ ከእነርሱ ይከብዳሉ።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l11",
+      "kind": "dhikr",
+      "ar": "لا إله إلا أنت سبحانك إني كنت من الظالمين",
+      "tr": "ከአንተ በቀር ሌላ በእውነት የሚመለክ የለም። ከጉድለት ሁሉ የጠራህ ነህ። እኔ በእርግጥ ከበደለኞች ነበርኩ።",
+      "translit": "ላ ኢላሀ ኢላ አንተ ሱብሓነከ ኢንኒ ኩንቱ ሚነዝዟሊሚን",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0a3d2d813331",
+      "kind": "hadith",
+      "ar": "دَعْوَةُ ذِي النُّونِ إِذْ دَعَا وَهُوَ فِي بَطْنِ الحُوتِ: لاَ إِلَهَ إِلاَّ أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ، فَإِنَّهُ لَمْ يَدْعُ بِهَا رَجُلٌ مُسْلِمٌ فِي شَيْءٍ قَطُّ إِلاَّ اسْتَجَابَ اللَّهُ لَهُ",
+      "tr": "ዙንኑን በዓሣው ሆድ ውስጥ ሳለ ያደረገው ዱዓ (ልመና)፦ ካንተ በቀር የሚመለክ አምላክ የለም፣ አንተ ከጉድለት የጠራህ ነህ፣ እኔ በእርግጥ ከበደለኞች ነበርኩ የሚለው ነው። ሙስሊም ሰው በማንኛውም ጉዳይ በዚህ ቢለምን አላህ ምላሽ ይሰጠዋል።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:900c009b827b",
+      "kind": "text",
+      "ar": "الترمذي",
+      "tr": "አትቲርሚዚ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l12",
+      "kind": "dhikr",
+      "ar": "رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ",
+      "tr": "ጌታዬ ሆይ፣ ይቅር በለኝ፣ ንስሐዬንም ተቀበል። አንተ በእርግጥ ንስሐን በብዛት ተቀባይ፣ እጅግ አዛኝ ነህ።",
+      "translit": "ረቢግፊር ሊ ወቱብ ዐለየ ኢንነከ አንተትተዋቡርረሒም",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:99e5b6f32eaf",
+      "kind": "hadith",
+      "ar": "نْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+      "tr": "የአላህ መልእክተኛ፣ የአላህ ሰላምና በረከት በእርሳቸው ላይ ይሁንና፣ በአንድ መቀመጫ፦ ጌታዬ ሆይ፣ ይቅር በለኝ፣ ተውባዬንም ተቀበል፤ አንተ በእርግጥ አትተዋብ፣ አርረሒም ነህ ሲሉ መቶ ጊዜ እንቆጥርላቸው ነበር።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:feb87fd43324",
+      "kind": "text",
+      "ar": "ابن ماجه",
+      "tr": "ኢብን ማጀህ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:20eec0cbc850",
+      "kind": "quran",
+      "ar": "وَإِن تَعُدُّوا۟ نِعْمَةَ ٱللَّهِ لَا تُحْصُوهَآ",
+      "tr": "የአላህን ጸጋ ብትቆጥሩ አትዘልቋትም::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/16/18",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:d2766f33f933",
+      "kind": "quran",
+      "ar": "وَإِن تَعُدُّوا۟ نِعْمَةَ ٱللَّهِ لَا تُحْصُوهَآ ۗ إِنَّ ٱللَّهَ لَغَفُورٌ رَّحِيمٌ",
+      "tr": "የአላህን ጸጋ ብትቆጥሩ አትዘልቋትም:: አላህ መሓሪና አዛኝ ነውና::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/16/18",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:98163e27e637",
+      "kind": "text",
+      "ar": "حمدتُ الله",
+      "tr": "አላህን አመሰገንኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:12b821c2544b",
+      "kind": "text",
+      "ar": "النحل: ١٨",
+      "tr": "አንነሕል፦ ١٨",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3f41906e49ba",
+      "kind": "text",
+      "ar": "ابتسم في وجه أحدٍ اليوم",
+      "tr": "ዛሬ ለአንድ ሰው ፈገግ ይበሉ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5612ff534dbb",
+      "kind": "hadith",
+      "ar": "تَبَسُّمُكَ فِي وَجْهِ أَخِيكَ لَكَ صَدَقَةٌ",
+      "tr": "በወንድምህ ፊት ፈገግ ማለትህ ለአንተ ሰደቃ (ምጽዋት) ነው።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8a0e25fe253d",
+      "kind": "text",
+      "ar": "ابتسمتُ",
+      "tr": "ፈገግ አልኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d6f945f8dd74",
+      "kind": "text",
+      "ar": "كنزٌ من كنوز الجنة",
+      "tr": "ከጀነት ድልቦች አንድ ድልብ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e8cd520b4557",
+      "kind": "text",
+      "ar": "تأمّل عافيتك ووقت فراغك، واشكر الله عليهما",
+      "tr": "ጤንነትዎንና ትርፍ ጊዜዎን ያስተውሉ፤ ለሁለቱም አላህን ያመስግኑ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:772ed349c6e3",
+      "kind": "hadith",
+      "ar": "نِعْمَتَانِ مَغْبُونٌ فِيهِمَا كَثِيرٌ مِنَ النَّاسِ: الصِّحَّةُ وَالفَرَاغُ",
+      "tr": "አብዛኛው ሰው በነርሱ የከሰረባቸው ሁለት ፀጋዎች አሉ: ጤንነትና ነፃ (ትርፍ) ወቅት",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "HadeethEnc.com; hadith 5449; field title; API v1; retrieved 2026-11-01 (no content version supplied)",
+        "url": "https://hadeethenc.com/api/v1/hadeeths/one/?language=am&id=5449",
+        "rights": "Contents of the translations can be downloaded and republished under the following terms: 1. No modification, addition, or deletion of the content. 2. Clearly refer to the publisher and source (HadeethEnc.com). 3. Mention the version number when republishing the translation. 4. Keep the translation version information inside the document. 5. Notify the source (HadeethEnc.com) of any note on the translation. 6. Update translations according to the latest version issued by the source. 7. Do not include inappropriate advertisements when displaying the content.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:eb44ae40dd81",
+      "kind": "text",
+      "ar": "شكرتُ الله",
+      "tr": "አላህን አመሰገንኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3025efe9a80e",
+      "kind": "text",
+      "ar": "البخاري",
+      "tr": "አልቡኻሪ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:23077bf89451",
+      "kind": "text",
+      "ar": "أمِط أذًى عن الطريق إن رأيته",
+      "tr": "በመንገድ ላይ ጎጂ ነገር ካዩ ያስወግዱት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:50366d06e4d2",
+      "kind": "hadith",
+      "ar": "وَأَدْنَاهَا إِمَاطَةُ الْأَذَى عَنِ الطَّرِيقِ",
+      "tr": "ከሁሉ ዝቅተኛዋም ከመንገድ ላይ ጎጂ ነገርን ማስወገድ ናት።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f402f03cae5a",
+      "kind": "text",
+      "ar": "أمطتُه",
+      "tr": "አስወገድኩት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2697a2786f3d",
+      "kind": "text",
+      "ar": "صلاةٌ تعود عليك عشرًا",
+      "tr": "በአሥር እጥፍ ወደ እርስዎ የሚመለስ ሶለዋት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:250089f51a89",
+      "kind": "text",
+      "ar": "استحضر محبّة النبي ﷺ، وأنّها فوق كلّ محبّة",
+      "tr": "ለነቢዩ ያለዎትን ፍቅርና ከሁሉም ፍቅር በላይ መሆኑን በልብዎ ያስታውሱ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a561a5ebb178",
+      "kind": "hadith",
+      "ar": "لاَ يُؤْمِنُ أَحَدُكُمْ، حَتَّى أَكُونَ أَحَبَّ إِلَيْهِ مِنْ وَالِدِهِ وَوَلَدِهِ وَالنَّاسِ أَجْمَعِينَ",
+      "tr": "አንዳችሁ ከወላጆቹ ፣ ከልጁና ከሰዎች ባጠቃላይ እርሱ ዘንድ እጅግ ተወዳጁ እኔ እስክሆን ድረስ አላመነም።'",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "HadeethEnc.com; hadith 5953; field title; API v1; retrieved 2026-11-01 (no content version supplied)",
+        "url": "https://hadeethenc.com/api/v1/hadeeths/one/?language=am&id=5953",
+        "rights": "Contents of the translations can be downloaded and republished under the following terms: 1. No modification, addition, or deletion of the content. 2. Clearly refer to the publisher and source (HadeethEnc.com). 3. Mention the version number when republishing the translation. 4. Keep the translation version information inside the document. 5. Notify the source (HadeethEnc.com) of any note on the translation. 6. Update translations according to the latest version issued by the source. 7. Do not include inappropriate advertisements when displaying the content.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:f993a685cc28",
+      "kind": "text",
+      "ar": "استحضرتُها",
+      "tr": "በልቤ አስታወስኳት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d853b265f971",
+      "kind": "text",
+      "ar": "اتصل بقريبٍ لك ولو دقيقة",
+      "tr": "ለአንድ ዘመድዎ አንድ ደቂቃም ቢሆን ይደውሉ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:00ac3fc63f2b",
+      "kind": "hadith",
+      "ar": "مَنْ أَحَبَّ أَنْ يُبْسَطَ لَهُ فِي رِزْقِهِ، وَيُنْسَأَ لَهُ فِي أَثَرِهِ، فَلْيَصِلْ رَحِمَهُ",
+      "tr": "ሲሳዩ እንዲሰፋለትና እድሜው እንዲረዝምለት የወደደ ሰው ዝምድናውን ይቀጥል።",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "HadeethEnc.com; hadith 5372; field title; API v1; retrieved 2026-11-01 (no content version supplied)",
+        "url": "https://hadeethenc.com/api/v1/hadeeths/one/?language=am&id=5372",
+        "rights": "Contents of the translations can be downloaded and republished under the following terms: 1. No modification, addition, or deletion of the content. 2. Clearly refer to the publisher and source (HadeethEnc.com). 3. Mention the version number when republishing the translation. 4. Keep the translation version information inside the document. 5. Notify the source (HadeethEnc.com) of any note on the translation. 6. Update translations according to the latest version issued by the source. 7. Do not include inappropriate advertisements when displaying the content.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:57ba5a72fc2f",
+      "kind": "text",
+      "ar": "اتصلتُ",
+      "tr": "ደወልኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:91f75101f303",
+      "kind": "text",
+      "ar": "توبةٌ في كلّ يوم",
+      "tr": "በየቀኑ ተውባ (በንስሐ ወደ አላህ መመለስ)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fa2ccac58aaa",
+      "kind": "quran",
+      "ar": "ذَكَرُوا۟ ٱللَّهَ فَٱسْتَغْفَرُوا۟ لِذُنُوبِهِمْ",
+      "tr": "አላህን የሚያስታውሱና ለኃጢአቶቻቸው ምህረትን የሚለምኑ",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/3/135",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:d28d20ff1810",
+      "kind": "quran",
+      "ar": "وَٱلَّذِينَ إِذَا فَعَلُوا۟ فَـٰحِشَةً أَوْ ظَلَمُوٓا۟ أَنفُسَهُمْ ذَكَرُوا۟ ٱللَّهَ فَٱسْتَغْفَرُوا۟ لِذُنُوبِهِمْ وَمَن يَغْفِرُ ٱلذُّنُوبَ إِلَّا ٱللَّهُ وَلَمْ يُصِرُّوا۟ عَلَىٰ مَا فَعَلُوا۟ وَهُمْ يَعْلَمُونَ",
+      "tr": "ለእነዚያም መጥፎ ስራን በሰሩ ወይም ነፍሶቻቸውን በበደሉ ጊዜ አላህን የሚያስታውሱና ለኃጢአቶቻቸው ምህረትን የሚለምኑ ለሆኑት ተደግሳለች:: ከአላህ ሌላ ኃጢአቶችን የሚምር ማን ነው? (አንድም የለም::) በሰሩት ላይ እነርሱ የሚያውቁ ሲሆኑ የማይዘወትሩ ለሆኑት ሁሉ ተደግሳለች::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/3/135",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:3ce64fe4a699",
+      "kind": "text",
+      "ar": "عزمتُ",
+      "tr": "ወሰንኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:48a66c090a5d",
+      "kind": "text",
+      "ar": "آل عمران: ١٣٥",
+      "tr": "አሊ ዒምራን፦ ١٣٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ce4a31704233",
+      "kind": "text",
+      "ar": "تصدّق بشيءٍ ولو قليل",
+      "tr": "ጥቂትም ቢሆን አንድ ነገር ሰደቃ (ምጽዋት) ይስጡ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4dacbcbb1982",
+      "kind": "hadith",
+      "ar": "اتَّقُوا النَّارَ وَلَوْ بِشِقِّ تَمْرَةٍ",
+      "tr": "በግማሽ ተምርም ቢሆን ከእሳት ራሳችሁን ጠብቁ።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a90a7e31e96c",
+      "kind": "text",
+      "ar": "تصدّقتُ",
+      "tr": "ሰደቃ (ምጽዋት) ሰጠሁ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c1a5ce38896f",
+      "kind": "text",
+      "ar": "دعوةٌ يردّها عليك ملَك",
+      "tr": "መልአክ ለእርስዎም የሚደግመው ዱዓ (ልመና)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3262bf68b53f",
+      "kind": "text",
+      "ar": "ادعُ لأخٍ لك باسمه وهو لا يدري",
+      "tr": "ሳያውቅ ለአንድ ወንድምዎ ስሙን ጠቅሰው ዱዓ (ልመና) ያድርጉ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dec4db48f5d9",
+      "kind": "hadith",
+      "ar": "دَعْوَةُ الْمَرْءِ الْمُسْلِمِ لِأَخِيهِ بِظَهْرِ الْغَيْبِ مُسْتَجَابَةٌ، عِنْدَ رَأْسِهِ مَلَكٌ مُوَكَّلٌ كُلَّمَا دَعَا لِأَخِيهِ بِخَيْرٍ، قَالَ الْمَلَكُ الْمُوَكَّلُ بِهِ: آمِينَ وَلَكَ بِمِثْلٍ",
+      "tr": "ሙስሊም ሰው ወንድሙ በሌለበት ለእርሱ የሚያደርገው ዱዓ (ልመና) ተቀባይነት አለው። በራሱ አጠገብ የተመደበ መልአክ አለ፤ ለወንድሙ መልካም ነገር በለመነ ቁጥር የተመደበው መልአክ፦ አሚን፣ ለአንተም እንደዚሁ ይሁን ይላል።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:167610e41522",
+      "kind": "text",
+      "ar": "دعوتُ له",
+      "tr": "ዱዓ (ልመና) አደረግሁለት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:290e634e843b",
+      "kind": "text",
+      "ar": "اسقِ أحدًا ماءً، ولو طيرًا أو حيوانًا",
+      "tr": "አንዱን ውሃ ያጠጡ፣ ወፍ ወይም እንስሳም ቢሆን",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3b0c2667a7e1",
+      "kind": "hadith",
+      "ar": "فِي كُلِّ كَبِدٍ رَطْبَةٍ أَجْرٌ",
+      "tr": "ማንኛውንም ሕይወት ያለውን ፍጡር በመርዳት ምንዳ አለ።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fd398c044a84",
+      "kind": "text",
+      "ar": "سقيتُ",
+      "tr": "አጠጣሁ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:64d0504d3bb2",
+      "kind": "text",
+      "ar": "آيةٌ تطمئنّ بها القلوب",
+      "tr": "ልቦች የሚረጋጉበት አንቀጽ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7e93df1a44f3",
+      "kind": "text",
+      "ar": "اقرأ الآية، ثم اسكن دقيقةً بلا جوال وردّدها في نفسك",
+      "tr": "አንቀጹን ያንብቡ፣ ከዚያም ያለ ስልክ ለአንድ ደቂቃ ጸጥ ይበሉና በልብዎ ይድገሙት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f4389e5bd4aa",
+      "kind": "text",
+      "ar": "\n28 - هؤلاء الذين يهديهم الله هم الذين آمنوا، وتستأنس قلوبهم بذكر الله بتسبيحه وتحميده، وبتلاوة كتابه ألا بذكر الله وحده تستأنس القلوب، خَلِيق بها ذلك.\n[مِنْ فَوَائِدِ الآيَاتِ]\n• الترغيب في جملة من فضائل الأخلاق الموجبة للجنة، ومنها: حسن الصلة، وخشية الله تعالى، والوفاء بالعهود، والصبر والإنفاق، ومقابلة السيئة بالحسنة والتحذير من ضدها.\n• أن مقاليد الرزق بيد الله - سبحانه وتعالى -، وأن توسعة الله تعالى أو تضييقه في رزق عبد ما لا ينبغي أن يكون موجبًا لفرح أو حزن، فهو ليس دليلًا على رضا الله أو سخطه على ذلك العبد.\n• أن الهداية ليست بالضرورة مربوطة بإنزال الآيات والمعجزات التي اقترح المشركون إظهارها.\n• من آثار القرآن على العبد المؤمن أنه يورثه طمأنينة في القلب.",
+      "tr": "28 - እነዚህ አላህ የሚመራቸው፣ ያመኑ እና አላህን ከጉድለት በማጥራት፣ በማመስገንና መጽሐፉን በማንበብ ልቦቻቸው በእርሱ መታወስ የሚረጋጉ ናቸው። አዋጅ፣ ልቦች በአላህ መታወስ ብቻ ይረጋጋሉ፤ ይህም ለእነርሱ የሚገባ ነው። [ከአንቀጾቹ ጥቅሞች] • ወደ ጀነት (ገነት) የሚያደርሱ በርካታ የመልካም ሥነ ምግባር ባሕርያትን ማበረታታት፤ ከእነርሱም መልካም ግንኙነት፣ አላህን መፍራት፣ ቃል ኪዳንን ማሟላት፣ ትዕግሥት፣ ወጪ ማድረግ፣ ክፉን በመልካም መመለስ ናቸው፤ ከተቃራኒያቸውም ማስጠንቀቅ። • የሲሳይ ቁልፎች በአላህ፣ ጥራትና ልዕልና ይገባውና፣ እጅ ናቸው። አላህ ለአንድ ባሪያ ሲሳይን ማስፋቱ ወይም ማጥበቡ የደስታ ወይም የሐዘን ምክንያት መሆን የለበትም፤ ይህ አላህ በዚያ ባሪያ መደሰቱን ወይም መቆጣቱን የሚያመለክት አይደለምና። • ቅን መመሪያ ሙሽሪኮች (በአላህ ላይ አጋር የሚያደርጉ) እንዲታዩ ከጠየቋቸው አንቀጾችና ተአምራት መውረድ ጋር ብቻ የተያያዘ አይደለም። • ቁርአን በአማኙ ባሪያ ላይ ከሚያመጣቸው ተጽዕኖዎች አንዱ በልቡ ውስጥ እርጋታን ማውረሱ ነው።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:39e7e4c6bec1",
+      "kind": "text",
+      "ar": "قرأتُها وسكنتُ",
+      "tr": "አነበብኳትና ተረጋጋሁ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8f38fb1c304b",
+      "kind": "text",
+      "ar": "الرعد: ٢٨",
+      "tr": "አርረዕድ፦ ٢٨",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1158653a1337",
+      "kind": "text",
+      "ar": "صلِّ ركعتي الضحى",
+      "tr": "የዱሓ ሶላትን (ከፀሐይ መውጣት በኋላ የሚሰገድ ጸሎት) ሁለት ረከዓ ይስገዱ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:264421ee13f7",
+      "kind": "hadith",
+      "ar": "وَيُجْزِئُ مِنْ ذَلِكَ رَكْعَتَانِ يَرْكَعُهُمَا مِنَ الضُّحَى",
+      "tr": "ከእነዚህ ሁሉ ይልቅ በዱሓ ጊዜ (ፀሐይ ከወጣች በኋላ) የሚሰግዳቸው ሁለት ረከዓዎች ይበቃሉ።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:29f3ca5f8dac",
+      "kind": "text",
+      "ar": "صلّيتُهما",
+      "tr": "ሁለቱን ሰገድኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:01bd5e7a7898",
+      "kind": "text",
+      "ar": "سرّ اسم هذا القسم",
+      "tr": "የዚህ ክፍል ስም ሚስጥር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:71ae0c0be445",
+      "kind": "text",
+      "ar": "سَأَلْتُ أُمَّ المُؤْمِنِينَ عَائِشَةَ، قُلْتُ: يَا أُمَّ المُؤْمِنِينَ، كَيْفَ كَانَ عَمَلُ النَّبِيِّ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ، هَلْ كَانَ يَخُصُّ شَيْئًا مِنَ الأَيَّامِ؟ قَالَتْ: «لاَ، كَانَ عَمَلُهُ دِيمَةً",
+      "tr": "የአማኞችን እናት ዓኢሻን ጠየቅኳት፦ የአማኞች እናት ሆይ፣ የነቢዩ፣ የአላህ ሰላምና በረከት በእርሳቸው ላይ ይሁንና፣ ሥራ እንዴት ነበር? ከቀናት የተለየ ቀን ይመርጡ ነበርን? አልኳት። እርሷም፦ አይደለም፣ ሥራቸው ቀጣይ ነበር አለች።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b276f2717489",
+      "kind": "text",
+      "ar": "الدِّيمة: المطر الدائم في سكون، ومنه اسم هذا القسم",
+      "tr": "ዲማ፦ በጸጥታ የሚቀጥል ዝናብ ማለት ነው፤ የዚህ ክፍል ስምም ከዚህ ተወስዷል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7bae20b3a0d4",
+      "kind": "text",
+      "ar": "فهمتُ الاسم",
+      "tr": "ስሙን ተረዳሁ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:775c139fc71b",
+      "kind": "text",
+      "ar": "اعمل اليوم عملًا خفيًّا لا يعلمه أحد",
+      "tr": "ዛሬ ማንም የማያውቀውን ስውር መልካም ሥራ ይሥሩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a2b5f40907ed",
+      "kind": "hadith",
+      "ar": "وَرَجُلٌ تَصَدَّقَ بِصَدَقَةٍ فَأَخْفَاهَا حَتَّى لاَ تَعْلَمَ شِمَالُهُ مَا تُنْفِقُ يَمِينُهُ",
+      "tr": "ሰደቃ (ምጽዋት) ሰጥቶ፣ ቀኝ እጁ የምትሰጠውን ግራ እጁ እስካታውቅ ድረስ የደበቀው ሰው።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ee4aeff06c85",
+      "kind": "text",
+      "ar": "فعلتُه",
+      "tr": "አደረግሁት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d35dfabb25f2",
+      "kind": "text",
+      "ar": "تأمّلٌ في السماء",
+      "tr": "ሰማይን ማስተዋል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3091bff0f30c",
+      "kind": "quran",
+      "ar": "إِنَّ فِى خَلْقِ ٱلسَّمَـٰوَٰتِ وَٱلْأَرْضِ وَٱخْتِلَـٰفِ ٱلَّيْلِ وَٱلنَّهَارِ لَـَٔايَـٰتٍ لِّأُو۟لِى ٱلْأَلْبَـٰبِ",
+      "tr": "በሰማያትና በምድር መፈጠር፤ በሌሊትና በቀንም መተካካት ለባለ አእምሮዎች ሁሉ ታላላቅ ምልክቶች አሉበት።",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/3/190",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:4c38aa57f637",
+      "kind": "text",
+      "ar": "تفكّرتُ",
+      "tr": "አስተዋልኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a7fa47e20162",
+      "kind": "text",
+      "ar": "آل عمران: ١٩٠",
+      "tr": "አሊ ዒምራን፦ ١٩٠",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2da6b942f85b",
+      "kind": "text",
+      "ar": "سلّم على من تعرف ومن لا تعرف",
+      "tr": "ለሚያውቁትም ለማያውቁትም ሰው ሰላምታ ያቅርቡ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:02a2f24ecc5b",
+      "kind": "hadith",
+      "ar": "أَفْشُوا السَّلَامَ بَيْنَكُمْ",
+      "tr": "በመካከላችሁ ሰላምታን አስፋፉ።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:54bda18381ab",
+      "kind": "text",
+      "ar": "سلّمتُ",
+      "tr": "ሰላምታ አቀረብኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:90ac8e1ad8d9",
+      "kind": "text",
+      "ar": "معنى أن يراك الله",
+      "tr": "አላህ ያይዎታል ማለት ምን ማለት ነው?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:081d9bc2982a",
+      "kind": "quran",
+      "ar": "وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ",
+      "tr": "እርሱ የትም ብትሆኑ (በእውቀቱ) ከናንተው ጋር ነው::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/57/4",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:d8dc1eff0491",
+      "kind": "quran",
+      "ar": "هُوَ ٱلَّذِى خَلَقَ ٱلسَّمَـٰوَٰتِ وَٱلْأَرْضَ فِى سِتَّةِ أَيَّامٍ ثُمَّ ٱسْتَوَىٰ عَلَى ٱلْعَرْشِ ۚ يَعْلَمُ مَا يَلِجُ فِى ٱلْأَرْضِ وَمَا يَخْرُجُ مِنْهَا وَمَا يَنزِلُ مِنَ ٱلسَّمَآءِ وَمَا يَعْرُجُ فِيهَا ۖ وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ ۚ وَٱللَّهُ بِمَا تَعْمَلُونَ بَصِيرٌ",
+      "tr": "እርሱ ያ ሰማያትንና ምድርን በስድስት ቀናት የፈጠረ ነው:: ከዚያ በዐርሹ ላይ ከፍ አለ። ወደ ምድር የሚገባውንና ከእርሷ የሚወጣውን ያውቃል:: ከሰማይ የሚወርደውንና ወደ እርሷ የሚወጣውን ያውቃል:: እርሱ የትም ብትሆኑ (በእውቀቱ) ከናንተው ጋር ነው:: አላህ የምትሰሩትን ሁሉ ተመልካች ነውና::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/57/4",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:163c681cb4d0",
+      "kind": "text",
+      "ar": "استحضرتُ",
+      "tr": "በልቤ አስታወስኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:281bc3d50863",
+      "kind": "text",
+      "ar": "الحديد: ٤",
+      "tr": "አልሐዲድ፦ ٤",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:958aee9120cc",
+      "kind": "quran",
+      "ar": "وَقُل لَّهُمَا قَوْلًا كَرِيمًا",
+      "tr": "ለእነርሱም መልካምን ቃል ብቻ ተናገራቸው::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/17/23",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:37e30d264f90",
+      "kind": "quran",
+      "ar": "وَقَضَىٰ رَبُّكَ أَلَّا تَعْبُدُوٓا۟ إِلَّآ إِيَّاهُ وَبِٱلْوَٰلِدَيْنِ إِحْسَـٰنًا ۚ إِمَّا يَبْلُغَنَّ عِندَكَ ٱلْكِبَرَ أَحَدُهُمَآ أَوْ كِلَاهُمَا فَلَا تَقُل لَّهُمَآ أُفٍّ وَلَا تَنْهَرْهُمَا وَقُل لَّهُمَا قَوْلًا كَرِيمًا",
+      "tr": "(የሰው ልጅ ሆይ!) ጌታህ እንዲህ ሲል አዘዘ:: እርሱን እንጂ ሌላን አትገዙ፤ ለወላጆቻችሁም መልካምን ሥሩ፤ ባንተ ዘንድ ሆነው ከወላጆችህ አንዳቸው ወይም ሁለታቸው እርጅናን ቢደርሱ «ኡፍ!» እንኳን አትበላቸው:: አትገላምጣቸዉም:: ለእነርሱም መልካምን ቃል ብቻ ተናገራቸው::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/17/23",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:497006ea9a84",
+      "kind": "text",
+      "ar": "فعلتُها",
+      "tr": "አደረግኳት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9e9f8ed257ca",
+      "kind": "text",
+      "ar": "الإسراء: ٢٣",
+      "tr": "አልኢስራእ፦ ٢٣",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:02eb46d6b17f",
+      "kind": "text",
+      "ar": "زيارةٌ تُدخلك بساتين الجنة",
+      "tr": "ወደ ጀነት ጓሮዎች የሚያስገባዎ ጉብኝት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5218f0630325",
+      "kind": "quran",
+      "ar": "كُلُّ نَفْسٍ ذَآئِقَةُ ٱلْمَوْتِ",
+      "tr": "ነፍስ ሁሉ ሞትን በእርግጥ ቀማሽ ናት::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/3/185",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:f71106ec1dfa",
+      "kind": "quran",
+      "ar": "كُلُّ نَفْسٍ ذَآئِقَةُ ٱلْمَوْتِ ۗ وَإِنَّمَا تُوَفَّوْنَ أُجُورَكُمْ يَوْمَ ٱلْقِيَـٰمَةِ ۖ فَمَن زُحْزِحَ عَنِ ٱلنَّارِ وَأُدْخِلَ ٱلْجَنَّةَ فَقَدْ فَازَ ۗ وَمَا ٱلْحَيَوٰةُ ٱلدُّنْيَآ إِلَّا مَتَـٰعُ ٱلْغُرُورِ",
+      "tr": "ነፍስ ሁሉ ሞትን በእርግጥ ቀማሽ ናት:: ምንዳዎቻችሁንም የምትሞሉት በትንሳኤ ቀን ብቻ ነው:: ከእሳት እንዲርቅ ተደርጎ ገነት እንዲገባ የተደረገም በእርግጥ ምኞቱን አገኘ:: የቅርቢቱ ሕይወት የማታለያ ጥቅም እንጂ ሌላ አይደለችም::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/3/185",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:aa3484814ce9",
+      "kind": "text",
+      "ar": "تذكّرتُ",
+      "tr": "አስታወስኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ffbaa68ba877",
+      "kind": "text",
+      "ar": "آل عمران: ١٨٥",
+      "tr": "አሊ ዒምራን፦ ١٨٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:57b6e171fa35",
+      "kind": "text",
+      "ar": "زُر مريضًا أو اتصل به",
+      "tr": "በሽተኛን ይጎብኙ ወይም ይደውሉለት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:aee8ae614a41",
+      "kind": "hadith",
+      "ar": "مَنْ عَادَ مَرِيضًا، لَمْ يَزَلْ فِي خُرْفَةِ الْجَنَّةِ",
+      "tr": "ታማሚን የጎበኘ ሰው በጀነት (ገነት) ፍሬዎች መሰብሰቢያ ውስጥ ይቆያል።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:09abc14df2a9",
+      "kind": "text",
+      "ar": "عُدتُه",
+      "tr": "ጎበኘሁት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ef55122e7311",
+      "kind": "text",
+      "ar": "حسنُ الظنّ بالله",
+      "tr": "በአላህ ላይ መልካም ግምት መያዝ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0dbb48646cae",
+      "kind": "text",
+      "ar": "أحسن ظنّك بالله فيما تنتظره",
+      "tr": "በሚጠብቁት ነገር ላይ በአላህ መልካም ግምት ይያዙ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f982a268d23c",
+      "kind": "hadith",
+      "ar": "أَنَا عِنْدَ ظَنِّ عَبْدِي بِي",
+      "tr": "እኔ ባሪያዬ ስለ እኔ ባለው ግምት መሠረት እሆንለታለሁ።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:50430be2cb6f",
+      "kind": "text",
+      "ar": "أحسنتُ ظنّي",
+      "tr": "መልካም ግምት ያዝኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:aa0f15bf7171",
+      "kind": "text",
+      "ar": "أعِن أحدًا في حاجةٍ صغيرة: حملٌ، أو بابٌ، أو كلمةُ إرشاد",
+      "tr": "በትንሽ ጉዳይ አንድን ሰው ይርዱ፦ እቃ በመሸከም፣ በር በመክፈት ወይም በመንገር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:484b458a6621",
+      "kind": "hadith",
+      "ar": "وَاللهُ فِي عَوْنِ الْعَبْدِ مَا كَانَ الْعَبْدُ فِي عَوْنِ أَخِيهِ",
+      "tr": "ባሪያው ወንድሙን በመርዳት ላይ እስካለ ድረስ አላህ ባሪያውን በመርዳት ላይ ነው።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:78f9d8ff902c",
+      "kind": "text",
+      "ar": "أعنتُ",
+      "tr": "ረዳሁ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d709ae66b312",
+      "kind": "text",
+      "ar": "نعمةٌ لا توازيها نعمة",
+      "tr": "የሚመጣጠነው ሌላ ጸጋ የሌለው ጸጋ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6de7e3f2b5f5",
+      "kind": "quran",
+      "ar": "وَرَضِيتُ لَكُمُ ٱلْإِسْلَـٰمَ دِينًا",
+      "tr": "ለእናንተም በሃይማኖትነት ኢስላምን ወደድኩላችሁ::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/5/3",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:86c37ab91253",
+      "kind": "quran",
+      "ar": "حُرِّمَتْ عَلَيْكُمُ ٱلْمَيْتَةُ وَٱلدَّمُ وَلَحْمُ ٱلْخِنزِيرِ وَمَآ أُهِلَّ لِغَيْرِ ٱللَّهِ بِهِۦ وَٱلْمُنْخَنِقَةُ وَٱلْمَوْقُوذَةُ وَٱلْمُتَرَدِّيَةُ وَٱلنَّطِيحَةُ وَمَآ أَكَلَ ٱلسَّبُعُ إِلَّا مَا ذَكَّيْتُمْ وَمَا ذُبِحَ عَلَى ٱلنُّصُبِ وَأَن تَسْتَقْسِمُوا۟ بِٱلْأَزْلَـٰمِ ۚ ذَٰلِكُمْ فِسْقٌ ۗ ٱلْيَوْمَ يَئِسَ ٱلَّذِينَ كَفَرُوا۟ مِن دِينِكُمْ فَلَا تَخْشَوْهُمْ وَٱخْشَوْنِ ۚ ٱلْيَوْمَ أَكْمَلْتُ لَكُمْ دِينَكُمْ وَأَتْمَمْتُ عَلَيْكُمْ نِعْمَتِى وَرَضِيتُ لَكُمُ ٱلْإِسْلَـٰمَ دِينًا ۚ فَمَنِ ٱضْطُرَّ فِى مَخْمَصَةٍ غَيْرَ مُتَجَانِفٍ لِّإِثْمٍ ۙ فَإِنَّ ٱللَّهَ غَفُورٌ رَّحِيمٌ",
+      "tr": "(ሰዎች ሆይ!) በክት፤  ደም፤ የአሳማ ስጋ፤ ሲታረድ ከአላህ ስም ሌላ የተወሳበት እንሰሳ፤ ታንቃ የሞተች፤ ተደብድባ የተገደለች፤ ተንከባላ የሞተች፤ በቀንድ ተወግታ የሞተችና አውሬ የበላት ከእነዚህ በሕይወት ላይ እያሉ ደርሳችሁ ያረዳችሁት ብቻ ሲቀር ለጣዖታት የታረደና በአዝላም እድልን መፈለጋችሁ በእናንተ ላይ እርም ተደረገ:: እነዚህ ከላይ የተዘረዘሩትን መፈጸም አላህን ማመጽ ነው:: ዛሬ እነዚያ በአላህ የካዱት ከሀይማኖታችሁ ተስፋ ቆረጡ:: ስለዚህ አትፍሩዋቸው:: ይልቁን እኔን ብቻ ፍሩኝ:: ዛሬ ሃይማኖታችሁን ሞላሁላችሁ:: ጸጋየንም በእናንተ ላይ ፈጸምኩ:: ለእናንተም በሃይማኖትነት ኢስላምን ወደድኩላችሁ:: በርሀብ ወቅት ወደ ኃጢአት ያዘነበለ ሳይሆን እርም የሆኑትን ነገሮች ለመብላት የተገደደ ሰው ሁሉ ለሕይወቱ ማቆያ ያህል ቢበላ ምንም ችግር የለበትም:: አላህ መሀሪና አዛኝ ነውና።",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/5/3",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:dc86c476328e",
+      "kind": "text",
+      "ar": "المائدة: ٣",
+      "tr": "አልማኢዳ፦ ٣",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ff3171fadf31",
+      "kind": "text",
+      "ar": "اعفُ اليوم عن أحدٍ أساء إليك",
+      "tr": "ዛሬ ለበደለዎ ሰው ይቅር ይበሉ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:02231d7aed77",
+      "kind": "hadith",
+      "ar": "وَمَا زَادَ اللهُ عَبْدًا بِعَفْوٍ، إِلَّا عِزًّا",
+      "tr": "አላህ ለባሪያው ይቅር በማለቱ ክብርን እንጂ ሌላን አይጨምርለትም።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7f77a5bbf5f7",
+      "kind": "text",
+      "ar": "عفوتُ",
+      "tr": "ይቅር አልኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a1734a751379",
+      "kind": "text",
+      "ar": "حوارٌ بينك وبين ربّك في الفاتحة",
+      "tr": "በአልፋቲሐ ውስጥ በእርስዎና በጌታዎ መካከል ያለ ንግግር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d692abd5b90c",
+      "kind": "text",
+      "ar": "في صلاتك اليوم، تدبّر الفاتحة آيةً آية",
+      "tr": "ዛሬ በሶላትዎ ውስጥ አልፋቲሐን አንቀጽ በአንቀጽ ያስተውሉ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5fee4c48e032",
+      "kind": "hadith",
+      "ar": "قَسَمْتُ الصَّلَاةَ بَيْنِي وَبَيْنَ عَبْدِي نِصْفَيْنِ",
+      "tr": "ሶላትን (የአምልኮ ጸሎትን) በእኔና በባሪያዬ መካከል ሁለት እኩል ክፍል ከፈልኩ።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:02f573b7d7e0",
+      "kind": "text",
+      "ar": "تدبّرتُ",
+      "tr": "አስተዋልኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:371e8baaa08d",
+      "kind": "text",
+      "ar": "اقرأ صفحةً واحدةً من القرآن بتأنٍّ",
+      "tr": "ከቁርአን አንድ ገጽ ብቻ በእርጋታ ያንብቡ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:564401ee3639",
+      "kind": "hadith",
+      "ar": "مَنْ قَرَأَ حَرْفًا مِنْ كِتَابِ اللهِ فَلَهُ بِهِ حَسَنَةٌ، وَالحَسَنَةُ بِعَشْرِ أَمْثَالِهَا",
+      "tr": "ከአላህ መጽሐፍ አንድ ፊደል ያነበበ ለእርሱ አንድ ሐሰና (መልካም ምንዳ) አለው፤ አንዱ ሐሰናም በአሥር እጥፍ ነው።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:eddb7fb92cdd",
+      "kind": "text",
+      "ar": "قرأتُ",
+      "tr": "አነበብኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:572a32ac3a9f",
+      "kind": "text",
+      "ar": "من أين جاء رزقك؟",
+      "tr": "ሲሳይዎ ከየት መጣ?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:13168ae1cf1d",
+      "kind": "quran",
+      "ar": "وَمَا بِكُم مِّن نِّعْمَةٍ فَمِنَ ٱللَّهِ",
+      "tr": "ማንኛዉም በናንተ ላይ ያለው ጸጋ ከአላህ ብቻ ነው።",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/16/53",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:d5db725b1a65",
+      "kind": "quran",
+      "ar": "وَمَا بِكُم مِّن نِّعْمَةٍ فَمِنَ ٱللَّهِ ۖ ثُمَّ إِذَا مَسَّكُمُ ٱلضُّرُّ فَإِلَيْهِ تَجْـَٔرُونَ",
+      "tr": "ማንኛዉም በናንተ ላይ ያለው ጸጋ ከአላህ ብቻ ነው። ከዚያም ችግር በደረሰባችሁ ጊዜ ወደ እርሱ ብቻ ትጮሀላችሁ።",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/16/53",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:cdad75d8d0d2",
+      "kind": "text",
+      "ar": "تأمّلتُ",
+      "tr": "አስተዋልኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bc58638e5295",
+      "kind": "text",
+      "ar": "النحل: ٥٣",
+      "tr": "አንነሕል፦ ٥٣",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4f74626399c3",
+      "kind": "text",
+      "ar": "أطعم أحدًا: جارًا، أو عاملًا، أو محتاجًا",
+      "tr": "አንድን ሰው ያብሉ፦ ጎረቤት፣ ሠራተኛ ወይም ችግረኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:df3539720eaf",
+      "kind": "hadith",
+      "ar": "تُطْعِمُ الطَّعَامَ، وَتَقْرَأُ السَّلاَمَ عَلَى مَنْ عَرَفْتَ وَمَنْ لَمْ تَعْرِفْ",
+      "tr": "ምግብ ታበላለህ፣ ለምታውቀውም ለማታውቀውም ሰላምታ ትሰጣለህ።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:923a101738fe",
+      "kind": "text",
+      "ar": "أطعمتُ",
+      "tr": "አበላሁ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:08d1fdd3fda9",
+      "kind": "text",
+      "ar": "نظّف قلبك من شيءٍ واحد",
+      "tr": "ልብዎን ከአንድ ነገር ያጽዱ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b0635da76858",
+      "kind": "text",
+      "ar": "فتّش قلبك من الحسد، واسأل الله أن ينزعه",
+      "tr": "ልብዎ ቅናት እንዳለበት ይመርምሩ፤ አላህም እንዲያስወግደው ይለምኑ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:840ed35e7906",
+      "kind": "hadith",
+      "ar": "لَا تَحَاسَدُوا، وَلَا تَنَاجَشُوا، وَلَا تَبَاغَضُوا، وَلَا تَدَابَرُوا، وَلَا يَبِعْ بَعْضُكُمْ عَلَى بَيْعِ بَعْضٍ، وَكُونُوا عِبَادَ اللهِ إِخْوَانًا",
+      "tr": "አትቀናኑ፣ ለመግዛት ሳታስቡ ዋጋን ለማስጨመር አትጫረቱ፣ አትጠላሉ፣ ጀርባ አትሰጣጡ፣ አንዳችሁ በሌላው ሽያጭ ላይ አትሽጡ። የአላህ ባሪያዎች ሆይ፣ ወንድማማቾች ሁኑ።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:14f47068e221",
+      "kind": "text",
+      "ar": "فتّشتُ",
+      "tr": "መረመርኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8d2a3b29580a",
+      "kind": "text",
+      "ar": "قل كلمةً طيبةً لأحدٍ اليوم",
+      "tr": "ዛሬ ለአንድ ሰው መልካም ቃል ይናገሩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d6b92a23bd7f",
+      "kind": "hadith",
+      "ar": "وَالكَلِمَةُ الطَّيِّبَةُ صَدَقَةٌ",
+      "tr": "መልካም ቃልም ሰደቃ (ምጽዋት) ነው።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b1adff1eaa94",
+      "kind": "text",
+      "ar": "حياتك كلّها عبادة",
+      "tr": "ሕይወትዎ ሁሉ ኢባዳ (አምልኮ) ነው",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b5a58064f03c",
+      "kind": "quran",
+      "ar": "قُلْ إِنَّ صَلَاتِى وَنُسُكِى وَمَحْيَاىَ وَمَمَاتِى لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ",
+      "tr": "(መልዕክተኛችን ሙሐመድ ሆይ!) በላቸው: «ስግደቴ፤ መገዛቴ  (መስዋዕቴ)፣ ሕይወቴ፤ ሞቴ የሚገባው ለዓለማት ጌታ ለሆነው ለአላህ ብቻ ነው።»",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/6/162",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:8871f9daaf61",
+      "kind": "text",
+      "ar": "الأنعام: ١٦٢",
+      "tr": "አልአንዓም፦ ١٦٢",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6127d6256dbb",
+      "kind": "text",
+      "ar": "صلِّ راتبةً كنتَ تفوّتها",
+      "tr": "ሳይሰግዱ የሚያልፉትን ራቲባ (ከግዴታ ሶላት ጋር የሚሰገድ ሱንና) ይስገዱ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5735e5bb00d3",
+      "kind": "hadith",
+      "ar": "مَنْ صَلَّى اثْنَتَيْ عَشْرَةَ رَكْعَةً فِي يَوْمٍ وَلَيْلَةٍ، بُنِيَ لَهُ بِهِنَّ بَيْتٌ فِي الْجَنَّةِ",
+      "tr": "በአንድ ቀንና ሌሊት አሥራ ሁለት ረከዓዎችን (የሶላት ክፍሎችን) የሰገደ፣ በእነርሱ ምክንያት በጀነት (ገነት) ቤት ይገነባለታል።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e166bf870e61",
+      "kind": "text",
+      "ar": "صلّيتُها",
+      "tr": "ሰገድኳት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f82a52bb6504",
+      "kind": "text",
+      "ar": "لا تكن من الغافلين",
+      "tr": "ከዝንጉዎች አትሁኑ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9c2f74da3418",
+      "kind": "quran",
+      "ar": "وَلَا تَكُن مِّنَ ٱلْغَـٰفِلِينَ",
+      "tr": "ከዘንጊዎቹም አትሁን::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/7/205",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:f2ebed900462",
+      "kind": "quran",
+      "ar": "وَٱذْكُر رَّبَّكَ فِى نَفْسِكَ تَضَرُّعًا وَخِيفَةً وَدُونَ ٱلْجَهْرِ مِنَ ٱلْقَوْلِ بِٱلْغُدُوِّ وَٱلْـَٔاصَالِ وَلَا تَكُن مِّنَ ٱلْغَـٰفِلِينَ",
+      "tr": "(መልዕክተኛችን ሙሐመድ ሆይ!) ጌታህን በሚስጥር ተናንሰህና ፈርተህ ከጩኸት በታች በሆነ ድምጽ በጥዋትና በማታ አውሳው:: ከዘንጊዎቹም አትሁን::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/7/205",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:dc409460041d",
+      "kind": "text",
+      "ar": "ذكرتُ الله",
+      "tr": "አላህን አወሳሁ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4daac594b84d",
+      "kind": "text",
+      "ar": "الأعراف: ٢٠٥",
+      "tr": "አልአዕራፍ፦ ٢٠٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a4bb28500a0c",
+      "kind": "text",
+      "ar": "اسقِ نبتةً أو أطعم طيرًا",
+      "tr": "አንድ ተክል ውሃ ያጠጡ ወይም ወፍ ያብሉ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:97d454361971",
+      "kind": "hadith",
+      "ar": "مَا مِنْ مُسْلِمٍ يَغْرِسُ غَرْسًا إِلَّا كَانَ مَا أُكِلَ مِنْهُ لَهُ صَدَقَةً",
+      "tr": "ሙስሊም አንድ ተክል ተክሎ፣ ከእርሱ የሚበላው ሁሉ ለእርሱ ሰደቃ (ምጽዋት) ይሆናል።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a790a0c1466c",
+      "kind": "text",
+      "ar": "أنت غريبٌ هنا",
+      "tr": "እዚህ እንግዳ ነዎት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b9ce6b7418f9",
+      "kind": "text",
+      "ar": "تذكّر أنّك في الدنيا عابرُ سبيل",
+      "tr": "በዱንያ (በዚህ ዓለም) መንገደኛ መሆንዎን ያስታውሱ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9b4ae925a015",
+      "kind": "hadith",
+      "ar": "كُنْ فِي الدُّنْيَا كَأَنَّكَ غَرِيبٌ أَوْ عَابِرُ سَبِيلٍ",
+      "tr": "በዚህ ዓለም ውስጥ እንደ እንግዳ ወይም እንደ መንገደኛ ሁን።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7851a85c4ab3",
+      "kind": "text",
+      "ar": "أعِن أهل بيتك في عملٍ من أعمال البيت",
+      "tr": "ቤተሰብዎን በአንድ የቤት ሥራ ይርዱ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f83d93310b8a",
+      "kind": "hadith",
+      "ar": "كَانَ يَكُونُ فِي مِهْنَةِ أَهْلِهِ",
+      "tr": "ቤተሰባቸውን በሥራ ያግዙ ነበር።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:91c2861b83f4",
+      "kind": "text",
+      "ar": "أعنتُهم",
+      "tr": "ረዳኋቸው",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dc2bcb58708e",
+      "kind": "text",
+      "ar": "الصلاة في وقتها",
+      "tr": "ሶላትን በሰዓቱ መስገድ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3f68d3829e53",
+      "kind": "quran",
+      "ar": "وَأَقِمِ ٱلصَّلَوٰةَ لِذِكْرِىٓ",
+      "tr": "ሶላትንም እኔን ለማውሳት በአግባቡ ስገድ።",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/20/14",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:147b4de7980d",
+      "kind": "quran",
+      "ar": "إِنَّنِىٓ أَنَا ٱللَّهُ لَآ إِلَـٰهَ إِلَّآ أَنَا۠ فَٱعْبُدْنِى وَأَقِمِ ٱلصَّلَوٰةَ لِذِكْرِىٓ",
+      "tr": "«እኔ አላህ ነኝ። ያለ እኔ ትክክለኛ አምላክ የለምና እኔን ብቻ ተገዛኝ:: ሶላትንም እኔን ለማውሳት በአግባቡ ስገድ።",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/20/14",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:d5aafc7b6ab8",
+      "kind": "text",
+      "ar": "طه: ١٤",
+      "tr": "ጣሃ፦ ١٤",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:60350f82d6af",
+      "kind": "text",
+      "ar": "صلِّ صلاةً واحدةً اليوم في أوّل وقتها",
+      "tr": "ዛሬ አንድ ሶላት በሰዓቱ መጀመሪያ ይስገዱ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f21a9d2c6ac5",
+      "kind": "hadith",
+      "ar": "الصَّلاَةُ عَلَى وَقْتِهَا",
+      "tr": "ሶላትን (የአምልኮ ጸሎትን) በጊዜዋ መስገድ።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0095610f7183",
+      "kind": "text",
+      "ar": "صمتٌ يُثقل ميزانك",
+      "tr": "የምንዳዎን ሚዛን የሚያከብድ ዝምታ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:931ba661039c",
+      "kind": "text",
+      "ar": "احفظ لسانك اليوم من الغيبة، واستعذ بالله منها",
+      "tr": "ዛሬ ምላስዎን ከጊባ (ሰውን በሌለበት ከማማት) ይጠብቁ፤ ከእርሷም በአላህ ይጠበቁ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:38d1c96ffca9",
+      "kind": "hadith",
+      "ar": "مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَاليَوْمِ الآخِرِ فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ",
+      "tr": "በአላህና በመጨረሻው ቀን የሚያምን፣ መልካም ይናገር ወይም ዝም ይበል።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a40acbe9bd30",
+      "kind": "text",
+      "ar": "حفظتُه",
+      "tr": "ጠበቅሁት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6fbc7ff52a2a",
+      "kind": "text",
+      "ar": "استر عيبًا رأيته في أخيك",
+      "tr": "በወንድምዎ ላይ ያዩትን ጉድለት ይሸፍኑ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ffc85f2fe070",
+      "kind": "hadith",
+      "ar": "وَمَنْ سَتَرَ مُسْلِمًا، سَتَرَهُ اللهُ فِي الدُّنْيَا وَالْآخِرَةِ",
+      "tr": "የሙስሊምን ጉድለት የሸፈነ፣ አላህ በዚህ ዓለምና በመጨረሻው ዓለም ይሸፍነዋል።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fc201fd979c6",
+      "kind": "text",
+      "ar": "سترتُ",
+      "tr": "ሸፈንኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fae3796c0a69",
+      "kind": "text",
+      "ar": "أجرٌ بغير حساب",
+      "tr": "ያለ ገደብ የሚሰጥ ምንዳ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:937dfe0d45cb",
+      "kind": "quran",
+      "ar": "إِنَّمَا يُوَفَّى ٱلصَّـٰبِرُونَ أَجْرَهُم بِغَيْرِ حِسَابٍ",
+      "tr": "ታጋሾቹ ምንዳቸውን የሚሰጡት ያለግምት ነው",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/39/10",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:0eb0f02d51da",
+      "kind": "quran",
+      "ar": "قُلْ يَـٰعِبَادِ ٱلَّذِينَ ءَامَنُوا۟ ٱتَّقُوا۟ رَبَّكُمْ ۚ لِلَّذِينَ أَحْسَنُوا۟ فِى هَـٰذِهِ ٱلدُّنْيَا حَسَنَةٌ ۗ وَأَرْضُ ٱللَّهِ وَٰسِعَةٌ ۗ إِنَّمَا يُوَفَّى ٱلصَّـٰبِرُونَ أَجْرَهُم بِغَيْرِ حِسَابٍ",
+      "tr": "(መልዕክተኛችን ሙሐመድ ሆይ!) (ጌታችሁ) «እናንተ ያመናችሁ ባሮቼ ሆይ! ጌታችሁን ፍሩ፡፡ ለነዚያ በዚህች በቅርቢቱ ዓለም መልካም ለሠሩት መልካም ምንዳ አላቸው፡፡ የአላህ ምድርም ሰፊ ናት፤ (ብትቸገሩ ተሰደዱ)፡፡ ታጋሾቹ ምንዳቸውን የሚሰጡት ያለግምት ነው» (ይላል) በላቸው፡፡",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/39/10",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:ec96a3d2f6f0",
+      "kind": "text",
+      "ar": "صبرتُ",
+      "tr": "ታገሥኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b0ed72c990f1",
+      "kind": "text",
+      "ar": "الزمر: ١٠",
+      "tr": "አዝዙመር፦ ١٠",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5ccf17674069",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ يَأْمُرُكُمْ أَن تُؤَدُّوا۟ ٱلْأَمَـٰنَـٰتِ إِلَىٰٓ أَهْلِهَا",
+      "tr": "አላህ አደራዎችን ወደ ባለቤቶቻቸው እንድታደርሱ … ያዛችኋል::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; segmented published excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/4/58",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:5eac40643355",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ يَأْمُرُكُمْ أَن تُؤَدُّوا۟ ٱلْأَمَـٰنَـٰتِ إِلَىٰٓ أَهْلِهَا وَإِذَا حَكَمْتُم بَيْنَ ٱلنَّاسِ أَن تَحْكُمُوا۟ بِٱلْعَدْلِ ۚ إِنَّ ٱللَّهَ نِعِمَّا يَعِظُكُم بِهِۦٓ ۗ إِنَّ ٱللَّهَ كَانَ سَمِيعًۢا بَصِيرًا",
+      "tr": "አላህ አደራዎችን ወደ ባለቤቶቻቸው እንድታደርሱና በሰዎች መካከል በፈረዳችሁ ጊዜም በትክክል እንድትፈርዱ ያዛችኋል:: አላህ በእርሱ የሚገስፃችሁ ነገር ምን ያምር ነው! አላህ ሁሉን ሰሚ እና ሁሉን ተመልካች ነውና።",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/4/58",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:d59cdaf1e150",
+      "kind": "text",
+      "ar": "أدّيتُها",
+      "tr": "ፈጸምኳት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1c79ac934a59",
+      "kind": "text",
+      "ar": "النساء: ٥٨",
+      "tr": "አንኒሳእ፦ ٥٨",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4f6d4e2e0c9a",
+      "kind": "text",
+      "ar": "لمن تعمل؟",
+      "tr": "ለማን ይሠራሉ?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d58f51f63855",
+      "kind": "quran",
+      "ar": "وَمَآ أُمِرُوٓا۟ إِلَّا لِيَعْبُدُوا۟ ٱللَّهَ مُخْلِصِينَ لَهُ ٱلدِّينَ",
+      "tr": "ሃይማኖትን ለአላህ ብቻ አጥሪዎች … ሆነው አላህን ሊገዙት … እንጂ ያልታዘዙ ሲሆን",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; segmented published excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/98/5",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:41d434fcdabb",
+      "kind": "quran",
+      "ar": "وَمَآ أُمِرُوٓا۟ إِلَّا لِيَعْبُدُوا۟ ٱللَّهَ مُخْلِصِينَ لَهُ ٱلدِّينَ حُنَفَآءَ وَيُقِيمُوا۟ ٱلصَّلَوٰةَ وَيُؤْتُوا۟ ٱلزَّكَوٰةَ ۚ وَذَٰلِكَ دِينُ ٱلْقَيِّمَةِ",
+      "tr": "ሃይማኖትን ለአላህ ብቻ አጥሪዎችና ቀጥተኞች ሆነው አላህን ሊገዙት፤ ሶላትንም አስተካክለው ሊሰግዱ፤ ዘካንም በትክክል ሊሰጡ እንጂ ያልታዘዙ ሲሆን (ተለያዩ::) የቀጥተኛይቱ ሃይማኖት ድንጋጌም ይሀው ነው።",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/98/5",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:f82b9d1cf2f0",
+      "kind": "text",
+      "ar": "سألتُ نفسي",
+      "tr": "ራሴን ጠየቅሁ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:de87242e7d87",
+      "kind": "text",
+      "ar": "البينة: ٥",
+      "tr": "አልበዪና፦ ٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4118fe8ac21f",
+      "kind": "text",
+      "ar": "سلّم على جارك أو اسأل عنه",
+      "tr": "ለጎረቤትዎ ሰላምታ ያቅርቡ ወይም ስለ እርሱ ይጠይቁ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0e995656aaeb",
+      "kind": "hadith",
+      "ar": "مَا زَالَ جِبْرِيلُ يُوصِينِي بِالْجَارِ",
+      "tr": "ጂብሪል ስለ ጎረቤት ደጋግሞ ይመክረኝ ነበር።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:305bac48ffb1",
+      "kind": "text",
+      "ar": "سألتُ عنه",
+      "tr": "ስለ እርሱ ጠየቅሁ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0859efd8b045",
+      "kind": "text",
+      "ar": "سمعك وبصرك",
+      "tr": "መስማትዎና ማየትዎ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:906d54cf0109",
+      "kind": "quran",
+      "ar": "وَجَعَلَ لَكُمُ ٱلسَّمْعَ وَٱلْأَبْصَـٰرَ وَٱلْأَفْـِٔدَةَ ۙ لَعَلَّكُمْ تَشْكُرُونَ",
+      "tr": "ታመሰግኑ ዘንድም ለእናንተ መስሚያንና ማያዎችን ልቦችንም አደረገላችሁ (ፈጠረላችሁ)::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/16/78",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:99b6bca5bce5",
+      "kind": "quran",
+      "ar": "وَٱللَّهُ أَخْرَجَكُم مِّنۢ بُطُونِ أُمَّهَـٰتِكُمْ لَا تَعْلَمُونَ شَيْـًٔا وَجَعَلَ لَكُمُ ٱلسَّمْعَ وَٱلْأَبْصَـٰرَ وَٱلْأَفْـِٔدَةَ ۙ لَعَلَّكُمْ تَشْكُرُونَ",
+      "tr": "አላህ ከእናቶቻችሁ ሆዶች ምንም የማታውቁ ሆናችሁ አወጣችሁ:: ታመሰግኑ ዘንድም ለእናንተ መስሚያንና ማያዎችን ልቦችንም አደረገላችሁ (ፈጠረላችሁ)::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/16/78",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:44e933cefdf9",
+      "kind": "text",
+      "ar": "النحل: ٧٨",
+      "tr": "አንነሕል፦ ٧٨",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2c384f90b165",
+      "kind": "text",
+      "ar": "علّم أحدًا شيئًا من الخير ولو ذكرًا واحدًا",
+      "tr": "አንድ ዚክር (የአላህ ውዳሴ) ብቻም ቢሆን ለአንድ ሰው መልካም ነገር ያስተምሩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:853006fbccd1",
+      "kind": "hadith",
+      "ar": "مَنْ دَلَّ عَلَى خَيْرٍ فَلَهُ مِثْلُ أَجْرِ فَاعِلِهِ",
+      "tr": "ወደ መልካም ነገር የጠቆመ፣ እንደ ሠሪው ምንዳ ይኖረዋል።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:18e03958fff6",
+      "kind": "text",
+      "ar": "علّمتُ",
+      "tr": "አስተማርኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2723b3c295aa",
+      "kind": "text",
+      "ar": "مع العسر يسر",
+      "tr": "ከችግር ጋር ምቾት አለ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:22293f9ada98",
+      "kind": "quran",
+      "ar": "فَإِنَّ مَعَ ٱلْعُسْرِ يُسْرًا",
+      "tr": "እናም ከችግር ጋር በእርግጥ ምቾት አለ::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/94/5",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:c42b46a72504",
+      "kind": "text",
+      "ar": "وثقتُ",
+      "tr": "ተማመንኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cf29f64e343c",
+      "kind": "text",
+      "ar": "الشرح: ٥",
+      "tr": "አሽሸርሕ፦ ٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6fbfa307fe9f",
+      "kind": "text",
+      "ar": "أحسن إلى يتيمٍ بكلمةٍ أو عطيّة",
+      "tr": "ለአንድ ወላጅ አልባ ልጅ በቃል ወይም በስጦታ መልካም ያድርጉ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2d9d70ce7def",
+      "kind": "hadith",
+      "ar": "أَنَا وَكَافِلُ اليَتِيمِ فِي الجَنَّةِ كَهَاتَيْنِ",
+      "tr": "እኔና የየቲም (ወላጅ አልባ ልጅ) አሳዳጊ በጀነት (ገነት) እንደ እነዚህ ሁለት እንሆናለን።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f0c82128c98b",
+      "kind": "text",
+      "ar": "أحسنتُ",
+      "tr": "መልካም አደረግሁ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f8a9fddb0de8",
+      "kind": "text",
+      "ar": "الله يحبّ التوّابين",
+      "tr": "አላህ በንስሐ የሚመለሱትን ይወዳል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a283da1f5ea4",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ يُحِبُّ ٱلتَّوَّٰبِينَ وَيُحِبُّ ٱلْمُتَطَهِّرِينَ",
+      "tr": "አላህ ከኃጢአት ተመላሾችንና ንጽህናን የሚጠብቁትን ይወዳልና።",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/2/222",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:990592e5e39b",
+      "kind": "quran",
+      "ar": "وَيَسْـَٔلُونَكَ عَنِ ٱلْمَحِيضِ ۖ قُلْ هُوَ أَذًى فَٱعْتَزِلُوا۟ ٱلنِّسَآءَ فِى ٱلْمَحِيضِ ۖ وَلَا تَقْرَبُوهُنَّ حَتَّىٰ يَطْهُرْنَ ۖ فَإِذَا تَطَهَّرْنَ فَأْتُوهُنَّ مِنْ حَيْثُ أَمَرَكُمُ ٱللَّهُ ۚ إِنَّ ٱللَّهَ يُحِبُّ ٱلتَّوَّٰبِينَ وَيُحِبُّ ٱلْمُتَطَهِّرِينَ",
+      "tr": "(መልዕክተኛችን ሙሐመድ ሆይ!) ስለ ሴቶች የወር አበባ ይጠይቁሃል:: «እርሱ ጎጂ (አጸያፊ) ነው። እናም ሚስቶቻችሁን በወር አበባቸው ጊዜ  ራቁዋቸው፤ ደሙ ቆሞ ንጹህ እስከሚሆኑ ድረስ ለግንኙነት በፍጹም አትቅረቧቸው:: ንጹህ በሆኑ ጊዜም አላህ ባዘዛችሁ ቦታ ተገናኟቸው:: አላህ ከኃጢአት ተመላሾችንና ንጽህናን የሚጠብቁትን ይወዳልና።» በላቸው::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/2/222",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:5ae41f66df9c",
+      "kind": "text",
+      "ar": "البقرة: ٢٢٢",
+      "tr": "አልበቀራ፦ ٢٢٢",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:716d81e56142",
+      "kind": "text",
+      "ar": "بعد وضوئك اليوم قل: أشهد أن لا إله إلا الله وأنّ محمدًا عبد الله ورسوله",
+      "tr": "ዛሬ ዉዱእ (ለሶላት ንጽሕና) ካደረጉ በኋላ ይበሉ፦ ከአላህ በቀር ሌላ በእውነት የሚመለክ አለመኖሩንና ሙሐመድም የአላህ ባሪያና መልእክተኛ መሆናቸውን እመሰክራለሁ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:19d4a17e7aab",
+      "kind": "hadith",
+      "ar": "إِلَّا فُتِحَتْ لَهُ أَبْوَابُ الْجَنَّةِ الثَّمَانِيَةُ يَدْخُلُ مِنْ أَيِّهَا شَاءَ",
+      "tr": "ስምንቱ የጀነት (ገነት) በሮች ይከፈቱለታል፣ በፈለገውም በር ይገባል።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ebf9afd37190",
+      "kind": "text",
+      "ar": "لا تمشِ في الأرض مرحًا",
+      "tr": "በምድር ላይ በትዕቢት አትራመዱ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ac2b63f659c0",
+      "kind": "quran",
+      "ar": "وَلَا تَمْشِ فِى ٱلْأَرْضِ مَرَحًا",
+      "tr": "በምድር ላይ የተንበጣረርክ ሆነህም አትሂድ::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/17/37",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:3ce3d55ee475",
+      "kind": "quran",
+      "ar": "وَلَا تَمْشِ فِى ٱلْأَرْضِ مَرَحًا ۖ إِنَّكَ لَن تَخْرِقَ ٱلْأَرْضَ وَلَن تَبْلُغَ ٱلْجِبَالَ طُولًا",
+      "tr": "(የሰው ልጅ ሆይ!) በምድር ላይ የተንበጣረርክ ሆነህም አትሂድ:: አንተ ፈጽሞ ምድርን አትሰረጉድምና:: በርዝመትም ፈጽሞ ጋራዎችን አትደርስምና::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/17/37",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:ca9d51552e93",
+      "kind": "text",
+      "ar": "تواضعتُ",
+      "tr": "ትሑት ሆንኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bd7c2ebc0336",
+      "kind": "text",
+      "ar": "الإسراء: ٣٧",
+      "tr": "አልኢስራእ፦ ٣٧",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bae9700b5112",
+      "kind": "text",
+      "ar": "قبل نومك: اجمع كفّيك، واقرأ فيهما الإخلاص والمعوّذتين، ثم امسح بهما جسدك",
+      "tr": "ከመተኛትዎ በፊት ሁለቱን መዳፎችዎን ያጣምሩ፣ አልኢኽላስንና ሁለቱን መዑወዘተይን (አልፈለቅንና አንናስን) ያንብቡባቸው፣ ከዚያም ሰውነትዎን በእነርሱ ያብሱ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f5dfd0d2fded",
+      "kind": "hadith",
+      "ar": "كَانَ إِذَا أَوَى إِلَى فِرَاشِهِ كُلَّ لَيْلَةٍ جَمَعَ كَفَّيْهِ، ثُمَّ نَفَثَ فِيهِمَا فَقَرَأَ فِيهِمَا: قُلْ هُوَ اللَّهُ أَحَدٌ وَقُلْ أَعُوذُ بِرَبِّ الفَلَقِ وَقُلْ أَعُوذُ بِرَبِّ النَّاسِ",
+      "tr": "በየሌሊቱ ወደ አልጋቸው ሲገቡ፣ ሁለቱን መዳፎቻቸውን ያገናኙ ነበር። ከዚያም በእነርሱ ውስጥ በትንሽ ምራቅ ያለበት ትንፋሽ ይተነፍሱና ይህን ያነቡባቸው ነበር፦ «قُلْ هُوَ اللَّهُ أَحَدٌ» [(መልዕክተኛችን ሙሐመድ ሆይ! እንዲህ) በል፡ -እርሱ አላህ አንድ ብቻ ነው::]፣ «قُلْ أَعُوذُ بِرَبِّ الفَلَقِ» [(መልዕክተኛችን ሙሐመድ ሆይ! እንዲህ) በል፡ -በተፈልቃቂው ጎህ (በአል-ፈለቅ) ጌታ እጠበቃለሁ፤-] እና «قُلْ أَعُوذُ بِرَبِّ النَّاسِ» [(መልዕክተኛችን ሙሐመድ ሆይ! እንዲህ) በል፡ -በሰዎች ጌታ እጠበቃለሁ፤]።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:943f6461cd46",
+      "kind": "text",
+      "ar": "بين الخوف والرجاء",
+      "tr": "በፍርሃትና በተስፋ መካከል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b2193eb18fea",
+      "kind": "text",
+      "ar": "اجمع في قلبك اليوم خوفًا من الله ورجاءً فيه",
+      "tr": "ዛሬ በልብዎ የአላህን ፍርሃትና በእርሱ ያለ ተስፋን ያጣምሩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c294cb3b4399",
+      "kind": "hadith",
+      "ar": "لَوْ يَعْلَمُ الْمُؤْمِنُ مَا عِنْدَ اللهِ مِنَ الْعُقُوبَةِ، مَا طَمِعَ بِجَنَّتِهِ أَحَدٌ، وَلَوْ يَعْلَمُ الْكَافِرُ مَا عِنْدَ اللهِ مِنَ الرَّحْمَةِ، مَا قَنَطَ مِنْ جَنَّتِهِ أَحَدٌ",
+      "tr": "አማኙ በአላህ ዘንድ ያለውን ቅጣት ቢያውቅ፣ ማንም ጀነቱን (ገነቱን) አይመኝም ነበር። ከሓዲውም በአላህ ዘንድ ያለውን እዝነት ቢያውቅ፣ ማንም ከጀነቱ ተስፋ አይቆርጥም ነበር።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:357ea48035ad",
+      "kind": "text",
+      "ar": "جمعتُهما",
+      "tr": "ሁለቱን አጣመርኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5392f791a548",
+      "kind": "text",
+      "ar": "إن أغضبك أحدٌ اليوم فاكظم غيظك واصمت",
+      "tr": "ዛሬ አንድ ሰው ካስቆጣዎ ቁጣዎን ይዋጡና ዝም ይበሉ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f42cd1ae1f4c",
+      "kind": "hadith",
+      "ar": "لَيْسَ الشَّدِيدُ بِالصُّرَعَةِ، إِنَّمَا الشَّدِيدُ الَّذِي يَمْلِكُ نَفْسَهُ عِنْدَ الغَضَبِ",
+      "tr": "ብርቱ የሚባለው ታግሎ ያሸነፈ ሳይሆን በቁጣ ወቅት እራሱን  የተቆጣጠረ ነው።",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "HadeethEnc.com; hadith 5351; field title; API v1; retrieved 2026-11-01 (no content version supplied)",
+        "url": "https://hadeethenc.com/api/v1/hadeeths/one/?language=am&id=5351",
+        "rights": "Contents of the translations can be downloaded and republished under the following terms: 1. No modification, addition, or deletion of the content. 2. Clearly refer to the publisher and source (HadeethEnc.com). 3. Mention the version number when republishing the translation. 4. Keep the translation version information inside the document. 5. Notify the source (HadeethEnc.com) of any note on the translation. 6. Update translations according to the latest version issued by the source. 7. Do not include inappropriate advertisements when displaying the content.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:e1862935bbe4",
+      "kind": "text",
+      "ar": "كظمتُ",
+      "tr": "ቁጣዬን ዋጥኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f1aa88fbb06f",
+      "kind": "text",
+      "ar": "لئن شكرتم",
+      "tr": "ብታመሰግኑ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4ffb0abcc4fa",
+      "kind": "quran",
+      "ar": "لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ",
+      "tr": "ብታመሰግኑ በእርግጥ እጨምርላችኋለሁ::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/14/7",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:0c624c273d25",
+      "kind": "quran",
+      "ar": "وَإِذْ تَأَذَّنَ رَبُّكُمْ لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ ۖ وَلَئِن كَفَرْتُمْ إِنَّ عَذَابِى لَشَدِيدٌ",
+      "tr": "ጌታችሁም፦ «ብታመሰግኑ በእርግጥ እጨምርላችኋለሁ:: ብትክዱም (እቀጣችኋለሁ):: ቅጣቴ በእርግጥ ብርቱ ነው።» በማለት ባስታወቀ ጊዜ (የሆነዉን አስታውሱ)::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/14/7",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:407287bf045a",
+      "kind": "text",
+      "ar": "شكرتُ",
+      "tr": "አመሰገንኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:63a2898ebc6b",
+      "kind": "text",
+      "ar": "إبراهيم: ٧",
+      "tr": "ኢብራሂም፦ ٧",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1e742612f46f",
+      "kind": "text",
+      "ar": "انوِ الأجر في نفقتك اليوم على أهل بيتك",
+      "tr": "ዛሬ ለቤተሰብዎ በሚያወጡት ወጪ ምንዳን ያስቡ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:890dec358736",
+      "kind": "hadith",
+      "ar": "إِنَّكَ لَنْ تُنْفِقَ نَفَقَةً تَبْتَغِي بِهَا وَجْهَ اللَّهِ إِلَّا أُجِرْتَ عَلَيْهَا، حَتَّى مَا تَجْعَلُ فِي فَمِ امْرَأَتِكَ",
+      "tr": "የአላህን ፊት ፈልገህ የምታወጣው ማንኛውም ወጪ፣ በእርሱ ምንዳ ታገኝበታለህ፤ በሚስትህ አፍ የምታስቀምጠው ምግብ እንኳ ሳይቀር።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6a6dbafde06f",
+      "kind": "text",
+      "ar": "نويتُ",
+      "tr": "አሰብኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8988c9435811",
+      "kind": "text",
+      "ar": "ادعُني أستجب لكم",
+      "tr": "ለምኑኝ፣ እቀበላችኋለሁ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dfe464e54c5e",
+      "kind": "quran",
+      "ar": "ٱدْعُونِىٓ أَسْتَجِبْ لَكُمْ",
+      "tr": "ለምኑኝ እቀበላችኋለሁና።",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/40/60",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:fc06715b7c78",
+      "kind": "quran",
+      "ar": "وَقَالَ رَبُّكُمُ ٱدْعُونِىٓ أَسْتَجِبْ لَكُمْ ۚ إِنَّ ٱلَّذِينَ يَسْتَكْبِرُونَ عَنْ عِبَادَتِى سَيَدْخُلُونَ جَهَنَّمَ دَاخِرِينَ",
+      "tr": "(ሰዎች ሆይ!) ጌታችሁም አለ። «ለምኑኝ እቀበላችኋለሁና። እነዚያ እኔን ከመገዛት የሚኮሩት ተዋራጆች ሆነው ገሀነም በእርግጥ ይገባሉ።»",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/40/60",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:f16f3d231836",
+      "kind": "text",
+      "ar": "دعوتُ",
+      "tr": "ዱዓ (ልመና) አደረግሁ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bfe1f89557ef",
+      "kind": "text",
+      "ar": "غافر: ٦٠",
+      "tr": "ጋፊር፦ ٦٠",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e929b13ddecf",
+      "kind": "text",
+      "ar": "إن أخطأت اليوم فاتبعها بحسنةٍ فورًا",
+      "tr": "ዛሬ ስህተት ከሠሩ ወዲያውኑ መልካም ሥራ ያስከትሉት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:94704df23c68",
+      "kind": "hadith",
+      "ar": "وَأَتْبِعِ السَّيِّئَةَ الْحَسَنَةَ تَمْحُهَا",
+      "tr": "ክፉ ሥራን በመልካም ሥራ አስከትል፣ ታጠፋዋለች።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9863af7db021",
+      "kind": "text",
+      "ar": "اتبعتُها",
+      "tr": "መልካም ሥራ አስከተልኳት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8886960b09e8",
+      "kind": "text",
+      "ar": "الدارمي",
+      "tr": "አድዳሪሚ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:274cbaa2ddb1",
+      "kind": "text",
+      "ar": "ديمتك أنت",
+      "tr": "የእርስዎ ዲማ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:35ded1b91e2f",
+      "kind": "text",
+      "ar": "راجع شهرك: أيّ قطرةٍ كانت أسهل عليك؟ اجعلها ديمتك الدائمة",
+      "tr": "ወርዎን ይገምግሙ፦ የትኛው ጠብታ ይቀልልዎ ነበር? ዘላቂ ዲማዎ ያድርጉት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d50f2c6b9b41",
+      "kind": "hadith",
+      "ar": "أَحَبَّ الأَعْمَالِ إِلَى اللَّهِ أَدْوَمُهَا وَإِنْ قَلَّ",
+      "tr": "ለአላህ ከሥራዎች ሁሉ የተወደደው ጥቂትም ቢሆን ቀጣይ የሆነው ነው።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2a84d3773586",
+      "kind": "text",
+      "ar": "اخترتُها",
+      "tr": "መረጥኳት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:105d904ae4d4",
+      "kind": "text",
+      "ar": "اختر من الثلاثين عملًا واحدًا تلزمه كلّ يوم",
+      "tr": "ከሠላሳዎቹ ሥራዎች በየቀኑ የሚቀጥሉበትን አንድ ይምረጡ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2edb6fca1b63",
+      "kind": "hadith",
+      "ar": "خُذُوا مِنَ العَمَلِ مَا تُطِيقُونَ، فَإِنَّ اللَّهَ لاَ يَمَلُّ حَتَّى تَمَلُّوا",
+      "tr": "ከሥራዎች የምትችሉትን ያህል ያዙ። እናንተ እስክትሰለቹ ድረስ አላህ አይሰለችምና።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c484e1930a16",
+      "kind": "text",
+      "ar": "اخترتُ",
+      "tr": "መረጥኩ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:556fdc2f2520",
+      "kind": "text",
+      "ar": "غدًا تبدأ دورةٌ جديدة",
+      "tr": "ነገ አዲስ ዙር ይጀምራል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1bb5541dd801",
+      "kind": "text",
+      "ar": "تأمّل فضل هذا اليوم الذي أنت فيه",
+      "tr": "ያሉበትን የዚህን ቀን ትሩፋት ያስተውሉ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf328bccc1ec",
+      "kind": "hadith",
+      "ar": "خَيْرُ يَوْمٍ طَلَعَتْ عَلَيْهِ الشَّمْسُ يَوْمُ الْجُمُعَةِ",
+      "tr": "ፀሐይ ከወጣችባቸው ቀናት ሁሉ የተሻለው የጁሙዓ (ዓርብ) ቀን ነው።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:411231459be2",
+      "kind": "text",
+      "ar": "اغتنم آخر النهار اليوم بدعاءٍ تسأل الله فيه حاجتك",
+      "tr": "ዛሬ የቀኑን መጨረሻ ተጠቅመው ፍላጎትዎን በመጠየቅ አላህን ይለምኑ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:afb12d50c00c",
+      "kind": "hadith",
+      "ar": "فِيهِ سَاعَةٌ، لاَ يُوَافِقُهَا عَبْدٌ مُسْلِمٌ، وَهُوَ قَائِمٌ يُصَلِّي، يَسْأَلُ اللَّهَ تَعَالَى شَيْئًا، إِلَّا أَعْطَاهُ إِيَّاهُ",
+      "tr": "በእርሱ ውስጥ አንድ ሰዓት አለ። አንድ ሙስሊም ባሪያ ሶላት (የአምልኮ ጸሎት) እየሰገደ አላህን አንድ ነገር በመጠየቅ ያንን ሰዓት ካገኘ፣ እርሱን ይሰጠዋል።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98827192e914",
+      "kind": "text",
+      "ar": "قطرةٌ جديدة بعد جمعتك",
+      "tr": "ከጁሙዓዎ በኋላ አዲስ ጠብታ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    }
+  ]
+}

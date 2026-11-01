@@ -74,6 +74,7 @@ for (const lang of Object.keys(SOURCES)) {
       }
     }
   }
+  box.DATA.cats.forEach((c) => { if (cats[c[0]]) keys[hid(c[1])] = cats[c[0]]; });
   if (Object.keys(items).length) {
     out.coreRecords = Object.keys(items).length;
     out.coreBytes = write('lang/content/' + lang + '/core.json', { schema: 'ezik-tr4/1', lang, bank: 'core', source_sha8: sha8, cats, items });

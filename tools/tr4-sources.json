@@ -1,6 +1,6 @@
 {
-  "am": { "packs": "tr4/k06-am-packs" },
-  "om": { "sections": "tr4/k03-om-sections", "packs": "tr4/k07-om-packs" },
+  "am": { "sections": "tr4/k02-am-sections", "packs": "tr4/k06-am-packs" },
+  "om": { "sections": "tr4/k03-om-sections", "packs": "tr4/k07-om-packs", "core": ["tr4/k14-om-core1", "tr4/k15-om-core2"] },
   "en": { "sections": "tr4/k04-en-sections", "packs": "tr4/k08-en-packs", "core": ["tr4/k16-en-core1", "tr4/k17-en-core2"] },
-  "fa": { "sections": "tr4/k05-fa-sections", "packs": "tr4/k09-fa-packs", "core": ["tr4/k18-fa-core1"] }
+  "fa": { "sections": "tr4/k05-fa-sections", "packs": "tr4/k09-fa-packs", "core": ["tr4/k18-fa-core1", "tr4/k19-fa-core2"] }
 }

@@ -1,0 +1,913 @@
+{
+  "schema": "ezik-tr4/1",
+  "lang": "am",
+  "section": "home",
+  "title": {
+    "ar": "الرئيسية",
+    "tr": "ዋና ገጽ"
+  },
+  "agent": "K02",
+  "generated": "2026-11-01T22:02:30.637Z",
+  "source_files": [
+    "app.jsx",
+    "assets/daily-verses.json"
+  ],
+  "items": [
+    {
+      "id": "h:d691d33c6c95",
+      "kind": "dhikr",
+      "ar": "سبحان الله",
+      "tr": "አላህ ከጉድለት ሁሉ የጠራ ነው።",
+      "translit": "ሱብሓነላህ",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c6e09f392ca6",
+      "kind": "dhikr",
+      "ar": "الحمد لله",
+      "tr": "ምስጋና ሁሉ ለአላህ ነው።",
+      "translit": "አልሐምዱ ሊላህ",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:469c225165b9",
+      "kind": "dua",
+      "ar": "أستغفر الله",
+      "tr": "አላህን ይቅርታ እለምናለሁ።",
+      "translit": "አስተግፊሩላህ",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fcb82174c444",
+      "kind": "dhikr",
+      "ar": "لا إله إلا الله",
+      "tr": "ከአላህ በቀር ሌላ በእውነት የሚመለክ የለም።",
+      "translit": "ላ ኢላሀ ኢለላህ",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:632ee07c6ebb",
+      "kind": "dhikr",
+      "ar": "سبحان ربي العظيم",
+      "tr": "ታላቁ ጌታዬ ከጉድለት ሁሉ የጠራ ነው።",
+      "translit": "ስብሕኣን ርብይ ኣልዕዝይም",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c09b41cf4427",
+      "kind": "dhikr",
+      "ar": "الله أكبر",
+      "tr": "አላህ ከሁሉ የላቀ ነው።",
+      "translit": "አላሁ አክበር",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:017bf6772d13",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده",
+      "tr": "አላህ ከጉድለት ሁሉ የጠራ ነው፣ ምስጋናም ለእርሱ ነው።",
+      "translit": "ሱብሓነላሂ ወቢሐምዲህ",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e6087bad6840",
+      "kind": "text",
+      "ar": "اكتملت ديمتك اليوم · ٣ من ٣ قطرات",
+      "tr": "የዛሬ ዲማዎ ተጠናቋል · ከ٣ ጠብታዎች ٣",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e48e2b4c428f",
+      "kind": "text",
+      "ar": "أكمل",
+      "tr": "ያጠናቅቁ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4e824e31d84d",
+      "kind": "text",
+      "ar": " من ٣ قطرات",
+      "tr": " ከ٣ ጠብታዎች",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c0547a82a08f",
+      "kind": "text",
+      "ar": "بعد صلاة الفجر بنصف ساعة",
+      "tr": "ከፈጅር ሶላት (የንጋት ጸሎት) ከግማሽ ሰዓት በኋላ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a65e23474be8",
+      "kind": "text",
+      "ar": "وقت الضحى",
+      "tr": "የዱሓ (የማለዳ አምልኮ) ጊዜ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e1bba721f1fe",
+      "kind": "text",
+      "ar": "بعد صلاة العصر",
+      "tr": "ከዐስር ሶላት (የከሰዓት በኋላ ጸሎት) በኋላ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:15edfcb8b923",
+      "kind": "text",
+      "ar": "بعد صلاة العشاء",
+      "tr": "ከዒሻ ሶላት (የሌሊት ጸሎት) በኋላ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:13c2f2eb5acc",
+      "kind": "text",
+      "ar": "نلتقي غدًا بإذن الله",
+      "tr": "አላህ ቢፈቅድ ነገ እንገናኛለን",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1b2833c6b4b4",
+      "kind": "text",
+      "ar": "رواه ",
+      "tr": "የዘገቡት ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fba3f1065491",
+      "kind": "text",
+      "ar": "سورة ",
+      "tr": "ሱራ (የቁርአን ምዕራፍ) ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:65965a3f7677",
+      "kind": "text",
+      "ar": "، آية ",
+      "tr": "፣ አንቀጽ ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:356c532d0078",
+      "kind": "text",
+      "ar": "حديث",
+      "tr": "ሐዲሥ (የነቢዩ ንግግር)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b10c7068d1c2",
+      "kind": "quran",
+      "ar": "إِنَّ مَعَ ٱلْعُسْرِ يُسْرًا",
+      "tr": "ከችግር ጋር በእርግጥ ምቾት አለ::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/94/6",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:081d9bc2982a",
+      "kind": "quran",
+      "ar": "وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ",
+      "tr": "እርሱ የትም ብትሆኑ (በእውቀቱ) ከናንተው ጋር ነው::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/57/4",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:4a1f7f045b27",
+      "kind": "title",
+      "ar": "الحديد",
+      "tr": "አልሐዲድ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:055d5a623196",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ مَعَ ٱلصَّـٰبِرِينَ",
+      "tr": "አላህም ከታጋሾች ጋር ነውና::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/2/153",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:1c047dd9a1bf",
+      "kind": "title",
+      "ar": "البقرة",
+      "tr": "አልበቀራህ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:19636b5a750a",
+      "kind": "quran",
+      "ar": "فَٱذْكُرُونِىٓ أَذْكُرْكُمْ",
+      "tr": "አስታውሱኝ አስታውሳችኋለሁና::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/2/152",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:8bd511691f0f",
+      "kind": "quran",
+      "ar": "وَمَن يَتَّقِ ٱللَّهَ يَجْعَل لَّهُۥ مَخْرَجًا",
+      "tr": "አላህንም የሚፈራ ሰው ለእርሱ መውጫን ያደርግለታል::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/65/2",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:90828ee2dc42",
+      "kind": "title",
+      "ar": "الطلاق",
+      "tr": "አጥጠላቅ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:33e1ab66f020",
+      "kind": "quran",
+      "ar": "إِنَّ رَحْمَتَ ٱللَّهِ قَرِيبٌ مِّنَ ٱلْمُحْسِنِينَ",
+      "tr": "የአላህ እዝነት ለበጎ አድራጊዎች ሁሉ ቅርብ ነውና::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/7/56",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:03f12e1c22d1",
+      "kind": "title",
+      "ar": "الأعراف",
+      "tr": "አልአዕራፍ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3ee117fc0d9f",
+      "kind": "quran",
+      "ar": "وَإِذَا سَأَلَكَ عِبَادِى عَنِّى فَإِنِّى قَرِيبٌ",
+      "tr": "(መልዕክተኛችን ሙሐመድ ሆይ!) ባሮቼ ስለ እኔ በጠየቁህ ጊዜ እኔ ቅርብ ነኝ::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/2/186",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:c2203c888d97",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ يُحِبُّ ٱلْمُحْسِنِينَ",
+      "tr": "አላህ በጎ ሰሪዎችን ይወዳልና።",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/2/195",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:96aa67603852",
+      "kind": "quran",
+      "ar": "يَـٰبَنِىَّ ٱذْهَبُوا۟ فَتَحَسَّسُوا۟ مِن يُوسُفَ وَأَخِيهِ وَلَا تَا۟يْـَٔسُوا۟ مِن رَّوْحِ ٱللَّهِ ۖ إِنَّهُۥ لَا يَا۟يْـَٔسُ مِن رَّوْحِ ٱللَّهِ إِلَّا ٱلْقَوْمُ ٱلْكَـٰفِرُونَ",
+      "tr": "«ልጆቼ ሆይ! ሂዱ ከዩሱፍና ከወንድሙም ወሬ ተመራመሩ:: ከአላህም እዝነት ተስፋ አትቁረጡ:: እነሆ ከአላህ እዝነት ከሓዲያን ህዝቦች እንጂ ማንም ተስፋ አይቆርጥም።» አለ።",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/12/87",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:7694520808a7",
+      "kind": "title",
+      "ar": "يوسف",
+      "tr": "ዩሱፍ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:68c54bc5300f",
+      "kind": "quran",
+      "ar": "وَبَشِّرِ ٱلصَّـٰبِرِينَ",
+      "tr": "ታጋሾችንም (በገነት) አብስር::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/2/155",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:9e0c3ddd0e64",
+      "kind": "quran",
+      "ar": "أَلَا بِذِكْرِ ٱللَّهِ تَطْمَئِنُّ ٱلْقُلُوبُ",
+      "tr": "አስተውሉ:: አላህን በማውሳት ልቦች ይረካሉ::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/13/28",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:3db00e2a5f35",
+      "kind": "title",
+      "ar": "الرعد",
+      "tr": "አርረዕድ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2a5502b81b6e",
+      "kind": "quran",
+      "ar": "وَمَا تَوْفِيقِىٓ إِلَّا بِٱللَّهِ",
+      "tr": "ለደግ ሥራ መታደሌ በአላህ ፈቃድ ብቻ እንጂ በሌላ አይደለም::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/11/88",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:fd9d2ec55193",
+      "kind": "title",
+      "ar": "هود",
+      "tr": "ሁድ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:54011ae117c4",
+      "kind": "quran",
+      "ar": "حَسْبُنَا ٱللَّهُ وَنِعْمَ ٱلْوَكِيلُ",
+      "tr": "በቂያችን አላህ ነው፤ እርሱም ምን ያምር መጠጊያ ነው!",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/3/173",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:236876042743",
+      "kind": "title",
+      "ar": "آل عمران",
+      "tr": "አሉ ዒምራን",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f201c0fc36ce",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ عَلَىٰ كُلِّ شَىْءٍ قَدِيرٌ",
+      "tr": "አላህ በነገሮች ሁሉ ላይ ቻይ ነውና::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/2/20",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:70bd7bb2f321",
+      "kind": "quran",
+      "ar": "وَلَا تَهِنُوا۟ وَلَا تَحْزَنُوا۟ وَأَنتُمُ ٱلْأَعْلَوْنَ",
+      "tr": "እናንተ የበላዮች ናችሁና … አትድከሙ (አትስነፉ)። አትዘኑም።",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; segmented published excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/3/139",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:e5fcf67a2cdf",
+      "kind": "hadith",
+      "ar": "إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ",
+      "tr": "ሥራዎች የሚመዘኑት በኒያ (በልብ ውሳኔ) ብቻ ነው።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3025efe9a80e",
+      "kind": "text",
+      "ar": "البخاري",
+      "tr": "አልቡኻሪ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9aa2168631b1",
+      "kind": "quran",
+      "ar": "وَأَقِيمُوا۟ ٱلصَّلَوٰةَ وَءَاتُوا۟ ٱلزَّكَوٰةَ",
+      "tr": "ሶላትን ደንቡን ጠብቃችሁ ስገዱ:: ዘካንም ለተገቢው አካል ስጡ::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/2/43",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:ad9108129939",
+      "kind": "quran",
+      "ar": "وَقُل رَّبِّ زِدْنِى عِلْمًا",
+      "tr": "«ጌታዬ ሆይ! ዕውቀትን ጨምርልኝ።» በልም።",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/20/114",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:5e5430a5126e",
+      "kind": "title",
+      "ar": "طه",
+      "tr": "ጣሃ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b7c0ec44535e",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ غَفُورٌ رَّحِيمٌ",
+      "tr": "አላህ መሐሪና አዛኝ ነውና::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/2/173",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:607185ca982d",
+      "kind": "quran",
+      "ar": "وَٱسْتَعِينُوا۟ بِٱلصَّبْرِ وَٱلصَّلَوٰةِ",
+      "tr": "በመታገስና በሶላትም ተረዱ፡፡",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/2/45",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:e021862d9629",
+      "kind": "quran",
+      "ar": "رَبَّنَآ ءَاتِنَا فِى ٱلدُّنْيَا حَسَنَةً",
+      "tr": "ጌታችን ሆይ! በምድር ዓለም ደግን ነገር (ጸጋን) … ስጠን::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; segmented published excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/2/201",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:1dc6e85a61a8",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ لَا يُضِيعُ أَجْرَ ٱلْمُحْسِنِينَ",
+      "tr": "አላህ የመልካም ሠሪዎችን ምንዳ አያጠፋምና::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/9/120",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:e6fb3916c2bf",
+      "kind": "title",
+      "ar": "التوبة",
+      "tr": "አትተውባህ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9bb7f1828d78",
+      "kind": "quran",
+      "ar": "وَلَا تَتَمَنَّوْا۟ مَا فَضَّلَ ٱللَّهُ بِهِۦ بَعْضَكُمْ عَلَىٰ بَعْضٍ ۚ لِّلرِّجَالِ نَصِيبٌ مِّمَّا ٱكْتَسَبُوا۟ ۖ وَلِلنِّسَآءِ نَصِيبٌ مِّمَّا ٱكْتَسَبْنَ ۚ وَسْـَٔلُوا۟ ٱللَّهَ مِن فَضْلِهِۦٓ ۗ إِنَّ ٱللَّهَ كَانَ بِكُلِّ شَىْءٍ عَلِيمًا",
+      "tr": "አላህ ከፊላችሁን በከፊሉ ያበለጠበትን ጸጋ አትመኙ:: ለወንዶችም ከሰሩት ስራ እድል አለላቸው:: ለሴቶችም ከሰሩት ስራ እንዲሁ እድል አለላቸው:: አላህን ከችሮታው ለምኑት:: አላህ በሁሉ ነገር አዋቂ ነውና::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/4/32",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:0b0400fae8af",
+      "kind": "title",
+      "ar": "النساء",
+      "tr": "አንኒሳእ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:386a3a22cef1",
+      "kind": "quran",
+      "ar": "وَتَوَكَّلْ عَلَى ٱللَّهِ ۚ وَكَفَىٰ بِٱللَّهِ وَكِيلًا",
+      "tr": "(መልዕክተኛችን ሙሐመድ ሆይ!) በአላህ ላይ ተመካ:: መመኪያነትም በአላህ ብቻ በቃ።",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/33/3",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:0adb76910f31",
+      "kind": "title",
+      "ar": "الأحزاب",
+      "tr": "አልአሕዛብ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f85b4aea9792",
+      "kind": "quran",
+      "ar": "وَأَن لَّيْسَ لِلْإِنسَـٰنِ إِلَّا مَا سَعَىٰ",
+      "tr": "የሰው ልጅም የለፋበትን ብቻ እንጂ ሌላ የለዉም::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/53/39",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:c4ffbb69c75c",
+      "kind": "title",
+      "ar": "النجم",
+      "tr": "አንነጅም",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cead4b7f3215",
+      "kind": "quran",
+      "ar": "وَٱللَّهُ يُحِبُّ ٱلصَّـٰبِرِينَ",
+      "tr": "አላህም ትዕግስተኞቹን ይወዳል::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/3/146",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:f75ef26652e8",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ بِٱلنَّاسِ لَرَءُوفٌ رَّحِيمٌ",
+      "tr": "አላህም ለሰዎች በጣም ሩህሩህና አዛኝ ነው::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/2/143",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:b1aaccf3b100",
+      "kind": "quran",
+      "ar": "وَمَن يَتَوَكَّلْ عَلَى ٱللَّهِ فَهُوَ حَسْبُهُۥٓ",
+      "tr": "በአላህም ላይ የሚጠጋ ሰው እርሱ በቂው ነው::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/65/3",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:197f361c38c8",
+      "kind": "quran",
+      "ar": "إِنَّ مَعِىَ رَبِّى سَيَهْدِينِ",
+      "tr": "ጌታዬ ከእኔ ጋር ነው። በእርግጥ ይመራኛል።",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2; contiguous excerpt",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/26/62",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    },
+    {
+      "id": "h:2dcec7ee53b1",
+      "kind": "title",
+      "ar": "الشعراء",
+      "tr": "አሽሹዐራእ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:963c508cee1f",
+      "kind": "quran",
+      "ar": "قَالَ هَلْ ءَامَنُكُمْ عَلَيْهِ إِلَّا كَمَآ أَمِنتُكُمْ عَلَىٰٓ أَخِيهِ مِن قَبْلُ ۖ فَٱللَّهُ خَيْرٌ حَـٰفِظًا ۖ وَهُوَ أَرْحَمُ ٱلرَّٰحِمِينَ",
+      "tr": "«ከአሁን በፊት በወንድሙ ላይ እንዳመንኳችሁ እንጂ በእርሱ ላይ አምናችኋለሁን? አላህም በጠባቂነት ከሁሉ የበለጠ ነው:: እርሱም ከአዛኞች ሁሉ ይበልጥ አዛኝ ነው።» አላቸው።",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy; Translated by Muhammad Zain Zahruddin. Published by Africa Academy; version 1.0.2",
+        "url": "https://quranenc.com/api/v1/translation/aya/amharic_zain/12/64",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-01"
+      }
+    }
+  ]
+}
