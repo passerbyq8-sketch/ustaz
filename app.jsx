@@ -16467,18 +16467,15 @@ function EzikDimaSection({ onBack }) {
     {step === 'main' ? <button type="button" className="dimaIconButton" onClick={openNotify} aria-label={ezT('dima.openNotifications')}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg></button> : <span className="dimaHeaderSpacer" />}
   </header>;
   const ui = data && data.ui ? (english && data.ui.en ? data.ui.en : data.ui) : null;
-  const footer = <button type="button" className="dimaTomorrowBar" onClick={openNotify} aria-label={ezT('dima.openNotifications')}>
-    <span>{ui && ui.tomorrow ? ui.tomorrow : ezT('dima.nextDay')}</span><strong>{ui && ui.tomorrowNotice ? ui.tomorrowNotice : ezT('dima.todayPractices')}</strong>
-  </button>;
-  if (!data && !loadFailed) return <div className="dimaRoot">{header}<main className="dimaPage"><p role="status">{ezT('dima.loading')}</p></main>{footer}</div>;
-  if (!data && loadFailed) return <div className="dimaRoot">{header}<main className="dimaPage"><p role="alert">{ezT('dima.loadError')}</p><button type="button" className="dimaAction" onClick={() => { setLoadFailed(false); loadDima().then(setData).catch(() => setLoadFailed(true)); }}>{ezT('dima.retry')}</button></main>{footer}</div>;
+  if (!data && !loadFailed) return <div className="dimaRoot">{header}<main className="dimaPage"><p role="status">{ezT('dima.loading')}</p></main></div>;
+  if (!data && loadFailed) return <div className="dimaRoot">{header}<main className="dimaPage"><p role="alert">{ezT('dima.loadError')}</p><button type="button" className="dimaAction" onClick={() => { setLoadFailed(false); loadDima().then(setData).catch(() => setLoadFailed(true)); }}>{ezT('dima.retry')}</button></main></div>;
   if (step === 'intro') return <div className="dimaRoot">{header}<main className="dimaPage dimaNotifyIntro">
     <DimaScene plants={plants} todayCount={dropCount} instant={instantPlant} data={data} />
     <h1>{data.ui.intro.title}</h1><p>{data.ui.intro.body}</p><small>{data.ui.intro.footnote}</small>
     {notice ? <p className="dimaNotice" role="status">{notice}</p> : null}
     <button type="button" className="dimaAction" onClick={requestNotify}>{data.ui.intro.enable}</button>
     <button type="button" className="dimaSecondary" onClick={() => { persist({ ...store, notify: { ...store.notify, on: false }, notifySeen: true }); setStep('settings'); }}>{data.ui.intro.later}</button>
-  </main>{footer}</div>;
+  </main></div>;
   if (step === 'settings') return <div className="dimaRoot">{header}<main className="dimaPage dimaNotifySettings">
     <DimaScene plants={plants} todayCount={dropCount} instant={instantPlant} data={data} />
     <h1>{data.ui.notifyTitle}</h1><p>{data.ui.notifyDaily}</p>
@@ -16495,13 +16492,13 @@ function EzikDimaSection({ onBack }) {
     <p className="dimaFinePrint">{data.ui.notifyPreviewNote}</p>
     {notice ? <p className="dimaNotice" role="status">{notice}</p> : null}
     <button type="button" className="dimaSecondary" onClick={() => setStep('main')}>{data.ui.cancel}</button>
-  </main>{footer}</div>;
+  </main></div>;
   if (!store.startDate) return <div className="dimaRoot">{header}<main className="dimaPage dimaIntro">
     <DimaScene plants={plants} todayCount={dropCount} instant={instantPlant} data={data} />
     <h1>{data.name}</h1><p>{data.tagline}</p>
     <div className="dimaIntroInfo"><span>{ezT('dima.programLength')}</span><strong>{ezT('dima.oneMinute')}</strong></div>
     <button type="button" className="dimaAction" onClick={begin}>{ezT('dima.begin')}</button>
-  </main>{footer}</div>;
+  </main></div>;
   const currentFlag = tab === 0 ? currentLog.l : tab === 1 ? currentLog.q : currentLog.j;
   const slotLabel = data.notifications.slots[store.notify.slot] || data.notifications.slots.fajr30;
   return <div className="dimaRoot" dir="rtl">
@@ -16538,7 +16535,7 @@ function EzikDimaSection({ onBack }) {
         </>}
       </section>
     </main>
-    {footer}
+    
   </div>;
 }
 
