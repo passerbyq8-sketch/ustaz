@@ -43913,7 +43913,7 @@ const s = {
   yhCircleDone: { background: 'var(--a3-blue)', color: 'var(--a3-on-blue)', borderColor: 'var(--a3-blue)' },
   yhCircleCur: { background: 'var(--a3-surface)', color: 'var(--a3-blue)', border: '2px solid var(--a3-blue)' },
   yhFooter: { display: 'flex', flexDirection: 'column', gap: 2, padding: '4px 8px 0', fontSize: 12.5, lineHeight: 1.8, color: 'var(--a3-muted)', textAlign: 'center' },
-  yhHero: { cursor: 'default', gap: 8 },
+  yhHero: { cursor: 'default', gap: 8, padding: '14px 16px 12px' },
   yhHeroBar: { position: 'relative', display: 'block', height: 6, borderRadius: 3, overflow: 'hidden', background: 'color-mix(in srgb, currentColor 24%, transparent)' },
   yhHeroFill: { display: 'block', height: 6, borderRadius: 3, background: 'currentColor' },
   yhHeroBtn: { marginInlineStart: 'auto', minHeight: 44, padding: '0 18px', border: 0, fontFamily: 'inherit', fontSize: 14, fontWeight: 700, cursor: 'pointer' },
