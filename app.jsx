@@ -60,6 +60,7 @@ const EZ_LANGUAGE_TABLE = [
   { code: 'uz', nativeName: 'Ўзбекча', shortLabel: 'ЎЗ', dir: 'ltr', digits: 'latn', script: 'cyrl', locale: 'uz-Cyrl', meridiem: ['ТО','ТК'] },
   { code: 'am', nativeName: 'አማርኛ', shortLabel: 'አማ', dir: 'ltr', digits: 'latn', script: 'ethi', locale: 'am', meridiem: ['ጠዋት','ከሰዓት'] },
   { code: 'ta', nativeName: 'தமிழ்', shortLabel: 'த', dir: 'ltr', digits: 'latn', script: 'taml', locale: 'ta', meridiem: ['முற்பகல்','பிற்பகல்'] },
+  { code: 'om', nativeName: 'Afaan Oromoo', shortLabel: 'OM', dir: 'ltr', digits: 'latn', script: 'latn', locale: 'om', meridiem: ['WD','WB'] },
 ];
 // E1 (item 74, amendment 5): WHICH OF THE BUILT LANGUAGES ARE OFFERED. config/enabled-languages.json is the one list; tools/build-app.cjs bakes it
 // into this bundle as EZIK_ENABLED_LANGS (the way it bakes the app version). It applies on PRODUCTION only: a preview deployment, localhost and a
@@ -357,6 +358,33 @@ function ezLangRelabel() {
 
 // Subscribing in App() is what makes the switch instant: App owns the whole tree, so one
 // state change there redraws every screen without a reload and without a route change.
+// TRANSLATE4: the display layer for the four languages of the round. Nothing here runs for Arabic
+// or for any other language. It reads static files and changes what the reader sees, never a store.
+let ezTr4Script = null;
+function ezTr4Load() {
+  if (window.TR4) return Promise.resolve(window.TR4);
+  if (!ezTr4Script) ezTr4Script = new Promise((done) => {
+    const tag = document.createElement('script');
+    tag.src = '/lang/content/tr4-loader.js';
+    tag.onload = () => done(window.TR4 || null);
+    tag.onerror = () => { ezTr4Script = null; done(null); };
+    document.head.appendChild(tag);
+  });
+  return ezTr4Script;
+}
+function useTr4Section(name) {
+  const lang = useEzLang();
+  useEffect(() => {
+    if (!name || ['am', 'om', 'en', 'fa'].indexOf(lang) < 0) return undefined;
+    let off = null, gone = false;
+    ezTr4Load().then((layer) => {
+      if (!layer || gone) return;
+      layer.configure({ direction: (code) => EZ_LANG_DIR[code] || 'ltr', text: ezT });
+      off = layer.mount(document.getElementById('root'), lang, name.split(' '));
+    });
+    return () => { gone = true; if (off) off(); };
+  }, [name, lang]);
+}
 function useEzLang() {
   const [v, setV] = useState(EZ_LANG);
   useEffect(() => {
@@ -2242,6 +2270,8 @@ const EZ_I18N = {
     'dima.tab.jawarih': '\u0627\u0644\u062c\u0648\u0627\u0631\u062d',
     'dima.quran': '\u0627\u0644\u0642\u0631\u0622\u0646',
     'dima.todayPractices': '\u0642\u0637\u0631\u0627\u062a \u0627\u0644\u064a\u0648\u0645',
+    'tr4.showArabic': 'الأصل العربي',
+    'tr4.machine': 'ترجمة آلية',
   },
   en: {
     'common.close': 'Close',
@@ -4049,6 +4079,8 @@ const EZ_I18N = {
     'log.clear': 'Not recorded',
     'log.streak': 'Days in a row: {n}',
     'log.hint': 'Tap a circle after praying: on time, then late, then clear.',
+    'tr4.showArabic': 'Show Arabic original',
+    'tr4.machine': 'Machine translation',
   },
 };
 
@@ -13849,6 +13881,8 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
   useEzikBackLayer(calcOpen, () => setCalcOpen(false));
   useUsageSection(compassOpen ? 'compass' : prayerOpen ? 'prayer' : wirdOpen ? 'wirdi'
     : tasbihOpen || tasbihLogOpen ? 'tasbih' : calcOpen ? 'calc' : artSection || 'home');
+  useTr4Section(compassOpen ? 'compass qibla' : prayerOpen ? 'prayer qibla' : wirdOpen ? 'wirdi'
+    : tasbihOpen ? 'tasbih' : calcOpen || tasbihLogOpen || artSection ? null : 'home');
   // DEFECT 14 (item 88) -- WHERE THE RECORD DIES, and it is one place.
   // The reader is standing nowhere in particular exactly when this component has no layer of
   // its own open, which is when it draws the bare shelf; every layer App owns returns before
@@ -21647,6 +21681,8 @@ function App() {
   useUsageSection(asmaaOpen ? 'asmaa' : sunanOpen ? 'sunan-day' : dimaOpen ? 'dima'
     : yahimmakOpen ? 'yahimmak' : aboutOpen || sourcesOpen || feedbackOpen || inboxOpen ? null
       : screen === 'home' ? null : screen);
+  useTr4Section(asmaaOpen ? 'asmaa' : sunanOpen ? 'sunan-day' : dimaOpen ? 'dima' : yahimmakOpen ? 'yahimmak'
+    : ['adhkar', 'arbaeen', 'ayah-tafsir', 'memorize'].indexOf(screen) >= 0 ? screen : null);
   // ITEM 92: WHAT THE SHARE BUTTON DOES, decided by the injected bridge and by nothing else.
   // In a shell it hands the smart link straight to the platform sheet and returns -- no chooser
   // is opened, so no badge and no store name can reach the page (Apple guideline 2.3.10). In a
@@ -43703,7 +43739,7 @@ const s = {
   // ===== بطاقة الآية =====
   verseCard: { background: 'var(--red-soft)', border: '1px solid var(--line)', borderRadius: 14, padding: '12px 14px' },
   verseCardLabel: { display: 'inline-flex', alignItems: 'center', gap: 5, color: 'var(--red)', fontSize: 12, fontWeight: 600, marginBottom: 6 },
-  verseText: { fontSize: 19, color: 'var(--verse-ink)', textAlign: 'center', fontFamily: "'Amiri Quran', 'Amiri', 'Tajawal', serif", lineHeight: 2.1, margin: '6px 0 6px' },
+  verseText: { direction: 'rtl', fontSize: 19, color: 'var(--verse-ink)', textAlign: 'center', fontFamily: "'Amiri Quran', 'Amiri', 'Tajawal', serif", lineHeight: 2.1, margin: '6px 0 6px' },
   surahText: { fontSize: 19, color: 'var(--verse-ink)', textAlign: 'justify', textAlignLast: 'center', fontFamily: "'Amiri Quran', 'Amiri', 'Tajawal', serif", lineHeight: 2.3, margin: '6px 2px 8px', direction: 'rtl' },
   verseMeta: { fontSize: 12, textAlign: 'center', color: 'var(--muted)', fontWeight: 500 },
   verseFooter: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap', marginTop: 8 },
@@ -43713,7 +43749,7 @@ const s = {
   // ===== بطاقة الحديث =====
   hadithCard: { background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 14, padding: '12px 14px' },
   hadithCardLabel: { display: 'inline-flex', alignItems: 'center', gap: 5, color: 'var(--red)', fontSize: 12, fontWeight: 600, marginBottom: 6 },
-  hadithText: { color: 'var(--ink)', fontSize: 15, lineHeight: 1.9, margin: '4px 0' },
+  hadithText: { direction: 'rtl', textAlign: 'right', color: 'var(--ink)', fontSize: 15, lineHeight: 1.9, margin: '4px 0' },
   hadithMeta: { fontSize: 12, color: 'var(--muted)', marginTop: 4, fontWeight: 500 },
   ezTranslationNote: { alignSelf: 'stretch', textAlign: 'left', margin: '2px 0 6px', padding: '8px 12px', background: 'var(--tint)', border: '1px solid var(--line)', borderRadius: 12 },
   ezTranslationLabel: { color: 'var(--red)', fontSize: 12, fontWeight: 600, marginBottom: 2 },

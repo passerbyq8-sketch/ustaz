@@ -1,0 +1,324 @@
+{
+  "schema": "ezik-tr4/1",
+  "lang": "en",
+  "section": "tasbih",
+  "title": {
+    "ar": "التسبيح",
+    "tr": "Tasbih (glorification of Allah)"
+  },
+  "agent": "K04",
+  "generated": "2026-11-01T19:11:10.513Z",
+  "source_files": [
+    "app.jsx"
+  ],
+  "items": [
+    {
+      "id": "1",
+      "kind": "dhikr",
+      "ar": "سبحان الله",
+      "tr": "Glory be to Allah.",
+      "translit": "Subhanallah.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "2",
+      "kind": "dhikr",
+      "ar": "الحمد لله",
+      "tr": "All praise belongs to Allah.",
+      "translit": "Alhamdu lillah.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "3",
+      "kind": "dhikr",
+      "ar": "لا اله الا الله",
+      "tr": "None is worthy of worship except Allah.",
+      "translit": "La ilaha illallah.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "4",
+      "kind": "dhikr",
+      "ar": "الله أكبر",
+      "tr": "Allah is greatest.",
+      "translit": "Allahu akbar.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "5",
+      "kind": "dhikr",
+      "ar": "رب اغفر لى",
+      "tr": "My Lord, forgive me.",
+      "translit": "Rabbighfir li.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "6",
+      "kind": "dhikr",
+      "ar": "استغفر الله",
+      "tr": "I seek Allah's forgiveness.",
+      "translit": "Astaghfirullah.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "7",
+      "kind": "dhikr",
+      "ar": "لا حول ولا قوة الا بالله",
+      "tr": "There is no power or strength except through Allah.",
+      "translit": "La hawla wa la quwwata illa billah.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "8",
+      "kind": "dhikr",
+      "ar": "اللهمّ إنك عفوٌّ تُحبُّ العفوَ فاعفُ عنّي",
+      "tr": "O Allah, You are Afuww (Pardoning) and love pardon, so pardon me.",
+      "translit": "Allahumma innaka Afuwwun tuhibbul-afwa fafu anni.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "9",
+      "kind": "dhikr",
+      "ar": "اللهم صل وسلم وبارك على سيدنا محمد",
+      "tr": "O Allah, bless our master Muhammad, grant him peace and bestow blessings upon him.",
+      "translit": "Allahumma salli wa sallim wa barik ala sayyidina Muhammad.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "10",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده سبحان الله العظيم",
+      "tr": "Glory and praise be to Allah; glory be to Allah, Al-Azim (the Magnificent).",
+      "translit": "Subhanallahi wa bihamdih, subhanallahil-Azim.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "11",
+      "kind": "dhikr",
+      "ar": "سبحان الله والحمد لله ولا إله إلا الله والله أكبر",
+      "tr": "Glory be to Allah; all praise belongs to Allah; none is worthy of worship except Allah; Allah is greatest.",
+      "translit": "Subhanallah, walhamdu lillah, wa la ilaha illallah, wallahu akbar.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "12",
+      "kind": "dhikr",
+      "ar": "أستغفر الله الذى لا إله إلا هو الحي القيوم وأتوب إليه",
+      "tr": "I seek forgiveness from Allah, none is worthy of worship except Him, Al-Hayy (the Ever-Living), Al-Qayyum (the Sustainer of all), and I repent to Him.",
+      "translit": "Astaghfirullahal-ladhi la ilaha illa huwal-Hayyul-Qayyumu wa atubu ilayh.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "13",
+      "kind": "dhikr",
+      "ar": "لا اله الا انت سبحانك إني كنت من الظالمين",
+      "tr": "Full-verse context (21:87):\nAnd [mention] the man of the fish [i.e., Jonah], when he went off in anger[899] and thought that We would not decree [anything] upon him.[900] And he called out within the darknesses,[901] \"There is no deity except You; exalted are You. Indeed, I have been of the wrongdoers.\"\n[899] At the disbelief of his people.\n[900] Or \"would not restrict him\" in the belly of the fish.\n[901] That of the night, of the sea, and of the fish's interior.",
+      "translit": "La ilaha illa anta subhanaka inni kuntu minaz-zalimin",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center; QuranEnc.com; v1.1.2",
+        "url": "https://quranenc.com/en/browse/english_saheeh/21/87",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-02",
+        "snapshot": "2026-10-06",
+        "version": "1.1.2",
+        "ref": "21:87",
+        "refs": [
+          "21:87"
+        ],
+        "context": "Full verses supplied for the original fragment/composite; English wording and footnotes unchanged."
+      }
+    },
+    {
+      "id": "14",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده عدد خلقه ورضا نفسه وزنة عرشه ومداد كلماته",
+      "tr": "Glory and praise be to Allah, as numerous as His creation, to His own satisfaction, as weighty as His Throne, and as abundant as the ink of His words.",
+      "translit": "Subhanallahi wa bihamdih, adada khalqih, wa rida nafsih, wa zinata arshih, wa midada kalimatih.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "15",
+      "kind": "dhikr",
+      "ar": "لا إله إلا الله وحده لا شريك له، له الملك، وله الحمدُ، وهو على كل شيء قدير",
+      "tr": "None is worthy of worship except Allah alone, without partner. His is the dominion and to Him belongs all praise, and He has power over all things.",
+      "translit": "La ilaha illallahu wahdahu la sharika lah, lahul-mulku wa lahul-hamdu wa huwa ala kulli shayin qadir.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fcb82174c444",
+      "kind": "dhikr",
+      "ar": "لا إله إلا الله",
+      "tr": "None is worthy of worship except Allah.",
+      "translit": "La ilaha illallah.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c7e0a7e9c84e",
+      "kind": "dhikr",
+      "ar": "رب اغفر لي",
+      "tr": "My Lord, forgive me.",
+      "translit": "Rabbighfir li.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:469c225165b9",
+      "kind": "dhikr",
+      "ar": "أستغفر الله",
+      "tr": "I seek Allah's forgiveness.",
+      "translit": "Astaghfirullah.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:09b77b8a8b14",
+      "kind": "dhikr",
+      "ar": "لا حول ولا قوة إلا بالله",
+      "tr": "There is no power or strength except through Allah.",
+      "translit": "La hawla wa la quwwata illa billah.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:674860a42e28",
+      "kind": "dhikr",
+      "ar": "أستغفر الله الذي لا إله إلا هو الحي القيوم وأتوب إليه",
+      "tr": "I seek forgiveness from Allah, none is worthy of worship except Him, Al-Hayy (the Ever-Living), Al-Qayyum (the Sustainer of all), and I repent to Him.",
+      "translit": "Astaghfirullahal-ladhi la ilaha illa huwal-Hayyul-Qayyumu wa atubu ilayh.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:46e2fde55a17",
+      "kind": "dhikr",
+      "ar": "لا إله إلا أنت سبحانك إني كنت من الظالمين",
+      "tr": "Full-verse context (21:87):\nAnd [mention] the man of the fish [i.e., Jonah], when he went off in anger[899] and thought that We would not decree [anything] upon him.[900] And he called out within the darknesses,[901] \"There is no deity except You; exalted are You. Indeed, I have been of the wrongdoers.\"\n[899] At the disbelief of his people.\n[900] Or \"would not restrict him\" in the belly of the fish.\n[901] That of the night, of the sea, and of the fish's interior.",
+      "translit": "La ilaha illa anta subhanaka inni kuntu minaz-zalimin",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center; QuranEnc.com; v1.1.2",
+        "url": "https://quranenc.com/en/browse/english_saheeh/21/87",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
+        "date": "2026-11-02",
+        "snapshot": "2026-10-06",
+        "version": "1.1.2",
+        "ref": "21:87",
+        "refs": [
+          "21:87"
+        ],
+        "context": "Full verses supplied for the original fragment/composite; English wording and footnotes unchanged."
+      }
+    }
+  ]
+}

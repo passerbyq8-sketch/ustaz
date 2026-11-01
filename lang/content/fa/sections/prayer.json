@@ -1,0 +1,394 @@
+{
+  "schema": "ezik-tr4/1",
+  "lang": "fa",
+  "section": "prayer",
+  "title": {
+    "ar": "الصلاة والقبلة",
+    "tr": "نماز و قبله"
+  },
+  "agent": "K05",
+  "generated": "2026-11-01T22:13:29+03:00",
+  "source_files": [
+    "app.jsx"
+  ],
+  "items": [
+    {
+      "id": "EZH_PRAYER",
+      "kind": "text",
+      "ar": "الصلاة والقبلة",
+      "tr": "نماز و قبله",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "PRAYER_ADHAN_SOUND_LABEL",
+      "kind": "text",
+      "ar": "صوت الأذان",
+      "tr": "صدای اذان",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "PRAYER_SETTINGS_TITLE",
+      "kind": "text",
+      "ar": "الصلاة",
+      "tr": "نماز",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "PRAYER_METHOD_LABEL",
+      "kind": "text",
+      "ar": "المنهج",
+      "tr": "روش محاسبه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "PRAYER_ASR_LABEL",
+      "kind": "text",
+      "ar": "مذهب العصر",
+      "tr": "مذهب محاسبهٔ عصر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "PRAYER_HINT",
+      "kind": "text",
+      "ar": "تُحسَب على هذا الجهاز من المنهج والإحداثيّات، بلا إنترنت. قابِلْها بتقويمك وعدِّلْ بالدقائق إن لزم.",
+      "tr": "اوقات روی همین دستگاه، بر پایهٔ روش محاسبه و مختصات و بدون اینترنت محاسبه می‌شوند. آنها را با تقویمتان مقایسه کنید و اگر لازم بود به اندازهٔ دقیقه تنظیمشان کنید.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "PRAYER_SCHEDULE_TITLE",
+      "kind": "text",
+      "ar": "جدول ثلاثين يومًا",
+      "tr": "جدول سی‌روزه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "PRAYER_SCHEDULE_SHOW",
+      "kind": "text",
+      "ar": "اعرض جدول ثلاثين يومًا",
+      "tr": "نمایش جدول سی‌روزه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "PRAYER_SCHEDULE_HIDE",
+      "kind": "text",
+      "ar": "اطوِ الجدول",
+      "tr": "بستن جدول",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "PRAYER_SCHEDULE_NOTE",
+      "kind": "text",
+      "ar": "يُحسَب على هذا الجهاز لثلاثين يومًا قادمة، بلا إنترنت، ويُعاد توليده تلقائيًّا متى بقي أقلّ من سبعة أيّام، أو متى غيّرتَ المنهج أو الإزاحة أو الموضع.",
+      "tr": "جدول روی همین دستگاه، برای سی روز آینده و بدون اینترنت محاسبه می‌شود. هرگاه کمتر از هفت روز باقی بماند یا روش محاسبه، جابه‌جایی زمان یا موقعیت را تغییر دهید، به‌طور خودکار دوباره ساخته می‌شود.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "PRAYER_SUNRISE_NOTE",
+      "kind": "text",
+      "ar": "الشروق محسوبٌ لا مُعايَر؛ لا تُطبَّق عليه إزاحة.",
+      "tr": "طلوع خورشید محاسبه شده و با مشاهده تنظیم نشده است؛ جابه‌جایی زمان بر آن اعمال نمی‌شود.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "PRAYER_SHEET_TITLE",
+      "kind": "text",
+      "ar": "الصلاة والقبلة",
+      "tr": "نماز و قبله",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "fajr",
+      "kind": "text",
+      "ar": "الفجر",
+      "tr": "فجر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "sunrise",
+      "kind": "text",
+      "ar": "الشروق",
+      "tr": "طلوع خورشید",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "dhuhr",
+      "kind": "text",
+      "ar": "الظهر",
+      "tr": "ظهر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "asr",
+      "kind": "text",
+      "ar": "العصر",
+      "tr": "عصر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "maghrib",
+      "kind": "text",
+      "ar": "المغرب",
+      "tr": "مغرب",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "isha",
+      "kind": "text",
+      "ar": "العشاء",
+      "tr": "عشاء",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "standard",
+      "kind": "text",
+      "ar": "الجمهور (ظلُّ المثل)",
+      "tr": "جمهور (سایه به اندازهٔ خود شیء)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "hanafi",
+      "kind": "text",
+      "ar": "الحنفيّ (ظلُّ المثلين)",
+      "tr": "حنفی (سایه دو برابر خود شیء)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "kuwait",
+      "kind": "text",
+      "ar": "الكويت",
+      "tr": "کویت",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "mwl",
+      "kind": "text",
+      "ar": "رابطة العالم الإسلاميّ",
+      "tr": "رابطة العالم الاسلامی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "egypt",
+      "kind": "text",
+      "ar": "الهيئة المصريّة العامّة للمساحة",
+      "tr": "الهیئة المصریة العامة للمساحة",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "makkah",
+      "kind": "text",
+      "ar": "أمّ القرى",
+      "tr": "ام القری",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "karachi",
+      "kind": "text",
+      "ar": "جامعة العلوم الإسلاميّة بكراتشي",
+      "tr": "جامعة العلوم الاسلامیة در کراچی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "isna",
+      "kind": "text",
+      "ar": "أمريكا الشماليّة (ISNA)",
+      "tr": "آمریکای شمالی (ISNA)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "qatar",
+      "kind": "text",
+      "ar": "قطر",
+      "tr": "قطر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    }
+  ]
+}

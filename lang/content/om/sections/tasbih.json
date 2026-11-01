@@ -1,0 +1,442 @@
+{
+  "schema": "ezik-tr4/1",
+  "lang": "om",
+  "section": "tasbih",
+  "title": {
+    "ar": "السبحة",
+    "tr": "Tasbiih (Rabbiin qulqulleessuu)"
+  },
+  "agent": "K03",
+  "generated": "2026-11-01T22:05:27+03:00",
+  "source_files": [
+    "app.jsx"
+  ],
+  "items": [
+    {
+      "id": "h:d691d33c6c95",
+      "kind": "dhikr",
+      "ar": "سبحان الله",
+      "translit": "Subhaanallaah",
+      "tr": "Rabbiin hanqina hundarraa qulqullaa'e.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "line:11981"
+        }
+      ],
+      "reopen_batch": "retranslate-tasbih-001.json"
+    },
+    {
+      "id": "h:c6e09f392ca6",
+      "kind": "text",
+      "ar": "الحمد لله",
+      "translit": "",
+      "tr": "Faaruun hunduu kan Rabbiiti.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "line:11982"
+        }
+      ]
+    },
+    {
+      "id": "h:0b995880be36",
+      "kind": "dhikr",
+      "ar": "لا اله الا الله",
+      "translit": "Laa ilaaha illallaah",
+      "tr": "Rabbiin malee haqaan gabbaramaan hin jiru.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "line:11983"
+        }
+      ],
+      "reopen_batch": "retranslate-tasbih-001.json"
+    },
+    {
+      "id": "h:c09b41cf4427",
+      "kind": "dhikr",
+      "ar": "الله أكبر",
+      "translit": "Allaahu akbar",
+      "tr": "Rabbiin hundarra guddaadha.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "line:11984"
+        }
+      ],
+      "reopen_batch": "retranslate-tasbih-001.json"
+    },
+    {
+      "id": "h:e2dffe4f5c98",
+      "kind": "dhikr",
+      "ar": "رب اغفر لى",
+      "translit": "Rabbighfir lii",
+      "tr": "Yaa Gooftaa koo, naaf araarami.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "line:11985"
+        }
+      ]
+    },
+    {
+      "id": "h:3b8c7a787a97",
+      "kind": "dhikr",
+      "ar": "استغفر الله",
+      "translit": "Astaghfirullaah",
+      "tr": "Rabbiin araarama kadhadha.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "line:11986"
+        }
+      ]
+    },
+    {
+      "id": "h:ce4914b210f1",
+      "kind": "dhikr",
+      "ar": "لا حول ولا قوة الا بالله",
+      "translit": "Laa hawla wa laa quwwata illaa billaah",
+      "tr": "Tooftaa fi humni Rabbiin malee hin jiru.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "line:11987"
+        }
+      ]
+    },
+    {
+      "id": "h:b29ae917553f",
+      "kind": "dhikr",
+      "ar": "اللهمّ إنك عفوٌّ تُحبُّ العفوَ فاعفُ عنّي",
+      "translit": "Allaahumma innaka afuwwun tuhibbul afwa fa’fu annii",
+      "tr": "Yaa Rabbi! Ati dhiifama godhaadha; dhiifama gochuu jaallatta; kanaaf dhiifama naaf godhi.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "line:11988"
+        }
+      ]
+    },
+    {
+      "id": "h:15a59d513c3f",
+      "kind": "dhikr",
+      "ar": "اللهم صل وسلم وبارك على سيدنا محمد",
+      "translit": "Allaahumma salli wa sallim wa baarik alaa sayyidinaa Muhammad",
+      "tr": "Yaa Rabbi! Sayyidii keenya Muhammad irratti rahmata, nageenyaa fi barakaa buusi.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "line:11989"
+        }
+      ]
+    },
+    {
+      "id": "h:9cd193931d4a",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده سبحان الله العظيم",
+      "translit": "Subhaanallaahi wa bihamdih, subhaanallaahil aziim",
+      "tr": "Rabbiin faaruu Isaa waliin hanqina irraa qulqulleessa; Rabbii guddaa hanqina irraa qulqulleessa.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "line:11990"
+        }
+      ]
+    },
+    {
+      "id": "h:decb1d9b45da",
+      "kind": "dhikr",
+      "ar": "سبحان الله والحمد لله ولا إله إلا الله والله أكبر",
+      "translit": "Subhaanallaahi walhamdu lillaahi wa laa ilaaha illallaahu wallaahu akbar",
+      "tr": "Rabbiin hanqina irraa qulqullaa’e; faaruun kan Rabbiiti; Rabbii malee gabbaramaan dhugaa hin jiru; Rabbiin hundarra guddaadha.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "line:11991"
+        }
+      ]
+    },
+    {
+      "id": "h:98e75b577dee",
+      "kind": "dhikr",
+      "ar": "أستغفر الله الذى لا إله إلا هو الحي القيوم وأتوب إليه",
+      "translit": "Astaghfirullaahallazii laa ilaaha illaa huwal hayyul qayyuumu wa atuubu ilayh",
+      "tr": "Rabbii Isa malee gabbaramaan dhugaa hin jirre, jiraataa, ofiin dhaabbataa fi waan hunda dhaabu araarama kadhadha; gara Isaattis tawbaa (cubbuu irraa deebi’uu) godha.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "line:11992"
+        }
+      ]
+    },
+    {
+      "id": "h:851ebe14d767",
+      "kind": "text",
+      "ar": "لا اله الا انت سبحانك إني كنت من الظالمين",
+      "translit": "",
+      "tr": "Si malee haqaan gabbaramaan hin jiru. Ati hanqina hundarraa qulqulloofti. Dhugumaan ani warra miidhaa raawwatan keessaa ture.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "line:11993"
+        }
+      ],
+      "reopen_batch": "retranslate-tasbih-001.json"
+    },
+    {
+      "id": "h:54a70aa41376",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده عدد خلقه ورضا نفسه وزنة عرشه ومداد كلماته",
+      "translit": "Subhaanallaahi wa bihamdihii adada khalqihii wa ridaa nafsihii wa zinata arshihii wa midaada kalimaatih",
+      "tr": "Baay’ina uumama Isaa, hamma jaalala Isaa, ulfaatina Arshii Isaa fi hamma qalama jechoota Isaatiin Rabbiin faaruu Isaa waliin hanqina irraa qulqulleessa.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "line:11994"
+        }
+      ]
+    },
+    {
+      "id": "h:3fe8e86eb588",
+      "kind": "dhikr",
+      "ar": "لا إله إلا الله وحده لا شريك له، له الملك، وله الحمدُ، وهو على كل شيء قدير",
+      "translit": "Laa ilaaha illallaahu wahdahuu laa shariika lah, lahul mulku wa lahul hamdu wa huwa alaa kulli shay’in qadiir",
+      "tr": "Rabbii malee gabbaramaan dhugaa hin jiru. Inni kophaa Isaa; hiriyaan Isaaf hin jiru. Mootummaan kan Isaati; faaruunis kan Isaati; Inni waan hundaa danda’aadha.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "line:11995"
+        }
+      ]
+    },
+    {
+      "id": "h:fcb82174c444",
+      "kind": "dhikr",
+      "ar": "لا إله إلا الله",
+      "translit": "Laa ilaaha illallaah",
+      "tr": "Rabbiin malee haqaan gabbaramaan hin jiru.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "line:12001"
+        }
+      ],
+      "reopen_batch": "retranslate-tasbih-001.json"
+    },
+    {
+      "id": "h:c7e0a7e9c84e",
+      "kind": "dhikr",
+      "ar": "رب اغفر لي",
+      "translit": "Rabbighfir lii",
+      "tr": "Yaa Gooftaa koo, naaf araarami.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "line:12001"
+        }
+      ]
+    },
+    {
+      "id": "h:469c225165b9",
+      "kind": "dhikr",
+      "ar": "أستغفر الله",
+      "translit": "Astaghfirullaah",
+      "tr": "Rabbiin araarama kadhadha.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "line:12001"
+        }
+      ]
+    },
+    {
+      "id": "h:09b77b8a8b14",
+      "kind": "dhikr",
+      "ar": "لا حول ولا قوة إلا بالله",
+      "translit": "Laa hawla wa laa quwwata illaa billaah",
+      "tr": "Tooftaa fi humni Rabbiin malee hin jiru.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "line:12001"
+        }
+      ]
+    },
+    {
+      "id": "h:674860a42e28",
+      "kind": "dhikr",
+      "ar": "أستغفر الله الذي لا إله إلا هو الحي القيوم وأتوب إليه",
+      "translit": "Astaghfirullaahallazii laa ilaaha illaa huwal hayyul qayyuumu wa atuubu ilayh",
+      "tr": "Rabbii Isa malee gabbaramaan dhugaa hin jirre, jiraataa, ofiin dhaabbataa fi waan hunda dhaabu araarama kadhadha; gara Isaattis tawbaa (cubbuu irraa deebi’uu) godha.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "line:12002"
+        }
+      ]
+    },
+    {
+      "id": "h:46e2fde55a17",
+      "kind": "text",
+      "ar": "لا إله إلا أنت سبحانك إني كنت من الظالمين",
+      "translit": "",
+      "tr": "Si malee haqaan gabbaramaan hin jiru. Ati hanqina hundarraa qulqulloofti. Dhugumaan ani warra miidhaa raawwatan keessaa ture.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "line:12002"
+        }
+      ],
+      "reopen_batch": "retranslate-tasbih-001.json"
+    }
+  ]
+}

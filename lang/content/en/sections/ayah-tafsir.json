@@ -1,0 +1,632 @@
+{
+  "schema": "ezik-tr4/1",
+  "lang": "en",
+  "section": "ayah-tafsir",
+  "title": {
+    "ar": "آية اليوم",
+    "tr": "Ayah of the day"
+  },
+  "agent": "K04",
+  "generated": "2026-11-01T18:52:54.804Z",
+  "source_files": [
+    "daily-tafsir.json"
+  ],
+  "items": [
+    {
+      "id": "94:6",
+      "kind": "text",
+      "ar": "6 - إن مع الشدة والضيق سهولة واتساعًا، إذا علمت ذلك فلا يهولنك أذى قومك، ولا يصدنك عن الدعوة إلى الله.",
+      "tr": "6 - Alongside hardship and distress there is ease and relief. Knowing this, do not be overwhelmed by your people's harm or let it deter you from calling to Allah.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d9421720105e",
+      "kind": "title",
+      "ar": "المختصر في تفسير القرآن الكريم",
+      "tr": "Al-Mukhtasar fi Tafsir al-Quran al-Karim",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "57:4",
+      "kind": "text",
+      "ar": "4 - هو الذي خلق السماوات والأرض في ستة أيام بدأت بيوم الأحد وانتهت بيوم الجمعة، وهو قادر على خلقها في أقلّ من طرفة عين، ثم علا وارتفع سبحانه على العرش علوًّا يليق به سبحانه، يعلم ما يدخل في الأرض من مطر وبذر وغيرهما، وما يخرج منها من نبات ومعادن وغيرهما، وما ينزل من السماء من المطر والوحي وغيرهما، وما يعرج فيها من الملائكة ومن أعمال العباد وأرواحهم، وهو معكم أينما كنتم -أيها الناس- بعلمه، لا يخفى عليه منكم شيء، والله بما تعملون بصير، لا يخفى عليه من أعمالكم شيء، وسيجازيكم عليها.",
+      "tr": "4 - He created the heavens and earth in six days, beginning on Sunday and ending on Friday, though He can create them in less than the blink of an eye. Then, glorified is He, He rose and was exalted above the Throne in a manner befitting Him. He knows the rain, seeds and other things that enter the earth; the plants, minerals and other things that emerge from it; the rain, revelation and other things that descend from heaven; and the angels, servants' deeds and souls that ascend into it. Wherever you are, people, He is with you by His knowledge: nothing about you is hidden from Him. Allah sees what you do; none of your deeds is hidden from Him, and He will repay you for them.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4a1f7f045b27",
+      "kind": "title",
+      "ar": "الحديد",
+      "tr": "Al-Hadid",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "2:153",
+      "kind": "text",
+      "ar": "153 - يا آيها الذين أمنوا استعينوا بالصبر والصلاة على القيام بطاعتي والتسليم لأمري، إن الله مع الصابرين يوفقهم ويعينهم.",
+      "tr": "153 - You who believe, seek help through patience and salah (prayer) in obeying Me and submitting to My command. Allah is with the patient, granting them success and assistance.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1c047dd9a1bf",
+      "kind": "title",
+      "ar": "البقرة",
+      "tr": "Al-Baqarah",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "2:152",
+      "kind": "text",
+      "ar": "152 - فاذكروني بقلوبكم وجوارحكم؛ أذكركم بالثناء عليكم والحفظ لكم، فالجزاء من جنس العمل، واشكروا لي نعمي التي أنعمت بها عليكم، ولا تكفروني بجحودها، واستعمالها فيما حُرِّم عليكم.",
+      "tr": "152 - Remember Me with your hearts and limbs; I will remember you with praise and protection, for recompense corresponds to deeds. Thank Me for the blessings I have bestowed on you. Do not be ungrateful to Me by denying them or using them for what has been forbidden to you.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "65:2",
+      "kind": "text",
+      "ar": "2 - فإذا قاربن انقضاء عِدَّتهنّ فراجعوهنّ عن رغبة وحسن معاشرة، أو اتركوا مراجعتهن حتَّى تنقضي عدتهن، فيملكْن أمر أنفسهنّ، مع إعطائهنّ ما لهن من حقوق، وإذا أردتم مراجعتهن أو مفارقتهن فأشهدوا عدلين منكم حسمًا للنزاع، وائتوا -أيها الشهود- بالشهادة مبتغين وجه الله؛ ذلك المذكور من الأحكام يُذَكَّر به من كان يؤمن بالله، ويؤمن بيوم القيامة؛ لأنه هو الَّذي ينتفع بالتذكير والموعظة، ومن يتّق الله بامتثال أوامره واجتناب نواهيه، يجعل الله له مخرجًا من كل ما يقع فيه من الضيق والحرج.",
+      "tr": "2 - When they approach the end of their iddah (waiting period), take them back with genuine desire and good treatment, or refrain from taking them back until their waiting period ends, so that they control their own affairs, while giving them their due rights. When you intend to take them back or separate from them, call two upright witnesses from among you to prevent disputes. Witnesses, give your testimony seeking Allah's pleasure. These rulings remind those who believe in Allah and the Day of Resurrection, for they benefit from reminders and admonition. Whoever fears Allah by obeying His commands and avoiding His prohibitions, Allah will provide a way out of every distress and difficulty that befalls him.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:90828ee2dc42",
+      "kind": "title",
+      "ar": "الطلاق",
+      "tr": "At-Talaq",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "7:56",
+      "kind": "text",
+      "ar": "56 - ولا تفسدوا في الأرض بارتكاب المعاصي بعد أن أصلحها الله بإرسال الرسل عليهم السلام وإعمارها بطاعته وحده، وادعوا الله وحده مستشعرين الخوف من عقابه، ومنتظرين حصول ثوابه، إن رحمة الله قريب من المحسنين، فكونوا منهم.",
+      "tr": "56 - Do not cause corruption on earth by committing sins after Allah has set it right by sending the messengers, peace be upon them, and cultivating it through obedience to Him alone. Call upon Allah alone, fearing His punishment and anticipating His reward. Allah's mercy is near those who do good, so be among them.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:03f12e1c22d1",
+      "kind": "title",
+      "ar": "الأعراف",
+      "tr": "Al-Araf",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "2:186",
+      "kind": "text",
+      "ar": "186 - وإذا سألك -أيها النبي- عبادي عن قربي وإجابتي لدعائهم؛ فإني قريب منهم، عالم بأحوالهم، سامع لدعائهم، فلا يحتاجون إلى وسطاء، ولا إلى رفع أصواتهم، أُجيب دعوة الداعي إذا دعاني مخلصًا في دعائه، فلينقادوا لي ولأوامري، وليثبتوا على إيمانهم؛ فإن ذلك أنفع وسيلة لإجابتي، لعلهم يسلكون بذلك سبيل الرشد في شؤونهم الدينية والدنيوية.",
+      "tr": "186 - Prophet, when My servants ask you about My nearness and My response to their supplications, I am near them, knowing their circumstances and hearing their supplications. They need neither intermediaries nor raised voices. I answer the supplicant when he calls upon Me sincerely. Let them submit to Me and My commands and remain firm in faith, for that is the most beneficial means of obtaining My response, so that they may follow the right path in their religious and worldly affairs.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "2:195",
+      "kind": "text",
+      "ar": "195 - وأنفقوا المال في طاعة الله من الجهاد وغيره، ولا تلقوا بأنفسكم إلى الهلاك، بأن تتركوا الجهاد والبذل في سبيله، أو بأن تلقوا بأنفسكم فيما يكون سببًا لهلاككم، وأحسنوا في عباداتكم ومعاملاتكم وأخلاقكم، إن الله يحب المحسنين في كل شؤونهم، فيعظم لهم الثواب، ويوفقهم للرشاد.",
+      "tr": "195 - Spend wealth in obedience to Allah, including jihad (striving in Allah's cause) and other acts. Do not bring destruction upon yourselves by abandoning jihad and spending in His cause, or by exposing yourselves to something that causes your destruction. Do good in your worship, dealings and character. Allah loves those who do good in all their affairs: He grants them great reward and guides them rightly.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "12:87",
+      "kind": "text",
+      "ar": "87 - قال لهم أبوهم: يا أبنائي، اذهبوا فتعرفوا من أخبار يوسف وأخيه، ولا تقنطوا من تفريج الله وتنفيسه عن عباده، إنه لا يقنط من تفريجه وتنفيسه إلا القوم الكافرون؛ لأنهم يجهلون عظيم قدرة الله وخَفِيَّ إفضاله على عباده.",
+      "tr": "87 - Their father said: My sons, go and seek news of Yusuf and his brother. Do not despair of Allah's relief and His easing of His servants' distress. Only disbelieving people despair of His relief and easing, because they are ignorant of Allah's immense power and His hidden favors toward His servants.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7694520808a7",
+      "kind": "title",
+      "ar": "يوسف",
+      "tr": "Yusuf",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "2:155",
+      "kind": "text",
+      "ar": "155 - ولنَمْتحِننّكم بأنواع من المصائب؛ بشيء من الخوف من أعدائكم، وبالجوع لقلة الطعام، وبنقص في الأموال لذهابها أو مشقة الحصول عليها، وبنقص في الأنفس بسبب الآفات التي تهلك الناس، أو بالشهادة في سبيل والله، وبنقص من الثمرات التي تنبتها الأرض، وبشّر -أيها النبي- الصابرين على تلك المصائب بما يسرهم في الدنيا والآخرة.",
+      "tr": "155 - We will certainly test you with various afflictions: some fear of your enemies; hunger due to scarcity of food; loss of wealth through its disappearance or difficulty obtaining it; loss of lives through calamities that destroy people or martyrdom in Allah's cause; and loss of the earth's produce. Prophet, give those who patiently endure these afflictions glad tidings of what will please them in this world and the Hereafter.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "13:28",
+      "kind": "text",
+      "ar": "28 - هؤلاء الذين يهديهم الله هم الذين آمنوا، وتستأنس قلوبهم بذكر الله بتسبيحه وتحميده، وبتلاوة كتابه ألا بذكر الله وحده تستأنس القلوب، خَلِيق بها ذلك.",
+      "tr": "28 - Those whom Allah guides are those who believe and whose hearts find comfort in remembering Allah through glorifying and praising Him and reciting His Book. Indeed, hearts find comfort in remembering Allah alone; that is fitting for them.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3db00e2a5f35",
+      "kind": "title",
+      "ar": "الرعد",
+      "tr": "Ar-Rad",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "11:88",
+      "kind": "text",
+      "ar": "88 - قال شعيب لقومه: يا قوم، أخبروني عن حالكم إن كنت على برهان واضح من ربي، وبصيرة منه، ورزقني منه رزقًا حلالًا، ومنه النبوة، وما أريد أن أنهاكم عن شيء وأخالفكم في فعله، لا أريد إلا إصلاحكم بدعوتكم إلى توحيد ربكم وطاعته قدر استطاعتي، وما توفيقي إلى الحصول على ذلك إلا بالله سبحانه، عليه وحده توكلت في جميع أموري، وإليه أرجع.",
+      "tr": "88 - Shuayb said to his people: My people, tell me: if I have clear evidence and insight from my Lord, and He has given me lawful provision, including prophethood, what is your position? I do not intend to forbid you something and then do it myself, contrary to you. I seek only to reform you, as far as I can, by calling you to affirm your Lord's oneness and obey Him. My success in achieving this comes only through Allah, glorified is He. In Him alone I place my trust in all my affairs, and to Him I return.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fd9d2ec55193",
+      "kind": "title",
+      "ar": "هود",
+      "tr": "Hud",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "3:173",
+      "kind": "text",
+      "ar": "173 - الذين قال لهم بعض المشركين: إن قريشًا بقيادة أبي سفيان قد جمعوا لكم جموعًا كثيرة لقتالكم والقضاء عليكم فاحذروهم واتقوا لقاءهم، فزادهم هذا الكلام والتخويف تصديقًا بالله وثقة بوعده، فخرجوا إلى لقائهم وهم يقولون: يكفينا الله تعالى، وهو نِعْمَ من نفوِّض إليه أمرنا.",
+      "tr": "173 - Those to whom some polytheists said: Quraysh, led by Abu Sufyan, have gathered great forces to fight and annihilate you, so beware of them and avoid meeting them. This statement and intimidation increased their belief in Allah and confidence in His promise. They went out to meet them, saying: Allah Most High is sufficient for us, and He is the best One to whom we entrust our affairs.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:236876042743",
+      "kind": "title",
+      "ar": "آل عمران",
+      "tr": "Al Imran",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "2:20",
+      "kind": "text",
+      "ar": "20 - يكاد البرق من شدة لمعانه وسطوعه يأخذ أبصارهم، كلما ومض البرق لهم وأضاء تقدموا، وإذا لم يضئ بقوا في الظلام، فلم يستطيعوا التحرك، ولو شاء الله لذهب بسمعهم وأبصارهم بقدرته الشاملة لكل شيء؛ فلا تعود إليهم؛ لإعراضهم عن الحق. فكان المطر مثلًا للقرآن، وصوت الصواعق مثلًا لما فيه من الزواجر، وضوء البرق مثلًا لظهور الحق لهم أحيانًا، وجعل سد الآذان من شدة الصواعق، مثلًا لإعراضهم عن الحق وعدم الاستجابة له، ووجه الشبه بين المنافقين وأصحاب المَثَلَين؛ هو عدم الاستفادة، ففي المثل الناري: لم يستفد مستوقدها غير الظلام والإحراق، وفي المثل المائي: لم يستفد أصحاب المطر إلا ما يروِّعهم ويزعجهم من الرعد والبرق، وهكذا المنافقون لا يرون في الإسلام إلا الشدة والقسوة.\nالظلام والإحراق، وفي المثل المائي: لم يستفد أصحاب المطر إلا ما يروِّعهم ويزعجهم من الرعد والبرق، وهكذا المنافقون لا يرون في الإسلام إلا الشدة والقسوة.\nولما ذكر الله أنواع الناس من مؤمنين وكافرين ومنافقين؛ ناداهم جميعًا داعيًا إياهم إلى إفراده بالعبادة، فقال:",
+      "tr": "20 - The lightning, through its intense brilliance and brightness, almost takes away their sight. Whenever it flashes and lights their way, they advance; when it gives no light, they remain in darkness, unable to move. Had Allah willed, He would have taken away their hearing and sight by His power encompassing everything, never to return, because they turned away from the truth. The rain represents the Quran; the thunderclaps represent its warnings; the lightning's light represents the truth becoming apparent to them at times. Blocking their ears against the severe thunderclaps represents their turning away from the truth and not responding to it. What the hypocrites share with the people in both parables is failure to benefit. In the fire parable, the person who kindled it gained only darkness and burning; in the water parable, those caught in the rain gained only frightening, disturbing thunder and lightning. Likewise, the hypocrites see in Islam only hardship and harshness.\nDarkness and burning; in the water parable, those caught in the rain gained only frightening, disturbing thunder and lightning. Likewise, the hypocrites see in Islam only hardship and harshness.\nAfter mentioning the different kinds of people: believers, disbelievers and hypocrites, Allah addressed them all, calling them to worship Him alone, saying:",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "3:139",
+      "kind": "text",
+      "ar": "139 - ولا تضعفوا -أيها المؤمنون- ولا تحزنوا على ما أصابكم يوم أُحد -ولا ينبغي ذلك لكم، فأنتم الأعلون بإيمانكم، والأعلون بعون الله ورجائكم نصره، إن كنتم مؤمنين بالله ووعده لعباده المتقين.",
+      "tr": "139 - Believers, do not weaken or grieve over what befell you on the day of Uhud. This does not befit you, for you are uppermost through your faith, Allah's help and your hope for His victory, if you believe in Allah and His promise to His God-fearing servants.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "2:43",
+      "kind": "text",
+      "ar": "43 - وأدّوا الصلاة تامة بأركانها وواجباتها وسننها، وأخرجوا زكاة أموالكم التي جعلها الله في أيديكم، واخضعوا لله مع الخاضعين له من أمة محمد - صلى الله عليه وسلم -.",
+      "tr": "43 - Perform salah (prayer) fully, with its pillars, obligations and recommended practices. Pay zakah (obligatory alms) from the wealth Allah has placed in your hands, and submit to Allah with those of Muhammad's community who submit to Him, peace and blessings be upon him.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "20:114",
+      "kind": "text",
+      "ar": "114 - فتعالى الله وتقدّس وجَلَّ، الملك الذي له ملك كل شيء، الذي هو حق وقوله حق، تعالى عما يصفه به المشركون، ولا تسرع -أيها السول- بقراءة القرآن مع جبريل قبل أن ينهي إليك إبلاغه، وقيل: رب زدني علمًا إلى ما علّمتني.\nولما ذكر الله قصة موسى وما اشتملت عليه من إعراض فرعون وغفلة بني إسرائيل, ذكر قصة آدم عليه السلام حثًّا على رجوع من نسي إلى طاعة الله فقال:",
+      "tr": "114 - Exalted, holy and majestic is Allah, the King who owns everything, who is true and whose speech is true. He is exalted above what the polytheists attribute to Him. Messenger, do not rush to recite the Quran along with Jibril before he finishes conveying it to you. Say: My Lord, increase me in knowledge beyond what You have taught me.\nAfter mentioning Musa's story, including Pharaoh's rejection and the Children of Israel's heedlessness, Allah mentioned Adam's story, peace be upon him, urging whoever has forgotten to return to obedience to Allah, saying:",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5e5430a5126e",
+      "kind": "title",
+      "ar": "طه",
+      "tr": "Ta Ha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "2:173",
+      "kind": "text",
+      "ar": "173 - إنما حرم الله عليكم من الأطعمة ما مات بغير ذكاة شرعية، والدم المسفوح السائل، ولحم الخنزير، وما ذُكِر عليه غيرُ اسم الله عند تذكيته، فإذا اضطر الإنسان إلى أَكْل شيء وهو غير ظالم بالأكل منها دون حاجة، ولا متجاوز لحد الضرورة؛ فلا إثم عليه ولا عقوبة، إن الله غفور لمن تاب من عباده، رحيم بهم، ومن رحمته أنَّه تجاوز عن أَكْل هذه المحرمات عند الاضطرار.",
+      "tr": "173 - Of foods, Allah has forbidden you only animals that die without lawful slaughter, flowing spilled blood, pork, and animals over which a name other than Allah's is mentioned at slaughter. If someone is compelled to eat any of these, without wrongfully eating them when there is no need or exceeding the limits of necessity, there is no sin or punishment upon him. Allah forgives His servants who repent and is merciful to them. His mercy includes pardoning consumption of these forbidden foods in cases of necessity.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "2:45",
+      "kind": "text",
+      "ar": "45 - واطلبوا العون على كل أحوالكم الدينية والدنيوية؛ بالصبر وبالصلاة التي تقربكم إلى الله وتصلكم به، فيعينكم ويحفظكم ويذهب ما بكم من ضر، وإن الصلاة لشاقة وعظيمة إلا على الخاضعين لربهم.",
+      "tr": "45 - Seek help in all your religious and worldly circumstances through patience and salah (prayer), which brings you close to Allah and connects you to Him, so that He helps and protects you and removes your harm. Prayer is difficult and weighty except for those who submit humbly to their Lord.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "2:201",
+      "kind": "text",
+      "ar": "201 - وفريق من الناس مؤمن بالله يؤمن بالآخرة، فيسأل ربه نعيم الدنيا والعمل الصالح فيها، كما يسأله الفوز بالجنّة والسلامة من عذاب النار.",
+      "tr": "201 - Some people believe in Allah and the Hereafter. They ask their Lord for worldly blessings and righteous deeds in this life, as well as admission to Paradise and safety from the punishment of the Fire.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "9:120",
+      "kind": "text",
+      "ar": "120 - ليس لأهل المدينة ولا لمن حولهم من سكان البادية أن يتخلفوا عن رسول الله - صلى الله عليه وسلم - إذا خرج إلى الجهاد بنفسه، وليس لهم أن يَشِحُّوا بانفسهم، ويصونوها عن نفسه - صلى الله عليه وسلم -، بل الواجب عليهم أن يبذلوا أنفسهم دون نفسه؛ ذلك لأنهم لا ينالهم عطش، ولا تعب، ولا مجاعة في سبيل الله، ولا ينزلون مكانًا يثير وجودهم به غيظ الكفار، ولا يصيبون من عدو قتلًا أو أسرًا أو غنيمة أو هزيمة -إلا كتب الله لهم بذلك ثواب عمل صالح يقبله منهم، إن الله لا يضيع أجر المحسنين، بل يوفيهم إياه كاملًا، ويزيدهم عليه.",
+      "tr": "120 - The people of Madinah and the surrounding desert dwellers must not remain behind when Allah's Messenger, peace and blessings be upon him, goes out personally for jihad (fighting in Allah's cause). They must not selfishly protect their own lives at the expense of his life, peace and blessings be upon him; rather, they must sacrifice themselves to protect him. That is because no thirst, exhaustion or hunger afflicts them in Allah's cause, nor do they occupy a place where their presence enrages the disbelievers, nor inflict on an enemy death, captivity, loss of spoils or defeat, without Allah recording for them the reward of a righteous deed He accepts from them. Allah does not let the reward of those who do good be lost; He gives it to them in full and adds to it.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e6fb3916c2bf",
+      "kind": "title",
+      "ar": "التوبة",
+      "tr": "At-Tawbah",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "4:32",
+      "kind": "text",
+      "ar": "32 - ولا تتمنَّوا -أيها المؤمنون- ما فضل الله به بعضكم على بعض؛ لئلا يؤدي إلى السخط والحسد، فلا ينبغي للنساء أن يرتجين ما خص الله به الرجال فإن لكل فريق حظًّا من العمل الذي يلائمه، واطلبوا مِن الله أن يزيدَكم مِن عطائه؛ إن الله عليم بكل شيء؛ فأعطى كل نوع ما يناسبه من العمل.",
+      "tr": "32 - Believers, do not wish for that by which Allah has favored some of you over others, lest it lead to resentment and envy. Women should not long for what Allah has reserved for men, for each group has a share of work suited to it. Ask Allah to increase His bounty to you. Allah knows everything, so He has given each kind the work suited to it.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0b0400fae8af",
+      "kind": "title",
+      "ar": "النساء",
+      "tr": "An-Nisa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "33:3",
+      "kind": "text",
+      "ar": "3 - واعتمد على الله أمورك كلها، وكفى به سبحانه حافظًا لمن توكل عليه من عباده.",
+      "tr": "3 - Rely upon Allah in all your affairs. He, glorified is He, is sufficient as protector for those of His servants who place their trust in Him.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0adb76910f31",
+      "kind": "title",
+      "ar": "الأحزاب",
+      "tr": "Al-Ahzab",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "53:39",
+      "kind": "text",
+      "ar": "39 - وأنه ليس للإنسان إلا ثواب عمله الذي عمله.",
+      "tr": "39 - A person has only the reward for the deeds he himself has done.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c4ffbb69c75c",
+      "kind": "title",
+      "ar": "النجم",
+      "tr": "An-Najm",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "3:146",
+      "kind": "text",
+      "ar": "146 - وكم من نبي من أنبياء الله قاتل معه جماعات من أتباعه كثيرة، فما جَبُنُوا عن الجهاد لما أصابهم من قتل وجراح في سبيل الله، وما ضعفوا عن قتال العدو، وما خضعوا له، بل صبروا وثبتوا، والله يحب الصابرين على الشدائد والمكاره في سبيله.",
+      "tr": "146 - Many prophets of Allah fought alongside numerous groups of their followers. They did not become cowardly about jihad (fighting in Allah's cause) because of the deaths and injuries they suffered in Allah's cause, nor weaken in fighting the enemy, nor submit to him. Rather, they were patient and steadfast. Allah loves those who patiently endure hardships and adversities in His cause.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "2:143",
+      "kind": "text",
+      "ar": "143 - وكما جعلنا لكم قبلة ارتضيناها لكم؛ جعلناكم أمة خيارًا عدولًا، وسطًا بين الأمم كلها، في العقائد والعبادات والمعاملات؛ لتكونوا يوم القيامة شهداء لرسل الله أنهم بلّغوا ما أمرهم الله بتبليغه لأممهم، وليكون الرسول محمد - صلى الله عليه وسلم - كذلك شهيدًا عليكم أنَّه بلغكم ما أُرْسِل به إليكم. وما جعلنا تحويل القبلة التي كنت تتجه إليها؛ وهي بيت المقدس، إلا لنعلم -علمَ ظهورٍ يترتب عليه الجزاء- من يرضى بما شرعه الله، ويُذعن له، فيتبع الرسول، ومن يرتد عن دينه، ويتبع هواه، فلا يُذعن لما شرعه الله. ولقد كان أمر تحويل القبلة الأولى عظيمًا إلا على الذين وفقهم الله للإيمان به، وبأن ما يشرعه لعباده إنما يشرعه لِحِكَمٍ بالغة. وما كان الله ليضيع إيمانكم بالله، ومنه صلاتكم التي صلَّيتموها قبل تحويل القبلة، إن الله بالناس لرؤوف رحيم، فلا يشق عليهم، ولا يضيع ثواب أعمالهم.\nوما كان الله ليضيع إيمانكم بالله، ومنه صلاتكم التي صلَّيتموها قبل تحويل القبلة، إن الله بالناس لرؤوف رحيم، فلا يشق عليهم، ولا يضيع ثواب أعمالهم.",
+      "tr": "143 - Just as We appointed for you a qiblah (direction of prayer) pleasing to Us, We made you an excellent, upright community, taking a middle course among all nations in beliefs, worship and dealings, so that on the Day of Resurrection you may testify for Allah's messengers that they conveyed to their peoples what Allah commanded them to convey, and so that the Messenger Muhammad, peace and blessings be upon him, may likewise testify that he conveyed to you what he was sent with. We changed the direction of prayer you formerly faced, Bayt al-Maqdis, only to make manifest, in a manner upon which recompense follows, who accepts what Allah has prescribed and submits to it by following the Messenger, and who turns back from his religion and follows his desires, refusing to submit to what Allah has prescribed. Changing the former direction of prayer was indeed difficult, except for those whom Allah guided to believe in Him and to believe that whatever He prescribes for His servants rests on profound wisdom. Allah would not let your faith in Him be lost, including the prayers you offered before the change of direction. Allah is compassionate and merciful toward people: He does not burden them with hardship or let the reward for their deeds be lost.\nAllah would not let your faith in Him be lost, including the prayers you offered before the change of direction. Allah is compassionate and merciful toward people: He does not burden them with hardship or let the reward for their deeds be lost.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "65:3",
+      "kind": "text",
+      "ar": "3 - ويرزقه من حيث لا يخطر له على بال، ولا يكون في حسبانه، ومن يعتمد على الله في أموره فهو كافيه، إن الله منفذ أمره، لا يعجز عن شيء، ولا يفوته شيء، قد جعل الله لكل شيء قدرًا ينتهي إليه، فللشدة قدر، وللرخاء قدر، فلا يدوم أحدهما على الإنسان.",
+      "tr": "3 - He provides for him from where it never occurs to him and he does not expect. Whoever relies upon Allah in his affairs, He is sufficient for him. Allah brings His command into effect; nothing is beyond His ability or escapes Him. Allah has appointed for everything a measure at which it ends. Hardship has its measure and prosperity its measure; neither lasts forever for a person.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "26:62",
+      "kind": "text",
+      "ar": "62 - قال موسى لقومه: ليس الأمر كما تصورتم، فإن معي ربي بالتأييد والنصر، سيرشدني ويدلني إلى طريق النجاة.",
+      "tr": "62 - Musa said to his people: It is not as you imagine. My Lord is with me, supporting me and granting victory. He will guide me and show me the way to safety.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2dcec7ee53b1",
+      "kind": "title",
+      "ar": "الشعراء",
+      "tr": "Ash-Shuara",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "12:64",
+      "kind": "text",
+      "ar": "64 - قال لهم أبوهم: هل آمنكم عليه إلا كما أمنتكم على أخيه الشقيق: يوسف من قبل؟! فقد أمنتكم عليه، وتعهدتم بحفظه، ولم تفوا بما تعهدتم به، فلا ثقة عندي بتعهدكم بحفظه، وإنما ثقتي بالله، فهو خير الحافظين لمن أراد حفظه، وأرحم الراحمين بمن أراد رحمته.",
+      "tr": "64 - Their father said to them: Should I trust you with him any differently from how I trusted you with his full brother Yusuf before? I trusted you with him, and you undertook to protect him, but you did not fulfill your undertaking. I have no confidence in your promise to protect him. My trust is in Allah alone: He is the best protector of those He wishes to protect, and the most merciful toward those He wishes to show mercy.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    }
+  ]
+}

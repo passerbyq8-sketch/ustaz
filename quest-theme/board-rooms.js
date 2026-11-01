@@ -8,6 +8,7 @@
     let roomCategorySlugs = new Set(), roomCategoryIndexes = new Map(), roomCatalogPromise = null, roomBankStamp = '';
     const digits = h.digits;
     const S = { session: null, snapshot: null, socket: null, connected: false, stopped: true, error: '', note: '', retry: null, heartbeat: null, ticks: null, closeTimer: null, retryCount: 0, slot: 0, name: '', color: 0, answer: null, text: '', returnStage: 'room-entry', busy: false };
+    global.KunuzUIRoomPlayerNames = () => [S.name, ...(S.snapshot?.teams || []).map(team => team.name)];
     const startWaiters = new Set();
     async function loadCatalog() {
       if (roomCategorySlugs.size) return [...roomCategorySlugs];

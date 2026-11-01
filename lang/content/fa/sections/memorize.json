@@ -1,0 +1,436 @@
+{
+  "schema": "ezik-tr4/1",
+  "lang": "fa",
+  "section": "memorize",
+  "title": {
+    "ar": "المُحفّظ",
+    "tr": "حفظ‌کننده"
+  },
+  "agent": "K05",
+  "generated": "2026-11-01T22:50:41+03:00",
+  "source_files": [
+    "app.jsx"
+  ],
+  "items": [
+    {
+      "id": "MEM.TITLE",
+      "kind": "title",
+      "ar": "المُحفّظ",
+      "tr": "حفظ‌کننده",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.PICKER_HEADING",
+      "kind": "title",
+      "ar": "اختر سورةً لتبدأ الحفظ",
+      "tr": "برای آغاز حفظ، سوره‌ای انتخاب کنید",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.START_LABEL",
+      "kind": "text",
+      "ar": "ابدأ من آية",
+      "tr": "از آیه آغاز کنید",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.START_BTN",
+      "kind": "text",
+      "ar": "ابدأ",
+      "tr": "آغاز",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.REVEAL_BTN",
+      "kind": "text",
+      "ar": "افتح عليّ",
+      "tr": "ادامه را به من نشان بده",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.LISTEN_BTN",
+      "kind": "text",
+      "ar": "استمع",
+      "tr": "گوش بده",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.LISTEN_RANGE_BTN",
+      "kind": "text",
+      "ar": "استمع للمقطع",
+      "tr": "به این بخش گوش بده",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.REVEAL_LABEL",
+      "kind": "text",
+      "ar": "الكشف",
+      "tr": "نمایش متن",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.GRAN_AYAH",
+      "kind": "text",
+      "ar": "آية",
+      "tr": "آیه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.GRAN_WORD",
+      "kind": "text",
+      "ar": "كلمة",
+      "tr": "کلمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.CHANGE_SURAH",
+      "kind": "text",
+      "ar": "سورة أخرى",
+      "tr": "سوره‌ای دیگر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.HIDE",
+      "kind": "text",
+      "ar": "إخفاء",
+      "tr": "پنهان کردن",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.BACK_BTN",
+      "kind": "text",
+      "ar": "رجوع",
+      "tr": "بازگشت",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.LOADING",
+      "kind": "text",
+      "ar": "لحظة، يُحضَّر المصحف…",
+      "tr": "کمی صبر کنید، مصحف آماده می‌شود…",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.PRAISE_M",
+      "kind": "text",
+      "ar": "أحسنتَ، تابِع.",
+      "tr": "آفرین، ادامه بده.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.PRAISE_F",
+      "kind": "text",
+      "ar": "أحسنتِ، تابِعي.",
+      "tr": "آفرین، ادامه بده.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.FINISH_M",
+      "kind": "text",
+      "ar": "أتممتَ المقطع، بارك الله فيك.",
+      "tr": "این بخش را به پایان رساندی، خدا به تو برکت دهد.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.FINISH_F",
+      "kind": "text",
+      "ar": "أتممتِ المقطع، بارك الله فيكِ.",
+      "tr": "این بخش را به پایان رساندی، خدا به تو برکت دهد.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.MODE_MANUAL",
+      "kind": "text",
+      "ar": "تلقين يدوي",
+      "tr": "تلقین (آموزش با خواندن متن) دستی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.MODE_ADNAN",
+      "kind": "text",
+      "ar": "استماع وترديد",
+      "tr": "گوش دادن و تکرار کردن",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.ADNAN_START",
+      "kind": "text",
+      "ar": "ابدأ",
+      "tr": "آغاز",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.ADNAN_STOP",
+      "kind": "text",
+      "ar": "إيقاف",
+      "tr": "توقف",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.ADNAN_REPEAT",
+      "kind": "text",
+      "ar": "أعد الآية",
+      "tr": "آیه را تکرار کن",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.ADNAN_AYAH_LABEL",
+      "kind": "text",
+      "ar": "آية",
+      "tr": "آیه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.MODE_RECITE",
+      "kind": "text",
+      "ar": "سمِّعني",
+      "tr": "از حفظم بشنو",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.RECITE_HINT",
+      "kind": "text",
+      "ar": "هذا تمرينٌ يعينك على الحفظ، والتسميع الحقيقيّ يكون عند شيخك أو والديك.",
+      "tr": "این تمرین به حفظ شما کمک می‌کند؛ ارائه واقعی محفوظات باید نزد شیخ یا پدر و مادرتان باشد.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.RECITE_START",
+      "kind": "text",
+      "ar": "ابدأ التسميع",
+      "tr": "آغاز ارائه محفوظات",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.RECITE_STOP",
+      "kind": "text",
+      "ar": "إيقاف",
+      "tr": "توقف",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.RECITE_DONE",
+      "kind": "text",
+      "ar": "أحسنت، تابِع حفظك.",
+      "tr": "آفرین، حفظت را ادامه بده.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "MEM.RECITE_NEXT",
+      "kind": "text",
+      "ar": "الآية التالية",
+      "tr": "آیه بعدی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    }
+  ]
+}
