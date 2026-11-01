@@ -2094,7 +2094,8 @@ const SEALED = {
   // 2026-10-31 USAGE production ship: reserved cache ezik-v127; app.js rebuilt; CORE membership unchanged; worker seal remeasured.
   // 2026-11-01 LANGS round C: reserved cache ezik-v128; app.js rebuilt (enabled list); CORE membership unchanged; worker seal remeasured.
   // 2026-11-01 USAGE dashboard ship: reserved cache ezik-v129; app.js rebuilt; CORE membership unchanged.
-  'sw.js': '50fee5e60fd87ca94640699f6b487b1bfcb2cedcb234279c09d65cdbe8079e41',
+  // 2026-11-02 TRANSLATE4 integrate: reserved cache ezik-v130; /lang/content/ network-first, no precache; app.js rebuilt; CORE membership unchanged.
+  'sw.js': '2cb674e19fb4d437a2d212aa0e08138a39811ca4531aec4b584b2abc0800fa66',
 };
 
 // ---------------------------------------------------------------------------
@@ -3270,7 +3271,7 @@ async function compare(bankPath) {
     //  { n, sum: [a, b] }  n is the byte sum of those files on disk
     //  { n, dir: 'count' | 'sum' | 'mean' }   n is that statistic over the mushaf page scans
     const SW_PROSE = [
-      { n: 179227, of: 'index.html' },
+      { n: 179237, of: 'index.html' },
       // ITEM 85. The two CORE entries the self-hosted faces added, stated in the worker's byte
       // table beside the rest and re-derived here from the files they name. They are the arabic
       // and latin cuts of Noto Naskh Arabic, which is what the first screen is painted in.
@@ -3283,7 +3284,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2508011, of: 'app.js' },
+      { n: 2509623, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

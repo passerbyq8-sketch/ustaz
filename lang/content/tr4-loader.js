@@ -101,7 +101,8 @@
     var seen = done.get(root) || new WeakSet(), doc = root.ownerDocument || document, lang = data.lang, nodes = [];
     function walk(n) {
       if (n.nodeType === 3) { if (/[؀-ۿ]/.test(n.nodeValue) && !seen.has(n)) nodes.push(n); return; }
-      if (n.nodeType !== 1 || /^(SCRIPT|STYLE|TEXTAREA|INPUT|SELECT|OPTION|svg)$/i.test(n.tagName) || n.isContentEditable || n.hasAttribute('data-tr4-owned')) return;
+      if (n.nodeType !== 1 || /^(SCRIPT|STYLE|TEXTAREA|INPUT|svg)$/i.test(n.tagName) || n.isContentEditable || n.hasAttribute('data-tr4-owned')) return;
+      if (n.tagName === 'OPTION' && !n.hasAttribute('value')) return;
       Array.from(n.childNodes).forEach(walk);
     }
     walk(root);
@@ -114,6 +115,7 @@
         var el = doc.createElement(tag); el.className = cls; el.textContent = text; el.setAttribute('data-tr4-owned', ''); el.dir = options.direction(lang);
         (after || parent).insertBefore(el, (after ? null : n.nextSibling)); r.extra.push(el); return el;
       }
+      if (parent.tagName === 'OPTION') { if (!item || !item.tr) return; r.shown = item.tr; n.nodeValue = item.tr; seen.add(n); list.push(r); return; }
       var control = parent.closest ? parent.closest('button,a,[role="button"],label,summary') : null;
       if (item && SACRED[item.kind]) {
         var by = credit(item), note = item.footnotes;
@@ -122,12 +124,12 @@
           var source = add(control ? 'span' : 'a', by, 'tr4-source'); source.style.cssText = 'display:block;font-size:.75em;opacity:.75';
           if (source.tagName === 'A' && /^https:\/\//.test(item.src.url || '')) { source.href = item.src.url; source.rel = 'noopener noreferrer'; source.target = '_blank'; }
         }
-        if (item.translit) add('span', item.translit, 'tr4-translit').style.cssText = 'display:block;font-style:italic;opacity:.85';
-        add('span', item.tr, 'tr4-tr').style.cssText = 'display:block;white-space:pre-line';
+        if (item.translit) add('span', item.translit, 'tr4-translit').style.cssText = 'display:block;text-align:start;font-style:italic;opacity:.85';
+        add('span', item.tr, 'tr4-tr').style.cssText = 'display:block;text-align:start;white-space:pre-line';
       } else {
         var shown = many ? many.map(function (m) { return m.tr; }).join('\n') : item.tr;
         n.nodeValue = ''; r.shown = '';
-        var span = add('span', shown, 'tr4-prose'); span.style.cssText = 'unicode-bidi:isolate;white-space:pre-line';
+        var span = add('span', shown, 'tr4-prose'); span.style.cssText = 'display:block;text-align:start;unicode-bidi:isolate;white-space:pre-line';
         var title = item && item.kind === 'title';
         if (!title && !control) {
           var button = add('button', options.text('tr4.showArabic') || 'الأصل العربي', 'tr4-toggle');
@@ -144,19 +146,14 @@
     records.set(root, list); done.set(root, seen);
     return list.length;
   }
-  function firstBlock(root, node) {
-    var el = node.parentNode;
-    while (el && el !== root && el.parentNode !== root && global.getComputedStyle && global.getComputedStyle(el).display === 'inline') el = el.parentNode;
-    return el;
-  }
   function machineNote(root, data, doc) {
     if (root.querySelector('[data-tr4-note]')) return;
     var first = (records.get(root) || [])[0], label = options.text('tr4.machine');
     if (!first || !label || !first.node.isConnected) return;
-    var host = firstBlock(root, first.node); if (!host || !host.parentNode) return;
+    var screen = root.firstElementChild; if (!screen) return;
     var el = doc.createElement('div'); el.textContent = label; el.setAttribute('data-tr4-owned', ''); el.setAttribute('data-tr4-note', ''); el.dir = options.direction(data.lang);
-    el.style.cssText = 'font-size:.72em;opacity:.7;padding:4px 0';
-    host.parentNode.insertBefore(el, host);
+    el.style.cssText = 'font-size:.72em;opacity:.7;padding:2px 14px';
+    screen.insertBefore(el, screen.children[1] || null);
   }
   /* The mounted root is observed only while a translated section is open. */
   function mount(root, lang, sections) {
