@@ -14162,8 +14162,7 @@ function ezikBrowseScholarRows(rows) {
 // named series always sorts before the bucket, and the bucket is always last on the page.
 // DEVICE CHECK J9: display only; the raw name still goes back to the service. A test shelf is not drawn, and a shelf named
 // by a file type or a sorting word reads as the same «assorted lessons» as the empty one.
-const EZIK_SERIES_TEST_RE = /^(tests?|testing|demo|sample|\u062A\u062C\u0631\u0628\u0629|\u062A\u062C\u0631\u064A\u0628\u064A?)[\s\d_-]*$/i;
-const EZIK_SERIES_RAW_RE = /^(unclassified|uncategori[sz]ed|misc|other|audio|video|mp[34](\s*\+\s*mp[34])?)$/i;
+function ezikSeriesIsRaw(s) { return /^(unclassified|uncategori[sz]ed|misc|other|audio|video|mp[34](\s*\+\s*mp[34])?)$/i.test(s); }
 // DEVICE CHECK J13: at display only: a title loses its #tags and the stray marks around it. The source stays as it is.
 function ezikCleanTitle(t) {
   const raw = typeof t === 'string' ? t : '';
@@ -14177,8 +14176,8 @@ function ezikBrowseSeriesRows(rows) {
   for (const row of rows) {
     if (!row || typeof row !== 'object') continue;
     const series = typeof row.series === 'string' ? row.series.trim() : '';
-    if (EZIK_SERIES_TEST_RE.test(series)) continue;
-    const entry = { series: series, count: ezikBrowseCount(row.count), misc: series === '' || EZIK_SERIES_RAW_RE.test(series) };
+    if (/^(tests?|testing|demo|sample|\u062A\u062C\u0631\u0628\u0629|\u062A\u062C\u0631\u064A\u0628\u064A?)[\s\d_-]*$/i.test(series)) continue;
+    const entry = { series: series, count: ezikBrowseCount(row.count), misc: series === '' || /^(unclassified|uncategori[sz]ed|misc|other|audio|video|mp[34](\s*\+\s*mp[34])?)$/i.test(series) };
     if (entry.misc) loose.push(entry); else named.push(entry);
   }
   return named.concat(loose);
@@ -14329,7 +14328,7 @@ function LessonsBrowsePane({ backRef }) {
     ? ezT('lessons.scholarsTitle')
     : (level === EZIK_BROWSE_SERIES
       ? scholar
-      : (series && !EZIK_SERIES_RAW_RE.test(series) ? series : ezT('lessons.miscSeries')));
+      : (series && !ezikSeriesIsRaw(series) ? series : ezT('lessons.miscSeries')));
 
   return (
     <div style={s.lsbPane}>
