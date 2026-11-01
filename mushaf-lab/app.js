@@ -530,9 +530,17 @@
   function togglePageBookmark() {
     const on = toggleBookmark('p', cur); toast(on ? 'حُفظت علامة الصفحة' : 'أُزيلت علامة الصفحة');
   }
+  // DEVICE CHECK J2: the index keeps its own one mark. A mark removed here leaves the index too, or moves it to the
+  // newest mark still kept; a mark the reader placed from the index on another page is not this removal's business.
+  const bmPage = (b) => (b.t === 'p' ? +b.k : ayahPage[b.k]);
+  function tellEzikMarkGone(gone) {
+    const pg = gone && bmPage(gone); if (!pg) return;
+    const rest = bookmarks()[0]; const nx = rest ? bmPage(rest) : 0;
+    toEzik({ type: 'mushaf-lab:bookmark-clear', page: pg, next: nx || 0, ns: nx ? surahOfPage(nx) : 0 });
+  }
   function toggleBookmark(t, k) {
     const list = bookmarks(); const i = list.findIndex((b) => b.t === t && String(b.k) === String(k));
-    if (i >= 0) { list.splice(i, 1); store.set('bm', list); return false; }
+    if (i >= 0) { const [gone] = list.splice(i, 1); store.set('bm', list); tellEzikMarkGone(gone); return false; }
     list.unshift({ id: uid(), t, k, tags: [], at: Date.now() }); store.set('bm', list);
     const pg = t === 'p' ? +k : ayahPage[k]; if (pg) toEzik({ type: 'mushaf-lab:bookmark', page: pg, s: surahOfPage(pg) });
     return true;
@@ -602,7 +610,7 @@
     if (d.unfav !== undefined) { const l = favs(); l.splice(+d.unfav, 1); store.set('fav', l); renderSaved('fav'); return; }
     if (d.filter !== undefined) { bmFilter = d.filter; renderSaved('bm'); return; }
     if (d.bmdel) {
-      const l = bookmarks(); const i = l.findIndex((x) => x.id === d.bmdel); if (i < 0) return; const [gone] = l.splice(i, 1); store.set('bm', l); renderSaved('bm'); redrawMarks();
+      const l = bookmarks(); const i = l.findIndex((x) => x.id === d.bmdel); if (i < 0) return; const [gone] = l.splice(i, 1); store.set('bm', l); tellEzikMarkGone(gone); renderSaved('bm'); redrawMarks();
       toast('حُذفت العلامة', 'تراجع', () => { const l2 = bookmarks(); l2.splice(i, 0, gone); store.set('bm', l2); if ($('svBody') && $('svBody').dataset.tab === 'bm') renderSaved('bm'); redrawMarks(); });
       return;
     }

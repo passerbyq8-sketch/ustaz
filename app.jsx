@@ -41494,6 +41494,14 @@ function MushafLabFrame({ startSurah, startPage, onExit }) {
       if (!Number.isInteger(p) || p < 1 || p > 604) return;
       if (d.type === 'mushaf-lab:page') { pg = p; writeMushafLastPage(p, sr); arm(); }
       else if (d.type === 'mushaf-lab:bookmark') writeMushafBookmark(p, sr);
+      else if (d.type === 'mushaf-lab:bookmark-clear') {
+        const b = readMushafBookmark();
+        if (b && b.p === p) {
+          const nx = Number(d.next);
+          if (Number.isInteger(nx) && nx >= 1 && nx <= 604) writeMushafBookmark(nx, Number(d.ns) || sr);
+          else { try { localStorage.removeItem(MUSHAF_BOOKMARK_KEY); } catch (e) {} }
+        }
+      }
     };
     const onVis = () => { if (visible()) arm(); else disarm(); };
     window.addEventListener('message', onMsg);
