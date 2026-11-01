@@ -10437,15 +10437,18 @@ function ez110AdhanCardLit() {
 }
 function ez110AdhanAsked() { try { return !!localStorage.getItem(EZ110_ADHAN_ASKED_KEY); } catch (e) { return true; } }
 function ez110MarkAdhanAsked() { try { localStorage.setItem(EZ110_ADHAN_ASKED_KEY, '1'); } catch (e) {} }
-function Ez110AdhanCard({ onPressed, onLater, onGranted }) {
-  // DEVICE CHECK O1: the card has done its work the moment the call to prayer is on. The switch inside it stays as gate
-  // schedulepayload pins it, so the card watches the switch's own store.
+// DEVICE CHECK O1: the card has done its work the moment the call to prayer is on. The switch inside it stays as gate
+// schedulepayload pins it, so this watches the switch's own store and draws nothing.
+function Ez110AdhanWatch({ onGranted }) {
   const grantedRef = useRef(onGranted);
   grantedRef.current = onGranted;
   useEffect(() => {
     const id = setInterval(() => { if (readPrayerNotify() && grantedRef.current) grantedRef.current(); }, 300);
     return () => clearInterval(id);
   }, []);
+  return null;
+}
+function Ez110AdhanCard({ onPressed, onLater }) {
   return (
     <section className="ez110-first" data-ez110-first="call" aria-label={ezT('ez110.call.title')}
       onClickCapture={(e) => { if (e.target && e.target.closest && e.target.closest('[data-ezik-prayer-notify]')) onPressed(); }}>
@@ -25290,9 +25293,11 @@ function App() {
       {/* ROUND 3 §3-11, «ب» only: the call-to-prayer card, with the existing switch in it */}
       {ez110.id && ez110AdhanCardLit() && ez110AdhanShellOk && messages.length === 0 && streamingText === null && ezikSchedBridge()
         && (ez110AdhanStay || (!ez110AdhanAsked() && !readPrayerNotify())) ? (
+        <>
+        <Ez110AdhanWatch onGranted={() => { ez110MarkAdhanAsked(); setEz110AdhanStay(false); setEz110FirstTick((t) => t + 1); }} />
         <Ez110AdhanCard onPressed={() => { ez110MarkAdhanAsked(); setEz110AdhanStay(true); }}
-          onGranted={() => { ez110MarkAdhanAsked(); setEz110AdhanStay(false); setEz110FirstTick((t) => t + 1); }}
           onLater={() => { ez110MarkAdhanAsked(); setEz110AdhanStay(false); setEz110FirstTick((t) => t + 1); }} />
+        </>
       ) : null}
       {/* ONE LIST, TWO SHAPES, and the shape is a class on the container -- the entries below are
           mapped ONCE whichever state is on, so a card and a pill can never drift apart or offer
