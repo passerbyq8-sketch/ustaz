@@ -14056,6 +14056,12 @@ function ez110PluralCount(kind, n) {
   return ezT('fix.count.' + kind + '.' + form, { n: ezikBrowseNum(v) });
 }
 const ez110CountLessons = (n) => ez110PluralCount('lesson', n);
+// DEVICE CHECK J13: at display only: a title loses its #tags and the stray marks around it. The source stays as it is.
+function ezikCleanTitle(t) {
+  const raw = typeof t === 'string' ? t : '';
+  const out = raw.replace(/(^|\s)#[^\s#]+/g, ' ').replace(/^[\s!_#*]+|[\s_#*]+$/g, '').replace(/\s{2,}/g, ' ');
+  return out || raw;
+}
 // Device check J10: the Arabic results line holds its noun here so the noun can follow the number; other languages keep
 // the noun in their own sentence.
 function ezikCountedResults(n) {
@@ -14169,12 +14175,6 @@ function ezikBrowseScholarRows(rows) {
 // DEVICE CHECK J9: display only; the raw name still goes back to the service. A test shelf is not drawn, and a shelf named
 // by a file type or a sorting word reads as the same «assorted lessons» as the empty one.
 function ezikSeriesIsRaw(s) { return /^(unclassified|uncategori[sz]ed|misc|other|audio|video|mp[34](\s*\+\s*mp[34])?)$/i.test(s); }
-// DEVICE CHECK J13: at display only: a title loses its #tags and the stray marks around it. The source stays as it is.
-function ezikCleanTitle(t) {
-  const raw = typeof t === 'string' ? t : '';
-  const out = raw.replace(/(^|\s)#[^\s#]+/g, ' ').replace(/^[\s!_#*]+|[\s_#*]+$/g, '').replace(/\s{2,}/g, ' ');
-  return out || raw;
-}
 function ezikBrowseSeriesRows(rows) {
   if (!Array.isArray(rows)) return [];
   const named = [];
