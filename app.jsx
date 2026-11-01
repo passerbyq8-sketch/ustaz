@@ -43639,7 +43639,7 @@ const s = {
   // ===== بطاقة الآية =====
   verseCard: { background: 'var(--red-soft)', border: '1px solid var(--line)', borderRadius: 14, padding: '12px 14px' },
   verseCardLabel: { display: 'inline-flex', alignItems: 'center', gap: 5, color: 'var(--red)', fontSize: 12, fontWeight: 600, marginBottom: 6 },
-  verseText: { direction: 'rtl', fontSize: 19, color: 'var(--verse-ink)', textAlign: 'center', fontFamily: "'Amiri Quran', 'Amiri', 'Tajawal', serif", lineHeight: 2.1, margin: '6px 0 6px' },
+  verseText: { fontSize: 19, color: 'var(--verse-ink)', textAlign: 'center', fontFamily: "'Amiri Quran', 'Amiri', 'Tajawal', serif", lineHeight: 2.1, margin: '6px 0 6px' },
   surahText: { fontSize: 19, color: 'var(--verse-ink)', textAlign: 'justify', textAlignLast: 'center', fontFamily: "'Amiri Quran', 'Amiri', 'Tajawal', serif", lineHeight: 2.3, margin: '6px 2px 8px', direction: 'rtl' },
   verseMeta: { fontSize: 12, textAlign: 'center', color: 'var(--muted)', fontWeight: 500 },
   verseFooter: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap', marginTop: 8 },
@@ -43649,7 +43649,7 @@ const s = {
   // ===== بطاقة الحديث =====
   hadithCard: { background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 14, padding: '12px 14px' },
   hadithCardLabel: { display: 'inline-flex', alignItems: 'center', gap: 5, color: 'var(--red)', fontSize: 12, fontWeight: 600, marginBottom: 6 },
-  hadithText: { direction: 'rtl', textAlign: 'right', color: 'var(--ink)', fontSize: 15, lineHeight: 1.9, margin: '4px 0' },
+  hadithText: { color: 'var(--ink)', fontSize: 15, lineHeight: 1.9, margin: '4px 0' },
   hadithMeta: { fontSize: 12, color: 'var(--muted)', marginTop: 4, fontWeight: 500 },
   ezTranslationNote: { alignSelf: 'stretch', textAlign: 'left', margin: '2px 0 6px', padding: '8px 12px', background: 'var(--tint)', border: '1px solid var(--line)', borderRadius: 12 },
   ezTranslationLabel: { color: 'var(--red)', fontSize: 12, fontWeight: 600, marginBottom: 2 },
