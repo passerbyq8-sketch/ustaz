@@ -10558,7 +10558,7 @@ function Ez110PrayerCard({ onOpen, hijri, onQibla }) {
               <span key={k} className={'ez110-prayer-cell' + (k === next ? ' is-next' : '') + (mark === 'on' ? ' is-on' : mark === 'late' ? ' is-late' : '') + (k === curKey ? ' is-cur' : '')} data-ezik-card-dot={k} data-ezik-card-mark={mark || 'none'}>
                 <span className="ez110-prayer-dot" aria-hidden="true" />
                 <span className="ez110-prayer-cname">{ezT('widget.prayer.' + k)}</span>
-                <span className="ez110-prayer-ctime">{prayerClockUi(t[k])}</span>
+                <span className="ez110-prayer-ctime">{prayerClockUi(k === 'fajr' && k === next ? nextTime : t[k])}</span>
               </span>
             );
           })}
@@ -30645,7 +30645,7 @@ function PrayerTimesPanel({ loc, day, onDay, part, onLoc, onCity }) {
           <div key={k} role="listitem" className={'ez110-prow' + (isCur ? ' is-now' : '') + (isNext ? ' is-next' : '')}
             data-ezik-prayer={k} data-ezik-current={isCur ? '1' : '0'} aria-current={isCur ? 'true' : undefined}>
             <span className="ez110-prow-name">{label(k)}</span>
-            <span className="ez110-prow-time">{prayerClockUi(t[k])}</span>
+            <span className="ez110-prow-time">{prayerClockUi(k === 'fajr' && isNext && isToday ? prayerInstantMinutes(status.next.at, loc) : t[k])}</span>
             {isCur ? <span className="ez110-prow-badge is-now">{ezT('panel.now')}</span> : isNext ? <span className="ez110-prow-badge">{ezT('panel.nextShort')}</span> : null}
             {k === 'sunrise' ? <span className="ez110-prow-bell is-blank" aria-hidden="true" /> : (
               <button type="button" role="switch" aria-checked={bellOn ? 'true' : 'false'} aria-label={ezT('panel.bell', { name: label(k) })}
