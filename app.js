@@ -4491,7 +4491,10 @@ const A2_ID_RE=/^[A-Za-z0-9_]+:[0-9]+$/;// The same widening, for the two record
 const A2_CAT_RE=/^[A-Za-z0-9_]+$/;const adhkarItemKey=(catId,i)=>String(catId)+':'+String(i);// DEVICE-LOCAL day, not toISOString: the day a reader lives by is their own midnight. Same
 // reasoning, and the same three getters, as wirdDayKey -- and its OWN function, so the mushaf
 // wird keeps every byte of its behaviour whatever happens here.
-function adhkarDayKey(d){const t=d||new Date();const y=t.getFullYear();const m=t.getMonth()+1;const day=t.getDate();return String(y)+'-'+(m<10?'0':'')+String(m)+'-'+(day<10?'0':'')+String(day);}// THE COUNT THE DHIKR ITSELF STATES.
+function adhkarDayKey(d){const t=d||new Date();const y=t.getFullYear();const m=t.getMonth()+1;const day=t.getDate();return String(y)+'-'+(m<10?'0':'')+String(m)+'-'+(day<10?'0':'')+String(day);}// DEVICE CHECK O2: A SCREEN LEFT OPEN CROSSES MIDNIGHT TOO. The reader above starts a new day at zero, but a mounted
+// screen holds the record it read. This re-reads on the turn of the local day: the half-minute check for a page kept
+// open, and the two return events for a page that slept through it.
+function useEzikNewDay(onNewDay){const cb=useRef(onNewDay);cb.current=onNewDay;useEffect(()=>{let day=adhkarDayKey();const check=()=>{const d=adhkarDayKey();if(d!==day){day=d;cb.current();}};const id=setInterval(check,30000);if(id&&id.unref)id.unref();window.addEventListener('focus',check);document.addEventListener('visibilitychange',check);return()=>{clearInterval(id);window.removeEventListener('focus',check);document.removeEventListener('visibilitychange',check);};},[]);}// THE COUNT THE DHIKR ITSELF STATES.
 //
 // The store's `repeat` field is right when it is there, and it is missing from items whose own
 // text ends by naming the number: «(سبع مرات)» on one and «(ثلاثَ مرَّاتٍ)» on another, while the
@@ -4731,7 +4734,7 @@ const ez110ScrollMem=useRef(0);// Session 85. THIS COMPONENT IS STILL THE ONLY O
 // The WHOLE store is kept now, not just db.categories: the daily card resolves each stored
 // count against the real item it names, and byCat is where those items are. Still one
 // loadAdhkar() call, still the store's own objects, still no reshaping of any of them.
-const[db,setDb]=useState(null);const[query,setQuery]=useState('');const[searchOpen,setSearchOpen]=useState(false);const[selected,setSelected]=useState(null);const[startAt,setStartAt]=useState(0);const[prog,setProg]=useState(readAdhkarProgress);const[usage,setUsage]=useState(readAdhkarUsage);const[favs,setFavs]=useState(readAdhkarFavorites);// ITEM 43-أ. The chain is browse state like the rest: this component owns it, reads it and
+const[db,setDb]=useState(null);const[query,setQuery]=useState('');const[searchOpen,setSearchOpen]=useState(false);const[selected,setSelected]=useState(null);const[startAt,setStartAt]=useState(0);const[prog,setProg]=useState(readAdhkarProgress);useEzikNewDay(()=>{setProg(readAdhkarProgress());setStreak(readAdhkarStreak());});const[usage,setUsage]=useState(readAdhkarUsage);const[favs,setFavs]=useState(readAdhkarFavorites);// ITEM 43-أ. The chain is browse state like the rest: this component owns it, reads it and
 // writes it, and the presentation below is handed the two numbers it draws.
 const[streak,setStreak]=useState(readAdhkarStreak);// A-3: this screen owns its slice of the daily-wird record, like every other value here.
 const[dailyWird,setDailyWird]=useState(readDailyWird);useEffect(()=>{let alive=true;// BOTH STORES, AND THE SPLIT ONE IS ALLOWED TO FAIL. adhkar.json is what the screen needs;
@@ -5011,7 +5014,7 @@ function AdhkarCategoryV2({cat,startAt,onBack}){// Session 85. THE LOGIC BELOW I
 // Session 86: the same APPLICATION style hook the browse screen and the home screen read.
 // S102: the layout key is gone; there is nothing left to branch on here either.
 const[items,setItems]=useState(null);const[idx,setIdx]=useState(0);// the item being read, 0-based
-const[prog,setProg]=useState(readAdhkarProgress);const[favs,setFavs]=useState(readAdhkarFavorites);const[note,setNote]=useState('');// share feedback, announced politely
+const[prog,setProg]=useState(readAdhkarProgress);useEzikNewDay(()=>setProg(readAdhkarProgress()));const[favs,setFavs]=useState(readAdhkarFavorites);const[note,setNote]=useState('');// share feedback, announced politely
 // The ids favourited under the split's SOURCE category, resolved once when the store lands.
 // Empty for every category that is not a door of the split, and empty when nothing old is
 // favourited -- so the ordinary path is the one that shipped.

@@ -17901,6 +17901,22 @@ function adhkarDayKey(d) {
   const day = t.getDate();
   return String(y) + '-' + (m < 10 ? '0' : '') + String(m) + '-' + (day < 10 ? '0' : '') + String(day);
 }
+// DEVICE CHECK O2: A SCREEN LEFT OPEN CROSSES MIDNIGHT TOO. The reader above starts a new day at zero, but a mounted
+// screen holds the record it read. This re-reads on the turn of the local day: the half-minute check for a page kept
+// open, and the two return events for a page that slept through it.
+function useEzikNewDay(onNewDay) {
+  const cb = useRef(onNewDay);
+  cb.current = onNewDay;
+  useEffect(() => {
+    let day = adhkarDayKey();
+    const check = () => { const d = adhkarDayKey(); if (d !== day) { day = d; cb.current(); } };
+    const id = setInterval(check, 30000);
+    if (id && id.unref) id.unref();
+    window.addEventListener('focus', check);
+    document.addEventListener('visibilitychange', check);
+    return () => { clearInterval(id); window.removeEventListener('focus', check); document.removeEventListener('visibilitychange', check); };
+  }, []);
+}
 // THE COUNT THE DHIKR ITSELF STATES.
 //
 // The store's `repeat` field is right when it is there, and it is missing from items whose own
@@ -18511,6 +18527,7 @@ function AdhkarScreenV2({ onBack }) {
   const [selected, setSelected] = useState(null);
   const [startAt, setStartAt] = useState(0);
   const [prog, setProg] = useState(readAdhkarProgress);
+  useEzikNewDay(() => { setProg(readAdhkarProgress()); setStreak(readAdhkarStreak()); });
   const [usage, setUsage] = useState(readAdhkarUsage);
   const [favs, setFavs] = useState(readAdhkarFavorites);
   // ITEM 43-أ. The chain is browse state like the rest: this component owns it, reads it and
@@ -19445,6 +19462,7 @@ function AdhkarCategoryV2({ cat, startAt, onBack }) {
   const [items, setItems] = useState(null);
   const [idx, setIdx] = useState(0);                       // the item being read, 0-based
   const [prog, setProg] = useState(readAdhkarProgress);
+  useEzikNewDay(() => setProg(readAdhkarProgress()));
   const [favs, setFavs] = useState(readAdhkarFavorites);
   const [note, setNote] = useState('');                    // share feedback, announced politely
   // The ids favourited under the split's SOURCE category, resolved once when the store lands.
