@@ -40845,6 +40845,13 @@ function khatmahReadMark(raw, total) {
 // error panel. Pages are filtered, range-checked against the LAYOUT (never against a number
 // typed here) and de-duplicated on the way out, so the count can only ever be the number of
 // distinct real pages and can never exceed the length of the book.
+// DEVICE CHECK J1: an undo did not last. The record travels as a counter, so the server JOINS the page arrays and a page
+// taken back on one device came home on the next sync. A page therefore carries the time it was marked (t) and the time
+// it was taken back (x), and a new khatmah carries its own time (r). Those three are maps and a number, which the
+// counter merge already keeps at their largest, so the rule holds on every device with no change on the server.
+function khatmahStampOf(o, pg) { const v = o && typeof o === 'object' ? o[pg] : 0; return Number.isFinite(v) && v > 0 ? v : 0; }
+function khatmahResetOf(rec) { return rec && Number.isFinite(rec.r) && rec.r > 0 ? rec.r : 0; }
+function khatmahPageLive(rec, pg) { return khatmahStampOf(rec.t, pg) >= Math.max(khatmahStampOf(rec.x, pg), khatmahResetOf(rec)); }
 function readKhatmah(pk) {
   const total = khatmahTotalPages();
   const out = khatmahEmpty();
@@ -40858,6 +40865,7 @@ function readKhatmah(pk) {
       if (total > 0 && v > total) continue;
       if (seen[v]) continue;
       seen[v] = 1;
+      if (!khatmahPageLive(rec, v)) continue;
       out.p.push(v);
     }
   }
@@ -40876,7 +40884,14 @@ function readKhatmah(pk) {
 function writeKhatmah(pk, rec) {
   if (!pk || !rec) return false;
   const map = readKhatmahAll();
-  map[pk] = { p: rec.p, c: rec.c, m: rec.m };
+  const old = map[pk] && typeof map[pk] === 'object' ? map[pk] : {};
+  const entry = { p: rec.p, c: rec.c, m: rec.m };
+  const t = Object.assign({}, old.t, rec.t), x = Object.assign({}, old.x, rec.x);
+  if (Object.keys(t).length) entry.t = t;
+  if (Object.keys(x).length) entry.x = x;
+  const r = Math.max(khatmahResetOf(old), khatmahResetOf(rec));
+  if (r) entry.r = r;
+  map[pk] = entry;
   try { localStorage.setItem(KHATMAH_KEY, JSON.stringify(map)); return true; } catch (e) { return false; }
 }
 
@@ -40898,7 +40913,11 @@ function khatmahTogglePage(pk, rec, pg) {
   if (total > 0 && pg > total) return { rec: rec, ok: true };
   const at = rec.p.indexOf(pg);
   const pages = at === -1 ? rec.p.concat([pg]) : rec.p.slice(0, at).concat(rec.p.slice(at + 1));
-  return khatmahCommit(pk, rec, { p: pages, c: rec.c, m: rec.m });
+  const raw = readKhatmahAll()[pk] || {};
+  const stamp = Math.max(Date.now(), khatmahStampOf(raw.t, pg) + 1, khatmahStampOf(raw.x, pg) + 1, khatmahResetOf(raw) + 1);
+  const next = { p: pages, c: rec.c, m: rec.m };
+  if (at === -1) next.t = { [pg]: stamp }; else next.x = { [pg]: stamp };
+  return khatmahCommit(pk, rec, next);
 }
 
 // COMPLETE IS A MEASUREMENT, not a flag that could drift out of step with the pages. It is
@@ -40914,7 +40933,9 @@ function khatmahComplete(rec, total) {
 function khatmahStartNew(pk, rec, total) {
   if (!khatmahComplete(rec, total)) return { rec: rec, ok: true };
   const c = rec.c < KHATMAH_DONE_MAX ? rec.c + 1 : rec.c;
-  return khatmahCommit(pk, rec, { p: [], c: c, m: rec.m });
+  const raw = readKhatmahAll()[pk] || {};
+  const last = Object.values(raw.t && typeof raw.t === 'object' ? raw.t : {}).reduce((a, b) => (Number.isFinite(b) && b > a ? b : a), 0);
+  return khatmahCommit(pk, rec, { p: [], c: c, m: rec.m, r: Math.max(Date.now(), last + 1) });
 }
 
 // The two marks. Placing overwrites the slot, clearing empties it, naming sets one of the
