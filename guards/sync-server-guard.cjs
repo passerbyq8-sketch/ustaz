@@ -194,7 +194,7 @@ async function main() {
     await push([{ id: 'ctr:khatmah_probe', rec: rec(10, { P: { p: [320], c: 0, t: { 320: 10 } } }) }]);
     r = await push([{ id: 'ctr:khatmah_probe', rec: rec(20, { P: { p: [], c: 0, t: { 320: 10 }, x: { 320: 20 } } }) }], 'device-bbbb2222');
     const jv = r.body.results[0].rec.val.P;
-    const appSrc = fs.readFileSync(path.join(REPO, 'app.jsx'), 'utf8');
+    const appSrc = require('fs').readFileSync(path.join(REPO, 'app.jsx'), 'utf8');
     const liveSrc = appSrc.slice(appSrc.indexOf('function khatmahStampOf('), appSrc.indexOf('function readKhatmah('));
     const live = new Function(liveSrc + '; return khatmahPageLive;')();
     check('C4e the page array still joins, the undo stamp wins', jv.p.includes(320) && jv.x[320] === 20 && live(jv, 320) === false, JSON.stringify(jv));
