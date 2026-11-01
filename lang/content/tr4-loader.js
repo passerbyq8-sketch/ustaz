@@ -210,7 +210,7 @@
       if (row.status === 'failed' || !global.DATA || !Array.isArray(global.DATA.qs)) return 0;
       var items = (row.data && row.data.items) || {}, cats = (row.data && row.data.cats) || {}, count = 0;
       global.DATA.qs.forEach(function (q) {
-        if (q[2] === 0) return;
+        if (q[2] === 0 || q.kzPack) return;
         var t = Object.prototype.hasOwnProperty.call(items, q[8]) ? items[q[8]] : null;
         if (!t || !Array.isArray(t[1]) || t[1].length !== q[4].length) { q.kzHide = true; return; }
         q.kzAr = [q[3], q[4], q[6]]; q[3] = t[0]; q[4] = t[1].slice(); if (t[2]) q[6] = t[2]; count++;

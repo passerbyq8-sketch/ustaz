@@ -1624,10 +1624,8 @@
     const sources = ['/quest-data/kunuz-bank-3147.js', '/quest-data/kunuz-geo-index.js', '/quest-data/kunuz-packs-manifest.js', '/quest-visual.js', '/quest-levels.js'];
     if (game === 'hanna') sources.splice(1, 0, '/quest-theme/history.js');
     await translationLayer();
-    for (const src of sources) {
-      await loadLocalScript(src + version);
-      if (src.includes('kunuz-bank-') && global.TR4?.language()) await global.TR4.overlayCore(global.TR4.language());
-    }
+    for (const src of sources) await loadLocalScript(src + version);
+    if (global.TR4?.language()) await global.TR4.overlayCore(global.TR4.language());
     global.dispatchEvent(new Event('kunuz-bank-ready'));
   }
   async function loadHannaLocal() {
