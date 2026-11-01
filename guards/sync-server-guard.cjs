@@ -179,6 +179,27 @@ async function main() {
     r = await push([{ id: 'ctr:ezik_khatmah_v1', rec: rec(30, { pages: 12, days: { a: 1, b: 5, c: 2 } }) }], 'device-bbbb2222');
     const c = r.body.results[0].rec.val;
     check('C4 counters: the LARGER wins, leaf by leaf (even when the smaller is newer)', c.pages === 40 && c.days.a === 3 && c.days.b === 5 && c.days.c === 2, JSON.stringify(c));
+    // DEVICE CHECK O2: a day's record belongs to its day.
+    await push([{ id: 'ctr:adhkar_daily_progress_v1', rec: rec(10, { d: '2026-11-01', n: { 'a:0': 3, 'a:1': 1 } }) }]);
+    r = await push([{ id: 'ctr:adhkar_daily_progress_v1', rec: rec(20, { d: '2026-11-02', n: { 'b:0': 1 } }) }], 'device-bbbb2222');
+    let dv = r.body.results[0].rec.val;
+    check('C4b a new day does not inherit yesterday\'s counts', dv.d === '2026-11-02' && !dv.n['a:0'] && dv.n['b:0'] === 1, JSON.stringify(dv));
+    r = await push([{ id: 'ctr:adhkar_daily_progress_v1', rec: rec(30, { d: '2026-11-01', n: { 'a:0': 9 } }) }]);
+    dv = r.body.results[0].rec.val;
+    check('C4c a late device still on yesterday does not bring it back', dv.d === '2026-11-02' && !dv.n['a:0'], JSON.stringify(dv));
+    r = await push([{ id: 'ctr:adhkar_daily_progress_v1', rec: rec(40, { d: '2026-11-02', n: { 'b:0': 1, 'b:1': 2 } }) }]);
+    dv = r.body.results[0].rec.val;
+    check('C4d two devices on one day still merge', dv.n['b:1'] === 2, JSON.stringify(dv));
+    // DEVICE CHECK J1: a taken-back page stays taken back through the join.
+    await push([{ id: 'ctr:khatmah_probe', rec: rec(10, { P: { p: [320], c: 0, t: { 320: 10 } } }) }]);
+    r = await push([{ id: 'ctr:khatmah_probe', rec: rec(20, { P: { p: [], c: 0, t: { 320: 10 }, x: { 320: 20 } } }) }], 'device-bbbb2222');
+    const jv = r.body.results[0].rec.val.P;
+    const appSrc = fs.readFileSync(path.join(REPO, 'app.jsx'), 'utf8');
+    const liveSrc = appSrc.slice(appSrc.indexOf('function khatmahStampOf('), appSrc.indexOf('function readKhatmah('));
+    const live = new Function(liveSrc + '; return khatmahPageLive;')();
+    check('C4e the page array still joins, the undo stamp wins', jv.p.includes(320) && jv.x[320] === 20 && live(jv, 320) === false, JSON.stringify(jv));
+    check('C4f a page marked after its undo is live again, a page with no stamps is live', live({ t: { 5: 30 }, x: { 5: 20 } }, 5) === true && live({}, 5) === true);
+    check('C4g a new khatmah retires the old pages', live({ r: 40, t: { 5: 30 } }, 5) === false && live({ r: 40 }, 5) === false && live({ r: 40, t: { 5: 50 } }, 5) === true);
     await push([{ id: 'kv:ezik_visual_theme_v2', rec: rec(50, '"dark"') }]);
     r = await push([{ id: 'kv:ezik_visual_theme_v2', rec: rec(40, '"light"') }], 'device-bbbb2222');
     check('C5 settings: the LAST change wins -- an older write does not replace a newer one', r.body.results[0].rec.val === '"dark"');
