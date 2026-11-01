@@ -426,11 +426,11 @@
       const n = store.get('notes', {})[key] || '';
       body.innerHTML = '<textarea id="noteBox" placeholder="ملاحظتك على هذه الآية. تُحفَظ على هذا الجهاز.">' + esc(n) + '</textarea><div class="row" style="margin-top:8px"><button type="button" class="chip" data-act="saveNote">حفظ</button><button type="button" class="chip" data-act="delNote">حذف</button></div>';
       // 127 note m10 (part fix): every change is kept through the SAME writer «حفظ» uses (store notes, the same key and
-      // trimmed value), so closing the sheet by any road -- the scrim, a tab, the app's back -- loses nothing. An empty
-      // box writes nothing: it never creates a note and never erases one (erasing is the delete button's alone).
+      // trimmed value), so closing the sheet by any road -- the scrim, a tab, the app's back -- loses nothing. A box the
+      // reader has emptied holds no note (device check J3: it used to keep the last letter), and it never creates one.
       if (EZ110_FIX) {
         const box = $('noteBox');
-        box.addEventListener('input', () => { const v = box.value.trim(); if (!v) return; const nn = store.get('notes', {}); if (nn[key] !== v) { nn[key] = v; store.set('notes', nn); } });
+        box.addEventListener('input', () => { const v = box.value.trim(); const nn = store.get('notes', {}); if (!v) { if (nn[key] !== undefined) { delete nn[key]; store.set('notes', nn); } return; } if (nn[key] !== v) { nn[key] = v; store.set('notes', nn); } });
       }
     }
   }
