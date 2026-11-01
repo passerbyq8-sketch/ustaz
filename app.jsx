@@ -14050,6 +14050,17 @@ function ez110PluralCount(kind, n) {
   return ezT('fix.count.' + kind + '.' + form, { n: ezikBrowseNum(v) });
 }
 const ez110CountLessons = (n) => ez110PluralCount('lesson', n);
+// Device check J10: the Arabic results line holds its noun here so the noun can follow the number; other languages keep
+// the noun in their own sentence.
+function ezikCountedResults(n) {
+  const v = Number(n) || 0, h = v % 100, num = ezikFatwaNumber(v);
+  if (EZ_LANG !== 'ar') return num;
+  if (v === 1) return 'نتيجة واحدة';
+  if (v === 2) return 'نتيجتان';
+  if (h >= 3 && h <= 10) return num + ' نتائج';
+  if (h >= 11 && h <= 99) return num + ' نتيجةً';
+  return num + ' نتيجة';
+}
 // ROUND 4 (phone round N9, 127 note m21), part fix: a scholar's series named «(10) ...» came before «(2) ...» -- the
 // server's order is by the name's characters. Within the page it sent, the series that carry a number in brackets
 // are put in number order IN THE SAME PLACES; every other series keeps its place. Across pages the order is the
@@ -17617,7 +17628,7 @@ function FatwaScreen({ onBack, favPk }) {
     else if (pagination && pagination.total === 0) status = ezT('fatwa.none');
     else if (pagination && pagination.total > 0) {
       status = ezT('fatwa.summary', {
-        total: ezikFatwaNumber(pagination.total),
+        total: ezikCountedResults(pagination.total),
         page: ezikFatwaNumber(pagination.page),
         pages: ezikFatwaNumber(pagination.totalPages),
       });
