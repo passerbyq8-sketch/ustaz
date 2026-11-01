@@ -195,7 +195,7 @@
       st.className = 'stage' + (S.mode === 'vector' ? ' vector' : '') + (p < 3 ? ' list-only' : ''); st.dataset.p = p;
       const im = document.createElement('img'); im.alt = 'صفحة ' + ar(p); im.decoding = 'async'; im.draggable = false;
       im.src = S.mode === 'vector' ? SVG(p) : IMG(p);
-      im.addEventListener('load', () => { if (im.naturalWidth && im.naturalHeight) st._aspect = im.naturalWidth / im.naturalHeight; sizeStages(); }); im.addEventListener('error', () => { const ph = document.createElement('div'); ph.className = 'ph'; ph.textContent = 'تعذّر تحميل صورة الصفحة'; st.appendChild(ph); });
+      im.addEventListener('load', () => { if (im.naturalWidth && im.naturalHeight) st._aspect = im.naturalWidth / im.naturalHeight; sizeStages(); }); im.addEventListener('error', () => { im.alt = ''; im.style.visibility = 'hidden'; if (st.querySelector('.ph')) return; const ph = document.createElement('div'); ph.className = 'ph'; ph.textContent = 'تعذّر تحميل صورة الصفحة'; st.appendChild(ph); });
       const layer = document.createElement('div'); layer.className = 'layer';
       const tl = document.createElement('div'); tl.className = 'tl';
       st.append(im, layer, tl);
