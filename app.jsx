@@ -16462,7 +16462,7 @@ function EzikDimaSection({ onBack }) {
     return item.src || '';
   };
   const header = <header className="dimaHeader">
-    <button type="button" className="dimaIconButton" onClick={close} aria-label={ezT('dima.back')}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m0 0 6 6m-6-6 6-6" /></svg></button>
+    <button type="button" className="dimaIconButton" onClick={close} aria-label={ezT('dima.back')}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m0 0-6 6m6-6-6-6" /></svg></button>
     <div className="dimaHeaderTitle"><strong>{rootTitle}</strong></div>
     {step === 'main' ? <button type="button" className="dimaIconButton" onClick={openNotify} aria-label={ezT('dima.openNotifications')}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg></button> : <span className="dimaHeaderSpacer" />}
   </header>;
