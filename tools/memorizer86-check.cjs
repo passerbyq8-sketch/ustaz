@@ -923,7 +923,7 @@ lift(['MEM86_TABS', 'MEM86_KIDS_RECITER']);
   const missing = [];
   for (const f of files) { const d = JSON.parse(fs.readFileSync(path.join(LANG, f), 'utf8')); for (const k of keys) if (typeof d[k] !== 'string' || !d[k].trim()) missing.push(f + ' ' + k); }
   for (const k of keys) if ((src3.match(new RegExp("'" + k.replace(/\./g, '\\.') + "': '[^']+'", 'g')) || []).length !== 2) missing.push('app.jsx ' + k);
-  ok(files.length === 21 && missing.length === 0, 'every tab, the children switch and the red-mark switch have a label in Arabic, English and the ' + files.length + ' language files' + (missing.length ? ': missing ' + missing.slice(0, 4).join(', ') : ''));
+  ok(files.length === 22 && missing.length === 0, 'every tab, the children switch and the red-mark switch have a label in Arabic, English and the ' + files.length + ' language files' + (missing.length ? ': missing ' + missing.slice(0, 4).join(', ') : ''));
   ok(scr3.includes("<div hidden={tab !== 'learn' && tab !== 'recite' && tab !== 'listen'}>"), 'the catalog is the body of both drill tabs (and of main\'s picker)');
   ok(scr3.includes("setTab(kind === 'review' ? 'recite' : 'listen')") && scr3.includes("setDrillMode(kind === 'review' ? 'recite' : 'adnan')"), 'a plan opens a review in «سمِّعني» and new ayat in «استماع وترديد»');
   ok((scr3.match(/setMode\('manual'\)/g) || []).length === 1 && scr3.includes("{!mem86Lit() && (\n      <div style={s.memToggleRow}>\n        <button onClick={() => setMode('manual')}")

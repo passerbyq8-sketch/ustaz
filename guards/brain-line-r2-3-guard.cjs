@@ -71,7 +71,7 @@ ok('ur library hits 4: no Arabic wajada / yaqra', !!ur && !ur.includes('وجد')
 console.log('-- 4. the key in every table');
 const files = fs.readdirSync(path.join(REPO, 'lang')).filter((f) => f.endsWith('.json'));
 const missing = files.filter((f) => { const j = JSON.parse(fs.readFileSync(path.join(REPO, 'lang', f), 'utf8')); return typeof j['x.658'] !== 'string' || !j['x.658'].includes('{n}'); });
-ok('x.658 with {n} in the 21 lang files', files.length === 21 && missing.length === 0, missing.join(','));
+ok('x.658 with {n} in the 22 lang files', files.length === 22 && missing.length === 0, missing.join(','));
 ok('x.658 in the Arabic and English tables of app.jsx', DICT.ar['x.658'] === 'وجد {n}' && DICT.en['x.658'] === 'found {n}');
 console.log('');
 console.log((failures ? 'FAIL' : 'PASS') + ' brain-line-r2-3: ' + (checks - failures) + '/' + checks);
