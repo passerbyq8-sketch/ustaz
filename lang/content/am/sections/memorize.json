@@ -1,0 +1,44 @@
+{
+  "schema": "ezik-tr4/1",
+  "lang": "am",
+  "section": "memorize",
+  "title": {
+    "ar": "المحفّظ",
+    "tr": "የቁርአን ማስታወሻ እርዳታ"
+  },
+  "agent": "K02",
+  "generated": "2026-11-01T21:25:41.251Z",
+  "source_files": [
+    "app.jsx"
+  ],
+  "items": [
+    {
+      "id": "h:fba3f1065491",
+      "kind": "text",
+      "ar": "سُورَةُ ",
+      "tr": "ሱራ (የቁርአን ምዕራፍ) ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d7c1bd63c7b1",
+      "kind": "text",
+      "ar": "صفحة ",
+      "tr": "ገጽ ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    }
+  ]
+}
