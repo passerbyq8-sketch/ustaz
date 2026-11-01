@@ -1017,7 +1017,7 @@ const EZ_I18N = {
     'fatwa.loading': 'جارٍ البحث في النصوص الرسمية…',
     'fatwa.error': 'تعذّر الاتصال بخادم الفتاوى. حاول مرة أخرى.',
     'fatwa.none': 'لم نجد نتيجة في النسخة الرسمية الحالية.',
-    'fatwa.summary': 'وجدنا {total} نتيجة — الصفحة {page} من {pages}.',
+    'fatwa.summary': 'وجدنا {total} — الصفحة {page} من {pages}.',
     'fatwa.question': 'السؤال',
     'fatwa.answer': 'الجواب',
     'fatwa.officialText': 'النص المنشور في موقع الشيخ',

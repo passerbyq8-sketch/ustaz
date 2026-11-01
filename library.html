@@ -762,6 +762,14 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
   try { var raw = JSON.parse(document.getElementById('ezlib-strings').textContent); for (var k in raw) S[k] = raw[k][0]; } catch (e) {}
   function T(k, v) { return C.fmt(S[k] || k, v); }
   function D(n) { return C.toArabicDigits(n); }
+  // THE ONE COUNTED NOUN (device check J10): the Arabic form follows the number.
+  var FORMS = { books: ['\u0643\u062A\u0627\u0628 \u0648\u0627\u062D\u062F', '\u0643\u062A\u0627\u0628\u0627\u0646', '{n} \u0643\u062A\u0628', '{n} \u0643\u062A\u0627\u0628\u064B\u0627', '{n} \u0643\u062A\u0627\u0628'],
+    s_total: ['\u0646\u062A\u064A\u062C\u0629 \u0648\u0627\u062D\u062F\u0629', '\u0646\u062A\u064A\u062C\u062A\u0627\u0646', '{n} \u0646\u062A\u0627\u0626\u062C', '{n} \u0646\u062A\u064A\u062C\u0629\u064B', '{n} \u0646\u062A\u064A\u062C\u0629'] };
+  function TN(kind, n) {
+    var f = FORMS[kind], v = Number(n) || 0, h = v % 100;
+    var s = v === 1 ? f[0] : v === 2 ? f[1] : (h >= 3 && h <= 10) ? f[2] : (h >= 11 && h <= 99) ? f[3] : f[4];
+    return C.fmt(s, { n: D(v) });
+  }
   var $app = document.getElementById('app');
   function el(tag, attrs, kids) {
     var e = document.createElement(tag);
@@ -984,7 +992,7 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
         grid.innerHTML = '';
         j.categories.forEach(function (c) {
           grid.appendChild(el('button', { class: 'cat' + (c.ours ? '' : ' empty'), on: { click: function () { go('#/cat/' + c.id); } } },
-            [el('b', { text: D(c.name) }), el('span', { text: T('books_n', { n: D(c.ours) }) })]));
+            [el('b', { text: D(c.name) }), el('span', { text: TN('books', c.ours) })]));
         });
       }).catch(function () { errorView(grid, load); });
     }
@@ -1046,7 +1054,7 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
     }
     function authorItem(a) {
       return el('button', { class: 'item', type: 'button', on: { click: function () { showAuthor(a); } } },
-        [el('b', { text: D(a.author) }), el('span', { text: T('books_n', { n: D(a.count) }) })]);
+        [el('b', { text: D(a.author) }), el('span', { text: TN('books', a.count) })]);
     }
     function showAuthor(a) {
       var my = ++st.seq;
@@ -1054,7 +1062,7 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
       api(C.buildSearchPath({ mode: 'author', q: a.key, scope: st.scope, id: scopeId(), expand: 1, limit: 1 })).then(function (j) {
         if (my !== st.seq) return;
         var r = j.results.filter(function (x) { return x.key === a.key; })[0] || a;
-        info.textContent = D(r.author) + ' · ' + T('books_n', { n: D(r.count) });
+        info.textContent = D(r.author) + ' · ' + TN('books', r.count);
         results.appendChild(el('button', { class: 'btn ghost', type: 'button', style: 'margin:8px 0', text: T('s_all_authors'), on: { click: function () { run(true); } } }));
         (r.books || []).forEach(function (b) { results.appendChild(bookItem({ book_id: b.book_id, title: b.title, author: r.author, death_hijri: b.death_hijri })); });
       }).catch(function () { if (my === st.seq) errorView(results, function () { showAuthor(a); }); });
@@ -1073,7 +1081,7 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
         if (j.refused) { info.textContent = T('s_refused'); return; }
         if (!j.total) { info.textContent = st.mode === 'text' ? T('none_text') : st.mode === 'author' ? T('none_author') : T('search_none'); return; }
         // 127 note m20 (part fix): the "best N" line only when the results were really cut at the window
-        info.textContent = T('s_total', { n: D(j.total) }) + (j.truncated && (!EZ110_FIX || j.total >= j.window) ? ' · ' + T('s_window', { n: D(j.window) }) : '');
+        info.textContent = TN('s_total', j.total) + (j.truncated && (!EZ110_FIX || j.total >= j.window) ? ' · ' + T('s_window', { n: D(j.window) }) : '');
         j.results.forEach(function (r) {
           results.appendChild(st.mode === 'text' ? hitItem(r, j.terms || []) : st.mode === 'author' ? authorItem(r) : bookItem(r));
         });
