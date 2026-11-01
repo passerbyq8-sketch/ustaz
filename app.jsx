@@ -21858,6 +21858,8 @@ function App() {
         const src = ctx.createBufferSource();
         src.buffer = ctx.createBuffer(1, 1, 22050);
         src.connect(ctx.destination);
+        // Device check J15: nothing else ever holds this context, and an open one keeps an output stream for good.
+        src.onended = () => { try { ctx.close(); } catch (e) {} };
         src.start(0);
       }
     } catch (e) { /* fail silent — never block onboarding or audio */ }

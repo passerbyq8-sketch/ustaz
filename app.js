@@ -5996,7 +5996,8 @@ useEffect(()=>{const leaving=screen;return()=>{if(leaving==='chat'){try{abortRef
 // existing blob-play path; it only unlocks the channel.
 const unlockAudioPlayback=()=>{if(audioUnlockedRef.current)return;// one-time only
 audioUnlockedRef.current=true;try{const Ctx=window.AudioContext||window.webkitAudioContext;if(Ctx){const ctx=new Ctx();if(ctx.state==='suspended'&&ctx.resume)ctx.resume().catch(()=>{});// A 1-sample silent buffer started within the gesture satisfies the user-activation requirement.
-const src=ctx.createBufferSource();src.buffer=ctx.createBuffer(1,1,22050);src.connect(ctx.destination);src.start(0);}}catch(e){/* fail silent — never block onboarding or audio */}// iOS: HTML5 <audio> has a SEPARATE activation gate from AudioContext. The blob-play path
+const src=ctx.createBufferSource();src.buffer=ctx.createBuffer(1,1,22050);src.connect(ctx.destination);// Device check J15: nothing else ever holds this context, and an open one keeps an output stream for good.
+src.onended=()=>{try{ctx.close();}catch(e){}};src.start(0);}}catch(e){/* fail silent — never block onboarding or audio */}// iOS: HTML5 <audio> has a SEPARATE activation gate from AudioContext. The blob-play path
 // uses `new Audio()`, so we must also prime an HTML5 element here, inside the gesture, or
 // iOS keeps audio muted. A 1-sample silent WAV (built inline as a Blob — no network) does it.
 try{const wav=new Uint8Array([82,73,70,70,38,0,0,0,87,65,86,69,102,109,116,32,16,0,0,0,1,0,1,0,64,31,0,0,128,62,0,0,2,0,16,0,100,97,116,97,2,0,0,0,0,0]);const url=URL.createObjectURL(new Blob([wav],{type:'audio/wav'}));const u=audioElRef.current||(audioElRef.current=new Audio());u.src=url;const pr=u.play();if(pr&&pr.then)pr.then(()=>{try{u.pause();}catch(e){}URL.revokeObjectURL(url);}).catch(()=>{try{URL.revokeObjectURL(url);}catch(e){}audioUnlockedRef.current=false;});// play() rejected -> not actually unlocked; allow a later gesture to retry
