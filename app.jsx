@@ -10,7 +10,7 @@ function useUsageSection(name) {
         window.logSection(name);
         // The qibla panel is part of both prayer and compass. Order keeps the card's
         // event adjacent to the matching committed open, so it is deduplicated.
-        if (name === 'prayer' || name === 'compass') window.logSection('qibla');
+        if (name === 'prayer' || name === 'compass') window.logSection('qibla', true);
       }
     } catch (_) {}
   }, [name]);
@@ -1747,6 +1747,24 @@ const EZ_I18N = {
     'usage.week': 'آخر 7 أيام',
     'usage.month': 'آخر 30 يومًا',
     'usage.note': 'حتى اليوم المحدّد بتوقيت UTC. عدد الأجهزة تقديري وفريد خلال الفترة.',
+    'usage.kpiActive': 'الأجهزة النشطة',
+    'usage.kpiOpens': 'الفتحات',
+    'usage.kpiD1': 'العودة بعد يوم',
+    'usage.kpiD7': 'العودة بعد 7 أيام',
+    'usage.vsBefore': 'مقارنة بالفترة السابقة',
+    'usage.collecting': 'يتجمّع منذ {date}',
+    'usage.none': 'لا بيانات في هذه الفترة',
+    'usage.hint': 'الأيام بتوقيت UTC',
+    'usage.failed': 'تعذّر تحميل البيانات',
+    'usage.trend': 'اتجاه آخر 30 يومًا',
+    'usage.topSections': 'أكثر الأقسام استخدامًا',
+    'usage.allSections': 'عرض كل الأقسام',
+    'usage.paths': 'المسار بين الأقسام',
+    'usage.chat': 'جودة المحادثة',
+    'usage.noFind': 'لم أجد',
+    'usage.noSource': 'بلا مصدر',
+    'usage.topKinds': 'أكثر التصنيفات',
+    'usage.sample': 'محسوبة على {n} جوابًا',
     'inbox.empty': 'لا رسائلَ هنا.',
     'inbox.failed': 'تعذَّرَ فتحُ الصندوق.',
     'inbox.stateNew': 'جديدة',
@@ -3543,6 +3561,24 @@ const EZ_I18N = {
     'usage.week': 'Last 7 days',
     'usage.month': 'Last 30 days',
     'usage.note': 'Through the selected UTC day. Device counts are approximate and unique across the period.',
+    'usage.kpiActive': 'Active devices',
+    'usage.kpiOpens': 'Opens',
+    'usage.kpiD1': 'Back after a day',
+    'usage.kpiD7': 'Back after 7 days',
+    'usage.vsBefore': 'Compared with the previous period',
+    'usage.collecting': 'Collecting since {date}',
+    'usage.none': 'No data in this period',
+    'usage.hint': 'Days are in UTC',
+    'usage.failed': 'The data could not be loaded',
+    'usage.trend': 'Last 30 days trend',
+    'usage.topSections': 'Most used sections',
+    'usage.allSections': 'Show all sections',
+    'usage.paths': 'Paths between sections',
+    'usage.chat': 'Chat quality',
+    'usage.noFind': 'Not found',
+    'usage.noSource': 'No source',
+    'usage.topKinds': 'Top categories',
+    'usage.sample': 'Based on {n} answers',
     'inbox.empty': 'Nothing here.',
     'inbox.failed': 'The inbox could not be opened.',
     'inbox.stateNew': 'New',
@@ -28395,12 +28431,276 @@ const ezikInboxSourceK = (v) => (typeof v === 'string' && Object.prototype.hasOw
 // removal is a screen that shows a message erased on a store that refused, and the owner would
 // only discover it by reloading -- which is the same fault the fail-CLOSED rule on the route
 // exists to prevent, committed on the other side of the wire.
+// The usage board. Every figure is an aggregate the server computed; nothing here is a person.
+// Charts are plain inline SVG and CSS, so the board adds no boot dependency.
+const EZ_UB_CSS = `
+.ezub{--ub-up:#2f855a;--ub-down:#b7791f;display:flex;flex-direction:column;gap:14px;padding:4px 0 28px}
+:root[data-theme="dark"] .ezub{--ub-up:#68c39b;--ub-down:#e0b35a}
+.ezub-bar{position:sticky;top:0;z-index:2;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 0;background:var(--a3-page)}
+.ezub-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.ezub-card{background:var(--a3-surface);border:1px solid var(--a3-line);border-radius:20px;padding:16px;min-width:0;animation:ezub-in .32s ease both}
+.ezub-card h3{margin:0 0 12px;font-size:15px;font-weight:700;color:var(--a3-ink)}
+.ezub-kpi{display:flex;flex-direction:column;gap:6px}
+.ezub-kpi span:first-child{font-size:13px;color:var(--a3-muted)}
+.ezub-big{font-size:32px;line-height:1.1;font-weight:800;color:var(--a3-ink);font-variant-numeric:tabular-nums}
+.ezub-delta{font-size:12px;font-weight:700}
+.ezub-delta.up{color:var(--ub-up)}
+.ezub-delta.down{color:var(--ub-down)}
+.ezub-soft{font-size:13px;line-height:1.6;color:var(--a3-muted)}
+.ezub-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:baseline;font-size:14px;color:var(--a3-ink);margin-bottom:10px}
+.ezub-track{grid-column:1/-1;height:8px;border-radius:8px;background:var(--a3-ice);overflow:hidden}
+.ezub-fill{display:block;height:100%;border-radius:8px;background:var(--a3-blue);transition:width .3s ease}
+.ezub-pair{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--a3-line);font-size:14px;color:var(--a3-ink)}
+.ezub-pair:first-of-type{border-top:0}
+.ezub-link{all:unset;cursor:pointer;font-size:14px;font-weight:700;color:var(--a3-blue);padding:8px 0;display:inline-block}
+.ezub-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:12px}
+.ezub-card summary{cursor:pointer;font-size:15px;font-weight:700;color:var(--a3-ink);min-height:28px}
+.ezub-skel{height:118px;border-radius:20px;background:var(--a3-ice);animation:ezub-pulse 1.4s ease-in-out infinite}
+@keyframes ezub-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes ezub-pulse{50%{opacity:.55}}
+@media (prefers-reduced-motion:reduce){.ezub-card,.ezub-skel{animation:none}.ezub-fill{transition:none}}
+`;
+const ezUbNum = (n) => Number(n || 0).toLocaleString('en-US');
+const ezUbDate = (day) => day.slice(6, 8) + '/' + day.slice(4, 6);
+const ezUbRate = (r) => (r && r.cohort ? Math.round((r.returned / r.cohort) * 100) : null);
+
+// A number that eases to its value; it simply lands when motion is off or no frame clock exists.
+function useEzUbTween(value) {
+  const [shown, setShown] = useState(value);
+  const fromRef = useRef(value);
+  useEffect(() => {
+    if (ezikMotionReducedNow() || typeof requestAnimationFrame !== 'function' || fromRef.current === value) {
+      fromRef.current = value;
+      setShown(value);
+      return undefined;
+    }
+    const from = fromRef.current;
+    const start = Date.now();
+    let frame = 0;
+    const step = () => {
+      const k = Math.min(1, (Date.now() - start) / 360);
+      setShown(Math.round(from + (value - from) * k));
+      if (k < 1) frame = requestAnimationFrame(step);
+      else fromRef.current = value;
+    };
+    frame = requestAnimationFrame(step);
+    return () => { cancelAnimationFrame(frame); fromRef.current = value; };
+  }, [value]);
+  return shown;
+}
+
+function EzUbCollecting({ since }) {
+  return <p className="ezub-soft">{ezT('usage.collecting', { date: ezUbDate(since) })}</p>;
+}
+
+// Compared with the period before; no arrow at all when that period holds nothing to compare.
+function EzUbDelta({ now, before, points }) {
+  if (now === null || before === null || before === undefined || (!points && before === 0)) return null;
+  const change = points ? now - before : Math.round(((now - before) / before) * 100);
+  if (change === 0) return <span className="ezub-soft" aria-label={ezT('usage.vsBefore')}>=</span>;
+  return (
+    <span className={'ezub-delta ' + (change > 0 ? 'up' : 'down')} aria-label={ezT('usage.vsBefore')}>
+      {(change > 0 ? '▲ ' : '▼ ') + Math.abs(change) + '%'}
+    </span>
+  );
+}
+
+function EzUbKpi({ k, value, before, percent, since, note }) {
+  const shown = useEzUbTween(value === null ? 0 : value);
+  return (
+    <section className="ezub-card ezub-kpi">
+      <span>{ezT(k)}</span>
+      {value === null ? <EzUbCollecting since={since} /> : (
+        <>
+          <span className="ezub-big">{percent ? shown + '%' : ezUbNum(shown)}</span>
+          {note ? <span className="ezub-soft" dir="ltr">{note}</span> : null}
+          <EzUbDelta now={value} before={before} points={percent} />
+        </>
+      )}
+    </section>
+  );
+}
+
+function EzUbTrend({ points, since }) {
+  const first = points.findIndex((p) => p.devices > 0);
+  const used = first === -1 ? [] : points.slice(first);
+  if (used.length < 2) return <EzUbCollecting since={since} />;
+  const W = 320;
+  const H = 96;
+  const top = Math.max(...used.map((p) => p.devices), 1);
+  const at = used.map((p, i) => [(i / (used.length - 1)) * W, H - 6 - (p.devices / top) * (H - 16)]);
+  // Midpoints make the line soft without inventing a value at any day.
+  let line = 'M' + at[0][0] + ' ' + at[0][1];
+  for (let i = 1; i < at.length; i++) {
+    const mx = (at[i - 1][0] + at[i][0]) / 2;
+    const my = (at[i - 1][1] + at[i][1]) / 2;
+    line += ' Q' + at[i - 1][0] + ' ' + at[i - 1][1] + ' ' + mx + ' ' + my;
+  }
+  line += ' L' + at[at.length - 1][0] + ' ' + at[at.length - 1][1];
+  return (
+    <>
+      <svg viewBox={'0 0 ' + W + ' ' + H} width="100%" role="img" dir="ltr" aria-label={ezT('usage.trend')}>
+        <path d={line + ' L' + W + ' ' + H + ' L0 ' + H + ' Z'} fill="var(--a3-ice)" opacity="0.7" />
+        <path d={line} fill="none" stroke="var(--a3-blue)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      <div className="ezub-pair" dir="ltr" style={{ borderTop: 0 }}>
+        <span className="ezub-soft">{ezUbDate(used[0].day)}</span>
+        <span className="ezub-soft">{ezUbNum(top)}</span>
+        <span className="ezub-soft">{ezUbDate(used[used.length - 1].day)}</span>
+      </div>
+    </>
+  );
+}
+
+function EzUbBars({ rows }) {
+  const top = Math.max(...rows.map((r) => r.n), 1);
+  return rows.map((r) => (
+    <div className="ezub-row" key={r.k}>
+      <span>{r.k}</span><span>{ezUbNum(r.n)}</span>
+      <span className="ezub-track"><span className="ezub-fill" style={{ width: Math.round((r.n / top) * 100) + '%' }} /></span>
+    </div>
+  ));
+}
+
+function EzUbChat({ chat }) {
+  if (chat === null) return <p className="ezub-soft">{ezT('usage.failed')}</p>;
+  if (!chat) return <div className="ezub-skel" />;
+  if (!chat.read) return <p className="ezub-soft">{ezT('usage.none')}</p>;
+  const pct = (n) => Math.round((n / chat.read) * 100) + '%';
+  return (
+    <>
+      <div className="ezub-stats">
+        <div className="ezub-kpi"><span>{ezT('usage.noFind')}</span><span className="ezub-big">{pct(chat.noFind)}</span></div>
+        <div className="ezub-kpi"><span>{ezT('usage.noSource')}</span><span className="ezub-big">{pct(chat.noSource)}</span></div>
+      </div>
+      <h3>{ezT('usage.topKinds')}</h3>
+      <EzUbBars rows={chat.top} />
+      <p className="ezub-soft">{ezT('usage.sample', { n: chat.read })}</p>
+    </>
+  );
+}
+
+function EzikUsageBoard() {
+  const [day, setDay] = useState(() => new Date().toISOString().slice(0, 10));
+  const [days, setDays] = useState(1);
+  const [data, setData] = useState(null);
+  const [failed, setFailed] = useState(false);
+  const [chat, setChat] = useState(undefined);
+  const memo = useRef({});
+  const tableRef = useRef(null);
+  useEffect(() => {
+    const held = readAuthSession();
+    if (!held) { setFailed(true); return undefined; }
+    const window_ = { day: day.replace(/-/g, ''), days };
+    const id = window_.day + ':' + days;
+    const seen = memo.current[id] || {};
+    let live = true;
+    const controller = new AbortController();
+    const timer = setTimeout(() => { try { controller.abort(); } catch (e) {} }, EZIK_INBOX_TIMEOUT_MS);
+    setFailed(false);
+    // What is on screen stays on screen until the new figures land, so nothing jumps.
+    if (seen.board) setData(seen.board);
+    else ezikInbox({ session: held.session, action: 'list', kind: 'usage', ...window_ }, controller.signal).then((res) => {
+      clearTimeout(timer);
+      if (!live) return;
+      if (!res.ok || !res.data || !Array.isArray(res.data.items)) { setFailed(true); return; }
+      seen.board = res.data;
+      memo.current[id] = seen;
+      setData(res.data);
+    });
+    if (seen.chat) setChat(seen.chat);
+    else {
+      setChat(undefined);
+      ezikInbox({ session: held.session, action: 'list', kind: 'usage-chat', ...window_ }, controller.signal).then((res) => {
+        if (!live) return;
+        if (!res.ok || !res.data) { setChat(null); return; }
+        seen.chat = res.data;
+        memo.current[id] = seen;
+        setChat(res.data);
+      });
+    }
+    return () => { live = false; clearTimeout(timer); try { controller.abort(); } catch (e) {} };
+  }, [day, days]);
+  const b = data && data.board;
+  const items = data ? data.items : [];
+  const since = (b && b.since) || '20261031';
+  const used = items.filter((r) => r.opens > 0);
+  const showTable = () => {
+    const el = tableRef.current;
+    if (!el) return;
+    el.open = true;
+    try { el.scrollIntoView({ block: 'start', behavior: ezikMotionReducedNow() ? 'auto' : 'smooth' }); } catch (e) {}
+  };
+  return (
+    <div className="ezub">
+      <style>{EZ_UB_CSS}</style>
+      <div className="ezub-bar">
+        {[[1, 'usage.day'], [7, 'usage.week'], [30, 'usage.month']].map(([n, k]) => (
+          <button key={n} type="button" className="ezhome-focus" aria-pressed={days === n}
+            onClick={() => setDays(n)} style={{ ...s.artChoice, ...(days === n ? s.artChoiceOn : null) }}>{ezT(k)}</button>
+        ))}
+        <input type="date" value={day} max={new Date().toISOString().slice(0, 10)}
+          min={new Date(Date.now() - 399 * 86400000).toISOString().slice(0, 10)}
+          onChange={(e) => { if (e.target.value) setDay(e.target.value); }}
+          aria-label={ezT('usage.day')} className="ezhome-focus" style={{ font: 'inherit', fontSize: 14, minHeight: 44, padding: '6px 10px', borderRadius: 12, border: '1px solid var(--a3-line)', color: 'inherit', background: 'transparent' }} />
+        <span className="ezub-soft">{ezT('usage.hint')}</span>
+      </div>
+      {failed ? <p role="alert" className="ezub-soft">{ezT('usage.failed')}</p> : null}
+      {!data && !failed ? <div className="ezub-kpis" role="status" aria-label={ezT('common.loading')}>
+        {[0, 1, 2, 3].map((i) => <div key={i} className="ezub-skel" />)}
+      </div> : null}
+      {data ? (
+        <>
+          <div className="ezub-kpis">
+            <EzUbKpi k="usage.kpiActive" value={b ? b.active : null} before={b ? b.activeBefore : null} since={since} />
+            <EzUbKpi k="usage.kpiOpens" value={b && (b.opens || b.opensBefore) ? b.opens : null} before={b ? b.opensBefore : null} since={since} />
+            <EzUbKpi k="usage.kpiD1" value={b ? ezUbRate(b.d1) : null} before={b ? ezUbRate(b.d1Before) : null} percent since={since}
+              note={b && b.d1 ? b.d1.returned + ' / ' + b.d1.cohort : ''} />
+            <EzUbKpi k="usage.kpiD7" value={b ? ezUbRate(b.d7) : null} before={b ? ezUbRate(b.d7Before) : null} percent since={since}
+              note={b && b.d7 ? b.d7.returned + ' / ' + b.d7.cohort : ''} />
+          </div>
+          <section className="ezub-card">
+            <h3>{ezT('usage.trend')}</h3>
+            {b ? <EzUbTrend points={b.trend} since={since} /> : <EzUbCollecting since={since} />}
+          </section>
+          <section className="ezub-card">
+            <h3>{ezT('usage.topSections')}</h3>
+            {used.length ? <EzUbBars rows={used.slice(0, 8).map((r) => ({ k: r.label, n: r.opens }))} />
+              : <p className="ezub-soft">{ezT('usage.none')}</p>}
+            <button type="button" className="ezub-link ezhome-focus" onClick={showTable}>{ezT('usage.allSections')}</button>
+          </section>
+          <section className="ezub-card">
+            <h3>{ezT('usage.paths')}</h3>
+            {b && b.paths.length ? b.paths.map((p) => (
+              <div className="ezub-pair" key={p.from + p.to}>
+                <span>{p.from + ' › ' + p.to}</span><span>{ezUbNum(p.n)}</span>
+              </div>
+            )) : <EzUbCollecting since={since} />}
+          </section>
+          <section className="ezub-card">
+            <h3>{ezT('usage.chat')}</h3>
+            <EzUbChat chat={chat} />
+          </section>
+          <details className="ezub-card" ref={tableRef}>
+            <summary>{ezT('usage.allSections')}</summary>
+            <p style={s.artNote}>{ezT('usage.note')}</p>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'start' }}>
+              <thead><tr>{['usage.section', 'usage.opens', 'usage.devices'].map((k) => <th key={k} scope="col" style={{ padding: 8 }}>{ezT(k)}</th>)}</tr></thead>
+              <tbody>{items.map((r) => <tr key={r.section}>
+                <th scope="row" style={{ padding: 8 }}>{r.label}</th><td style={{ padding: 8 }}>{r.opens}</td><td style={{ padding: 8 }}>{r.devices}</td>
+              </tr>)}</tbody>
+            </table>
+          </details>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
 function EzikInboxSheet({ onBack, onRead, onCount }) {
   const [kind, setKind] = useState('feedback');
   // POSTSHIP ITEM 5: the day the answer-log tab reads (api/inbox.js answersList takes it; it was never sent).
   const [ansDay, setAnsDay] = useState(() => ezikAnswerLogDays()[0]);
-  const [usageDay, setUsageDay] = useState(() => new Date().toISOString().slice(0, 10));
-  const [usageDays, setUsageDays] = useState(1);
   const [listState, setListState] = useState(EZIK_ART_IDLE);
   const [rows, setRows] = useState([]);
   const [win, setWin] = useState(0);
@@ -28437,15 +28737,16 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
   }, []);
 
   const load = (which) => {
+    if (abortRef.current) { try { abortRef.current.abort(); } catch (e) {} }
+    // The usage tab is its own board with its own reads; the list has nothing to show for it.
+    if (which === 'usage') { abortRef.current = null; setRows([]); setListState(EZIK_ART_IDLE); return; }
     const held = readAuthSession();
     if (!held) { setRows([]); setListState(EZIK_ART_FAILED); return; }
-    if (abortRef.current) { try { abortRef.current.abort(); } catch (e) {} }
     const controller = new AbortController();
     abortRef.current = controller;
     const timer = setTimeout(() => { try { controller.abort(); } catch (e) {} }, EZIK_INBOX_TIMEOUT_MS);
     setListState(EZIK_ART_LOADING);
-    ezikInbox({ session: held.session, action: 'list', kind: which, ...(which === 'answers' ? { day: ansDay }
-      : which === 'usage' ? { day: usageDay.replace(/-/g, ''), days: usageDays } : {}) }, controller.signal).then((res) => {
+    ezikInbox({ session: held.session, action: 'list', kind: which, ...(which === 'answers' ? { day: ansDay } : {}) }, controller.signal).then((res) => {
       clearTimeout(timer);
       if (!aliveRef.current || abortRef.current !== controller) return;
       abortRef.current = null;
@@ -28460,7 +28761,7 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
       setListState(EZIK_ART_DONE);
     });
   };
-  useEffect(() => { load(kind); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [kind, ansDay, usageDay, usageDays]);
+  useEffect(() => { load(kind); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [kind, ansDay]);
 
   // Moving between the two tabs drops everything that belonged to the tab being left: the ticks,
   // the question standing over them, and the last erase's sentence. «الكل» must never be able to
@@ -28781,27 +29082,7 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
         </div>
       ) : null}
       {kind === 'usage' ? (
-        <>
-          <div style={s.artChoiceRow}>
-            <input type="date" value={usageDay} max={new Date().toISOString().slice(0, 10)}
-              min={new Date(Date.now() - 399 * 86400000).toISOString().slice(0, 10)}
-              onChange={(e) => { if (e.target.value) setUsageDay(e.target.value); }}
-              aria-label={ezT('usage.day')} className="ezhome-focus" style={{ font: 'inherit', color: 'inherit', background: 'transparent' }} />
-            {[[1, 'usage.day'], [7, 'usage.week'], [30, 'usage.month']].map(([days, k]) => (
-              <button key={days} type="button" className="ezhome-focus" aria-pressed={usageDays === days}
-                onClick={() => setUsageDays(days)} style={{ ...s.artChoice, ...(usageDays === days ? s.artChoiceOn : null) }}>{ezT(k)}</button>
-            ))}
-          </div>
-          <p style={s.artNote}>{ezT('usage.note')}</p>
-          {listState === EZIK_ART_DONE ? (
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'start' }}>
-              <thead><tr>{['usage.section', 'usage.opens', 'usage.devices'].map((k) => <th key={k} scope="col" style={{ padding: 8 }}>{ezT(k)}</th>)}</tr></thead>
-              <tbody>{rows.map((r) => <tr key={r.section}>
-                <th scope="row" style={{ padding: 8 }}>{r.label}</th><td style={{ padding: 8 }}>{r.opens}</td><td style={{ padding: 8 }}>{r.devices}</td>
-              </tr>)}</tbody>
-            </table>
-          ) : null}
-        </>
+        <EzikUsageBoard />
       ) : kind === 'answers' ? (
         listState === EZIK_ART_DONE && rows.length > 0
           ? <div style={s.artList}>{rows.map((r) => <EzikAnswerLogRow key={r.trace} r={r} />)}</div>

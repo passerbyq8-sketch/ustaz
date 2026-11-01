@@ -24,7 +24,11 @@ const server = http.createServer((req, res) => {
       inboxReads.push(data);
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ ok: true, unread: 0, kind: data.kind, items: data.kind === 'usage'
-        ? [{ section: 'mushaf', label: 'المصحف', opens: 17, devices: 4 }] : [] }));
+        ? [{ section: 'mushaf', label: 'المصحف', opens: 17, devices: 4 }] : [], board: data.kind === 'usage' ? {
+          since: '20261101', active: 9, activeBefore: 6, opens: 14, opensBefore: 16,
+          d1: { cohort: 8, returned: 3 }, d1Before: null, d7: null, d7Before: null,
+          trend: Array.from({ length: 30 }, (_, i) => ({ day: '202610' + String(i + 1).padStart(2, '0'), devices: i < 20 ? 0 : (i * 7) % 11 + 1 })),
+          paths: [{ from: 'الرئيسية', to: 'المصحف', n: 6 }] } : undefined, read: 10, noFind: 1, noSource: 2, top: [{ k: 'deen', n: 7 }] }));
     });
     return;
   }
@@ -105,6 +109,9 @@ async function waitForAttempt(section, offset = 0) {
     await page.locator('.ezc-rail button.ezc-icon').first().click();
     await page.getByRole('button', { name: 'Inbox — readers’ messages and replying to them', exact: true }).click();
     await page.getByRole('button', { name: 'Usage', exact: true }).click();
+    await page.getByText('Active devices', { exact: true }).waitFor();
+    assert.equal(await page.getByRole('cell', { name: '17', exact: true }).isVisible(), false);
+    await page.locator('details.ezub-card summary').click();
     await page.getByRole('cell', { name: '17', exact: true }).waitFor();
     assert.equal(await page.getByRole('columnheader').count(), 3);
     assert.equal(await page.getByRole('button', { name: 'Delete all', exact: true }).count(), 0);
@@ -129,12 +136,12 @@ async function waitForAttempt(section, offset = 0) {
       await page.waitForFunction(() => document.body && document.body.innerText.trim().length > 0);
       console.log('PASS: direct visit ' + file);
     }
-    assert.ok(attempts.every(e => Object.keys(e).sort().join(',') === 'anon,section' && /^[a-f0-9]{32}$/.test(e.anon)));
+    assert.ok(attempts.every(e => Object.keys(e).every(k => ['section', 'anon', 'from', 'gap', 'boot', 'side'].includes(k)) && /^[a-f0-9]{32}$/.test(e.anon)));
     assert.equal(new Set(attempts.map(e => e.anon)).size, 1);
     assert.deepEqual(errors, []);
     console.log('PASS: real card/widget/call navigation, owner ranges/day/table, and all 7 standalone pages with /api/usage disconnected ('
       + (process.env.USAGE_FETCH_ONLY === '1' ? 'keepalive fetch' : 'Beacon') + ')');
-    console.log('PASS: anonymous ID persists across pages; every request carries section + anon only');
+    console.log('PASS: anonymous ID persists across pages; every request carries the closed anonymous field list only');
     await context.close();
   } finally { await browser.close(); server.close(); }
 })().catch(err => { console.error(err); server.close(); process.exitCode = 1; });

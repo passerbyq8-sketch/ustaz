@@ -18,7 +18,7 @@ export async function handleUsage(req, res, { limit = checkUsageLimit, write = w
     }
     if (!validUsageEvent(body)) return res.status(204).end();
     const allowed = await limit(body.anon);
-    if (allowed.ok) await write({ section: body.section, anon: body.anon });
+    if (allowed.ok) await write(body);
   } catch { /* No request content or identifying header is ever logged. */ }
   return res.status(204).end();
 }

@@ -53,7 +53,7 @@ import { resolveActor, ROLE_OWNER } from '../lib/articles/roles.js';
 import { touchSession } from '../lib/auth/account.js';
 import { readJson as readAuthJson } from '../lib/auth/store.js';
 import { readAnswerLog, ANSWER_LOG_PATHS } from '../lib/answer-log.js';
-import { readUsage, usageWindow } from '../lib/usage.js';
+import { readUsage, readUsageChat, usageWindow } from '../lib/usage.js';
 import { TEXT_CAP } from './feedback.js';
 
 const redis = new Redis({
@@ -425,10 +425,10 @@ export default async function handler(req, res) {
 async function ownerAction(req, res, body, action) {
   if (action === 'list') {
     if (body.kind === 'answers') return res.status(200).json(await answersList(body));
-    if (body.kind === 'usage') {
+    if (body.kind === 'usage' || body.kind === 'usage-chat') {
       try { usageWindow(body); }
       catch { return res.status(400).json({ ok: false, error: 'inbox-usage-window' }); }
-      try { return res.status(200).json(await readUsage(body)); }
+      try { return res.status(200).json(await (body.kind === 'usage' ? readUsage(body) : readUsageChat(body))); }
       catch { return res.status(503).json({ ok: false, error: 'inbox-store' }); }
     }
     const kind = typeof body.kind === 'string' ? body.kind : '';

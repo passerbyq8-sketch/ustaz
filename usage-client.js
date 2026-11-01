@@ -6,13 +6,19 @@
   var lastAt = 0;
   var storageKey = 'ezik_usage_anon_v1';
   var repeatKey = 'ezik_usage_last_v1';
+  var pathSection = '';
+  var pathAt = 0;
+  var pathCap = 30 * 60 * 1000;
   try {
     var previous = JSON.parse(root.sessionStorage.getItem(repeatKey) || 'null');
     if (previous && Object.prototype.hasOwnProperty.call(EZIK_USAGE_SECTIONS, previous.section)
       && Number.isFinite(previous.at)) { lastSection = previous.section; lastAt = previous.at; }
+    if (previous && Object.prototype.hasOwnProperty.call(EZIK_USAGE_SECTIONS, previous.path)
+      && Number.isFinite(previous.pathAt)) { pathSection = previous.path; pathAt = previous.pathAt; }
   } catch (_) {}
 
-  function logSection(name) {
+  // side: a companion of the open just logged (the qibla panel inside prayer), not a move.
+  function logSection(name, side) {
     try {
       if (typeof name !== 'string' || !Object.prototype.hasOwnProperty.call(EZIK_USAGE_SECTIONS, name)) return;
       var now = Date.now();
@@ -20,7 +26,18 @@
       if (lastSection === name && now >= lastAt && now - lastAt < 5000) return;
       lastSection = name;
       lastAt = now;
-      try { root.sessionStorage.setItem(repeatKey, JSON.stringify({ section: name, at: now })); } catch (_) {}
+      var event = { section: name };
+      if (side === true) event.side = 1;
+      else {
+        // A gap above the cap is a new visit: no move, no stay, and one app open.
+        if (pathSection && now >= pathAt && now - pathAt <= pathCap) {
+          event.from = pathSection;
+          event.gap = now - pathAt;
+        } else event.boot = 1;
+        pathSection = name;
+        pathAt = now;
+      }
+      try { root.sessionStorage.setItem(repeatKey, JSON.stringify({ section: name, at: now, path: pathSection, pathAt: pathAt })); } catch (_) {}
       if (!anon) {
         try {
           var stored = root.localStorage.getItem(storageKey);
@@ -33,7 +50,8 @@
           try { root.localStorage.setItem(storageKey, anon); } catch (_) {}
         }
       }
-      var body = JSON.stringify({ section: name, anon: anon });
+      event.anon = anon;
+      var body = JSON.stringify(event);
       // text/plain avoids a preflight for Beacon. The route parses this tiny JSON string itself.
       if (root.navigator && typeof root.navigator.sendBeacon === 'function') {
         try { if (root.navigator.sendBeacon('/api/usage', body)) return; } catch (_) {}
