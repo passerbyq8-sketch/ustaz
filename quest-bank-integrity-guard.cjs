@@ -2094,7 +2094,7 @@ const SEALED = {
   // 2026-10-31 USAGE production ship: reserved cache ezik-v127; app.js rebuilt; CORE membership unchanged; worker seal remeasured.
   // 2026-11-01 LANGS round C: reserved cache ezik-v128; app.js rebuilt (enabled list); CORE membership unchanged; worker seal remeasured.
   // 2026-11-02 device fixes ship: reserved cache ezik-v130; app.js and index.html rebuilt; CORE membership unchanged.
-  'sw.js': '649f9c831ec818f0e589d5fd36cb76ae4eca22a11172d5fb0521213c8050ab29',
+  'sw.js': 'bbbb0b725509e3435926cc4377ddc60024476186f7dea094eae7691d5cacd58e',
 };
 
 // ---------------------------------------------------------------------------
