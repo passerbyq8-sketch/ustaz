@@ -17843,6 +17843,7 @@ const adhkarNormAr = (str) => String(str || '')
 const ADHKAR_PROGRESS_KEY = 'adhkar_daily_progress_v1';
 const ADHKAR_FAVORITES_KEY = 'adhkar_favorites_v1';
 const ADHKAR_USAGE_KEY = 'adhkar_usage_v1';
+const EZIK_USAGE_NOTIF_KEY = 'ezik_usage_notif_v1';
 const ADHKAR_DAILY_GOAL = 8;
 
 // ── ITEM 43-أ: THE ADHKAR CHAIN, AND THE NUMBER THE READER CHOSE ────────────────────────────
@@ -20533,6 +20534,7 @@ function App() {
   // 67 / 43-b / 47-b: the schedule pipe, armed at the root. It owns no screen state and renders
   // nothing; a reader who never opens the prayer sheet still has a day that needs arming.
   useEzikSchedRoot();
+  useEzikUsageNotif();
   // PRAYER REBUILD (29 October 2026): the app's door asks for the position -- the shell through its bridge, a browser
   // only where the permission is already granted -- so the times move within seconds of opening (owner, 29 October).
   usePrayerBootLocate();
@@ -24410,6 +24412,7 @@ function App() {
       localStorage.removeItem(ADHKAR_PROGRESS_KEY);
       localStorage.removeItem(ADHKAR_FAVORITES_KEY);
       localStorage.removeItem(ADHKAR_USAGE_KEY);
+      localStorage.removeItem(EZIK_USAGE_NOTIF_KEY);
       // THE REMEMBERED POSITION GOES WITH THEM, on exactly the terms the three above go on.
       // A place inside a group is a reading record, and "delete all my data" must not hand it
       // to whoever sets this device up next. It is removed unconditionally -- not only when the
@@ -34025,14 +34028,17 @@ function ezikSchedProbeLocal(nowMs) {
 //                                    inside itself, so a page left open for a week arms once a
 //                                    day. Five seconds past the hour, not on it, so a clock that
 //                                    is a moment fast cannot fire on the day that is ending.
-function useEzikSchedRoot() {
-  // The usage board's "turned on" count. `status` only reads the permission and raises no prompt.
+// The usage board's "turned on" count. `status` only reads the permission and raises no prompt.
+function useEzikUsageNotif() {
   useEffect(() => {
     ezikSchedProbeAsk('status', null, (r) => {
       if (!r || !r.permission || typeof r.permission.granted !== 'boolean') return;
-      try { localStorage.setItem('ezik_usage_notif_v1', r.permission.granted ? '1' : '0'); } catch (e) {}
+      try { localStorage.setItem(EZIK_USAGE_NOTIF_KEY, r.permission.granted ? '1' : '0'); } catch (e) {}
     });
   }, []);
+}
+
+function useEzikSchedRoot() {
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
     let midnight = null;

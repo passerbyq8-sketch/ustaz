@@ -4456,7 +4456,7 @@ const adhkarNormAr=str=>String(str||'').replace(/[ؐ-ًؚ-ٰٟ]/g,'').replace(/[
 // transmit: a dhikr, a title, a source and an audio URL all stay in adhkar.json, and what is
 // stored is '<categoryId>:<index>' plus a count. Clearing the keys loses counters; it cannot
 // lose devotional text, because none was ever put there.
-const ADHKAR_PROGRESS_KEY='adhkar_daily_progress_v1';const ADHKAR_FAVORITES_KEY='adhkar_favorites_v1';const ADHKAR_USAGE_KEY='adhkar_usage_v1';const ADHKAR_DAILY_GOAL=8;// ── ITEM 43-أ: THE ADHKAR CHAIN, AND THE NUMBER THE READER CHOSE ────────────────────────────
+const ADHKAR_PROGRESS_KEY='adhkar_daily_progress_v1';const ADHKAR_FAVORITES_KEY='adhkar_favorites_v1';const ADHKAR_USAGE_KEY='adhkar_usage_v1';const EZIK_USAGE_NOTIF_KEY='ezik_usage_notif_v1';const ADHKAR_DAILY_GOAL=8;// ── ITEM 43-أ: THE ADHKAR CHAIN, AND THE NUMBER THE READER CHOSE ────────────────────────────
 // ONE new key, carrying its own version, holding three fields and nothing else:
 //
 //     ezik_adhkar_streak_v1 = { goal, last, run }
@@ -5437,7 +5437,7 @@ const EZIK_REVEAL_MS=28;const EZIK_REVEAL_DIVISOR=8;const EZIK_REVEAL_MIN_STEP=2
 // made anywhere redraws all of them at once -- no reload, no route change, no lost thread.
 const uiLang=useEzLang();// 67 / 43-b / 47-b: the schedule pipe, armed at the root. It owns no screen state and renders
 // nothing; a reader who never opens the prayer sheet still has a day that needs arming.
-useEzikSchedRoot();// PRAYER REBUILD (29 October 2026): the app's door asks for the position -- the shell through its bridge, a browser
+useEzikSchedRoot();useEzikUsageNotif();// PRAYER REBUILD (29 October 2026): the app's door asks for the position -- the shell through its bridge, a browser
 // only where the permission is already granted -- so the times move within seconds of opening (owner, 29 October).
 usePrayerBootLocate();// THE FIFTH CHANNEL, LISTENED FOR AT THE ROOT. The shell speaks first on it, so there is no
 // press and no one screen to hang it on; it owns no screen state and renders nothing.
@@ -6985,7 +6985,7 @@ try{localStorage.removeItem(DAILY_WIRD_KEY);}catch(e){}try{localStorage.removeIt
 try{localStorage.removeItem(MEM86_HELD_KEY);}catch(e){}try{localStorage.removeItem(MEM86_RANGES_KEY);}catch(e){}try{localStorage.removeItem(MEM86_WORDS_KEY);}catch(e){}try{localStorage.removeItem(MEM86_TESTS_KEY);}catch(e){}try{localStorage.removeItem(MEM86_RUN_KEY);}catch(e){}try{localStorage.removeItem(MEM86_PLANS_KEY);}catch(e){}try{localStorage.removeItem(MEM86_DAYS_KEY);}catch(e){}try{localStorage.removeItem(MEM86_PREFS_KEY);}catch(e){}// Session 84 -- the three device-local adhkar keys, added to this list and to nothing
 // else. "Delete all my data" has to mean today's counters, the favourite identifiers
 // and the per-category open counts too. Three removals; no other reset behaviour moves.
-localStorage.removeItem(ADHKAR_PROGRESS_KEY);localStorage.removeItem(ADHKAR_FAVORITES_KEY);localStorage.removeItem(ADHKAR_USAGE_KEY);// THE REMEMBERED POSITION GOES WITH THEM, on exactly the terms the three above go on.
+localStorage.removeItem(ADHKAR_PROGRESS_KEY);localStorage.removeItem(ADHKAR_FAVORITES_KEY);localStorage.removeItem(ADHKAR_USAGE_KEY);localStorage.removeItem(EZIK_USAGE_NOTIF_KEY);// THE REMEMBERED POSITION GOES WITH THEM, on exactly the terms the three above go on.
 // A place inside a group is a reading record, and "delete all my data" must not hand it
 // to whoever sets this device up next. It is removed unconditionally -- not only when the
 // switch that writes it is on -- because a device that once carried the switch still
@@ -9699,8 +9699,8 @@ function ezikSchedProbeLocal(nowMs){const built=ezikSchedPayload(ezikSchedItems(
 //                                    inside itself, so a page left open for a week arms once a
 //                                    day. Five seconds past the hour, not on it, so a clock that
 //                                    is a moment fast cannot fire on the day that is ending.
-function useEzikSchedRoot(){// The usage board's "turned on" count. `status` only reads the permission and raises no prompt.
-useEffect(()=>{ezikSchedProbeAsk('status',null,r=>{if(!r||!r.permission||typeof r.permission.granted!=='boolean')return;try{localStorage.setItem('ezik_usage_notif_v1',r.permission.granted?'1':'0');}catch(e){}});},[]);useEffect(()=>{if(typeof window==='undefined')return undefined;let midnight=null;const wake=()=>{ezikSchedArm();};const onShell=ev=>{const d=ev&&ev.detail;if(!d||typeof d!=='object')return;if(d.channel!==SHELL_SCHED_CHANNEL||d.op!==SHELL_SCHED_REARM_OP)return;ezikSchedArm();};const atMidnight=()=>{const n=new Date();const next=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1,0,0,5,0);let wait=next.getTime()-n.getTime();if(!isFinite(wait)||wait<1000)wait=1000;midnight=setTimeout(()=>{ezikSchedArm();atMidnight();},wait);// 🔴 A TIMER MUST NOT HOLD A HARNESS OPEN, and this is not theoretical: runtime-gate.cjs
+// The usage board's "turned on" count. `status` only reads the permission and raises no prompt.
+function useEzikUsageNotif(){useEffect(()=>{ezikSchedProbeAsk('status',null,r=>{if(!r||!r.permission||typeof r.permission.granted!=='boolean')return;try{localStorage.setItem(EZIK_USAGE_NOTIF_KEY,r.permission.granted?'1':'0');}catch(e){}});},[]);}function useEzikSchedRoot(){useEffect(()=>{if(typeof window==='undefined')return undefined;let midnight=null;const wake=()=>{ezikSchedArm();};const onShell=ev=>{const d=ev&&ev.detail;if(!d||typeof d!=='object')return;if(d.channel!==SHELL_SCHED_CHANNEL||d.op!==SHELL_SCHED_REARM_OP)return;ezikSchedArm();};const atMidnight=()=>{const n=new Date();const next=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1,0,0,5,0);let wait=next.getTime()-n.getTime();if(!isFinite(wait)||wait<1000)wait=1000;midnight=setTimeout(()=>{ezikSchedArm();atMidnight();},wait);// 🔴 A TIMER MUST NOT HOLD A HARNESS OPEN, and this is not theoretical: runtime-gate.cjs
 // mounts this very tree under node and then waits for the event loop to DRAIN before it
 // reports. A handle for tomorrow midnight keeps that process alive until tomorrow, so the
 // gate hangs rather than fails -- which is worse than failing. In a browser setTimeout

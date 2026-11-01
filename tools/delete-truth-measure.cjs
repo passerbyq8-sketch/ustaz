@@ -395,6 +395,7 @@ const MUST_GO_ALREADY = [
   { c: 'ADHKAR_PROGRESS_KEY' },
   { c: 'ADHKAR_FAVORITES_KEY' },
   { c: 'ADHKAR_USAGE_KEY' },
+  { c: 'EZIK_USAGE_NOTIF_KEY' },
   { c: 'ADHKAR_PLACE_KEY' },             // where a reader stopped inside a group
   { c: 'EZIK_UI_STYLE_KEY_DEAD' },       // the obsolete layout key
   { c: 'EZIK_VISUAL_THEME_KEY' },
