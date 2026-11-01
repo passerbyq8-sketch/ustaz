@@ -421,7 +421,7 @@
         '<h3>وقفاتي على هذه الآية</h3>' + (mine.length ? '<ul class="list">' + mine.map((r) => '<li><div class="ref"><span>' + esc(r.type) + '</span><span>' + new Date(r.at).toLocaleDateString('ar') + '</span></div><div class="plain">' + esc(r.text) + '</div><div class="row"><button type="button" class="chip" data-act="favR" data-id="' + r.id + '" aria-pressed="' + isFav('r', r.id) + '">مفضّلة</button><button type="button" class="chip" data-act="delR" data-id="' + r.id + '">حذف</button></div></li>').join('') + '</ul>' : '<p class="empty">لم تكتبْ وقفةً على هذه الآيةِ بعد.</p>') +
         '<div class="field"><label for="rType">نوعُ الوقفة</label><select id="rType"><option>تدبّر</option><option>تساؤل</option><option>وقفة</option><option>فائدة</option></select></div>' +
         '<textarea id="rText" placeholder="اكتبْ وقفتَك. تُحفَظ على هذا الجهاز."></textarea><div class="row" style="margin-top:8px"><button type="button" class="chip" data-act="addR">حفظ الوقفة</button></div>';
-      if (src) fillText('tf_w', TAFSIR_BASES, src.id, key, true);
+      if (src) fillText('tf_w', TAFSIR_BASES, src.id, key, true, true);
     } else if (tab === 'note') {
       const n = store.get('notes', {})[key] || '';
       body.innerHTML = '<textarea id="noteBox" placeholder="ملاحظتك على هذه الآية. تُحفَظ على هذا الجهاز.">' + esc(n) + '</textarea><div class="row" style="margin-top:8px"><button type="button" class="chip" data-act="saveNote">حفظ</button><button type="button" class="chip" data-act="delNote">حذف</button></div>';
@@ -454,7 +454,33 @@
     const pr = (async () => { for (const b of bases) { try { const r = await fetch(b + path); if (r.ok) return await r.json(); if (r.status === 404) return null; } catch (e) {} } return fromStoredWhole(bases, path); })();
     textCache.set(ck, pr); const v = await pr; if (v === undefined) textCache.delete(ck); return v;
   }
-  async function fillText(boxId, bases, slug, key, walkBack) {
+  // DEVICE CHECK M30: the reflections source holds one file for a group of ayat and every ayah of the group gets the
+  // whole of it. Its entries quote the ayah they speak of, so an entry stays only if its own quotation belongs to this
+  // ayah. Nothing is reworded; entries are only left out. A file with no quotations at all is shown whole.
+  const WAQF_HEADS = ['الوقفات التدبرية', 'التوجيهات', 'العمل بالآيات', 'معاني الكلمات'];
+  function waqfatForAyah(text, key) {
+    const hay = [normalize(Q[key] || ''), normalize((IML && IML[key]) || '')].filter(Boolean);
+    const quoted = (para) => (String(para).match(/﴿[^﴾]*﴾/g) || []).join(' ').split(/[﴿﴾]|\([٠-٩0-9]+\)/).map(normalize).filter((q) => q.length > 1);
+    const hit = (qs) => qs.some((q) => hay.some((h) => h.indexOf(q) >= 0 || q.indexOf(h) >= 0));
+    const groups = []; let head = null, cur = null, sawQuote = false;
+    const paras = String(text).split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+    paras.forEach((p) => {
+      if (WAQF_HEADS.indexOf(p) >= 0) { head = { title: p, items: [] }; groups.push(head); cur = null; return; }
+      if (/^([٠-٩0-9]+\s*[-–]\s*)?﴿/.test(p) || /^[٠-٩0-9]+\s*[-–]/.test(p) || !cur) {
+        if (!head) { head = { title: '', items: [] }; groups.push(head); }
+        cur = [p]; head.items.push(cur); if (quoted(p).length) sawQuote = true; return;
+      }
+      cur.push(p);
+    });
+    if (!sawQuote) return text;
+    const out = [];
+    groups.forEach((g) => {
+      const keep = g.items.filter((it) => hit(quoted(it[0])));
+      if (keep.length) { if (g.title) out.push(g.title); keep.forEach((it) => out.push(it.join('\n\n'))); }
+    });
+    return out.join('\n\n');
+  }
+  async function fillText(boxId, bases, slug, key, walkBack, oneAyah) {
     const [s, a] = key.split(':').map(Number);
     let from = a, d = await getJson(bases, slug + '/' + s + '/' + a + '.json');
     if (d === undefined) { const el = $(boxId); if (el) el.innerHTML = '<p class="note">تعذّر الاتصال بمصدر النصّ. حاولْ لاحقًا.</p>'; return; }
@@ -463,7 +489,9 @@
     }
     const el = $(boxId); if (!el) return;
     if (!d || !String(d.text || '').trim()) { el.innerHTML = '<p class="note">لا يوجد في هذا المصدر نصٌّ لهذه الآية.</p>'; return; }
-    const text = String(d.text);
+    if (oneAyah && !IML) { try { const r = await fetch('data/imlaei.json'); IML = r.ok ? await r.json() : {}; } catch (e) { IML = {}; } }
+    const text = oneAyah ? waqfatForAyah(String(d.text), key) : String(d.text);
+    if (oneAyah && !text.trim()) { el.innerHTML = '<p class="note">لا توجد وقفات لهذه الآية في هذا المصدر.</p>'; return; }
     el.innerHTML = (from !== a ? '<p class="note">هذا الشرحُ يبدأ من الآية ' + ar(from) + ' ويشمل هذه الآية.</p>' : '') + '<p></p>';
     // DEVICE CHECK M29: the editor's notes reach us wrapped in [[ ]]. Every letter stays; only the brackets give way to
     // a small muted note in its own place.
