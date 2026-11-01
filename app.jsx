@@ -14153,6 +14153,12 @@ function ezikBrowseScholarRows(rows) {
 // by a file type or a sorting word reads as the same «assorted lessons» as the empty one.
 const EZIK_SERIES_TEST_RE = /^(tests?|testing|demo|sample|\u062A\u062C\u0631\u0628\u0629|\u062A\u062C\u0631\u064A\u0628\u064A?)[\s\d_-]*$/i;
 const EZIK_SERIES_RAW_RE = /^(unclassified|uncategori[sz]ed|misc|other|audio|video|mp[34](\s*\+\s*mp[34])?)$/i;
+// DEVICE CHECK J13: at display only: a title loses its #tags and the stray marks around it. The source stays as it is.
+function ezikCleanTitle(t) {
+  const raw = typeof t === 'string' ? t : '';
+  const out = raw.replace(/(^|\s)#[^\s#]+/g, ' ').replace(/^[\s!_#*]+|[\s_#*]+$/g, '').replace(/\s{2,}/g, ' ');
+  return out || raw;
+}
 function ezikBrowseSeriesRows(rows) {
   if (!Array.isArray(rows)) return [];
   const named = [];
@@ -17355,7 +17361,7 @@ function EzikFatwaResult({ fatwa, favPk }) {
   return (
     <article className="ezf-card">
       <header className="ezf-card-head">
-        <h2 className="ezf-title">{fatwa.title}</h2>
+        <h2 className="ezf-title">{ezikCleanTitle(fatwa.title)}</h2>
         <div className="ezf-meta">
           <span className="ezf-tag">{scholar.shortName || scholar.name || ezT('fatwa.defaultScholar')}</span>
           <span>{isTranscript
@@ -17690,7 +17696,7 @@ function FatwaScreen({ onBack, favPk }) {
                       className={'ezhome-focus ezf-row' + (isOpen ? ' is-open' : '')}
                       title={isOpen ? ezT('fatwa.closeFatwa') : ezT('fatwa.openFatwa')}
                       onClick={() => setOpenUid(isOpen ? '' : fatwa.uid)}>
-                      <span className="ezf-row-title">{fatwa.title}</span>
+                      <span className="ezf-row-title">{ezikCleanTitle(fatwa.title)}</span>
                       {scholar === EZIK_FATWA_ALL && named
                         ? <span className="ezf-row-mark">{named}</span> : null}
                     </button>

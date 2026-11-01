@@ -762,6 +762,8 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
   try { var raw = JSON.parse(document.getElementById('ezlib-strings').textContent); for (var k in raw) S[k] = raw[k][0]; } catch (e) {}
   function T(k, v) { return C.fmt(S[k] || k, v); }
   function D(n) { return C.toArabicDigits(n); }
+  // Device check J13: a book title loses the stray marks around it, at display only.
+  function BT(t) { var s = String(t == null ? '' : t), o = s.replace(/^[\s_#!*]+|[\s_#*]+$/g, ''); return D(o || s); }
   // THE ONE COUNTED NOUN (device check J10): the Arabic form follows the number.
   var FORMS = { books: ['\u0643\u062A\u0627\u0628 \u0648\u0627\u062D\u062F', '\u0643\u062A\u0627\u0628\u0627\u0646', '{n} \u0643\u062A\u0628', '{n} \u0643\u062A\u0627\u0628\u064B\u0627', '{n} \u0643\u062A\u0627\u0628'],
     s_total: ['\u0646\u062A\u064A\u062C\u0629 \u0648\u0627\u062D\u062F\u0629', '\u0646\u062A\u064A\u062C\u062A\u0627\u0646', '{n} \u0646\u062A\u0627\u0626\u062C', '{n} \u0646\u062A\u064A\u062C\u0629\u064B', '{n} \u0646\u062A\u064A\u062C\u0629'] };
@@ -980,7 +982,7 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
       var row = el('div', { class: 'row' });
       recent.forEach(function (p) {
         row.appendChild(el('button', { class: 'cont', on: { click: function () { go('#/read/' + p.book_id + '/' + p.seq); } } },
-          [el('b', { text: D(p.title || p.book_id) }), el('span', { text: p.where || '' })]));
+          [el('b', { text: BT(p.title || p.book_id) }), el('span', { text: p.where || '' })]));
       });
       body.appendChild(row);
     }
@@ -1001,7 +1003,7 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
   }
   function bookItem(b, style) {
     var sub = [D(b.author || ''), deathText(b.death_hijri)].filter(Boolean).join(' · ');
-    return el('button', { class: 'item', style: style || null, on: { click: function () { go('#/book/' + b.book_id); } } }, [el('b', { text: D(b.title) }), el('span', { text: sub })]);
+    return el('button', { class: 'item', style: style || null, on: { click: function () { go('#/book/' + b.book_id); } } }, [el('b', { text: BT(b.title) }), el('span', { text: sub })]);
   }
 
   // ---------------- search (ORDER-108B) ----------------
@@ -1050,7 +1052,7 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
         if (ctx.openHit) ctx.openHit(h, terms);
         else go('#/read/' + h.book_id + '/' + h.seq + '/' + encodeURIComponent(terms.join(' ')));
         if (ctx.onDone) ctx.onDone();
-      } } }, [snip, el('span', { class: 'src', text: D(h.title) + ' · ' + where })]);
+      } } }, [snip, el('span', { class: 'src', text: BT(h.title) + ' · ' + where })]);
     }
     function authorItem(a) {
       return el('button', { class: 'item', type: 'button', on: { click: function () { showAuthor(a); } } },
@@ -1200,8 +1202,8 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
     function load() {
       api('books/' + encodeURIComponent(bookId)).then(function (b) {
         sctx.catId = b.site_category_id || null;
-        document.title = D(b.title) + ' - ' + T('app_title');
-        $app.querySelector('.top h1').textContent = D(b.title);
+        document.title = BT(b.title) + ' - ' + T('app_title');
+        $app.querySelector('.top h1').textContent = BT(b.title);
         body.innerHTML = '';
         var card = b.card;
         var dl = el('dl');
@@ -1215,7 +1217,7 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
         row(T('f_vols'), cardField(card, 'عدد الأجزاء'));
         row(T('f_pages'), D(cardField(card, 'عدد الصفحات') || b.pages));
         row(T('f_numbering'), numberingText(b.numbering));
-        var cardEl = el('article', { class: 'card' }, [el('h2', { text: D(b.title) }), dl]);
+        var cardEl = el('article', { class: 'card' }, [el('h2', { text: BT(b.title) }), dl]);
         if (card && card.note) cardEl.appendChild(el('p', { class: 'muted', style: 'font-size:13px;margin:10px 0 0', text: D(card.note) }));
         var actions = el('div', { class: 'actions' });
         if (b.access === 'full') {
@@ -1738,7 +1740,7 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
     Promise.all([api('books/' + encodeURIComponent(bookId)), notes.listByBook(bookId)]).then(function (res) {
       if (dead) return;
       book = res[0]; bookNotes = res[1];
-      titleEl.textContent = D(book.title); document.title = D(book.title) + ' - ' + T('app_title');
+      titleEl.textContent = BT(book.title); document.title = BT(book.title) + ' - ' + T('app_title');
       if (book.access !== 'full') { stage.appendChild(el('p', { class: 'note', text: T('card_only_reader') })); setTimeout(function () { go('#/book/' + bookId); }, 1200); return; }
       var p = getPos(bookId);
       var seq = startSeq && startSeq >= 1 ? Math.min(startSeq, book.pages) : p ? p.seq : 1;
