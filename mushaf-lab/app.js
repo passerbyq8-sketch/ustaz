@@ -463,8 +463,16 @@
     }
     const el = $(boxId); if (!el) return;
     if (!d || !String(d.text || '').trim()) { el.innerHTML = '<p class="note">لا يوجد في هذا المصدر نصٌّ لهذه الآية.</p>'; return; }
+    const text = String(d.text);
     el.innerHTML = (from !== a ? '<p class="note">هذا الشرحُ يبدأ من الآية ' + ar(from) + ' ويشمل هذه الآية.</p>' : '') + '<p></p>';
-    el.lastChild.textContent = String(d.text).replace(/\n{3,}/g, '\n\n');
+    // DEVICE CHECK M29: the editor's notes reach us wrapped in [[ ]]. Every letter stays; only the brackets give way to
+    // a small muted note in its own place.
+    const body = el.lastChild;
+    text.replace(/\n{3,}/g, '\n\n').split(/(\[\[[\s\S]*?\]\])/).forEach((part) => {
+      const m = /^\[\[([\s\S]*)\]\]$/.exec(part);
+      if (m) { const fn = document.createElement('span'); fn.className = 'editnote'; fn.textContent = m[1]; body.appendChild(fn); }
+      else if (part) body.appendChild(document.createTextNode(part));
+    });
   }
   function showTrans(key) {
     const box = $('trBox'); if (!box) return;
