@@ -10438,11 +10438,14 @@ function ez110AdhanCardLit() {
 function ez110AdhanAsked() { try { return !!localStorage.getItem(EZ110_ADHAN_ASKED_KEY); } catch (e) { return true; } }
 function ez110MarkAdhanAsked() { try { localStorage.setItem(EZ110_ADHAN_ASKED_KEY, '1'); } catch (e) {} }
 function Ez110AdhanCard({ onPressed, onLater, onGranted }) {
+  // DEVICE CHECK O1: the card has done its work the moment the call to prayer is on. The switch inside it stays as gate
+  // schedulepayload pins it, so the card watches the switch's own store.
+  const grantedRef = useRef(onGranted);
+  grantedRef.current = onGranted;
   useEffect(() => {
-    const on = () => { if (typeof onGranted === 'function') onGranted(); };
-    window.addEventListener('ezik-adhan-granted', on);
-    return () => window.removeEventListener('ezik-adhan-granted', on);
-  }, [onGranted]);
+    const id = setInterval(() => { if (readPrayerNotify() && grantedRef.current) grantedRef.current(); }, 300);
+    return () => clearInterval(id);
+  }, []);
   return (
     <section className="ez110-first" data-ez110-first="call" aria-label={ezT('ez110.call.title')}
       onClickCapture={(e) => { if (e.target && e.target.closest && e.target.closest('[data-ezik-prayer-notify]')) onPressed(); }}>
@@ -30372,8 +30375,6 @@ function PrayerNotifyToggle() {
       setOn(writePrayerNotify(true));
       setSaid('');
       ezikSchedArm();
-      // DEVICE CHECK O1: the first-run card has done its work the moment the call to prayer is on.
-      try { window.dispatchEvent(new CustomEvent('ezik-adhan-granted')); } catch (e) {}
     });
     if (!stop) { setSaid('silent'); return; }
     stopRef.current = stop;
