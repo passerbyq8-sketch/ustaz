@@ -1148,6 +1148,16 @@
       openAyahOrRange(key);
     };
     const cancelPress = () => { if (press) { clearTimeout(press.timer); press = null; } };
+    // DEVICE CHECK J4: the sheet opens under a finger that is still down, and the system's own long press then picks a
+    // word in the sheet. Nothing in the sheet can be picked until that finger lifts; copying stays on the sheet's button.
+    const holdNoSelect = () => {
+      const b = document.body; b.classList.add('pressopen');
+      let done = false;
+      const off = () => { if (done) return; done = true; ['pointerup', 'pointercancel', 'touchend'].forEach((n) => window.removeEventListener(n, off, true)); setTimeout(() => b.classList.remove('pressopen'), 250); };
+      ['pointerup', 'pointercancel', 'touchend'].forEach((n) => window.addEventListener(n, off, true));
+      setTimeout(off, 2000);
+    };
+    ['selectstart', 'contextmenu'].forEach((n) => document.addEventListener(n, (e) => { if (document.body.classList.contains('pressopen')) e.preventDefault(); }));
     sp.addEventListener('pointerdown', (e) => {
       if (document.body.classList.contains('selmode') || settling) return;
       if (e.pointerType === 'mouse' && e.button !== 0) return;
@@ -1155,7 +1165,7 @@
       cancelPress();
       const st = e.target.closest('.stage');
       const pr = { x: e.clientX, y: e.clientY, st, fired: false, drag: false, moved: false, lx: e.clientX, lt: Date.now(), vx: 0, id: e.pointerId };
-      pr.timer = setTimeout(() => { if (press === pr && !pr.drag && !pr.moved && st) { pr.fired = true; openFromPress(st, pr.x, pr.y); } }, 450);
+      pr.timer = setTimeout(() => { if (press === pr && !pr.drag && !pr.moved && st) { pr.fired = true; holdNoSelect(); openFromPress(st, pr.x, pr.y); } }, 450);
       press = pr;
     });
     sp.addEventListener('pointermove', (e) => {

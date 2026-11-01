@@ -79,6 +79,7 @@ main { position: fixed; left: 0; right: 0; top: var(--sat); bottom: var(--sab); 
 .layer .pl { background: var(--play); }
 .layer .rg { background: var(--hl); outline: 1px dashed var(--accent); }
 .tl { position: absolute; inset: 0; -webkit-touch-callout: none; }
+body.pressopen * { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 body.selmode .tl { -webkit-touch-callout: default; }
 .tl span { position: absolute; white-space: pre; color: transparent; line-height: 1; transform-origin: 0 0; pointer-events: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 body.selmode .tl span { pointer-events: auto; cursor: text; user-select: text; -webkit-user-select: text; -webkit-touch-callout: default; }
