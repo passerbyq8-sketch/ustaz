@@ -9,6 +9,7 @@
   var pathSection = '';
   var pathAt = 0;
   var pathCap = 30 * 60 * 1000;
+  var notifKey = 'ezik_usage_notif_v1';
   try {
     var previous = JSON.parse(root.sessionStorage.getItem(repeatKey) || 'null');
     if (previous && Object.prototype.hasOwnProperty.call(EZIK_USAGE_SECTIONS, previous.section)
@@ -33,7 +34,14 @@
         if (pathSection && now >= pathAt && now - pathAt <= pathCap) {
           event.from = pathSection;
           event.gap = now - pathAt;
-        } else event.boot = 1;
+        } else {
+          event.boot = 1;
+          var shell = !!(root.ReactNativeWebView && root.ReactNativeWebView.postMessage);
+          var agent = String(root.navigator && root.navigator.userAgent || '');
+          event.plat = !shell ? 'w' : /iPhone|iPad|iPod/.test(agent) ? 'i' : 'a';
+          if (typeof EZIK_APP_VERSION === 'string') event.appv = EZIK_APP_VERSION;
+          try { if (root.localStorage.getItem(notifKey) === '1') event.notif = 1; } catch (_) {}
+        }
         pathSection = name;
         pathAt = now;
       }

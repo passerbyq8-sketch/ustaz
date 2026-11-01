@@ -1765,6 +1765,26 @@ const EZ_I18N = {
     'usage.noSource': 'بلا مصدر',
     'usage.topKinds': 'أكثر التصنيفات',
     'usage.sample': 'محسوبة على {n} جوابًا',
+    'usage.peak': 'ساعات الذروة بتوقيت الكويت',
+    'usage.dwell': 'مدة البقاء في القسم',
+    'usage.mean': 'المتوسط',
+    'usage.median': 'الوسيط',
+    'usage.perf': 'الأداء',
+    'usage.firstChar': 'زمن أول حرف',
+    'usage.faults': 'الأعطال',
+    'usage.platform': 'المنصة والإصدار',
+    'usage.android': 'أندرويد',
+    'usage.ios': 'آيفون',
+    'usage.web': 'الويب',
+    'usage.notif': 'الإشعارات',
+    'usage.notifOn': 'فعّلها',
+    'usage.notifOpen': 'فتح من إشعار',
+    'usage.needsStore': 'ينتظر تحديث المتجر',
+    'usage.games': 'الألعاب',
+    'usage.bought': 'اشترى',
+    'usage.pending': 'لم يُوصل بعد',
+    'usage.seconds': '{n} ث',
+    'usage.minutes': '{n} د',
     'inbox.empty': 'لا رسائلَ هنا.',
     'inbox.failed': 'تعذَّرَ فتحُ الصندوق.',
     'inbox.stateNew': 'جديدة',
@@ -3579,6 +3599,26 @@ const EZ_I18N = {
     'usage.noSource': 'No source',
     'usage.topKinds': 'Top categories',
     'usage.sample': 'Based on {n} answers',
+    'usage.peak': 'Peak hours, Kuwait time',
+    'usage.dwell': 'Time spent in a section',
+    'usage.mean': 'Mean',
+    'usage.median': 'Median',
+    'usage.perf': 'Performance',
+    'usage.firstChar': 'Time to first character',
+    'usage.faults': 'Faults',
+    'usage.platform': 'Platform and version',
+    'usage.android': 'Android',
+    'usage.ios': 'iPhone',
+    'usage.web': 'Web',
+    'usage.notif': 'Notifications',
+    'usage.notifOn': 'Turned on',
+    'usage.notifOpen': 'Opened from a notification',
+    'usage.needsStore': 'Waiting for a store update',
+    'usage.games': 'Games',
+    'usage.bought': 'Bought',
+    'usage.pending': 'Not connected yet',
+    'usage.seconds': '{n}s',
+    'usage.minutes': '{n}m',
     'inbox.empty': 'Nothing here.',
     'inbox.failed': 'The inbox could not be opened.',
     'inbox.stateNew': 'New',
@@ -28454,6 +28494,8 @@ const EZ_UB_CSS = `
 .ezub-pair:first-of-type{border-top:0}
 .ezub-link{all:unset;cursor:pointer;font-size:14px;font-weight:700;color:var(--a3-blue);padding:8px 0;display:inline-block}
 .ezub-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:12px}
+.ezub-heat{display:grid;grid-template-columns:repeat(24,minmax(0,1fr));gap:2px}
+.ezub-heat i{display:block;height:34px;border-radius:4px;background:var(--a3-blue)}
 .ezub-card summary{cursor:pointer;font-size:15px;font-weight:700;color:var(--a3-ink);min-height:28px}
 .ezub-skel{height:118px;border-radius:20px;background:var(--a3-ice);animation:ezub-pulse 1.4s ease-in-out infinite}
 @keyframes ezub-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -28580,6 +28622,36 @@ function EzUbChat({ chat }) {
   );
 }
 
+const ezUbTime = (seconds) => (seconds < 60 ? ezT('usage.seconds', { n: seconds }) : ezT('usage.minutes', { n: Math.round(seconds / 60) }));
+
+function EzUbHours({ hours, since }) {
+  const top = Math.max(...hours);
+  if (!top) return <EzUbCollecting since={since} />;
+  return (
+    <>
+      <div className="ezub-heat" dir="ltr" role="img" aria-label={ezT('usage.peak')}>
+        {hours.map((n, h) => <i key={h} title={h + ':00'} style={{ opacity: 0.08 + (n / top) * 0.92 }} />)}
+      </div>
+      <div className="ezub-pair" dir="ltr" style={{ borderTop: 0 }}>
+        {[0, 6, 12, 18, 23].map((h) => <span key={h} className="ezub-soft">{h}</span>)}
+      </div>
+    </>
+  );
+}
+
+function EzUbPerf({ chat }) {
+  if (chat === null) return <p className="ezub-soft">{ezT('usage.failed')}</p>;
+  if (!chat) return <div className="ezub-skel" />;
+  if (chat.firstMs === null) return <p className="ezub-soft">{ezT('usage.none')}</p>;
+  return (
+    <div className="ezub-stats">
+      <div className="ezub-kpi"><span>{ezT('usage.firstChar')}</span>
+        <span className="ezub-big">{ezT('usage.seconds', { n: (chat.firstMs / 1000).toFixed(1) })}</span></div>
+      <div className="ezub-kpi"><span>{ezT('usage.faults')}</span><span className="ezub-big">{ezUbNum(chat.faults)}</span></div>
+    </div>
+  );
+}
+
 function EzikUsageBoard() {
   const [day, setDay] = useState(() => new Date().toISOString().slice(0, 10));
   const [days, setDays] = useState(1);
@@ -28680,6 +28752,52 @@ function EzikUsageBoard() {
           <section className="ezub-card">
             <h3>{ezT('usage.chat')}</h3>
             <EzUbChat chat={chat} />
+          </section>
+          <section className="ezub-card">
+            <h3>{ezT('usage.peak')}</h3>
+            {b ? <EzUbHours hours={b.hours} since={since} /> : <EzUbCollecting since={since} />}
+          </section>
+          <section className="ezub-card">
+            <h3>{ezT('usage.dwell')}</h3>
+            {b && b.stays.length ? (
+              <>
+                <div className="ezub-pair"><span /><span className="ezub-soft">{ezT('usage.mean') + ' \u00B7 ' + ezT('usage.median')}</span></div>
+                {b.stays.map((r) => (
+                  <div className="ezub-pair" key={r.label}>
+                    <span>{r.label}</span><span>{ezUbTime(r.mean) + ' \u00B7 ' + ezUbTime(r.median)}</span>
+                  </div>
+                ))}
+              </>
+            ) : <EzUbCollecting since={since} />}
+          </section>
+          <section className="ezub-card">
+            <h3>{ezT('usage.perf')}</h3>
+            <EzUbPerf chat={chat} />
+          </section>
+          <section className="ezub-card">
+            <h3>{ezT('usage.platform')}</h3>
+            {b && (b.platforms.a || b.platforms.i || b.platforms.w) ? (
+              <>
+                <EzUbBars rows={[['usage.android', b.platforms.a], ['usage.ios', b.platforms.i], ['usage.web', b.platforms.w]].map(([k, n]) => ({ k: ezT(k), n }))} />
+                {b.versions.map((v) => (
+                  <div className="ezub-pair" key={v.v}><bdi dir="ltr">{v.v}</bdi><span>{ezUbNum(v.n)}</span></div>
+                ))}
+              </>
+            ) : <EzUbCollecting since={since} />}
+          </section>
+          <section className="ezub-card">
+            <h3>{ezT('usage.notif')}</h3>
+            <div className="ezub-pair"><span>{ezT('usage.notifOn')}</span>
+              {b && b.notif.of ? <span>{Math.round((b.notif.on / b.notif.of) * 100) + '%'}</span>
+                : <span className="ezub-soft">{ezT('usage.collecting', { date: ezUbDate(since) })}</span>}</div>
+            <div className="ezub-pair"><span>{ezT('usage.notifOpen')}</span><span className="ezub-soft">{ezT('usage.needsStore')}</span></div>
+          </section>
+          <section className="ezub-card">
+            <h3>{ezT('usage.games')}</h3>
+            {(data.games || []).map((g) => (
+              <div className="ezub-pair" key={g.section}><span>{g.label}</span><span>{ezUbNum(g.opens)}</span></div>
+            ))}
+            <div className="ezub-pair"><span>{ezT('usage.bought')}</span><span className="ezub-soft">{ezT('usage.pending')}</span></div>
           </section>
           <details className="ezub-card" ref={tableRef}>
             <summary>{ezT('usage.allSections')}</summary>
@@ -33908,6 +34026,13 @@ function ezikSchedProbeLocal(nowMs) {
 //                                    day. Five seconds past the hour, not on it, so a clock that
 //                                    is a moment fast cannot fire on the day that is ending.
 function useEzikSchedRoot() {
+  // The usage board's "turned on" count. `status` only reads the permission and raises no prompt.
+  useEffect(() => {
+    ezikSchedProbeAsk('status', null, (r) => {
+      if (!r || !r.permission || typeof r.permission.granted !== 'boolean') return;
+      try { localStorage.setItem('ezik_usage_notif_v1', r.permission.granted ? '1' : '0'); } catch (e) {}
+    });
+  }, []);
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
     let midnight = null;

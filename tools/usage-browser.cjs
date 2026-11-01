@@ -28,7 +28,8 @@ const server = http.createServer((req, res) => {
           since: '20261101', active: 9, activeBefore: 6, opens: 14, opensBefore: 16,
           d1: { cohort: 8, returned: 3 }, d1Before: null, d7: null, d7Before: null,
           trend: Array.from({ length: 30 }, (_, i) => ({ day: '202610' + String(i + 1).padStart(2, '0'), devices: i < 20 ? 0 : (i * 7) % 11 + 1 })),
-          paths: [{ from: 'الرئيسية', to: 'المصحف', n: 6 }] } : undefined, read: 10, noFind: 1, noSource: 2, top: [{ k: 'deen', n: 7 }] }));
+          paths: [{ from: 'الرئيسية', to: 'المصحف', n: 6 }], hours: Array(24).fill(1), stays: [],
+          platforms: { a: 1, i: 0, w: 0 }, versions: [], notif: { on: 0, of: 1 } } : undefined, read: 10, noFind: 1, noSource: 2, top: [{ k: 'deen', n: 7 }] }));
     });
     return;
   }
@@ -136,7 +137,7 @@ async function waitForAttempt(section, offset = 0) {
       await page.waitForFunction(() => document.body && document.body.innerText.trim().length > 0);
       console.log('PASS: direct visit ' + file);
     }
-    assert.ok(attempts.every(e => Object.keys(e).every(k => ['section', 'anon', 'from', 'gap', 'boot', 'side'].includes(k)) && /^[a-f0-9]{32}$/.test(e.anon)));
+    assert.ok(attempts.every(e => Object.keys(e).every(k => ['section', 'anon', 'from', 'gap', 'boot', 'side', 'plat', 'appv', 'notif'].includes(k)) && /^[a-f0-9]{32}$/.test(e.anon)));
     assert.equal(new Set(attempts.map(e => e.anon)).size, 1);
     assert.deepEqual(errors, []);
     console.log('PASS: real card/widget/call navigation, owner ranges/day/table, and all 7 standalone pages with /api/usage disconnected ('

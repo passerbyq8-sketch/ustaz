@@ -8,7 +8,7 @@ import { checkUsageLimit } from '../lib/ratelimit.js';
 import { __setRedisForTest, __resetRedis } from '../lib/ledger/redis.js';
 import { USAGE_SECTIONS, USAGE_TTL_SECONDS, USAGE_ACTIVE_TTL_SECONDS, WRITE_USAGE_SCRIPT, READ_USAGE_SCRIPT,
   READ_UNIONS_SCRIPT, READ_HASHES_SCRIPT, READ_RETURN_SCRIPT, writeUsage, readUsage, readUsageBoard, readUsageChat,
-  usageWindow, usageKeys, usageStatsKey, usageActiveKey, usageFields, validUsageEvent } from '../lib/usage.js';
+  usageWindow, usageKeys, usageStatsKey, usageActiveKey, usageFields, usageStay, validUsageEvent } from '../lib/usage.js';
 
 const require = createRequire(import.meta.url);
 const anon = 'a'.repeat(32);
@@ -122,7 +122,7 @@ test('daily counters and HLL membership get 400-day TTLs; ranges count returning
     // Midnight in Kuwait is still the preceding UTC day.
     await writeUsage(event, new Date('2026-10-30T00:30:00+03:00'));
     assert.deepEqual(calls[0].keys, [...usageKeys('20261029', 'mushaf'), usageStatsKey('20261029'), usageActiveKey('20261029')]);
-    assert.deepEqual(calls[0].args, [anon, USAGE_TTL_SECONDS, USAGE_ACTIVE_TTL_SECONDS, 'e']);
+    assert.deepEqual(calls[0].args, [anon, USAGE_TTL_SECONDS, USAGE_ACTIVE_TTL_SECONDS, 'h:0']);
     await writeUsage(event, new Date('2026-10-30T10:00:00Z'));
     await writeUsage({ ...event, anon: 'b'.repeat(32) }, new Date('2026-10-30T11:00:00Z'));
     await writeUsage({ section: 'chat', anon }, new Date('2026-10-30T11:00:00Z'));
@@ -157,9 +157,14 @@ test('one event bumps closed fields only; a side event touches neither the day s
   assert.ok(validUsageEvent({ ...event, from: 'chat', gap: 1800000 }));
   assert.ok(validUsageEvent({ ...event, boot: 1 }));
   assert.ok(validUsageEvent({ section: 'qibla', anon, side: 1 }));
-  assert.deepEqual(usageFields({ ...event, boot: 1 }), ['e', 'b']);
-  assert.deepEqual(usageFields({ ...event, from: 'chat', gap: 9 }), ['e', 'p:chat>mushaf']);
-  assert.deepEqual(usageFields({ ...event, from: 'mushaf', gap: 9 }), ['e']);
+  const at = new Date('2026-11-01T22:30:00Z');
+  assert.deepEqual(usageFields({ ...event, boot: 1, plat: 'a', appv: '1.2', notif: 1 }, at), ['h:1', 'b', 'o:a', 'v:1.2', 'n']);
+  assert.deepEqual(usageFields({ ...event, from: 'chat', gap: 9000 }, at), ['h:1', 'd:chat:0', 'p:chat>mushaf']);
+  assert.deepEqual(usageFields({ ...event, from: 'mushaf', gap: 1800000 }, at), ['h:1', 'd:mushaf:6']);
+  for (const bad of [{ ...event, plat: 'a' }, { ...event, boot: 1, plat: 'x' }, { ...event, boot: 1, appv: 'سؤال' }, { ...event, boot: 1, notif: 2 }]) assert.equal(validUsageEvent(bad), false);
+  assert.deepEqual(usageStay([2, 0, 0, 0, 0, 0, 0]), { n: 2, mean: 5, median: 5 });
+  assert.deepEqual(usageStay([0, 0, 1, 0, 0, 0, 1]), { n: 2, mean: 623, median: 60 });
+  assert.equal(usageStay([0, 0, 0, 0, 0, 0, 0]), null);
   const calls = [];
   __setRedisForTest({ async eval(script, keys, args) { calls.push({ keys, args }); return 1; } });
   try {
@@ -175,7 +180,7 @@ test('the board returns counts only, compares with the prior window and says nul
   __setRedisForTest({ async eval(script, keys, args) {
     if (script === READ_UNIONS_SCRIPT) { sizes.push(...args); return args.map((_, i) => i + 1); }
     if (script === READ_HASHES_SCRIPT) return keys.map((k) => (k === usageStatsKey('20261110')
-      ? ['e', '5', 'b', '3', 'p:chat>mushaf', '2', 'p:home>chat', '4'] : k === usageStatsKey('20261109') ? ['b', '2'] : []));
+      ? ['h:9', '5', 'b', '3', 'o:a', '2', 'o:w', '1', 'n', '1', 'v:1.2', '3', 'd:chat:1', '4', 'p:chat>mushaf', '2', 'p:home>chat', '4'] : k === usageStatsKey('20261109') ? ['b', '2'] : []));
     if (script === READ_RETURN_SCRIPT) return keys.map((k, i) => (i < 4 && i % 2 === 0 ? 10 : i < 4 ? 4 : 0));
     throw Error('unknown script');
   } });
@@ -190,6 +195,12 @@ test('the board returns counts only, compares with the prior window and says nul
     assert.equal(board.trend.length, 30);
     assert.equal(board.trend[29].day, '20261110');
     assert.deepEqual(board.paths.map((p) => p.n), [4, 2]);
+    assert.equal(board.hours[9], 5);
+    assert.equal(board.hours.length, 24);
+    assert.deepEqual(board.platforms, { a: 2, i: 0, w: 1 });
+    assert.deepEqual(board.notif, { on: 1, of: 2 });
+    assert.deepEqual(board.versions, [{ v: '1.2', n: 3 }]);
+    assert.deepEqual(board.stays[0], { label: USAGE_SECTIONS.chat, n: 4, mean: 20, median: 20 });
     assert.equal(board.paths[0].to, USAGE_SECTIONS.chat);
     assert.ok(!JSON.stringify(board).includes(anon));
   } finally { __resetRedis(); }
@@ -215,14 +226,14 @@ test('chat quality reads the answer log as counts: no fingerprint, no text', asy
   const out = await readUsageChat({ days: 7 }, { read: async (q) => {
     asked.push(q);
     return asked.length > 1 ? [] : [
-      { fp: 'PRIVATE', cited: 2, route: 'deen', flags: [] },
-      { cited: 0, route: 'deen', flags: ['refusal_fallback'] },
-      { cited: 0, path: 'canned', flags: ['unsourced_withheld'] },
+      { fp: 'PRIVATE', cited: 2, route: 'deen', flags: [], status: 'ended', first_byte_ms: 1000 },
+      { cited: 0, route: 'deen', flags: ['refusal_fallback'], status: 'ended', first_byte_ms: 3000 },
+      { cited: 0, path: 'canned', flags: ['unsourced_withheld', 'incomplete'], status: 'ended', first_byte_ms: null },
     ];
   } });
   assert.equal(asked.length, 7);
   assert.equal(asked[0].limit, 200);
-  assert.deepEqual([out.read, out.noFind, out.noSource], [3, 2, 2]);
+  assert.deepEqual([out.read, out.noFind, out.noSource, out.faults, out.firstMs, out.slowMs], [3, 2, 2, 1, 3000, 3000]);
   assert.deepEqual(out.top, [{ k: 'deen', n: 2 }, { k: 'canned', n: 1 }]);
   assert.ok(!JSON.stringify(out).includes('PRIVATE'));
 });
@@ -258,7 +269,8 @@ test('client whitelist, 5-second consecutive deduplication and cross-page dedupl
   next.window.localStorage.setItem('ezik_auth_session_v1', JSON.stringify({ session: 'DIFFERENT_ACCOUNT' }));
   next.window.logSection('home');
   assert.equal(next.events[1].anon, h.events[0].anon);
-  assert.deepEqual(Object.keys(h.events[0]).sort(), ['anon', 'boot', 'section']);
+  assert.deepEqual(Object.keys(h.events[0]).sort(), ['anon', 'boot', 'plat', 'section']);
+  assert.equal(h.events[0].plat, 'w');
   assert.equal(h.events[0].boot, 1);
   assert.deepEqual([h.events[1].from, h.events[1].boot], ['mushaf', undefined]);
   assert.equal(h.events[1].gap, 5000);
