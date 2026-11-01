@@ -314,8 +314,8 @@ SCENES.place = async () => {
   const auto = c.q('[data-ezik-place="auto"]');
   ok('the automatic-location button is offered beside a chosen place', !!auto);
   const sections = require('../config/usage-sections.json');
-  ok('usage requests contain only a closed section slug and anonymous device ID', c.usageEvents.length > 0
-    && c.usageEvents.every((e) => e && Object.keys(e).sort().join(',') === 'anon,section'
+  ok('usage requests contain only a closed field list around a section slug and anonymous device ID', c.usageEvents.length > 0
+    && c.usageEvents.every((e) => e && Object.keys(e).every((k) => ['section', 'anon', 'from', 'gap', 'boot', 'side', 'plat', 'appv', 'notif'].includes(k))
       && typeof e.section === 'string' && Object.hasOwn(sections, e.section)
       && typeof e.anon === 'string' && /^[a-f0-9]{32}$/.test(e.anon)));
   t('the page only requested static corpora, home feeds and anonymous usage', c.requests.filter((r) => !/^\/[a-z0-9-]+\.json$/.test(r) && !/^\/api\/articles-list\?/.test(r) && r !== '/api/usage'), []);

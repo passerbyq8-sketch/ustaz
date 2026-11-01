@@ -28629,7 +28629,7 @@ function EzikUsageBoard() {
     const el = tableRef.current;
     if (!el) return;
     el.open = true;
-    try { el.scrollIntoView({ block: 'start', behavior: ezikMotionReducedNow() ? 'auto' : 'smooth' }); } catch (e) {}
+    try { el.scrollIntoView({ block: 'start' }); } catch (e) {}
   };
   return (
     <div className="ezub">

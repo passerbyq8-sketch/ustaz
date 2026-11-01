@@ -140,8 +140,8 @@ SCENES.section = async () => {
   t('the silent fresh fix followed and, a hundred metres off, changed nothing', [c.geoCalls.length, c.geoCalls[1] && c.geoCalls[1].opts.enableHighAccuracy, JSON.parse(c.store.getItem('ezik_qibla_loc_v1')).lat], [2, true, SALMIYA.lat]);
   t('the manual-city record was not invented', c.store.getItem('ezik_prayer_place_v1'), null);
   const sections = require('../config/usage-sections.json');
-  ok('usage contains no position or account: only section and anonymous ID', c.usageEvents.length > 0
-    && c.usageEvents.every((e) => e && Object.keys(e).sort().join(',') === 'anon,section'
+  ok('usage contains no position or account: only its closed field list', c.usageEvents.length > 0
+    && c.usageEvents.every((e) => e && Object.keys(e).every((k) => ['section', 'anon', 'from', 'gap', 'boot', 'side', 'plat', 'appv', 'notif'].includes(k))
       && typeof e.section === 'string' && Object.hasOwn(sections, e.section)
       && typeof e.anon === 'string' && /^[a-f0-9]{32}$/.test(e.anon)));
   t('only static corpora, home feeds and anonymous usage were requested', c.requests.filter((r) => !/^\/[a-z0-9-]+\.json$/.test(r) && !/^\/api\/articles-list\?/.test(r) && r !== '/api/usage'), []);
