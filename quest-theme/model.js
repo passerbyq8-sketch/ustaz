@@ -23,7 +23,7 @@
     if (q.kzPack) return q.kzPack.level;
     return global.LEVELS_EXPERIMENT !== false && global.KUNUZ_LEVELS?.levels[q[8]] || 0;
   }
-  function live(index) { return global.DATA.qs[index]?.[2] !== 0; }
+  function live(index) { const q = global.DATA.qs[index]; return q?.[2] !== 0 && !(q?.kzHide && !global.KunuzUsesRoomBank?.()); }
   function catalog() {
     if (Array.isArray(global.DATA?.cats)) return global.DATA.cats.map((row, index) => ({ index, slug: row[0], name: row[1] }));
     return FALLBACK_CATEGORIES.map((row, index) => ({ index, ...row }));

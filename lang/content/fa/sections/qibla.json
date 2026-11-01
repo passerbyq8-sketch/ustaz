@@ -1,0 +1,408 @@
+{
+  "schema": "ezik-tr4/1",
+  "lang": "fa",
+  "section": "qibla",
+  "title": {
+    "ar": "اتّجاه القبلة",
+    "tr": "جهت قبله"
+  },
+  "agent": "K05",
+  "generated": "2026-11-01T22:13:30+03:00",
+  "source_files": [
+    "app.jsx"
+  ],
+  "items": [
+    {
+      "id": "QIBLA_DEFAULT_PLACE",
+      "kind": "text",
+      "ar": "مدينة الكويت",
+      "tr": "شهر کویت",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "QIBLA_SECTION",
+      "kind": "text",
+      "ar": "اتّجاه القبلة",
+      "tr": "جهت قبله",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "QIBLA_DEG_SUFFIX",
+      "kind": "text",
+      "ar": "درجةً عن الشمال",
+      "tr": "درجه از شمال",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "QIBLA_TOWARD",
+      "kind": "text",
+      "ar": "نحوَ",
+      "tr": "به سوی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "QIBLA_PLACE_LABEL",
+      "kind": "text",
+      "ar": "الموضع:",
+      "tr": "موقعیت:",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "QIBLA_PLACE_DEFAULT_NOTE",
+      "kind": "text",
+      "ar": "افتراضيّ",
+      "tr": "پیش‌فرض",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "QIBLA_DEVICE_PLACE",
+      "kind": "text",
+      "ar": "موقعُ هذا الجهاز",
+      "tr": "موقعیت این دستگاه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "QIBLA_USE_DEVICE",
+      "kind": "text",
+      "ar": "استخدمْ موقعَ هذا الجهاز",
+      "tr": "استفاده از موقعیت این دستگاه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "QIBLA_USE_DEFAULT",
+      "kind": "text",
+      "ar": "عُدْ إلى الموضع الافتراضيّ",
+      "tr": "بازگشت به موقعیت پیش‌فرض",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "QIBLA_LOC_ASKING",
+      "kind": "text",
+      "ar": "يُطلَبُ الإذنُ بالموقع الآن…",
+      "tr": "اکنون اجازهٔ دسترسی به موقعیت درخواست می‌شود…",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "QIBLA_LOC_DENIED",
+      "kind": "text",
+      "ar": "لم يُمنَحِ الإذنُ بالموقع، والموضعُ الافتراضيُّ باقٍ كما هو.",
+      "tr": "اجازهٔ دسترسی به موقعیت داده نشد؛ موقعیت پیش‌فرض همچنان باقی است.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "QIBLA_COMPASS_START",
+      "kind": "text",
+      "ar": "شغِّلِ البوصلة",
+      "tr": "روشن‌کردن قطب‌نما",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "QIBLA_COMPASS_WAIT",
+      "kind": "text",
+      "ar": "بانتظارِ قراءةٍ من حسّاسِ الاتّجاه…",
+      "tr": "در انتظار دریافت داده از حسگر جهت…",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "QIBLA_COMPASS_NONE",
+      "kind": "text",
+      "ar": "لا تدورُ البوصلةُ على هذا الجهاز: لم تصلْ قراءةٌ صالحةٌ من حسّاسِ الاتّجاه، فالدرجةُ وحدَها هي المعروضة.",
+      "tr": "قطب‌نما روی این دستگاه نمی‌چرخد؛ دادهٔ معتبری از حسگر جهت دریافت نشد و فقط زاویه نمایش داده می‌شود.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "QIBLA_COMPASS_LIVE",
+      "kind": "text",
+      "ar": "البوصلةُ تدورُ مع الجهاز.",
+      "tr": "قطب‌نما همراه دستگاه می‌چرخد.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "QIBLA_COMPASS_CALIBRATION",
+      "kind": "text",
+      "ar": "السهمُ يدورُ، لكنَّ معايرةَ حسّاسِ الاتّجاهِ ناقصة. حرِّكِ الجهازَ ببطءٍ على شكلِ الرقم ٨ حتّى تتحسّنَ المعايرة.",
+      "tr": "عقربه می‌چرخد، اما حسگر جهت به‌خوبی تنظیم نشده است. دستگاه را به‌آرامی به شکل عدد ٨ حرکت دهید تا تنظیم آن بهتر شود.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "QIBLA_COMPASS_SENSOR_UNAVAILABLE",
+      "kind": "text",
+      "ar": "لا يحتوي هذا الجهازُ على حسّاسِ اتّجاهٍ متاح؛ تبقى درجةُ القبلةِ المعروضةُ أعلاه.",
+      "tr": "این دستگاه حسگر جهتِ در دسترس ندارد؛ زاویهٔ قبله که در بالا نمایش داده شده باقی می‌ماند.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "QIBLA_COMPASS_PERMISSION_DENIED",
+      "kind": "text",
+      "ar": "إذنُ الموقعِ مرفوض. افتحْ إعداداتِ الجهازِ الخاصّةَ بتطبيقِ عزك وامنحْ إذنَ الموقع، ثم عُدْ إلى هذه الشاشة.",
+      "tr": "اجازهٔ دسترسی به موقعیت رد شده است. تنظیمات دستگاه برای برنامهٔ عزک را باز کنید و اجازهٔ موقعیت را بدهید، سپس به این صفحه بازگردید.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "QIBLA_COMPASS_HEADING_ERROR",
+      "kind": "text",
+      "ar": "تعذّرتْ قراءةُ اتّجاهِ الجهازِ بسببِ عطبٍ طارئ. أعِدِ المحاولة.",
+      "tr": "به علت اشکالی ناگهانی، خواندن جهت دستگاه ممکن نشد. دوباره تلاش کنید.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "QIBLA_COMPASS_RETRY",
+      "kind": "text",
+      "ar": "أعِدِ المحاولة",
+      "tr": "تلاش دوباره",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7fc4af6696d7",
+      "kind": "text",
+      "ar": "الشمال",
+      "tr": "شمال",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4e1355bf993f",
+      "kind": "text",
+      "ar": "الشمال الشرقيّ",
+      "tr": "شمال شرقی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fd23f61ef524",
+      "kind": "text",
+      "ar": "الشرق",
+      "tr": "شرق",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f54424482bce",
+      "kind": "text",
+      "ar": "الجنوب الشرقيّ",
+      "tr": "جنوب شرقی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:255eea0e4db5",
+      "kind": "text",
+      "ar": "الجنوب",
+      "tr": "جنوب",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2f44ea5f563f",
+      "kind": "text",
+      "ar": "الجنوب الغربيّ",
+      "tr": "جنوب غربی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b6472930bc6a",
+      "kind": "text",
+      "ar": "الغرب",
+      "tr": "غرب",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:eea5313be069",
+      "kind": "text",
+      "ar": "الشمال الغربيّ",
+      "tr": "شمال غربی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    }
+  ]
+}

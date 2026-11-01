@@ -445,7 +445,7 @@ const V = '﴿', W = '﴾';
       ok('in English the title and both lines are English and one note line stands under them', en.note === 1 && /^Hanna Laha From 2 to 12 teams/.test(en.text) && /The game itself is in Arabic\.$/.test(en.text) && !/[\u0600-\u06FF]/.test(en.text.replace(/\u00ab[^\u00bb]*\u00bb/g, '')), en.text);
       ok('...and in French likewise, with the five cards still five', fr.note === 1 && /arabe\.$/.test(fr.text) && fr.all === 5 && en.all === 5, fr.text);
       const noteOnArabic = langsAll.every((l) => { const r = runCard(l); return r.note === 1 && r.all === 5 && !r.text.startsWith(keys[0]); });
-      ok('in every one of the 22 languages the card is translated, carries the one note, and the page keeps five cards', noteOnArabic);
+      ok('in every translated quest language the card is translated, carries the one note, and the page keeps five cards', noteOnArabic);
       // KUNUZ-BOARD (2026-10-16): the board game's card (quest-board.html, Arabic only) has its title and line in every language and the same one note
       const boardCard = questHtml.match(/<a class="door" href="\/quest-board\.html"><b>([^<]*)<\/b>\s*<span>([^<]*)<\/span><\/a>/);
       const bkeys = boardCard ? [boardCard[1], boardCard[2]].map(norm) : [];
@@ -881,7 +881,7 @@ const V = '﴿', W = '﴾';
     ok('J3/L: the question call waits 12 s at most, hedged every 4 s, five calls at most (28 s in all); the old two sequential 15 s attempts are gone',
       Q.QUESTION_CALL_MS === 12000 && Q.QUESTION_HEDGE_MS === 4000 && Q.QUESTION_CALLS_MAX === 5 && !/attempt < 2/.test(read('lib/lang/question.js')) && /hedged\(/.test(read('lib/lang/question.js')));
     // J3 on the failure text: every language of the table has it, and none of them is the Arabic one
-    ok('J3: all 22 languages have the fixed failure line and the fixed incomplete line, none of them Arabic text', T.LANG_TABLE && Object.keys(Q.TRANSLATION_FAILED_TEXT).length === 22 && Object.keys(Q.TRANSLATION_INCOMPLETE_TEXT).length === 22);
+    ok('J3: every non-Arabic language has both fixed failure lines', Object.keys(T.LANG_TABLE).filter((l) => l !== 'ar').every((l) => typeof Q.TRANSLATION_FAILED_TEXT[l] === 'string' && typeof Q.TRANSLATION_INCOMPLETE_TEXT[l] === 'string'));
   }
   {
     // (1) NO MODEL TALK AND NO ARABIC SENTENCE BESIDE THE TRANSLATION. The strings are the ones the reader saw (EXTENSION-FINGER-TEST-2026-10-08).
@@ -947,7 +947,7 @@ const V = '﴿', W = '﴾';
     }
   }
   {
-    // (5) EVERY INTERFACE WORD OF THE ANSWER AREA HAS ITS ROW IN ALL 22 LANGUAGES
+    // (5) EVERY INTERFACE WORD OF THE ANSWER AREA HAS ITS ROW IN EVERY BUILT LANGUAGE
     const app = read('app.jsx');
     const copyBtn = (/const CopyReplyButton = [\s\S]*?\n\};/.exec(app) || [''])[0];
     ok('J5: the copy button of the answer row reads its three words from the dictionary (common.copy, common.copied, x.156), no Arabic literal', /ezT\('common\.copy'\)/.test(copyBtn) && /ezT\('common\.copied'\)/.test(copyBtn) && /ezT\('x\.156'\)/.test(copyBtn) && !/[؀-ۿ]/.test(copyBtn), copyBtn.slice(copyBtn.indexOf('return <button'), copyBtn.indexOf('return <button') + 200));
@@ -956,7 +956,7 @@ const V = '﴿', W = '﴾';
       const d = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
       for (const k of ['common.copy', 'common.copied', 'x.156']) if (typeof d[k] !== 'string' || !d[k].trim() || d[k] === (k === 'common.copy' ? 'نسخ' : '')) bad.push(f + ':' + k);
     }
-    ok('J5: the three words of the answer row have a row in each of the 21 language files (English is the inline dictionary)', bad.length === 0 && fs.readdirSync(dir).filter((x) => /\.json$/.test(x)).length === 21, bad.join(' '));
+    ok('J5: the three words of the answer row have a row in each file-backed language (English is the inline dictionary)', bad.length === 0 && fs.readdirSync(dir).filter((x) => /\.json$/.test(x)).length === Object.keys(T.LANG_TABLE).filter((l) => l !== 'ar' && l !== 'en').length, bad.join(' '));
   }
   {
     // (6) THE GLOSSARY OFFERS REAL TERMS ONLY, FEW, AND NEVER A WORD WITH TWO MEANINGS
@@ -984,7 +984,7 @@ const V = '﴿', W = '﴾';
     ok('J2: the rows that are the same word as the Arabic exist (Qatar in fa, ur, ps) -- which is why the localizer must tolerate them', sameRows.fa >= 1 && sameRows.ur >= 1 && sameRows.ps >= 1, JSON.stringify(sameRows));
   }
 
-  console.log('\n=== J2/J5 (amendment 9): A REAL BROWSER OPENS SETTINGS AND THE ANSWER ROW UNDER ALL 22 LANGUAGES AND ARABIC ===');
+  console.log('\n=== J2/J5 (amendment 9): A REAL BROWSER OPENS SETTINGS AND THE ANSWER ROW UNDER ALL BUILT LANGUAGES ===');
   {
     // The finger test froze the tab in Persian Settings and the API checks had passed it: so this one runs the real page (Edge or Chrome through Playwright), not a stand-in.
     const http = require('http');
@@ -1039,9 +1039,9 @@ const V = '﴿', W = '﴾';
           } catch (e) { copyBad.push(L + '(' + String(e.message).split('\n')[0].slice(0, 50) + ')'); }
           await Promise.race([ctx.close(), new Promise((res) => setTimeout(res, 3000))]);
         }
-        ok('J2: Settings opens and the page answers within 2 s under Arabic and all 22 languages (' + langs.length + ' tried, slowest ' + maxMs + ' ms)', frozen.length === 0 && slow.length === 0 && langs.length === 23, 'frozen: ' + frozen.join(' ') + ' slow: ' + slow.join(' '));
+        ok('J2: Settings opens and the page answers within 2 s under every built language (' + langs.length + ' tried, slowest ' + maxMs + ' ms)', frozen.length === 0 && slow.length === 0 && langs.length === Object.keys(T.LANG_TABLE).length, 'frozen: ' + frozen.join(' ') + ' slow: ' + slow.join(' '));
         ok('J2: the page with an answer on it answers within 2 s under every language', answerFrozen.length === 0, answerFrozen.join(' '));
-        ok('J5: the copy button of the answer row shows the language\'s own word (text and accessible name) under all 22 languages and Arabic', copyBad.length === 0, copyBad.join(' | '));
+        ok('J5: the copy button of the answer row shows the language\'s own word (text and accessible name) under every built language', copyBad.length === 0, copyBad.join(' | '));
         await Promise.race([browser.close(), new Promise((res) => setTimeout(res, 4000))]);
       }
       await new Promise((res) => srv.close(res));
@@ -1287,7 +1287,7 @@ const V = '﴿', W = '﴾';
         if (typeof v !== 'string' || !v.trim()) bad.push(f + ':' + b + '.' + g); else if (v === arRow[b + '.' + g]) sameAsArabic.push(f + ':' + b + '.' + g);
       }
     }
-    ok('M1: each of the 21 language files has all ten rows (5 buckets x male/female), none empty', files.length === 21 && bad.length === 0, bad.join(' '));
+    ok('M1: every file-backed language has all ten rows (5 buckets x male/female), none empty', files.length === Object.keys(T.LANG_TABLE).filter((l) => l !== 'ar' && l !== 'en').length && bad.length === 0, bad.join(' '));
     ok('M1: no language file repeats the Arabic sentence as its row', sameAsArabic.length === 0, sameAsArabic.join(' '));
     ok('M1: Arabic and English each hold the ten rows inline, the English ones without Arabic letters', BUCKETS.every((b) => ['male', 'female'].every((g) => arRow[b + '.' + g] && enRow[b + '.' + g])));
     ok('M1: the marker of a cut answer still names a bucket of the same table', /FRIENDLY_ERRORS\[m\[1\]\]/.test(app));

@@ -107,13 +107,14 @@ var KZV=(function(){
   function install(){
     if(installed)return;installed=true;
     var oldStamp=seenStamp,oldRead=seenRead,oldHas=seenHas,oldMark=seenMark,oldReset=seenReset,oldLive=kzLive,oldGroups=kzcGroups;
+    function roomOn(){return typeof RM!=="undefined"&&RM.on||typeof G!=="undefined"&&G&&G.roomCfg}
     seenStamp=function(n){return oldStamp(n||baseN)};
     seenEmpty=function(){return Array(Math.ceil(baseN/8)).fill(0)};
     seenRead=function(){oldRead();readHistory()};
     seenHas=function(i){return pack(i)?has(i):oldHas(i)};
     seenMark=function(i){if(pack(i))mark(i);else oldMark(i)};
     seenReset=function(){historyIds=Object.create(null);if(!volatile)try{window.localStorage.removeItem(HISTORY)}catch(e){volatile=true}oldReset()};
-    kzLive=function(i){return pack(i)?!(typeof RM!=="undefined"&&RM.on||typeof G!=="undefined"&&G&&G.roomCfg):oldLive(i)};
+    kzLive=function(i){return pack(i)?!roomOn():DATA.qs[i]&&DATA.qs[i].kzHide&&!roomOn()?false:oldLive(i)};
     kzcGroups=function(){var groups=oldGroups();if(typeof G!=="undefined"&&G&&G.roomCfg)return groups.map(function(g){return {n:g.n,r:g.r,c:g.c.filter(function(i){return i<baseC})}});return groups};
     var oldDraw=drawCats;drawCats=function(){if(typeof G!=="undefined"&&G&&G.roomCfg)for(var i=G.cats.length-1;i>=0;i--)if(G.cats[i]>=baseC)G.cats.splice(i,1);return oldDraw.apply(this,arguments)};
     // Room payloads belong to their unchanged server bank. Clear a previous local drawing.
@@ -145,9 +146,9 @@ var KZV=(function(){
           }else gi=own(groups,g)?groups[g]:c.kind==="religious"?3:7;
           names[q.cat]=DATA.cats.length;DATA.cats.push([c.id,c.name,c.kind]);KZC_GROUPS[gi][2].push(c.id);
         }
-        var choices=q.vis&&q.vis.kind==="pattern"?q.vis.opts.map(cellName):q.choices.slice();
+        var choices=q.vis&&q.vis.kind==="pattern"&&!q.kzLang?q.vis.opts.map(cellName):q.choices.slice();
         var r=[names[q.cat],0,1,q.q,choices,q.answer,q.why,q.src.join(" · "),q.id];
-        r.kzPack={slug:p.slug,level:q.level,vis:q.vis};DATA.qs.push(r);ids[q.id]=true;
+        r.kzPack={slug:p.slug,level:q.level,vis:q.vis,lang:q.kzLang};DATA.qs.push(r);ids[q.id]=true;
       });
       slugs[p.slug]=true;KZC.g=null;
       if(typeof KZL!=="undefined"&&KZL.extend)KZL.extend();
@@ -267,7 +268,7 @@ var KZV=(function(){
       target=document.createElement("button");target.type="button";target.className="kzv-choice-button";
       target.onclick=function(){var list=node.parentNode;list.querySelectorAll("button").forEach(function(b){b.setAttribute("aria-pressed",b===target?"true":"false")})};node.appendChild(target);
     }
-    target.setAttribute("aria-label",cellName(v.opts[j]));target.appendChild(shape(v.opts[j]));return true;
+    target.setAttribute("aria-label",q.kzPack.lang?q[4][j]:cellName(v.opts[j]));target.appendChild(shape(v.opts[j]));return true;
   }
   function explain(node,q){
     if(!q||!q.kzPack)return false;
@@ -276,11 +277,12 @@ var KZV=(function(){
   function parsePack(body){var m=/^\s*KZV\.register\(\s*([\s\S]*)\s*\);?\s*$/.exec(body);if(!m)return null;try{return JSON.parse(m[1])}catch(e){return null}}
   async function boot(){
     if(!PACKS_ENABLED||typeof KUNUZ_PACKS==="undefined"||!Array.isArray(KUNUZ_PACKS))return;
+    var lang=window.TR4?TR4.language():"";
     for(var entry of KUNUZ_PACKS){
       try{
         if(!object(entry)||!/^([a-z][a-z0-9]*)(-[a-z0-9]+)*$/.test(entry.slug)||entry.src!=="quest-data/kunuz-pack-"+entry.slug+".js")continue;
         var r=await fetch("/"+entry.src);if(!r.ok)continue;
-        var p=parsePack(await r.text());if(p&&p.slug===entry.slug)register(p);
+        var p=parsePack(await r.text());if(p&&p.slug===entry.slug){if(lang)p=await TR4.overlayPack(p,lang,stamp);if(p)register(p)}
       }catch(e){}
     }
   }

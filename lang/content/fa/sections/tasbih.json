@@ -1,0 +1,342 @@
+{
+  "schema": "ezik-tr4/1",
+  "lang": "fa",
+  "section": "tasbih",
+  "title": {
+    "ar": "التسبيح",
+    "tr": "تسبیح"
+  },
+  "agent": "K05",
+  "generated": "2026-11-01T22:11:15+03:00",
+  "source_files": [
+    "app.jsx"
+  ],
+  "items": [
+    {
+      "id": "1",
+      "kind": "dhikr",
+      "ar": "سبحان الله",
+      "tr": "الله از هر عیبی پاک است.",
+      "translit": "سُبحانَ اللّاه",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "2",
+      "kind": "dhikr",
+      "ar": "الحمد لله",
+      "tr": "ستایش از آنِ الله است.",
+      "translit": "اَلحَمدُ لِلّاه",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "3",
+      "kind": "dhikr",
+      "ar": "لا اله الا الله",
+      "tr": "هیچ معبود برحقی جز الله نیست.",
+      "translit": "لا اِلاهَ اِلَّا اللّاه",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "4",
+      "kind": "dhikr",
+      "ar": "الله أكبر",
+      "tr": "الله بزرگ‌تر است.",
+      "translit": "اَللّاهُ اَکبَر",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "5",
+      "kind": "dua",
+      "ar": "رب اغفر لى",
+      "tr": "پروردگارا، مرا بیامرز.",
+      "translit": "رَبِّ اغفِر لی",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "6",
+      "kind": "dhikr",
+      "ar": "استغفر الله",
+      "tr": "از الله آمرزش می‌خواهم.",
+      "translit": "اَستَغفِرُ اللّاه",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "7",
+      "kind": "dhikr",
+      "ar": "لا حول ولا قوة الا بالله",
+      "tr": "هیچ توان و نیرویی جز به یاری الله نیست.",
+      "translit": "لا حَولَ وَلا قُوَّهَ اِلّا بِاللّاه",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "8",
+      "kind": "dua",
+      "ar": "اللهمّ إنك عفوٌّ تُحبُّ العفوَ فاعفُ عنّي",
+      "tr": "بارالها، تو بسیار بخشاینده‌ای و بخشایش را دوست داری؛ پس مرا ببخش.",
+      "translit": "اَللّاهُمَّ اِنَّکَ عَفُوٌّ تُحِبُّ العَفوَ فَاعفُ عَنّی",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "9",
+      "kind": "dua",
+      "ar": "اللهم صل وسلم وبارك على سيدنا محمد",
+      "tr": "بارالها، بر سرورمان محمد درود و سلام بفرست و به او برکت بده.",
+      "translit": "اَللّاهُمَّ صَلِّ وَسَلِّم وَبارِک عَلی سَیِّدِنا مُحَمَّد",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "10",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده سبحان الله العظيم",
+      "tr": "الله از هر عیبی پاک است و او را می‌ستایم؛ اللهِ بزرگ از هر عیبی پاک است.",
+      "translit": "سُبحانَ اللّاهِ وَبِحَمدِه سُبحانَ اللّاهِ العَظیم",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "11",
+      "kind": "dhikr",
+      "ar": "سبحان الله والحمد لله ولا إله إلا الله والله أكبر",
+      "tr": "الله از هر عیبی پاک است؛ ستایش از آنِ الله است؛ هیچ معبود برحقی جز الله نیست و الله بزرگ‌تر است.",
+      "translit": "سُبحانَ اللّاهِ وَالحَمدُ لِلّاهِ وَلا اِلاهَ اِلَّا اللّاهُ وَاللّاهُ اَکبَر",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "12",
+      "kind": "dhikr",
+      "ar": "أستغفر الله الذى لا إله إلا هو الحي القيوم وأتوب إليه",
+      "tr": "از الله که هیچ معبود برحقی جز او نیست، حی و قیوم است، آمرزش می‌خواهم و به سوی او توبه می‌کنم.",
+      "translit": "اَستَغفِرُ اللّاهَ الَّذی لا اِلاهَ اِلّا هُوَ الحَیُّ القَیّومُ وَاَتوبُ اِلَیه",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "13",
+      "kind": "dhikr",
+      "ar": "لا اله الا انت سبحانك إني كنت من الظالمين",
+      "tr": "[پروردگارا،] هیچ معبودی [به‌حق] جز تو نیست. تو منزّهی. بی‌تردید، من از ستمکاران بوده‌ام",
+      "translit": "لا اِلاهَ اِلّا اَنتَ سُبحانَکَ اِنّی کُنتُ مِنَ الظّالِمین",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center; QuranEnc.com; version 1.1.3",
+        "url": "https://quranenc.com/fa/browse/persian_ih/21/87",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation.",
+        "date": "2026-11-01",
+        "snapshot_file": "lib/data/translations/quran-fa.json.gz",
+        "snapshot_fetched": "2026-10-06",
+        "version": "1.1.3",
+        "note": "Exact contiguous excerpt from the unchanged published local snapshot; Arabic source preserved."
+      },
+      "quran_quotes": [
+        {
+          "ref": "21:87",
+          "tr": "[پروردگارا،] هیچ معبودی [به‌حق] جز تو نیست. تو منزّهی. بی‌تردید، من از ستمکاران بوده‌ام"
+        }
+      ]
+    },
+    {
+      "id": "14",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده عدد خلقه ورضا نفسه وزنة عرشه ومداد كلماته",
+      "tr": "الله را پاک می‌شمارم و او را می‌ستایم، به تعداد آفریدگانش، به اندازهٔ خشنودی او، به سنگینی عرشش و به اندازهٔ مرکب نگارش کلماتش.",
+      "translit": "سُبحانَ اللّاهِ وَبِحَمدِه عَدَدَ خَلقِه وَرِضا نَفسِه وَزِنَهَ عَرشِه وَمِدادَ کَلِماتِه",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "15",
+      "kind": "dhikr",
+      "ar": "لا إله إلا الله وحده لا شريك له، له الملك، وله الحمدُ، وهو على كل شيء قدير",
+      "tr": "هیچ معبود برحقی جز الله نیست؛ یگانه است و شریکی ندارد؛ فرمانروایی و ستایش از آنِ اوست و او بر هر چیز تواناست.",
+      "translit": "لا اِلاهَ اِلَّا اللّاهُ وَحدَه لا شَریکَ لَه لَهُ المُلکُ وَلَهُ الحَمدُ وَهُوَ عَلی کُلِّ شَیءٍ قَدیر",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fcb82174c444",
+      "kind": "dhikr",
+      "ar": "لا إله إلا الله",
+      "tr": "هیچ معبود برحقی جز الله نیست.",
+      "translit": "لا اِلاهَ اِلَّا اللّاه",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c7e0a7e9c84e",
+      "kind": "dua",
+      "ar": "رب اغفر لي",
+      "tr": "پروردگارا، مرا بیامرز.",
+      "translit": "رَبِّ اغفِر لی",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:469c225165b9",
+      "kind": "dhikr",
+      "ar": "أستغفر الله",
+      "tr": "از الله آمرزش می‌خواهم.",
+      "translit": "اَستَغفِرُ اللّاه",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:09b77b8a8b14",
+      "kind": "dhikr",
+      "ar": "لا حول ولا قوة إلا بالله",
+      "tr": "هیچ توان و نیرویی جز به یاری الله نیست.",
+      "translit": "لا حَولَ وَلا قُوَّهَ اِلّا بِاللّاه",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:674860a42e28",
+      "kind": "dhikr",
+      "ar": "أستغفر الله الذي لا إله إلا هو الحي القيوم وأتوب إليه",
+      "tr": "از الله که هیچ معبود برحقی جز او نیست، حی و قیوم است، آمرزش می‌خواهم و به سوی او توبه می‌کنم.",
+      "translit": "اَستَغفِرُ اللّاهَ الَّذی لا اِلاهَ اِلّا هُوَ الحَیُّ القَیّومُ وَاَتوبُ اِلَیه",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:46e2fde55a17",
+      "kind": "dhikr",
+      "ar": "لا إله إلا أنت سبحانك إني كنت من الظالمين",
+      "tr": "[پروردگارا،] هیچ معبودی [به‌حق] جز تو نیست. تو منزّهی. بی‌تردید، من از ستمکاران بوده‌ام",
+      "translit": "لا اِلاهَ اِلّا اَنتَ سُبحانَکَ اِنّی کُنتُ مِنَ الظّالِمین",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center; QuranEnc.com; version 1.1.3",
+        "url": "https://quranenc.com/fa/browse/persian_ih/21/87",
+        "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation.",
+        "date": "2026-11-01",
+        "snapshot_file": "lib/data/translations/quran-fa.json.gz",
+        "snapshot_fetched": "2026-10-06",
+        "version": "1.1.3",
+        "note": "Exact contiguous excerpt from the unchanged published local snapshot; Arabic source preserved."
+      },
+      "quran_quotes": [
+        {
+          "ref": "21:87",
+          "tr": "[پروردگارا،] هیچ معبودی [به‌حق] جز تو نیست. تو منزّهی. بی‌تردید، من از ستمکاران بوده‌ام"
+        }
+      ]
+    }
+  ],
+  "quran_source": {
+    "name": "Persian Translation - Rowwad Translation Center",
+    "publisher": "QuranEnc.com",
+    "key": "persian_ih",
+    "version": "1.1.3",
+    "snapshot_file": "lib/data/translations/quran-fa.json.gz",
+    "snapshot_fetched": "2026-10-06",
+    "url": "https://quranenc.com/en/browse/persian_ih",
+    "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions:",
+    "rights_register": "reports/SOURCES-K05.md",
+    "note": "Exact unchanged published full verses or contiguous excerpts in quran_quotes. Surrounding prose is machine-translated. Display publisher, version, and individual verse links."
+  }
+}

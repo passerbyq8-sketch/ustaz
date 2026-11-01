@@ -1,0 +1,556 @@
+{
+  "schema": "ezik-tr4/1",
+  "lang": "om",
+  "section": "qibla",
+  "title": {
+    "ar": "القبلة",
+    "tr": "Qiblaa"
+  },
+  "agent": "K03",
+  "generated": "2026-11-01T22:32:51+03:00",
+  "source_files": [
+    "app.jsx"
+  ],
+  "items": [
+    {
+      "id": "h:9f2d52b7fa08",
+      "kind": "text",
+      "ar": "اتّجاه القبلة",
+      "tr": "Kallattii Qiblaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:33876"
+        }
+      ]
+    },
+    {
+      "id": "h:35384cb409ea",
+      "kind": "text",
+      "ar": "درجةً عن الشمال",
+      "tr": "digrii kaabarraa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:33877"
+        }
+      ]
+    },
+    {
+      "id": "h:b798d67ca4db",
+      "kind": "text",
+      "ar": "نحوَ",
+      "tr": "Gara",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:33878"
+        }
+      ]
+    },
+    {
+      "id": "h:5054a34939ca",
+      "kind": "text",
+      "ar": "الموضع:",
+      "tr": "Bakka:",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:33879"
+        }
+      ]
+    },
+    {
+      "id": "h:067aa2b49d24",
+      "kind": "text",
+      "ar": "افتراضيّ",
+      "tr": "Dursee filatame",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:33880"
+        }
+      ]
+    },
+    {
+      "id": "h:df8b6b8d826c",
+      "kind": "text",
+      "ar": "موقعُ هذا الجهاز",
+      "tr": "Bakka meeshaan kun jiru",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:33881"
+        }
+      ]
+    },
+    {
+      "id": "h:7977f792634c",
+      "kind": "text",
+      "ar": "استخدمْ موقعَ هذا الجهاز",
+      "tr": "Bakka meeshaan kun jiru fayyadami",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:33882"
+        }
+      ]
+    },
+    {
+      "id": "h:63956bee305f",
+      "kind": "text",
+      "ar": "عُدْ إلى الموضع الافتراضيّ",
+      "tr": "Gara bakka dursee filatameetti deebi'i",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:33883"
+        }
+      ]
+    },
+    {
+      "id": "h:5f6c9424b33c",
+      "kind": "text",
+      "ar": "يُطلَبُ الإذنُ بالموقع الآن…",
+      "tr": "Amma hayyamni bakka beekuu gaafatamaa jira…",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:33884"
+        }
+      ]
+    },
+    {
+      "id": "h:9b75ad06a4af",
+      "kind": "text",
+      "ar": "لم يُمنَحِ الإذنُ بالموقع، والموضعُ الافتراضيُّ باقٍ كما هو.",
+      "tr": "Hayyamni bakka beekuu hin kennamne; bakki dursee filatame akkuma jirutti hafa.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:33885"
+        }
+      ]
+    },
+    {
+      "id": "h:70bd2cf35734",
+      "kind": "text",
+      "ar": "شغِّلِ البوصلة",
+      "tr": "Kompaasii hojii jalqabsiisi",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:33886"
+        }
+      ]
+    },
+    {
+      "id": "h:1e608e6c09e8",
+      "kind": "text",
+      "ar": "بانتظارِ قراءةٍ من حسّاسِ الاتّجاه…",
+      "tr": "Dubbisa sensara kallattii irraa eegaa jira…",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:33887"
+        }
+      ]
+    },
+    {
+      "id": "h:e7f7fb0e4520",
+      "kind": "text",
+      "ar": "لا تدورُ البوصلةُ على هذا الجهاز: لم تصلْ قراءةٌ صالحةٌ من حسّاسِ الاتّجاه، فالدرجةُ وحدَها هي المعروضة.",
+      "tr": "Kompaasiin meeshaa kana irratti hin naanna'u: dubbisni sirrii sensara kallattii irraa hin dhufne; digrii qofatu mul'ata.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:33888"
+        }
+      ]
+    },
+    {
+      "id": "h:992f08c7433f",
+      "kind": "text",
+      "ar": "البوصلةُ تدورُ مع الجهاز.",
+      "tr": "Kompaasiin meeshaa wajjin naanna'a.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:33889"
+        }
+      ]
+    },
+    {
+      "id": "h:704fed17b18c",
+      "kind": "text",
+      "ar": "السهمُ يدورُ، لكنَّ معايرةَ حسّاسِ الاتّجاهِ ناقصة. حرِّكِ الجهازَ ببطءٍ على شكلِ الرقم ٨ حتّى تتحسّنَ المعايرة.",
+      "tr": "Xiyyi ni naanna'a; garuu sirreeffamni sensara kallattii guutuu miti. Hanga sirreeffamni fooyya'utti meeshaa suuta bifa lakkoofsa 8tiin sochoosi.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:33890"
+        }
+      ]
+    },
+    {
+      "id": "h:b59e97600022",
+      "kind": "text",
+      "ar": "لا يحتوي هذا الجهازُ على حسّاسِ اتّجاهٍ متاح؛ تبقى درجةُ القبلةِ المعروضةُ أعلاه.",
+      "tr": "Meeshaan kun sensara kallattii fayyadamuun danda'amu hin qabu; digriin Qiblaa armaan olitti mul'atu ni hafa.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:33891"
+        }
+      ]
+    },
+    {
+      "id": "h:e06d7d45ae56",
+      "kind": "text",
+      "ar": "إذنُ الموقعِ مرفوض. افتحْ إعداداتِ الجهازِ الخاصّةَ بتطبيقِ عزك وامنحْ إذنَ الموقع، ثم عُدْ إلى هذه الشاشة.",
+      "tr": "Hayyamni bakka beekuu didameera. Qindaa'ina meeshaa kee keessaa kan appii Ezik baniitii hayyama bakka beekuu kenni; achiis gara fuula kanaatti deebi'i.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:33892"
+        }
+      ]
+    },
+    {
+      "id": "h:e7ad79ae81a9",
+      "kind": "text",
+      "ar": "تعذّرتْ قراءةُ اتّجاهِ الجهازِ بسببِ عطبٍ طارئ. أعِدِ المحاولة.",
+      "tr": "Rakkoo tasaa mudateen kallattiin meeshaa dubbifamuu hin dandeenye. Irra deebi'ii yaali.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:33893"
+        }
+      ]
+    },
+    {
+      "id": "h:69ca06ab0f39",
+      "kind": "text",
+      "ar": "أعِدِ المحاولة",
+      "tr": "Irra deebi'ii yaali",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:33894"
+        }
+      ]
+    },
+    {
+      "id": "h:7fc4af6696d7",
+      "kind": "text",
+      "ar": "الشمال",
+      "tr": "Kaaba",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:30378"
+        }
+      ]
+    },
+    {
+      "id": "h:4e1355bf993f",
+      "kind": "text",
+      "ar": "الشمال الشرقيّ",
+      "tr": "Kaaba bahaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:30378"
+        }
+      ]
+    },
+    {
+      "id": "h:fd23f61ef524",
+      "kind": "text",
+      "ar": "الشرق",
+      "tr": "Baha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:30378"
+        }
+      ]
+    },
+    {
+      "id": "h:f54424482bce",
+      "kind": "text",
+      "ar": "الجنوب الشرقيّ",
+      "tr": "Kibba bahaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:30378"
+        }
+      ]
+    },
+    {
+      "id": "h:255eea0e4db5",
+      "kind": "text",
+      "ar": "الجنوب",
+      "tr": "Kibba",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:30378"
+        }
+      ]
+    },
+    {
+      "id": "h:2f44ea5f563f",
+      "kind": "text",
+      "ar": "الجنوب الغربيّ",
+      "tr": "Kibba lixaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:30378"
+        }
+      ]
+    },
+    {
+      "id": "h:b6472930bc6a",
+      "kind": "text",
+      "ar": "الغرب",
+      "tr": "Lixa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:30378"
+        }
+      ]
+    },
+    {
+      "id": "h:eea5313be069",
+      "kind": "text",
+      "ar": "الشمال الغربيّ",
+      "tr": "Kaaba lixaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:30378"
+        }
+      ]
+    }
+  ]
+}

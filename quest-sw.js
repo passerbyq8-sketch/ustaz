@@ -2,7 +2,7 @@
    Ezik's existing worker sweeps other CacheStorage stores. A separate asset-only
    IndexedDB database keeps Kunuz offline without changing that worker or its data. */
 'use strict';
-const VERSION = '20261031-iaplaunch3';
+const VERSION = '20261102-tr4';
 const DATABASE_PREFIX = 'kunuz-treasure-assets-';
 const DATABASE = DATABASE_PREFIX + VERSION;
 const CRITICAL_ASSETS = {
@@ -119,6 +119,13 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const request = event.request, url = new URL(request.url);
   if (request.method !== 'GET' || url.origin !== self.location.origin) return;
+  if (url.pathname.startsWith('/lang/content/')) {
+    event.respondWith((async()=>{
+      const key=url.pathname;
+      try { const response=await fetch(request); if(response.status>=500){const hit=await readAsset(key).catch(()=>null);if(hit)return hit;} if(response.ok)await writeAsset(key,response.clone()).catch(()=>{}); return response; }
+      catch(_){return await readAsset(key).catch(()=>null)||Response.error();}
+    })()); return;
+  }
   const hannaPage = request.mode === 'navigate' && /^\/hanna-laha(?:\/|$)/.test(url.pathname);
   const allowed = shellPaths.has(url.pathname) || hannaPage || url.pathname.startsWith('/quest-data/') || url.pathname.startsWith('/quest-theme/') || url.pathname.startsWith('/hanna-laha/assets/');
   if (!allowed) return;

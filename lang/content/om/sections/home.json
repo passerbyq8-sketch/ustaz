@@ -1,0 +1,156 @@
+{
+  "schema": "ezik-tr4/1",
+  "lang": "om",
+  "section": "home",
+  "title": {
+    "ar": "الرئيسية",
+    "tr": "Fuula jalqabaa"
+  },
+  "agent": "K03",
+  "generated": "2026-11-01T22:32:51+03:00",
+  "source_files": [
+    "app.jsx"
+  ],
+  "items": [
+    {
+      "id": "h:d691d33c6c95",
+      "kind": "dhikr",
+      "ar": "سبحان الله",
+      "tr": "Rabbiin hanqina hundarraa qulqullaa'e.",
+      "translit": "Subhaana Allaah",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:11028"
+        }
+      ]
+    },
+    {
+      "id": "h:c6e09f392ca6",
+      "kind": "dhikr",
+      "ar": "الحمد لله",
+      "tr": "Faaruun hundi kan Rabbiiti.",
+      "translit": "Alhamdu lillaah",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:11029"
+        }
+      ]
+    },
+    {
+      "id": "h:469c225165b9",
+      "kind": "dhikr",
+      "ar": "أستغفر الله",
+      "tr": "Rabbiin araarama gaafadha.",
+      "translit": "Astaghfirullaah",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:11030"
+        }
+      ]
+    },
+    {
+      "id": "h:fcb82174c444",
+      "kind": "dhikr",
+      "ar": "لا إله إلا الله",
+      "tr": "Rabbiin malee haqaan gabbaramaan hin jiru.",
+      "translit": "Laa ilaaha illallaah",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:11031"
+        }
+      ]
+    },
+    {
+      "id": "h:632ee07c6ebb",
+      "kind": "dhikr",
+      "ar": "سبحان ربي العظيم",
+      "tr": "Gooftaan koo Guddaan hanqina hundarraa qulqullaa'e.",
+      "translit": "Subhaana Rabbiyal aziim",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:11032"
+        }
+      ]
+    },
+    {
+      "id": "h:c09b41cf4427",
+      "kind": "dhikr",
+      "ar": "الله أكبر",
+      "tr": "Rabbiin hundarra guddaadha.",
+      "translit": "Allaahu akbar",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:11033"
+        }
+      ]
+    },
+    {
+      "id": "h:017bf6772d13",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده",
+      "tr": "Rabbiin hanqina hundarraa qulqullaa'e; Isa faarfachuunis Isa qulqulleessa.",
+      "translit": "Subhaana Allaahi wa bihamdih",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "/line:11034"
+        }
+      ]
+    }
+  ]
+}

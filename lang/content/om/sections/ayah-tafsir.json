@@ -1,0 +1,1156 @@
+{
+  "schema": "ezik-tr4/1",
+  "lang": "om",
+  "section": "ayah-tafsir",
+  "title": {
+    "ar": "آية اليوم",
+    "tr": "Aayata har’aa"
+  },
+  "agent": "K03",
+  "generated": "2026-11-01T22:05:27+03:00",
+  "source_files": [
+    "daily-tafsir.json",
+    "app.jsx"
+  ],
+  "items": [
+    {
+      "id": "h:2f1537f5d032",
+      "kind": "text",
+      "ar": "6 - إن مع الشدة والضيق سهولة واتساعًا، إذا علمت ذلك فلا يهولنك أذى قومك، ولا يصدنك عن الدعوة إلى الله.",
+      "translit": "",
+      "tr": "6 - Dhugumatti rakkinaa fi dhiphina waliin salphinaa fi bal'inni jira. Kana yoo beekte miidhaan ummata keetii si hin sodaachisin; gara Rabbii waamuu irraas si hin deebisin.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/0/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-001.json"
+    },
+    {
+      "id": "h:1e47a5b49318",
+      "kind": "text",
+      "ar": "الشرح",
+      "translit": "",
+      "tr": "Ash-Sharh",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/0/surah_name"
+        }
+      ]
+    },
+    {
+      "id": "h:d9421720105e",
+      "kind": "text",
+      "ar": "المختصر في تفسير القرآن الكريم",
+      "translit": "",
+      "tr": "Al-Mukhtasar fii Tafsiir Al-Qur'aan Al-Kariim",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/0/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/1/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/2/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/3/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/4/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/5/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/6/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/7/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/8/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/9/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/10/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/11/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/12/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/13/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/14/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/15/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/16/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/17/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/18/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/19/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/20/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/21/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/22/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/23/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/24/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/25/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/26/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/27/book_title"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/28/book_title"
+        }
+      ]
+    },
+    {
+      "id": "h:ca47bf92823b",
+      "kind": "text",
+      "ar": "4 - هو الذي خلق السماوات والأرض في ستة أيام بدأت بيوم الأحد وانتهت بيوم الجمعة، وهو قادر على خلقها في أقلّ من طرفة عين، ثم علا وارتفع سبحانه على العرش علوًّا يليق به سبحانه، يعلم ما يدخل في الأرض من مطر وبذر وغيرهما، وما يخرج منها من نبات ومعادن وغيرهما، وما ينزل من السماء من المطر والوحي وغيرهما، وما يعرج فيها من الملائكة ومن أعمال العباد وأرواحهم، وهو معكم أينما كنتم -أيها الناس- بعلمه، لا يخفى عليه منكم شيء، والله بما تعملون بصير، لا يخفى عليه من أعمالكم شيء، وسيجازيكم عليها.",
+      "translit": "",
+      "tr": "4 - Inni samiiwwanii fi dachii guyyaa jaha keessatti uumeedha; isaanis guyyaa Dilbataa jalqabanii guyyaa Jimaataa xumuraman. Inni hamma libsuu ijaa irra xiqqaatu keessattis isaan uumuu ni danda'a. Sana booda Inni qulqullaa'e ol ta'uu Isaaf maluun Arshii ol ta'e. Waan dachii keessa seenu, rooba, sanyii fi kan biraas, waan ishee keessaa bahu, biqiltuu, albuudaa fi kan biraas, waan samii irraa gadi bu'u, rooba, wahyii fi kan biraas, waan ishee keessa ol bahu, malaa'ikota, dalagaalee gabrootaa fi lubbuu isaanii, ni beeka. Yaa namootaa, eessuma jiraattan beekumsa Isaatiin isin waliin jira. Wanti isin keessaa tokko illee Isa irraa hin dhokatu. Rabbiin waan isin hojjettan arga; hojii keessan keessaa wanti tokko illee Isa irraa hin dhokatu; isaaniifis isin mindeessa.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/1/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-001.json"
+    },
+    {
+      "id": "h:4a1f7f045b27",
+      "kind": "text",
+      "ar": "الحديد",
+      "translit": "",
+      "tr": "Al-Hadiid",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/1/surah_name"
+        }
+      ]
+    },
+    {
+      "id": "h:e47d7dd78b43",
+      "kind": "text",
+      "ar": "153 - يا آيها الذين أمنوا استعينوا بالصبر والصلاة على القيام بطاعتي والتسليم لأمري، إن الله مع الصابرين يوفقهم ويعينهم.",
+      "translit": "",
+      "tr": "153 - Yaa warra amantan, Anaaf ajajamuu fi ajaja Kootiif harka kennuu raawwachuuf obsaa fi salaataan gargaarsa barbaadaa. Dhugumatti Rabbiin warra obsan waliin jira; isaan milkeessa, isaan gargaaras.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/2/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-001.json"
+    },
+    {
+      "id": "h:1c047dd9a1bf",
+      "kind": "text",
+      "ar": "البقرة",
+      "translit": "",
+      "tr": "Al-Baqaraa",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/2/surah_name"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/3/surah_name"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/6/surah_name"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/7/surah_name"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/9/surah_name"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/13/surah_name"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/15/surah_name"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/17/surah_name"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/18/surah_name"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/19/surah_name"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/25/surah_name"
+        }
+      ]
+    },
+    {
+      "id": "h:c03391127891",
+      "kind": "text",
+      "ar": "152 - فاذكروني بقلوبكم وجوارحكم؛ أذكركم بالثناء عليكم والحفظ لكم، فالجزاء من جنس العمل، واشكروا لي نعمي التي أنعمت بها عليكم، ولا تكفروني بجحودها، واستعمالها فيما حُرِّم عليكم.",
+      "translit": "",
+      "tr": "152 - Qalbii keessanii fi qaamota keessaniin Ana yaadadhaa; Anis isin faarfachuu fi isin eeguun isin yaadadha. Mindaan gosa hojiitiin ta'a. Ni'maa Ani isiniif kenneef Ana galateeffadhaa; ishee haaluudhaan yookaan waan isin irratti haraama godhameef ishee fayyadamuudhaan Ana hin kafarinaa.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/3/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-001.json"
+    },
+    {
+      "id": "h:e3685bfc0c71",
+      "kind": "text",
+      "ar": "2 - فإذا قاربن انقضاء عِدَّتهنّ فراجعوهنّ عن رغبة وحسن معاشرة، أو اتركوا مراجعتهن حتَّى تنقضي عدتهن، فيملكْن أمر أنفسهنّ، مع إعطائهنّ ما لهن من حقوق، وإذا أردتم مراجعتهن أو مفارقتهن فأشهدوا عدلين منكم حسمًا للنزاع، وائتوا -أيها الشهود- بالشهادة مبتغين وجه الله؛ ذلك المذكور من الأحكام يُذَكَّر به من كان يؤمن بالله، ويؤمن بيوم القيامة؛ لأنه هو الَّذي ينتفع بالتذكير والموعظة، ومن يتّق الله بامتثال أوامره واجتناب نواهيه، يجعل الله له مخرجًا من كل ما يقع فيه من الضيق والحرج.",
+      "translit": "",
+      "tr": "2 - Iddaan (yeroon eeggannaa hiikkaa) isaanii xumuramuutti yeroo dhiyaattu, fedhii fi waliin jireenya gaariidhaan isaan deebifadhaa; yookaan hanga iddaan isaanii xumuramee dhimma isaanii ofiin murteessuu danda'anitti isaan deebifachuu dhiisaa, haqa isaanii isaanii kennuudhaan. Isaan deebifachuu yookaan addaan bahuu yoo barbaaddan, wal falmii kutuuf isin keessaa ragaa haqaqabeeyyii lama godhaa. Yaa ragaa baatotaa, fuula Rabbii barbaaduudhaan ragaa bahaa. Murtiiwwan jedhame kanaan nama Rabbittii fi Guyyaa Qiyaamaatti amanutu yaadachiifama; inni yaadachiisaa fi gorsa irraa kan fayyadamu waan ta'eef. Namni ajajawwan Rabbii raawwachuu fi dhorkaawwan Isaa irraa fagaachuudhaan Isa sodaatu, Rabbiin dhiphinaa fi rakkina inni keessa bu'u hunda keessaa karaa bahumsaa isaaf godha.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/4/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-001.json"
+    },
+    {
+      "id": "h:90828ee2dc42",
+      "kind": "text",
+      "ar": "الطلاق",
+      "translit": "",
+      "tr": "Ax-Xalaaq",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/4/surah_name"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/26/surah_name"
+        }
+      ]
+    },
+    {
+      "id": "h:a8d3105da99c",
+      "kind": "text",
+      "ar": "56 - ولا تفسدوا في الأرض بارتكاب المعاصي بعد أن أصلحها الله بإرسال الرسل عليهم السلام وإعمارها بطاعته وحده، وادعوا الله وحده مستشعرين الخوف من عقابه، ومنتظرين حصول ثوابه، إن رحمة الله قريب من المحسنين، فكونوا منهم.",
+      "translit": "",
+      "tr": "56 - Rabbiin ergamoota erguudhaan, nageenyi isaan irratti haa jiraatu, fi Isa qofaaf ajajamuudhaan ishee misoomsuun dachii erga sirreesse booda, cubbuu raawwachuudhaan ishee keessa hin balleessinaa. Adabbii Isaa sodaataa, mindaa Isaa argachuu eeggachaa, Rabbiin qofa kadhadhaa. Dhugumatti rahmanni Rabbii warra ihsaan (waan gaarii bareechanii hojjachuu) godhanitti dhihoodha; isaan keessaa ta'aa.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/5/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-001.json"
+    },
+    {
+      "id": "h:03f12e1c22d1",
+      "kind": "text",
+      "ar": "الأعراف",
+      "translit": "",
+      "tr": "Al-A’raaf",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/5/surah_name"
+        }
+      ]
+    },
+    {
+      "id": "h:0dd1c78c8e3f",
+      "kind": "text",
+      "ar": "186 - وإذا سألك -أيها النبي- عبادي عن قربي وإجابتي لدعائهم؛ فإني قريب منهم، عالم بأحوالهم، سامع لدعائهم، فلا يحتاجون إلى وسطاء، ولا إلى رفع أصواتهم، أُجيب دعوة الداعي إذا دعاني مخلصًا في دعائه، فلينقادوا لي ولأوامري، وليثبتوا على إيمانهم؛ فإن ذلك أنفع وسيلة لإجابتي، لعلهم يسلكون بذلك سبيل الرشد في شؤونهم الدينية والدنيوية.",
+      "translit": "",
+      "tr": "186 - Yaa Nabiyyii, gabroonni Koo waa'ee dhiheenya Kootii fi du'aa'ii isaanii deebisuu Kootii yoo si gaafatan: Ani isaanitti dhihoodha, haala isaanii nan beeka, du'aa'ii isaanii nan dhaga'a. Kanaaf giddu seentota yookaan sagalee ol kaasuu hin barbaadan. Nama du'aa'ii isaa keessatti ikhlaasa (Anaaf qulqulleessuu) qabaatee yeroo Ana kadhatu kadhannaa isaa nan deebisa. Anaafi ajajawwan Kootiif haa bitaman, iimaana isaanii irrattis haa jabaatan. Kun deebii Koo argachuuf karaa hunda caalaa fayyaduudha; kanaan dhimma amantii fi addunyaa isaanii keessatti karaa qajeelaa akka hordofan.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/6/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-001.json"
+    },
+    {
+      "id": "h:2c9de170474a",
+      "kind": "text",
+      "ar": "195 - وأنفقوا المال في طاعة الله من الجهاد وغيره، ولا تلقوا بأنفسكم إلى الهلاك، بأن تتركوا الجهاد والبذل في سبيله، أو بأن تلقوا بأنفسكم فيما يكون سببًا لهلاككم، وأحسنوا في عباداتكم ومعاملاتكم وأخلاقكم، إن الله يحب المحسنين في كل شؤونهم، فيعظم لهم الثواب، ويوفقهم للرشاد.",
+      "translit": "",
+      "tr": "195 - Qabeenya Rabbii ajajamuu keessatti, jihaadaa fi kan biraas keessatti, baasaa. Jihaadaa fi karaa Isaa keessatti kennuu dhiisuudhaan yookaan waan badiisa keessaniif sababa ta'u keessa of galchuudhaan of hin balleessinaa. Ibaadaa (gabbarrii), mu'aamalaa (waliin hojjechuu) fi naamusa keessan keessatti gaarii hojjadhaa. Dhugumatti Rabbiin warra dhimma isaanii hunda keessatti ihsaan (waan gaarii bareechanii hojjachuu) godhan jaallata; mindaa isaaniif guddisas, qajeelinaaf isaan milkeessas.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/7/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-001.json"
+    },
+    {
+      "id": "h:391bc882aa5a",
+      "kind": "text",
+      "ar": "87 - قال لهم أبوهم: يا أبنائي، اذهبوا فتعرفوا من أخبار يوسف وأخيه، ولا تقنطوا من تفريج الله وتنفيسه عن عباده، إنه لا يقنط من تفريجه وتنفيسه إلا القوم الكافرون؛ لأنهم يجهلون عظيم قدرة الله وخَفِيَّ إفضاله على عباده.",
+      "translit": "",
+      "tr": "87 - Abbaan isaanii isaaniin jedhe: Yaa ilmaan koo, deemaatii oduu Yuusuf fi obboleessa isaa barbaadaa. Rabbiin gabroota Isaa irraa rakkina kaasuu fi boqonnaa kennuu irraa abdii hin kutatinaa. Rakkina kaasuu fi boqonnaa kennuu Isaa irraa warra kafaran malee eenyullee abdii hin kutatu; isaan guddina dandeettii Rabbii fi tola Isaa gabroota Isaatiif dhoksaatti godhu waan hin beekneef.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/8/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-001.json"
+    },
+    {
+      "id": "h:7694520808a7",
+      "kind": "text",
+      "ar": "يوسف",
+      "translit": "",
+      "tr": "Yuusuf",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/8/surah_name"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/28/surah_name"
+        }
+      ]
+    },
+    {
+      "id": "h:a2a8511006b6",
+      "kind": "text",
+      "ar": "155 - ولنَمْتحِننّكم بأنواع من المصائب؛ بشيء من الخوف من أعدائكم، وبالجوع لقلة الطعام، وبنقص في الأموال لذهابها أو مشقة الحصول عليها، وبنقص في الأنفس بسبب الآفات التي تهلك الناس، أو بالشهادة في سبيل والله، وبنقص من الثمرات التي تنبتها الأرض، وبشّر -أيها النبي- الصابرين على تلك المصائب بما يسرهم في الدنيا والآخرة.",
+      "translit": "",
+      "tr": "155 - Gosoota balaa garaagaraatiin isin ni qormaanna: diina keessan sodaachuu irraa waan tokkoon, nyaanni hir'achuudhaan beelaan, baduu yookaan argachuun rakkachuu irraa qabeenyi hir'achuun, balaa namoota balleessuun yookaan karaa Rabbii keessatti shahiida (wareegamaa) ta'uun lubbuun hir'achuun, akkasumas firiiwwan dachiin biqilchitu hir'achuun. Yaa Nabiyyii, warra balaawwan kana irratti obsaniif waan addunyaa fi Aakhiraa keessatti isaan gammachiisuun gammachiisi.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/9/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-001.json"
+    },
+    {
+      "id": "h:0286e118df8c",
+      "kind": "text",
+      "ar": "28 - هؤلاء الذين يهديهم الله هم الذين آمنوا، وتستأنس قلوبهم بذكر الله بتسبيحه وتحميده، وبتلاوة كتابه ألا بذكر الله وحده تستأنس القلوب، خَلِيق بها ذلك.",
+      "translit": "",
+      "tr": "28 - Warri Rabbiin qajeelchu kun warra amananiidha; qalbiin isaanii tasbiiha (hanqina irraa Isa qulqulleessuu), Isa faarfachuu fi Kitaaba Isaa dubbisuudhaan Rabbiin yaadachuun ni boqotti. Dhaggeeffadhaa, qalbiin Rabbiin qofa yaadachuun boqotti; kunis isheef mala.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/10/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-002.json"
+    },
+    {
+      "id": "h:3db00e2a5f35",
+      "kind": "text",
+      "ar": "الرعد",
+      "translit": "",
+      "tr": "Ar-Ra’d",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/10/surah_name"
+        }
+      ]
+    },
+    {
+      "id": "h:b0020627dff2",
+      "kind": "text",
+      "ar": "88 - قال شعيب لقومه: يا قوم، أخبروني عن حالكم إن كنت على برهان واضح من ربي، وبصيرة منه، ورزقني منه رزقًا حلالًا، ومنه النبوة، وما أريد أن أنهاكم عن شيء وأخالفكم في فعله، لا أريد إلا إصلاحكم بدعوتكم إلى توحيد ربكم وطاعته قدر استطاعتي، وما توفيقي إلى الحصول على ذلك إلا بالله سبحانه، عليه وحده توكلت في جميع أموري، وإليه أرجع.",
+      "translit": "",
+      "tr": "88 - Shu'ayb ummata isaatiin jedhe: Yaa ummata koo, mee haala keessan natti himaa, ani ragaa ifa ta'ee fi hubannoo Gooftaa koo irraa ta'e irratti yoo jiraadhe, Innis of biraa rizqii halaalaa, nabiyyummaanis isa keessa jiru, naaf kenne yoo ta'e? Ani waan tokko irraa isin dhorgee ofii koo isa gochuudhaan isin faallessuu hin barbaadu. Hamma danda'een gara Gooftaa keessan tokkichoomsuu fi Isaaf ajajamuutti isin waamuudhaan isin sirreessuu qofaan barbaada. Kana argachuuf milkaa'inni koo Rabbiin qulqullaa'e irraa qofa. Dhimma koo hunda keessatti Isa qofatti hirkadhe; gara Isaattis deebi'a.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/11/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-002.json"
+    },
+    {
+      "id": "h:fd9d2ec55193",
+      "kind": "text",
+      "ar": "هود",
+      "translit": "",
+      "tr": "Huud",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/11/surah_name"
+        }
+      ]
+    },
+    {
+      "id": "h:b93f3832da9f",
+      "kind": "text",
+      "ar": "173 - الذين قال لهم بعض المشركين: إن قريشًا بقيادة أبي سفيان قد جمعوا لكم جموعًا كثيرة لقتالكم والقضاء عليكم فاحذروهم واتقوا لقاءهم، فزادهم هذا الكلام والتخويف تصديقًا بالله وثقة بوعده، فخرجوا إلى لقائهم وهم يقولون: يكفينا الله تعالى، وهو نِعْمَ من نفوِّض إليه أمرنا.",
+      "translit": "",
+      "tr": "173 - Warra mushrikoota (Rabbiitti waa qindeessan) keessaa tokko tokko isaaniin: Quraysh hoggansa Abuu Sufyaaniitiin isin loluu fi isin balleessuuf humna baay'ee walitti qabateera; isaan irraa of eeggadhaa, isaan qunnamuu irraa fagaadhaa, jedhan. Dubbiin fi sodaachisuun kun Rabbiin dhugoomsuu fi waadaa Isaatti amanuu isaaniif dabale. Kanaaf isaan qunnamuuf bahan, Rabbiin ol ta'e nuuf gaha; dhimmoota keenya itti kennannu keessaa Inni waa gaarii ta'e, jechaa.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/12/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-002.json"
+    },
+    {
+      "id": "h:236876042743",
+      "kind": "text",
+      "ar": "آل عمران",
+      "translit": "",
+      "tr": "Aali Imraan",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/12/surah_name"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/14/surah_name"
+        },
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/24/surah_name"
+        }
+      ]
+    },
+    {
+      "id": "h:76a240bba234",
+      "kind": "text",
+      "ar": "20 - يكاد البرق من شدة لمعانه وسطوعه يأخذ أبصارهم، كلما ومض البرق لهم وأضاء تقدموا، وإذا لم يضئ بقوا في الظلام، فلم يستطيعوا التحرك، ولو شاء الله لذهب بسمعهم وأبصارهم بقدرته الشاملة لكل شيء؛ فلا تعود إليهم؛ لإعراضهم عن الحق. فكان المطر مثلًا للقرآن، وصوت الصواعق مثلًا لما فيه من الزواجر، وضوء البرق مثلًا لظهور الحق لهم أحيانًا، وجعل سد الآذان من شدة الصواعق، مثلًا لإعراضهم عن الحق وعدم الاستجابة له، ووجه الشبه بين المنافقين وأصحاب المَثَلَين؛ هو عدم الاستفادة، ففي المثل الناري: لم يستفد مستوقدها غير الظلام والإحراق، وفي المثل المائي: لم يستفد أصحاب المطر إلا ما يروِّعهم ويزعجهم من الرعد والبرق، وهكذا المنافقون لا يرون في الإسلام إلا الشدة والقسوة.\nالظلام والإحراق، وفي المثل المائي: لم يستفد أصحاب المطر إلا ما يروِّعهم ويزعجهم من الرعد والبرق، وهكذا المنافقون لا يرون في الإسلام إلا الشدة والقسوة.\nولما ذكر الله أنواع الناس من مؤمنين وكافرين ومنافقين؛ ناداهم جميعًا داعيًا إياهم إلى إفراده بالعبادة، فقال:",
+      "translit": "",
+      "tr": "20 - Balaqqeessi jabina calaqqisaa fi ifa isaatiin ija isaanii butuutti dhiyaata. Yeroo inni isaaniif balaqqeessitee ibsu hundatti fuulduratti deemu; yeroo hin ibsine dukkana keessa hafanii socho'uu hin danda'an. Rabbiin osoo fedhee, isaan haqa irraa garagalaniif, dandeettii Isaa waan hunda hammatuun dhageettii fi ija isaanii isaan irraa kaasa; gara isaaniittis hin deebi'an. Roobni fakkeenya Qur'aanaa, sagaleen bakakkaa fakkeenya akeekkachiisawwan isa keessa jiranii, ifni balaqqeessaa fakkeenya haqni yeroo tokko tokko isaaniif mul'atuu ta'e. Jabina bakakkaatiif gurra isaanii cufuun immoo fakkeenya isaan haqa irraa garagaluu fi isaaf deebii kennuu dhabuu ta'e. Wanti munaafiqootaa (amantii sobaan mul'ifatanii) fi warra fakkeenya lamaan keessatti kaafaman wal fakkeessu fayyadamuu dhabuudha. Fakkeenya ibiddaa keessatti namni ibidda qabsiise dukkanaa fi gubachuu malee hin fayyadamne. Fakkeenya bishaanii keessatti warri rooba keessa jiran kakawwee fi balaqqeessa isaan sodaachisuu fi jeequ malee hin fayyadamne. Akkasuma munaafiqoonni Islaama keessatti rakkinaa fi gara jabina malee hin argan.\nDukkanaa fi gubachuu; fakkeenya bishaanii keessatti warri rooba keessa jiran kakawwee fi balaqqeessa isaan sodaachisuu fi jeequ malee hin fayyadamne. Akkasuma munaafiqoonni Islaama keessatti rakkinaa fi gara jabina malee hin argan.\nRabbiin gosoota namootaa, mu'umintoota, kaafirootaa fi munaafiqoota, erga kaasee booda, gabbarrii keessatti Isa qofa akka godhanitti isaan hunda waamee akkana jedhe:",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/13/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-002.json"
+    },
+    {
+      "id": "h:c05c709335c9",
+      "kind": "text",
+      "ar": "139 - ولا تضعفوا -أيها المؤمنون- ولا تحزنوا على ما أصابكم يوم أُحد -ولا ينبغي ذلك لكم، فأنتم الأعلون بإيمانكم، والأعلون بعون الله ورجائكم نصره، إن كنتم مؤمنين بالله ووعده لعباده المتقين.",
+      "translit": "",
+      "tr": "139 - Yaa mu'umintootaa, hin dadhabinaa; waan guyyaa Uhud isin mudateefis hin gaddinaa. Kun isiniif hin malu. Iimaana keessaniin ol aantota; gargaarsa Rabbii fi injifannoo Isaa abdachuunis ol aantota. Yoo Rabbii fi waadaa Isaa gabroota Isa sodaataaniif gale amantan.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/14/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-002.json"
+    },
+    {
+      "id": "h:b8bd5151d712",
+      "kind": "text",
+      "ar": "43 - وأدّوا الصلاة تامة بأركانها وواجباتها وسننها، وأخرجوا زكاة أموالكم التي جعلها الله في أيديكم، واخضعوا لله مع الخاضعين له من أمة محمد - صلى الله عليه وسلم -.",
+      "translit": "",
+      "tr": "43 - Salaata arkaana (utubaa), waajiboota (dirqamoota) fi sunnaawwan (hojiilee filatamoo) isaatiin guutuutti raawwadhaa. Qabeenya keessan Rabbiin harka keessan keessa kaa'e keessaa zakaata (qooda dirqamaan kennamu) baasaa. Ummata Muhammad keessaa warra Rabbiif gad jedhan waliin Isaaf gad jedhaa; rahmanni fi nageenyi Rabbii isa irratti haa jiraatu.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/15/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-002.json"
+    },
+    {
+      "id": "h:92e0c8656b8f",
+      "kind": "text",
+      "ar": "114 - فتعالى الله وتقدّس وجَلَّ، الملك الذي له ملك كل شيء، الذي هو حق وقوله حق، تعالى عما يصفه به المشركون، ولا تسرع -أيها السول- بقراءة القرآن مع جبريل قبل أن ينهي إليك إبلاغه، وقيل: رب زدني علمًا إلى ما علّمتني.\nولما ذكر الله قصة موسى وما اشتملت عليه من إعراض فرعون وغفلة بني إسرائيل, ذكر قصة آدم عليه السلام حثًّا على رجوع من نسي إلى طاعة الله فقال:",
+      "translit": "",
+      "tr": "114 - Rabbiin ol ta'e, qulqullaa'e, guddate; Inni Mootii waan hundaa qabu, haqaa fi jechi Isaas haqa ta'eedha. Waan mushrikoonni (Rabbiitti waa qindeessan) Isa ittiin ibsan irraa ol ta'e. Yaa Ergamaa, Jibriil siif dabarsuu isaa xumuruu dura Qur'aana isa waliin dubbisuuf hin ariifatin. Gooftaa koo, beekumsa na barsiifte irratti beekumsa naaf dabali, jedhi.\nRabbiin seenaa Muusaa fi waan ishee keessa jiru, garagaluu Fir'awn fi dagannaa Banii Israa'iil, erga kaasee booda, nama dagate gara Isaaf ajajamuutti deebi'uuf kakaasuudhaan seenaa Aadam, nageenyi isa irratti haa jiraatu, kaasee akkana jedhe:",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/16/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-002.json"
+    },
+    {
+      "id": "h:5e5430a5126e",
+      "kind": "text",
+      "ar": "طه",
+      "translit": "",
+      "tr": "Xaa-Haa",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/16/surah_name"
+        }
+      ]
+    },
+    {
+      "id": "h:3fb67fedb1d3",
+      "kind": "text",
+      "ar": "173 - إنما حرم الله عليكم من الأطعمة ما مات بغير ذكاة شرعية، والدم المسفوح السائل، ولحم الخنزير، وما ذُكِر عليه غيرُ اسم الله عند تذكيته، فإذا اضطر الإنسان إلى أَكْل شيء وهو غير ظالم بالأكل منها دون حاجة، ولا متجاوز لحد الضرورة؛ فلا إثم عليه ولا عقوبة، إن الله غفور لمن تاب من عباده، رحيم بهم، ومن رحمته أنَّه تجاوز عن أَكْل هذه المحرمات عند الاضطرار.",
+      "translit": "",
+      "tr": "173 - Nyaata keessaa Rabbiin kan isin irratti haraama godhe, waan akkaataa shari'aatiin osoo hin qalamin du'e, dhiiga yaa'u, foon booyyee fi waan yeroo qalamu maqaan Rabbiin ala kan biraa irratti waamame qofa. Namni rakkina dirqisiisuun kana keessaa waan tokko nyaachuuf yoo dirqame, osoo hin barbaachisin nyaachuudhaan daangaa kan hin cabsiifne fi daangaa dirqamaa kan hin dabarre yoo ta'e, cubbuun yookaan adabbiin isa irra hin jiru. Dhugumatti Rabbiin gabroota Isaa keessaa nama tawbateef araarama, isaaniifis rahmata godha. Yeroo dirqisiisutti wantoota haraama kana nyaachuu dhiisuun Isaa rahmata Isaa keessaa tokko.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/17/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-002.json"
+    },
+    {
+      "id": "h:147e3761abbb",
+      "kind": "text",
+      "ar": "45 - واطلبوا العون على كل أحوالكم الدينية والدنيوية؛ بالصبر وبالصلاة التي تقربكم إلى الله وتصلكم به، فيعينكم ويحفظكم ويذهب ما بكم من ضر، وإن الصلاة لشاقة وعظيمة إلا على الخاضعين لربهم.",
+      "translit": "",
+      "tr": "45 - Haala amantii fi addunyaa keessan hunda keessatti obsaa fi salaata gara Rabbii isin dhiheessuu fi Isaan isin wal qunnamsiisuun gargaarsa barbaadaa. Innis isin gargaara, isin eega, miidhaa isin irra jirus kaasa. Dhugumatti salaanni ulfaataa fi guddaadha, warra Gooftaa isaaniif gad jedhan irratti malee.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/18/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-002.json"
+    },
+    {
+      "id": "h:1ece7611ed83",
+      "kind": "text",
+      "ar": "201 - وفريق من الناس مؤمن بالله يؤمن بالآخرة، فيسأل ربه نعيم الدنيا والعمل الصالح فيها، كما يسأله الفوز بالجنّة والسلامة من عذاب النار.",
+      "translit": "",
+      "tr": "201 - Gareen namootaa tokko Rabbiitti amanee Aakhiraa amana. Kanaaf Gooftaa isaa qananii addunyaa fi hojii gaarii ishee keessatti raawwachuu gaafata; akkuma Jannataan milkaa'uu fi adabbii ibiddaa irraa nagaa bahuu Isa gaafatutti.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/19/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-002.json"
+    },
+    {
+      "id": "h:2022b9979052",
+      "kind": "text",
+      "ar": "120 - ليس لأهل المدينة ولا لمن حولهم من سكان البادية أن يتخلفوا عن رسول الله - صلى الله عليه وسلم - إذا خرج إلى الجهاد بنفسه، وليس لهم أن يَشِحُّوا بانفسهم، ويصونوها عن نفسه - صلى الله عليه وسلم -، بل الواجب عليهم أن يبذلوا أنفسهم دون نفسه؛ ذلك لأنهم لا ينالهم عطش، ولا تعب، ولا مجاعة في سبيل الله، ولا ينزلون مكانًا يثير وجودهم به غيظ الكفار، ولا يصيبون من عدو قتلًا أو أسرًا أو غنيمة أو هزيمة -إلا كتب الله لهم بذلك ثواب عمل صالح يقبله منهم، إن الله لا يضيع أجر المحسنين، بل يوفيهم إياه كاملًا، ويزيدهم عليه.",
+      "translit": "",
+      "tr": "120 - Warra Madiinaa fi warra baadiyyaa naannoo isaanii jiraataniif, Ergamaan Rabbii, rahmanni fi nageenyi Rabbii isa irratti haa jiraatu, ofii isaatii jihaadaaf yoo bahe isa irraa hafuun hin hayyamamu. Lubbuun isaanii isa caalaa akka eegamtu barbaaduun isaaniif hin hayyamamu; lubbuu isaa dura lubbuu isaanii kennuun isaan irratti dirqama. Sababni isaas: dheebuun, dadhabbiin yookaan beelli karaa Rabbii keessatti isaan mudatu, iddoo jiraachuun isaanii kaafiroota aarsu keessa bu'uun isaanii, diina irraa ajjeesuu, booji'uu, ghanimaa (boojii waraanaa) argachuu yookaan injifachuu hundaan Rabbiin mindaa hojii gaarii isaan irraa qeebalu isaaniif barreessa. Dhugumatti Rabbiin ajrii warra ihsaan (waan gaarii bareechanii hojjachuu) godhan hin balleessu; guutuutti isaaniif kenna, irratti isaaniif dabalis.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/20/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-003.json"
+    },
+    {
+      "id": "h:e6fb3916c2bf",
+      "kind": "text",
+      "ar": "التوبة",
+      "translit": "",
+      "tr": "At-Tawbah",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/20/surah_name"
+        }
+      ]
+    },
+    {
+      "id": "h:18d7c16d1b02",
+      "kind": "text",
+      "ar": "32 - ولا تتمنَّوا -أيها المؤمنون- ما فضل الله به بعضكم على بعض؛ لئلا يؤدي إلى السخط والحسد، فلا ينبغي للنساء أن يرتجين ما خص الله به الرجال فإن لكل فريق حظًّا من العمل الذي يلائمه، واطلبوا مِن الله أن يزيدَكم مِن عطائه؛ إن الله عليم بكل شيء؛ فأعطى كل نوع ما يناسبه من العمل.",
+      "translit": "",
+      "tr": "32 - Yaa mu'umintootaa, waan Rabbiin isin keessaa gariin garii irratti ittiin caalchise hin hawwinaa; akka dallansuu fi hinaaffaa hin geessineef. Dubartoonni waan Rabbiin dhiiraaf adda godhe abdachuun isaaniif hin malu; garee hundaaf hojii isaaf malu irraa qoodni waan jiruuf. Rabbiin kennaa Isaa irraa isiniif akka dabalu gaafadhaa. Dhugumatti Rabbiin waan hunda beeka; gosa hundaaf hojii isaaf malu kenneera.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/21/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-003.json"
+    },
+    {
+      "id": "h:0b0400fae8af",
+      "kind": "text",
+      "ar": "النساء",
+      "translit": "",
+      "tr": "An-Nisaa’",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/21/surah_name"
+        }
+      ]
+    },
+    {
+      "id": "h:3e72d2d47be8",
+      "kind": "text",
+      "ar": "3 - واعتمد على الله أمورك كلها، وكفى به سبحانه حافظًا لمن توكل عليه من عباده.",
+      "translit": "",
+      "tr": "3 - Dhimma kee hunda keessatti Rabbitti hirkadhu. Inni qulqullaa'e gabroota Isaa keessaa nama Isatti hirkateef eegaadhaaf ni gaha.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/22/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-003.json"
+    },
+    {
+      "id": "h:0adb76910f31",
+      "kind": "text",
+      "ar": "الأحزاب",
+      "translit": "",
+      "tr": "Al-Ahzaab",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/22/surah_name"
+        }
+      ]
+    },
+    {
+      "id": "h:21ba69f84453",
+      "kind": "text",
+      "ar": "39 - وأنه ليس للإنسان إلا ثواب عمله الذي عمله.",
+      "translit": "",
+      "tr": "39 - Namaaf mindaa hojii inni hojjete malee waan biraa hin jiru.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/23/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-003.json"
+    },
+    {
+      "id": "h:c4ffbb69c75c",
+      "kind": "text",
+      "ar": "النجم",
+      "translit": "",
+      "tr": "An-Najm",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/23/surah_name"
+        }
+      ]
+    },
+    {
+      "id": "h:34a3f63fd2f4",
+      "kind": "text",
+      "ar": "146 - وكم من نبي من أنبياء الله قاتل معه جماعات من أتباعه كثيرة، فما جَبُنُوا عن الجهاد لما أصابهم من قتل وجراح في سبيل الله، وما ضعفوا عن قتال العدو، وما خضعوا له، بل صبروا وثبتوا، والله يحب الصابرين على الشدائد والمكاره في سبيله.",
+      "translit": "",
+      "tr": "146 - Nabiyyoota Rabbii keessaa nabiyyii meeqatu gareewwan hordoftoota isaa baay'een waliin lole! Waan karaa Rabbii keessatti ajjeefamuu fi madaa'uu isaan mudateef jihaada irraa hin sodaanne; diina loluu irraa hin dadhabne; isaafis hin gadi jenne. Inumaa obsanii jabaatan. Rabbiin warra karaa Isaa keessatti rakkinaa fi waan jibbisiisaa irratti obsan jaallata.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/24/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-003.json"
+    },
+    {
+      "id": "h:c7ea07ae9867",
+      "kind": "text",
+      "ar": "143 - وكما جعلنا لكم قبلة ارتضيناها لكم؛ جعلناكم أمة خيارًا عدولًا، وسطًا بين الأمم كلها، في العقائد والعبادات والمعاملات؛ لتكونوا يوم القيامة شهداء لرسل الله أنهم بلّغوا ما أمرهم الله بتبليغه لأممهم، وليكون الرسول محمد - صلى الله عليه وسلم - كذلك شهيدًا عليكم أنَّه بلغكم ما أُرْسِل به إليكم. وما جعلنا تحويل القبلة التي كنت تتجه إليها؛ وهي بيت المقدس، إلا لنعلم -علمَ ظهورٍ يترتب عليه الجزاء- من يرضى بما شرعه الله، ويُذعن له، فيتبع الرسول، ومن يرتد عن دينه، ويتبع هواه، فلا يُذعن لما شرعه الله. ولقد كان أمر تحويل القبلة الأولى عظيمًا إلا على الذين وفقهم الله للإيمان به، وبأن ما يشرعه لعباده إنما يشرعه لِحِكَمٍ بالغة. وما كان الله ليضيع إيمانكم بالله، ومنه صلاتكم التي صلَّيتموها قبل تحويل القبلة، إن الله بالناس لرؤوف رحيم، فلا يشق عليهم، ولا يضيع ثواب أعمالهم.\nوما كان الله ليضيع إيمانكم بالله، ومنه صلاتكم التي صلَّيتموها قبل تحويل القبلة، إن الله بالناس لرؤوف رحيم، فلا يشق عليهم، ولا يضيع ثواب أعمالهم.",
+      "translit": "",
+      "tr": "143 - Akkuma Qiblaa isiniif jaallanne isiniif goone, amantiiwwan, ibaadaa (gabbarrii) fi mu'aamalaa (waliin hojjechuu) keessatti ummatoota hunda gidduutti ummata filatamaa, haqaqabeessaa fi jiddu galeessa isin goone; Guyyaa Qiyaamaa ergamoonni Rabbii waan Rabbiin ummata isaaniitti akka dabarsan isaan ajaje dabarsuu isaanii ragaa akka baataniif. Ergamaan Muhammad, rahmanni fi nageenyi Rabbii isa irratti haa jiraatu, akkasuma waan ittiin gara keessanitti ergame isiniif dabarsuu isaa isin irratti ragaa akka ta'uuf. Qiblaa ati duraan itti garagalaa turte, isheenis Bayt Al-Maqdis, jijjiiruu kan goone, nama waan Rabbiin karaa godhe jaallatee isaaf bitamee Ergamaa hordofu fi nama amantii isaa irraa deebi'ee fedhii ofii hordofuun waan Rabbiin karaa godheef hin bitamne adda baasuuf; beekumsa mul'ataa kan mindaan isa irratti hundaa'uuf. Dhimma Qiblaa jalqabaa jijjiiruun ulfaataa ture; warra Rabbiin Isatti amanuu fi waan gabroota Isaatiif karaa godhu hikmaa guddaadhaaf akka karaa godhu amanuuf milkeesse irratti malee. Rabbiin iimaana keessan, salaata Qiblaan jijjiiramuu dura salaattanis dabalatee, hin balleessu. Dhugumatti Rabbiin namootaaf laafaa fi rahmata godhaadha; isaan irratti hin ulfeessu, mindaa hojii isaaniis hin balleessu.\nRabbiin iimaana keessan, salaata Qiblaan jijjiiramuu dura salaattanis dabalatee, hin balleessu. Dhugumatti Rabbiin namootaaf laafaa fi rahmata godhaadha; isaan irratti hin ulfeessu, mindaa hojii isaaniis hin balleessu.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/25/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-003.json"
+    },
+    {
+      "id": "h:2a735e96b58e",
+      "kind": "text",
+      "ar": "3 - ويرزقه من حيث لا يخطر له على بال، ولا يكون في حسبانه، ومن يعتمد على الله في أموره فهو كافيه، إن الله منفذ أمره، لا يعجز عن شيء، ولا يفوته شيء، قد جعل الله لكل شيء قدرًا ينتهي إليه، فللشدة قدر، وللرخاء قدر، فلا يدوم أحدهما على الإنسان.",
+      "translit": "",
+      "tr": "3 - Bakka inni yaadaan illee hin yaadne, herrega isaa keessa hin jirre irraa rizqii isaaf kenna. Namni dhimma isaa keessatti Rabbitti hirkatu, Inni isaaf gahaadha. Dhugumatti Rabbiin ajaja Isaa raawwata; wanti Isa dadhabsiisu hin jiru, wanti Isa jalaa darbus hin jiru. Rabbiin waan hundaaf hamma itti xumuramu godheera. Rakkinaafis hammi jira, bal'inaafis hammi jira; isaan lamaan keessaa tokko illee nama irra bara baraan hin turu.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/26/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-003.json"
+    },
+    {
+      "id": "h:1d7ff10f2a13",
+      "kind": "text",
+      "ar": "62 - قال موسى لقومه: ليس الأمر كما تصورتم، فإن معي ربي بالتأييد والنصر، سيرشدني ويدلني إلى طريق النجاة.",
+      "translit": "",
+      "tr": "62 - Muusaan ummata isaatiin jedhe: Dhimmi akka isin yaaddan miti. Gooftaan koo deeggarsaa fi injifannoodhaan na waliin jira; karaa nagaa bahuu na qajeelcha, na agarsiisas.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/27/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-003.json"
+    },
+    {
+      "id": "h:2dcec7ee53b1",
+      "kind": "text",
+      "ar": "الشعراء",
+      "translit": "",
+      "tr": "Ash-Shu’araa’",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/27/surah_name"
+        }
+      ]
+    },
+    {
+      "id": "h:3bf9b1583606",
+      "kind": "text",
+      "ar": "64 - قال لهم أبوهم: هل آمنكم عليه إلا كما أمنتكم على أخيه الشقيق: يوسف من قبل؟! فقد أمنتكم عليه، وتعهدتم بحفظه، ولم تفوا بما تعهدتم به، فلا ثقة عندي بتعهدكم بحفظه، وإنما ثقتي بالله، فهو خير الحافظين لمن أراد حفظه، وأرحم الراحمين بمن أراد رحمته.",
+      "translit": "",
+      "tr": "64 - Abbaan isaanii isaaniin jedhe: Akkuma duraan obboleessa isaa Yuusuf irratti isin amaneetti malee isa irratti isin amanuu? Ani isa irratti isin amaneen ture; isinis isa eeguuf waadaa galtanii waan waadaa galtan hin guunne. Kanaaf waadaa isin isa eeguuf galtan irratti amantii hin qabu. Amantiin koo Rabbitti qofa; Inni nama eeguu fedheef eegdotaa hunda caala; nama rahmata gochuuf fedheefis warra rahmata godhan hunda caalaa rahmata godha.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "daily-tafsir.json",
+          "pointer": "/verses/28/tafsir_text"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-003.json"
+    },
+    {
+      "id": "h:fba3f1065491",
+      "kind": "text",
+      "ar": "سورة ",
+      "translit": "",
+      "tr": "Suuraa ",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "line:29367"
+        }
+      ],
+      "reopen_batch": "reopen-ayah-tafsir-003.json"
+    },
+    {
+      "id": "h:65965a3f7677",
+      "kind": "text",
+      "ar": "، آية ",
+      "translit": "",
+      "tr": ", aayata ",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      },
+      "source_paths": [
+        {
+          "file": "app.jsx",
+          "pointer": "line:29367"
+        }
+      ],
+      "reopen_batch": "retranslate-ayah-tafsir-001.json"
+    }
+  ]
+}

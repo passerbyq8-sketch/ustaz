@@ -1,0 +1,156 @@
+{
+  "schema": "ezik-tr4/1",
+  "lang": "fa",
+  "section": "wirdi",
+  "title": {
+    "ar": "وِردي اليوم",
+    "tr": "وِرد امروز من"
+  },
+  "agent": "K05",
+  "generated": "2026-11-01T22:13:30+03:00",
+  "source_files": [
+    "app.jsx"
+  ],
+  "items": [
+    {
+      "id": "DW_CARD_TITLE",
+      "kind": "text",
+      "ar": "وِردي اليوم",
+      "tr": "وِرد (برنامهٔ روزانهٔ تلاوت و ذکر) امروز من",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "DW_CARD_EMPTY",
+      "kind": "text",
+      "ar": "لم تختر بعد. اختر من المصحف أو الأذكار أو أسماء الله الحسنى أو الدروس.",
+      "tr": "هنوز انتخاب نکرده‌اید. از مصحف، اذکار، نام‌های نیکوی الله یا درس‌ها انتخاب کنید.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "DW_LINE_MUSHAF",
+      "kind": "text",
+      "ar": "المصحف:",
+      "tr": "مصحف:",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "DW_LINE_ADHKAR",
+      "kind": "text",
+      "ar": "الأذكار:",
+      "tr": "اذکار:",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "DW_LINE_MEMORIZE",
+      "kind": "text",
+      "ar": "الحفظ:",
+      "tr": "حفظ:",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "DW_SURAH_WORD",
+      "kind": "text",
+      "ar": "سورة",
+      "tr": "سوره",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "DW_PAGES_WORD",
+      "kind": "text",
+      "ar": "صفحة في اليوم",
+      "tr": "صفحه در روز",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "DW_MUSHAF_LABEL",
+      "kind": "text",
+      "ar": "اختر وردك من المصحف",
+      "tr": "وِرد (مقدار تلاوت روزانه) خود را از مصحف انتخاب کنید",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "DW_ADHKAR_LABEL",
+      "kind": "text",
+      "ar": "اختر ذكرك اليوميّ",
+      "tr": "ذکر روزانهٔ خود را انتخاب کنید",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "DW_MEMORIZE_LABEL",
+      "kind": "text",
+      "ar": "اختر ما تحفظه",
+      "tr": "آنچه حفظ می‌کنید انتخاب کنید",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    }
+  ]
+}

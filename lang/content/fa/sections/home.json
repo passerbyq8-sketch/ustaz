@@ -1,0 +1,310 @@
+{
+  "schema": "ezik-tr4/1",
+  "lang": "fa",
+  "section": "home",
+  "title": {
+    "ar": "الرئيسية",
+    "tr": "صفحهٔ اصلی"
+  },
+  "agent": "K05",
+  "generated": "2026-11-01T22:14:18+03:00",
+  "source_files": [
+    "app.jsx"
+  ],
+  "items": [
+    {
+      "id": "h:2725c261026a",
+      "kind": "text",
+      "ar": "المحرَّم",
+      "tr": "محرم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8fe6e53eb018",
+      "kind": "text",
+      "ar": "صفر",
+      "tr": "صفر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:12b9abd7e47f",
+      "kind": "text",
+      "ar": "ربيع الأوّل",
+      "tr": "ربیع الاول",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:27f4b96322c0",
+      "kind": "text",
+      "ar": "ربيع الآخر",
+      "tr": "ربیع الآخر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:59e93f5e6ea8",
+      "kind": "text",
+      "ar": "جمادى الأولى",
+      "tr": "جمادی الاولی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e27629c457c1",
+      "kind": "text",
+      "ar": "جمادى الآخرة",
+      "tr": "جمادی الآخره",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f7ba2629e5cd",
+      "kind": "text",
+      "ar": "رجب",
+      "tr": "رجب",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cc36ae3dffc3",
+      "kind": "text",
+      "ar": "شعبان",
+      "tr": "شعبان",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8b6c945cd4f9",
+      "kind": "text",
+      "ar": "رمضان",
+      "tr": "رمضان",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5dcf938f475c",
+      "kind": "text",
+      "ar": "شوّال",
+      "tr": "شوال",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:06d78f194bec",
+      "kind": "text",
+      "ar": "ذو القعدة",
+      "tr": "ذو القعده",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d95ae12c87e7",
+      "kind": "text",
+      "ar": "ذو الحجّة",
+      "tr": "ذو الحجه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "HIJRI_SUFFIX",
+      "kind": "text",
+      "ar": "هـ",
+      "tr": "هـ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "HIJRI_SET_TITLE",
+      "kind": "text",
+      "ar": "التاريخ الهجريّ",
+      "tr": "تاریخ هجری",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "HIJRI_SET_LABEL",
+      "kind": "text",
+      "ar": "إزاحة يدويّة بالأيّام",
+      "tr": "جابه‌جایی دستی به تعداد روز",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "HIJRI_SET_HINT",
+      "kind": "text",
+      "ar": "يُحسَب على هذا الجهاز بلا إنترنت، على تقويم أمّ القرى. إن خالفَ التقويمَ المعمولَ به عندك بيومٍ أو يومين فعدِّلْه من هنا.",
+      "tr": "تاریخ روی همین دستگاه و بدون اینترنت، بر پایهٔ تقویم ام القری محاسبه می‌شود. اگر یک یا دو روز با تقویم مورد استفادهٔ شما تفاوت دارد، از اینجا تنظیمش کنید.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "EZIK_SW_MSG_PARTIAL",
+      "kind": "text",
+      "ar": "لم يكتملْ حفظُ بعضِ الملفّاتِ للعملِ بلا إنترنت.",
+      "tr": "ذخیرهٔ برخی فایل‌ها برای استفاده بدون اینترنت کامل نشد.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "EZIK_SW_MSG_NONE",
+      "kind": "text",
+      "ar": "لم يُحفَظْ شيءٌ للعملِ بلا إنترنت: مساحةُ الجهازِ لا تكفي.",
+      "tr": "چیزی برای استفاده بدون اینترنت ذخیره نشد؛ فضای دستگاه کافی نیست.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "EzistQuranPanelBody.narrated",
+      "kind": "text",
+      "ar": "رواه ",
+      "tr": "روایت کرده است ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "EzistQuranPanelBody.ayahSeparator",
+      "kind": "text",
+      "ar": "، آية ",
+      "tr": "، آیۀ ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "AyahTafsirScreen.ayahSeparator",
+      "kind": "text",
+      "ar": "، آية ",
+      "tr": "، آیۀ ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    }
+  ]
+}

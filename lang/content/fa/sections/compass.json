@@ -1,0 +1,30 @@
+{
+  "schema": "ezik-tr4/1",
+  "lang": "fa",
+  "section": "compass",
+  "title": {
+    "ar": "البوصلة",
+    "tr": "قطب‌نما"
+  },
+  "agent": "K05",
+  "generated": "2026-11-01T22:13:30+03:00",
+  "source_files": [
+    "app.jsx"
+  ],
+  "items": [
+    {
+      "id": "EZH_NAV_COMPASS",
+      "kind": "text",
+      "ar": "البوصلة",
+      "tr": "قطب‌نما",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    }
+  ]
+}

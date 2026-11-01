@@ -18,6 +18,7 @@
   const hasRooms = game === 'hanna' || game === 'harb' || game === 'board';
   const roomCategoryIds = new Set(global.KunuzRoomCategoryIds || []);
   const usesRoomBank = () => (game === 'hanna' || game === 'harb' || game === 'board') && M.settings.room;
+  global.KunuzUsesRoomBank = usesRoomBank;
   const roomCategorySupported = c => game === 'board' ? !!boardRooms?.supportsCategory(c) : roomCategoryIds.has(global.DATA.cats[c]?.[0]);
   const entryHistory = hasRooms ? history.state : null;
   const names = { hub: 'كنوز المعرفة', ghaws: 'الغوص', harb: 'حرب الجزر', test: 'اختبر معلوماتك', board: 'تحدّي الفئات', hanna: 'حنّا لها' };
@@ -57,13 +58,14 @@
     quizCount: 5, quizCustomCount: false, quizCountDraft: '', quizTimeDraft: '', quizAdvance: null, quizPausedAt: null, quizLastQuestion: null, roomDraft: '', roomCodeError: '', roomStartError: '',
     roomCodeEntry: false, joinDraft: '', joinError: '', roomFromEntry: false, homeNotice: null, roomClosedNotice: '', homePurchasesApplicable: false, joinOnly: false
   };
+  global.KunuzUIPlayerNames = () => M.teams.map(team => team.n);
   let boardRooms = null, activeScreenMotion = null;
   if (game !== 'hub') M.teams = Array.from({ length: limits[game][0] }, (_, i) => teamNew(i));
   try { M.muted = localStorage.getItem('kunuz_journey_muted_v1') === '1'; } catch (_) {}
   const app = document.createElement('div'); app.className = 'journey-app'; app.dataset.game = game;
   document.body.classList.add('ezik-treasure-theme'); document.body.append(app);
   const themeMeta = document.querySelector('meta[name="theme-color"]'); if (themeMeta) themeMeta.content = '#082c38';
-  const OFFLINE_VERSION = '20261028-kfix1';
+  const OFFLINE_VERSION = '20261102-tr4';
   const THEME_VERSION = OFFLINE_VERSION;
   const IAP_HOST_RESUME_KEY = 'kunuz_iap_host_resume_v1';
   const IAP_EXPIRED_NOTICE_KEY = 'kunuz_iap_expired_notice_v1';
@@ -422,7 +424,7 @@
   }
   function boardQuestion() {
     const q = M.question;
-    return '<div class="j-modal" role="dialog" aria-modal="true" aria-label="سؤال الفئة"><div class="j-modal-frame">' + header() + '<div class="j-paper" data-motion="board">' + meta(q) + '<h2>' + esc(questionText(q)[3]) + '</h2><div id="qvis" hidden></div>' + answers(q, true) + timerMarkup(q) + '<p class="j-muted">تشاوروا… والقرار لكم</p>' +
+    return '<div class="j-modal" role="dialog" aria-modal="true" aria-label="سؤال الفئة"><div class="j-modal-frame">' + header() + '<div class="j-paper" data-motion="board">' + meta(q) + '<h2 translate="no">' + esc(questionText(q)[3]) + '</h2><div id="qvis" hidden></div>' + answers(q, true) + timerMarkup(q) + '<p class="j-muted">تشاوروا… والقرار لكم</p>' +
       (q.answerRevealed ? explanation(q) + '<div class="j-actions">' + M.teams.map((t, i) => button(sym(t.symbol) + esc(t.n), 'award', 'j-btn j-teal', 'data-team="' + i + '" data-team-color="' + i + '"')).join('') + button('ولا أحد', 'award', 'j-secondary', 'data-team="-1"') + '</div>' : '<div class="j-actions">' + optionsButton(q) + button('إظهار الإجابة', 'reveal-answer', 'j-btn j-teal') + '</div>') + '</div></div></div>';
   }
   function quizStart() {
@@ -474,7 +476,7 @@
   function quizQuestion() {
     const q = M.question, completed = played();
     const response = M.settings.options === 'shown' ? answers(q) : q.answerRevealed ? '<p class="j-quiz-self-answer"><span data-choice="' + questionText(q)[5] + '">' + esc(questionText(q)[4][questionText(q)[5]]) + '</span></p>' + (!q.settled ? '<div class="j-actions">' + button('عرفتها', 'judge-yes') + button('ما عرفتها', 'judge-no', 'j-secondary') + '</div>' : '') : '<div class="j-actions">' + button('أظهر الجواب', 'reveal-answer') + '</div>';
-    return '<section class="j-quiz-screen"><p class="j-quiz-position">السؤال ' + ar(q.slotIndex + 1) + ' من ' + ar(M.slots.length) + '</p><div class="j-quiz-progress" role="progressbar" aria-label="الأسئلة المكتملة" aria-valuemin="0" aria-valuemax="' + M.slots.length + '" aria-valuenow="' + completed + '"><i style="width:' + completed / M.slots.length * 100 + '%"></i></div><div class="j-paper j-quiz-question"><span class="j-tag">' + esc(catName(questionText(q)[0])) + '</span><h2>' + esc(questionText(q)[3]) + '</h2><div id="qvis" hidden></div>' + response + (q.duration ? timerMarkup(q) : '') + '<p class="j-quiz-feedback" role="status">' + (q.settled ? q.correct ? '✓ صحيح!' : 'خطأ · الجواب الصحيح: ' + esc(questionText(q)[4][questionText(q)[5]]) : '') + '</p></div></section>';
+    return '<section class="j-quiz-screen"><p class="j-quiz-position">السؤال ' + ar(q.slotIndex + 1) + ' من ' + ar(M.slots.length) + '</p><div class="j-quiz-progress" role="progressbar" aria-label="الأسئلة المكتملة" aria-valuemin="0" aria-valuemax="' + M.slots.length + '" aria-valuenow="' + completed + '"><i style="width:' + completed / M.slots.length * 100 + '%"></i></div><div class="j-paper j-quiz-question"><span class="j-tag">' + esc(catName(questionText(q)[0])) + '</span><h2 translate="no">' + esc(questionText(q)[3]) + '</h2><div id="qvis" hidden></div>' + response + (q.duration ? timerMarkup(q) : '') + '<p class="j-quiz-feedback" role="status">' + (q.settled ? q.correct ? '✓ صحيح!' : 'خطأ · الجواب الصحيح: <span translate="no">' + esc(questionText(q)[4][questionText(q)[5]]) + '</span>' : '') + '</p></div></section>';
   }
   function quizResults() {
     const correct = M.slots.filter(slot => slot.by >= 0).length;
@@ -490,12 +492,12 @@
       return '<div class="j-verdict' + (a?.correct === false ? ' j-no' : '') + '"><b>' + esc(t.n) + '</b> · ' + (!a ? 'لم يثبّت جوابًا' : a.correct === null ? 'الحكم لكم على جوابكم' : a.correct ? '✓ صحيح · ' + score(a.delta, true) : 'خطأ · ' + score(a.delta, true)) + (a && a.correct === null ? '<div class="j-actions">' + button('صح', 'hanna-judge', 'j-btn j-teal', 'data-team="' + i + '" data-right="true"') + button('خطأ', 'hanna-judge', 'j-secondary', 'data-team="' + i + '" data-right="false"') + '</div>' : '') + '</div>';
     }).join('') + '</div>' + explanation(q) + '<div class="j-actions">' + button('التالي', 'question-next', 'j-btn j-teal', Object.values(q.submissions).some(a => a.correct === null) ? 'disabled' : '') + '</div>';
     else content = '<div class="j-hanna-responders">' + M.teams.map((t, i) => button(esc(t.n) + (q.submissions[i] ? ' ✓' : ''), 'hanna-team', 'j-secondary', 'data-team="' + i + '" aria-pressed="' + (q.activeTeam === i) + '"' + (q.submissions[i] ? ' disabled' : ''))).join('') + '</div><p class="j-hanna-prompt">جواب «' + esc(M.teams[q.activeTeam].n) + '» · ثبّتوا بالسر قبل الكشف.</p><div class="j-hanna-confidence" role="group" aria-label="الثقة بالجواب">' + ['safe', 'bold'].map(mode => button('<b>' + (mode === 'bold' ? 'حنّا لها' : 'أتوقّع') + '</b><small>صح: ' + score(Model.hannaDelta(mode, true, value), true) + ' · خطأ: ' + score(Model.hannaDelta(mode, false, value), true) + '</small>', 'confidence', 'j-secondary', 'data-mode="' + mode + '" aria-pressed="' + (q.confidence === mode) + '"')).join('') + '</div>' + answers(q) + timerMarkup(q) + '<div class="j-actions">' + optionsButton(q) + (!shownOptions(q) ? button('ثبّتنا جوابنا بصوت عالٍ', 'hanna-manual', 'j-btn j-teal', q.confidence ? '' : 'disabled') : '') + '</div>';
-    return '<section class="j-hanna-screen">' + navigation + '<div class="j-paper j-hanna-sheet">' + meta(q) + '<h2>' + esc(data[3]) + '</h2><div id="qvis" hidden></div>' + content + '</div></section>';
+    return '<section class="j-hanna-screen">' + navigation + '<div class="j-paper j-hanna-sheet">' + meta(q) + '<h2 translate="no">' + esc(data[3]) + '</h2><div id="qvis" hidden></div>' + content + '</div></section>';
   }
   function diveView() {
     const s = global.S, q = M.question;
     return '<div class="j-sea"><div class="j-depth-stats"><div><small>عمق المغامرة</small><b>' + ar(s.depth) + ' <small>قامة</small></b><span class="j-tag">' + esc(M.teams[s.pi || 0].n) + '</span></div><div class="j-haul"><small>حصيلة الرحلة</small><b class="j-gold" data-haul>' + score(s.pearls) + '</b><small>لؤلؤة</small></div></div><div class="j-depth-track" role="progressbar" aria-label="عمق المغامرة" aria-valuemin="0" aria-valuemax="' + s.cap + '" aria-valuenow="' + s.depth + '" style="--depth-progress:' + Math.max(0, Math.min(100, s.depth / Math.max(1, s.cap) * 100)) + '%"><i class="j-depth-start"></i><i class="j-depth-current"></i></div><div class="j-bubbles">' + Array.from({ length: 12 }, (_, i) => '<i data-bubble="' + i + '"></i>').join('') + '</div><div class="j-pearl" data-pearl></div></div>' +
-      (q ? '<section class="j-paper j-dive-panel">' + meta(q) + '<h2>' + esc(questionText(q)[3]) + '</h2><div id="qvis" hidden></div>' + answers(q) + timerMarkup(q) +
+      (q ? '<section class="j-paper j-dive-panel">' + meta(q) + '<h2 translate="no">' + esc(questionText(q)[3]) + '</h2><div id="qvis" hidden></div>' + answers(q) + timerMarkup(q) +
         (q.settled ? '<div class="j-reward" data-motion="reward">' + (q.correct ? '✓ إجابة صحيحة! ' + score(q.reward, true) : s.lost ? q.timedOut ? 'نفد النفَس' : 'انقطعت الشبكة' : 'أنقذكم السيب') + '</div>' + explanation(q) : '<div class="j-actions">' + optionsButton(q) + (!shownOptions(q) && !q.answerRevealed ? button('أظهر الجواب', 'reveal-answer', 'j-btn j-teal') : '') + (q.answerRevealed ? button('صح', 'judge-yes', 'j-btn j-teal') + button('خطأ', 'judge-no', 'j-secondary') : '') + '</div>') + '</section>' : '<h2 class="j-heading">اختاروا صدفتكم</h2><div class="j-shells">' + (s.shells || []).map(c => button(catIcon(c) + '<span>' + esc(catName(c)) + '</span>', 'shell', '', 'data-cat="' + c + '"')).join('') + '</div>') +
       '<div class="j-tools">' + button('النور · استبعاد خيارات', 'dive-light', '', !s.tools.light || !q || q.settled || !shownOptions(q) ? 'disabled' : '') + button('النوخذة · تلميح', 'dive-hint', '', !s.tools.nokh || !q || q.settled || global.nokhBlind() ? 'disabled' : '') + '<span class="j-tag">' + (s.tools.seeb ? 'السيب جاهز للإنقاذ' : 'استُعمل السيب') + '</span></div>' +
       (q?.hint ? '<p class="j-war-message">النوخذة يقول: جوابكم يبدأ بحرف «' + esc(q.hint) + '».</p>' : '') +
@@ -520,7 +522,7 @@
     if (!text) text = w.phase === 'deploy' ? 'وزّعوا الرايات على جزركم، ثم سلّموا الدور.' : w.phase === 'move' ? 'انقلوا الرايات إلى جزيرتكم الجديدة، أو أنهوا الدور.' : w.base === null ? 'اختاروا جزيرة تنطلقون منها.' : 'اختاروا جزيرة متصلة للهجوم.';
     const board = teamBar() + '<div class="j-map-title">اختاروا جزيرتكم القادمة</div><p class="j-war-message" role="status">' + esc(text) + (w.phase === 'deploy' ? ' الرايات بيدكم: ' + ar(w.pool) : '') + '</p>' + islandMap();
     if (!q) return board + '<div class="j-actions j-war-actions">' + button('تراجع', 'war-undo', 'j-secondary', !w.placed.length && w.base === null ? 'disabled' : '') + button(w.phase === 'deploy' ? 'سلّموا الدور' : 'إنهاء الدور', 'war-next', 'j-btn j-teal', w.busy || w.phase === 'deploy' && w.pool > 0 ? 'disabled' : '') + button('إنهاء اللعبة', 'finish-war', 'j-secondary') + '</div>';
-    return board + '<section class="j-paper j-island-sheet" data-motion="island">' + meta(q) + '<h2>' + esc(questionText(q)[3]) + '</h2><div id="qvis" hidden></div>' + answers(q) + timerMarkup(q) +
+    return board + '<section class="j-paper j-island-sheet" data-motion="island">' + meta(q) + '<h2 translate="no">' + esc(questionText(q)[3]) + '</h2><div id="qvis" hidden></div>' + answers(q) + timerMarkup(q) +
       (q.settled ? '<div class="j-verdict' + (q.correct ? '' : ' j-no') + '">' + (q.correct ? q.fast ? '✓ إصابة مزدوجة — سبقتوا الجمر' : '✓ إصابة صحيحة' : q.timedOut ? 'نفد الوقت' : 'خطأ') + '</div>' + explanation(q) + '<div class="j-actions">' + button('التالي', 'war-answer-next', 'j-btn j-teal') + '</div>' : '<div class="j-actions">' + optionsButton(q) + (!shownOptions(q) && !q.answerRevealed ? button('أظهر الجواب', 'reveal-answer', 'j-btn j-teal') : '') + (q.answerRevealed ? button('صح', 'judge-yes', 'j-btn j-teal') + button('خطأ', 'judge-no', 'j-secondary') : '') + '</div>') + '</section>';
   }
   function warResult() {
@@ -1261,6 +1263,7 @@
       ? savedEntry : { length: history.length, parent: history.state?.journey && history.state.step === 2 ? 1 : 0 };
     M.error = ''; cancelPlay(); M.stage = 'room'; M.step = 3; render();
     M.roomUrl = location.href;
+    translationLayer().then(() => { const lang = global.TR4?.language(); if (lang && !M.roomText) { M.roomText = true; global.TR4.roomOverlay(lang).catch(() => {}); } });
     document.body.prepend(app);
     document.body.classList.add('journey-room');
     if (game === 'harb') {
@@ -1609,11 +1612,22 @@
       document.head.append(script);
     });
   }
+  /* TRANSLATE4: only the four languages of the round load this; everyone else plays as before. */
+  async function translationLayer() {
+    let lang = '';
+    try { lang = localStorage.getItem(['ezik', 'ui', 'lang', 'v1'].join('_')) || ''; } catch (_) {}
+    if (!['am', 'om', 'en', 'fa'].includes(lang) || global.TR4) return;
+    await loadLocalScript('/lang/content/tr4-loader.js').catch(() => {});
+  }
   async function loadKunuzLocal() {
     const version = '?v=' + OFFLINE_VERSION;
     const sources = ['/quest-data/kunuz-bank-3147.js', '/quest-data/kunuz-geo-index.js', '/quest-data/kunuz-packs-manifest.js', '/quest-visual.js', '/quest-levels.js'];
     if (game === 'hanna') sources.splice(1, 0, '/quest-theme/history.js');
-    for (const src of sources) await loadLocalScript(src + version);
+    await translationLayer();
+    for (const src of sources) {
+      await loadLocalScript(src + version);
+      if (src.includes('kunuz-bank-') && global.TR4?.language()) await global.TR4.overlayCore(global.TR4.language());
+    }
     global.dispatchEvent(new Event('kunuz-bank-ready'));
   }
   async function loadHannaLocal() {
@@ -1633,7 +1647,6 @@
       render();
       if (typeof global.ezikIapEnterHome === 'function') global.ezikIapEnterHome(setHomeNotice).catch(() => {});
       await prepareOffline();
-      loadLocalScript('/quest-i18n.js?v=' + OFFLINE_VERSION).catch(() => {});
       M.ready = true; return;
     }
     const params = new URLSearchParams(location.search);
@@ -1666,7 +1679,6 @@
       await prepareOffline();
       if (game === 'hanna') await loadHannaLocal();
       else await loadKunuzLocal();
-      if (game === 'ghaws' || game === 'harb') loadLocalScript('/quest-i18n.js?v=' + OFFLINE_VERSION).catch(() => {});
       if (!global.DATA || !global.KZV) throw new Error('ملفات المغامرة غير متاحة. افتحوا الصفحة متصلين مرة لتكتمل الملفات المحلية.');
       await global.KZV.ready;
       warmLocalAssets().catch(() => {});

@@ -51,7 +51,7 @@
 // stranded on a dead build. The HTML shell is network-first (6b) so it is always fresh online
 // regardless of the version; the bump refreshes the CACHE-FIRST assets (icons/fonts). The JSON
 // data files no longer NEED the bump -- they revalidate themselves -- but they still honour it.
-const CACHE = 'ezik-v129';
+const CACHE = 'ezik-v130';
 // '/index.html' is NOT here. Vercel serves this document byte-identically for '/' and for
 // '/index.html', so precaching both downloaded the whole shell TWICE on every cold visit --
 // a second copy of the 179227 bytes '/' already holds. The network-first branch below still
@@ -769,6 +769,16 @@ self.addEventListener('fetch', (event) => {
   // NETWORK-ONLY, never cached: the quest test surface. Its bank JSON is replaced on the
   // server between test rounds, so a cache-first copy would freeze testers on an old bank.
   if (sameOrigin && url.pathname.startsWith('/quest')) return;
+
+  // TRANSLATE4: lazy per-language content, network first, offline fallback; no precache.
+  if (sameOrigin && url.pathname.startsWith('/lang/content/')) {
+    event.respondWith(fetch(req).then(res => {
+      if (res.status >= 500) return caches.match(req).then(hit => hit || res);
+      if (res.ok) { const copy=res.clone(); event.waitUntil(caches.open(CACHE).then(c=>c.put(req,copy)).catch(()=>{})); }
+      return res;
+    }).catch(()=>caches.match(req).then(hit=>hit||Response.error())));
+    return;
+  }
 
   // NETWORK-FIRST for the app shell: navigations and the HTML entry points. Serving index.html
   // cache-first stranded users on a dead build whenever the cache version was not bumped --
