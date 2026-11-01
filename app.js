@@ -90,6 +90,19 @@ var EZIK_USAGE_SECTIONS = Object.freeze({"home":"الرئيسية","chat":"ال�
     '/hanna-laha/': 'hanna', '/hanna-laha/index.html': 'hanna'
   };
   try { if (root.location) logSection(pages[root.location.pathname]); } catch (_) {}
+  // Device check J5: the shell's press lands on whatever page is open. These pages are not the app, so they carry it home.
+  try {
+    var here = root.location && root.location.pathname;
+    if (Object.prototype.hasOwnProperty.call(pages, here)) {
+      root.addEventListener('ezik-scheduler', function (ev) {
+        var d = ev && ev.detail;
+        if (!d || d.channel !== 'ezik-scheduler' || d.v !== 1 || d.op !== 'open' || typeof d.route !== 'string') return;
+        if (pages[here] === d.route) return;
+        try { root.sessionStorage.setItem('ezik_open_after_v1', d.route); } catch (_) {}
+        root.location.replace('/');
+      });
+    }
+  } catch (_) {}
 })(window);
 const{useState,useEffect,useRef}=React;// Track committed navigation, including drawer/widget entries and restored layers.
 // The logger is optional: a missing script or failed request cannot break a section.
@@ -8795,7 +8808,8 @@ const SHELL_SCHED_ENABLE_OP='enable';const SHELL_SCHED_CANCEL_OP='cancel';const 
 const SHELL_SCHED_OPEN_OP='open';const EZIK_WIDGET_ROUTES=['mushaf','adhkar_sabah','adhkar_masaa','home','adhkar','arbaeen','prayer','chat','memorize','fatwa','lessons','articles','women','tasbih','calc','compass','ayah-tafsir','asmaa','sunan-day','yahimmak','dima','wirdi','treasure','library'];let EZIK_WIDGET_PENDING='';const EZIK_WIDGET_SUBS=new Set();function ezikWidgetTake(){const r=EZIK_WIDGET_PENDING;EZIK_WIDGET_PENDING='';return r;}(function ezikWidgetListen(){// The same two guards the schedule hook carries: no window under a node harness that loads
 // this file without a DOM, and a throwing addEventListener degrades to «the widget opens the
 // app as it is» rather than to a broken page.
-if(typeof window==='undefined')return;try{window.addEventListener(SHELL_SCHED_CHANNEL,ev=>{const d=ev&&ev.detail;if(!d||typeof d!=='object')return;if(d.channel!==SHELL_SCHED_CHANNEL||d.v!==SHELL_SCHED_VERSION||d.op!==SHELL_SCHED_OPEN_OP)return;if(typeof d.route!=='string'||EZIK_WIDGET_ROUTES.indexOf(d.route)===-1)return;EZIK_WIDGET_PENDING=d.route;EZIK_WIDGET_SUBS.forEach(f=>{try{f();}catch(e){}});});}catch(e){}})();// The bridge, or null. The injected object is the whole test; navigator.userAgent is deliberately
+if(typeof window==='undefined')return;try{window.addEventListener(SHELL_SCHED_CHANNEL,ev=>{const d=ev&&ev.detail;if(!d||typeof d!=='object')return;if(d.channel!==SHELL_SCHED_CHANNEL||d.v!==SHELL_SCHED_VERSION||d.op!==SHELL_SCHED_OPEN_OP)return;if(typeof d.route!=='string'||EZIK_WIDGET_ROUTES.indexOf(d.route)===-1)return;EZIK_WIDGET_PENDING=d.route;EZIK_WIDGET_SUBS.forEach(f=>{try{f();}catch(e){}});});}catch(e){}// A press that landed on the library or the games was carried here by usage.js (device check J5).
+try{const carried=window.sessionStorage.getItem('ezik_open_after_v1');if(carried){window.sessionStorage.removeItem('ezik_open_after_v1');if(EZIK_WIDGET_ROUTES.indexOf(carried)!==-1)EZIK_WIDGET_PENDING=carried;}}catch(e){}})();// The bridge, or null. The injected object is the whole test; navigator.userAgent is deliberately
 // not consulted here either, for the reason written out at ezikShellBridge above.
 function ezikSchedBridge(){if(typeof window==='undefined')return null;const b=window.ReactNativeWebView;if(!b||typeof b.postMessage!=='function')return null;return b;}// A DESTINATION IS CARRIED, NEVER INTERPRETED -- the shell says the same of it: an opaque string
 // stored in the notification and handed back verbatim when the reader presses it. This end judges

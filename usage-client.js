@@ -81,4 +81,17 @@
     '/hanna-laha/': 'hanna', '/hanna-laha/index.html': 'hanna'
   };
   try { if (root.location) logSection(pages[root.location.pathname]); } catch (_) {}
+  // Device check J5: the shell's press lands on whatever page is open. These pages are not the app, so they carry it home.
+  try {
+    var here = root.location && root.location.pathname;
+    if (Object.prototype.hasOwnProperty.call(pages, here)) {
+      root.addEventListener('ezik-scheduler', function (ev) {
+        var d = ev && ev.detail;
+        if (!d || d.channel !== 'ezik-scheduler' || d.v !== 1 || d.op !== 'open' || typeof d.route !== 'string') return;
+        if (pages[here] === d.route) return;
+        try { root.sessionStorage.setItem('ezik_open_after_v1', d.route); } catch (_) {}
+        root.location.replace('/');
+      });
+    }
+  } catch (_) {}
 })(window);

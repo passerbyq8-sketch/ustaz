@@ -31501,6 +31501,14 @@ function ezikWidgetTake() {
       EZIK_WIDGET_SUBS.forEach((f) => { try { f(); } catch (e) {} });
     });
   } catch (e) {}
+  // A press that landed on the library or the games was carried here by usage.js (device check J5).
+  try {
+    const carried = window.sessionStorage.getItem('ezik_open_after_v1');
+    if (carried) {
+      window.sessionStorage.removeItem('ezik_open_after_v1');
+      if (EZIK_WIDGET_ROUTES.indexOf(carried) !== -1) EZIK_WIDGET_PENDING = carried;
+    }
+  } catch (e) {}
 })();
 
 // The bridge, or null. The injected object is the whole test; navigator.userAgent is deliberately
