@@ -146,6 +146,7 @@
     for (const name of ['tap', 'success', 'swoosh', 'water-transition', 'bubble']) {
       const audio = new Audio('/quest-theme/audio/' + name + '.wav'); audio.preload = 'auto'; audio.volume = .18; audio.load(); soundCache.set(name, audio);
     }
+    if (global.KunuzQuestLang) fetch('/quest-i18n/' + global.KunuzQuestLang + '.js?v=' + OFFLINE_VERSION).catch(() => {});
     await Promise.all([geometry, ...images, document.fonts.load('400 16px KunuzPlex'), document.fonts.load('700 16px KunuzPlex')]);
   }
   function sound(name) {

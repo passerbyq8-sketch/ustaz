@@ -1,6 +1,18 @@
 /* Preview-only presentation adapters. The live bank, pack rows and room protocol are immutable. */
 (function (global) {
   'use strict';
+  /* TRANSLATE4: an Arabic reader loads no game table. Any other reader loads the one file of their language,
+     written here so it runs in the head where it always did. Hanna Laha is localized for the four languages of the round. */
+  (function () {
+    if (typeof document === 'undefined' || !document.write) return;
+    var code = '';
+    try { code = global.localStorage.getItem(['ezik', 'ui', 'lang', 'v1'].join('_')) || ''; } catch (_) {}
+    var hanna = /^\/hanna-laha(\/|$)/.test(global.location.pathname);
+    var list = hanna ? 'am om en fa' : 'ta am uz ku ps so hi de pt es zh ru sw ms ha tr bn ur id fr fa en om';
+    if ((' ' + list + ' ').indexOf(' ' + code + ' ') < 0) return;
+    global.KunuzQuestLang = code;
+    document.write('<script src="/quest-i18n/' + code + '.js?v=20261102-tr4"><\/script>');
+  })();
   const PER_CATEGORY = 6;
   // Compact labels let setup screens render before the full question bank loads.
   const FALLBACK_CATEGORIES = Object.freeze([{"slug":"deen","name":"الدين"},{"slug":"prayer","name":"الصلاة"},{"slug":"quran","name":"القرآن الكريم"},{"slug":"juz-amma","name":"جزء عمّ"},{"slug":"juz-tabarak","name":"جزء تبارك"},{"slug":"adhkar","name":"أذكار اليوم"},{"slug":"prophets","name":"قصص الأنبياء"},{"slug":"seerah","name":"السيرة النبوية"},{"slug":"manners","name":"الآداب والأخلاق"},{"slug":"islamic-history","name":"التاريخ الإسلامي"},{"slug":"geography","name":"الجغرافيا"},{"slug":"world-history","name":"تاريخ العالم"},{"slug":"animals","name":"عالم الحيوان"},{"slug":"physics","name":"الفيزياء"},{"slug":"biology","name":"الأحياء"},{"slug":"chemistry","name":"الكيمياء"},{"slug":"math","name":"الرياضيات"},{"slug":"hadith","name":"الأحاديث النبوية"},{"slug":"rashidun","name":"الخلفاء الراشدون"},{"slug":"umayyad","name":"الدولة الأموية"},{"slug":"abbasid","name":"الدولة العباسية"},{"slug":"ayyubid","name":"الدولة الأيوبية"},{"slug":"mamluk","name":"دولة المماليك"},{"slug":"ottoman","name":"الدولة العثمانية"},{"slug":"arab-world","name":"العالم العربي"},{"slug":"kuwait-history","name":"تاريخ الكويت"},{"slug":"cuisine","name":"المطبخ"},{"slug":"poetry-fusha","name":"الشعر الفصيح"},{"slug":"poetry-nabati","name":"الشعر النبطي"},{"slug":"fitness-health","name":"الصحة واللياقة"},{"slug":"arabic-language","name":"اللغة العربية"},{"slug":"proverbs","name":"الأمثال"},{"slug":"kuwait-sea-heritage","name":"التراث البحري"},{"slug":"kuwait-old-life","name":"الحياة الكويتية القديمة"},{"slug":"marine-life","name":"الأحياء البحرية"},{"slug":"astronomy","name":"الفلك والفضاء"},{"slug":"earth-weather","name":"علوم الأرض والطقس"},{"slug":"human-body","name":"جسم الإنسان"},{"slug":"muslim-scientists","name":"علماء المسلمين"},{"slug":"inventions","name":"الاختراعات"},{"slug":"palm-plants","name":"النخلة والنبات"},{"slug":"horses-camels-falcons","name":"الخيل والإبل والصقور"},{"slug":"first-aid","name":"الإسعافات الأولية"},{"slug":"money-economy","name":"المال والاقتصاد"},{"slug":"riddles-logic","name":"الألغاز والذكاء"},{"slug":"tech-computing","name":"التقنية والحاسوب"},{"slug":"islamic-architecture","name":"العمارة الإسلامية"},{"slug":"sahaba","name":"الصحابة والصحابيات"},{"slug":"mothers-ahlulbayt","name":"أمهات المؤمنين وآل البيت"},{"slug":"ghazawat","name":"الغزوات والسرايا"},{"slug":"tajweed","name":"التجويد"},{"slug":"asmaa-husna","name":"أسماء الله الحسنى"},{"slug":"easy-fiqh","name":"فقه العبادات"}]);

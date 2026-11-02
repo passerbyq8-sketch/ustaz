@@ -11217,6 +11217,4276 @@
         }
       ],
       "reopen_batch": "reopen-yahimmak-007.json"
+    },
+    {
+      "id": "h:3b66e9327c77",
+      "kind": "title",
+      "ar": "الدرس الأول: سورة الفاتحة وقصار السور",
+      "tr": "Barnoota tokkoffaa: Suuraa Al-Faatihaa fi suurawwan gabaabaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d7e4bb28ff3e",
+      "kind": "title",
+      "ar": "سورة الفاتحة",
+      "tr": "Suuraa Al-Faatihaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3fd771978f77",
+      "kind": "title",
+      "ar": "قصار السور",
+      "tr": "Suurawwan gabaabaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5b0b3d8e5e2d",
+      "kind": "title",
+      "ar": "تحفيظا",
+      "tr": "Qalbiin qabachiisuudhaan",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:75789dc76123",
+      "kind": "title",
+      "ar": "فهمه",
+      "tr": "Hubachuu isaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b49cc8856d6f",
+      "kind": "title",
+      "ar": "سورة الفاتحة وما أمكن من قصار السور",
+      "tr": "Suuraa Al-Faatihaa fi suurawwan gabaabaa keessaa kan danda'ame",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:594f74ab068e",
+      "kind": "title",
+      "ar": "من سورة الزلزلة إلى سورة الناس",
+      "tr": "Suuraa Az-Zalzalah irraa hanga Suuraa An-Naasitti",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d202b7dec2b1",
+      "kind": "text",
+      "ar": "سورة الفاتحة وما أمكن من قصار السور، من سورة الزلزلة إلى سورة الناس",
+      "tr": "Suuraa Al-Faatihaa fi suurawwan gabaabaa keessaa kan danda'ame, Suuraa Az-Zalzalah irraa hanga Suuraa An-Naasitti",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:77666c630ad6",
+      "kind": "text",
+      "ar": "تلقينا، وتصحيحًا للقراءة، وتحفيظًا، وشرحًا لما يجب فهمه",
+      "tr": "Afaaniin barsiisuudhaan, qara'aa sirreessuudhaan, qalbiin qabachiisuudhaan, fi waan hubachuun dirqama ta'e ibsuudhaan",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7810bec9e158",
+      "kind": "title",
+      "ar": "الدرس الأول سورة الفاتحة وقصار السور",
+      "tr": "Barnoota tokkoffaa Suuraa Al-Faatihaa fi suurawwan gabaabaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f4e4a563622a",
+      "kind": "text",
+      "ar": "يجب أن نحرص على تعلم سورة الفاتحة وغيرها من السور خاصة من الزلزلة إلى الناس",
+      "tr": "Suuraa Al-Faatihaa fi suurawwan biroo, keessumaa Az-Zalzalah irraa hanga An-Naasitti, barachuuf cimsinee yaaluu qabna",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e3c6f2d2fe16",
+      "kind": "title",
+      "ar": "القراءة الصحيحة لسورة الفاتحة",
+      "tr": "Qara'aa sirrii Suuraa Al-Faatihaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:25db8ddda17b",
+      "kind": "text",
+      "ar": "الفاتحة هي أعظم سورة في كتاب الله تبارك وتعالى",
+      "tr": "Al-Faatihaan Kitaaba Allaah, Inni eebbifamaa fi ol-ta'aa, keessatti suuraa hunda caalaa guddaa dha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2abc8508e0ce",
+      "kind": "title",
+      "ar": "الدرس الثاني: أركان الإسلام",
+      "tr": "Barnoota lammaffaa: Arkaana Islaamaa (utuboota Islaamaa)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:47c431f6f55a",
+      "kind": "title",
+      "ar": "وأولها وأعظمها",
+      "tr": "Isaan keessaa inni jalqabaa fi inni guddaan",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:be0170fd4915",
+      "kind": "title",
+      "ar": "شهادة",
+      "tr": "Shahaadaa (ragaa bahuu)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0405a8729cac",
+      "kind": "text",
+      "ar": "وأولها وأعظمها: شهادة أن لا إله إلا الله، وأن محمدا رسول الله",
+      "tr": "Isaan keessaa inni jalqabaa fi inni guddaan: Allaah malee gabbaramaan dhugaa akka hin jirre, Muhammad immoo Ergamaa Allaah ta'uu isaa Shahaadaa (ragaa bahuu)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fa5176275030",
+      "kind": "text",
+      "ar": "وهي: الصلاة، والزكاة، وصوم رمضان، وحج بيت الله الحرام لمن استطاع إليه سبيلا",
+      "tr": "Isaanis: salaata, zakaa, soomana Ramadaanaa, fi nama karaa itti ga'u danda'eef Mana Allaah isa kabajamaa hajjii gochuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d73ab470adb3",
+      "kind": "title",
+      "ar": "(لا إله) نافيا جميع ما يعبد من دون الله",
+      "tr": "(Laa ilaaha: gabbaramaan hin jiru) wanta Allaah malee gabbaramu hunda haaluudhaan",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0f76aed3530b",
+      "kind": "text",
+      "ar": "(إلا الله) مثبتا العبادة لله وحده لا شريك له",
+      "tr": "(Illallaah: Allaah malee) gabbarii Allaah tokkichaaf, kan shariika hin qabneef, mirkaneessuudhaan",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0557ee04c858",
+      "kind": "title",
+      "ar": "العلم المنافي للجهل",
+      "tr": "Beekumsa wallaalummaa balleessu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:db7fc6fa33dd",
+      "kind": "title",
+      "ar": "واليقين المنافي للشك",
+      "tr": "Fi Yaqiina (mirkanaa'ummaa) shakkii balleessu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e4905d9925f9",
+      "kind": "title",
+      "ar": "والإخلاص المنافي للشرك",
+      "tr": "Fi Ikhlaasa (niyyaa Allaahiif qulqulleessuu) shirkii (Rabbitti waa qindeessuu) balleessu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fec042a12d5e",
+      "kind": "title",
+      "ar": "والصدق المنافي للكذب",
+      "tr": "Fi dhugummaa soba balleessu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8cd20a9b5057",
+      "kind": "title",
+      "ar": "والمحبة المنافية للبغض",
+      "tr": "Fi jaalala jibba balleessu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0c85d1d82627",
+      "kind": "title",
+      "ar": "والقبول المنافي للرد",
+      "tr": "Fi fudhachuu deebisuu balleessu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3a92a6e79d40",
+      "kind": "title",
+      "ar": "والانقياد المنافي للشرك",
+      "tr": "Fi Inqiyaada (abboomamuu) shirkii (Rabbitti waa qindeessuu) balleessu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bb2fcd3985f4",
+      "kind": "title",
+      "ar": "والكفر بما يعبد من دون الله",
+      "tr": "Fi wanta Allaah malee gabbaramu haaluu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b517077ca0ee",
+      "kind": "title",
+      "ar": "ومقتضاها: تصديقه فيما أخبر",
+      "tr": "Wanti ishee irraa barbaadamu: waan inni himeen isa dhugoomsuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1b67462b17a4",
+      "kind": "title",
+      "ar": "وطاعته فيما أمر",
+      "tr": "Fi waan inni ajajeen isaaf ajajamuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ba1363f9ff1e",
+      "kind": "title",
+      "ar": "واجتناب ما نهى عنه وزجر",
+      "tr": "Fi waan inni dhoowwee fi irraa akeekkachiise irraa fagaachuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6a8985e324ee",
+      "kind": "text",
+      "ar": "وألا يعبد الله إلا بما شرعه الله عز وجل، ورسوله صلى الله عليه وسلم",
+      "tr": "Fi Allaah akka hin gabbaramne, waan Allaah, Inni ulfaataa fi guddaan, fi Ergamaan Isaa, sallallaahu alayhi wa sallam (nagaa fi rahmanni Allaah isa irratti haa jiraatu), seera godhan malee",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f3beafeab42a",
+      "kind": "text",
+      "ar": "ومقتضاها: تصديقه فيما أخبر، وطاعته فيما أمر",
+      "tr": "Wanti ishee irraa barbaadamu: waan inni himeen isa dhugoomsuu, fi waan inni ajajeen isaaf ajajamuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:878f5f231d82",
+      "kind": "title",
+      "ar": "الدرس الثاني أركان الإسلام",
+      "tr": "Barnoota lammaffaa Arkaana Islaamaa (utuboota Islaamaa)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4f94395700dc",
+      "kind": "title",
+      "ar": "الدرس الثالث أركان الإسلام",
+      "tr": "Barnoota sadaffaa Arkaana Islaamaa (utuboota Islaamaa)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cb502c45d427",
+      "kind": "text",
+      "ar": "أركان الإسلام عبادات لها أجر عظيم جداً عند الله جل وعلا",
+      "tr": "Arkaanni Islaamaa (utubootni Islaamaa) ibaadaa Allaah, Inni ulfaataa fi ol-ta'aa, biratti mindaa baay'ee guddaa qabanii dha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:110f4655326f",
+      "kind": "title",
+      "ar": "الدرس الثالث: أركان الإيمان",
+      "tr": "Barnoota sadaffaa: Arkaana iimaanaa (utubaa amantii)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7d25a414b8cd",
+      "kind": "title",
+      "ar": "وهي ستة",
+      "tr": "Isaanis jaha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4aeceb7eb18f",
+      "kind": "title",
+      "ar": "وملائكته",
+      "tr": "Fi malaa'ikoota Isaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:257c7413e6d7",
+      "kind": "title",
+      "ar": "وكتبه",
+      "tr": "Fi kitaabota Isaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:27988f56013f",
+      "kind": "title",
+      "ar": "ورسله",
+      "tr": "Fi ergamtoota Isaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7e6570756383",
+      "kind": "title",
+      "ar": "بالقدر خيره وشره",
+      "tr": "Qadaratti (murtii Allaah), gaarii isaa fi hamaa isaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9bf3e2e90589",
+      "kind": "title",
+      "ar": "أن تؤمن بالله",
+      "tr": "Allaahitti amanuu kee",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4a38107a9172",
+      "kind": "title",
+      "ar": "وباليوم الآخر",
+      "tr": "Fi Guyyaa Aakhiraatti",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:861a1170b5b2",
+      "kind": "title",
+      "ar": "وتؤمن بالقدر خيره وشره من الله تعالى",
+      "tr": "Fi Qadarni (murtiin Allaah), gaarii isaa fi hamaa isaa, Allaah Ol-ta'aa biraa ta'uu isaatti amanuu kee",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8c038b0b283b",
+      "kind": "title",
+      "ar": "أركان الإيمان، وهي ستة",
+      "tr": "Arkaana iimaanaa (utubaa amantii), isaanis jaha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:45765cff192d",
+      "kind": "title",
+      "ar": "الدرس الرابع أركان الإيمان",
+      "tr": "Barnoota afraffaa Arkaana iimaanaa (utubaa amantii)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:34432f63fedf",
+      "kind": "title",
+      "ar": "ماهي أركان الإيمان ومن أين أخذت؟",
+      "tr": "Arkaanni iimaanaa (utubaan amantii) maal fa'a, eessaa fudhataman?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8c3bf09cab0d",
+      "kind": "title",
+      "ar": "الإيمان بالقدر",
+      "tr": "Qadaratti (murtii Allaah) amanuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:08a50392b17e",
+      "kind": "title",
+      "ar": "الإيمان بالملائكة",
+      "tr": "Malaa'ikootatti amanuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d3041af6e4b0",
+      "kind": "text",
+      "ar": "الدرس الرابع: أقسام التوحيد وأقسام الشرك",
+      "tr": "Barnoota afraffaa: Gosoota tawhiidaa (Allaah tokkicha gochuu) fi gosoota shirkii (Rabbitti waa qindeessuu)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:08658196b93e",
+      "kind": "title",
+      "ar": "شرك أكبر",
+      "tr": "Shirkii (Rabbitti waa qindeessuu) guddaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f5dee887edb5",
+      "kind": "title",
+      "ar": "وشرك أصغر",
+      "tr": "Fi shirkii (Rabbitti waa qindeessuu) xiqqaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4884f22b61e4",
+      "kind": "title",
+      "ar": "وشرك خفي",
+      "tr": "Fi shirkii (Rabbitti waa qindeessuu) dhokataa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ef435a6d176d",
+      "kind": "text",
+      "ar": "أما توحيد الربوبية: فهو الإيمان بأن الله سبحانه",
+      "tr": "Tawhiidur-Rubuubiyyaan (Gooftummaan Allaah tokkicha gochuu) garuu: Allaah, Inni qulqullaa'aa, ta'uu Isaatti amanuu dha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98a2e87e7fab",
+      "kind": "text",
+      "ar": "الخالق لكل شيء، والمتصرف في كل شيء، لا شريك له في ذلك",
+      "tr": "Uumaa waan hundaa, wanta hunda keessatti raawwataa, kana keessatti shariika hin qabu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1d4aa3b7e213",
+      "kind": "text",
+      "ar": "وأما توحيد الألوهية: فهو الإيمان بأن الله سبحانه هو المعبود بحق لا شريك له في ذلك",
+      "tr": "Tawhiidul-Uluuhiyyaan (ibaadaa Allaah qofaaf gochuu) immoo: Allaah, Inni qulqullaa'aa, Isa dhugaan gabbaramu ta'uu Isaatti, kana keessatti shariika akka hin qabnetti amanuu dha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9ff1d1d4f891",
+      "kind": "text",
+      "ar": "وأما توحيد الأسماء والصفات: فهو الإيمان بكل ما ورد في القرآن الكريم، أو الأحاديث الصحيحة من أسماء الله وصفاته، وإثباتها لله وحده على الوجه اللائق به سبحانه",
+      "tr": "Tawhiidul-Asmaa'i was-Sifaat (maqaa fi amaloota Allaahiin Isa tokkicha gochuu) immoo: maqaalee fi amaloota Allaah kan Qur'aana kabajamaa ykn hadiisota sirrii keessatti dhufan hundatti amanuu, akkaataa Isaaf, Inni qulqullaa'aa, ta'uun Allaah tokkichaaf mirkaneessuu dha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5d49754cadc9",
+      "kind": "text",
+      "ar": "فالشرك الأكبر: يوجب حبوط العمل والخلود في النار لمن مات عليه",
+      "tr": "Shirkiin (Rabbitti waa qindeessuun) guddaan: nama isa irratti du'eef hojiin akka bade fi Ibidda keessa yeroo hundaa turuu dirqisiisa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:68d61f21ad4b",
+      "kind": "title",
+      "ar": "أما الشرك الأصغر: فهو ما ثبت بالنصوص من",
+      "tr": "Shirkiin (Rabbitti waa qindeessuun) xiqqaan garuu: wanta nasoota (ragaalee) irraa mirkanaa'e",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:baccb27ce4f6",
+      "kind": "text",
+      "ar": "الكتاب أو السنة تسميته شركا، ولكنه ليس من جنس الشرك الأكبر",
+      "tr": "Kitaaba ykn Sunnaa irraa shirkii (Rabbitti waa qindeessuu) jedhamuun waamamuun isaa, garuu gosa shirkii guddaa irraa miti",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6cf60dfcd54d",
+      "kind": "text",
+      "ar": "وأقسام الشرك ثلاثة: شرك أكبر، وشرك أصغر، وشرك خفي",
+      "tr": "Gosoonni shirkii (Rabbitti waa qindeessuu) sadii: shirkii guddaa, shirkii xiqqaa, fi shirkii dhokataa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:14a33366105e",
+      "kind": "text",
+      "ar": "ويجوز أن يقسم الشرك إلى نوعين فقط: أكبر وأصغر، أما الشرك الخفي فإنه يعمهما",
+      "tr": "Shirkiin (Rabbitti waa qindeessuun) gosa lama qofatti qoodamuu ni danda'a: guddaa fi xiqqaa; shirkiin dhokataan garuu isaan lamaanuu ni hammata",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f31930e12562",
+      "kind": "title",
+      "ar": "ومن أنواعه: دعاء الأموات، والأصنام",
+      "tr": "Gosoota isaa keessaa: warra du'anii fi taabotaaf kadhachuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f438fb4f4659",
+      "kind": "title",
+      "ar": "دعاء الأموات، والأصنام، والاستغاثة بهم",
+      "tr": "Warra du'anii fi taabotaaf kadhachuu, isaan irraa gargaarsa barbaachuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:97f24f2cd55b",
+      "kind": "text",
+      "ar": "دعاء الأموات، والأصنام، والاستغاثة بهم، والنذر لهم",
+      "tr": "Warra du'anii fi taabotaaf kadhachuu, isaan irraa gargaarsa barbaachuu, fi isaaniif Nazrii (waadaa) galuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5e2cea427dd5",
+      "kind": "title",
+      "ar": "والنذر لهم، والذبح لهم، ونحو ذلك",
+      "tr": "Fi isaaniif Nazrii (waadaa) galuu, isaaniif qaluu, kan kana fakkaatan",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf856180ffc1",
+      "kind": "title",
+      "ar": "كالرياء في بعض الأعمال",
+      "tr": "Akka Riyaa (ibaadaa namaaf agarsiisuu) hojiiwwan tokko tokko keessatti",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:eb9b3cc1e22e",
+      "kind": "text",
+      "ar": "كالرياء في بعض الأعمال، والحلف بغير الله",
+      "tr": "Akka Riyaa (ibaadaa namaaf agarsiisuu) hojiiwwan tokko tokko keessatti, fi Allaahiin ala kakachuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b324871dfc5a",
+      "kind": "title",
+      "ar": "وقول: ما شاء الله وشاء فلان، ونحو ذلك",
+      "tr": "Fi: «Waan Allaah fedhee fi nama hebaa fedhe» jechuu, kan kana fakkaatan",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:04174686f061",
+      "kind": "hadith",
+      "ar": "الشرك الخفي، يقوم الرجل فيصلي فيزين صلاته لما يرى من نظر الرجل إليه",
+      "tr": "«الشرك الخفي، يقوم الرجل فيصلي فيزين صلاته لما يرى من نظر الرجل إليه» [Shirkii (Rabbitti waa qindeessuu) dhokataa: namni ka'ee ni salaata, namni isa ilaaluu isaa waan arguuf salaata isaa ni miidhagsa]",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:aa05ff942ca5",
+      "kind": "title",
+      "ar": "الخالق لكل شيء، والمتصرف في كل شيء",
+      "tr": "Uumaa waan hundaa, wanta hunda keessatti raawwataa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:13241a166da1",
+      "kind": "text",
+      "ar": "وأما توحيد الألوهية: فهو الإيمان بأن الله سبحانه هو المعبود بحق",
+      "tr": "Tawhiidul-Uluuhiyyaan (ibaadaa Allaah qofaaf gochuu) immoo: Allaah, Inni qulqullaa'aa, Isa dhugaan gabbaramu ta'uu Isaatti amanuu dha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fe89ca09472c",
+      "kind": "title",
+      "ar": "الدرس الخامس أقسام التوحيد وأقسام الشرك",
+      "tr": "Barnoota shanaffaa Gosoota tawhiidaa (Allaah tokkicha gochuu) fi gosoota shirkii (Rabbitti waa qindeessuu)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:610a352b3a00",
+      "kind": "title",
+      "ar": "ما هي أقسام التوحيد؟",
+      "tr": "Gosoonni tawhiidaa (Allaah tokkicha gochuu) maal fa'a?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f2165f79842f",
+      "kind": "title",
+      "ar": "ما هي أقسام الشرك؟",
+      "tr": "Gosoonni shirkii (Rabbitti waa qindeessuu) maal fa'a?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:73380859b8c4",
+      "kind": "title",
+      "ar": "الشرك الخفي",
+      "tr": "Shirkii (Rabbitti waa qindeessuu) dhokataa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:47e42b77a708",
+      "kind": "title",
+      "ar": "الدرس الخامس: الإحسان",
+      "tr": "Barnoota shanaffaa: Ihsaan (ibaadaa bareechuu)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:18c9002cbfbf",
+      "kind": "title",
+      "ar": "الدرس السادس: شروط الصلاة",
+      "tr": "Barnoota jahaffaa: Shuruuxa salaataa (waan salaanni irratti hundaa'u)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:323bf11a7f2e",
+      "kind": "title",
+      "ar": "وهي تسعة",
+      "tr": "Isaanis sagal",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dbc3262bb20f",
+      "kind": "title",
+      "ar": "تسعة: الإسلام",
+      "tr": "Sagal: Islaama",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:59358defc511",
+      "kind": "title",
+      "ar": "والعقل",
+      "tr": "Fi sammuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fccad3a57af4",
+      "kind": "title",
+      "ar": "والتمييز",
+      "tr": "Fi Tamyiiza (waa adda baasuu danda'uu)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:02cfc66adf5b",
+      "kind": "title",
+      "ar": "ورفع الحدث",
+      "tr": "Fi Hadasa (qulqullina dhabuu) kaasuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b1c70e67e991",
+      "kind": "title",
+      "ar": "وإزالة النجاسة",
+      "tr": "Fi Najaasaa (xuraa'ummaa) balleessuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:65fdfe4d8e4e",
+      "kind": "title",
+      "ar": "وستر العورة",
+      "tr": "Fi Awraa (qaama dhokfamuu qabu) dhoksuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:998c1636cf79",
+      "kind": "title",
+      "ar": "ودخول الوقت",
+      "tr": "Fi yeroon (salaataa) seenuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:016e65d5120e",
+      "kind": "title",
+      "ar": "واستقبال القبلة",
+      "tr": "Fi gara Qiblaa (Kaabaa) garagaluu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ddbc27666de9",
+      "kind": "title",
+      "ar": "والنية.",
+      "tr": "Fi Niyyaa (yaada qalbii).",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:39eb5235955c",
+      "kind": "title",
+      "ar": "شروط الصلاة، وهي تسعة",
+      "tr": "Shuruuxa salaataa (waan salaanni irratti hundaa'u), isaanis sagal",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8354bab4bf63",
+      "kind": "title",
+      "ar": "واستقبال القبلة، والنية",
+      "tr": "Fi gara Qiblaa (Kaabaa) garagaluu, fi Niyyaa (yaada qalbii)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2194751780ad",
+      "kind": "title",
+      "ar": "الدرس السادس - شروط الصلاة",
+      "tr": "Barnoota jahaffaa - Shuruuxa salaataa (waan salaanni irratti hundaa'u)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cddbaa808dc4",
+      "kind": "title",
+      "ar": "من شروط صحة الصلاة - استقبال القبلة",
+      "tr": "Shuruuxa sirrummaa salaataa keessaa - gara Qiblaa (Kaabaa) garagaluu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b7f5238e4db1",
+      "kind": "title",
+      "ar": "من شروط صحة الصلاة - النية",
+      "tr": "Shuruuxa sirrummaa salaataa keessaa - Niyyaa (yaada qalbii)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1a37238bb0f0",
+      "kind": "title",
+      "ar": "من شروط الصلاة - ستر العورة",
+      "tr": "Shuruuxa salaataa keessaa - Awraa (qaama dhokfamuu qabu) dhoksuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9f8afdf960db",
+      "kind": "title",
+      "ar": "الدرس السابع: أركان الصلاة",
+      "tr": "Barnoota torbaffaa: Arkaana salaataa (utuboota salaataa)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d8072240ac9e",
+      "kind": "title",
+      "ar": "وهي أربعة عشر",
+      "tr": "Isaanis kudha afur",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a6660ff944a3",
+      "kind": "title",
+      "ar": "وتكبيرة الإحرام",
+      "tr": "Fi Takbiiratul-Ihraam (salaata seenuuf Allaahu Akbar jechuu)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e3ecb439b017",
+      "kind": "title",
+      "ar": "وقراءة الفاتحة",
+      "tr": "Fi Al-Faatihaa qara'uu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:28b73f225e0d",
+      "kind": "title",
+      "ar": "وقراءة الفاتحة، والركوع",
+      "tr": "Fi Al-Faatihaa qara'uu, fi Rukuu'a (gad jedhanii harka jilba irra kaa'uu)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:878d96b9de97",
+      "kind": "title",
+      "ar": "والاعتدال بعد الركوع",
+      "tr": "Fi Rukuu'a (gad jedhuu) booda qajeelanii dhaabachuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:466bfdc4bbf7",
+      "kind": "title",
+      "ar": "والسجود على الأعضاء السبعة",
+      "tr": "Fi Sujuuda (adda lafa kaa'uu) qaamota torba irratti",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7b41dd4df098",
+      "kind": "title",
+      "ar": "والسجود على الأعضاء السبعة، والرفع منه",
+      "tr": "Fi Sujuuda (adda lafa kaa'uu) qaamota torba irratti, fi isa irraa ol ka'uu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b407d51e0f18",
+      "kind": "title",
+      "ar": "والجلسة بين السجدتين",
+      "tr": "Fi sujuudota lamaan gidduutti taa'uu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c6b2fdfd75f1",
+      "kind": "title",
+      "ar": "والطمأنينة في جميع الأفعال",
+      "tr": "Fi Tuma'niinaa (tasgabbii) hojiiwwan hunda keessatti",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5191ee6e1764",
+      "kind": "title",
+      "ar": "والترتيب بين الأركان",
+      "tr": "Fi arkaana (utuboota) gidduutti tartiiba eeguu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf32b6e054d5",
+      "kind": "title",
+      "ar": "والتشهد الأخير",
+      "tr": "Fi tashahhuda (ragaa bahuu teessoo salaataa keessatti) isa dhumaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5e561d8115d6",
+      "kind": "title",
+      "ar": "والتشهد الأخير، والجلوس له",
+      "tr": "Fi tashahhuda (ragaa bahuu teessoo salaataa keessatti) isa dhumaa, fi isaaf taa'uu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:37e3e0ec6e7a",
+      "kind": "title",
+      "ar": "والصلاة على النبي صلى الله عليه وسلم",
+      "tr": "Fi Nabiyyii, sallallaahu alayhi wa sallam, irratti salawaata (nagaa fi rahmata kadhachuu) buusuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dc27b60ccd79",
+      "kind": "title",
+      "ar": "والتسليمتان",
+      "tr": "Fi salaamtaa lamaan",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a1bf44f5391a",
+      "kind": "title",
+      "ar": "وتكبيرة الإحرام، وقراءة الفاتحة",
+      "tr": "Fi Takbiiratul-Ihraam (salaata seenuuf Allaahu Akbar jechuu), fi Al-Faatihaa qara'uu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4daa548b509c",
+      "kind": "title",
+      "ar": "واجبات الصلاة، وهي ثمانية",
+      "tr": "Waajiboota salaataa (dirqamoota salaataa), isaanis saddeet",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:085efa6a860a",
+      "kind": "title",
+      "ar": "والتشهد الأول، والجلوس له",
+      "tr": "Fi tashahhuda (ragaa bahuu teessoo salaataa keessatti) isa jalqabaa, fi isaaf taa'uu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:af39c1889c3a",
+      "kind": "title",
+      "ar": "الدرس السابع أركان الصلاة",
+      "tr": "Barnoota torbaffaa Arkaana salaataa (utuboota salaataa)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:94ffb6744b77",
+      "kind": "title",
+      "ar": "أركان الصلاة أربعة عشر ركناً",
+      "tr": "Arkaanni salaataa (utubootni salaataa) kudha afur",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:94f019f1ef07",
+      "kind": "title",
+      "ar": "من أركان الصلاة - القيام مع القدرة",
+      "tr": "Arkaana salaataa (utuboota salaataa) keessaa - nama danda'uuf dhaabachuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf1bd4486d74",
+      "kind": "text",
+      "ar": "من أركان الصلاة - الطمأنينة في جميع الأفعال",
+      "tr": "Arkaana salaataa (utuboota salaataa) keessaa - Tuma'niinaa (tasgabbii) hojiiwwan hunda keessatti",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:db59a2924579",
+      "kind": "title",
+      "ar": "الدرس الثامن: واجبات الصلاة",
+      "tr": "Barnoota saddeettaffaa: Waajiboota salaataa (dirqamoota salaataa)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b6ea98504e25",
+      "kind": "title",
+      "ar": "وهي ثمانية",
+      "tr": "Isaanis saddeet",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:35c3284be000",
+      "kind": "title",
+      "ar": "جميع التكبيرات",
+      "tr": "Takbiiroota (Allaahu Akbar jechuu) hunda",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d67b4ba99de1",
+      "kind": "title",
+      "ar": "وقول",
+      "tr": "Fi jechuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f7e45e429c5b",
+      "kind": "title",
+      "ar": "والتشهد الأول",
+      "tr": "Fi tashahhuda (ragaa bahuu teessoo salaataa keessatti) isa jalqabaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c12c94687112",
+      "kind": "title",
+      "ar": "والجلوس له",
+      "tr": "Fi isaaf taa'uu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a23ae08dc98f",
+      "kind": "text",
+      "ar": "وقول: (سمع الله لمن حمده) للإمام والمنفرد",
+      "tr": "Fi: (Sami'allaahu liman hamidah [Allaah nama Isa galateeffate ni dhaga'a]) jechuu, Imaamaaf (nama salaata durfuuf) fi nama kophaa salaatuuf",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dbb4db289067",
+      "kind": "title",
+      "ar": "وقول: (ربنا ولك",
+      "tr": "Fi jechuu: (Rabbanaa wa laka [Yaa Gooftaa keenya, Siif",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0afa385d8eb5",
+      "kind": "title",
+      "ar": "الحمد) للكل",
+      "tr": "al-hamd: galanni ni mala]) hundaaf",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:37fcb837edaa",
+      "kind": "title",
+      "ar": "وقول: (سبحان ربي العظيم) في الركوع",
+      "tr": "Fi: (Subhaana Rabbiyal-Aziim [Gooftaan koo Inni Guddaan qulqullaa'e]) jechuu, Rukuu'a (gad jedhuu) keessatti",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8a293fadb1d6",
+      "kind": "title",
+      "ar": "وقول: (سبحان ربي الأعلى) في السجود",
+      "tr": "Fi: (Subhaana Rabbiyal-A'laa [Gooftaan koo Inni Ol-aanaan qulqullaa'e]) jechuu, Sujuuda (adda lafa kaa'uu) keessatti",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:60caba612118",
+      "kind": "title",
+      "ar": "وقول: (رب اغفر لي) بين السجدتين",
+      "tr": "Fi: (Rabbighfir lii [Yaa Gooftaa koo, naaf dhiisi]) jechuu, sujuudota lamaan gidduutti",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6217a7014a81",
+      "kind": "title",
+      "ar": "القيام مع القدرة، وتكبيرة الإحرام",
+      "tr": "Nama danda'uuf dhaabachuu, fi Takbiiratul-Ihraam (salaata seenuuf Allaahu Akbar jechuu)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a85bc3aca377",
+      "kind": "title",
+      "ar": "الدرس الثامن واجبات الصلاة",
+      "tr": "Barnoota saddeettaffaa Waajiboota salaataa (dirqamoota salaataa)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1fd19b83a89a",
+      "kind": "title",
+      "ar": "واجبات الصلاة وهي ثمانية",
+      "tr": "Waajiboota salaataa (dirqamoota salaataa), isaanis saddeet",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f16ecef037a1",
+      "kind": "text",
+      "ar": "من واجبات الصلاة - جميع التكبرات غير تكبيرة الإحرام",
+      "tr": "Waajiboota salaataa (dirqamoota salaataa) keessaa - takbiiroota (Allaahu Akbar jechuu) hunda, Takbiiratul-Ihraam ala",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0a23a79eb5e9",
+      "kind": "text",
+      "ar": "من واجبات الصلاة - التشهد الأول والجلوس له",
+      "tr": "Waajiboota salaataa (dirqamoota salaataa) keessaa - tashahhuda (ragaa bahuu teessoo salaataa keessatti) isa jalqabaa fi isaaf taa'uu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:61f0e0f805d9",
+      "kind": "title",
+      "ar": "الدرس التاسع: بيان التشهد",
+      "tr": "Barnoota sagalffaa: Ibsa tashahhudaa (ragaa bahuu teessoo salaataa keessatti)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b52e0140c303",
+      "kind": "dhikr",
+      "ar": "التحيات لله",
+      "tr": "Kabajni hundi kan Allaahiiti",
+      "translit": "At-tahiyyaatu lillaah",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c4659b2810c2",
+      "kind": "title",
+      "ar": "يصلي على النبي",
+      "tr": "Nabiyyii irratti salawaata (nagaa fi rahmata kadhachuu) buusa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:459eaea05d07",
+      "kind": "title",
+      "ar": "يستعيذ بالله",
+      "tr": "Allaah biratti eegumsa barbaada",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9c750ea1f104",
+      "kind": "title",
+      "ar": "من الدعاء ما شاء",
+      "tr": "Kadhannaa keessaa waan fedhe",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:18ab9f99fb53",
+      "kind": "dhikr",
+      "ar": "كما باركت على",
+      "tr": "Akkuma irratti eebba buufte",
+      "translit": "Kamaa baarakta alaa",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b777685846a5",
+      "kind": "dhikr",
+      "ar": "إبراهيم، وعلى آل إبراهيم إنك حميد مجيد",
+      "tr": "Ibraahiim fi maatii Ibraahiim; dhugumaan Ati kan galateeffamaa, kan ulfina qabeessa dha",
+      "translit": "Ibraahiima wa alaa aali Ibraahiima innaka Hamiidun Majiid",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9b1cd39b45ae",
+      "kind": "title",
+      "ar": "في التشهد الأخير من عذاب جهنم",
+      "tr": "Tashahhuda (ragaa bahuu teessoo salaataa keessatti) isa dhumaa keessatti adabbii Jahannam irraa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e8e9172e60ca",
+      "kind": "text",
+      "ar": "ثم يَتَخير من الدعاء ما شاء، ولا سيما المأثور من ذلك",
+      "tr": "Itti aansee kadhannaa keessaa waan fedhe filata, keessumaa kan gabaafame",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0d17948c2dbe",
+      "kind": "text",
+      "ar": "ثم يستعيذ بالله في التشهد الأخير من عذاب جهنم، ومن عذاب القبر، ومن فتنة المحيا والممات، ومن فتنة المسيح الدجال",
+      "tr": "Itti aansee tashahhuda (ragaa bahuu teessoo salaataa keessatti) isa dhumaa keessatti adabbii Jahannam irraa, adabbii qabrii irraa, fitnaa (qormaata) jiruu fi du'aa irraa, fi fitnaa Masiih Ad-Dajjaal irraa Allaah biratti eegumsa barbaada",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f25ac086a482",
+      "kind": "title",
+      "ar": "من عذاب جهنم، ومن عذاب القبر",
+      "tr": "Adabbii Jahannam irraa, fi adabbii qabrii irraa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:97f261654046",
+      "kind": "title",
+      "ar": "الدرس التاسع بيان التشهد",
+      "tr": "Barnoota sagalffaa Ibsa tashahhudaa (ragaa bahuu teessoo salaataa keessatti)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:52eaffd4ff90",
+      "kind": "title",
+      "ar": "بيان التشهد - التحيات",
+      "tr": "Ibsa tashahhudaa (ragaa bahuu teessoo salaataa keessatti) - At-Tahiyyaat (kabaja hunda)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dbf442b8be93",
+      "kind": "title",
+      "ar": "الفرق بين التشهد الأوسط والتشهد الأخير",
+      "tr": "Garaagarummaa tashahhuda (ragaa bahuu teessoo salaataa keessatti) isa gidduu fi isa dhumaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e479925a287f",
+      "kind": "text",
+      "ar": "من الأدعية التي ينبغي أن يحرص عليها الإنسان بعد التشهد",
+      "tr": "Kadhannaawwan namni tashahhuda (ragaa bahuu teessoo salaataa keessatti) booda eeggachuu qabu keessaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9da230120729",
+      "kind": "title",
+      "ar": "الدرس العاشر: سنن الصلاة",
+      "tr": "Barnoota kurnaffaa: Sunnan salaataa (hojiiwwan salaataa jajjabeeffaman)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a5119396a09a",
+      "kind": "title",
+      "ar": "قراءة ما زاد عن الفاتحة",
+      "tr": "Al-Faatihaa caalaa dabalanii qara'uu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:87046d09ee22",
+      "kind": "title",
+      "ar": "الاستفتاح.",
+      "tr": "Al-Istiftaah (kadhannaa salaata ittiin banan).",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2810710cbb14",
+      "kind": "text",
+      "ar": "رفع اليدين مضمومتي الأصابع ممدودة حذو المنكبين أو الأذنين عند التكبير الأول، وعند الركوع، والرفع منه، وعند القيام من التشهد الأول إلى الثالثة",
+      "tr": "Harka lamaan, quboota walitti qabamanii diriiraniin, hanga gateettii ykn gurraatti ol kaasuu: takbiira jalqabaa yeroo jedhan, yeroo Rukuu'a (gad jedhuu), yeroo isa irraa ka'an, fi yeroo tashahhuda jalqabaa irraa gara rak'aa sadaffaatti ka'an",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3725146570c5",
+      "kind": "text",
+      "ar": "ما زاد على قول: (ربنا ولك الحمد) بعد القيام من الركوع، وما زاد عن واحدة في الدعاء بالمغفرة بين السجدتين",
+      "tr": "(Rabbanaa wa lakal-hamd [Yaa Gooftaa keenya, galanni Siif mala]) jechuu caalaa waan dabalame, Rukuu'a irraa ka'anii booda, fi sujuudota lamaan gidduutti dhiifama kadhachuu keessatti al tokko caalaa waan dabalame",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:30dfc87cb83b",
+      "kind": "text",
+      "ar": "جلوس المصلي على رجله اليسرى مفروشة، ونصب اليمنى في التشهد الأول وبين السجدتين",
+      "tr": "Namni salaatu miila isaa bitaa afee irra taa'uu, isa mirgaa immoo dhaabuu, tashahhuda jalqabaa keessattii fi sujuudota lamaan gidduutti",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:18a4bdd73f06",
+      "kind": "text",
+      "ar": "الإشارة بالسبابة في التشهد الأول والثاني من حين جلس إلى نهاية التشهد وتحريكها عند الدعاء",
+      "tr": "Tashahhuda jalqabaa fi lammaffaa keessatti, yeroo taa'e irraa hanga dhuma tashahhudaatti quba agarsiisaatiin agarsiisuu, fi yeroo kadhannaa isa sochoosuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:69a5cb68b303",
+      "kind": "text",
+      "ar": "الصلاة والتبريك على محمد، وآل محمد، وعلى إبراهيم، وآل إبراهيم في التشهد الأول",
+      "tr": "Tashahhuda jalqabaa keessatti Muhammad, maatii Muhammad, Ibraahiim fi maatii Ibraahiim irratti salawaata (nagaa fi rahmata kadhachuu) buusuu fi eebba kadhachuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7abb4c2ed2c5",
+      "kind": "title",
+      "ar": "الدعاء في التشهد الأخير.",
+      "tr": "Tashahhuda (ragaa bahuu teessoo salaataa keessatti) isa dhumaa keessatti kadhachuu.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:65a8de9dd557",
+      "kind": "text",
+      "ar": "الجهر بالقراءة في صلاة الفجر، وصلاة الجمعة، وصلاة العيدين، والاستسقاء، وفي الركعتين الأوليين من صلاة المغرب والعشاء",
+      "tr": "Salaata Fajrii, salaata Jum'aa, salaata Iidota lamaanii, Istisqaa'a (rooba kadhachuuf salaatuu), fi rak'aa lamaan jalqabaa salaata Maghribii fi Ishaa keessatti sagalee ol kaasanii qara'uu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:01143d8bdff6",
+      "kind": "text",
+      "ar": "ما زاد على قول المصلي: (ربنا ولك الحمد) ، بعد الرفع من الركوع في حق الإمام، والمأموم، والمنفرد، فإنه سنة",
+      "tr": "Namni salaatu (Rabbanaa wa lakal-hamd [Yaa Gooftaa keenya, galanni Siif mala]) jechuu caalaa, Rukuu'a irraa ka'ee booda, Imaamaaf, Ma'muumaaf (nama imaama hordofuuf) fi nama kophaa salaatuuf waan dabalame, inni Sunnaa dha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d8ccc7ed82b4",
+      "kind": "title",
+      "ar": "سنن الصلاة، ومنها:",
+      "tr": "Sunnan salaataa (hojiiwwan salaataa jajjabeeffaman), isaan keessaa:",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:46d93a951314",
+      "kind": "title",
+      "ar": "الدرس العاشر - سنن الصلاة",
+      "tr": "Barnoota kurnaffaa - Sunnan salaataa (hojiiwwan salaataa jajjabeeffaman)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:369a0c51cbcc",
+      "kind": "title",
+      "ar": "من سنن الصلاة - الاستفتاح",
+      "tr": "Sunnan salaataa keessaa - Al-Istiftaah (kadhannaa salaata ittiin banan)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3d89091a8212",
+      "kind": "text",
+      "ar": "من سنن الصلاة - جعل كف اليد اليمنى على اليسرى فوق الصدر حين القيام",
+      "tr": "Sunnan salaataa keessaa - yeroo dhaabbatan, barruu harka mirgaa harka bitaa irra, qoma irratti kaa'uu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b1cc7ae5b5f6",
+      "kind": "text",
+      "ar": "من سنن الصلاة - رفع اليدين مضمومتي الأصابع حذو المنكبين أو الأذنين",
+      "tr": "Sunnan salaataa keessaa - harka lamaan, quboota walitti qabamaniin, hanga gateettii ykn gurraatti ol kaasuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5d34ded59aba",
+      "kind": "title",
+      "ar": "الدرس الحادي عشر: مبطلات الصلاة",
+      "tr": "Barnoota kudha tokkoffaa: Waan salaata balleessu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:804f03ed8c91",
+      "kind": "title",
+      "ar": "الناسي والجاهل",
+      "tr": "Nama dagate fi nama wallaalu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:04a5dd81ba93",
+      "kind": "title",
+      "ar": "فلا تبطل صلاته",
+      "tr": "Salaanni isaa hin badu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:11a81d50f67e",
+      "kind": "title",
+      "ar": "الضحك.",
+      "tr": "Kolfuu.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:638f30448821",
+      "kind": "title",
+      "ar": "الأكل.",
+      "tr": "Nyaachuu.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:04563c2db617",
+      "kind": "title",
+      "ar": "الشرب.",
+      "tr": "Dhuguu.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e3814bc57738",
+      "kind": "title",
+      "ar": "انكشاف العورة.",
+      "tr": "Awraa (qaama dhokfamuu qabu) mul'achuu.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:988465c870c6",
+      "kind": "title",
+      "ar": "الانحراف الكثير عن جهة القبلة.",
+      "tr": "Kallattii Qiblaa (Kaabaa) irraa baay'ee jallachuu.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6caac058c438",
+      "kind": "title",
+      "ar": "العبث الكثير المتوالي في الصلاة.",
+      "tr": "Salaata keessatti sochii faayidaa hin qabne baay'ee fi walitti aanaa.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98f4c1bdd4e1",
+      "kind": "title",
+      "ar": "انتقاض الطهارة.",
+      "tr": "Qulqullinni cabuu.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e7bd005f0841",
+      "kind": "title",
+      "ar": "أما الناسي والجاهل فلا تبطل صلاته بذلك",
+      "tr": "Namni dagatee fi namni wallaale garuu, kanaan salaanni isaa hin badu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b620f5e285fd",
+      "kind": "title",
+      "ar": "الدرس الحادي عشر - مبطلات الصلاة",
+      "tr": "Barnoota kudha tokkoffaa - Waan salaata balleessu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2cfebf124430",
+      "kind": "title",
+      "ar": "مبطلات الصلاة وهي ثمانية",
+      "tr": "Waan salaata balleessu, isaanis saddeet",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:44a6a76d35a6",
+      "kind": "text",
+      "ar": "من مبطلات الصلاة - الكلام العمد مع الذكر والعلم",
+      "tr": "Waan salaata balleessu keessaa - yaadatee fi beekee, itti yaadee dubbachuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:377f6fa05f1e",
+      "kind": "title",
+      "ar": "من مبطلات الصلاة - الضحك",
+      "tr": "Waan salaata balleessu keessaa - kolfuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:76f1dd5a262a",
+      "kind": "title",
+      "ar": "الدرس الثاني عشر: شروط الوضوء",
+      "tr": "Barnoota kudha lammaffaa: Shuruuxa wuduu (dhiqannaa salaataaf)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f42468080c49",
+      "kind": "title",
+      "ar": "وهي عشرة",
+      "tr": "Isaanis kudhan",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ef8eba12059e",
+      "kind": "title",
+      "ar": "والنية",
+      "tr": "Fi Niyyaa (yaada qalbii)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:79adac9f4b10",
+      "kind": "title",
+      "ar": "وطهورية ماءه وإباحته",
+      "tr": "Fi bishaan isaa qulqulleessaa fi hayyamamaa ta'uu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:97bad446d077",
+      "kind": "title",
+      "ar": "عشرة: الإسلام",
+      "tr": "Kudhan: Islaama",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf7ceb1ef252",
+      "kind": "text",
+      "ar": "واستصحاب حكمها بأن لا ينوي قطعها حتى تتم طهارته",
+      "tr": "Fi murtii ishee itti fufsiisuu, hanga qulqullinni isaa xumuramutti ishee kutuu akka hin yaadne",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e51e0aa903f0",
+      "kind": "title",
+      "ar": "وانقطاع موجب الوضوء",
+      "tr": "Fi wanti wuduu (dhiqannaa salaataaf) dirqisiisu dhaabbachuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a0879a52e04d",
+      "kind": "title",
+      "ar": "واستنجاء أو استجمار قبله",
+      "tr": "Fi isa dura Istinjaa'a (bishaaniin qulqullaa'uu) ykn Istijmaara (dhagaa fa'aan qulqullaa'uu)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a9cadae0d1b9",
+      "kind": "title",
+      "ar": "وإزالة ما يمنع وصوله إلى البشرة",
+      "tr": "Fi wanta gogaa irra ga'uu isaa dhoowwu balleessuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d1ba7a59fdb1",
+      "kind": "title",
+      "ar": "ودخول وقت الصلاة في حق من حدثه دائم",
+      "tr": "Fi nama Hadasni (qulqullina dhabuun) isaa itti fufaa ta'eef yeroon salaataa seenuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:365bcf4c9bfd",
+      "kind": "title",
+      "ar": "شروط الوضوء، وهي عشرة",
+      "tr": "Shuruuxa wuduu (dhiqannaa salaataaf), isaanis kudhan",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bed84e55c3f8",
+      "kind": "title",
+      "ar": "والتمييز، والنية",
+      "tr": "Fi Tamyiiza (waa adda baasuu danda'uu), fi Niyyaa (yaada qalbii)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e5d800cf7b8c",
+      "kind": "title",
+      "ar": "الدرس الثاني عشر شروط الوضوء",
+      "tr": "Barnoota kudha lammaffaa Shuruuxa wuduu (dhiqannaa salaataaf)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:66610b232659",
+      "kind": "text",
+      "ar": "من شروط الوضوء - الإسلام والعقل والتمييز والنية",
+      "tr": "Shuruuxa wuduu (dhiqannaa salaataaf) keessaa - Islaama, sammuu, Tamyiiza (waa adda baasuu danda'uu) fi Niyyaa (yaada qalbii)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f747eb2423ea",
+      "kind": "text",
+      "ar": "من شروط الوضوء - استصحاب حكم النية حتى تتم طهارته وانقطاع موجب الوضوء",
+      "tr": "Shuruuxa wuduu (dhiqannaa salaataaf) keessaa - hanga qulqullinni isaa xumuramutti murtii Niyyaa itti fufsiisuu, fi wanti wuduu dirqisiisu dhaabbachuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3029c44d284d",
+      "kind": "text",
+      "ar": "من شروط الوضوء - إزالة ما يمنع وصول الماء إلى البشرة",
+      "tr": "Shuruuxa wuduu (dhiqannaa salaataaf) keessaa - wanta bishaan gogaa irra ga'uu dhoowwu balleessuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:48efc0efe280",
+      "kind": "title",
+      "ar": "الدرس الثالث عشر: فروض الوضوء",
+      "tr": "Barnoota kudha sadaffaa: Farzoota wuduu (dhiqannaa salaataaf)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:75706faa0af1",
+      "kind": "title",
+      "ar": "وغسل اليدين",
+      "tr": "Fi harka lamaan dhiquu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ee4cd8496924",
+      "kind": "title",
+      "ar": "ومسح جميع الرأس",
+      "tr": "Fi mataa guutuu mas-haa (harka jiidhaan tuquu) gochuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9e93fd733fab",
+      "kind": "title",
+      "ar": "وغسل الرجلين",
+      "tr": "Fi miila lamaan dhiquu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f2e3c80a9e60",
+      "kind": "title",
+      "ar": "والترتيب",
+      "tr": "Fi tartiiba eeguu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2cd6c0009de6",
+      "kind": "title",
+      "ar": "والموالاة",
+      "tr": "Fi Muwaalaat (walitti aansuu)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9550a9d67f00",
+      "kind": "title",
+      "ar": "غسل الوجه ومنه المضمضة والاستنشاق",
+      "tr": "Fuula dhiquu, Madmadaa (afaan qulqulleessuu) fi Istinshaaqa (bishaan funyaaniin harkisuu) of keessaa qaba",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c6809177298e",
+      "kind": "title",
+      "ar": "وغسل اليدين مع المرفقين",
+      "tr": "Fi harka lamaan, ciqilee waliin dhiquu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dd48b60bb6a7",
+      "kind": "title",
+      "ar": "ومسح جميع الرأس ومنه الأذنان",
+      "tr": "Fi mataa guutuu mas-haa (harka jiidhaan tuquu) gochuu, gurra lamaan of keessaa qaba",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2b70ff7fef71",
+      "kind": "title",
+      "ar": "وغسل الرجلين مع الكعبين",
+      "tr": "Fi miila lamaan, koomee lamaan waliin dhiquu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:087f09fc3e2e",
+      "kind": "title",
+      "ar": "والترتيب، والموالاة",
+      "tr": "Fi tartiiba eeguu, fi Muwaalaat (walitti aansuu)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:709d03ee7a39",
+      "kind": "title",
+      "ar": "الدرس الثالث عشر فروض الوضوء",
+      "tr": "Barnoota kudha sadaffaa Farzoota wuduu (dhiqannaa salaataaf)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6d717debbbbb",
+      "kind": "title",
+      "ar": "ما هي فروض الوضوء الستة ومن أين أخذت؟",
+      "tr": "Farzoonni wuduu (dhiqannaa salaataaf) jahan maal fa'a, eessaa fudhataman?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:220d87f423d9",
+      "kind": "title",
+      "ar": "من أركان الوضوء - الترتيب",
+      "tr": "Arkaana wuduu (utuboota dhiqannaa salaataaf) keessaa - tartiiba eeguu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98d8cf74bbb1",
+      "kind": "text",
+      "ar": "من أركان الوضوء الموالاة وما المقصود بالموالاة؟",
+      "tr": "Arkaana wuduu (utuboota dhiqannaa salaataaf) keessaa Muwaalaat; Muwaalaat jechuun maali?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cac634bc5350",
+      "kind": "title",
+      "ar": "الدرس الرابع عشر: نواقض الوضوء",
+      "tr": "Barnoota kudha afraffaa: Waan wuduu (dhiqannaa salaataaf) diigu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:57c4dee83f14",
+      "kind": "title",
+      "ar": "تنبيه هام",
+      "tr": "Hubachiisa barbaachisaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:90417f09e193",
+      "kind": "title",
+      "ar": "لا ينقض الوضوء",
+      "tr": "Wuduu (dhiqannaa salaataaf) hin diigu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fb99207921fa",
+      "kind": "title",
+      "ar": "والخارج الفاحش النجس من الجسد",
+      "tr": "Fi wanta najaasaa (xuraa'aa) fokkuu qaama irraa bahu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:10a8cc0701f8",
+      "kind": "title",
+      "ar": "وزوال العقل بنوم أو غيره",
+      "tr": "Fi sammuu dhabuu, hirribaan ykn waan biraatiin",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1456223f7c66",
+      "kind": "text",
+      "ar": "ومس الفرج باليد قبلا كان أو دبرا من غير حائل",
+      "tr": "Fi qaama saalaa harkaan tuquu, fuula duraa ta'us duubaa ta'us, gidduu wanti hin jirre",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f89985a5065e",
+      "kind": "title",
+      "ar": "وأكل لحم الإبل",
+      "tr": "Fi foon gaalaa nyaachuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e925307ea4aa",
+      "kind": "title",
+      "ar": "والردة عن الإسلام",
+      "tr": "Fi Riddaa (Islaama irraa bahuu)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8edd459b01e4",
+      "kind": "text",
+      "ar": "أما غسل الميت: فالصحيح أنه لا ينقض الوضوء، وهو قول أكثر أهل العلم؛ لعدم الدليل على ذلك، لكن لو أصابت يد الغاسل فرج الميت من غير حائل وجب عليه الوضوء",
+      "tr": "Nama du'e dhiquun garuu: inni sirriin wuduu (dhiqannaa salaataaf) hin diigu, kunis jecha warra beekumsaa baay'ee ti, sababni isaas kanarratti ragaan waan hin jirreef; garuu harki nama dhiqu qaama saalaa nama du'e sanaa, gidduu wanti hin jirre, yoo tuqe wuduu gochuun isa irratti dirqama ta'a",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bb05de34ac11",
+      "kind": "text",
+      "ar": "وهكذا مس المرأة لا ينقض الوضوء مطلقا، سواء كان ذلك عن شهوة، أو غير شهوة في أصح قولي العلماء ما لم يخرج منه شيء",
+      "tr": "Akkasumas dubartii tuquun gonkumaa wuduu (dhiqannaa salaataaf) hin diigu, fedhiidhaan ta'us fedhii maleen ta'us, jecha warra beekumsaa lamaan keessaa isa caalaa sirrii ta'een, hanga wanti isa irraa hin baanetti",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:35b76c949382",
+      "kind": "title",
+      "ar": "نواقض الوضوء، وهي ستة",
+      "tr": "Waan wuduu (dhiqannaa salaataaf) diigu, isaanis jaha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9b45cf38e97d",
+      "kind": "text",
+      "ar": "أما غسل الميت: فالصحيح أنه لا ينقض الوضوء",
+      "tr": "Nama du'e dhiquun garuu: inni sirriin wuduu (dhiqannaa salaataaf) hin diigu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cbba72dfb5be",
+      "kind": "title",
+      "ar": "الدرس الرابع عشر نواقض الوضوء",
+      "tr": "Barnoota kudha afraffaa Waan wuduu (dhiqannaa salaataaf) diigu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:30e94dfdd28d",
+      "kind": "title",
+      "ar": "ما هي نواقض الوضوء الستة؟",
+      "tr": "Wantoonni wuduu (dhiqannaa salaataaf) diigan jahan maal fa'a?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cfb1167de3ff",
+      "kind": "title",
+      "ar": "هل غسل الميت ينقض الوضوء؟",
+      "tr": "Nama du'e dhiquun wuduu (dhiqannaa salaataaf) ni diigaa?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0a6f677bddf0",
+      "kind": "title",
+      "ar": "هل لمس المرأة ينقض الوضوء؟",
+      "tr": "Dubartii tuquun wuduu (dhiqannaa salaataaf) ni diigaa?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4190afed25c5",
+      "kind": "text",
+      "ar": "الدرس الخامس عشر: التحلي بالأخلاق المشروعة لكل مسلم",
+      "tr": "Barnoota kudha shanaffaa: Naamusa sharii'aan ajajje kan Muslima hundaaf ofitti qabachuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3793dd1998ac",
+      "kind": "title",
+      "ar": "التحلي بالأخلاق المشروعة لكل مسلم",
+      "tr": "Naamusa sharii'aan ajajje kan Muslima hundaaf ofitti qabachuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7d2a0a50e020",
+      "kind": "title",
+      "ar": "والأمانة",
+      "tr": "Fi amanamummaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ef5b339dd46a",
+      "kind": "title",
+      "ar": "والعفاف",
+      "tr": "Fi Afaafa (of qulqulleessuu fi of eeguu)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1c65757ce8b7",
+      "kind": "title",
+      "ar": "والحياء",
+      "tr": "Fi Hayaa'a (qaana'uu)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c67ba4a04ab9",
+      "kind": "title",
+      "ar": "والشجاعة",
+      "tr": "Fi gootummaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a26cc673fcf7",
+      "kind": "title",
+      "ar": "والكرم",
+      "tr": "Fi arjummaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:14aaef216295",
+      "kind": "title",
+      "ar": "والوفاء",
+      "tr": "Fi waadaa guutuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1eefa7ac5349",
+      "kind": "title",
+      "ar": "ومنها: الصدق",
+      "tr": "Isaan keessaa: dhugaa dubbachuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bc3ac9868597",
+      "kind": "title",
+      "ar": "والنزاهة عن كل ما حرم الله",
+      "tr": "Fi wanta Allaah dhoowwe hunda irraa of qulqulleessuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5163000ae305",
+      "kind": "title",
+      "ar": "حرم الله، وحسن",
+      "tr": "Allaah dhoowwe, fi gaarii",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:213efca581ec",
+      "kind": "title",
+      "ar": "الجوار،",
+      "tr": "ollummaa,",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e849431fd018",
+      "kind": "title",
+      "ar": "ومساعدة ذوي الحاجة حسب الطاقة",
+      "tr": "Fi namoota rakkatan hanga danda'ameen gargaaruu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a5500caeed5b",
+      "kind": "text",
+      "ar": "الدرس الخامس عشر الأخلاق المشروعة لكل مسلم",
+      "tr": "Barnoota kudha shanaffaa Naamusa sharii'aan ajajje kan Muslima hundaaf",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f770d8666e81",
+      "kind": "title",
+      "ar": "من الأخلاق المشروعة لكل مسلم",
+      "tr": "Naamusa sharii'aan ajajje kan Muslima hundaaf keessaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:52ea4afc79c8",
+      "kind": "title",
+      "ar": "من أخلاق المسلم - الصدق",
+      "tr": "Naamusa Muslimaa keessaa - dhugaa dubbachuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dfa9d7fd9738",
+      "kind": "title",
+      "ar": "من أخلاق المسلم - الحياء",
+      "tr": "Naamusa Muslimaa keessaa - Hayaa'a (qaana'uu)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3a202cb4795a",
+      "kind": "text",
+      "ar": "الدرس السادس عشر: التأدب بالآداب الإسلامية",
+      "tr": "Barnoota kudha jahaffaa: Naamusa Islaamaatiin of naamussuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0cafd0ed36a2",
+      "kind": "title",
+      "ar": "التأدب بالآداب الإسلامية",
+      "tr": "Naamusa Islaamaatiin of naamussuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4a5da729343e",
+      "kind": "title",
+      "ar": "والبشاشة",
+      "tr": "Fi fuula ifaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:54e999227e5a",
+      "kind": "title",
+      "ar": "والأكل باليمين",
+      "tr": "Fi harka mirgaan nyaachuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8feac5a7a0ed",
+      "kind": "title",
+      "ar": "والتسمية",
+      "tr": "Fi Tasmiyaa (Bismillaah jechuu)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2c3718d227c8",
+      "kind": "title",
+      "ar": "والحمد",
+      "tr": "Fi Hamdii (Alhamdulillaah jechuu)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a0772ea92bfd",
+      "kind": "title",
+      "ar": "ومنها: السلام",
+      "tr": "Isaan keessaa: Salaamtaa (Assalaamu alaykum jechuu)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c3e8442879a3",
+      "kind": "title",
+      "ar": "وتشميت العاطس إذا حمد الله",
+      "tr": "Fi nama hagaa'e, yoo Allaah galateeffate, Tashmiita (Yarhamukallaah jechuufii)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b78abb4afdb9",
+      "kind": "title",
+      "ar": "والأكل باليمين والشرب بها",
+      "tr": "Fi harka mirgaan nyaachuu fi ittiin dhuguu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:19d885340c24",
+      "kind": "title",
+      "ar": "الدرس السادس عشر الآداب الإسلامية",
+      "tr": "Barnoota kudha jahaffaa Naamusa Islaamaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fe949f103960",
+      "kind": "title",
+      "ar": "من الآداب الإسلامية",
+      "tr": "Naamusa Islaamaa keessaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b3cdfd955394",
+      "kind": "title",
+      "ar": "من الآداب الإسلامية - السلام",
+      "tr": "Naamusa Islaamaa keessaa - Salaamtaa (Assalaamu alaykum jechuu)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:53bb44570d5a",
+      "kind": "title",
+      "ar": "من آداب السلام",
+      "tr": "Naamusa Salaamtaa (Assalaamu alaykum jechuu) keessaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a590568d7f90",
+      "kind": "text",
+      "ar": "الدرس السابع عشر: التحذير من الشرك وأنواع المعاصي",
+      "tr": "Barnoota kudha torbaffaa: Shirkii (Rabbitti waa qindeessuu) fi gosoota cubbuu irraa akeekkachiisuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e656b1e11c59",
+      "kind": "title",
+      "ar": "السبع الموبقات",
+      "tr": "As-Sab'ul-Muubiqaat (cubbuuwwan balleessoo torban)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f0432634f680",
+      "kind": "title",
+      "ar": "وأنواع المعاصي",
+      "tr": "Fi gosoota cubbuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a0ac332a84e7",
+      "kind": "title",
+      "ar": "وهي: الشرك بالله",
+      "tr": "Isaanis: Allaahitti shirkii (Rabbitti waa qindeessuu) gochuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cde6771361b0",
+      "kind": "title",
+      "ar": "والسحر",
+      "tr": "Fi Sihra (falfala)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:543f7a2721ab",
+      "kind": "title",
+      "ar": "وقتل النفس التي حَرم الله إلا بالحق",
+      "tr": "Fi lubbuu Allaah dhoowwe, haqaan yoo ta'e malee, ajjeesuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b68aec031970",
+      "kind": "title",
+      "ar": "وأكل الربا",
+      "tr": "Fi Ribaa (dhala liqii) nyaachuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:396724c07eeb",
+      "kind": "title",
+      "ar": "وأكل مال اليتيم",
+      "tr": "Fi qabeenya Yatiimaa (ijoollee abbaa hin qabne) nyaachuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:80152dee1ebd",
+      "kind": "title",
+      "ar": "والتولي يوم الزحف",
+      "tr": "Fi guyyaa waraanni wal qunnamu dugda garagalchanii baqachuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:350757d4f36d",
+      "kind": "title",
+      "ar": "وقذف المحصنات الغافلات المؤمنات",
+      "tr": "Fi dubartoota Mu'minoota, qulqulloota, kan hamtuu irraa fagoo ta'an zinaadhaan maqaa balleessuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:683bb6f410a5",
+      "kind": "title",
+      "ar": "ومنها: عقوق الوالدين",
+      "tr": "Isaan keessaa: Uquuqa (abbaa fi haadha ajajamuu diduu fi miidhuu)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fff65532d13f",
+      "kind": "title",
+      "ar": "وقطيعة الرحم",
+      "tr": "Fi hidhata firummaa kutuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:279ed33088c2",
+      "kind": "title",
+      "ar": "وشهادة الزور",
+      "tr": "Fi ragaa sobaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c320a4aae404",
+      "kind": "title",
+      "ar": "والأيمان الكاذبة",
+      "tr": "Fi kakuu sobaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b587aac65678",
+      "kind": "title",
+      "ar": "وإيذاء الجار",
+      "tr": "Fi ollaa miidhuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1dda6d768896",
+      "kind": "text",
+      "ar": "وظلم الناس في الدماء، والأموال، والأعراض",
+      "tr": "Fi namoota dhiiga, qabeenya fi ulfina isaanii keessatti miidhuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3f1d510707c5",
+      "kind": "title",
+      "ar": "وشرب المسكر",
+      "tr": "Fi wanta nama macheessu dhuguu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cb7cf5a7477c",
+      "kind": "title",
+      "ar": "ولعب القمار- وهو: الميسر-",
+      "tr": "Fi Qimaara (qabsiisaa) taphachuu - inni: Maysira -",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9872b9191236",
+      "kind": "title",
+      "ar": "والغيبة",
+      "tr": "Fi Giibaa (duuba namaa isa maqaa balleessuu)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3fc94a68aa97",
+      "kind": "title",
+      "ar": "والنميمة",
+      "tr": "Fi Namiimaa (namoota walitti buusuuf dubbii daddabarsuu)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bbfbe1d80df2",
+      "kind": "title",
+      "ar": "والغيبة، والنميمة",
+      "tr": "Fi Giibaa (duuba namaa isa maqaa balleessuu), fi Namiimaa (namoota walitti buusuuf dubbii daddabarsuu)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e99eb37bc933",
+      "kind": "title",
+      "ar": "الدرس السابع عشر التحذير من الشرك",
+      "tr": "Barnoota kudha torbaffaa Shirkii (Rabbitti waa qindeessuu) irraa akeekkachiisuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:80ead7d15a46",
+      "kind": "title",
+      "ar": "ما هنّ السبع الموبقات؟",
+      "tr": "As-Sab'ul-Muubiqaat (cubbuuwwan balleessoo torban) maal fa'a?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9aec97222a1e",
+      "kind": "title",
+      "ar": "ما معنى الموبقات وما هو أعظم ذنب؟",
+      "tr": "Muubiqaat jechuun maali, cubbuun hunda caalaa guddaan maali?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:45596aa81899",
+      "kind": "title",
+      "ar": "من السبع الموبقات - أكل الربا",
+      "tr": "As-Sab'ul-Muubiqaat (cubbuuwwan balleessoo torban) keessaa - Ribaa (dhala liqii) nyaachuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a5849320dcc7",
+      "kind": "text",
+      "ar": "الدرس الثامن عشر: تجهيز الميت والصلاة عليه ودفنه",
+      "tr": "Barnoota kudha saddeettaffaa: Nama du'e qopheessuu, irratti salaachuu fi awwaaluu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d89a5fa0b2d3",
+      "kind": "title",
+      "ar": "تغسيل الميت",
+      "tr": "Nama du'e dhiquu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:68f2cadf6020",
+      "kind": "title",
+      "ar": "الصلاة على الميت",
+      "tr": "Nama du'e irratti salaachuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a104f7ec127c",
+      "kind": "title",
+      "ar": "دفن الميت",
+      "tr": "Nama du'e awwaaluu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c5d297f0895e",
+      "kind": "text",
+      "ar": "أولا: يشرع تلقين المحتضر: (لا إله إلا الله)",
+      "tr": "Tokkoffaa: nama du'aa jiru (Laa ilaaha illallaah [Allaah malee gabbaramaan dhugaa hin jiru]) yaadachiisuun seera ta'eera",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4d0ca7024718",
+      "kind": "text",
+      "ar": "ثانيا: إذا تيقن موته أغمضت عيناه وشد لحياه",
+      "tr": "Lammaffaa: du'uun isaa yoo mirkanaa'e, ijji isaa ni qabama, areedni isaas ni hidhama",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8ed3f13965a1",
+      "kind": "text",
+      "ar": "ثالثا: يجب تغسيل الميت المسلم، إلا أن يكون شهيدا مات في المعركة فإنه لا يغسل ولا يصلى عليه، بل يدفن في ثيابه",
+      "tr": "Sadaffaa: Muslima du'e dhiquun dirqama, yoo Shahiida (nama wareegame) dirree waraanaa irratti du'e ta'e malee; inni hin dhiqamu, isa irrattis hin salaatamu, garuu uffata isaa keessatti awwaalama",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:22793d8fd474",
+      "kind": "title",
+      "ar": "رابعا صفة غسل الميت",
+      "tr": "Afraffaa Akkaataa nama du'e dhiquu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:78ac38c383ac",
+      "kind": "title",
+      "ar": "خامسا تكفين الميت",
+      "tr": "Shanaffaa Nama du'e Kafana (huccuu awwaalaa) uffisuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2b6f70f5125b",
+      "kind": "text",
+      "ar": "سادسا: أحق الناس بغسله والصلاة عليه ودفنه: وصيه في ذلك، ثم الأب، ثم الجد، ثم الأقرب فالأقرب من العصبات في حق الرجل",
+      "tr": "Jahaffaa: namni isa dhiquu, isa irratti salaachuu fi isa awwaaluuf hunda caalaa mirga qabu: nama inni kanaaf dhaame, itti aansee abbaa, itti aansee akaakayyuu, itti aansee Asabaat (firoota gama abbaa) keessaa isa dhihoo itti aansee isa itti dhihoo, dhiira ilaalchisee",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8481851d4400",
+      "kind": "title",
+      "ar": "سابعا صفة الصلاة على الميت",
+      "tr": "Torbaffaa Akkaataa nama du'e irratti salaachuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8cbad96240bb",
+      "kind": "title",
+      "ar": "ثامنا صفة دفن الميت",
+      "tr": "Saddeettaffaa Akkaataa nama du'e awwaaluu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:70db4d39456a",
+      "kind": "text",
+      "ar": "تاسعا: ويشرع لمن لم يُصَل عليه أن يصلي عليه بعد الدفن",
+      "tr": "Sagalffaa: nama isa irratti hin salaanneef, awwaalamee booda isa irratti salaachuun seera ta'eera",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a8fa455f2d55",
+      "kind": "text",
+      "ar": "عاشرا: لا يجوز لأهل الميت أن يصنعوا طعاما للناس",
+      "tr": "Kurnaffaa: maatii nama du'eef namootaaf nyaata qopheessuun hin hayyamamu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dde0eee6548f",
+      "kind": "text",
+      "ar": "حادي عشر: لا يجوز للمرأة الإحداد على ميت أكثر من ثلاثة أيام إلا على زوجها فإنه يجب عليها أن تحد عليه أربعة أشهر وعشرا، إلا أن تكون حاملا فعلى وضع الحمل",
+      "tr": "Kudha tokkoffaa: dubartiif nama du'e irratti guyyaa sadii caalaa Ihdaada (faayaa dhiisanii gadda taa'uu) taa'uun hin hayyamamu, abbaa manaa ishee irratti yoo ta'e malee; isa irratti ji'a afurii fi guyyaa kudhan gadda taa'uun dirqama ishee irratti, yoo ulfa taate garuu hanga deessutti",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:521cb73a9878",
+      "kind": "text",
+      "ar": "ثاني عشر: يشرع للرجال زيارة القبور بين وقت وآخر للدعاء لهم، والترحم عليهم، وتذكر الموت وما بعده",
+      "tr": "Kudha lammaffaa: dhiiraaf yeroo gara yerootti qabroota daawwachuun seera ta'eera, isaaniif kadhachuuf, rahmata isaaniif kadhachuuf, fi du'aa fi waan isa booda jiru yaadachuuf",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e97563f1a333",
+      "kind": "text",
+      "ar": "يكبر أربعا، ويقرأ بعد الأولى: الفاتحة، وإن قرأ معها سورة قصيرة أو آية أو آيتين فحسن",
+      "tr": "Takbiira (Allaahu Akbar jechuu) afur godha, isa jalqabaa booda Al-Faatihaa qara'a; isa waliin suuraa gabaabaa ykn aayata tokko ykn lama yoo qara'e gaarii dha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:27d127f43b92",
+      "kind": "text",
+      "ar": "ثم يكبر الثانية ويصلي على النبي صلى الله عليه وسلم كصلاته في التشهد",
+      "tr": "Itti aansee takbiira lammaffaa jedhee, akkuma tashahhuda keessatti godhutti Nabiyyii, sallallaahu alayhi wa sallam, irratti salawaata (nagaa fi rahmata kadhachuu) buusa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a1772dd12bb8",
+      "kind": "text",
+      "ar": "ثم يكبر الثالثة، ويقول: (اللهم اغفر لِحينا وميتِنا، وشاهدنا وغائبنا، وصغيرنا وكبيرنا، وذَكَرِنا وأنثانَا",
+      "tr": "Itti aansee takbiira sadaffaa jedhee akkas jedha: «اللهم اغفر لِحينا وميتِنا، وشاهدنا وغائبنا، وصغيرنا وكبيرنا، وذَكَرِنا وأنثانَا» [Yaa Allaah, warra keenya jiraataa fi warra du'e, warra jiruu fi warra hin jirre, xiqqaa keenyaa fi guddaa keenya, dhiira keenyaa fi dubartii keenya dhiisiif]",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e52ff35f6069",
+      "kind": "text",
+      "ar": "ثم يكبر الرابعة، ويسلم تسليمة واحدة عن يمينه",
+      "tr": "Itti aansee takbiira afraffaa jedhee, gara mirga isaatti salaamtaa tokko jedha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:87bfc066c8d8",
+      "kind": "title",
+      "ar": "يكبر أربعا",
+      "tr": "Takbiira (Allaahu Akbar jechuu) afur godha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:eeb79ec01cb7",
+      "kind": "text",
+      "ar": "الدرس الثامن عشر تجهيز الميت والصلاة عليه",
+      "tr": "Barnoota kudha saddeettaffaa Nama du'e qopheessuu fi irratti salaachuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0f6de26a70eb",
+      "kind": "title",
+      "ar": "كيفية تكفين الميت",
+      "tr": "Akkaataa nama du'e Kafana (huccuu awwaalaa) uffisuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
     }
   ]
 }

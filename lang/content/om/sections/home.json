@@ -151,6 +151,1085 @@
           "pointer": "/line:11034"
         }
       ]
+    },
+    {
+      "id": "h:e6087bad6840",
+      "kind": "text",
+      "ar": "اكتملت ديمتك اليوم · ٣ من ٣ قطرات",
+      "tr": "Diimaan kee har'aa xumurameera · copha 3 keessaa 3",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e48e2b4c428f",
+      "kind": "text",
+      "ar": "أكمل",
+      "tr": "Xumuri",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4e824e31d84d",
+      "kind": "text",
+      "ar": " من ٣ قطرات",
+      "tr": " copha 3 keessaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c0547a82a08f",
+      "kind": "text",
+      "ar": "بعد صلاة الفجر بنصف ساعة",
+      "tr": "Salaata Fajrii booda walakkaa sa'aatii",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e1bba721f1fe",
+      "kind": "text",
+      "ar": "بعد صلاة العصر",
+      "tr": "Salaata Asrii booda",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:15edfcb8b923",
+      "kind": "text",
+      "ar": "بعد صلاة العشاء",
+      "tr": "Salaata Ishaa booda",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:13c2f2eb5acc",
+      "kind": "text",
+      "ar": "نلتقي غدًا بإذن الله",
+      "tr": "Boru wal argina, in shaa Allaah (Allaah yoo fedhe)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1b2833c6b4b4",
+      "kind": "text",
+      "ar": "رواه ",
+      "tr": "Kan gabaase ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:356c532d0078",
+      "kind": "text",
+      "ar": "حديث",
+      "tr": "Hadiisa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e5fcf67a2cdf",
+      "kind": "hadith",
+      "ar": "إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ",
+      "tr": "«إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ» [Hojiiwwan hundi niyyaadhaan qofa]",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2725c261026a",
+      "kind": "text",
+      "ar": "المحرَّم",
+      "tr": "Muharram",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8fe6e53eb018",
+      "kind": "text",
+      "ar": "صفر",
+      "tr": "Safar",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:12b9abd7e47f",
+      "kind": "text",
+      "ar": "ربيع الأوّل",
+      "tr": "Rabii'ul-Awwal",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:27f4b96322c0",
+      "kind": "text",
+      "ar": "ربيع الآخر",
+      "tr": "Rabii'ul-Aakhir",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:59e93f5e6ea8",
+      "kind": "text",
+      "ar": "جمادى الأولى",
+      "tr": "Jumaadal-Uulaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e27629c457c1",
+      "kind": "text",
+      "ar": "جمادى الآخرة",
+      "tr": "Jumaadal-Aakhiraa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f7ba2629e5cd",
+      "kind": "text",
+      "ar": "رجب",
+      "tr": "Rajab",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cc36ae3dffc3",
+      "kind": "text",
+      "ar": "شعبان",
+      "tr": "Sha'baan",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8b6c945cd4f9",
+      "kind": "text",
+      "ar": "رمضان",
+      "tr": "Ramadaan",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5dcf938f475c",
+      "kind": "text",
+      "ar": "شوّال",
+      "tr": "Shawwaal",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:06d78f194bec",
+      "kind": "text",
+      "ar": "ذو القعدة",
+      "tr": "Zul-Qa'daa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d95ae12c87e7",
+      "kind": "text",
+      "ar": "ذو الحجّة",
+      "tr": "Zul-Hijjaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e9edeb603dee",
+      "kind": "text",
+      "ar": "هـ",
+      "tr": "H",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a5145b76546d",
+      "kind": "text",
+      "ar": "التاريخ الهجريّ",
+      "tr": "Guyyaa Hijraa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:146f4125b308",
+      "kind": "text",
+      "ar": "إزاحة يدويّة بالأيّام",
+      "tr": "Guyyootaan harkaan sirreessuu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fc7b180b4dc8",
+      "kind": "text",
+      "ar": "يُحسَب على هذا الجهاز بلا إنترنت، على تقويم أمّ القرى. إن خالفَ التقويمَ المعمولَ به عندك بيومٍ أو يومين فعدِّلْه من هنا.",
+      "tr": "Meeshaa kana irratti interneetii malee, kalaandara Ummul-Quraa irratti hundaa'uun herregama. Kalaandara bakka kee hojii irra jiru irraa guyyaa tokko ykn lamaan yoo adda ta'e, asii sirreessi.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3c6e273c8f9a",
+      "kind": "text",
+      "ar": "لم يكتملْ حفظُ بعضِ الملفّاتِ للعملِ بلا إنترنت.",
+      "tr": "Faayiloota tokko tokko interneetii malee hojjechuuf kuusuun hin xumuramne.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:08185a932581",
+      "kind": "text",
+      "ar": "لم يُحفَظْ شيءٌ للعملِ بلا إنترنت: مساحةُ الجهازِ لا تكفي.",
+      "tr": "Interneetii malee hojjechuuf homtuu hin kuufamne: bakki kuusaa meeshichaa hin gahu.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a65e23474be8",
+      "kind": "text",
+      "ar": "وقت الضحى",
+      "tr": "Yeroo Duhaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fba3f1065491",
+      "kind": "text",
+      "ar": "سورة ",
+      "tr": "Suuraa ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:65965a3f7677",
+      "kind": "text",
+      "ar": "، آية ",
+      "tr": ", aayata ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b10c7068d1c2",
+      "kind": "quran",
+      "ar": "إِنَّ مَعَ ٱلْعُسْرِ يُسْرًا",
+      "tr": "Dhugumatti, rakkina wajjin laafinatu jira.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "94:6"
+      }
+    },
+    {
+      "id": "h:081d9bc2982a",
+      "kind": "quran",
+      "ar": "وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ",
+      "tr": "Inni Isa samiileefi dachii guyyoota jaha keessatti uumee; ergasii ‘Arshii’ irratti (ol ta’iinsa isaaf malu) ol ta’eedha. Waan dachii keessa gadi seenu nibeeka, waan ishee irraa ba’us, waan samii irraa bu’us, waan ishee keessa ol ba’us (ni beeka). Inni eessallee yoo jiraattan isin waliin jira. Rabbiin waan isin dalagdan hunda ni arga.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "57:4"
+      }
+    },
+    {
+      "id": "h:4a1f7f045b27",
+      "kind": "text",
+      "ar": "الحديد",
+      "tr": "Al-Hadiid",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:055d5a623196",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ مَعَ ٱلصَّـٰبِرِينَ",
+      "tr": "Yaa warra amantan! Obsaafi salaataan gargaarsa barbaadaa. Dhugumatti, Rabbiin warra obsan waliin jira.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:153"
+      }
+    },
+    {
+      "id": "h:1c047dd9a1bf",
+      "kind": "text",
+      "ar": "البقرة",
+      "tr": "Al-Baqaraa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:19636b5a750a",
+      "kind": "quran",
+      "ar": "فَٱذْكُرُونِىٓ أَذْكُرْكُمْ",
+      "tr": "Na yaadadhaa, Anis isiniin yaadadhaa, Galata naaf galchaa, Natti hin kafarinaa.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:152"
+      }
+    },
+    {
+      "id": "h:8bd511691f0f",
+      "kind": "quran",
+      "ar": "وَمَن يَتَّقِ ٱللَّهَ يَجْعَل لَّهُۥ مَخْرَجًا",
+      "tr": "Yeroo beellama isaanii ga'an haala gaariin isaan qabadhaa yookiin haala gaariin isaaniin adda ba'aa, Isin irraa warra haqaa (nama) lama ragaa godhaa (Warri ragaa baatanus) Rabbiif jedhaatii ragaa sirreessaa. Namni Rabbiifi Guyyaa Aakhiraatti kan amanu ta'e kanaan gorfama. Namni Rabbiin sodaatu (Rabbis) karaa bahiinsaa isaaf godha.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "65:2"
+      }
+    },
+    {
+      "id": "h:90828ee2dc42",
+      "kind": "text",
+      "ar": "الطلاق",
+      "tr": "Ax-Xalaaq",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:33e1ab66f020",
+      "kind": "quran",
+      "ar": "إِنَّ رَحْمَتَ ٱللَّهِ قَرِيبٌ مِّنَ ٱلْمُحْسِنِينَ",
+      "tr": "Dachii irrattis erga isheen toltee booda hin balleessinaa. Sodaafi kajeellaadhaan Isa kadhaa. Dhugumatti, rahmanni Rabbii warra toltuu hojjatanutti dhihoodha.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "7:56"
+      }
+    },
+    {
+      "id": "h:03f12e1c22d1",
+      "kind": "text",
+      "ar": "الأعراف",
+      "tr": "Al-A’raaf",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3ee117fc0d9f",
+      "kind": "quran",
+      "ar": "وَإِذَا سَأَلَكَ عِبَادِى عَنِّى فَإِنِّى قَرِيبٌ",
+      "tr": "Yeroo gabroonni kiyya Ana irraa si gaafatan “dhugumatti, Ani isaanitti dhihoodha” (jedhiin). Kadhaa kadhataatiif yeroo inni na kadhate nan owwaadha. naaf haa owwaatanu, nattis haa amananu, Akka qajeelaniif jecha.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:186"
+      }
+    },
+    {
+      "id": "h:c2203c888d97",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ يُحِبُّ ٱلْمُحْسِنِينَ",
+      "tr": "Karaa Rabbii keessattis kennadhaa, Harka keessaniin gara badiittis of hin darbinaa, Toltuu hojjadhaa; Dhugumatti, Rabbiin warra toltuu hojjatan ni jaalata.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:195"
+      }
+    },
+    {
+      "id": "h:96aa67603852",
+      "kind": "quran",
+      "ar": "يَـٰبَنِىَّ ٱذْهَبُوا۟ فَتَحَسَّسُوا۟ مِن يُوسُفَ وَأَخِيهِ وَلَا تَا۟يْـَٔسُوا۟ مِن رَّوْحِ ٱللَّهِ ۖ إِنَّهُۥ لَا يَا۟يْـَٔسُ مِن رَّوْحِ ٱللَّهِ إِلَّا ٱلْقَوْمُ ٱلْكَـٰفِرُونَ",
+      "tr": "Yaa ilmaan kiyya! deemaa Yuusufiifi obboleessa isaa irraa odeeffadhaa. Rahmata Rabbii irraa abdii hin muratinaa. Dhugumatti rahmata Rabbii irraa eenyullee abdii hin kutu ummata kaafiroota malee.”",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "12:87"
+      }
+    },
+    {
+      "id": "h:7694520808a7",
+      "kind": "text",
+      "ar": "يوسف",
+      "tr": "Yuusuf",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:68c54bc5300f",
+      "kind": "quran",
+      "ar": "وَبَشِّرِ ٱلصَّـٰبِرِينَ",
+      "tr": "isin mokkorra wahii sodaafii beelarraa taheen, qabeenyaalee lubbuuleefii (oomisha) khuduraalerraa ir'isuunis (isin mokorra). obsitoota gammachiisi.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:155"
+      }
+    },
+    {
+      "id": "h:9e0c3ddd0e64",
+      "kind": "quran",
+      "ar": "أَلَا بِذِكْرِ ٱللَّهِ تَطْمَئِنُّ ٱلْقُلُوبُ",
+      "tr": "(Isaan) warra amananii, onneewwan isaanii zikrii Rabbiitiin tasgabboofti. Dhaga’aa! zikrii (faaruu) Rabbiitiin onneewwan tasgabboofti.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "13:28"
+      }
+    },
+    {
+      "id": "h:3db00e2a5f35",
+      "kind": "text",
+      "ar": "الرعد",
+      "tr": "Ar-Ra’d",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2a5502b81b6e",
+      "kind": "quran",
+      "ar": "وَمَا تَوْفِيقِىٓ إِلَّا بِٱللَّهِ",
+      "tr": "Ni jedhe: “Yaa ummata kiyya! Mee naaf himaa; yoon ragaa ifa ba’aa Gooftaa kiyya irraa ta’e irra jiraadhee, innis kennaa gaarii Isa biraa ta’e naaf kenne, (sila qabeenya karaan alaatiin walitti makuun qabaa), Ani waanin irraa isin dhorge (hojjachuun) isin faallessuu hin fedhu, Ani hangan danda’een (isin) tolchuu malee hin fedhu, Haqa qunnamuun kiyyas Rabbi irraa malee hin taane, Isa irratti hirkadhe; garuma isaan deebi’a.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "11:88"
+      }
+    },
+    {
+      "id": "h:fd9d2ec55193",
+      "kind": "text",
+      "ar": "هود",
+      "tr": "Huud",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:54011ae117c4",
+      "kind": "quran",
+      "ar": "حَسْبُنَا ٱللَّهُ وَنِعْمَ ٱلْوَكِيلُ",
+      "tr": "(Isaan) warra “Namoonni isiniif (isin waraanuuf) walitti qabanii jiruu sodaadhaa”namoonni isaaniin jennaan, iimaana isaaniif dabalee. “ga’aan keenya Rabbii, isarratti hirkachuun waatolee” jedhaniidha.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "3:173"
+      }
+    },
+    {
+      "id": "h:236876042743",
+      "kind": "text",
+      "ar": "آل عمران",
+      "tr": "Aali Imraan",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f201c0fc36ce",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ عَلَىٰ كُلِّ شَىْءٍ قَدِيرٌ",
+      "tr": "Calanqichi ija isaanii butuutti dhiyaata. Dhawaata isaaniif ifuun isa keessa deemu, Yeroo isaan irratti dukkanaa’e immoo ni dhaabatu. Rabbiin odoo fedhee dhageettiifi agartuu isaanii ni deemsisa ture. Dhugumatti, Rabbiin waan hunda irratti danda’aadha.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:20"
+      }
+    },
+    {
+      "id": "h:70bd7bb2f321",
+      "kind": "quran",
+      "ar": "وَلَا تَهِنُوا۟ وَلَا تَحْزَنُوا۟ وَأَنتُمُ ٱلْأَعْلَوْنَ",
+      "tr": "hin laafinaa; hin gaddinaas isintu irra aanoodha Yoo mu’uminoota taatan.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "3:139"
+      }
+    },
+    {
+      "id": "h:3025efe9a80e",
+      "kind": "text",
+      "ar": "البخاري",
+      "tr": "Al-Bukhaarii",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9aa2168631b1",
+      "kind": "quran",
+      "ar": "وَأَقِيمُوا۟ ٱلصَّلَوٰةَ وَءَاتُوا۟ ٱلزَّكَوٰةَ",
+      "tr": "Salaata seeraan salaataa; zakaas kennaa; warra rukuu’a godhan wajjinis rukuu’a godhaa.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:43"
+      }
+    },
+    {
+      "id": "h:ad9108129939",
+      "kind": "quran",
+      "ar": "وَقُل رَّبِّ زِدْنِى عِلْمًا",
+      "tr": "Egaa Allaahn, mootiin dhugaa, ol ta’eera, Odoo wahyiin isaa gara kee bu’ee hin xumuramin dura, Qur’aana (dubbisuutti) hin jarjarin, “(Yaa) Rabbii kiyya! Beekumsa naaf dabali” jedhi.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "20:114"
+      }
+    },
+    {
+      "id": "h:5e5430a5126e",
+      "kind": "text",
+      "ar": "طه",
+      "tr": "Xaa-Haa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b7c0ec44535e",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ غَفُورٌ رَّحِيمٌ",
+      "tr": "Kan Inni isin irratti dhorgamaa taasise baktii, dhiiga, foon booyyeetiifi waan (maqaan) Rabbiin malee (yeroo gorra'amu) isa irratti ol fuudhame qofa. Namni (nyaachutti) rakkifame shiftaafii daangaa dabraa tahuun maleetti badiin isarra hin jiru. Dhugumatti Rabbiin akkaan mararfataa rahmata godhaadha.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:173"
+      }
+    },
+    {
+      "id": "h:607185ca982d",
+      "kind": "quran",
+      "ar": "وَٱسْتَعِينُوا۟ بِٱلصَّبْرِ وَٱلصَّلَوٰةِ",
+      "tr": "Obsaafi salaataan gargaarsa barbaadaa. Dhugumatti, isheen warra [Rabbiin] sodaatan irratti malee ulfaattuudha.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:45"
+      }
+    },
+    {
+      "id": "h:e021862d9629",
+      "kind": "quran",
+      "ar": "رَبَّنَآ ءَاتِنَا فِى ٱلدُّنْيَا حَسَنَةً",
+      "tr": "Isaan irraas nama \"Gooftaa keenya! Duuniyaatti toltuu, Aakhirattis toltuu nuuf kenni, adabbii ibiddaa irraa nu baraari\" jedhantu jiru.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:201"
+      }
+    },
+    {
+      "id": "h:1dc6e85a61a8",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ لَا يُضِيعُ أَجْرَ ٱلْمُحْسِنِينَ",
+      "tr": "Warra Madiinaatiifi tikfattoota baadiyyaa irraa warra moggaa isaaniitti argamaniif ergamaa Rabbii irraa duubatti hafuufi lubbuu isaaniis lubbuu isaa irra jaalachuun isaaniif hin malu ture. Sunis sababa hojiin gaariin ittiin isaaniif barreeffamu malee karaa Rabbii keessatti dheebuun, dadhabbiifi beellis kan isaan hin mudanne ta’ee akkasumas iddoo ejjannaa kaafiroota dallansiisu tokkoos hin ejjanneefi diina irraas (ajjeesuufi booji’uun) qaqqabiinsa tokkos kan hin qaqqabne (waan) ta’eefiDhugumatti, Rabbiin mindaa toltuu raawwattootaa hin balleessu.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "9:120"
+      }
+    },
+    {
+      "id": "h:e6fb3916c2bf",
+      "kind": "text",
+      "ar": "التوبة",
+      "tr": "At-Tawbah",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9bb7f1828d78",
+      "kind": "quran",
+      "ar": "وَلَا تَتَمَنَّوْا۟ مَا فَضَّلَ ٱللَّهُ بِهِۦ بَعْضَكُمْ عَلَىٰ بَعْضٍ ۚ لِّلرِّجَالِ نَصِيبٌ مِّمَّا ٱكْتَسَبُوا۟ ۖ وَلِلنِّسَآءِ نَصِيبٌ مِّمَّا ٱكْتَسَبْنَ ۚ وَسْـَٔلُوا۟ ٱللَّهَ مِن فَضْلِهِۦٓ ۗ إِنَّ ٱللَّهَ كَانَ بِكُلِّ شَىْءٍ عَلِيمًا",
+      "tr": "Wantoota Rabbiin garii keessan garii irra ittiin caalchise hin hawwinaa. Dhiirotaaf qooda waan isaan hojjatan irraa ta’etu jira. Dubartootaafis qooda waan isaan hojjatan irraa ta’etu jira. Rabbiin tola Isaa irraa kadhaa. Dhugumatti Rabbiin waan hunda beekaadha.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "4:32"
+      }
+    },
+    {
+      "id": "h:0b0400fae8af",
+      "kind": "text",
+      "ar": "النساء",
+      "tr": "An-Nisaa’",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:386a3a22cef1",
+      "kind": "quran",
+      "ar": "وَتَوَكَّلْ عَلَى ٱللَّهِ ۚ وَكَفَىٰ بِٱللَّهِ وَكِيلًا",
+      "tr": "Allaah irratti hirkadhu; hirkoo ta’uuf Rabbiin gayaadha.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "33:3"
+      }
+    },
+    {
+      "id": "h:0adb76910f31",
+      "kind": "text",
+      "ar": "الأحزاب",
+      "tr": "Al-Ahzaab",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f85b4aea9792",
+      "kind": "quran",
+      "ar": "وَأَن لَّيْسَ لِلْإِنسَـٰنِ إِلَّا مَا سَعَىٰ",
+      "tr": "Namaaf waan hojjate malee hintaane.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "53:39"
+      }
+    },
+    {
+      "id": "h:c4ffbb69c75c",
+      "kind": "text",
+      "ar": "النجم",
+      "tr": "An-Najm",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cead4b7f3215",
+      "kind": "quran",
+      "ar": "وَٱللَّهُ يُحِبُّ ٱلصَّـٰبِرِينَ",
+      "tr": "Nabiyyoota irraa kan beektonni heddu isaa wajjin lolan baay'eedha, Waan karaa Rabbii keessatti isaan tuqeef hin laafne; hin dadhabnes; (diinaafis) hin jilbiiffanne, Rabbiin obsitoota jaallata.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "3:146"
+      }
+    },
+    {
+      "id": "h:f75ef26652e8",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ بِٱلنَّاسِ لَرَءُوفٌ رَّحِيمٌ",
+      "tr": "Akkasuma (akkuma isin qajeelchinetti)filatamtuu ummataa isin taasifne, namoota irratti ragaa akka taatanuufi ergamichis ragaa isin irratti ta’uuf jecha. Nuti qiblaa ati irra turtes nama ergamaa hordofuufi nama (amantii irraa) duubatti deebi’u eenyu akka ta’e beekuuf malee hin taasifne. Dhugumatti sun warra Rabbiin qajeelche irratti malee ulfaattuu turte. Rabbiin iimaana (salaata) keessan (kan gara Beytal-Maqdis gara galtanii sagadaa turtan) kan balleessu hin taane. Dhugumatti, Rabbiin namootaaf mararfataa, rahmata godhaadha.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:143"
+      }
+    },
+    {
+      "id": "h:b1aaccf3b100",
+      "kind": "quran",
+      "ar": "وَمَن يَتَوَكَّلْ عَلَى ٱللَّهِ فَهُوَ حَسْبُهُۥٓ",
+      "tr": "Bakka inni hin yaadin irraayis isa soora. Nama Rabbi irratti hirkatuuf Inni isaaf ga'aadha, Rabbiin ajaja isaa bakkaan ga'aadha. Dhugumatti Rabbiin waan hundaafuu yeroo murtaawaa taasiseera.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "65:3"
+      }
+    },
+    {
+      "id": "h:197f361c38c8",
+      "kind": "quran",
+      "ar": "إِنَّ مَعِىَ رَبِّى سَيَهْدِينِ",
+      "tr": "[Muusaan] ni jedhe: “lakkisaa! Dhugumatti, Gooftaan kiyya na wajjin jira, Inni [furmaatatti] na qajeelcha.”",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "26:62"
+      }
+    },
+    {
+      "id": "h:2dcec7ee53b1",
+      "kind": "text",
+      "ar": "الشعراء",
+      "tr": "Ash-Shu’araa’",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:963c508cee1f",
+      "kind": "quran",
+      "ar": "قَالَ هَلْ ءَامَنُكُمْ عَلَيْهِ إِلَّا كَمَآ أَمِنتُكُمْ عَلَىٰٓ أَخِيهِ مِن قَبْلُ ۖ فَٱللَّهُ خَيْرٌ حَـٰفِظًا ۖ وَهُوَ أَرْحَمُ ٱلرَّٰحِمِينَ",
+      "tr": "(Ya’aquub) ni jedhe: “Sila akkan duraan obboleessa isaa irratti isin amane malee isa irratti isin amanaa? Rabbiin eegaa ta’uutti caalaadha. Inni irra rahmata godhaa warreen rahmata godhaniiti.”",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Oromo Translation - Gali Ababor",
+        "url": "https://quranenc.com/en/browse/oromo_ababor",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "12:64"
+      }
     }
   ]
 }

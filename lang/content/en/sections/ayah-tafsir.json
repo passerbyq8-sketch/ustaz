@@ -627,6 +627,20 @@
         "rights": "",
         "date": ""
       }
+    },
+    {
+      "id": "h:81ea68b9703b",
+      "kind": "title",
+      "ar": "مجموعة من المؤلفين",
+      "tr": "A group of authors",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
     }
   ]
 }

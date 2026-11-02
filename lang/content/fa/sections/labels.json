@@ -1,0 +1,2574 @@
+{
+  "schema": "ezik-tr4/1",
+  "lang": "fa",
+  "section": "labels",
+  "title": {
+    "ar": "",
+    "tr": ""
+  },
+  "agent": "MERGE-FIX",
+  "generated": "2026-11-02T12:00:00+03:00",
+  "source_files": [
+    "app.jsx"
+  ],
+  "items": [
+    {
+      "id": "h:566d74756580",
+      "kind": "title",
+      "ar": "حصن المسلم",
+      "tr": "حصن المسلم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:93708c0b3ca2",
+      "kind": "title",
+      "ar": "الفاتحة وقصار السور",
+      "tr": "فاتحه و سوره‌های کوتاه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d7c1bd63c7b1",
+      "kind": "title",
+      "ar": "صفحة",
+      "tr": "صفحه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:24632944660a",
+      "kind": "title",
+      "ar": "الإسراء",
+      "tr": "اسراء",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a16a0b104052",
+      "kind": "title",
+      "ar": "فصلت",
+      "tr": "فصلت",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4ce9591136a3",
+      "kind": "title",
+      "ar": "محمد",
+      "tr": "محمد",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:049457d8c3ec",
+      "kind": "title",
+      "ar": "الإنسان",
+      "tr": "انسان",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1e47a5b49318",
+      "kind": "title",
+      "ar": "الشرح",
+      "tr": "انشراح",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9105014fc4e4",
+      "kind": "title",
+      "ar": "الفاتحة",
+      "tr": "فاتحه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1c047dd9a1bf",
+      "kind": "title",
+      "ar": "البقرة",
+      "tr": "بقره",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:236876042743",
+      "kind": "title",
+      "ar": "آل عمران",
+      "tr": "آل‌عمران",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0b0400fae8af",
+      "kind": "title",
+      "ar": "النساء",
+      "tr": "نساء",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1e834a94af99",
+      "kind": "title",
+      "ar": "المائدة",
+      "tr": "مائده",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:11f8ea1ffcdd",
+      "kind": "title",
+      "ar": "الأنعام",
+      "tr": "انعام",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:03f12e1c22d1",
+      "kind": "title",
+      "ar": "الأعراف",
+      "tr": "اعراف",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c25b0ef20f13",
+      "kind": "title",
+      "ar": "الأنفال",
+      "tr": "انفال",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e6fb3916c2bf",
+      "kind": "title",
+      "ar": "التوبة",
+      "tr": "توبه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:18763d65103a",
+      "kind": "title",
+      "ar": "يونس",
+      "tr": "یونس",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fd9d2ec55193",
+      "kind": "title",
+      "ar": "هود",
+      "tr": "هود",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7694520808a7",
+      "kind": "title",
+      "ar": "يوسف",
+      "tr": "یوسف",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3db00e2a5f35",
+      "kind": "title",
+      "ar": "الرعد",
+      "tr": "رعد",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:85b12aedcf7d",
+      "kind": "title",
+      "ar": "إبراهيم",
+      "tr": "ابراهیم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3385c364afef",
+      "kind": "title",
+      "ar": "الحجر",
+      "tr": "حجر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:669c4a3327d7",
+      "kind": "title",
+      "ar": "النحل",
+      "tr": "نحل",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a484d7a6ef75",
+      "kind": "title",
+      "ar": "بني إسرائيل",
+      "tr": "اسراء",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e4c8f37749e9",
+      "kind": "title",
+      "ar": "الكهف",
+      "tr": "کهف",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ee98a55a04dd",
+      "kind": "title",
+      "ar": "مريم",
+      "tr": "مریم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5e5430a5126e",
+      "kind": "title",
+      "ar": "طه",
+      "tr": "طه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:df9ea352ab6e",
+      "kind": "title",
+      "ar": "الأنبياء",
+      "tr": "انبیاء",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b05ef0172b7e",
+      "kind": "title",
+      "ar": "الحج",
+      "tr": "حج",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6ca5a48ebd69",
+      "kind": "title",
+      "ar": "المؤمنون",
+      "tr": "مؤمنون",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e8cae754b830",
+      "kind": "title",
+      "ar": "النور",
+      "tr": "نور",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7af94d289306",
+      "kind": "title",
+      "ar": "الفرقان",
+      "tr": "فرقان",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2dcec7ee53b1",
+      "kind": "title",
+      "ar": "الشعراء",
+      "tr": "شعراء",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:384bc179073b",
+      "kind": "title",
+      "ar": "النمل",
+      "tr": "نمل",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:aae4f4a069d2",
+      "kind": "title",
+      "ar": "القصص",
+      "tr": "قصص",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9160cb95a84b",
+      "kind": "title",
+      "ar": "العنكبوت",
+      "tr": "عنکبوت",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8b827fd382a8",
+      "kind": "title",
+      "ar": "الروم",
+      "tr": "روم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:811bcb2faec5",
+      "kind": "title",
+      "ar": "لقمان",
+      "tr": "لقمان",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:01e53380b673",
+      "kind": "title",
+      "ar": "السجدة",
+      "tr": "سجده",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0adb76910f31",
+      "kind": "title",
+      "ar": "الأحزاب",
+      "tr": "احزاب",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:598f354ab966",
+      "kind": "title",
+      "ar": "سبأ",
+      "tr": "سبأ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:68af134bfe0a",
+      "kind": "title",
+      "ar": "الملائكة",
+      "tr": "فاطر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:18c236046b1f",
+      "kind": "title",
+      "ar": "يس",
+      "tr": "یس",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6db3a50dc5ac",
+      "kind": "title",
+      "ar": "الصافات",
+      "tr": "صافات",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:928a192ed5f3",
+      "kind": "title",
+      "ar": "ص",
+      "tr": "ص",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a6da093d16a9",
+      "kind": "title",
+      "ar": "الزمر",
+      "tr": "زمر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d8db9ef8a22f",
+      "kind": "title",
+      "ar": "المؤمن",
+      "tr": "غافر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4720f77f1a3f",
+      "kind": "title",
+      "ar": "حم السجدة",
+      "tr": "فصلت",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:16412f1f054d",
+      "kind": "title",
+      "ar": "الشورى",
+      "tr": "شوری",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6280d75703b7",
+      "kind": "title",
+      "ar": "الزخرف",
+      "tr": "زخرف",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a6eadb029b3f",
+      "kind": "title",
+      "ar": "الدخان",
+      "tr": "دخان",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:26b5c009cb4c",
+      "kind": "title",
+      "ar": "الجاثية",
+      "tr": "جاثیه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e92dcf6077c4",
+      "kind": "title",
+      "ar": "الأحقاف",
+      "tr": "احقاف",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2d858fe83d49",
+      "kind": "title",
+      "ar": "القتال",
+      "tr": "محمد",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6e42597acc1a",
+      "kind": "title",
+      "ar": "الفتح",
+      "tr": "فتح",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cb75f3b70f4e",
+      "kind": "title",
+      "ar": "الحجرات",
+      "tr": "حجرات",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c4076e05c966",
+      "kind": "title",
+      "ar": "ق",
+      "tr": "ق",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:32eee8e7a98c",
+      "kind": "title",
+      "ar": "الذاريات",
+      "tr": "ذاریات",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ee57bc9839e1",
+      "kind": "title",
+      "ar": "الطور",
+      "tr": "طور",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c4ffbb69c75c",
+      "kind": "title",
+      "ar": "النجم",
+      "tr": "نجم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ba21ba0bb9ae",
+      "kind": "title",
+      "ar": "القمر",
+      "tr": "قمر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fc9771b67bea",
+      "kind": "title",
+      "ar": "الرحمن",
+      "tr": "الرحمن",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:179ea3378262",
+      "kind": "title",
+      "ar": "الواقعة",
+      "tr": "واقعه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4a1f7f045b27",
+      "kind": "title",
+      "ar": "الحديد",
+      "tr": "حدید",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3be2e290db85",
+      "kind": "title",
+      "ar": "المجادلة",
+      "tr": "مجادله",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:33a98daf8af2",
+      "kind": "title",
+      "ar": "الحشر",
+      "tr": "حشر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8841132ed451",
+      "kind": "title",
+      "ar": "الممتحنة",
+      "tr": "ممتحنه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a2528a9e7f29",
+      "kind": "title",
+      "ar": "الصف",
+      "tr": "صف",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8d067a376a65",
+      "kind": "title",
+      "ar": "الجمعة",
+      "tr": "جمعه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1a6229a0c0bb",
+      "kind": "title",
+      "ar": "المنافقون",
+      "tr": "منافقون",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4e12244432fd",
+      "kind": "title",
+      "ar": "التغابن",
+      "tr": "تغابن",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:90828ee2dc42",
+      "kind": "title",
+      "ar": "الطلاق",
+      "tr": "طلاق",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:060cdb7d9cd2",
+      "kind": "title",
+      "ar": "التحريم",
+      "tr": "تحریم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d50e19b1e9d0",
+      "kind": "title",
+      "ar": "الملك",
+      "tr": "ملک",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:66fcbb3364de",
+      "kind": "title",
+      "ar": "القلم",
+      "tr": "قلم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e3821b4f18d7",
+      "kind": "title",
+      "ar": "الحاقة",
+      "tr": "حاقه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:72e9e6bb2e3b",
+      "kind": "title",
+      "ar": "المعارج",
+      "tr": "معارج",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:901231461f92",
+      "kind": "title",
+      "ar": "نوح",
+      "tr": "نوح",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1a4eb1cf8b50",
+      "kind": "title",
+      "ar": "الجن",
+      "tr": "جن",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7877e4bdfc49",
+      "kind": "title",
+      "ar": "المزمل",
+      "tr": "مزمل",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1d43870fcff6",
+      "kind": "title",
+      "ar": "المدثر",
+      "tr": "مدثر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dd7c958922ac",
+      "kind": "title",
+      "ar": "القيامة",
+      "tr": "قیامت",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:54522b2d2f35",
+      "kind": "title",
+      "ar": "الدهر",
+      "tr": "انسان",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3fa2532f7b43",
+      "kind": "title",
+      "ar": "المرسلات",
+      "tr": "مرسلات",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c94fa8d3b376",
+      "kind": "title",
+      "ar": "النبأ",
+      "tr": "نبأ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c119b7032830",
+      "kind": "title",
+      "ar": "النازعات",
+      "tr": "نازعات",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cccc28baf32d",
+      "kind": "title",
+      "ar": "عبس",
+      "tr": "عبس",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:082db2b989e7",
+      "kind": "title",
+      "ar": "التكوير",
+      "tr": "تکویر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:265d094cb744",
+      "kind": "title",
+      "ar": "الانفطار",
+      "tr": "انفطار",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8fcc7a1a4cbc",
+      "kind": "title",
+      "ar": "المطففين",
+      "tr": "مطففین",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2598375be1f1",
+      "kind": "title",
+      "ar": "الانشقاق",
+      "tr": "انشقاق",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a68fa0c807b9",
+      "kind": "title",
+      "ar": "البروج",
+      "tr": "بروج",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1d2b4224ea1e",
+      "kind": "title",
+      "ar": "الطارق",
+      "tr": "طارق",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:250f6632f86c",
+      "kind": "title",
+      "ar": "الأعلى",
+      "tr": "اعلی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:48e4a46cae71",
+      "kind": "title",
+      "ar": "الغاشية",
+      "tr": "غاشیه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf241e7ca61c",
+      "kind": "title",
+      "ar": "الفجر",
+      "tr": "فجر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4d1b5ed7abad",
+      "kind": "title",
+      "ar": "البلد",
+      "tr": "بلد",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:63902b83b5eb",
+      "kind": "title",
+      "ar": "الشمس",
+      "tr": "شمس",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6ca3e70cdabd",
+      "kind": "title",
+      "ar": "الليل",
+      "tr": "لیل",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7a4da2be6738",
+      "kind": "title",
+      "ar": "الضحى",
+      "tr": "ضحی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0b0f3ceffaf0",
+      "kind": "title",
+      "ar": "الانشراح",
+      "tr": "شرح",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1b683cd08363",
+      "kind": "title",
+      "ar": "التين",
+      "tr": "تین",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:42d9d518138e",
+      "kind": "title",
+      "ar": "العلق",
+      "tr": "علق",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:99a12387e600",
+      "kind": "title",
+      "ar": "القدر",
+      "tr": "قدر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0146998da659",
+      "kind": "title",
+      "ar": "البينة",
+      "tr": "بینه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d4d24e91a969",
+      "kind": "title",
+      "ar": "الزلزال",
+      "tr": "زلزله",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ba05fec0474d",
+      "kind": "title",
+      "ar": "العاديات",
+      "tr": "عادیات",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:173b44f709c7",
+      "kind": "title",
+      "ar": "القارعة",
+      "tr": "قارعه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a066cb7dd330",
+      "kind": "title",
+      "ar": "التكاثر",
+      "tr": "تکاثر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:54735bf2cf71",
+      "kind": "title",
+      "ar": "العصر",
+      "tr": "عصر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6cc265ac5cba",
+      "kind": "title",
+      "ar": "الهمزة",
+      "tr": "همزه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:665e100b0bf6",
+      "kind": "title",
+      "ar": "الفيل",
+      "tr": "فیل",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:783d335dad94",
+      "kind": "title",
+      "ar": "قريش",
+      "tr": "قریش",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e12a55df6f18",
+      "kind": "title",
+      "ar": "الماعون",
+      "tr": "ماعون",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d87585608f3f",
+      "kind": "title",
+      "ar": "الكوثر",
+      "tr": "کوثر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4a7ae27c49ed",
+      "kind": "title",
+      "ar": "الكافرون",
+      "tr": "کافرون",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0171c0ecb909",
+      "kind": "title",
+      "ar": "النصر",
+      "tr": "نصر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9f360a11a3af",
+      "kind": "title",
+      "ar": "تبت",
+      "tr": "مسد",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e973e67533de",
+      "kind": "title",
+      "ar": "التوحيد",
+      "tr": "اخلاص",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c8c6083d70d9",
+      "kind": "title",
+      "ar": "الفلق",
+      "tr": "فلق",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4ee921d7c210",
+      "kind": "title",
+      "ar": "الناس",
+      "tr": "ناس",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:68c8e3bd002c",
+      "kind": "title",
+      "ar": "الحديث الأول",
+      "tr": "حدیث اول",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cc33c3beca82",
+      "kind": "title",
+      "ar": "الحديث الثاني",
+      "tr": "حدیث دوم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:458c29f83430",
+      "kind": "title",
+      "ar": "محمد بن صالح العثيمين",
+      "tr": "محمد بن صالح العثیمین",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:20e7d6c89569",
+      "kind": "title",
+      "ar": "فقه الأسماء الحسنى",
+      "tr": "فقه الأسماء الحسنى",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:adde3b394a38",
+      "kind": "title",
+      "ar": "عبد الرزاق بن عبد المحسن البدر",
+      "tr": "عبدالرزاق بن عبدالمحسن البدر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:119ec6be7e24",
+      "kind": "title",
+      "ar": "الإخلاص",
+      "tr": "اخلاص",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4e3f05e033a7",
+      "kind": "title",
+      "ar": "العلي",
+      "tr": "العلی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:67dc5468e3f9",
+      "kind": "title",
+      "ar": "المتعالي",
+      "tr": "المتعالی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0618181d807f",
+      "kind": "title",
+      "ar": "القرآن",
+      "tr": "قرآن ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4e2208a2c195",
+      "kind": "title",
+      "ar": "الرابع عشر",
+      "tr": "چهاردهم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9c324e02d65d",
+      "kind": "title",
+      "ar": "نواقض الوضوء",
+      "tr": "باطل‌کننده‌های وضو (شست‌وشوی شرعی پیش از نماز)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:20024c546493",
+      "kind": "title",
+      "ar": "العاشر",
+      "tr": "دهم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7be0d3597238",
+      "kind": "title",
+      "ar": "سنن الصلاة",
+      "tr": "سنت‌های نماز (اعمال مستحب آن)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e7af6ad9e8bb",
+      "kind": "title",
+      "ar": "الأول",
+      "tr": "الأول",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7810bec9e158",
+      "kind": "title",
+      "ar": "الدرس الأول سورة الفاتحة وقصار السور",
+      "tr": "درس اول: سوره فاتحه و سوره‌های کوتاه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e3c6f2d2fe16",
+      "kind": "title",
+      "ar": "القراءة الصحيحة لسورة الفاتحة",
+      "tr": "قرائت درست سوره فاتحه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:25db8ddda17b",
+      "kind": "title",
+      "ar": "الفاتحة هي أعظم سورة في كتاب الله تبارك وتعالى",
+      "tr": "فاتحه بزرگ‌ترین سوره در کتاب خداوند پربرکت و بلندمرتبه است.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:62a584dd0455",
+      "kind": "title",
+      "ar": "فاطر",
+      "tr": "فاطر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e8c223ad287f",
+      "kind": "title",
+      "ar": "غافر",
+      "tr": "غافر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4209ea822e42",
+      "kind": "title",
+      "ar": "الزلزلة",
+      "tr": "زلزله",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8b1bdab7e8a0",
+      "kind": "title",
+      "ar": "المسد",
+      "tr": "مسد",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8a698ae7a876",
+      "kind": "title",
+      "ar": "ديمة",
+      "tr": "دیمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9c5644a677fa",
+      "kind": "title",
+      "ar": "اللسان",
+      "tr": "زبان",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:81bf3cfb3c54",
+      "kind": "title",
+      "ar": "القلب",
+      "tr": "دل",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5a06c13ef9bd",
+      "kind": "title",
+      "ar": "الجوارح",
+      "tr": "اندام‌ها",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8b264f01f526",
+      "kind": "title",
+      "ar": "القواعد المثلى في صفات الله وأسمائه الحسنى",
+      "tr": "القواعد المثلى فی صفات الله وأسمائه الحسنى",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fba3f1065491",
+      "kind": "title",
+      "ar": "سورة",
+      "tr": "سوره",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:39321e817feb",
+      "kind": "title",
+      "ar": "الثاني",
+      "tr": "دوم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:81ea68b9703b",
+      "kind": "title",
+      "ar": "مجموعة من المؤلفين",
+      "tr": "گروهی از نویسندگان",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:45a07072c470",
+      "kind": "title",
+      "ar": "المختصر في التفسير",
+      "tr": "المختصر فی التفسیر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:46d866fafcc1",
+      "kind": "title",
+      "ar": "سورة الفاتحة وقصار السور",
+      "tr": "سوره فاتحه و سوره‌های کوتاه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2af227d5558d",
+      "kind": "title",
+      "ar": "أركان الإسلام",
+      "tr": "ارکان اسلام",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c3e1b4edd4ac",
+      "kind": "title",
+      "ar": "الثالث",
+      "tr": "سوم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:742d43b119cf",
+      "kind": "title",
+      "ar": "أركان الإيمان",
+      "tr": "ارکان ایمان",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:50ed00343085",
+      "kind": "title",
+      "ar": "الرابع",
+      "tr": "چهارم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0cd645f41692",
+      "kind": "title",
+      "ar": "أقسام التوحيد وأقسام الشرك",
+      "tr": "انواع توحید و انواع شرک",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5fad8aa224ce",
+      "kind": "title",
+      "ar": "الخامس",
+      "tr": "پنجم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:40f828c25553",
+      "kind": "title",
+      "ar": "الإحسان",
+      "tr": "احسان (نیکو انجام دادن عبادت)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:45d8094bf9b9",
+      "kind": "title",
+      "ar": "السادس",
+      "tr": "ششم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:96feab9121f7",
+      "kind": "title",
+      "ar": "شروط الصلاة",
+      "tr": "شرایط نماز",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ef114d4296bc",
+      "kind": "title",
+      "ar": "السابع",
+      "tr": "هفتم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f33165ae37f5",
+      "kind": "title",
+      "ar": "أركان الصلاة",
+      "tr": "ارکان نماز",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2db27d05d3a7",
+      "kind": "title",
+      "ar": "الثامن",
+      "tr": "هشتم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ecb3f2adbb67",
+      "kind": "title",
+      "ar": "واجبات الصلاة",
+      "tr": "واجبات نماز",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3bcce3aeea5f",
+      "kind": "title",
+      "ar": "التاسع",
+      "tr": "نهم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:32221c27a9ac",
+      "kind": "title",
+      "ar": "بيان التشهد",
+      "tr": "بیان تشهد (ذکر نشستن نماز)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a792050b141f",
+      "kind": "title",
+      "ar": "الحادي عشر",
+      "tr": "یازدهم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:86f9930b93e0",
+      "kind": "title",
+      "ar": "مبطلات الصلاة",
+      "tr": "باطل‌کننده‌های نماز",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3d4fabeb9270",
+      "kind": "title",
+      "ar": "الثاني عشر",
+      "tr": "دوازدهم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2f4bfde170a3",
+      "kind": "title",
+      "ar": "شروط الوضوء",
+      "tr": "شرط‌های وضو (شست‌وشوی شرعی پیش از نماز)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:04fea95f2af7",
+      "kind": "title",
+      "ar": "الثالث عشر",
+      "tr": "سیزدهم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:549e6f105d77",
+      "kind": "title",
+      "ar": "فروض الوضوء",
+      "tr": "فرض‌های وضو (بخش‌های واجب شست‌وشوی شرعی پیش از نماز)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f39f78ef305e",
+      "kind": "title",
+      "ar": "الخامس عشر",
+      "tr": "پانزدهم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f00d313ad20a",
+      "kind": "title",
+      "ar": "الأخلاق المشروعة",
+      "tr": "خوی‌های پسندیده در شرع",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c9d13c6b6622",
+      "kind": "title",
+      "ar": "السادس عشر",
+      "tr": "شانزدهم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b0959b912154",
+      "kind": "title",
+      "ar": "الآداب الإسلامية",
+      "tr": "آداب اسلامی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c2ccae600214",
+      "kind": "title",
+      "ar": "السابع عشر",
+      "tr": "هفدهم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1a38a068dc85",
+      "kind": "title",
+      "ar": "التحذير من الشرك والمعاصي",
+      "tr": "هشدار درباره شرک (شریک قرار دادن برای خدا) و گناهان",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7350a028a419",
+      "kind": "title",
+      "ar": "الثامن عشر",
+      "tr": "هجدهم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6907221c17ed",
+      "kind": "title",
+      "ar": "تجهيز الميت والصلاة عليه ودفنه",
+      "tr": "آماده‌سازی میت (پیکر مرده)، نماز خواندن بر او و دفن او",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    }
+  ],
+  "patterns": [
+    {
+      "ar": "{a} من {b} قطرات اليوم",
+      "tr": "{a} از {b} قطره امروز"
+    },
+    {
+      "ar": "{a} من {b} قطرات",
+      "tr": "{a} از {b} قطره"
+    }
+  ]
+}

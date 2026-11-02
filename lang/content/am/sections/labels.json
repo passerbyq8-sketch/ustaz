@@ -1,0 +1,2476 @@
+{
+  "schema": "ezik-tr4/1",
+  "lang": "am",
+  "section": "labels",
+  "title": {
+    "ar": "",
+    "tr": ""
+  },
+  "agent": "MERGE-FIX",
+  "generated": "2026-11-02T12:00:00+03:00",
+  "source_files": [
+    "app.jsx"
+  ],
+  "items": [
+    {
+      "id": "h:1e834a94af99",
+      "kind": "title",
+      "ar": "المائدة",
+      "tr": "አልማኢዳህ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c25b0ef20f13",
+      "kind": "title",
+      "ar": "الأنفال",
+      "tr": "አልአንፋል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:85b12aedcf7d",
+      "kind": "title",
+      "ar": "إبراهيم",
+      "tr": "ኢብራሂም",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:669c4a3327d7",
+      "kind": "title",
+      "ar": "النحل",
+      "tr": "አንነሕል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a484d7a6ef75",
+      "kind": "title",
+      "ar": "بني إسرائيل",
+      "tr": "በኒ ኢስራኢል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7af94d289306",
+      "kind": "title",
+      "ar": "الفرقان",
+      "tr": "አልፉርቃን",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:384bc179073b",
+      "kind": "title",
+      "ar": "النمل",
+      "tr": "አንነምል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:aae4f4a069d2",
+      "kind": "title",
+      "ar": "القصص",
+      "tr": "አልቀሶስ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9160cb95a84b",
+      "kind": "title",
+      "ar": "العنكبوت",
+      "tr": "አልዐንከቡት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:811bcb2faec5",
+      "kind": "title",
+      "ar": "لقمان",
+      "tr": "ሉቅማን",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:01e53380b673",
+      "kind": "title",
+      "ar": "السجدة",
+      "tr": "አስሰጅዳህ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:68af134bfe0a",
+      "kind": "title",
+      "ar": "الملائكة",
+      "tr": "አልመላኢካህ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:18c236046b1f",
+      "kind": "title",
+      "ar": "يس",
+      "tr": "ያሲን",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6db3a50dc5ac",
+      "kind": "title",
+      "ar": "الصافات",
+      "tr": "አስሷፋት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4720f77f1a3f",
+      "kind": "title",
+      "ar": "حم السجدة",
+      "tr": "ሓ ሚም አስሰጅዳህ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6280d75703b7",
+      "kind": "title",
+      "ar": "الزخرف",
+      "tr": "አዝዙኽሩፍ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a6eadb029b3f",
+      "kind": "title",
+      "ar": "الدخان",
+      "tr": "አድዱኻን",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:26b5c009cb4c",
+      "kind": "title",
+      "ar": "الجاثية",
+      "tr": "አልጃሢያህ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e92dcf6077c4",
+      "kind": "title",
+      "ar": "الأحقاف",
+      "tr": "አልአሕቃፍ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2d858fe83d49",
+      "kind": "title",
+      "ar": "القتال",
+      "tr": "አልቂታል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6e42597acc1a",
+      "kind": "title",
+      "ar": "الفتح",
+      "tr": "አልፈትሕ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cb75f3b70f4e",
+      "kind": "title",
+      "ar": "الحجرات",
+      "tr": "አልሑጁራት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c4076e05c966",
+      "kind": "title",
+      "ar": "ق",
+      "tr": "ቃፍ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:179ea3378262",
+      "kind": "title",
+      "ar": "الواقعة",
+      "tr": "አልዋቂዓህ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8841132ed451",
+      "kind": "title",
+      "ar": "الممتحنة",
+      "tr": "አልሙምተሒናህ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a2528a9e7f29",
+      "kind": "title",
+      "ar": "الصف",
+      "tr": "አስሶፍ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8d067a376a65",
+      "kind": "title",
+      "ar": "الجمعة",
+      "tr": "አልጁሙዓህ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1a6229a0c0bb",
+      "kind": "title",
+      "ar": "المنافقون",
+      "tr": "አልሙናፊቁን",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4e12244432fd",
+      "kind": "title",
+      "ar": "التغابن",
+      "tr": "አትተጋቡን",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:060cdb7d9cd2",
+      "kind": "title",
+      "ar": "التحريم",
+      "tr": "አትተሕሪም",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:66fcbb3364de",
+      "kind": "title",
+      "ar": "القلم",
+      "tr": "አልቀለም",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:72e9e6bb2e3b",
+      "kind": "title",
+      "ar": "المعارج",
+      "tr": "አልመዓሪጅ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:901231461f92",
+      "kind": "title",
+      "ar": "نوح",
+      "tr": "ኑሕ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1a4eb1cf8b50",
+      "kind": "title",
+      "ar": "الجن",
+      "tr": "አልጂን",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7877e4bdfc49",
+      "kind": "title",
+      "ar": "المزمل",
+      "tr": "አልሙዘምሚል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1d43870fcff6",
+      "kind": "title",
+      "ar": "المدثر",
+      "tr": "አልሙደሢር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dd7c958922ac",
+      "kind": "title",
+      "ar": "القيامة",
+      "tr": "አልቂያማህ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:54522b2d2f35",
+      "kind": "title",
+      "ar": "الدهر",
+      "tr": "አድደህር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3fa2532f7b43",
+      "kind": "title",
+      "ar": "المرسلات",
+      "tr": "አልሙርሰላት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c94fa8d3b376",
+      "kind": "title",
+      "ar": "النبأ",
+      "tr": "አንነበእ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c119b7032830",
+      "kind": "title",
+      "ar": "النازعات",
+      "tr": "አንናዚዓት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cccc28baf32d",
+      "kind": "title",
+      "ar": "عبس",
+      "tr": "ዐበሰ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:082db2b989e7",
+      "kind": "title",
+      "ar": "التكوير",
+      "tr": "አትተክዊር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8fcc7a1a4cbc",
+      "kind": "title",
+      "ar": "المطففين",
+      "tr": "አልሙጠፊፊን",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2598375be1f1",
+      "kind": "title",
+      "ar": "الانشقاق",
+      "tr": "አልኢንሺቃቅ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1d2b4224ea1e",
+      "kind": "title",
+      "ar": "الطارق",
+      "tr": "አጥጧሪቅ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:48e4a46cae71",
+      "kind": "title",
+      "ar": "الغاشية",
+      "tr": "አልጋሺያህ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf241e7ca61c",
+      "kind": "title",
+      "ar": "الفجر",
+      "tr": "አልፈጅር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4d1b5ed7abad",
+      "kind": "title",
+      "ar": "البلد",
+      "tr": "አልበለድ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:63902b83b5eb",
+      "kind": "title",
+      "ar": "الشمس",
+      "tr": "አሽሸምስ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6ca3e70cdabd",
+      "kind": "title",
+      "ar": "الليل",
+      "tr": "አልለይል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7a4da2be6738",
+      "kind": "title",
+      "ar": "الضحى",
+      "tr": "አድዱሓ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0b0f3ceffaf0",
+      "kind": "title",
+      "ar": "الانشراح",
+      "tr": "አልኢንሺራሕ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1b683cd08363",
+      "kind": "title",
+      "ar": "التين",
+      "tr": "አትቲን",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:99a12387e600",
+      "kind": "title",
+      "ar": "القدر",
+      "tr": "አልቀድር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0146998da659",
+      "kind": "title",
+      "ar": "البينة",
+      "tr": "አልበዪናህ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d4d24e91a969",
+      "kind": "title",
+      "ar": "الزلزال",
+      "tr": "አዝዚልዛል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:54735bf2cf71",
+      "kind": "title",
+      "ar": "العصر",
+      "tr": "አልዐስር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9f360a11a3af",
+      "kind": "title",
+      "ar": "تبت",
+      "tr": "ተበት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e973e67533de",
+      "kind": "title",
+      "ar": "التوحيد",
+      "tr": "አትተውሒድ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:566d74756580",
+      "kind": "title",
+      "ar": "حصن المسلم",
+      "tr": "ሒስኑል ሙስሊም",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:93708c0b3ca2",
+      "kind": "title",
+      "ar": "الفاتحة وقصار السور",
+      "tr": "አልፋቲሓህ እና አጫጭር ሱራዎች",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:24632944660a",
+      "kind": "title",
+      "ar": "الإسراء",
+      "tr": "አልኢስራእ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a16a0b104052",
+      "kind": "title",
+      "ar": "فصلت",
+      "tr": "ፉሲለት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4ce9591136a3",
+      "kind": "title",
+      "ar": "محمد",
+      "tr": "ሙሐመድ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:049457d8c3ec",
+      "kind": "title",
+      "ar": "الإنسان",
+      "tr": "አልኢንሳን",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1e47a5b49318",
+      "kind": "title",
+      "ar": "الشرح",
+      "tr": "አሽሸርሕ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9105014fc4e4",
+      "kind": "title",
+      "ar": "الفاتحة",
+      "tr": "አልፋቲሐ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1c047dd9a1bf",
+      "kind": "title",
+      "ar": "البقرة",
+      "tr": "አልበቀራ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:236876042743",
+      "kind": "title",
+      "ar": "آل عمران",
+      "tr": "ኣል ዒምራን",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0b0400fae8af",
+      "kind": "title",
+      "ar": "النساء",
+      "tr": "አንኒሳእ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:11f8ea1ffcdd",
+      "kind": "title",
+      "ar": "الأنعام",
+      "tr": "አልአንዓም",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:03f12e1c22d1",
+      "kind": "title",
+      "ar": "الأعراف",
+      "tr": "አልአዕራፍ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e6fb3916c2bf",
+      "kind": "title",
+      "ar": "التوبة",
+      "tr": "አትተውባ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:18763d65103a",
+      "kind": "title",
+      "ar": "يونس",
+      "tr": "ዩኑስ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fd9d2ec55193",
+      "kind": "title",
+      "ar": "هود",
+      "tr": "ሁድ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7694520808a7",
+      "kind": "title",
+      "ar": "يوسف",
+      "tr": "ዩሱፍ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3db00e2a5f35",
+      "kind": "title",
+      "ar": "الرعد",
+      "tr": "አርረዕድ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3385c364afef",
+      "kind": "title",
+      "ar": "الحجر",
+      "tr": "አልሒጅር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e4c8f37749e9",
+      "kind": "title",
+      "ar": "الكهف",
+      "tr": "አልከህፍ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ee98a55a04dd",
+      "kind": "title",
+      "ar": "مريم",
+      "tr": "መርየም",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5e5430a5126e",
+      "kind": "title",
+      "ar": "طه",
+      "tr": "ጣሃ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:df9ea352ab6e",
+      "kind": "title",
+      "ar": "الأنبياء",
+      "tr": "አልአንቢያእ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b05ef0172b7e",
+      "kind": "title",
+      "ar": "الحج",
+      "tr": "አልሐጅ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6ca5a48ebd69",
+      "kind": "title",
+      "ar": "المؤمنون",
+      "tr": "አልሙእሚኑን",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e8cae754b830",
+      "kind": "title",
+      "ar": "النور",
+      "tr": "አንኑር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2dcec7ee53b1",
+      "kind": "title",
+      "ar": "الشعراء",
+      "tr": "አሽሹዐራእ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8b827fd382a8",
+      "kind": "title",
+      "ar": "الروم",
+      "tr": "አርሩም",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0adb76910f31",
+      "kind": "title",
+      "ar": "الأحزاب",
+      "tr": "አልአሕዛብ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:598f354ab966",
+      "kind": "title",
+      "ar": "سبأ",
+      "tr": "ሰበእ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:928a192ed5f3",
+      "kind": "title",
+      "ar": "ص",
+      "tr": "ሷድ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a6da093d16a9",
+      "kind": "title",
+      "ar": "الزمر",
+      "tr": "አዝዙመር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d8db9ef8a22f",
+      "kind": "title",
+      "ar": "المؤمن",
+      "tr": "አልሙእሚን",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:16412f1f054d",
+      "kind": "title",
+      "ar": "الشورى",
+      "tr": "አሽሹራ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:32eee8e7a98c",
+      "kind": "title",
+      "ar": "الذاريات",
+      "tr": "አዝዛሪያት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ee57bc9839e1",
+      "kind": "title",
+      "ar": "الطور",
+      "tr": "አጥጡር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c4ffbb69c75c",
+      "kind": "title",
+      "ar": "النجم",
+      "tr": "አንነጅም",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ba21ba0bb9ae",
+      "kind": "title",
+      "ar": "القمر",
+      "tr": "አልቀመር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fc9771b67bea",
+      "kind": "title",
+      "ar": "الرحمن",
+      "tr": "አርረሕማን",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4a1f7f045b27",
+      "kind": "title",
+      "ar": "الحديد",
+      "tr": "አልሐዲድ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3be2e290db85",
+      "kind": "title",
+      "ar": "المجادلة",
+      "tr": "አልሙጃደላ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:33a98daf8af2",
+      "kind": "title",
+      "ar": "الحشر",
+      "tr": "አልሐሽር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:90828ee2dc42",
+      "kind": "title",
+      "ar": "الطلاق",
+      "tr": "አጥጠላቅ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d50e19b1e9d0",
+      "kind": "title",
+      "ar": "الملك",
+      "tr": "አልሙልክ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e3821b4f18d7",
+      "kind": "title",
+      "ar": "الحاقة",
+      "tr": "አልሓቃ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:265d094cb744",
+      "kind": "title",
+      "ar": "الانفطار",
+      "tr": "አልኢንፊጣር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a68fa0c807b9",
+      "kind": "title",
+      "ar": "البروج",
+      "tr": "አልቡሩጅ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:250f6632f86c",
+      "kind": "title",
+      "ar": "الأعلى",
+      "tr": "አልአዕላ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:42d9d518138e",
+      "kind": "title",
+      "ar": "العلق",
+      "tr": "አልዐለቅ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ba05fec0474d",
+      "kind": "title",
+      "ar": "العاديات",
+      "tr": "አልዓዲያት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:173b44f709c7",
+      "kind": "title",
+      "ar": "القارعة",
+      "tr": "አልቃሪዓ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a066cb7dd330",
+      "kind": "title",
+      "ar": "التكاثر",
+      "tr": "አትተካሡር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6cc265ac5cba",
+      "kind": "title",
+      "ar": "الهمزة",
+      "tr": "አልሁመዛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:665e100b0bf6",
+      "kind": "title",
+      "ar": "الفيل",
+      "tr": "አልፊል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:783d335dad94",
+      "kind": "title",
+      "ar": "قريش",
+      "tr": "ቁረይሽ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e12a55df6f18",
+      "kind": "title",
+      "ar": "الماعون",
+      "tr": "አልማዑን",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d87585608f3f",
+      "kind": "title",
+      "ar": "الكوثر",
+      "tr": "አልከውሠር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4a7ae27c49ed",
+      "kind": "title",
+      "ar": "الكافرون",
+      "tr": "አልካፊሩን",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0171c0ecb909",
+      "kind": "title",
+      "ar": "النصر",
+      "tr": "አንነስር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c8c6083d70d9",
+      "kind": "title",
+      "ar": "الفلق",
+      "tr": "አልፈለቅ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4ee921d7c210",
+      "kind": "title",
+      "ar": "الناس",
+      "tr": "አንናስ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:68c8e3bd002c",
+      "kind": "title",
+      "ar": "الحديث الأول",
+      "tr": "አንደኛ ሐዲሥ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cc33c3beca82",
+      "kind": "title",
+      "ar": "الحديث الثاني",
+      "tr": "ሁለተኛ ሐዲሥ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:458c29f83430",
+      "kind": "title",
+      "ar": "محمد بن صالح العثيمين",
+      "tr": "ሙሐመድ ኢብን ሷሊሕ አልዑሠይሚን",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:20e7d6c89569",
+      "kind": "title",
+      "ar": "فقه الأسماء الحسنى",
+      "tr": "ፊቅሁል አስማኢል ሑስና",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:adde3b394a38",
+      "kind": "title",
+      "ar": "عبد الرزاق بن عبد المحسن البدر",
+      "tr": "ዓብዱርረዛቅ ኢብን ዓብዲልሙሕሲን አልበድር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:119ec6be7e24",
+      "kind": "title",
+      "ar": "الإخلاص",
+      "tr": "አልኢኽላስ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4e3f05e033a7",
+      "kind": "title",
+      "ar": "العلي",
+      "tr": "አልዐሊይ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:67dc5468e3f9",
+      "kind": "title",
+      "ar": "المتعالي",
+      "tr": "አልሙተዓሊ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0618181d807f",
+      "kind": "title",
+      "ar": "القرآن",
+      "tr": "ቁርአን ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4e2208a2c195",
+      "kind": "title",
+      "ar": "الرابع عشر",
+      "tr": "አሥራ አራተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9c324e02d65d",
+      "kind": "title",
+      "ar": "نواقض الوضوء",
+      "tr": "ዉዱእን (የሶላት ንጽሕናን) የሚያፈርሱ ነገሮች",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:20024c546493",
+      "kind": "title",
+      "ar": "العاشر",
+      "tr": "አሥረኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7be0d3597238",
+      "kind": "title",
+      "ar": "سنن الصلاة",
+      "tr": "የሶላት ሱናን (የተወደዱ ተግባሮች)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e7af6ad9e8bb",
+      "kind": "title",
+      "ar": "الأول",
+      "tr": "አልአወል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d7c1bd63c7b1",
+      "kind": "title",
+      "ar": "صفحة",
+      "tr": "ገጽ ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:62a584dd0455",
+      "kind": "title",
+      "ar": "فاطر",
+      "tr": "ፋጢር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e8c223ad287f",
+      "kind": "title",
+      "ar": "غافر",
+      "tr": "ጋፊር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4209ea822e42",
+      "kind": "title",
+      "ar": "الزلزلة",
+      "tr": "አዝዘልዘላ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8b1bdab7e8a0",
+      "kind": "title",
+      "ar": "المسد",
+      "tr": "አልመሰድ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0d39767b498a",
+      "kind": "title",
+      "ar": "الأربعين النووية",
+      "tr": "አርበዒን አንነወዊያህ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8b264f01f526",
+      "kind": "title",
+      "ar": "القواعد المثلى في صفات الله وأسمائه الحسنى",
+      "tr": "አልቀዋዒዱል ሙሥላ ፊ ሲፋቲላሂ ወአስማኢሂል ሑስና",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fba3f1065491",
+      "kind": "title",
+      "ar": "سورة",
+      "tr": "ሱራ (የቁርአን ምዕራፍ) ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:39321e817feb",
+      "kind": "title",
+      "ar": "الثاني",
+      "tr": "ሁለተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:51f292fbcb68",
+      "kind": "title",
+      "ar": "النووي",
+      "tr": "አንነወዊ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:46d866fafcc1",
+      "kind": "title",
+      "ar": "سورة الفاتحة وقصار السور",
+      "tr": "ሱረቱል ፋቲሐና አጫጭር ሱራዎች",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2af227d5558d",
+      "kind": "title",
+      "ar": "أركان الإسلام",
+      "tr": "የእስልምና ማዕዘናት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c3e1b4edd4ac",
+      "kind": "title",
+      "ar": "الثالث",
+      "tr": "ሦስተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:742d43b119cf",
+      "kind": "title",
+      "ar": "أركان الإيمان",
+      "tr": "የኢማን (የእምነት) ማዕዘናት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:50ed00343085",
+      "kind": "title",
+      "ar": "الرابع",
+      "tr": "አራተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0cd645f41692",
+      "kind": "title",
+      "ar": "أقسام التوحيد وأقسام الشرك",
+      "tr": "የተውሒድ (አላህን ብቻ ማድረግ) እና የሺርክ (በአላህ ላይ አጋር ማድረግ) ክፍሎች",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5fad8aa224ce",
+      "kind": "title",
+      "ar": "الخامس",
+      "tr": "አምስተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:40f828c25553",
+      "kind": "title",
+      "ar": "الإحسان",
+      "tr": "ኢሕሳን (አምልኮን ማሳመር)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:45d8094bf9b9",
+      "kind": "title",
+      "ar": "السادس",
+      "tr": "ስድስተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:96feab9121f7",
+      "kind": "title",
+      "ar": "شروط الصلاة",
+      "tr": "የሶላት መስፈርቶች",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ef114d4296bc",
+      "kind": "title",
+      "ar": "السابع",
+      "tr": "ሰባተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f33165ae37f5",
+      "kind": "title",
+      "ar": "أركان الصلاة",
+      "tr": "የሶላት ማዕዘናት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2db27d05d3a7",
+      "kind": "title",
+      "ar": "الثامن",
+      "tr": "ስምንተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ecb3f2adbb67",
+      "kind": "title",
+      "ar": "واجبات الصلاة",
+      "tr": "የሶላት ዋጂባት (ግዴታዎች)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3bcce3aeea5f",
+      "kind": "title",
+      "ar": "التاسع",
+      "tr": "ዘጠነኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:32221c27a9ac",
+      "kind": "title",
+      "ar": "بيان التشهد",
+      "tr": "የተሸሁድ (የሶላት ቁጭታ ምስክርነት) ማብራሪያ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a792050b141f",
+      "kind": "title",
+      "ar": "الحادي عشر",
+      "tr": "አሥራ አንደኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:86f9930b93e0",
+      "kind": "title",
+      "ar": "مبطلات الصلاة",
+      "tr": "ሶላትን የሚያፈርሱ ነገሮች",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3d4fabeb9270",
+      "kind": "title",
+      "ar": "الثاني عشر",
+      "tr": "አሥራ ሁለተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2f4bfde170a3",
+      "kind": "title",
+      "ar": "شروط الوضوء",
+      "tr": "የዉዱእ (የሶላት ንጽሕና) መስፈርቶች",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:04fea95f2af7",
+      "kind": "title",
+      "ar": "الثالث عشر",
+      "tr": "አሥራ ሦስተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:549e6f105d77",
+      "kind": "title",
+      "ar": "فروض الوضوء",
+      "tr": "የዉዱእ (የሶላት ንጽሕና) ፈርዶች (ግዴታዎች)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f39f78ef305e",
+      "kind": "title",
+      "ar": "الخامس عشر",
+      "tr": "አሥራ አምስተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f00d313ad20a",
+      "kind": "title",
+      "ar": "الأخلاق المشروعة",
+      "tr": "የተደነገጉ ሥነ ምግባሮች",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c9d13c6b6622",
+      "kind": "title",
+      "ar": "السادس عشر",
+      "tr": "አሥራ ስድስተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b0959b912154",
+      "kind": "title",
+      "ar": "الآداب الإسلامية",
+      "tr": "እስላማዊ ጨዋነቶች",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c2ccae600214",
+      "kind": "title",
+      "ar": "السابع عشر",
+      "tr": "አሥራ ሰባተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1a38a068dc85",
+      "kind": "title",
+      "ar": "التحذير من الشرك والمعاصي",
+      "tr": "ከሺርክ (በአላህ ላይ አጋር ከማድረግ) እና ከኃጢአቶች ማስጠንቀቅ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7350a028a419",
+      "kind": "title",
+      "ar": "الثامن عشر",
+      "tr": "አሥራ ስምንተኛ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6907221c17ed",
+      "kind": "title",
+      "ar": "تجهيز الميت والصلاة عليه ودفنه",
+      "tr": "ሟችን ማዘጋጀት፣ በእርሱ ላይ መስገድና መቅበር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    }
+  ],
+  "patterns": [
+    {
+      "ar": "{a} من {b} قطرات اليوم",
+      "tr": "ዛሬ ከ{b} ጠብታዎች {a}"
+    },
+    {
+      "ar": "{a} من {b} قطرات",
+      "tr": "ከ{b} ጠብታዎች {a}"
+    }
+  ]
+}

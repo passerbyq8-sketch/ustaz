@@ -7851,6 +7851,34 @@
         "rights": "",
         "date": ""
       }
+    },
+    {
+      "id": "h:aa3ae55c5870",
+      "kind": "title",
+      "ar": "من الاستيقاظ إلى النوم",
+      "tr": "ከእንቅልፍ ከመነሳት እስከ መተኛት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:587310d3d169",
+      "kind": "title",
+      "ar": "الصلاة",
+      "tr": "ሶላት (ጸሎት)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
     }
   ]
 }

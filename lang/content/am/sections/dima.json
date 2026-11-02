@@ -4967,6 +4967,245 @@
         "rights": "",
         "date": ""
       }
+    },
+    {
+      "id": "h:8a698ae7a876",
+      "kind": "title",
+      "ar": "ديمة",
+      "tr": "ዲማ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bfdf8728538c",
+      "kind": "title",
+      "ar": "صحيح البخاري",
+      "tr": "ሶሒሕ አልቡኻሪ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5e7e59318d4f",
+      "kind": "title",
+      "ar": "صحيح مسلم",
+      "tr": "ሶሒሕ ሙስሊም",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:abff783fb429",
+      "kind": "title",
+      "ar": "السنن الكبرى للنسائي",
+      "tr": "አስሱነን አልኩብራ ሊንነሳኢ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7f08faee4cfe",
+      "kind": "title",
+      "ar": "سنن الترمذي ت بشار",
+      "tr": "ሱነን አትቲርሚዚ፣ በበሻር ማረጋገጫ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fb4fbcd242e3",
+      "kind": "title",
+      "ar": "سنن ابن ماجه",
+      "tr": "ሱነን ኢብኑ ማጀህ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b1726f3e1a29",
+      "kind": "quran",
+      "ar": "ٱلَّذِينَ ءَامَنُوا۟ وَتَطْمَئِنُّ قُلُوبُهُم بِذِكْرِ ٱللَّهِ ۗ أَلَا بِذِكْرِ ٱللَّهِ تَطْمَئِنُّ ٱلْقُلُوبُ",
+      "tr": "እነርሱም እነዚያ በአላህ ያመኑ ልቦቻቸዉም አላህን በማውሳት የሚረኩ ናቸው:: አስተውሉ:: አላህን በማውሳት ልቦች ይረካሉ::",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Amharic Translation - Africa Academy",
+        "url": "https://quranenc.com/en/browse/amharic_zain",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "13:28"
+      }
+    },
+    {
+      "id": "h:45a07072c470",
+      "kind": "title",
+      "ar": "المختصر في التفسير",
+      "tr": "አልሙኽተሰር ፊትተፍሲር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:96a8ce7b5570",
+      "kind": "title",
+      "ar": "سنن الدارمي",
+      "tr": "ሱነን አድዳሪሚ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9c5644a677fa",
+      "kind": "title",
+      "ar": "اللسان",
+      "tr": "ምላስ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:81bf3cfb3c54",
+      "kind": "title",
+      "ar": "القلب",
+      "tr": "ልብ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5a06c13ef9bd",
+      "kind": "title",
+      "ar": "الجوارح",
+      "tr": "የሰውነት አካላት",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b76444a321b7",
+      "kind": "title",
+      "ar": "اليوم",
+      "tr": "ዛሬ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e776b0209b50",
+      "kind": "title",
+      "ar": "إلغاء",
+      "tr": "ሰርዝ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fc095a728402",
+      "kind": "title",
+      "ar": "إعدادات التنبيه",
+      "tr": "የማስታወሻ ቅንብሮች",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5bf826c5e57c",
+      "kind": "title",
+      "ar": "إغلاق",
+      "tr": "ዝጋ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:608631450563",
+      "kind": "title",
+      "ar": "اضغط",
+      "tr": "ተጫን",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
     }
   ]
 }

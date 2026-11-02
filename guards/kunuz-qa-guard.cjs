@@ -102,6 +102,23 @@ function checkQ1(T) {
 const q1 = checkQ1(TEXT);
 report('Q1', 'every QA fix is in its page and no fixed defect is back', q1, 'defects=' + FIXES.length + ' fragments=' + FIXES.reduce((n, x) => n + (x.must || []).length + (x.not || []).length, 0));
 
+// ---------- Q1b: an Arabic reader loads no game table; every other reader loads exactly its own ----------
+{
+  const f = [];
+  const { split, languages } = require('../tools/tr4-quest-i18n.cjs');
+  const source = read('quest-i18n.js'), model = read('quest-theme/model.js'), sw = read('quest-sw.js');
+  const codes = languages(source);
+  codes.forEach((c) => { if (split(source, c) !== read('quest-i18n/' + c + '.js')) f.push('quest-i18n/' + c + '.js is not the cut of quest-i18n.js: run tools/tr4-quest-i18n.cjs'); });
+  const list = /'ta am [a-z ]+'/.exec(model);
+  if (!list || list[0].slice(1, -1).split(' ').sort().join() !== codes.slice().sort().join()) f.push('the list in model.js is not the languages of the table');
+  ['quest.html', 'quest-ghaws.html', 'quest-harb.html', 'quest-test.html', 'quest-board.html'].forEach((p) => { if (read(p).includes('quest-i18n')) f.push(p + ' loads a table for every reader'); });
+  if (/'\/quest-i18n/.test(sw.slice(sw.indexOf('const SHELL'), sw.indexOf('importScripts')))) f.push('the worker installs a table for every reader');
+  const load = (code) => { const out = []; new Function('window', 'document', 'global', model.slice(model.indexOf('(function () {\n    if (typeof document'), model.indexOf("})();\n") + 5))(0, { write: (x) => out.push(x) }, { localStorage: { getItem: () => code }, location: { pathname: '/quest.html' } }); return out; };
+  [null, '', 'ar', 'xx'].forEach((c) => { if (load(c).length) f.push('reader ' + c + ' loads a table'); });
+  if (load('en').length !== 1 || !load('en')[0].includes('/quest-i18n/en.js')) f.push('an English reader does not load the English table');
+  report('Q1b', 'an Arabic reader loads no game table and each other language loads its own cut', f, 'languages=' + codes.length);
+}
+
 // ---------- Q2: the board's double tap, run as it ships ----------
 const G_SRC = fs.readFileSync(path.join(__dirname, 'kunuz-sim', 'world.cjs'), 'utf8');
 const wa = G_SRC.indexOf('// ---------- world ----------'), wb = G_SRC.indexOf('// ---------- synthetic bank');
