@@ -753,6 +753,7 @@ const EZ_I18N = {
     // THIRD ROUND -- the small consent card (owner-approved texts, decoded from the order's JSON, never retyped).
     'aic.line1': 'بحسب ميزة الذكاء الاصطناعي التي تختارها، يُرسل النص أو الملفات التي تقدمها إلى Anthropic (Claude) أو ElevenLabs أو Brave Search أو Cohere لمعالجة طلبك.',
     'aic.cohere': 'Cohere: ترتيب نتائج البحث بحسب صلتها بالسؤال. يُرسل نص السؤال أو شقّه والمقاطع المرشّحة، بلا بيانات الملف أو معرّفات الحساب والجهاز. قد تحتفظ Cohere بسجلات حتى 30 يومًا. يُشترط ضبط خيار منع استخدام البيانات في التدريب في حساب المزوّد قبل الإرسال.',
+    'aic.reask': 'إذا رفضت، تستمر الخدمة كما كانت بدون Cohere.',
     'aic.line2': 'راجع التفاصيل، ثم اختر موافق لتفعيل هذه الميزات أو رفض لإبقائها متوقفة.',
     'aic.agree': 'موافق',
     'aic.decline': 'غير موافق',
@@ -2723,6 +2724,7 @@ const EZ_I18N = {
     // THIRD ROUND -- the small consent card.
     'aic.line1': 'Depending on the AI feature you choose, the text or files you submit are sent to Anthropic (Claude), ElevenLabs, Brave Search or Cohere to process your request.',
     'aic.cohere': 'Cohere: ranks search results by relevance to your question. Only the question or its individual issue and candidate passages are sent, without profile details or account and device identifiers. Cohere may retain logs for up to 30 days. The provider account must be configured to prevent training use before sending.',
+    'aic.reask': 'If you decline, the service continues as before without Cohere.',
     'aic.line2': 'Review the details, then choose Agree to enable these features or Decline to keep them off.',
     'aic.agree': 'Agree',
     'aic.decline': 'Disagree',
@@ -6385,6 +6387,7 @@ const storeFounderToken = (t) => { try { localStorage.setItem(FOUNDER_TOKEN_KEY,
 // wrong, which is a different statement about a different thing.
 const EZ_AI_CONSENT_KEY = 'ezik_ai_consent_v1';
 const EZ_AI_CONSENT_VERSION = '2026-11-02-1';
+const EZ_AI_CONSENT_PRIOR_VERSION = '2026-08-06-1';
 // The header every AI route re-checks server-side (lib/ai-consent.js). Hiding a button is not a
 // gate; the server refuses 403 without this, so a hand-made POST reaches no vendor either.
 const EZ_AI_CONSENT_HEADER = 'x-ezik-ai-consent';
@@ -6436,29 +6439,35 @@ const readAIConsent = () => {
 // THE ONE PREDICATE. Read at the moment of sending, never from a flag captured earlier.
 const hasValidAIConsent = () => {
   const c = readAIConsent();
-  return !!c && c.status === EZ_AI_CONSENT_GRANTED && c.version === EZ_AI_CONSENT_VERSION;
+  return !!c && (c.status === EZ_AI_CONSENT_GRANTED && c.version === EZ_AI_CONSENT_VERSION
+    || c.status === EZ_AI_CONSENT_GRANTED && c.version === EZ_AI_CONSENT_PRIOR_VERSION && aiConsentAnswered());
 };
 
 // "Has this reader answered THIS version of the question?" A recorded refusal counts as an
-// answer -- it is a real choice, not a postponement -- so the screen is not shown again. A record
-// carrying an older version does not count: a changed disclosure has to be re-consented.
+// answer -- it is a real choice, not a postponement -- so the screen is not shown again.
+// A prior grant can remain in force after the reader declines this disclosure update.
+// answeredVersion records that choice without extending the grant to the new provider.
 const aiConsentAnswered = () => {
   const c = readAIConsent();
-  return !!c && c.version === EZ_AI_CONSENT_VERSION;
+  return !!c && (c.version === EZ_AI_CONSENT_VERSION
+    || (c.version === EZ_AI_CONSENT_PRIOR_VERSION && c.status === EZ_AI_CONSENT_GRANTED && c.answeredVersion === EZ_AI_CONSENT_VERSION));
 };
 
 const aiConsentStatus = () => {
   const c = readAIConsent();
-  return (c && c.version === EZ_AI_CONSENT_VERSION) ? c.status : null;
+  return (c && aiConsentAnswered()) ? c.status : null;
 };
 const aiConsentGrantedBy = () => {
   const c = readAIConsent();
-  return (c && c.version === EZ_AI_CONSENT_VERSION) ? (c.grantedBy || null) : null;
+  return (c && aiConsentAnswered()) ? (c.grantedBy || null) : null;
 };
 
 // The only writer. `by` is 'user' (13+) or 'guardian' (under 13, after the adult barrier).
-const writeAIConsent = (status, by) => {
-  const rec = {
+const writeAIConsent = (status, by, preservePrior = false) => {
+  const prior = readAIConsent();
+  const keepPrior = preservePrior === true && status === EZ_AI_CONSENT_DECLINED
+    && prior && prior.status === EZ_AI_CONSENT_GRANTED && prior.version === EZ_AI_CONSENT_PRIOR_VERSION;
+  const rec = keepPrior ? { ...prior, answeredVersion: EZ_AI_CONSENT_VERSION, answeredAt: new Date().toISOString() } : {
     status: status === EZ_AI_CONSENT_GRANTED ? EZ_AI_CONSENT_GRANTED : EZ_AI_CONSENT_DECLINED,
     version: EZ_AI_CONSENT_VERSION,
     // Stamped at the moment of the answer, from the same reader the checks use. An answer given
@@ -6473,7 +6482,7 @@ const writeAIConsent = (status, by) => {
 
 // Headers carried by an AI request. Empty when there is no consent -- and aiFetch never gets
 // that far, so an un-headed AI POST cannot be produced by this client at all.
-const aiConsentHeaders = () => (hasValidAIConsent() ? { [EZ_AI_CONSENT_HEADER]: EZ_AI_CONSENT_VERSION } : {});
+const aiConsentHeaders = () => (hasValidAIConsent() ? { [EZ_AI_CONSENT_HEADER]: readAIConsent().version } : {});
 
 // Which POSTs are AI sends. /api/unlock and /api/report are NOT: no vendor sees them.
 const EZ_AI_ENDPOINTS = ['/api/ask', '/api/chat', '/api/chat-fast', '/api/tashkeel', '/api/tts', '/api/stt'];
@@ -21215,7 +21224,16 @@ function App() {
   // Granting is the ONLY writer of 'granted'. `by` is decided by the screen: 'user' at 13+,
   // 'guardian' only after the in-app adult barrier has been passed.
   const grantAIConsent = (by) => { writeAIConsent(EZ_AI_CONSENT_GRANTED, by); setAiConsent(aiConsentStatus()); setAiConsentReview(false); };
-  // Declining, and withdrawing, are the SAME write -- there is one refused state, not two. The
+  const declineAIConsentReask = () => {
+    const prior = readAIConsent();
+    if (prior && prior.status === EZ_AI_CONSENT_GRANTED && prior.version === EZ_AI_CONSENT_PRIOR_VERSION) {
+      writeAIConsent(EZ_AI_CONSENT_DECLINED, 'user', true);
+      setAiConsent(aiConsentStatus()); setAiConsentReview(false);
+      return;
+    }
+    declineAIConsent();
+  };
+  // A first decline and a settings withdrawal both revoke the AI grant. The
   // stop-everything below is what makes a withdrawal take effect on a screen that is already
   // running: the in-flight stream is aborted, the audio is cancelled, the microphone is released.
   // Saved conversations are NOT deleted: withdrawing consent to SEND is not a request to erase.
@@ -25115,7 +25133,7 @@ function App() {
       age={profile.age}
       current={aiConsent}
       onGrant={grantAIConsent}
-      onDecline={declineAIConsent}
+      onDecline={declineAIConsentReask}
       onBack={aiConsentDecided ? () => setAiConsentReview(false) : null}
     />
   );
@@ -28196,11 +28214,11 @@ let EZ_AIC_LINK_SUPPORT = ezT('c.EZ_AIC_LINK_SUPPORT');
 // the same treatment EZ_AIC_PROVIDERS already gives the Latin vendor names.
 let EZ_AIC_VERSION_LABEL = ezT('c.EZ_AIC_VERSION_LABEL');
 const EZ_AIC_VERSION_LINE = EZ_AIC_VERSION_LABEL + ' ' + EZ_AI_CONSENT_VERSION;
-function AIConsentVersion({ style }) {
+function AIConsentVersion({ style, version = EZ_AI_CONSENT_VERSION }) {
   return (
     <div style={style}>
       {EZ_AIC_VERSION_LABEL + ' '}
-      <span style={s.aicVersionNum}>{EZ_AI_CONSENT_VERSION}</span>
+      <span style={s.aicVersionNum}>{version}</span>
     </div>
   );
 }
@@ -28239,6 +28257,8 @@ function ezAicLine(text) {
 function AIConsentGate({ age, current, onGrant, onDecline, onBack }) {
   useEzLang();
   const [more, setMore] = useState(false);
+  const reask = readAIConsent()?.status === EZ_AI_CONSENT_GRANTED && readAIConsent()?.version === EZ_AI_CONSENT_PRIOR_VERSION
+    && (EZ_LANG === 'ar' || EZ_LANG === 'en');
   // FAIL-CLOSED on the age: a missing or unreadable age parses to 0, which is under 13, which
   // means the guardian barrier. An unknown age is never treated as an adult.
   const isUnder13 = (parseInt(age, 10) || 0) < 13;
@@ -28256,7 +28276,7 @@ function AIConsentGate({ age, current, onGrant, onDecline, onBack }) {
     <div className="theme-dark ezhome ezgate" style={s.onboardingContainer}>
       <div className="ezgate-wrap"><section className="ezgate-card" style={more ? { ...s.aicCard, ...s.aicCardOpen } : s.aicCard} aria-label={EZ_AIC_TITLE} data-ezik-aic="card">
         <p style={s.aicLine} data-ezik-aic="line1">{ezAicLine(ezT('aic.line1'))}</p>
-        <p style={s.aicLine} data-ezik-aic="line2">{ezAicLine(ezT('aic.line2'))}</p>
+        <p style={s.aicLine} data-ezik-aic="line2"><span data-ezik-aic={reask ? 'reask' : undefined}>{ezAicLine(ezT(reask ? 'aic.reask' : 'aic.line2'))}</span></p>
         <button type="button" onClick={() => setMore(!more)} aria-expanded={more ? 'true' : 'false'}
           aria-controls="ezik-aic-details" data-ezik-aic="more" style={s.aicMoreBtn}>{ezT(more ? 'aic.less' : 'aic.more')}</button>
         {more && <div id="ezik-aic-details" style={{ ...s.aicDetails, ...s.aicDetailsOpen }} data-ezik-aic="details">
@@ -38107,11 +38127,13 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
         <div style={s.aicNote}>{aiConsentBy === 'guardian' ? EZ_AIS_BY_GUARDIAN : EZ_AIS_BY_USER}</div>
       )}
       <div style={s.aicNote}>{EZ_AIS_PROVIDERS_LABEL + ' '}<span style={s.aicProvider}>{EZ_AIS_PROVIDERS_NAMES}</span></div>
-      <AIConsentVersion style={s.aicNote} />
+      <AIConsentVersion style={s.aicNote} version={readAIConsent()?.version || EZ_AI_CONSENT_VERSION} />
       <AIConsentLinks />
       {aiConsent === EZ_AI_CONSENT_GRANTED
         ? (<>
             <button type="button" onClick={onWithdrawAI} style={s.aicWithdrawBtn}>{EZ_AIS_WITHDRAW}</button>
+            {readAIConsent()?.version === EZ_AI_CONSENT_PRIOR_VERSION
+              && <button type="button" onClick={onReviewAI} style={s.aicWithdrawBtn}>{EZ_AIS_REVIEW}</button>}
             <div style={s.aicNote}>{EZ_AIS_KEEP}</div>
           </>)
         : <button type="button" onClick={onReviewAI} style={s.aicWithdrawBtn}>{EZ_AIS_REVIEW}</button>}
