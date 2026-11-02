@@ -10564,7 +10564,7 @@ function Ez110PrayerCard({ onOpen, hijri, onQibla }) {
               <span key={k} className={'ez110-prayer-cell' + (k === next ? ' is-next' : '') + (mark === 'on' ? ' is-on' : mark === 'late' ? ' is-late' : '') + (k === curKey ? ' is-cur' : '')} data-ezik-card-dot={k} data-ezik-card-mark={mark || 'none'}>
                 <span className="ez110-prayer-dot" aria-hidden="true" />
                 <span className="ez110-prayer-cname">{ezT('widget.prayer.' + k)}</span>
-                <span className="ez110-prayer-ctime">{prayerClockUi(k === 'fajr' && k === next ? nextTime : t[k])}</span>
+                <span className="ez110-prayer-ctime">{k === 'fajr' && k === next ? prayerClockUi(nextTime) : prayerClockUi(t[k])}</span>
               </span>
             );
           })}
