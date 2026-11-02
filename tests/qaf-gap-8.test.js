@@ -89,7 +89,7 @@ test('Cohere local HTTP: strict response validation rejects missing, duplicate a
     (p) => { p.results[0].index = -1; }, (p) => { p.results[0].index = 0.5; },
     (p) => { p.results[0].relevance_score = 1.01; }, (p) => { p.results[0].relevance_score = -0.01; },
     (p) => { p.results[0].relevance_score = '0.9'; }, (p) => { p.results[0] = null; },
-    (p) => { delete p.meta; }, (p) => { p.meta.billed_units.search_units = -1; },
+    (p) => { p.meta.billed_units = []; }, (p) => { p.meta.billed_units.search_units = -1; },
     (p) => { p.meta.billed_units.search_units = 0.5; }, (p) => { p.meta.billed_units.search_units = '1'; },
   ];
   for (const [index, mutate] of mutations.entries()) {

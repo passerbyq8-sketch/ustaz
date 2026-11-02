@@ -77,6 +77,8 @@ const DENIED_SOURCES = [
 // Every field name a delivery path may print. Opaque identifiers, counts, flags, and fixed
 // vocabularies only. A name arriving here without a reason is the failure this list exists for.
 const ALLOWED_FIELDS = [
+  // Numeric counts, milliseconds, billed tokens, and a closed numeric fallback code.
+  'rerank_used', 'rerank_ms', 'rerank_units', 'rerank_fallback_code', 'rerank_timeouts', 'rerank_errors',
   // ع-٤٩ — 'books' is a COUNT: `bookCards.length` on [free-brain/cited-delivery], the number of
   // library attribution chips one reply drew. An integer beside the existing 'cards'; there is no
   // string in it, and nothing about it is derived from anything the reader typed.

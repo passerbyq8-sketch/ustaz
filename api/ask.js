@@ -2144,6 +2144,7 @@ export default async function handler(req, res) {
           truncatedMark: TRUNCATED_MARK,
           runtime: currentRuntime,
           continueWhenNotCovered: bw2ContinueDecision().enabled,
+          aiConsentVersion: req.headers?.['x-ezik-ai-consent'] || '',
           // SPEED W6B B5: the lessons block under the answer is the lessons it rests on (lib/finalized-sse-writer.js).
           onLessonRows: (rows) => { finalizerContext.lessonRows = rows; },
         });
@@ -2161,6 +2162,8 @@ export default async function handler(req, res) {
         });
         console.log('[bw2]', {
           bw2: t.bw2, runtime: currentRuntime, frame: answerFrame,
+          rerank_used: t.rerank_used || 0, rerank_ms: t.rerank_ms || 0, rerank_units: t.rerank_units || 0,
+          rerank_fallback_code: t.rerank_fallback_code || 0, rerank_timeouts: t.rerank_timeouts || 0, rerank_errors: t.rerank_errors || 0,
           fatwaMs: t.fatwaMs, fatwaHits: t.fatwaHits, fatwaTimedOut: t.fatwaTimedOut,
           fatwaVerifyMs: t.fatwaVerifyMs, fatwaSearchMs: t.fatwaSearchMs, fatwaMembers: t.fatwaMembers, fatwaLate: t.fatwaLate,
           libraryMs: t.libraryMs, libraryHits: t.libraryHits, libraryTimedOut: t.libraryTimedOut,
