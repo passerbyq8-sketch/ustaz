@@ -1,18 +1,12 @@
 {
-  "status": "FAILED",
-  "reason": "missing_key",
-  "completed": false,
-  "selectionRule": "Cheapest model with median precision@10 >= 0.8 and B2 >= lexical; cost ties: lower p90 latency. Otherwise best >= 0.7 is NEEDS_OWNER; otherwise FAILED. Unknown observations cannot pass the gate.",
-  "selectionRuleRecordedBeforeCalls": "EZIK-QAF-GAP-REPORT-D-2026-11-02.md, Step 4",
-  "selection": {
-    "model": null,
-    "card_min": null,
-    "reason": "No model has measured results. Required quality/cost selection cannot be evaluated."
-  },
-  "apiCalls": 0,
+  "status": "PRICE_REQUIRED",
+  "completed": true,
+  "selectionRule": "Choose the cheapest model with median precision@10 >= 0.8 and B2 precision@10 at least the lexical baseline. Break equal-cost ties by lower measured p90 latency. If none reaches 0.8, choose the best model reaching 0.7 and mark NEEDS_OWNER. If none reaches 0.7, mark FAILED and stop; do not execute later steps. Use the unchanged 450 candidates and committed R/P/X labels. Rejected API model names are recorded and excluded. No price or model result will be invented. Maximum calls: 40; model calls planned: 27 (nine questions for each of three models). Threshold: highest score among X candidates; only strictly greater scores can show a card.",
+  "selectionRuleRecordedBeforeCalls": "EZIK-QAF-GAP-REPORT-D-2026-11-02.md, Step 4; report E before live calls",
+  "apiCalls": 27,
   "apiCallLimit": 40,
-  "localMissingKeyChecks": 27,
-  "billedSearchUnits": 0,
+  "billedSearchUnits": 51,
+  "timeoutMs": 15000,
   "quantileMethod": "p90 nearest rank: ceil(0.90 * n); median arithmetic midpoint",
   "candidates": {
     "questions": 9,
@@ -21,7 +15,7 @@
     "sha256": "50eaf669240c275dc2439f93b05371750f8b2fdf2146e2cf3b93952a4d6404fc",
     "labelsSha256": "4cb28ab4031d4d8b65f423c83c30f6d3c3e1c0de7054cc5eb2bbb7b339aad291",
     "sourceIndexSha256": "c094d1267110224794a123858d062d1ab068aa3735d7422887154c6dc1111993",
-    "source": "Unchanged item-7-benchmark.mjs --prepare; every archived input hash and original ONNX candidate ID set verified.",
+    "archivedInputsVerified": 18,
     "limitations": "Expanded fatwa/library server indexes unavailable locally; local encyclopedia plus saved labeled retrieval passages only. R/P/X are provisional agent labels. No production provider, threshold or wiring selected."
   },
   "baselines": [
@@ -1904,7 +1898,7 @@
       "medianPrecisionAt10": 0.4,
       "medianMs": null,
       "p90Ms": null,
-      "latencyNote": "Not measured in item 7; no synthetic zero latency.",
+      "latencyNote": "Not measured in item 7; no synthetic zero.",
       "threshold": 20,
       "rule": "Strictly greater than the highest X score",
       "above": {
@@ -3809,7 +3803,7 @@
       "medianPrecisionAt10": 0.8,
       "medianMs": 16382.093599999993,
       "p90Ms": 71189.4405,
-      "latencyNote": "Unchanged item-7 measurements from this device; not rerun.",
+      "latencyNote": "Unchanged item-7 measurements from this device.",
       "threshold": 8.599318830143705,
       "rule": "Strictly greater than the highest X score",
       "above": {
@@ -3842,286 +3836,5757 @@
       "rows": [
         {
           "id": "a1",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 1542.6369,
+          "search_units": 2,
+          "precisionAt10": 0.8,
+          "ranking": [
+            {
+              "id": "qaf:a1:1fe324a9-14f3-5ef3-b645-cd2b4dc851e1",
+              "score": 9.1936076
+            },
+            {
+              "id": "qaf:a1:4342cc3e-9712-54cc-9d8f-029a1130e57a",
+              "score": 9.088853
+            },
+            {
+              "id": "qaf:a1:771bb3a0-952f-5806-b3e4-d0162ae11bfe",
+              "score": 9.079101699999999
+            },
+            {
+              "id": "qaf:a1:c2393446-5382-5e25-8f06-7d5a7ebc9255",
+              "score": 8.978479
+            },
+            {
+              "id": "qaf:a1:afdb5f6f-ab78-5b2b-ac2d-d059761befba",
+              "score": 8.9720124
+            },
+            {
+              "id": "qaf:a1:21b47aeb-a5f9-5b1e-a035-640c6994a89c",
+              "score": 8.893851
+            },
+            {
+              "id": "qaf:a1:9796b039-6c6a-5101-b4c7-b6ff17eda0ad",
+              "score": 8.851659
+            },
+            {
+              "id": "qaf:a1:9208095d-fc92-5016-aa91-e21d6837b403",
+              "score": 8.8178825
+            },
+            {
+              "id": "qaf:a1:b1e5b689-a518-59c8-9ccb-d289395e5ef3",
+              "score": 8.7981987
+            },
+            {
+              "id": "qaf:a1:db463408-2597-565a-91e2-e32f30eb4830",
+              "score": 8.7166095
+            },
+            {
+              "id": "qaf:a1:144c6a79-e860-5b51-a5f0-186cb1501b29",
+              "score": 8.6981434
+            },
+            {
+              "id": "qaf:a1:35d1a7c8-07ce-5ec1-b8ff-cbf75bb22932",
+              "score": 8.6331123
+            },
+            {
+              "id": "qaf:a1:fea02c33-9d51-563c-9b20-1d83b9383d6f",
+              "score": 8.524574000000001
+            },
+            {
+              "id": "ezik:a1#1",
+              "score": 8.399576
+            },
+            {
+              "id": "qaf:a1:b475afed-03f2-5fb0-b99c-7565759a7c4e",
+              "score": 8.1418616
+            },
+            {
+              "id": "qaf:a1:ff4234aa-5499-5b72-9e10-069544b77602",
+              "score": 8.1347597
+            },
+            {
+              "id": "ezik:a1#4",
+              "score": 8.1133276
+            },
+            {
+              "id": "encyc:F01173",
+              "score": 7.246564599999999
+            },
+            {
+              "id": "encyc:F01829",
+              "score": 4.7212428
+            },
+            {
+              "id": "encyc:F01852",
+              "score": 4.549328
+            },
+            {
+              "id": "encyc:F01860",
+              "score": 4.2448413
+            },
+            {
+              "id": "encyc:F00651",
+              "score": 3.884562
+            },
+            {
+              "id": "encyc:F00645",
+              "score": 3.8131228
+            },
+            {
+              "id": "encyc:F00590",
+              "score": 3.6792920000000002
+            },
+            {
+              "id": "encyc:F03066",
+              "score": 3.028759
+            },
+            {
+              "id": "encyc:F01818",
+              "score": 2.4425976
+            },
+            {
+              "id": "encyc:F02615",
+              "score": 2.2385216
+            },
+            {
+              "id": "encyc:F00035",
+              "score": 1.4032473
+            },
+            {
+              "id": "encyc:F02679",
+              "score": 1.3367536999999998
+            },
+            {
+              "id": "encyc:F00118",
+              "score": 1.22366056
+            },
+            {
+              "id": "encyc:F00976",
+              "score": 1.0415817
+            },
+            {
+              "id": "encyc:F00851",
+              "score": 0.9933926
+            },
+            {
+              "id": "encyc:F01698",
+              "score": 0.82882896
+            },
+            {
+              "id": "encyc:F01187",
+              "score": 0.7335714999999999
+            },
+            {
+              "id": "encyc:F00158",
+              "score": 0.7327752599999999
+            },
+            {
+              "id": "encyc:F02572",
+              "score": 0.6827002999999999
+            },
+            {
+              "id": "encyc:F02321",
+              "score": 0.6797248
+            },
+            {
+              "id": "encyc:F01664",
+              "score": 0.6716034999999999
+            },
+            {
+              "id": "encyc:F03011",
+              "score": 0.65995164
+            },
+            {
+              "id": "encyc:F00458",
+              "score": 0.62131695
+            },
+            {
+              "id": "encyc:F03032",
+              "score": 0.4773132
+            },
+            {
+              "id": "encyc:F00756",
+              "score": 0.47624897
+            },
+            {
+              "id": "encyc:F00514",
+              "score": 0.47306995999999996
+            },
+            {
+              "id": "encyc:F00785",
+              "score": 0.4463513
+            },
+            {
+              "id": "encyc:F01007",
+              "score": 0.3737261
+            },
+            {
+              "id": "encyc:F02273",
+              "score": 0.26986621
+            },
+            {
+              "id": "ezik:a1#3",
+              "score": 0.11047615999999999
+            },
+            {
+              "id": "ezik:a1#2",
+              "score": 0.11047615999999999
+            },
+            {
+              "id": "ezik:a1#5",
+              "score": 0.11047615999999999
+            },
+            {
+              "id": "ezik:a1#6",
+              "score": 0.11047615999999999
+            }
+          ]
         },
         {
           "id": "a2",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 627.4245000000001,
+          "search_units": 2,
+          "precisionAt10": 1,
+          "ranking": [
+            {
+              "id": "qaf:a2:625b4f8f-f6ac-545a-bd87-3e0d9b09f543",
+              "score": 9.4475573
+            },
+            {
+              "id": "ezik:a2#3",
+              "score": 9.4326943
+            },
+            {
+              "id": "qaf:a2:060c543b-a6c2-5c50-a8e7-61cf9989e310",
+              "score": 8.987045
+            },
+            {
+              "id": "qaf:a2:356ea7aa-720f-5033-9c16-91d26a8fe7ca",
+              "score": 8.790744
+            },
+            {
+              "id": "qaf:a2:ff89c916-401a-5cc2-9f3a-00ad0844ccca",
+              "score": 8.7807417
+            },
+            {
+              "id": "ezik:a2#1",
+              "score": 8.737439
+            },
+            {
+              "id": "qaf:a2:5d0139b1-7b8c-55c1-b71f-e79c0f2184cd",
+              "score": 8.591094
+            },
+            {
+              "id": "qaf:a2:a0f602de-3390-51af-8efd-5539a5fa78b8",
+              "score": 8.467682
+            },
+            {
+              "id": "qaf:a2:ec815d45-9bed-57f4-ab00-09e49f63398d",
+              "score": 8.46159
+            },
+            {
+              "id": "qaf:a2:7d99e1a0-5f38-54e5-ab6d-d95a377668b1",
+              "score": 8.455478
+            },
+            {
+              "id": "qaf:a2:12c3bbd4-0ad9-55fd-b388-7547ae9b28f6",
+              "score": 8.358191999999999
+            },
+            {
+              "id": "ezik:a2#6",
+              "score": 8.190992
+            },
+            {
+              "id": "qaf:a2:7b290077-758c-525b-88ce-1a2ef9218443",
+              "score": 7.999589
+            },
+            {
+              "id": "qaf:a2:57290597-0cc8-5145-a9ea-c9b2c1869c16",
+              "score": 7.942736
+            },
+            {
+              "id": "qaf:a2:341eac64-078e-59b7-815f-cd7370a225d8",
+              "score": 7.827459
+            },
+            {
+              "id": "qaf:a2:a8244260-b0ad-5d98-a28a-84125705a5f2",
+              "score": 7.6596165
+            },
+            {
+              "id": "qaf:a2:71f44af7-dd5f-5b95-a7df-22c2afd6d280",
+              "score": 7.3023266
+            },
+            {
+              "id": "qaf:a2:0fc8a652-535a-5797-84b2-4b96e4831fdc",
+              "score": 7.3000169999999995
+            },
+            {
+              "id": "qaf:a2:7e18cb45-a2a0-58e3-b70c-f8d55d2e06da",
+              "score": 7.077487
+            },
+            {
+              "id": "qaf:a2:6dec5f9b-4137-5f0f-8f2f-7819e33eff64",
+              "score": 6.991933
+            },
+            {
+              "id": "qaf:a2:62037973-e5b9-51bd-83ab-288b7f176684",
+              "score": 6.9746524
+            },
+            {
+              "id": "qaf:a2:5863cf6d-7673-59b4-b69f-36efa6d6c2d8",
+              "score": 6.773251
+            },
+            {
+              "id": "qaf:a2:5d1963cd-8408-5cf3-bbc6-4496c44ce09f",
+              "score": 6.675167
+            },
+            {
+              "id": "qaf:a2:6c947083-c8c2-5dc7-ab04-5e37312aba4a",
+              "score": 6.617704
+            },
+            {
+              "id": "qaf:a2:40a8daaf-322d-59b8-b9c8-0a8322fa2166",
+              "score": 6.216563000000001
+            },
+            {
+              "id": "qaf:a2:67e6ecc9-6cae-5e49-8811-09999e2b2d00",
+              "score": 6.200011399999999
+            },
+            {
+              "id": "qaf:a2:3842b6b2-f6bd-5145-8ccd-6a0a036e7b6a",
+              "score": 5.7952
+            },
+            {
+              "id": "encyc:F01576",
+              "score": 5.501488
+            },
+            {
+              "id": "encyc:F01031",
+              "score": 5.031499999999999
+            },
+            {
+              "id": "encyc:F01572",
+              "score": 4.3885794
+            },
+            {
+              "id": "encyc:F00371",
+              "score": 3.9173222
+            },
+            {
+              "id": "encyc:F00145",
+              "score": 3.8789952
+            },
+            {
+              "id": "encyc:F00027",
+              "score": 2.3317379
+            },
+            {
+              "id": "ezik:a2#4",
+              "score": 2.2003262
+            },
+            {
+              "id": "encyc:F01620",
+              "score": 2.1413255
+            },
+            {
+              "id": "encyc:F01843",
+              "score": 1.8225114
+            },
+            {
+              "id": "encyc:F01818",
+              "score": 1.7188005
+            },
+            {
+              "id": "encyc:F01445",
+              "score": 1.6426189
+            },
+            {
+              "id": "encyc:F00867",
+              "score": 1.6012181
+            },
+            {
+              "id": "encyc:F02123",
+              "score": 1.2407521000000001
+            },
+            {
+              "id": "encyc:F00465",
+              "score": 1.18273266
+            },
+            {
+              "id": "encyc:F00770",
+              "score": 1.0328664
+            },
+            {
+              "id": "encyc:F02997",
+              "score": 0.8395813400000001
+            },
+            {
+              "id": "encyc:F01180",
+              "score": 0.6745462000000001
+            },
+            {
+              "id": "encyc:F02853",
+              "score": 0.58544792
+            },
+            {
+              "id": "encyc:F01045",
+              "score": 0.41033677999999996
+            },
+            {
+              "id": "encyc:F02109",
+              "score": 0.40076166
+            },
+            {
+              "id": "encyc:F00783",
+              "score": 0.37668847
+            },
+            {
+              "id": "ezik:a2#2",
+              "score": 0.14482683999999998
+            },
+            {
+              "id": "ezik:a2#5",
+              "score": 0.14482683999999998
+            }
+          ]
         },
         {
           "id": "a3",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 632.5417000000002,
+          "search_units": 2,
+          "precisionAt10": 0.8,
+          "ranking": [
+            {
+              "id": "ezik:a3#3",
+              "score": 8.638634
+            },
+            {
+              "id": "qaf:a3:680e810a-8525-5b0d-8a71-978c94f534ac",
+              "score": 8.361405
+            },
+            {
+              "id": "qaf:a3:dfb65683-8d39-5acc-a5ef-d2a7944c19e6",
+              "score": 8.051581
+            },
+            {
+              "id": "qaf:a3:58069170-9434-5cd7-8c2a-9189e0280d1f",
+              "score": 7.485182
+            },
+            {
+              "id": "qaf:a3:5020a923-6814-5044-b89b-283add54114e",
+              "score": 7.478558400000001
+            },
+            {
+              "id": "qaf:a3:9a539106-9dc5-5174-b6a4-4713d429df24",
+              "score": 7.077487
+            },
+            {
+              "id": "qaf:a3:0a7b8b9d-4281-520a-aab1-e540b53582e1",
+              "score": 6.9049704
+            },
+            {
+              "id": "qaf:a3:d1227c90-c75b-58a9-aef7-2b189168dbbd",
+              "score": 6.892434
+            },
+            {
+              "id": "ezik:a3#5",
+              "score": 6.09455
+            },
+            {
+              "id": "qaf:a3:5b123fec-340b-5e11-82dc-07a6e78c36d2",
+              "score": 6.0161750000000005
+            },
+            {
+              "id": "qaf:a3:2b2eb4ce-491b-50ef-bb57-921442229225",
+              "score": 5.917474
+            },
+            {
+              "id": "qaf:a3:586dfca5-0b6a-5bff-9c29-c4651c11922a",
+              "score": 5.9089786
+            },
+            {
+              "id": "qaf:a3:f76075c3-5f7a-5c3a-a251-4a530921f565",
+              "score": 5.8664185
+            },
+            {
+              "id": "qaf:a3:e2cda786-e7ee-588b-8584-3cfa2a9d71b7",
+              "score": 5.735118
+            },
+            {
+              "id": "qaf:a3:82d4b862-b826-53ea-a11b-b4058a16918f",
+              "score": 5.443417999999999
+            },
+            {
+              "id": "qaf:a3:d28a44b8-c0fb-5349-85b3-f18a3e5c3b98",
+              "score": 5.437604
+            },
+            {
+              "id": "encyc:F02321",
+              "score": 4.9348235
+            },
+            {
+              "id": "qaf:a3:cbd93c94-4ea3-56fc-a923-60497252330e",
+              "score": 4.7767657
+            },
+            {
+              "id": "encyc:F01827",
+              "score": 3.8581482
+            },
+            {
+              "id": "ezik:a3#4",
+              "score": 2.7731440000000003
+            },
+            {
+              "id": "encyc:F00273",
+              "score": 2.5249046
+            },
+            {
+              "id": "encyc:F00590",
+              "score": 2.4850269
+            },
+            {
+              "id": "encyc:F02319",
+              "score": 2.4706931
+            },
+            {
+              "id": "encyc:F02318",
+              "score": 2.2144364999999997
+            },
+            {
+              "id": "encyc:F00560",
+              "score": 2.0711884
+            },
+            {
+              "id": "encyc:F00226",
+              "score": 2.0611033
+            },
+            {
+              "id": "encyc:F00869",
+              "score": 1.9383352
+            },
+            {
+              "id": "encyc:F00976",
+              "score": 1.7034262
+            },
+            {
+              "id": "encyc:F01841",
+              "score": 1.6984637
+            },
+            {
+              "id": "encyc:F01842",
+              "score": 1.5831774
+            },
+            {
+              "id": "encyc:F01858",
+              "score": 1.4039545
+            },
+            {
+              "id": "encyc:F00669",
+              "score": 1.3367536999999998
+            },
+            {
+              "id": "encyc:F00224",
+              "score": 1.3293073
+            },
+            {
+              "id": "encyc:F00356",
+              "score": 1.10155076
+            },
+            {
+              "id": "encyc:F02219",
+              "score": 1.0810440000000001
+            },
+            {
+              "id": "encyc:F00648",
+              "score": 0.97467884
+            },
+            {
+              "id": "encyc:F00674",
+              "score": 0.9431857
+            },
+            {
+              "id": "encyc:F00432",
+              "score": 0.9116359
+            },
+            {
+              "id": "encyc:F00982",
+              "score": 0.7990414
+            },
+            {
+              "id": "encyc:F00552",
+              "score": 0.7802913
+            },
+            {
+              "id": "encyc:F01207",
+              "score": 0.7710680000000001
+            },
+            {
+              "id": "encyc:F01227",
+              "score": 0.6924549000000001
+            },
+            {
+              "id": "encyc:F00843",
+              "score": 0.6295621
+            },
+            {
+              "id": "encyc:F00141",
+              "score": 0.54243922
+            },
+            {
+              "id": "encyc:F00881",
+              "score": 0.52235804
+            },
+            {
+              "id": "encyc:F01204",
+              "score": 0.42060263
+            },
+            {
+              "id": "ezik:a3#2",
+              "score": 0.13924864
+            },
+            {
+              "id": "ezik:a3#7",
+              "score": 0.13924864
+            },
+            {
+              "id": "ezik:a3#1",
+              "score": 0.13924864
+            },
+            {
+              "id": "ezik:a3#6",
+              "score": 0.13924864
+            }
+          ]
         },
         {
           "id": "b1",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 676.2698,
+          "search_units": 2,
+          "precisionAt10": 0.9,
+          "ranking": [
+            {
+              "id": "qaf:b1:7edead1f-6345-5cb7-b1d7-26e7a980a153",
+              "score": 8.488849
+            },
+            {
+              "id": "qaf:b1:86c3ccd1-85c8-5a2c-adde-6d63fc5d1b33",
+              "score": 8.170061
+            },
+            {
+              "id": "qaf:b1:dc93d251-1f5c-567a-bb2b-a281e7fae7f5",
+              "score": 8.1204927
+            },
+            {
+              "id": "qaf:b1:0ecc6387-4082-5ec2-b68e-5a003b85dc4b",
+              "score": 8.095324
+            },
+            {
+              "id": "qaf:b1:b52ce681-9372-5f80-8d81-3ba78aff7f12",
+              "score": 8.0735475
+            },
+            {
+              "id": "qaf:b1:b9796be1-8997-5595-8a59-da92238cdc9d",
+              "score": 7.619465600000001
+            },
+            {
+              "id": "qaf:b1:13419e61-01bd-5b91-a7b7-013a1732a176",
+              "score": 7.608822
+            },
+            {
+              "id": "qaf:b1:8a9d69b6-b984-548c-862e-bea2439d3109",
+              "score": 7.4697095000000004
+            },
+            {
+              "id": "qaf:b1:d6074a06-b650-5c48-87cd-36adfac58752",
+              "score": 7.065353
+            },
+            {
+              "id": "qaf:b1:61557126-a587-56fd-b0e5-bae231e0f74c",
+              "score": 6.972179
+            },
+            {
+              "id": "qaf:b1:39c89db1-efe8-5d78-a796-0bf979975078",
+              "score": 6.9024646
+            },
+            {
+              "id": "qaf:b1:9f4a96a5-544d-5e5b-8194-50e0c08c39c7",
+              "score": 6.7911535999999995
+            },
+            {
+              "id": "ezik:b1#1",
+              "score": 6.2742686
+            },
+            {
+              "id": "ezik:b1#2",
+              "score": 6.0105569999999995
+            },
+            {
+              "id": "qaf:b1:929b24af-816d-5e18-a361-29ee11332fdf",
+              "score": 5.4724693
+            },
+            {
+              "id": "qaf:b1:226fbd5f-b8dc-5a1f-8ac4-bbcd1cf7ad1d",
+              "score": 5.4201555
+            },
+            {
+              "id": "qaf:b1:01cd0af9-6747-5c8a-afec-41f56102f7ca",
+              "score": 5.3895956
+            },
+            {
+              "id": "encyc:F00175",
+              "score": 2.0206541
+            },
+            {
+              "id": "encyc:F02723",
+              "score": 1.2503357000000002
+            },
+            {
+              "id": "encyc:F00138",
+              "score": 1.1347171999999999
+            },
+            {
+              "id": "encyc:F00137",
+              "score": 0.78113474
+            },
+            {
+              "id": "encyc:F01171",
+              "score": 0.6977604
+            },
+            {
+              "id": "encyc:F00139",
+              "score": 0.59982073
+            },
+            {
+              "id": "encyc:F00216",
+              "score": 0.5589021000000001
+            },
+            {
+              "id": "encyc:F00344",
+              "score": 0.43548564999999995
+            },
+            {
+              "id": "encyc:F00833",
+              "score": 0.42774238
+            },
+            {
+              "id": "encyc:F00379",
+              "score": 0.4253497
+            },
+            {
+              "id": "encyc:F00655",
+              "score": 0.41311260000000005
+            },
+            {
+              "id": "encyc:F00271",
+              "score": 0.40438388
+            },
+            {
+              "id": "encyc:F00585",
+              "score": 0.40211637
+            },
+            {
+              "id": "encyc:F00923",
+              "score": 0.37078608
+            },
+            {
+              "id": "encyc:F00555",
+              "score": 0.35843626000000006
+            },
+            {
+              "id": "encyc:F00181",
+              "score": 0.35601425999999997
+            },
+            {
+              "id": "encyc:F00467",
+              "score": 0.3456999
+            },
+            {
+              "id": "encyc:F00801",
+              "score": 0.32889787
+            },
+            {
+              "id": "encyc:F01831",
+              "score": 0.3277815
+            },
+            {
+              "id": "encyc:F02565",
+              "score": 0.31430992999999996
+            },
+            {
+              "id": "encyc:F00888",
+              "score": 0.31430992999999996
+            },
+            {
+              "id": "encyc:F00681",
+              "score": 0.29695367
+            },
+            {
+              "id": "encyc:F00850",
+              "score": 0.29359564
+            },
+            {
+              "id": "encyc:F00105",
+              "score": 0.29093578
+            },
+            {
+              "id": "encyc:F01612",
+              "score": 0.28438793
+            },
+            {
+              "id": "encyc:F00686",
+              "score": 0.28309563
+            },
+            {
+              "id": "encyc:F00851",
+              "score": 0.27735045
+            },
+            {
+              "id": "encyc:F00314",
+              "score": 0.2717187
+            },
+            {
+              "id": "encyc:F00925",
+              "score": 0.26741542
+            },
+            {
+              "id": "encyc:F01851",
+              "score": 0.26257854
+            },
+            {
+              "id": "encyc:F03018",
+              "score": 0.25782676
+            },
+            {
+              "id": "encyc:F00756",
+              "score": 0.22944555
+            },
+            {
+              "id": "ezik:b1#3",
+              "score": 0.14217492
+            }
+          ]
         },
         {
           "id": "b2",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 678.6172000000001,
+          "search_units": 2,
+          "precisionAt10": 1,
+          "ranking": [
+            {
+              "id": "qaf:b2:ad9e0528-b989-530e-aa1e-fc91a5713ba5",
+              "score": 9.0849644
+            },
+            {
+              "id": "ezik:b2#2",
+              "score": 9.0830135
+            },
+            {
+              "id": "qaf:b2:d36d434c-75e4-5643-bb69-7d1326e541c5",
+              "score": 8.967680999999999
+            },
+            {
+              "id": "ezik:b2#1",
+              "score": 8.9545894
+            },
+            {
+              "id": "qaf:b2:cc7c88db-7264-52f8-9a09-42f630a59302",
+              "score": 8.861155
+            },
+            {
+              "id": "qaf:b2:234a3dcf-8ed1-5477-bc22-bd8abc4f45f9",
+              "score": 8.700796
+            },
+            {
+              "id": "qaf:b2:c02d1256-270d-52bb-bb7a-44bf3c27da7e",
+              "score": 8.630343700000001
+            },
+            {
+              "id": "qaf:b2:59d7e6d3-5781-5431-9b78-b7a8a8da8088",
+              "score": 8.5216236
+            },
+            {
+              "id": "qaf:b2:c13a4824-e756-5798-aaa7-4368bbb64ee7",
+              "score": 8.488849
+            },
+            {
+              "id": "qaf:b2:120ccf8e-3a7b-5200-98d5-7e0ea2d77cbf",
+              "score": 8.3290404
+            },
+            {
+              "id": "qaf:b2:b3cf6a7e-dacf-5f7b-8881-154f7a0d1310",
+              "score": 8.156003
+            },
+            {
+              "id": "qaf:b2:f109c1b3-5325-51b8-8087-3f1976bcf1df",
+              "score": 8.1524754
+            },
+            {
+              "id": "qaf:b2:1601cb58-ee02-5fc4-ba0f-718d4e1cdfda",
+              "score": 8.127637
+            },
+            {
+              "id": "qaf:b2:9220d79a-ce71-5e1d-b841-56bbe9c2831b",
+              "score": 7.823471
+            },
+            {
+              "id": "qaf:b2:df73570a-3434-584e-9e61-8cb4e5fc7669",
+              "score": 7.779251299999999
+            },
+            {
+              "id": "qaf:b2:4a0d4d8d-d739-5eb9-827e-3c4fd2d3b5b8",
+              "score": 6.919976500000001
+            },
+            {
+              "id": "qaf:b2:a10d5949-2eb5-574d-93c8-f0bd062a1709",
+              "score": 6.656936399999999
+            },
+            {
+              "id": "encyc:F00615",
+              "score": 1.3772976000000001
+            },
+            {
+              "id": "encyc:F00667",
+              "score": 0.7061741
+            },
+            {
+              "id": "encyc:F00947",
+              "score": 0.6985216
+            },
+            {
+              "id": "encyc:F00327",
+              "score": 0.6947241999999999
+            },
+            {
+              "id": "encyc:F00934",
+              "score": 0.6449435000000001
+            },
+            {
+              "id": "encyc:F01931",
+              "score": 0.6337227
+            },
+            {
+              "id": "encyc:F01512",
+              "score": 0.6206343999999999
+            },
+            {
+              "id": "encyc:F01095",
+              "score": 0.61452325
+            },
+            {
+              "id": "encyc:F01750",
+              "score": 0.59982073
+            },
+            {
+              "id": "encyc:F01296",
+              "score": 0.5620018999999999
+            },
+            {
+              "id": "encyc:F00678",
+              "score": 0.53884324
+            },
+            {
+              "id": "encyc:F01099",
+              "score": 0.5358639
+            },
+            {
+              "id": "encyc:F00806",
+              "score": 0.5299517
+            },
+            {
+              "id": "encyc:F00223",
+              "score": 0.51201314
+            },
+            {
+              "id": "encyc:F00748",
+              "score": 0.5097407
+            },
+            {
+              "id": "encyc:F00655",
+              "score": 0.50410144
+            },
+            {
+              "id": "encyc:F01488",
+              "score": 0.50298072
+            },
+            {
+              "id": "encyc:F00981",
+              "score": 0.48320666
+            },
+            {
+              "id": "encyc:F01191",
+              "score": 0.46991114
+            },
+            {
+              "id": "encyc:F01184",
+              "score": 0.45339987
+            },
+            {
+              "id": "encyc:F00023",
+              "score": 0.45137525
+            },
+            {
+              "id": "encyc:F00997",
+              "score": 0.44735186000000005
+            },
+            {
+              "id": "encyc:F01261",
+              "score": 0.4463513
+            },
+            {
+              "id": "encyc:F01506",
+              "score": 0.42726286
+            },
+            {
+              "id": "encyc:F01111",
+              "score": 0.4263052
+            },
+            {
+              "id": "encyc:F01158",
+              "score": 0.42060263
+            },
+            {
+              "id": "encyc:F01928",
+              "score": 0.41871804999999995
+            },
+            {
+              "id": "encyc:F00957",
+              "score": 0.4173098
+            },
+            {
+              "id": "encyc:F00131",
+              "score": 0.39096042999999997
+            },
+            {
+              "id": "encyc:F01269",
+              "score": 0.38658164
+            },
+            {
+              "id": "encyc:F01574",
+              "score": 0.38571152999999997
+            },
+            {
+              "id": "encyc:F01530",
+              "score": 0.32629862000000004
+            },
+            {
+              "id": "ezik:b2#3",
+              "score": 0.24462726
+            }
+          ]
         },
         {
           "id": "b3",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 586.6566000000003,
+          "search_units": 2,
+          "precisionAt10": 0.2,
+          "ranking": [
+            {
+              "id": "qaf:b3:4848d239-20af-5c03-b282-2809605174f6",
+              "score": 9.2715925
+            },
+            {
+              "id": "qaf:b3:1dbd3390-4b61-597a-b217-9bb77692158c",
+              "score": 9.2491204
+            },
+            {
+              "id": "qaf:b3:34ff3a8d-f2e2-52ae-a6a8-0bc10a3c290c",
+              "score": 9.224337
+            },
+            {
+              "id": "qaf:b3:0c8306ac-a555-5361-8604-1c3a78c6eab3",
+              "score": 9.222657
+            },
+            {
+              "id": "qaf:b3:f22b01d8-a64d-52cc-b6d5-df3d80cb4094",
+              "score": 9.1813606
+            },
+            {
+              "id": "qaf:b3:a3694f93-b2a7-5081-9d5c-35b18ba45b46",
+              "score": 9.177831
+            },
+            {
+              "id": "qaf:b3:5355ef28-7841-5b23-9849-7952ee5a50ef",
+              "score": 9.154544999999999
+            },
+            {
+              "id": "qaf:b3:72bf9b95-079a-5a53-bf3a-edcb67ed8d77",
+              "score": 9.104262
+            },
+            {
+              "id": "qaf:b3:333e2462-032e-55d2-acae-8a4afd1587dc",
+              "score": 9.079101699999999
+            },
+            {
+              "id": "qaf:b3:62127b7b-47a0-5776-a460-bd3745b5c81d",
+              "score": 9.079101699999999
+            },
+            {
+              "id": "qaf:b3:2f08a231-a92e-5dcc-b3bf-fed9c8413e30",
+              "score": 9.018604
+            },
+            {
+              "id": "qaf:b3:c55841d7-c935-55af-aaa0-02a806601597",
+              "score": 9.0123636
+            },
+            {
+              "id": "qaf:b3:eae21270-c52b-522b-af24-0bd2aa4247a6",
+              "score": 9.0018827
+            },
+            {
+              "id": "qaf:b3:2ec8f23d-29fc-5823-bec5-a08151d0cc39",
+              "score": 8.98277
+            },
+            {
+              "id": "ezik:b3#1",
+              "score": 8.934678
+            },
+            {
+              "id": "qaf:b3:fb885b42-f236-545a-a629-7f0eecda8179",
+              "score": 8.9189607
+            },
+            {
+              "id": "qaf:b3:1bbf029c-25d2-551b-b748-e9d849c8aaf4",
+              "score": 8.868231
+            },
+            {
+              "id": "qaf:b3:a4c61a46-1e7d-5e47-8628-aff2376ddbd9",
+              "score": 8.820324000000001
+            },
+            {
+              "id": "qaf:b3:e47359e1-f2af-5a53-9a9a-92c66bafd00f",
+              "score": 8.7706697
+            },
+            {
+              "id": "qaf:b3:da719cd8-faeb-5f74-af7c-b3d2ac3ca1e7",
+              "score": 8.747745
+            },
+            {
+              "id": "qaf:b3:3c9067d7-f3d7-54c6-aaf9-455bd7f67fe6",
+              "score": 8.724454999999999
+            },
+            {
+              "id": "qaf:b3:8dd3ea2b-e82b-516c-8626-8bb5c91243e2",
+              "score": 8.719228999999999
+            },
+            {
+              "id": "qaf:b3:1ca01b95-e1b2-5ffd-9cb2-f08b3f5953c2",
+              "score": 8.700796
+            },
+            {
+              "id": "qaf:b3:993248d5-98de-50c4-884c-b6585a0dc21c",
+              "score": 8.684817
+            },
+            {
+              "id": "qaf:b3:9246e56d-d2a7-5372-a1ea-664ffe959de1",
+              "score": 8.624794
+            },
+            {
+              "id": "qaf:b3:39f8c7f7-fcd2-5775-8f0f-64c8bab4544b",
+              "score": 8.616433
+            },
+            {
+              "id": "qaf:b3:b4be3b3c-662e-5193-8854-7d8604078ebf",
+              "score": 8.527519999999999
+            },
+            {
+              "id": "qaf:b3:0d319669-804d-5f60-9051-ff0c9eb939a9",
+              "score": 8.449346
+            },
+            {
+              "id": "qaf:b3:ac199e23-cd36-5e0c-8d05-fbc7bb6bae95",
+              "score": 8.319231
+            },
+            {
+              "id": "qaf:b3:d81ca66c-e62e-50ba-8a8f-3ec62c54cb86",
+              "score": 8.296166
+            },
+            {
+              "id": "qaf:b3:2ba5964f-c451-55a1-bdbb-153802b23263",
+              "score": 8.215175
+            },
+            {
+              "id": "ezik:b3#3",
+              "score": 8.080827000000001
+            },
+            {
+              "id": "encyc:F00422",
+              "score": 3.9831336999999998
+            },
+            {
+              "id": "encyc:F00449",
+              "score": 3.110087
+            },
+            {
+              "id": "encyc:F02465",
+              "score": 2.5491032000000002
+            },
+            {
+              "id": "encyc:F02288",
+              "score": 2.4535654
+            },
+            {
+              "id": "encyc:F02289",
+              "score": 2.3014928
+            },
+            {
+              "id": "encyc:F00283",
+              "score": 2.2400492
+            },
+            {
+              "id": "encyc:F01791",
+              "score": 1.8177135
+            },
+            {
+              "id": "encyc:F02287",
+              "score": 1.5338454000000001
+            },
+            {
+              "id": "encyc:F00450",
+              "score": 1.4288872
+            },
+            {
+              "id": "encyc:F01704",
+              "score": 1.1987123
+            },
+            {
+              "id": "encyc:F02294",
+              "score": 0.9381921999999999
+            },
+            {
+              "id": "encyc:F00284",
+              "score": 0.8323991
+            },
+            {
+              "id": "encyc:F00027",
+              "score": 0.8007662999999999
+            },
+            {
+              "id": "encyc:F02291",
+              "score": 0.6261143
+            },
+            {
+              "id": "encyc:F00559",
+              "score": 0.52819017
+            },
+            {
+              "id": "ezik:b3#4",
+              "score": 0.15521277
+            },
+            {
+              "id": "ezik:b3#5",
+              "score": 0.15521277
+            },
+            {
+              "id": "ezik:b3#2",
+              "score": 0.15521277
+            }
+          ]
         },
         {
           "id": "c1",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 628.1318000000001,
+          "search_units": 2,
+          "precisionAt10": 0.3,
+          "ranking": [
+            {
+              "id": "qaf:c1:9119058f-aa1a-51fd-a24c-3b500e7adddb",
+              "score": 8.5186684
+            },
+            {
+              "id": "qaf:c1:90a7fe01-192f-563c-8660-b049d19c246b",
+              "score": 7.931224
+            },
+            {
+              "id": "qaf:c1:8471f24b-276d-5698-adb8-895dc35e623c",
+              "score": 7.8314424
+            },
+            {
+              "id": "qaf:c1:5747a155-0927-5998-9003-6e2fabd04764",
+              "score": 7.785319
+            },
+            {
+              "id": "qaf:c1:d0a6bc4a-00eb-5b3f-a314-1946249b913a",
+              "score": 7.6152116
+            },
+            {
+              "id": "qaf:c1:c19cdf5a-a6ba-5f8b-b2d8-8a36f7c71412",
+              "score": 7.5464433
+            },
+            {
+              "id": "qaf:c1:f61f5681-da88-573c-b4bf-bd0327f67076",
+              "score": 7.52468
+            },
+            {
+              "id": "qaf:c1:6a15ab5a-afac-55cc-8af5-56e0ea4cd118",
+              "score": 7.5181264
+            },
+            {
+              "id": "qaf:c1:94b02e50-c1d0-59d1-b5f3-b9195b6e2401",
+              "score": 7.422914499999999
+            },
+            {
+              "id": "ezik:c1#2",
+              "score": 7.3868835
+            },
+            {
+              "id": "qaf:c1:e5467bd2-3684-547c-9cf1-deb5b41d5126",
+              "score": 7.1425
+            },
+            {
+              "id": "qaf:c1:c30d581e-7eca-5b55-b0e1-1e09c388d825",
+              "score": 7.1377134
+            },
+            {
+              "id": "ezik:c1#1",
+              "score": 7.1257280000000005
+            },
+            {
+              "id": "qaf:c1:bc5a056b-ae23-579e-b80d-f1c110655c44",
+              "score": 7.077487
+            },
+            {
+              "id": "qaf:c1:174e046e-d801-5fd1-a86e-e8e67c01c9da",
+              "score": 7.0580584
+            },
+            {
+              "id": "qaf:c1:ab979ff9-b1e0-5ac9-bb2b-2f2a812ab7e5",
+              "score": 6.9845337
+            },
+            {
+              "id": "qaf:c1:6aa70228-0ed6-5d8e-b9d7-26d9e26c6a5c",
+              "score": 6.867278
+            },
+            {
+              "id": "qaf:c1:3bf41528-db72-5b30-85a9-cdc0f4014bfe",
+              "score": 6.8318754
+            },
+            {
+              "id": "qaf:c1:e78eadd4-ef2f-532e-a086-f1b49f1b648b",
+              "score": 6.8090034
+            },
+            {
+              "id": "qaf:c1:da3d8ec3-60a2-5fdc-8431-cf36c616c024",
+              "score": 6.633424
+            },
+            {
+              "id": "qaf:c1:afe9d59e-ce5b-56bd-b449-1238e8939b67",
+              "score": 6.6255690000000005
+            },
+            {
+              "id": "qaf:c1:eb8bf0f2-a063-5c02-9040-0de7d73f06e4",
+              "score": 6.607203999999999
+            },
+            {
+              "id": "qaf:c1:07b71d69-6749-5c1a-9b7f-6ecd1ec890f3",
+              "score": 6.498681299999999
+            },
+            {
+              "id": "qaf:c1:7485c44a-8c64-5252-b4b0-542742ac70c8",
+              "score": 6.442480000000001
+            },
+            {
+              "id": "qaf:c1:9a305f0f-a2b4-5a12-9d2e-1d4cbb6c28c4",
+              "score": 6.4020914
+            },
+            {
+              "id": "qaf:c1:4f14fd4d-4e39-5777-8bd3-27de8b28e442",
+              "score": 6.213807
+            },
+            {
+              "id": "encyc:F00109",
+              "score": 5.8806199999999995
+            },
+            {
+              "id": "qaf:c1:8bcc87b6-9fe3-57ed-9e17-63340c333cdc",
+              "score": 5.737984000000001
+            },
+            {
+              "id": "qaf:c1:217f8a87-030f-5082-bef0-49786671823f",
+              "score": 5.7322514
+            },
+            {
+              "id": "encyc:F00430",
+              "score": 5.4594
+            },
+            {
+              "id": "encyc:F00838",
+              "score": 4.9655825
+            },
+            {
+              "id": "qaf:c1:232724cc-4c78-5924-ab55-14fa6852fcc6",
+              "score": 4.8162505
+            },
+            {
+              "id": "encyc:F01501",
+              "score": 4.6264356
+            },
+            {
+              "id": "encyc:F00907",
+              "score": 4.4622982
+            },
+            {
+              "id": "encyc:F02294",
+              "score": 4.4015694
+            },
+            {
+              "id": "qaf:c1:d563cd3e-dfda-56db-8f82-508630c655e8",
+              "score": 4.3770394
+            },
+            {
+              "id": "encyc:F00823",
+              "score": 4.2448413
+            },
+            {
+              "id": "encyc:F02246",
+              "score": 4.221955
+            },
+            {
+              "id": "qaf:c1:e88cd90c-0d01-595e-9c91-443b62aea0b2",
+              "score": 4.1948205
+            },
+            {
+              "id": "ezik:c1#3",
+              "score": 3.8762133999999997
+            },
+            {
+              "id": "encyc:F00514",
+              "score": 2.1559048
+            },
+            {
+              "id": "encyc:F01529",
+              "score": 2.0149915
+            },
+            {
+              "id": "encyc:F01502",
+              "score": 2.0051105
+            },
+            {
+              "id": "encyc:F00420",
+              "score": 1.7393301
+            },
+            {
+              "id": "encyc:F00112",
+              "score": 1.0108272999999999
+            },
+            {
+              "id": "encyc:F02652",
+              "score": 0.9371965
+            },
+            {
+              "id": "encyc:F00783",
+              "score": 0.65419644
+            },
+            {
+              "id": "encyc:F00937",
+              "score": 0.61791133
+            },
+            {
+              "id": "encyc:F00967",
+              "score": 0.56386963
+            },
+            {
+              "id": "encyc:F02389",
+              "score": 0.53764965
+            }
+          ]
         },
         {
           "id": "c2",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 568.6868000000004,
+          "search_units": 1,
+          "precisionAt10": 0.6,
+          "ranking": [
+            {
+              "id": "qaf:c2:e23af82d-38d6-50e6-9476-a617d1ea9b79",
+              "score": 8.201387
+            },
+            {
+              "id": "ezik:c2#1",
+              "score": 8.095324
+            },
+            {
+              "id": "qaf:c2:9ecfe5b2-3848-58b0-9472-79b70f129ff7",
+              "score": 8.0405265
+            },
+            {
+              "id": "qaf:c2:29196427-c68c-5a4b-a46b-43bcd28d129e",
+              "score": 7.785319
+            },
+            {
+              "id": "qaf:c2:1f90d78a-9b96-5f48-a2af-ace729231658",
+              "score": 7.769112
+            },
+            {
+              "id": "qaf:c2:318f611b-8063-5ca8-97b9-05ee957f8b13",
+              "score": 7.724109
+            },
+            {
+              "id": "qaf:c2:d4c415a1-ed9f-50bb-a1dd-8d931f63b258",
+              "score": 7.6279575
+            },
+            {
+              "id": "qaf:c2:cef954c7-59ce-5e2f-a473-1194d793c141",
+              "score": 7.6152116
+            },
+            {
+              "id": "qaf:c2:6962fb3f-d6c5-53c0-bfe6-9b74e502b09c",
+              "score": 7.610953
+            },
+            {
+              "id": "qaf:c2:96639307-a3c0-53f1-ba25-bbe3c890bd24",
+              "score": 7.570233
+            },
+            {
+              "id": "qaf:c2:c9dd6874-6c64-57f4-a533-321d07336234",
+              "score": 7.5659186
+            },
+            {
+              "id": "qaf:c2:2dfe0c8c-26ca-52f0-9f97-f9771846fa1d",
+              "score": 7.5464433
+            },
+            {
+              "id": "qaf:c2:e830994f-b7ef-55ba-b3cb-c451315ea584",
+              "score": 7.5181264
+            },
+            {
+              "id": "qaf:c2:ca7ff105-93df-5e04-aba4-278905eaf731",
+              "score": 7.507177
+            },
+            {
+              "id": "qaf:c2:d3eddde6-e4bb-5462-bee2-4c5c936cf482",
+              "score": 7.393665
+            },
+            {
+              "id": "qaf:c2:e73e56cd-72a1-5b68-a647-155d77025dd9",
+              "score": 7.34139
+            },
+            {
+              "id": "qaf:c2:201ec678-0068-5875-8773-3d196e846711",
+              "score": 7.269885499999999
+            },
+            {
+              "id": "qaf:c2:e888e3c4-a80c-569e-a412-76edb5df7302",
+              "score": 7.237202
+            },
+            {
+              "id": "qaf:c2:0b75df24-f380-5105-8928-e40a3eaef2aa",
+              "score": 7.208996
+            },
+            {
+              "id": "qaf:c2:63e8020c-66bd-50ab-abad-1ce96d677458",
+              "score": 7.187726
+            },
+            {
+              "id": "qaf:c2:809526c7-1936-5b01-95ca-538cdbb99a9b",
+              "score": 7.1472809999999996
+            },
+            {
+              "id": "qaf:c2:12f7df83-d609-5126-b0fb-699383310be8",
+              "score": 7.077487
+            },
+            {
+              "id": "qaf:c2:6976889c-fb05-5b34-8f2a-83199153fc34",
+              "score": 7.0580584
+            },
+            {
+              "id": "qaf:c2:b9e31e32-1ce7-5c3f-86df-8aa0a9270ed1",
+              "score": 6.989468
+            },
+            {
+              "id": "encyc:F00500",
+              "score": 6.816637
+            },
+            {
+              "id": "qaf:c2:c1fc5c4c-ba5e-506c-b402-c7cc05bdabcd",
+              "score": 6.8090034
+            },
+            {
+              "id": "qaf:c2:1c45f973-8a58-5b49-a4a6-18ddff9fed5c",
+              "score": 6.765563
+            },
+            {
+              "id": "qaf:c2:c50584ef-9247-5608-8ab3-dfeb887bbc0a",
+              "score": 6.701125
+            },
+            {
+              "id": "qaf:c2:e7649efc-9fe8-52ec-9987-540cadafa938",
+              "score": 6.551821
+            },
+            {
+              "id": "qaf:c2:ebbfa419-2033-5ed0-af84-1506ac138ddc",
+              "score": 6.43173
+            },
+            {
+              "id": "qaf:c2:76450032-0674-595e-baf2-c1e0e7835ab5",
+              "score": 6.345212500000001
+            },
+            {
+              "id": "qaf:c2:4290e37f-881c-5d82-b26b-9cc072ca8d4c",
+              "score": 6.29889
+            },
+            {
+              "id": "qaf:c2:75800b17-6a6e-5d7e-99dd-82297fa965c0",
+              "score": 6.293424399999999
+            },
+            {
+              "id": "qaf:c2:dbbd3b4d-d46e-53cd-a31b-ebe4f0f41430",
+              "score": 6.2824833
+            },
+            {
+              "id": "qaf:c2:5bd67698-0faf-5128-bbb0-3515e418f8d6",
+              "score": 6.230334600000001
+            },
+            {
+              "id": "qaf:c2:3ed1ca1c-da32-5529-9972-7e9e6f0179e0",
+              "score": 5.9993110000000005
+            },
+            {
+              "id": "encyc:F01936",
+              "score": 5.917474
+            },
+            {
+              "id": "qaf:c2:5acb9101-0fe9-5323-b754-9489fb5cf931",
+              "score": 5.9061456
+            },
+            {
+              "id": "qaf:c2:7e2c0a0d-42ec-5572-8359-7ee161fd4c41",
+              "score": 5.843666
+            },
+            {
+              "id": "ezik:c2#3",
+              "score": 5.737984000000001
+            },
+            {
+              "id": "qaf:c2:72b15aeb-fc5b-5deb-9176-1fb2c32870b8",
+              "score": 5.694941999999999
+            },
+            {
+              "id": "qaf:c2:d4f78349-d1a7-52be-907a-79a4180d8c4d",
+              "score": 5.0461469999999995
+            },
+            {
+              "id": "qaf:c2:e9fe15da-56e8-57da-91de-dff18aa56d57",
+              "score": 4.9611887
+            },
+            {
+              "id": "ezik:c2#2",
+              "score": 4.197674699999999
+            },
+            {
+              "id": "qaf:c2:766975cd-f95d-56e7-886c-840f78d0339e",
+              "score": 3.2063029999999997
+            },
+            {
+              "id": "qaf:c2:7395a8cd-4d20-5233-b992-d670ce51a2a2",
+              "score": 3.0878446
+            },
+            {
+              "id": "encyc:F01575",
+              "score": 0.8279386
+            },
+            {
+              "id": "ezik:c2#5",
+              "score": 0.11953048000000001
+            },
+            {
+              "id": "ezik:c2#4",
+              "score": 0.11953048000000001
+            },
+            {
+              "id": "ezik:c2#6",
+              "score": 0.11953048000000001
+            }
+          ]
         },
         {
           "id": "c3",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 676.1768999999995,
+          "search_units": 2,
+          "precisionAt10": 0.7,
+          "ranking": [
+            {
+              "id": "qaf:c3:fa785ea5-c0af-5e55-9058-d788fb61a0f2",
+              "score": 8.593928
+            },
+            {
+              "id": "qaf:c3:0a72c649-f83f-51c2-a46d-8133279182c7",
+              "score": 8.548001
+            },
+            {
+              "id": "qaf:c3:2c737357-fd3a-56cd-a22e-36f0d29152f7",
+              "score": 8.467682
+            },
+            {
+              "id": "qaf:c3:da298e04-a8ca-5cac-99cd-1b86a6637ca2",
+              "score": 8.3710164
+            },
+            {
+              "id": "qaf:c3:437224e8-e0a7-5f1a-8934-c57e67494f67",
+              "score": 8.156003
+            },
+            {
+              "id": "qaf:c3:b32d2455-3175-5869-b844-9e1016d4745e",
+              "score": 8.058924
+            },
+            {
+              "id": "qaf:c3:25a0e5e6-9755-58ac-aba1-b6a1b230bac4",
+              "score": 8.055255
+            },
+            {
+              "id": "qaf:c3:f24916c5-d74d-51a7-bd67-8f53f1947ed5",
+              "score": 8.025714
+            },
+            {
+              "id": "qaf:c3:35cbd62c-b07a-5707-affc-3832c9029365",
+              "score": 7.969415
+            },
+            {
+              "id": "qaf:c3:84c2fc0d-4c4f-51b1-a4f8-3fb68f99a667",
+              "score": 7.915799
+            },
+            {
+              "id": "qaf:c3:a9706faa-ae38-58cd-938c-3d4e0e986348",
+              "score": 7.878825699999999
+            },
+            {
+              "id": "qaf:c3:72bb69fc-a1b2-578b-9e1e-4d190b3bbf4d",
+              "score": 7.869018
+            },
+            {
+              "id": "qaf:c3:240b1cc1-d3d7-5ff3-a180-d41099ce8b10",
+              "score": 7.771143
+            },
+            {
+              "id": "qaf:c3:864ffcd9-6308-5b51-b358-60c57842d3d1",
+              "score": 7.728226
+            },
+            {
+              "id": "qaf:c3:cfb89e46-c929-5a97-b9a1-d7299de3b4a3",
+              "score": 7.686815999999999
+            },
+            {
+              "id": "qaf:c3:4c648897-7c78-5ee7-bc58-cd4af70d0cc7",
+              "score": 7.6680079999999995
+            },
+            {
+              "id": "qaf:c3:df14f935-f67f-5157-b18b-f8f968c1b045",
+              "score": 7.640656
+            },
+            {
+              "id": "qaf:c3:6df14daf-f0ae-54c3-a0dc-25370d0048ec",
+              "score": 7.619465600000001
+            },
+            {
+              "id": "qaf:c3:143f497b-99fd-588a-9e1b-0b60e406a6ce",
+              "score": 7.533401
+            },
+            {
+              "id": "qaf:c3:bab8ed17-304f-52f0-b057-97049fced901",
+              "score": 7.522497
+            },
+            {
+              "id": "qaf:c3:8a0d4a69-51ce-5b6d-a115-64a3b3794354",
+              "score": 7.4273956
+            },
+            {
+              "id": "ezik:c3#3",
+              "score": 7.409441
+            },
+            {
+              "id": "qaf:c3:d7c9cf6a-7581-563f-baba-38c924159797",
+              "score": 7.40494
+            },
+            {
+              "id": "qaf:c3:532704db-f627-5d4a-aeb0-e36f0f9a2300",
+              "score": 7.3459625
+            },
+            {
+              "id": "qaf:c3:7f5237b6-d124-53c5-b9c5-4b56716249e0",
+              "score": 7.279179
+            },
+            {
+              "id": "qaf:c3:bae3cde3-f97d-5c65-b45e-bae1a1cf09df",
+              "score": 7.255907700000001
+            },
+            {
+              "id": "qaf:c3:032f3c82-d194-5025-ac90-22e20e637c8c",
+              "score": 7.197190999999999
+            },
+            {
+              "id": "qaf:c3:b33234be-54af-5e9e-958b-fad1fdf2d0a7",
+              "score": 7.166357
+            },
+            {
+              "id": "qaf:c3:e7805d8e-3ff4-55a0-a4d1-e0c29cf98a7f",
+              "score": 7.055624
+            },
+            {
+              "id": "ezik:c3#1",
+              "score": 6.9324509999999995
+            },
+            {
+              "id": "qaf:c3:13228f76-f0ef-5504-9278-a3410390118d",
+              "score": 6.6543280000000005
+            },
+            {
+              "id": "encyc:F02401",
+              "score": 5.2086246
+            },
+            {
+              "id": "encyc:F01877",
+              "score": 5.1296157
+            },
+            {
+              "id": "encyc:F02899",
+              "score": 4.627892
+            },
+            {
+              "id": "encyc:F02600",
+              "score": 3.8089763999999997
+            },
+            {
+              "id": "encyc:F02200",
+              "score": 3.251138
+            },
+            {
+              "id": "encyc:F00792",
+              "score": 2.9811880000000004
+            },
+            {
+              "id": "encyc:F01878",
+              "score": 2.8389353
+            },
+            {
+              "id": "encyc:F01445",
+              "score": 2.2354692000000003
+            },
+            {
+              "id": "encyc:F00350",
+              "score": 2.0654209000000003
+            },
+            {
+              "id": "encyc:F00349",
+              "score": 1.8790671
+            },
+            {
+              "id": "encyc:F02599",
+              "score": 1.638601
+            },
+            {
+              "id": "encyc:F02543",
+              "score": 1.5323243
+            },
+            {
+              "id": "encyc:F01768",
+              "score": 1.4131722
+            },
+            {
+              "id": "encyc:F01575",
+              "score": 1.2664494000000002
+            },
+            {
+              "id": "encyc:F01664",
+              "score": 1.2394791
+            },
+            {
+              "id": "encyc:F01327",
+              "score": 1.1669376
+            },
+            {
+              "id": "encyc:F01974",
+              "score": 1.0350391
+            },
+            {
+              "id": "encyc:F03065",
+              "score": 0.9923447000000001
+            },
+            {
+              "id": "ezik:c3#2",
+              "score": 0.15557138
+            }
+          ]
         }
       ],
-      "medianPrecisionAt10": null,
-      "medianMs": null,
-      "p90Ms": null,
-      "threshold": null,
-      "above": null,
-      "knownX": null,
-      "search_units": 0,
-      "availability": "NOT_VALIDATED: no API call was possible",
-      "price": null
+      "price": null,
+      "medianPrecisionAt10": 0.8,
+      "medianMs": 632.5417000000002,
+      "p90Ms": 1542.6369,
+      "search_units": 17,
+      "availability": "LIVE_VALIDATED",
+      "threshold": 7.52468,
+      "rule": "Strictly greater than the highest X score",
+      "above": {
+        "R": 85,
+        "P": 42,
+        "X": 0
+      },
+      "knownX": [
+        {
+          "id": "ezik:b3#4",
+          "score": 0.15521277,
+          "suppressed": true
+        },
+        {
+          "id": "ezik:b3#5",
+          "score": 0.15521277,
+          "suppressed": true
+        },
+        {
+          "id": "ezik:c1#3",
+          "score": 3.8762133999999997,
+          "suppressed": true
+        }
+      ]
     },
     {
       "model": "rerank-v4.0-fast",
       "rows": [
         {
           "id": "a1",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 691.2035999999998,
+          "search_units": 2,
+          "precisionAt10": 0.8,
+          "ranking": [
+            {
+              "id": "qaf:a1:771bb3a0-952f-5806-b3e4-d0162ae11bfe",
+              "score": 9.549172500000001
+            },
+            {
+              "id": "qaf:a1:9208095d-fc92-5016-aa91-e21d6837b403",
+              "score": 9.484609
+            },
+            {
+              "id": "qaf:a1:afdb5f6f-ab78-5b2b-ac2d-d059761befba",
+              "score": 9.42422
+            },
+            {
+              "id": "qaf:a1:1fe324a9-14f3-5ef3-b645-cd2b4dc851e1",
+              "score": 9.415683
+            },
+            {
+              "id": "qaf:a1:9796b039-6c6a-5101-b4c7-b6ff17eda0ad",
+              "score": 9.407027
+            },
+            {
+              "id": "qaf:a1:21b47aeb-a5f9-5b1e-a035-640c6994a89c",
+              "score": 9.393816600000001
+            },
+            {
+              "id": "qaf:a1:c2393446-5382-5e25-8f06-7d5a7ebc9255",
+              "score": 9.380332
+            },
+            {
+              "id": "qaf:a1:db463408-2597-565a-91e2-e32f30eb4830",
+              "score": 9.371186999999999
+            },
+            {
+              "id": "qaf:a1:b1e5b689-a518-59c8-9ccb-d289395e5ef3",
+              "score": 9.357234
+            },
+            {
+              "id": "qaf:a1:35d1a7c8-07ce-5ec1-b8ff-cbf75bb22932",
+              "score": 9.280445
+            },
+            {
+              "id": "ezik:a1#4",
+              "score": 9.26994
+            },
+            {
+              "id": "ezik:a1#1",
+              "score": 9.264636000000001
+            },
+            {
+              "id": "qaf:a1:144c6a79-e860-5b51-a5f0-186cb1501b29",
+              "score": 9.245788000000001
+            },
+            {
+              "id": "qaf:a1:4342cc3e-9712-54cc-9d8f-029a1130e57a",
+              "score": 9.2403215
+            },
+            {
+              "id": "qaf:a1:fea02c33-9d51-563c-9b20-1d83b9383d6f",
+              "score": 9.1806984
+            },
+            {
+              "id": "qaf:a1:ff4234aa-5499-5b72-9e10-069544b77602",
+              "score": 9.1748023
+            },
+            {
+              "id": "qaf:a1:b475afed-03f2-5fb0-b99c-7565759a7c4e",
+              "score": 8.6075294
+            },
+            {
+              "id": "encyc:F01173",
+              "score": 6.889709000000001
+            },
+            {
+              "id": "encyc:F00651",
+              "score": 5.093739
+            },
+            {
+              "id": "encyc:F00590",
+              "score": 4.5868814
+            },
+            {
+              "id": "encyc:F01860",
+              "score": 4.1641688
+            },
+            {
+              "id": "encyc:F00035",
+              "score": 4.0884307
+            },
+            {
+              "id": "encyc:F01698",
+              "score": 3.9756414
+            },
+            {
+              "id": "encyc:F03011",
+              "score": 3.680422
+            },
+            {
+              "id": "encyc:F02321",
+              "score": 3.6080432
+            },
+            {
+              "id": "encyc:F01852",
+              "score": 3.5720867
+            },
+            {
+              "id": "encyc:F00118",
+              "score": 3.5006579999999996
+            },
+            {
+              "id": "encyc:F00158",
+              "score": 3.465192
+            },
+            {
+              "id": "encyc:F00976",
+              "score": 3.3947718
+            },
+            {
+              "id": "encyc:F00645",
+              "score": 3.3250545999999996
+            },
+            {
+              "id": "encyc:F00756",
+              "score": 3.2904666999999996
+            },
+            {
+              "id": "encyc:F01818",
+              "score": 3.2218465000000003
+            },
+            {
+              "id": "encyc:F01664",
+              "score": 3.1539850000000005
+            },
+            {
+              "id": "encyc:F02679",
+              "score": 3.0536580000000004
+            },
+            {
+              "id": "encyc:F03032",
+              "score": 3.0536580000000004
+            },
+            {
+              "id": "encyc:F00514",
+              "score": 3.0536580000000004
+            },
+            {
+              "id": "encyc:F03066",
+              "score": 3.0206156
+            },
+            {
+              "id": "encyc:F00851",
+              "score": 2.9551445999999997
+            },
+            {
+              "id": "encyc:F01007",
+              "score": 2.8585017
+            },
+            {
+              "id": "encyc:F02572",
+              "score": 2.8267118
+            },
+            {
+              "id": "encyc:F00458",
+              "score": 2.73264
+            },
+            {
+              "id": "encyc:F02273",
+              "score": 2.73264
+            },
+            {
+              "id": "encyc:F01829",
+              "score": 2.6710218
+            },
+            {
+              "id": "encyc:F02615",
+              "score": 2.6710218
+            },
+            {
+              "id": "ezik:a1#3",
+              "score": 2.5504667
+            },
+            {
+              "id": "ezik:a1#2",
+              "score": 2.5504667
+            },
+            {
+              "id": "ezik:a1#5",
+              "score": 2.5504667
+            },
+            {
+              "id": "ezik:a1#6",
+              "score": 2.5504667
+            },
+            {
+              "id": "encyc:F01187",
+              "score": 2.404891
+            },
+            {
+              "id": "encyc:F00785",
+              "score": 2.0792148
+            }
+          ]
         },
         {
           "id": "a2",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 730.5520000000006,
+          "search_units": 2,
+          "precisionAt10": 1,
+          "ranking": [
+            {
+              "id": "ezik:a2#3",
+              "score": 9.584756
+            },
+            {
+              "id": "qaf:a2:625b4f8f-f6ac-545a-bd87-3e0d9b09f543",
+              "score": 9.4996727
+            },
+            {
+              "id": "qaf:a2:5d0139b1-7b8c-55c1-b71f-e79c0f2184cd",
+              "score": 9.350150000000001
+            },
+            {
+              "id": "qaf:a2:ff89c916-401a-5cc2-9f3a-00ad0844ccca",
+              "score": 9.2856437
+            },
+            {
+              "id": "qaf:a2:7d99e1a0-5f38-54e5-ab6d-d95a377668b1",
+              "score": 9.2237055
+            },
+            {
+              "id": "qaf:a2:356ea7aa-720f-5033-9c16-91d26a8fe7ca",
+              "score": 9.215272
+            },
+            {
+              "id": "qaf:a2:060c543b-a6c2-5c50-a8e7-61cf9989e310",
+              "score": 9.212444
+            },
+            {
+              "id": "qaf:a2:a0f602de-3390-51af-8efd-5539a5fa78b8",
+              "score": 9.144742
+            },
+            {
+              "id": "qaf:a2:ec815d45-9bed-57f4-ab00-09e49f63398d",
+              "score": 9.066862
+            },
+            {
+              "id": "qaf:a2:7b290077-758c-525b-88ce-1a2ef9218443",
+              "score": 8.901415
+            },
+            {
+              "id": "ezik:a2#1",
+              "score": 8.682860999999999
+            },
+            {
+              "id": "qaf:a2:57290597-0cc8-5145-a9ea-c9b2c1869c16",
+              "score": 8.6026937
+            },
+            {
+              "id": "qaf:a2:40a8daaf-322d-59b8-b9c8-0a8322fa2166",
+              "score": 8.5408324
+            },
+            {
+              "id": "qaf:a2:7e18cb45-a2a0-58e3-b70c-f8d55d2e06da",
+              "score": 8.447167
+            },
+            {
+              "id": "qaf:a2:a8244260-b0ad-5d98-a28a-84125705a5f2",
+              "score": 8.434314
+            },
+            {
+              "id": "qaf:a2:341eac64-078e-59b7-815f-cd7370a225d8",
+              "score": 8.4330237
+            },
+            {
+              "id": "ezik:a2#6",
+              "score": 8.412266
+            },
+            {
+              "id": "qaf:a2:5d1963cd-8408-5cf3-bbc6-4496c44ce09f",
+              "score": 8.339206
+            },
+            {
+              "id": "qaf:a2:6dec5f9b-4137-5f0f-8f2f-7819e33eff64",
+              "score": 8.3337885
+            },
+            {
+              "id": "qaf:a2:67e6ecc9-6cae-5e49-8811-09999e2b2d00",
+              "score": 8.222462499999999
+            },
+            {
+              "id": "qaf:a2:12c3bbd4-0ad9-55fd-b388-7547ae9b28f6",
+              "score": 8.14997
+            },
+            {
+              "id": "qaf:a2:6c947083-c8c2-5dc7-ab04-5e37312aba4a",
+              "score": 8.129267
+            },
+            {
+              "id": "qaf:a2:71f44af7-dd5f-5b95-a7df-22c2afd6d280",
+              "score": 8.0630416
+            },
+            {
+              "id": "encyc:F01576",
+              "score": 7.934903
+            },
+            {
+              "id": "qaf:a2:62037973-e5b9-51bd-83ab-288b7f176684",
+              "score": 7.777053
+            },
+            {
+              "id": "qaf:a2:0fc8a652-535a-5797-84b2-4b96e4831fdc",
+              "score": 7.6461049999999995
+            },
+            {
+              "id": "qaf:a2:5863cf6d-7673-59b4-b69f-36efa6d6c2d8",
+              "score": 7.5750744
+            },
+            {
+              "id": "encyc:F01572",
+              "score": 6.685341
+            },
+            {
+              "id": "ezik:a2#4",
+              "score": 6.091522
+            },
+            {
+              "id": "encyc:F00027",
+              "score": 5.7138395
+            },
+            {
+              "id": "encyc:F01620",
+              "score": 5.5986769999999995
+            },
+            {
+              "id": "encyc:F01445",
+              "score": 5.502207
+            },
+            {
+              "id": "qaf:a2:3842b6b2-f6bd-5145-8ccd-6a0a036e7b6a",
+              "score": 5.502207
+            },
+            {
+              "id": "encyc:F00145",
+              "score": 4.9570328
+            },
+            {
+              "id": "encyc:F01031",
+              "score": 4.432148
+            },
+            {
+              "id": "encyc:F00465",
+              "score": 4.3936244
+            },
+            {
+              "id": "encyc:F01180",
+              "score": 4.3551737
+            },
+            {
+              "id": "encyc:F02997",
+              "score": 4.126248
+            },
+            {
+              "id": "encyc:F00770",
+              "score": 3.8639295000000002
+            },
+            {
+              "id": "encyc:F02109",
+              "score": 3.8269496
+            },
+            {
+              "id": "encyc:F02123",
+              "score": 3.6080432
+            },
+            {
+              "id": "encyc:F01818",
+              "score": 3.5720867
+            },
+            {
+              "id": "encyc:F00371",
+              "score": 3.5006579999999996
+            },
+            {
+              "id": "encyc:F00783",
+              "score": 3.465192
+            },
+            {
+              "id": "encyc:F01045",
+              "score": 3.465192
+            },
+            {
+              "id": "encyc:F00867",
+              "score": 3.3598238
+            },
+            {
+              "id": "encyc:F02853",
+              "score": 3.2560632
+            },
+            {
+              "id": "encyc:F01843",
+              "score": 3.2218465000000003
+            },
+            {
+              "id": "ezik:a2#2",
+              "score": 2.3482752000000002
+            },
+            {
+              "id": "ezik:a2#5",
+              "score": 2.3482752000000002
+            }
+          ]
         },
         {
           "id": "a3",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 739.6918999999998,
+          "search_units": 2,
+          "precisionAt10": 0.9,
+          "ranking": [
+            {
+              "id": "ezik:a3#3",
+              "score": 9.212444
+            },
+            {
+              "id": "qaf:a3:5020a923-6814-5044-b89b-283add54114e",
+              "score": 8.9537644
+            },
+            {
+              "id": "qaf:a3:680e810a-8525-5b0d-8a71-978c94f534ac",
+              "score": 8.9109284
+            },
+            {
+              "id": "qaf:a3:dfb65683-8d39-5acc-a5ef-d2a7944c19e6",
+              "score": 8.74335
+            },
+            {
+              "id": "qaf:a3:9a539106-9dc5-5174-b6a4-4713d429df24",
+              "score": 8.710806
+            },
+            {
+              "id": "qaf:a3:58069170-9434-5cd7-8c2a-9189e0280d1f",
+              "score": 8.6789465
+            },
+            {
+              "id": "qaf:a3:0a7b8b9d-4281-520a-aab1-e540b53582e1",
+              "score": 8.5909134
+            },
+            {
+              "id": "qaf:a3:f76075c3-5f7a-5c3a-a251-4a530921f565",
+              "score": 8.508284
+            },
+            {
+              "id": "qaf:a3:586dfca5-0b6a-5bff-9c29-c4651c11922a",
+              "score": 8.4265614
+            },
+            {
+              "id": "qaf:a3:82d4b862-b826-53ea-a11b-b4058a16918f",
+              "score": 8.423969
+            },
+            {
+              "id": "qaf:a3:e2cda786-e7ee-588b-8584-3cfa2a9d71b7",
+              "score": 8.4200764
+            },
+            {
+              "id": "qaf:a3:d1227c90-c75b-58a9-aef7-2b189168dbbd",
+              "score": 8.262076
+            },
+            {
+              "id": "qaf:a3:5b123fec-340b-5e11-82dc-07a6e78c36d2",
+              "score": 8.2395256
+            },
+            {
+              "id": "ezik:a3#5",
+              "score": 8.126295
+            },
+            {
+              "id": "qaf:a3:2b2eb4ce-491b-50ef-bb57-921442229225",
+              "score": 8.1173575
+            },
+            {
+              "id": "qaf:a3:d28a44b8-c0fb-5349-85b3-f18a3e5c3b98",
+              "score": 7.4805796
+            },
+            {
+              "id": "qaf:a3:cbd93c94-4ea3-56fc-a923-60497252330e",
+              "score": 7.322856
+            },
+            {
+              "id": "encyc:F02321",
+              "score": 6.420735
+            },
+            {
+              "id": "ezik:a3#4",
+              "score": 5.885108
+            },
+            {
+              "id": "encyc:F00590",
+              "score": 5.5601389999999995
+            },
+            {
+              "id": "encyc:F01827",
+              "score": 5.540844
+            },
+            {
+              "id": "encyc:F00224",
+              "score": 5.2108127
+            },
+            {
+              "id": "encyc:F00869",
+              "score": 4.645129
+            },
+            {
+              "id": "encyc:F02219",
+              "score": 4.6257016
+            },
+            {
+              "id": "encyc:F00273",
+              "score": 4.5868814
+            },
+            {
+              "id": "encyc:F00432",
+              "score": 4.5868814
+            },
+            {
+              "id": "encyc:F00976",
+              "score": 4.432148
+            },
+            {
+              "id": "encyc:F01858",
+              "score": 4.2403036
+            },
+            {
+              "id": "encyc:F00226",
+              "score": 4.2403036
+            },
+            {
+              "id": "encyc:F00982",
+              "score": 4.2403036
+            },
+            {
+              "id": "encyc:F01841",
+              "score": 4.0507212
+            },
+            {
+              "id": "encyc:F01842",
+              "score": 4.0131235
+            },
+            {
+              "id": "encyc:F00560",
+              "score": 4.0131235
+            },
+            {
+              "id": "encyc:F02318",
+              "score": 3.938279
+            },
+            {
+              "id": "encyc:F00356",
+              "score": 3.938279
+            },
+            {
+              "id": "encyc:F00674",
+              "score": 3.9010403
+            },
+            {
+              "id": "encyc:F02319",
+              "score": 3.8269496
+            },
+            {
+              "id": "encyc:F00648",
+              "score": 3.8269496
+            },
+            {
+              "id": "encyc:F00669",
+              "score": 3.8269496
+            },
+            {
+              "id": "encyc:F01207",
+              "score": 3.680422
+            },
+            {
+              "id": "encyc:F00843",
+              "score": 3.5720867
+            },
+            {
+              "id": "encyc:F01227",
+              "score": 3.5362907999999997
+            },
+            {
+              "id": "encyc:F00141",
+              "score": 3.5006579999999996
+            },
+            {
+              "id": "encyc:F00552",
+              "score": 3.3947718
+            },
+            {
+              "id": "encyc:F00881",
+              "score": 3.0869020000000003
+            },
+            {
+              "id": "encyc:F01204",
+              "score": 3.0869020000000003
+            },
+            {
+              "id": "ezik:a3#2",
+              "score": 2.73264
+            },
+            {
+              "id": "ezik:a3#7",
+              "score": 2.73264
+            },
+            {
+              "id": "ezik:a3#1",
+              "score": 2.73264
+            },
+            {
+              "id": "ezik:a3#6",
+              "score": 2.73264
+            }
+          ]
         },
         {
           "id": "b1",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 1091.1028000000006,
+          "search_units": 2,
+          "precisionAt10": 0.7,
+          "ranking": [
+            {
+              "id": "qaf:b1:b52ce681-9372-5f80-8d81-3ba78aff7f12",
+              "score": 8.898547
+            },
+            {
+              "id": "qaf:b1:0ecc6387-4082-5ec2-b68e-5a003b85dc4b",
+              "score": 8.833769
+            },
+            {
+              "id": "qaf:b1:13419e61-01bd-5b91-a7b7-013a1732a176",
+              "score": 8.552356399999999
+            },
+            {
+              "id": "qaf:b1:dc93d251-1f5c-567a-bb2b-a281e7fae7f5",
+              "score": 8.343259
+            },
+            {
+              "id": "qaf:b1:7edead1f-6345-5cb7-b1d7-26e7a980a153",
+              "score": 8.343259
+            },
+            {
+              "id": "qaf:b1:39c89db1-efe8-5d78-a796-0bf979975078",
+              "score": 8.202392
+            },
+            {
+              "id": "qaf:b1:929b24af-816d-5e18-a361-29ee11332fdf",
+              "score": 8.155853
+            },
+            {
+              "id": "qaf:b1:b9796be1-8997-5595-8a59-da92238cdc9d",
+              "score": 8.155853
+            },
+            {
+              "id": "qaf:b1:9f4a96a5-544d-5e5b-8194-50e0c08c39c7",
+              "score": 8.0782473
+            },
+            {
+              "id": "qaf:b1:61557126-a587-56fd-b0e5-bae231e0f74c",
+              "score": 8.0230784
+            },
+            {
+              "id": "qaf:b1:86c3ccd1-85c8-5a2c-adde-6d63fc5d1b33",
+              "score": 8.007543700000001
+            },
+            {
+              "id": "qaf:b1:d6074a06-b650-5c48-87cd-36adfac58752",
+              "score": 7.8039485
+            },
+            {
+              "id": "qaf:b1:8a9d69b6-b984-548c-862e-bea2439d3109",
+              "score": 7.6949626
+            },
+            {
+              "id": "ezik:b1#2",
+              "score": 7.610771
+            },
+            {
+              "id": "qaf:b1:226fbd5f-b8dc-5a1f-8ac4-bbcd1cf7ad1d",
+              "score": 7.4212277
+            },
+            {
+              "id": "qaf:b1:01cd0af9-6747-5c8a-afec-41f56102f7ca",
+              "score": 7.0950245999999995
+            },
+            {
+              "id": "ezik:b1#1",
+              "score": 6.257583
+            },
+            {
+              "id": "encyc:F02723",
+              "score": 3.465192
+            },
+            {
+              "id": "encyc:F01612",
+              "score": 3.2904666999999996
+            },
+            {
+              "id": "encyc:F00137",
+              "score": 3.1878197000000004
+            },
+            {
+              "id": "encyc:F00314",
+              "score": 2.9551445999999997
+            },
+            {
+              "id": "encyc:F00105",
+              "score": 2.890505
+            },
+            {
+              "id": "encyc:F01171",
+              "score": 2.8585017
+            },
+            {
+              "id": "encyc:F00555",
+              "score": 2.8585017
+            },
+            {
+              "id": "encyc:F00655",
+              "score": 2.73264
+            },
+            {
+              "id": "encyc:F00138",
+              "score": 2.6405463
+            },
+            {
+              "id": "encyc:F02565",
+              "score": 2.5802675
+            },
+            {
+              "id": "encyc:F00585",
+              "score": 2.5504667
+            },
+            {
+              "id": "encyc:F00379",
+              "score": 2.491548
+            },
+            {
+              "id": "encyc:F00833",
+              "score": 2.491548
+            },
+            {
+              "id": "encyc:F03018",
+              "score": 2.4624321
+            },
+            {
+              "id": "encyc:F00216",
+              "score": 2.4624321
+            },
+            {
+              "id": "encyc:F01831",
+              "score": 2.4335462
+            },
+            {
+              "id": "encyc:F00175",
+              "score": 2.4335462
+            },
+            {
+              "id": "encyc:F00181",
+              "score": 2.4335462
+            },
+            {
+              "id": "encyc:F00271",
+              "score": 2.376467
+            },
+            {
+              "id": "encyc:F00923",
+              "score": 2.376467
+            },
+            {
+              "id": "encyc:F00139",
+              "score": 2.3482752000000002
+            },
+            {
+              "id": "encyc:F00801",
+              "score": 2.3482752000000002
+            },
+            {
+              "id": "encyc:F00756",
+              "score": 2.2378391
+            },
+            {
+              "id": "encyc:F00850",
+              "score": 2.2378391
+            },
+            {
+              "id": "ezik:b1#3",
+              "score": 2.1574706
+            },
+            {
+              "id": "encyc:F00344",
+              "score": 2.1574706
+            },
+            {
+              "id": "encyc:F00681",
+              "score": 2.1574706
+            },
+            {
+              "id": "encyc:F00686",
+              "score": 2.1574706
+            },
+            {
+              "id": "encyc:F00851",
+              "score": 2.1311502
+            },
+            {
+              "id": "encyc:F00925",
+              "score": 2.1311502
+            },
+            {
+              "id": "encyc:F00467",
+              "score": 2.003073
+            },
+            {
+              "id": "encyc:F00888",
+              "score": 1.9534837
+            },
+            {
+              "id": "encyc:F01851",
+              "score": 1.9048297
+            }
+          ]
         },
         {
           "id": "b2",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 837.7927999999993,
+          "search_units": 2,
+          "precisionAt10": 1,
+          "ranking": [
+            {
+              "id": "qaf:b2:234a3dcf-8ed1-5477-bc22-bd8abc4f45f9",
+              "score": 9.3284583
+            },
+            {
+              "id": "qaf:b2:ad9e0528-b989-530e-aa1e-fc91a5713ba5",
+              "score": 9.2485076
+            },
+            {
+              "id": "ezik:b2#2",
+              "score": 9.2375755
+            },
+            {
+              "id": "qaf:b2:d36d434c-75e4-5643-bb69-7d1326e541c5",
+              "score": 9.215272
+            },
+            {
+              "id": "ezik:b2#1",
+              "score": 9.17184
+            },
+            {
+              "id": "qaf:b2:cc7c88db-7264-52f8-9a09-42f630a59302",
+              "score": 9.159895
+            },
+            {
+              "id": "qaf:b2:59d7e6d3-5781-5431-9b78-b7a8a8da8088",
+              "score": 9.110532
+            },
+            {
+              "id": "qaf:b2:c02d1256-270d-52bb-bb7a-44bf3c27da7e",
+              "score": 8.8811994
+            },
+            {
+              "id": "qaf:b2:c13a4824-e756-5798-aaa7-4368bbb64ee7",
+              "score": 8.758826
+            },
+            {
+              "id": "qaf:b2:120ccf8e-3a7b-5200-98d5-7e0ea2d77cbf",
+              "score": 8.729335
+            },
+            {
+              "id": "qaf:b2:b3cf6a7e-dacf-5f7b-8881-154f7a0d1310",
+              "score": 8.68314
+            },
+            {
+              "id": "qaf:b2:1601cb58-ee02-5fc4-ba0f-718d4e1cdfda",
+              "score": 8.6210805
+            },
+            {
+              "id": "qaf:b2:f109c1b3-5325-51b8-8087-3f1976bcf1df",
+              "score": 8.498341
+            },
+            {
+              "id": "qaf:b2:9220d79a-ce71-5e1d-b841-56bbe9c2831b",
+              "score": 8.4096557
+            },
+            {
+              "id": "qaf:b2:df73570a-3434-584e-9e61-8cb4e5fc7669",
+              "score": 8.0354404
+            },
+            {
+              "id": "qaf:b2:4a0d4d8d-d739-5eb9-827e-3c4fd2d3b5b8",
+              "score": 7.166947
+            },
+            {
+              "id": "qaf:b2:a10d5949-2eb5-574d-93c8-f0bd062a1709",
+              "score": 6.9562757
+            },
+            {
+              "id": "encyc:F00327",
+              "score": 4.3936244
+            },
+            {
+              "id": "encyc:F01261",
+              "score": 4.2785084
+            },
+            {
+              "id": "encyc:F00615",
+              "score": 4.2021888
+            },
+            {
+              "id": "encyc:F00223",
+              "score": 3.938279
+            },
+            {
+              "id": "encyc:F00131",
+              "score": 3.8269496
+            },
+            {
+              "id": "encyc:F00655",
+              "score": 3.644156
+            },
+            {
+              "id": "encyc:F00748",
+              "score": 3.644156
+            },
+            {
+              "id": "encyc:F01931",
+              "score": 3.5362907999999997
+            },
+            {
+              "id": "encyc:F01512",
+              "score": 3.5006579999999996
+            },
+            {
+              "id": "encyc:F01191",
+              "score": 3.4298956
+            },
+            {
+              "id": "encyc:F00981",
+              "score": 3.3598238
+            },
+            {
+              "id": "encyc:F01095",
+              "score": 3.3250545999999996
+            },
+            {
+              "id": "encyc:F01574",
+              "score": 3.3250545999999996
+            },
+            {
+              "id": "encyc:F01750",
+              "score": 3.3250545999999996
+            },
+            {
+              "id": "encyc:F01269",
+              "score": 3.2904666999999996
+            },
+            {
+              "id": "encyc:F00934",
+              "score": 3.2560632
+            },
+            {
+              "id": "encyc:F01184",
+              "score": 3.2560632
+            },
+            {
+              "id": "encyc:F01296",
+              "score": 3.2560632
+            },
+            {
+              "id": "encyc:F01530",
+              "score": 3.1878197000000004
+            },
+            {
+              "id": "encyc:F00947",
+              "score": 3.0869020000000003
+            },
+            {
+              "id": "encyc:F00997",
+              "score": 3.0869020000000003
+            },
+            {
+              "id": "encyc:F01506",
+              "score": 3.0869020000000003
+            },
+            {
+              "id": "encyc:F00667",
+              "score": 3.0206156
+            },
+            {
+              "id": "encyc:F00957",
+              "score": 3.0206156
+            },
+            {
+              "id": "encyc:F01099",
+              "score": 3.0206156
+            },
+            {
+              "id": "encyc:F00678",
+              "score": 2.9877773000000003
+            },
+            {
+              "id": "encyc:F00023",
+              "score": 2.9551445999999997
+            },
+            {
+              "id": "encyc:F01928",
+              "score": 2.9551445999999997
+            },
+            {
+              "id": "encyc:F01488",
+              "score": 2.890505
+            },
+            {
+              "id": "encyc:F00806",
+              "score": 2.8585017
+            },
+            {
+              "id": "encyc:F01111",
+              "score": 2.7637792
+            },
+            {
+              "id": "encyc:F01158",
+              "score": 2.7637792
+            },
+            {
+              "id": "ezik:b2#3",
+              "score": 2.376467
+            }
+          ]
         },
         {
           "id": "b3",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 660.4768000000004,
+          "search_units": 2,
+          "precisionAt10": 0.5,
+          "ranking": [
+            {
+              "id": "ezik:b3#1",
+              "score": 9.07345
+            },
+            {
+              "id": "qaf:b3:f22b01d8-a64d-52cc-b6d5-df3d80cb4094",
+              "score": 8.962877
+            },
+            {
+              "id": "qaf:b3:da719cd8-faeb-5f74-af7c-b3d2ac3ca1e7",
+              "score": 8.8918287
+            },
+            {
+              "id": "qaf:b3:eae21270-c52b-522b-af24-0bd2aa4247a6",
+              "score": 8.677826
+            },
+            {
+              "id": "qaf:b3:72bf9b95-079a-5a53-bf3a-edcb67ed8d77",
+              "score": 8.664746
+            },
+            {
+              "id": "qaf:b3:fb885b42-f236-545a-a629-7f0eecda8179",
+              "score": 8.5138535
+            },
+            {
+              "id": "qaf:b3:1dbd3390-4b61-597a-b217-9bb77692158c",
+              "score": 8.422673
+            },
+            {
+              "id": "qaf:b3:0c8306ac-a555-5361-8604-1c3a78c6eab3",
+              "score": 8.37008
+            },
+            {
+              "id": "qaf:b3:1ca01b95-e1b2-5ffd-9cb2-f08b3f5953c2",
+              "score": 8.36608
+            },
+            {
+              "id": "qaf:b3:4848d239-20af-5c03-b282-2809605174f6",
+              "score": 8.326997
+            },
+            {
+              "id": "qaf:b3:333e2462-032e-55d2-acae-8a4afd1587dc",
+              "score": 8.287171
+            },
+            {
+              "id": "qaf:b3:34ff3a8d-f2e2-52ae-a6a8-0bc10a3c290c",
+              "score": 8.216746
+            },
+            {
+              "id": "qaf:b3:5355ef28-7841-5b23-9849-7952ee5a50ef",
+              "score": 8.193736000000001
+            },
+            {
+              "id": "qaf:b3:1bbf029c-25d2-551b-b748-e9d849c8aaf4",
+              "score": 8.12034
+            },
+            {
+              "id": "qaf:b3:a4c61a46-1e7d-5e47-8628-aff2376ddbd9",
+              "score": 8.090347
+            },
+            {
+              "id": "qaf:b3:9246e56d-d2a7-5372-a1ea-664ffe959de1",
+              "score": 7.973044
+            },
+            {
+              "id": "qaf:b3:2f08a231-a92e-5dcc-b3bf-fed9c8413e30",
+              "score": 7.969886000000001
+            },
+            {
+              "id": "qaf:b3:2ec8f23d-29fc-5823-bec5-a08151d0cc39",
+              "score": 7.960389
+            },
+            {
+              "id": "qaf:b3:0d319669-804d-5f60-9051-ff0c9eb939a9",
+              "score": 7.9412959999999995
+            },
+            {
+              "id": "qaf:b3:a3694f93-b2a7-5081-9d5c-35b18ba45b46",
+              "score": 7.928494000000001
+            },
+            {
+              "id": "qaf:b3:c55841d7-c935-55af-aaa0-02a806601597",
+              "score": 7.8832257
+            },
+            {
+              "id": "qaf:b3:993248d5-98de-50c4-884c-b6585a0dc21c",
+              "score": 7.70879
+            },
+            {
+              "id": "qaf:b3:2ba5964f-c451-55a1-bdbb-153802b23263",
+              "score": 7.7018832999999995
+            },
+            {
+              "id": "qaf:b3:e47359e1-f2af-5a53-9a9a-92c66bafd00f",
+              "score": 7.688026
+            },
+            {
+              "id": "qaf:b3:d81ca66c-e62e-50ba-8a8f-3ec62c54cb86",
+              "score": 7.639067000000001
+            },
+            {
+              "id": "qaf:b3:3c9067d7-f3d7-54c6-aaf9-455bd7f67fe6",
+              "score": 7.458429300000001
+            },
+            {
+              "id": "qaf:b3:62127b7b-47a0-5776-a460-bd3745b5c81d",
+              "score": 7.4510175
+            },
+            {
+              "id": "qaf:b3:b4be3b3c-662e-5193-8854-7d8604078ebf",
+              "score": 7.3987377
+            },
+            {
+              "id": "qaf:b3:39f8c7f7-fcd2-5775-8f0f-64c8bab4544b",
+              "score": 7.360972
+            },
+            {
+              "id": "ezik:b3#3",
+              "score": 7.2843933000000005
+            },
+            {
+              "id": "qaf:b3:8dd3ea2b-e82b-516c-8626-8bb5c91243e2",
+              "score": 6.972792
+            },
+            {
+              "id": "qaf:b3:ac199e23-cd36-5e0c-8d05-fbc7bb6bae95",
+              "score": 6.7883813
+            },
+            {
+              "id": "encyc:F02288",
+              "score": 3.5362907999999997
+            },
+            {
+              "id": "encyc:F01704",
+              "score": 3.5006579999999996
+            },
+            {
+              "id": "encyc:F01791",
+              "score": 3.3947718
+            },
+            {
+              "id": "encyc:F00422",
+              "score": 3.3250545999999996
+            },
+            {
+              "id": "encyc:F00449",
+              "score": 3.2904666999999996
+            },
+            {
+              "id": "encyc:F02289",
+              "score": 3.2218465000000003
+            },
+            {
+              "id": "encyc:F02287",
+              "score": 3.0869020000000003
+            },
+            {
+              "id": "encyc:F00027",
+              "score": 3.0206156
+            },
+            {
+              "id": "encyc:F02465",
+              "score": 2.890505
+            },
+            {
+              "id": "encyc:F00284",
+              "score": 2.8585017
+            },
+            {
+              "id": "encyc:F02294",
+              "score": 2.8267118
+            },
+            {
+              "id": "encyc:F00450",
+              "score": 2.8267118
+            },
+            {
+              "id": "encyc:F00283",
+              "score": 2.7637792
+            },
+            {
+              "id": "encyc:F00559",
+              "score": 2.376467
+            },
+            {
+              "id": "encyc:F02291",
+              "score": 2.3482752000000002
+            },
+            {
+              "id": "ezik:b3#4",
+              "score": 2.0792148
+            },
+            {
+              "id": "ezik:b3#5",
+              "score": 2.0792148
+            },
+            {
+              "id": "ezik:b3#2",
+              "score": 2.0792148
+            }
+          ]
         },
         {
           "id": "c1",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 688.9393,
+          "search_units": 2,
+          "precisionAt10": 0.2,
+          "ranking": [
+            {
+              "id": "qaf:c1:9119058f-aa1a-51fd-a24c-3b500e7adddb",
+              "score": 9.1538626
+            },
+            {
+              "id": "qaf:c1:d0a6bc4a-00eb-5b3f-a314-1946249b913a",
+              "score": 8.8437915
+            },
+            {
+              "id": "ezik:c1#1",
+              "score": 8.743886400000001
+            },
+            {
+              "id": "qaf:c1:5747a155-0927-5998-9003-6e2fabd04764",
+              "score": 8.694266
+            },
+            {
+              "id": "qaf:c1:e78eadd4-ef2f-532e-a086-f1b49f1b648b",
+              "score": 8.661353
+            },
+            {
+              "id": "qaf:c1:3bf41528-db72-5b30-85a9-cdc0f4014bfe",
+              "score": 8.635456
+            },
+            {
+              "id": "qaf:c1:6aa70228-0ed6-5d8e-b9d7-26d9e26c6a5c",
+              "score": 8.570697000000001
+            },
+            {
+              "id": "qaf:c1:c30d581e-7eca-5b55-b0e1-1e09c388d825",
+              "score": 8.453561
+            },
+            {
+              "id": "qaf:c1:217f8a87-030f-5082-bef0-49786671823f",
+              "score": 8.345957
+            },
+            {
+              "id": "qaf:c1:6a15ab5a-afac-55cc-8af5-56e0ea4cd118",
+              "score": 8.2110155
+            },
+            {
+              "id": "qaf:c1:f61f5681-da88-573c-b4bf-bd0327f67076",
+              "score": 8.1053895
+            },
+            {
+              "id": "qaf:c1:9a305f0f-a2b4-5a12-9d2e-1d4cbb6c28c4",
+              "score": 8.093363
+            },
+            {
+              "id": "ezik:c1#2",
+              "score": 8.072175999999999
+            },
+            {
+              "id": "qaf:c1:7485c44a-8c64-5252-b4b0-542742ac70c8",
+              "score": 7.9793495000000005
+            },
+            {
+              "id": "qaf:c1:90a7fe01-192f-563c-8660-b049d19c246b",
+              "score": 7.87016
+            },
+            {
+              "id": "qaf:c1:ab979ff9-b1e0-5ac9-bb2b-2f2a812ab7e5",
+              "score": 7.85045
+            },
+            {
+              "id": "qaf:c1:eb8bf0f2-a063-5c02-9040-0de7d73f06e4",
+              "score": 7.85045
+            },
+            {
+              "id": "qaf:c1:8bcc87b6-9fe3-57ed-9e17-63340c333cdc",
+              "score": 7.8039485
+            },
+            {
+              "id": "qaf:c1:c19cdf5a-a6ba-5f8b-b2d8-8a36f7c71412",
+              "score": 7.7702934
+            },
+            {
+              "id": "qaf:c1:174e046e-d801-5fd1-a86e-e8e67c01c9da",
+              "score": 7.7499234999999995
+            },
+            {
+              "id": "qaf:c1:e5467bd2-3684-547c-9cf1-deb5b41d5126",
+              "score": 7.7156824
+            },
+            {
+              "id": "qaf:c1:8471f24b-276d-5698-adb8-895dc35e623c",
+              "score": 7.70879
+            },
+            {
+              "id": "qaf:c1:07b71d69-6749-5c1a-9b7f-6ecd1ec890f3",
+              "score": 7.5822425
+            },
+            {
+              "id": "qaf:c1:4f14fd4d-4e39-5777-8bd3-27de8b28e442",
+              "score": 7.4879336
+            },
+            {
+              "id": "qaf:c1:afe9d59e-ce5b-56bd-b449-1238e8939b67",
+              "score": 7.360972
+            },
+            {
+              "id": "qaf:c1:da3d8ec3-60a2-5fdc-8431-cf36c616c024",
+              "score": 7.353377
+            },
+            {
+              "id": "qaf:c1:e88cd90c-0d01-595e-9c91-443b62aea0b2",
+              "score": 7.2533745000000005
+            },
+            {
+              "id": "qaf:c1:bc5a056b-ae23-579e-b80d-f1c110655c44",
+              "score": 7.2064364
+            },
+            {
+              "id": "qaf:c1:232724cc-4c78-5924-ab55-14fa6852fcc6",
+              "score": 7.174872
+            },
+            {
+              "id": "qaf:c1:94b02e50-c1d0-59d1-b5f3-b9195b6e2401",
+              "score": 6.9892573
+            },
+            {
+              "id": "encyc:F00430",
+              "score": 6.856128
+            },
+            {
+              "id": "encyc:F00823",
+              "score": 6.771325
+            },
+            {
+              "id": "encyc:F00109",
+              "score": 6.754221299999999
+            },
+            {
+              "id": "ezik:c1#3",
+              "score": 6.7026305
+            },
+            {
+              "id": "encyc:F02294",
+              "score": 6.3304734
+            },
+            {
+              "id": "encyc:F01501",
+              "score": 5.828235
+            },
+            {
+              "id": "encyc:F00907",
+              "score": 5.6371427
+            },
+            {
+              "id": "qaf:c1:d563cd3e-dfda-56db-8f82-508630c655e8",
+              "score": 5.502207
+            },
+            {
+              "id": "encyc:F00838",
+              "score": 5.191312999999999
+            },
+            {
+              "id": "encyc:F01502",
+              "score": 4.761899
+            },
+            {
+              "id": "encyc:F00514",
+              "score": 4.722940299999999
+            },
+            {
+              "id": "encyc:F00112",
+              "score": 4.5093963
+            },
+            {
+              "id": "encyc:F00967",
+              "score": 4.4707403
+            },
+            {
+              "id": "encyc:F02389",
+              "score": 4.432148
+            },
+            {
+              "id": "encyc:F01529",
+              "score": 4.126248
+            },
+            {
+              "id": "encyc:F02246",
+              "score": 4.0507212
+            },
+            {
+              "id": "encyc:F00420",
+              "score": 3.5362907999999997
+            },
+            {
+              "id": "encyc:F00783",
+              "score": 3.4298956
+            },
+            {
+              "id": "encyc:F00937",
+              "score": 3.3598238
+            },
+            {
+              "id": "encyc:F02652",
+              "score": 3.2904666999999996
+            }
+          ]
         },
         {
           "id": "c2",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 610.4731000000011,
+          "search_units": 1,
+          "precisionAt10": 0.6,
+          "ranking": [
+            {
+              "id": "qaf:c2:29196427-c68c-5a4b-a46b-43bcd28d129e",
+              "score": 9.0108824
+            },
+            {
+              "id": "qaf:c2:63e8020c-66bd-50ab-abad-1ce96d677458",
+              "score": 8.8908666
+            },
+            {
+              "id": "qaf:c2:318f611b-8063-5ca8-97b9-05ee957f8b13",
+              "score": 8.858686
+            },
+            {
+              "id": "qaf:c2:e23af82d-38d6-50e6-9476-a617d1ea9b79",
+              "score": 8.8457876
+            },
+            {
+              "id": "qaf:c2:809526c7-1936-5b01-95ca-538cdbb99a9b",
+              "score": 8.833769
+            },
+            {
+              "id": "qaf:c2:9ecfe5b2-3848-58b0-9472-79b70f129ff7",
+              "score": 8.800156
+            },
+            {
+              "id": "qaf:c2:1f90d78a-9b96-5f48-a2af-ace729231658",
+              "score": 8.784603
+            },
+            {
+              "id": "ezik:c2#1",
+              "score": 8.7672937
+            },
+            {
+              "id": "qaf:c2:6962fb3f-d6c5-53c0-bfe6-9b74e502b09c",
+              "score": 8.675023
+            },
+            {
+              "id": "qaf:c2:e888e3c4-a80c-569e-a412-76edb5df7302",
+              "score": 8.6075294
+            },
+            {
+              "id": "qaf:c2:d3eddde6-e4bb-5462-bee2-4c5c936cf482",
+              "score": 8.568901
+            },
+            {
+              "id": "qaf:c2:2dfe0c8c-26ca-52f0-9f97-f9771846fa1d",
+              "score": 8.555376500000001
+            },
+            {
+              "id": "qaf:c2:5bd67698-0faf-5128-bbb0-3515e418f8d6",
+              "score": 8.531680999999999
+            },
+            {
+              "id": "qaf:c2:cef954c7-59ce-5e2f-a473-1194d793c141",
+              "score": 8.507664
+            },
+            {
+              "id": "qaf:c2:75800b17-6a6e-5d7e-99dd-82297fa965c0",
+              "score": 8.4864634
+            },
+            {
+              "id": "qaf:c2:72b15aeb-fc5b-5deb-9176-1fb2c32870b8",
+              "score": 8.414871999999999
+            },
+            {
+              "id": "qaf:c2:96639307-a3c0-53f1-ba25-bbe3c890bd24",
+              "score": 8.4070414
+            },
+            {
+              "id": "qaf:c2:e830994f-b7ef-55ba-b3cb-c451315ea584",
+              "score": 8.3147174
+            },
+            {
+              "id": "qaf:c2:c50584ef-9247-5608-8ab3-dfeb887bbc0a",
+              "score": 8.306491000000001
+            },
+            {
+              "id": "qaf:c2:c9dd6874-6c64-57f4-a533-321d07336234",
+              "score": 8.2732654
+            },
+            {
+              "id": "qaf:c2:6976889c-fb05-5b34-8f2a-83199153fc34",
+              "score": 8.2395256
+            },
+            {
+              "id": "qaf:c2:1c45f973-8a58-5b49-a4a6-18ddff9fed5c",
+              "score": 8.2281643
+            },
+            {
+              "id": "qaf:c2:e73e56cd-72a1-5b68-a647-155d77025dd9",
+              "score": 8.138162
+            },
+            {
+              "id": "qaf:c2:dbbd3b4d-d46e-53cd-a31b-ebe4f0f41430",
+              "score": 8.12332
+            },
+            {
+              "id": "qaf:c2:12f7df83-d609-5126-b0fb-699383310be8",
+              "score": 8.0354404
+            },
+            {
+              "id": "qaf:c2:d4c415a1-ed9f-50bb-a1dd-8d931f63b258",
+              "score": 7.985641
+            },
+            {
+              "id": "qaf:c2:e7649efc-9fe8-52ec-9987-540cadafa938",
+              "score": 7.777053
+            },
+            {
+              "id": "qaf:c2:201ec678-0068-5875-8773-3d196e846711",
+              "score": 7.674110499999999
+            },
+            {
+              "id": "qaf:c2:ebbfa419-2033-5ed0-af84-1506ac138ddc",
+              "score": 7.6461049999999995
+            },
+            {
+              "id": "qaf:c2:76450032-0674-595e-baf2-c1e0e7835ab5",
+              "score": 7.531763
+            },
+            {
+              "id": "qaf:c2:c1fc5c4c-ba5e-506c-b402-c7cc05bdabcd",
+              "score": 7.502601
+            },
+            {
+              "id": "qaf:c2:ca7ff105-93df-5e04-aba4-278905eaf731",
+              "score": 7.3761206999999995
+            },
+            {
+              "id": "qaf:c2:7e2c0a0d-42ec-5572-8359-7ee161fd4c41",
+              "score": 7.166947
+            },
+            {
+              "id": "qaf:c2:d4f78349-d1a7-52be-907a-79a4180d8c4d",
+              "score": 7.143093
+            },
+            {
+              "id": "qaf:c2:e9fe15da-56e8-57da-91de-dff18aa56d57",
+              "score": 7.070812
+            },
+            {
+              "id": "qaf:c2:5acb9101-0fe9-5323-b754-9489fb5cf931",
+              "score": 6.8729423999999995
+            },
+            {
+              "id": "qaf:c2:b9e31e32-1ce7-5c3f-86df-8aa0a9270ed1",
+              "score": 6.668006
+            },
+            {
+              "id": "qaf:c2:7395a8cd-4d20-5233-b992-d670ce51a2a2",
+              "score": 6.563059
+            },
+            {
+              "id": "encyc:F00500",
+              "score": 6.474416
+            },
+            {
+              "id": "ezik:c2#3",
+              "score": 6.2941020000000005
+            },
+            {
+              "id": "qaf:c2:3ed1ca1c-da32-5529-9972-7e9e6f0179e0",
+              "score": 6.165665000000001
+            },
+            {
+              "id": "ezik:c2#2",
+              "score": 6.110107
+            },
+            {
+              "id": "encyc:F01936",
+              "score": 6.03558
+            },
+            {
+              "id": "qaf:c2:4290e37f-881c-5d82-b26b-9cc072ca8d4c",
+              "score": 5.96057
+            },
+            {
+              "id": "qaf:c2:0b75df24-f380-5105-8928-e40a3eaef2aa",
+              "score": 5.828235
+            },
+            {
+              "id": "qaf:c2:766975cd-f95d-56e7-886c-840f78d0339e",
+              "score": 5.502207
+            },
+            {
+              "id": "encyc:F01575",
+              "score": 3.680422
+            },
+            {
+              "id": "ezik:c2#5",
+              "score": 3.0869020000000003
+            },
+            {
+              "id": "ezik:c2#4",
+              "score": 3.0869020000000003
+            },
+            {
+              "id": "ezik:c2#6",
+              "score": 3.0869020000000003
+            }
+          ]
         },
         {
           "id": "c3",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 715.5025000000005,
+          "search_units": 2,
+          "precisionAt10": 0.7,
+          "ranking": [
+            {
+              "id": "qaf:c3:0a72c649-f83f-51c2-a46d-8133279182c7",
+              "score": 9.559155
+            },
+            {
+              "id": "qaf:c3:fa785ea5-c0af-5e55-9058-d788fb61a0f2",
+              "score": 9.473030999999999
+            },
+            {
+              "id": "qaf:c3:2c737357-fd3a-56cd-a22e-36f0d29152f7",
+              "score": 9.426336
+            },
+            {
+              "id": "qaf:c3:da298e04-a8ca-5cac-99cd-1b86a6637ca2",
+              "score": 9.3982506
+            },
+            {
+              "id": "qaf:c3:84c2fc0d-4c4f-51b1-a4f8-3fb68f99a667",
+              "score": 9.375776
+            },
+            {
+              "id": "qaf:c3:437224e8-e0a7-5f1a-8934-c57e67494f67",
+              "score": 9.3688816
+            },
+            {
+              "id": "qaf:c3:7f5237b6-d124-53c5-b9c5-4b56716249e0",
+              "score": 9.354881
+            },
+            {
+              "id": "qaf:c3:d7c9cf6a-7581-563f-baba-38c924159797",
+              "score": 9.330902
+            },
+            {
+              "id": "qaf:c3:864ffcd9-6308-5b51-b358-60c57842d3d1",
+              "score": 9.323548
+            },
+            {
+              "id": "qaf:c3:df14f935-f67f-5157-b18b-f8f968c1b045",
+              "score": 9.3186045
+            },
+            {
+              "id": "qaf:c3:72bb69fc-a1b2-578b-9e1e-4d190b3bbf4d",
+              "score": 9.3136275
+            },
+            {
+              "id": "qaf:c3:25a0e5e6-9755-58ac-aba1-b6a1b230bac4",
+              "score": 9.3035704
+            },
+            {
+              "id": "qaf:c3:a9706faa-ae38-58cd-938c-3d4e0e986348",
+              "score": 9.295939
+            },
+            {
+              "id": "qaf:c3:35cbd62c-b07a-5707-affc-3832c9029365",
+              "score": 9.2752105
+            },
+            {
+              "id": "ezik:c3#1",
+              "score": 9.2672926
+            },
+            {
+              "id": "qaf:c3:6df14daf-f0ae-54c3-a0dc-25370d0048ec",
+              "score": 9.2485076
+            },
+            {
+              "id": "qaf:c3:532704db-f627-5d4a-aeb0-e36f0f9a2300",
+              "score": 9.24306
+            },
+            {
+              "id": "qaf:c3:b32d2455-3175-5869-b844-9e1016d4745e",
+              "score": 9.24306
+            },
+            {
+              "id": "qaf:c3:032f3c82-d194-5025-ac90-22e20e637c8c",
+              "score": 9.2264974
+            },
+            {
+              "id": "qaf:c3:cfb89e46-c929-5a97-b9a1-d7299de3b4a3",
+              "score": 9.215272
+            },
+            {
+              "id": "qaf:c3:bab8ed17-304f-52f0-b057-97049fced901",
+              "score": 9.1806984
+            },
+            {
+              "id": "qaf:c3:13228f76-f0ef-5504-9278-a3410390118d",
+              "score": 9.159895
+            },
+            {
+              "id": "qaf:c3:240b1cc1-d3d7-5ff3-a180-d41099ce8b10",
+              "score": 9.1568834
+            },
+            {
+              "id": "qaf:c3:b33234be-54af-5e9e-958b-fad1fdf2d0a7",
+              "score": 9.1568834
+            },
+            {
+              "id": "qaf:c3:8a0d4a69-51ce-5b6d-a115-64a3b3794354",
+              "score": 9.112114
+            },
+            {
+              "id": "qaf:c3:143f497b-99fd-588a-9e1b-0b60e406a6ce",
+              "score": 9.0832555
+            },
+            {
+              "id": "qaf:c3:4c648897-7c78-5ee7-bc58-cd4af70d0cc7",
+              "score": 9.051882599999999
+            },
+            {
+              "id": "qaf:c3:f24916c5-d74d-51a7-bd67-8f53f1947ed5",
+              "score": 9.040084499999999
+            },
+            {
+              "id": "qaf:c3:bae3cde3-f97d-5c65-b45e-bae1a1cf09df",
+              "score": 9.0108824
+            },
+            {
+              "id": "ezik:c3#3",
+              "score": 8.94458
+            },
+            {
+              "id": "qaf:c3:e7805d8e-3ff4-55a0-a4d1-e0c29cf98a7f",
+              "score": 8.7809485
+            },
+            {
+              "id": "encyc:F01877",
+              "score": 7.3912126
+            },
+            {
+              "id": "encyc:F00792",
+              "score": 6.509999
+            },
+            {
+              "id": "encyc:F01445",
+              "score": 5.828235
+            },
+            {
+              "id": "encyc:F02401",
+              "score": 5.809227
+            },
+            {
+              "id": "encyc:F02600",
+              "score": 5.424755
+            },
+            {
+              "id": "encyc:F02200",
+              "score": 5.249791999999999
+            },
+            {
+              "id": "encyc:F02599",
+              "score": 5.2108127
+            },
+            {
+              "id": "encyc:F01878",
+              "score": 5.0156254
+            },
+            {
+              "id": "encyc:F02899",
+              "score": 5.0156254
+            },
+            {
+              "id": "encyc:F01768",
+              "score": 4.7813897999999995
+            },
+            {
+              "id": "encyc:F00349",
+              "score": 4.432148
+            },
+            {
+              "id": "encyc:F01575",
+              "score": 4.2785084
+            },
+            {
+              "id": "encyc:F01664",
+              "score": 4.0507212
+            },
+            {
+              "id": "encyc:F03065",
+              "score": 3.9756414
+            },
+            {
+              "id": "encyc:F00350",
+              "score": 3.9010403
+            },
+            {
+              "id": "encyc:F01327",
+              "score": 3.8639295000000002
+            },
+            {
+              "id": "encyc:F01974",
+              "score": 3.644156
+            },
+            {
+              "id": "encyc:F02543",
+              "score": 3.5362907999999997
+            },
+            {
+              "id": "ezik:c3#2",
+              "score": 3.1878197000000004
+            }
+          ]
         }
       ],
-      "medianPrecisionAt10": null,
-      "medianMs": null,
-      "p90Ms": null,
-      "threshold": null,
-      "above": null,
-      "knownX": null,
-      "search_units": 0,
-      "availability": "NOT_VALIDATED: no API call was possible",
-      "price": null
+      "price": null,
+      "medianPrecisionAt10": 0.7,
+      "medianMs": 715.5025000000005,
+      "p90Ms": 1091.1028000000006,
+      "search_units": 17,
+      "availability": "LIVE_VALIDATED",
+      "threshold": 8.7809485,
+      "rule": "Strictly greater than the highest X score",
+      "above": {
+        "R": 63,
+        "P": 18,
+        "X": 0
+      },
+      "knownX": [
+        {
+          "id": "ezik:b3#4",
+          "score": 2.0792148,
+          "suppressed": true
+        },
+        {
+          "id": "ezik:b3#5",
+          "score": 2.0792148,
+          "suppressed": true
+        },
+        {
+          "id": "ezik:c1#3",
+          "score": 6.7026305,
+          "suppressed": true
+        }
+      ]
     },
     {
       "model": "rerank-v4.0-pro",
       "rows": [
         {
           "id": "a1",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 921.7428999999993,
+          "search_units": 2,
+          "precisionAt10": 0.8,
+          "ranking": [
+            {
+              "id": "qaf:a1:c2393446-5382-5e25-8f06-7d5a7ebc9255",
+              "score": 9.65719
+            },
+            {
+              "id": "qaf:a1:771bb3a0-952f-5806-b3e4-d0162ae11bfe",
+              "score": 9.641328
+            },
+            {
+              "id": "qaf:a1:b1e5b689-a518-59c8-9ccb-d289395e5ef3",
+              "score": 9.5939845
+            },
+            {
+              "id": "qaf:a1:21b47aeb-a5f9-5b1e-a035-640c6994a89c",
+              "score": 9.580066
+            },
+            {
+              "id": "qaf:a1:9208095d-fc92-5016-aa91-e21d6837b403",
+              "score": 9.575327
+            },
+            {
+              "id": "qaf:a1:fea02c33-9d51-563c-9b20-1d83b9383d6f",
+              "score": 9.528557
+            },
+            {
+              "id": "qaf:a1:1fe324a9-14f3-5ef3-b645-cd2b4dc851e1",
+              "score": 9.523265
+            },
+            {
+              "id": "qaf:a1:4342cc3e-9712-54cc-9d8f-029a1130e57a",
+              "score": 9.517915
+            },
+            {
+              "id": "qaf:a1:9796b039-6c6a-5101-b4c7-b6ff17eda0ad",
+              "score": 9.5125103
+            },
+            {
+              "id": "qaf:a1:db463408-2597-565a-91e2-e32f30eb4830",
+              "score": 9.4769174
+            },
+            {
+              "id": "qaf:a1:144c6a79-e860-5b51-a5f0-186cb1501b29",
+              "score": 9.471077300000001
+            },
+            {
+              "id": "qaf:a1:afdb5f6f-ab78-5b2b-ac2d-d059761befba",
+              "score": 9.471077300000001
+            },
+            {
+              "id": "ezik:a1#1",
+              "score": 9.463194999999999
+            },
+            {
+              "id": "qaf:a1:35d1a7c8-07ce-5ec1-b8ff-cbf75bb22932",
+              "score": 9.408114600000001
+            },
+            {
+              "id": "qaf:a1:ff4234aa-5499-5b72-9e10-069544b77602",
+              "score": 9.370036
+            },
+            {
+              "id": "qaf:a1:b475afed-03f2-5fb0-b99c-7565759a7c4e",
+              "score": 9.301036
+            },
+            {
+              "id": "ezik:a1#4",
+              "score": 9.155941
+            },
+            {
+              "id": "encyc:F01173",
+              "score": 8.2592696
+            },
+            {
+              "id": "encyc:F00651",
+              "score": 6.202535999999999
+            },
+            {
+              "id": "encyc:F01852",
+              "score": 5.9040135000000005
+            },
+            {
+              "id": "encyc:F00590",
+              "score": 5.7138395
+            },
+            {
+              "id": "encyc:F01860",
+              "score": 5.4441386000000005
+            },
+            {
+              "id": "encyc:F02321",
+              "score": 5.171807
+            },
+            {
+              "id": "encyc:F00976",
+              "score": 5.093739
+            },
+            {
+              "id": "encyc:F00645",
+              "score": 4.7424152
+            },
+            {
+              "id": "encyc:F00756",
+              "score": 4.703473000000001
+            },
+            {
+              "id": "encyc:F00118",
+              "score": 4.0507212
+            },
+            {
+              "id": "encyc:F00158",
+              "score": 4.0131232
+            },
+            {
+              "id": "encyc:F01818",
+              "score": 3.9010403
+            },
+            {
+              "id": "encyc:F02679",
+              "score": 3.8269496
+            },
+            {
+              "id": "encyc:F01698",
+              "score": 3.7901053
+            },
+            {
+              "id": "encyc:F00035",
+              "score": 3.7901053
+            },
+            {
+              "id": "encyc:F01829",
+              "score": 3.7534004
+            },
+            {
+              "id": "encyc:F00514",
+              "score": 3.6080426
+            },
+            {
+              "id": "encyc:F01664",
+              "score": 3.5720864000000003
+            },
+            {
+              "id": "encyc:F03066",
+              "score": 3.4651917
+            },
+            {
+              "id": "encyc:F03032",
+              "score": 3.4651917
+            },
+            {
+              "id": "encyc:F02572",
+              "score": 3.2904664
+            },
+            {
+              "id": "encyc:F01007",
+              "score": 3.2218465000000003
+            },
+            {
+              "id": "encyc:F03011",
+              "score": 3.0869016
+            },
+            {
+              "id": "encyc:F00458",
+              "score": 3.0536576999999996
+            },
+            {
+              "id": "encyc:F01187",
+              "score": 3.0536576999999996
+            },
+            {
+              "id": "ezik:a1#3",
+              "score": 2.8267118
+            },
+            {
+              "id": "ezik:a1#2",
+              "score": 2.8267118
+            },
+            {
+              "id": "ezik:a1#5",
+              "score": 2.8267118
+            },
+            {
+              "id": "ezik:a1#6",
+              "score": 2.8267118
+            },
+            {
+              "id": "encyc:F00851",
+              "score": 2.7326395999999997
+            },
+            {
+              "id": "encyc:F02615",
+              "score": 2.610294
+            },
+            {
+              "id": "encyc:F00785",
+              "score": 2.3764667
+            },
+            {
+              "id": "encyc:F02273",
+              "score": 2.1574701
+            }
+          ]
         },
         {
           "id": "a2",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 1427.4296000000013,
+          "search_units": 2,
+          "precisionAt10": 1,
+          "ranking": [
+            {
+              "id": "ezik:a2#3",
+              "score": 9.715208
+            },
+            {
+              "id": "qaf:a2:625b4f8f-f6ac-545a-bd87-3e0d9b09f543",
+              "score": 9.671134
+            },
+            {
+              "id": "qaf:a2:060c543b-a6c2-5c50-a8e7-61cf9989e310",
+              "score": 9.584756
+            },
+            {
+              "id": "qaf:a2:ff89c916-401a-5cc2-9f3a-00ad0844ccca",
+              "score": 9.572139
+            },
+            {
+              "id": "qaf:a2:7d99e1a0-5f38-54e5-ab6d-d95a377668b1",
+              "score": 9.5541906
+            },
+            {
+              "id": "qaf:a2:356ea7aa-720f-5033-9c16-91d26a8fe7ca",
+              "score": 9.537253999999999
+            },
+            {
+              "id": "qaf:a2:5d0139b1-7b8c-55c1-b71f-e79c0f2184cd",
+              "score": 9.517915
+            },
+            {
+              "id": "qaf:a2:12c3bbd4-0ad9-55fd-b388-7547ae9b28f6",
+              "score": 9.455202
+            },
+            {
+              "id": "qaf:a2:a0f602de-3390-51af-8efd-5539a5fa78b8",
+              "score": 9.421032700000001
+            },
+            {
+              "id": "qaf:a2:ec815d45-9bed-57f4-ab00-09e49f63398d",
+              "score": 9.415683
+            },
+            {
+              "id": "qaf:a2:67e6ecc9-6cae-5e49-8811-09999e2b2d00",
+              "score": 9.319843
+            },
+            {
+              "id": "qaf:a2:7b290077-758c-525b-88ce-1a2ef9218443",
+              "score": 9.281097
+            },
+            {
+              "id": "qaf:a2:a8244260-b0ad-5d98-a28a-84125705a5f2",
+              "score": 9.280445
+            },
+            {
+              "id": "qaf:a2:57290597-0cc8-5145-a9ea-c9b2c1869c16",
+              "score": 9.1770184
+            },
+            {
+              "id": "ezik:a2#1",
+              "score": 9.115465
+            },
+            {
+              "id": "qaf:a2:40a8daaf-322d-59b8-b9c8-0a8322fa2166",
+              "score": 9.085287
+            },
+            {
+              "id": "qaf:a2:341eac64-078e-59b7-815f-cd7370a225d8",
+              "score": 9.076319999999999
+            },
+            {
+              "id": "qaf:a2:0fc8a652-535a-5797-84b2-4b96e4831fdc",
+              "score": 9.0746814
+            },
+            {
+              "id": "qaf:a2:6c947083-c8c2-5dc7-ab04-5e37312aba4a",
+              "score": 9.070985
+            },
+            {
+              "id": "ezik:a2#4",
+              "score": 9.017824
+            },
+            {
+              "id": "qaf:a2:3842b6b2-f6bd-5145-8ccd-6a0a036e7b6a",
+              "score": 8.848775
+            },
+            {
+              "id": "ezik:a2#6",
+              "score": 8.842793
+            },
+            {
+              "id": "qaf:a2:7e18cb45-a2a0-58e3-b70c-f8d55d2e06da",
+              "score": 8.820626
+            },
+            {
+              "id": "qaf:a2:6dec5f9b-4137-5f0f-8f2f-7819e33eff64",
+              "score": 8.75404
+            },
+            {
+              "id": "qaf:a2:71f44af7-dd5f-5b95-a7df-22c2afd6d280",
+              "score": 8.654971999999999
+            },
+            {
+              "id": "qaf:a2:5863cf6d-7673-59b4-b69f-36efa6d6c2d8",
+              "score": 8.5994625
+            },
+            {
+              "id": "qaf:a2:5d1963cd-8408-5cf3-bbc6-4496c44ce09f",
+              "score": 8.5947514
+            },
+            {
+              "id": "qaf:a2:62037973-e5b9-51bd-83ab-288b7f176684",
+              "score": 8.590027
+            },
+            {
+              "id": "encyc:F00027",
+              "score": 7.6320153
+            },
+            {
+              "id": "encyc:F01576",
+              "score": 6.3123059999999995
+            },
+            {
+              "id": "encyc:F01031",
+              "score": 5.5986769999999995
+            },
+            {
+              "id": "encyc:F01572",
+              "score": 4.976562299999999
+            },
+            {
+              "id": "encyc:F00770",
+              "score": 4.664567
+            },
+            {
+              "id": "encyc:F02109",
+              "score": 4.5093957
+            },
+            {
+              "id": "encyc:F01620",
+              "score": 4.2403027
+            },
+            {
+              "id": "encyc:F00371",
+              "score": 4.126248
+            },
+            {
+              "id": "encyc:F00783",
+              "score": 4.0884307
+            },
+            {
+              "id": "encyc:F00867",
+              "score": 4.0884307
+            },
+            {
+              "id": "encyc:F00145",
+              "score": 4.0131232
+            },
+            {
+              "id": "encyc:F01843",
+              "score": 3.7168378000000004
+            },
+            {
+              "id": "encyc:F02997",
+              "score": 3.7168378000000004
+            },
+            {
+              "id": "encyc:F00465",
+              "score": 3.6441556000000004
+            },
+            {
+              "id": "encyc:F01180",
+              "score": 3.429895
+            },
+            {
+              "id": "encyc:F01445",
+              "score": 3.2218465000000003
+            },
+            {
+              "id": "encyc:F01818",
+              "score": 2.890505
+            },
+            {
+              "id": "ezik:a2#2",
+              "score": 2.8267118
+            },
+            {
+              "id": "ezik:a2#5",
+              "score": 2.8267118
+            },
+            {
+              "id": "encyc:F02123",
+              "score": 2.6710218
+            },
+            {
+              "id": "encyc:F02853",
+              "score": 2.3482752000000002
+            },
+            {
+              "id": "encyc:F01045",
+              "score": 2.2925898
+            }
+          ]
         },
         {
           "id": "a3",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 1126.4066999999977,
+          "search_units": 2,
+          "precisionAt10": 0.9,
+          "ranking": [
+            {
+              "id": "qaf:a3:dfb65683-8d39-5acc-a5ef-d2a7944c19e6",
+              "score": 9.545797
+            },
+            {
+              "id": "qaf:a3:5020a923-6814-5044-b89b-283add54114e",
+              "score": 9.488415
+            },
+            {
+              "id": "qaf:a3:680e810a-8525-5b0d-8a71-978c94f534ac",
+              "score": 9.473030999999999
+            },
+            {
+              "id": "qaf:a3:0a7b8b9d-4281-520a-aab1-e540b53582e1",
+              "score": 9.392704
+            },
+            {
+              "id": "ezik:a3#5",
+              "score": 9.3825984
+            },
+            {
+              "id": "ezik:a3#3",
+              "score": 9.3688816
+            },
+            {
+              "id": "qaf:a3:58069170-9434-5cd7-8c2a-9189e0280d1f",
+              "score": 9.2997646
+            },
+            {
+              "id": "qaf:a3:2b2eb4ce-491b-50ef-bb57-921442229225",
+              "score": 9.1514957
+            },
+            {
+              "id": "qaf:a3:9a539106-9dc5-5174-b6a4-4713d429df24",
+              "score": 9.109146
+            },
+            {
+              "id": "qaf:a3:82d4b862-b826-53ea-a11b-b4058a16918f",
+              "score": 9.040084499999999
+            },
+            {
+              "id": "qaf:a3:d1227c90-c75b-58a9-aef7-2b189168dbbd",
+              "score": 9.006522
+            },
+            {
+              "id": "qaf:a3:586dfca5-0b6a-5bff-9c29-c4651c11922a",
+              "score": 8.688713
+            },
+            {
+              "id": "qaf:a3:f76075c3-5f7a-5c3a-a251-4a530921f565",
+              "score": 8.643563
+            },
+            {
+              "id": "qaf:a3:e2cda786-e7ee-588b-8584-3cfa2a9d71b7",
+              "score": 8.5947514
+            },
+            {
+              "id": "qaf:a3:d28a44b8-c0fb-5349-85b3-f18a3e5c3b98",
+              "score": 8.590027
+            },
+            {
+              "id": "qaf:a3:cbd93c94-4ea3-56fc-a923-60497252330e",
+              "score": 8.537177
+            },
+            {
+              "id": "qaf:a3:5b123fec-340b-5e11-82dc-07a6e78c36d2",
+              "score": 8.314717
+            },
+            {
+              "id": "ezik:a3#4",
+              "score": 7.5172110000000005
+            },
+            {
+              "id": "encyc:F02321",
+              "score": 7.458429
+            },
+            {
+              "id": "encyc:F00869",
+              "score": 6.737070699999999
+            },
+            {
+              "id": "encyc:F01827",
+              "score": 6.615731
+            },
+            {
+              "id": "encyc:F00226",
+              "score": 6.492228
+            },
+            {
+              "id": "encyc:F00590",
+              "score": 6.0168713
+            },
+            {
+              "id": "encyc:F02219",
+              "score": 5.5601389999999995
+            },
+            {
+              "id": "encyc:F00674",
+              "score": 5.2887404
+            },
+            {
+              "id": "encyc:F00273",
+              "score": 5.093739
+            },
+            {
+              "id": "encyc:F02318",
+              "score": 4.9375027
+            },
+            {
+              "id": "encyc:F00356",
+              "score": 4.8594117
+            },
+            {
+              "id": "encyc:F00982",
+              "score": 4.664567
+            },
+            {
+              "id": "encyc:F00224",
+              "score": 4.5481113
+            },
+            {
+              "id": "encyc:F00141",
+              "score": 4.5093957
+            },
+            {
+              "id": "encyc:F00976",
+              "score": 4.5093957
+            },
+            {
+              "id": "encyc:F00432",
+              "score": 4.4707397
+            },
+            {
+              "id": "encyc:F00560",
+              "score": 4.2021882999999995
+            },
+            {
+              "id": "encyc:F01858",
+              "score": 4.2021882999999995
+            },
+            {
+              "id": "encyc:F00669",
+              "score": 4.2021882999999995
+            },
+            {
+              "id": "encyc:F01227",
+              "score": 4.126248
+            },
+            {
+              "id": "encyc:F01842",
+              "score": 4.0507212
+            },
+            {
+              "id": "encyc:F01841",
+              "score": 3.938279
+            },
+            {
+              "id": "encyc:F01207",
+              "score": 3.8269496
+            },
+            {
+              "id": "encyc:F00648",
+              "score": 3.7534004
+            },
+            {
+              "id": "encyc:F00843",
+              "score": 3.7534004
+            },
+            {
+              "id": "encyc:F02319",
+              "score": 3.6080426
+            },
+            {
+              "id": "ezik:a3#2",
+              "score": 3.5006577
+            },
+            {
+              "id": "ezik:a3#7",
+              "score": 3.5006577
+            },
+            {
+              "id": "ezik:a3#1",
+              "score": 3.5006577
+            },
+            {
+              "id": "ezik:a3#6",
+              "score": 3.5006577
+            },
+            {
+              "id": "encyc:F00552",
+              "score": 3.429895
+            },
+            {
+              "id": "encyc:F01204",
+              "score": 3.0206156
+            },
+            {
+              "id": "encyc:F00881",
+              "score": 2.8585013999999997
+            }
+          ]
         },
         {
           "id": "b1",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 1279.2799999999988,
+          "search_units": 2,
+          "precisionAt10": 0.9,
+          "ranking": [
+            {
+              "id": "qaf:b1:0ecc6387-4082-5ec2-b68e-5a003b85dc4b",
+              "score": 9.3665683
+            },
+            {
+              "id": "qaf:b1:7edead1f-6345-5cb7-b1d7-26e7a980a153",
+              "score": 9.141874
+            },
+            {
+              "id": "qaf:b1:b9796be1-8997-5595-8a59-da92238cdc9d",
+              "score": 9.1035825
+            },
+            {
+              "id": "qaf:b1:39c89db1-efe8-5d78-a796-0bf979975078",
+              "score": 8.955592
+            },
+            {
+              "id": "qaf:b1:b52ce681-9372-5f80-8d81-3ba78aff7f12",
+              "score": 8.928805
+            },
+            {
+              "id": "qaf:b1:dc93d251-1f5c-567a-bb2b-a281e7fae7f5",
+              "score": 8.8387895
+            },
+            {
+              "id": "qaf:b1:13419e61-01bd-5b91-a7b7-013a1732a176",
+              "score": 8.836784
+            },
+            {
+              "id": "qaf:b1:86c3ccd1-85c8-5a2c-adde-6d63fc5d1b33",
+              "score": 8.730417000000001
+            },
+            {
+              "id": "qaf:b1:8a9d69b6-b984-548c-862e-bea2439d3109",
+              "score": 8.652695999999999
+            },
+            {
+              "id": "qaf:b1:929b24af-816d-5e18-a361-29ee11332fdf",
+              "score": 8.590027
+            },
+            {
+              "id": "qaf:b1:61557126-a587-56fd-b0e5-bae231e0f74c",
+              "score": 8.379385000000001
+            },
+            {
+              "id": "qaf:b1:226fbd5f-b8dc-5a1f-8ac4-bbcd1cf7ad1d",
+              "score": 8.368746999999999
+            },
+            {
+              "id": "qaf:b1:9f4a96a5-544d-5e5b-8194-50e0c08c39c7",
+              "score": 8.336498
+            },
+            {
+              "id": "qaf:b1:01cd0af9-6747-5c8a-afec-41f56102f7ca",
+              "score": 8.236691
+            },
+            {
+              "id": "qaf:b1:d6074a06-b650-5c48-87cd-36adfac58752",
+              "score": 8.0843043
+            },
+            {
+              "id": "ezik:b1#1",
+              "score": 7.383673
+            },
+            {
+              "id": "ezik:b1#2",
+              "score": 6.737070699999999
+            },
+            {
+              "id": "ezik:b1#3",
+              "score": 1.9534835
+            },
+            {
+              "id": "encyc:F02723",
+              "score": 1.7418538
+            },
+            {
+              "id": "encyc:F00175",
+              "score": 1.7418538
+            },
+            {
+              "id": "encyc:F00655",
+              "score": 1.7194924999999999
+            },
+            {
+              "id": "encyc:F00137",
+              "score": 1.6973591
+            },
+            {
+              "id": "encyc:F01171",
+              "score": 1.6973591
+            },
+            {
+              "id": "encyc:F00138",
+              "score": 1.6754529000000002
+            },
+            {
+              "id": "encyc:F00139",
+              "score": 1.6537731999999998
+            },
+            {
+              "id": "encyc:F00344",
+              "score": 1.632319
+            },
+            {
+              "id": "encyc:F00686",
+              "score": 1.6110894
+            },
+            {
+              "id": "encyc:F00923",
+              "score": 1.5283972000000001
+            },
+            {
+              "id": "encyc:F02565",
+              "score": 1.4492162
+            },
+            {
+              "id": "encyc:F00216",
+              "score": 1.4492162
+            },
+            {
+              "id": "encyc:F00851",
+              "score": 1.4492162
+            },
+            {
+              "id": "encyc:F01612",
+              "score": 1.4109194
+            },
+            {
+              "id": "encyc:F03018",
+              "score": 1.4109194
+            },
+            {
+              "id": "encyc:F00181",
+              "score": 1.4109194
+            },
+            {
+              "id": "encyc:F00379",
+              "score": 1.4109194
+            },
+            {
+              "id": "encyc:F00681",
+              "score": 1.4109194
+            },
+            {
+              "id": "encyc:F00833",
+              "score": 1.4109194
+            },
+            {
+              "id": "encyc:F01831",
+              "score": 1.3734722
+            },
+            {
+              "id": "encyc:F00105",
+              "score": 1.3734722
+            },
+            {
+              "id": "encyc:F00314",
+              "score": 1.3734722
+            },
+            {
+              "id": "encyc:F00756",
+              "score": 1.3734722
+            },
+            {
+              "id": "encyc:F00271",
+              "score": 1.3368641
+            },
+            {
+              "id": "encyc:F00585",
+              "score": 1.3368641
+            },
+            {
+              "id": "encyc:F00555",
+              "score": 1.3010846
+            },
+            {
+              "id": "encyc:F01851",
+              "score": 1.2661228
+            },
+            {
+              "id": "encyc:F00467",
+              "score": 1.2661228
+            },
+            {
+              "id": "encyc:F00850",
+              "score": 1.2661228
+            },
+            {
+              "id": "encyc:F00888",
+              "score": 1.1986067999999999
+            },
+            {
+              "id": "encyc:F00801",
+              "score": 1.1660296
+            },
+            {
+              "id": "encyc:F00925",
+              "score": 1.1660296
+            }
+          ]
         },
         {
           "id": "b2",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 928.7415000000001,
+          "search_units": 2,
+          "precisionAt10": 0.9,
+          "ranking": [
+            {
+              "id": "qaf:b2:59d7e6d3-5781-5431-9b78-b7a8a8da8088",
+              "score": 9.708651
+            },
+            {
+              "id": "qaf:b2:234a3dcf-8ed1-5477-bc22-bd8abc4f45f9",
+              "score": 9.6996796
+            },
+            {
+              "id": "qaf:b2:ad9e0528-b989-530e-aa1e-fc91a5713ba5",
+              "score": 9.666128
+            },
+            {
+              "id": "ezik:b2#1",
+              "score": 9.650665
+            },
+            {
+              "id": "qaf:b2:c02d1256-270d-52bb-bb7a-44bf3c27da7e",
+              "score": 9.628970599999999
+            },
+            {
+              "id": "qaf:b2:d36d434c-75e4-5643-bb69-7d1326e541c5",
+              "score": 9.619076
+            },
+            {
+              "id": "qaf:b2:1601cb58-ee02-5fc4-ba0f-718d4e1cdfda",
+              "score": 9.616204
+            },
+            {
+              "id": "qaf:b2:120ccf8e-3a7b-5200-98d5-7e0ea2d77cbf",
+              "score": 9.6045023
+            },
+            {
+              "id": "qaf:b2:cc7c88db-7264-52f8-9a09-42f630a59302",
+              "score": 9.59093
+            },
+            {
+              "id": "ezik:b2#2",
+              "score": 9.575327
+            },
+            {
+              "id": "qaf:b2:c13a4824-e756-5798-aaa7-4368bbb64ee7",
+              "score": 9.523265
+            },
+            {
+              "id": "qaf:b2:9220d79a-ce71-5e1d-b841-56bbe9c2831b",
+              "score": 9.495946
+            },
+            {
+              "id": "qaf:b2:f109c1b3-5325-51b8-8087-3f1976bcf1df",
+              "score": 9.4572115
+            },
+            {
+              "id": "qaf:b2:df73570a-3434-584e-9e61-8cb4e5fc7669",
+              "score": 9.452176
+            },
+            {
+              "id": "qaf:b2:b3cf6a7e-dacf-5f7b-8881-154f7a0d1310",
+              "score": 9.400456
+            },
+            {
+              "id": "qaf:b2:4a0d4d8d-d739-5eb9-827e-3c4fd2d3b5b8",
+              "score": 8.9959866
+            },
+            {
+              "id": "qaf:b2:a10d5949-2eb5-574d-93c8-f0bd062a1709",
+              "score": 8.657243
+            },
+            {
+              "id": "encyc:F00615",
+              "score": 4.976562299999999
+            },
+            {
+              "id": "encyc:F00327",
+              "score": 4.6257016
+            },
+            {
+              "id": "encyc:F01184",
+              "score": 4.3936244
+            },
+            {
+              "id": "encyc:F00748",
+              "score": 4.0884307
+            },
+            {
+              "id": "encyc:F00947",
+              "score": 4.0507212
+            },
+            {
+              "id": "encyc:F01261",
+              "score": 4.0507212
+            },
+            {
+              "id": "encyc:F01269",
+              "score": 3.8269496
+            },
+            {
+              "id": "encyc:F01158",
+              "score": 3.7168378000000004
+            },
+            {
+              "id": "encyc:F01574",
+              "score": 3.7168378000000004
+            },
+            {
+              "id": "encyc:F01931",
+              "score": 3.7168378000000004
+            },
+            {
+              "id": "encyc:F01488",
+              "score": 3.6441556000000004
+            },
+            {
+              "id": "encyc:F00934",
+              "score": 3.5720864000000003
+            },
+            {
+              "id": "encyc:F00981",
+              "score": 3.5720864000000003
+            },
+            {
+              "id": "encyc:F00223",
+              "score": 3.5362905
+            },
+            {
+              "id": "encyc:F00655",
+              "score": 3.5006577
+            },
+            {
+              "id": "encyc:F00667",
+              "score": 3.5006577
+            },
+            {
+              "id": "encyc:F01296",
+              "score": 3.4651917
+            },
+            {
+              "id": "encyc:F00997",
+              "score": 3.429895
+            },
+            {
+              "id": "encyc:F00131",
+              "score": 3.3947715
+            },
+            {
+              "id": "encyc:F00678",
+              "score": 3.3250542999999997
+            },
+            {
+              "id": "ezik:b2#3",
+              "score": 3.256063
+            },
+            {
+              "id": "encyc:F00806",
+              "score": 3.256063
+            },
+            {
+              "id": "encyc:F01506",
+              "score": 3.256063
+            },
+            {
+              "id": "encyc:F01750",
+              "score": 3.256063
+            },
+            {
+              "id": "encyc:F01095",
+              "score": 3.2218465000000003
+            },
+            {
+              "id": "encyc:F01099",
+              "score": 3.2218465000000003
+            },
+            {
+              "id": "encyc:F01530",
+              "score": 3.2218465000000003
+            },
+            {
+              "id": "encyc:F01191",
+              "score": 3.1878194
+            },
+            {
+              "id": "encyc:F01512",
+              "score": 3.1203446
+            },
+            {
+              "id": "encyc:F00023",
+              "score": 3.0206156
+            },
+            {
+              "id": "encyc:F01111",
+              "score": 2.9551445999999997
+            },
+            {
+              "id": "encyc:F01928",
+              "score": 2.890505
+            },
+            {
+              "id": "encyc:F00957",
+              "score": 2.8585013999999997
+            }
+          ]
         },
         {
           "id": "b3",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 975.5298000000003,
+          "search_units": 2,
+          "precisionAt10": 0.4,
+          "ranking": [
+            {
+              "id": "qaf:b3:fb885b42-f236-545a-a629-7f0eecda8179",
+              "score": 9.586308
+            },
+            {
+              "id": "qaf:b3:1dbd3390-4b61-597a-b217-9bb77692158c",
+              "score": 9.5769125
+            },
+            {
+              "id": "qaf:b3:f22b01d8-a64d-52cc-b6d5-df3d80cb4094",
+              "score": 9.5607984
+            },
+            {
+              "id": "qaf:b3:4848d239-20af-5c03-b282-2809605174f6",
+              "score": 9.526798
+            },
+            {
+              "id": "qaf:b3:eae21270-c52b-522b-af24-0bd2aa4247a6",
+              "score": 9.525034999999999
+            },
+            {
+              "id": "qaf:b3:0c8306ac-a555-5361-8604-1c3a78c6eab3",
+              "score": 9.497813
+            },
+            {
+              "id": "qaf:b3:72bf9b95-079a-5a53-bf3a-edcb67ed8d77",
+              "score": 9.492193
+            },
+            {
+              "id": "qaf:b3:34ff3a8d-f2e2-52ae-a6a8-0bc10a3c290c",
+              "score": 9.478850399999999
+            },
+            {
+              "id": "qaf:b3:333e2462-032e-55d2-acae-8a4afd1587dc",
+              "score": 9.461207
+            },
+            {
+              "id": "ezik:b3#1",
+              "score": 9.4511634
+            },
+            {
+              "id": "qaf:b3:5355ef28-7841-5b23-9849-7952ee5a50ef",
+              "score": 9.402652999999999
+            },
+            {
+              "id": "qaf:b3:c55841d7-c935-55af-aaa0-02a806601597",
+              "score": 9.401556
+            },
+            {
+              "id": "qaf:b3:1ca01b95-e1b2-5ffd-9cb2-f08b3f5953c2",
+              "score": 9.400456
+            },
+            {
+              "id": "qaf:b3:a4c61a46-1e7d-5e47-8628-aff2376ddbd9",
+              "score": 9.375776
+            },
+            {
+              "id": "qaf:b3:da719cd8-faeb-5f74-af7c-b3d2ac3ca1e7",
+              "score": 9.372338
+            },
+            {
+              "id": "qaf:b3:1bbf029c-25d2-551b-b748-e9d849c8aaf4",
+              "score": 9.3393874
+            },
+            {
+              "id": "qaf:b3:2f08a231-a92e-5dcc-b3bf-fed9c8413e30",
+              "score": 9.323548
+            },
+            {
+              "id": "qaf:b3:993248d5-98de-50c4-884c-b6585a0dc21c",
+              "score": 9.312377
+            },
+            {
+              "id": "qaf:b3:ac199e23-cd36-5e0c-8d05-fbc7bb6bae95",
+              "score": 9.312377
+            },
+            {
+              "id": "qaf:b3:8dd3ea2b-e82b-516c-8626-8bb5c91243e2",
+              "score": 9.2725796
+            },
+            {
+              "id": "qaf:b3:2ba5964f-c451-55a1-bdbb-153802b23263",
+              "score": 9.265965000000001
+            },
+            {
+              "id": "qaf:b3:2ec8f23d-29fc-5823-bec5-a08151d0cc39",
+              "score": 9.26197
+            },
+            {
+              "id": "qaf:b3:b4be3b3c-662e-5193-8854-7d8604078ebf",
+              "score": 9.251217
+            },
+            {
+              "id": "qaf:b3:e47359e1-f2af-5a53-9a9a-92c66bafd00f",
+              "score": 9.2485076
+            },
+            {
+              "id": "qaf:b3:a3694f93-b2a7-5081-9d5c-35b18ba45b46",
+              "score": 9.247828
+            },
+            {
+              "id": "qaf:b3:0d319669-804d-5f60-9051-ff0c9eb939a9",
+              "score": 9.178492
+            },
+            {
+              "id": "qaf:b3:3c9067d7-f3d7-54c6-aaf9-455bd7f67fe6",
+              "score": 9.1461724
+            },
+            {
+              "id": "qaf:b3:39f8c7f7-fcd2-5775-8f0f-64c8bab4544b",
+              "score": 9.1107297
+            },
+            {
+              "id": "qaf:b3:62127b7b-47a0-5776-a460-bd3745b5c81d",
+              "score": 9.043468
+            },
+            {
+              "id": "qaf:b3:d81ca66c-e62e-50ba-8a8f-3ec62c54cb86",
+              "score": 8.934396
+            },
+            {
+              "id": "qaf:b3:9246e56d-d2a7-5372-a1ea-664ffe959de1",
+              "score": 8.8704807
+            },
+            {
+              "id": "ezik:b3#3",
+              "score": 8.8246834
+            },
+            {
+              "id": "encyc:F02465",
+              "score": 3.5006577
+            },
+            {
+              "id": "encyc:F00449",
+              "score": 2.9877773000000003
+            },
+            {
+              "id": "encyc:F01704",
+              "score": 2.890505
+            },
+            {
+              "id": "encyc:F02289",
+              "score": 2.6405459999999996
+            },
+            {
+              "id": "encyc:F01791",
+              "score": 2.5802671999999998
+            },
+            {
+              "id": "encyc:F02287",
+              "score": 2.4048907
+            },
+            {
+              "id": "encyc:F00283",
+              "score": 2.2925898
+            },
+            {
+              "id": "encyc:F00422",
+              "score": 2.2378391
+            },
+            {
+              "id": "encyc:F02288",
+              "score": 2.2378391
+            },
+            {
+              "id": "encyc:F02294",
+              "score": 2.105065
+            },
+            {
+              "id": "ezik:b3#4",
+              "score": 2.0535992
+            },
+            {
+              "id": "ezik:b3#5",
+              "score": 2.0535992
+            },
+            {
+              "id": "ezik:b3#2",
+              "score": 2.0535992
+            },
+            {
+              "id": "encyc:F00027",
+              "score": 1.9534835
+            },
+            {
+              "id": "encyc:F00450",
+              "score": 1.8571079
+            },
+            {
+              "id": "encyc:F00559",
+              "score": 1.7194924999999999
+            },
+            {
+              "id": "encyc:F02291",
+              "score": 1.7194924999999999
+            },
+            {
+              "id": "encyc:F00284",
+              "score": 1.6754529000000002
+            }
+          ]
         },
         {
           "id": "c1",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 1072.4951,
+          "search_units": 2,
+          "precisionAt10": 0.4,
+          "ranking": [
+            {
+              "id": "qaf:c1:9119058f-aa1a-51fd-a24c-3b500e7adddb",
+              "score": 9.587854
+            },
+            {
+              "id": "qaf:c1:90a7fe01-192f-563c-8660-b049d19c246b",
+              "score": 9.482696
+            },
+            {
+              "id": "qaf:c1:e78eadd4-ef2f-532e-a086-f1b49f1b648b",
+              "score": 9.46715
+            },
+            {
+              "id": "qaf:c1:6a15ab5a-afac-55cc-8af5-56e0ea4cd118",
+              "score": 9.46715
+            },
+            {
+              "id": "qaf:c1:d0a6bc4a-00eb-5b3f-a314-1946249b913a",
+              "score": 9.459213
+            },
+            {
+              "id": "qaf:c1:5747a155-0927-5998-9003-6e2fabd04764",
+              "score": 9.446076
+            },
+            {
+              "id": "qaf:c1:8bcc87b6-9fe3-57ed-9e17-63340c333cdc",
+              "score": 9.414607
+            },
+            {
+              "id": "qaf:c1:217f8a87-030f-5082-bef0-49786671823f",
+              "score": 9.3949276
+            },
+            {
+              "id": "qaf:c1:ab979ff9-b1e0-5ac9-bb2b-2f2a812ab7e5",
+              "score": 9.365409
+            },
+            {
+              "id": "qaf:c1:c19cdf5a-a6ba-5f8b-b2d8-8a36f7c71412",
+              "score": 9.356059
+            },
+            {
+              "id": "qaf:c1:3bf41528-db72-5b30-85a9-cdc0f4014bfe",
+              "score": 9.354881
+            },
+            {
+              "id": "qaf:c1:eb8bf0f2-a063-5c02-9040-0de7d73f06e4",
+              "score": 9.351336
+            },
+            {
+              "id": "qaf:c1:8471f24b-276d-5698-adb8-895dc35e623c",
+              "score": 9.301036
+            },
+            {
+              "id": "qaf:c1:4f14fd4d-4e39-5777-8bd3-27de8b28e442",
+              "score": 9.2498636
+            },
+            {
+              "id": "qaf:c1:f61f5681-da88-573c-b4bf-bd0327f67076",
+              "score": 9.2278904
+            },
+            {
+              "id": "ezik:c1#1",
+              "score": 9.221254
+            },
+            {
+              "id": "ezik:c1#2",
+              "score": 9.2106706
+            },
+            {
+              "id": "qaf:c1:e5467bd2-3684-547c-9cf1-deb5b41d5126",
+              "score": 9.2063993
+            },
+            {
+              "id": "qaf:c1:c30d581e-7eca-5b55-b0e1-1e09c388d825",
+              "score": 9.167750999999999
+            },
+            {
+              "id": "qaf:c1:07b71d69-6749-5c1a-9b7f-6ecd1ec890f3",
+              "score": 9.1640186
+            },
+            {
+              "id": "qaf:c1:da3d8ec3-60a2-5fdc-8431-cf36c616c024",
+              "score": 9.1341573
+            },
+            {
+              "id": "qaf:c1:6aa70228-0ed6-5d8e-b9d7-26d9e26c6a5c",
+              "score": 9.1339153
+            },
+            {
+              "id": "qaf:c1:9a305f0f-a2b4-5a12-9d2e-1d4cbb6c28c4",
+              "score": 9.1087496
+            },
+            {
+              "id": "qaf:c1:174e046e-d801-5fd1-a86e-e8e67c01c9da",
+              "score": 9.066448000000001
+            },
+            {
+              "id": "qaf:c1:afe9d59e-ce5b-56bd-b449-1238e8939b67",
+              "score": 9.045157
+            },
+            {
+              "id": "qaf:c1:232724cc-4c78-5924-ab55-14fa6852fcc6",
+              "score": 8.9986295
+            },
+            {
+              "id": "qaf:c1:94b02e50-c1d0-59d1-b5f3-b9195b6e2401",
+              "score": 8.991568
+            },
+            {
+              "id": "qaf:c1:e88cd90c-0d01-595e-9c91-443b62aea0b2",
+              "score": 8.903323400000001
+            },
+            {
+              "id": "qaf:c1:bc5a056b-ae23-579e-b80d-f1c110655c44",
+              "score": 8.8763386
+            },
+            {
+              "id": "qaf:c1:7485c44a-8c64-5252-b4b0-542742ac70c8",
+              "score": 8.704210999999999
+            },
+            {
+              "id": "qaf:c1:d563cd3e-dfda-56db-8f82-508630c655e8",
+              "score": 8.492724299999999
+            },
+            {
+              "id": "ezik:c1#3",
+              "score": 8.114371
+            },
+            {
+              "id": "encyc:F00823",
+              "score": 7.8239655
+            },
+            {
+              "id": "encyc:F00109",
+              "score": 7.086966
+            },
+            {
+              "id": "encyc:F02294",
+              "score": 6.7198735
+            },
+            {
+              "id": "encyc:F00430",
+              "score": 6.128658700000001
+            },
+            {
+              "id": "encyc:F02246",
+              "score": 5.885108
+            },
+            {
+              "id": "encyc:F00112",
+              "score": 4.7424152
+            },
+            {
+              "id": "encyc:F01529",
+              "score": 4.664567
+            },
+            {
+              "id": "encyc:F01501",
+              "score": 4.1641688
+            },
+            {
+              "id": "encyc:F00514",
+              "score": 4.0507212
+            },
+            {
+              "id": "encyc:F02389",
+              "score": 4.0131232
+            },
+            {
+              "id": "encyc:F00907",
+              "score": 4.0131232
+            },
+            {
+              "id": "encyc:F00783",
+              "score": 3.7534004
+            },
+            {
+              "id": "encyc:F00838",
+              "score": 3.6441556000000004
+            },
+            {
+              "id": "encyc:F00420",
+              "score": 3.2218465000000003
+            },
+            {
+              "id": "encyc:F00967",
+              "score": 3.1539848
+            },
+            {
+              "id": "encyc:F01502",
+              "score": 2.7326395999999997
+            },
+            {
+              "id": "encyc:F02652",
+              "score": 2.6405459999999996
+            },
+            {
+              "id": "encyc:F00937",
+              "score": 2.5208932
+            }
+          ]
         },
         {
           "id": "c2",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 824.523000000001,
+          "search_units": 1,
+          "precisionAt10": 0.7,
+          "ranking": [
+            {
+              "id": "ezik:c2#1",
+              "score": 9.51612
+            },
+            {
+              "id": "qaf:c2:9ecfe5b2-3848-58b0-9472-79b70f129ff7",
+              "score": 9.423159
+            },
+            {
+              "id": "qaf:c2:1f90d78a-9b96-5f48-a2af-ace729231658",
+              "score": 9.340591
+            },
+            {
+              "id": "qaf:c2:29196427-c68c-5a4b-a46b-43bcd28d129e",
+              "score": 9.3186045
+            },
+            {
+              "id": "qaf:c2:63e8020c-66bd-50ab-abad-1ce96d677458",
+              "score": 9.3136275
+            },
+            {
+              "id": "qaf:c2:e888e3c4-a80c-569e-a412-76edb5df7302",
+              "score": 9.276522400000001
+            },
+            {
+              "id": "qaf:c2:cef954c7-59ce-5e2f-a473-1194d793c141",
+              "score": 9.2278904
+            },
+            {
+              "id": "qaf:c2:809526c7-1936-5b01-95ca-538cdbb99a9b",
+              "score": 9.2046136
+            },
+            {
+              "id": "qaf:c2:6962fb3f-d6c5-53c0-bfe6-9b74e502b09c",
+              "score": 9.1836315
+            },
+            {
+              "id": "qaf:c2:e830994f-b7ef-55ba-b3cb-c451315ea584",
+              "score": 9.177756
+            },
+            {
+              "id": "qaf:c2:12f7df83-d609-5126-b0fb-699383310be8",
+              "score": 9.175542
+            },
+            {
+              "id": "qaf:c2:201ec678-0068-5875-8773-3d196e846711",
+              "score": 9.16831
+            },
+            {
+              "id": "qaf:c2:3ed1ca1c-da32-5529-9972-7e9e6f0179e0",
+              "score": 9.1003895
+            },
+            {
+              "id": "qaf:c2:7e2c0a0d-42ec-5572-8359-7ee161fd4c41",
+              "score": 9.051882599999999
+            },
+            {
+              "id": "qaf:c2:d4c415a1-ed9f-50bb-a1dd-8d931f63b258",
+              "score": 9.034136
+            },
+            {
+              "id": "qaf:c2:1c45f973-8a58-5b49-a4a6-18ddff9fed5c",
+              "score": 8.9862424
+            },
+            {
+              "id": "qaf:c2:6976889c-fb05-5b34-8f2a-83199153fc34",
+              "score": 8.981786
+            },
+            {
+              "id": "qaf:c2:e23af82d-38d6-50e6-9476-a617d1ea9b79",
+              "score": 8.9683104
+            },
+            {
+              "id": "qaf:c2:c9dd6874-6c64-57f4-a533-321d07336234",
+              "score": 8.919429
+            },
+            {
+              "id": "qaf:c2:5bd67698-0faf-5128-bbb0-3515e418f8d6",
+              "score": 8.8937515
+            },
+            {
+              "id": "qaf:c2:dbbd3b4d-d46e-53cd-a31b-ebe4f0f41430",
+              "score": 8.889902
+            },
+            {
+              "id": "qaf:c2:d3eddde6-e4bb-5462-bee2-4c5c936cf482",
+              "score": 8.8387895
+            },
+            {
+              "id": "qaf:c2:c1fc5c4c-ba5e-506c-b402-c7cc05bdabcd",
+              "score": 8.806329400000001
+            },
+            {
+              "id": "qaf:c2:e73e56cd-72a1-5b68-a647-155d77025dd9",
+              "score": 8.7347406
+            },
+            {
+              "id": "qaf:c2:318f611b-8063-5ca8-97b9-05ee957f8b13",
+              "score": 8.688713
+            },
+            {
+              "id": "qaf:c2:96639307-a3c0-53f1-ba25-bbe3c890bd24",
+              "score": 8.688713
+            },
+            {
+              "id": "qaf:c2:ebbfa419-2033-5ed0-af84-1506ac138ddc",
+              "score": 8.6685556
+            },
+            {
+              "id": "qaf:c2:5acb9101-0fe9-5323-b754-9489fb5cf931",
+              "score": 8.654971999999999
+            },
+            {
+              "id": "qaf:c2:2dfe0c8c-26ca-52f0-9f97-f9771846fa1d",
+              "score": 8.641271
+            },
+            {
+              "id": "qaf:c2:72b15aeb-fc5b-5deb-9176-1fb2c32870b8",
+              "score": 8.5614
+            },
+            {
+              "id": "qaf:c2:e7649efc-9fe8-52ec-9987-540cadafa938",
+              "score": 8.556582299999999
+            },
+            {
+              "id": "ezik:c2#3",
+              "score": 8.542049
+            },
+            {
+              "id": "qaf:c2:c50584ef-9247-5608-8ab3-dfeb887bbc0a",
+              "score": 8.537177
+            },
+            {
+              "id": "qaf:c2:e9fe15da-56e8-57da-91de-dff18aa56d57",
+              "score": 8.457386999999999
+            },
+            {
+              "id": "qaf:c2:75800b17-6a6e-5d7e-99dd-82297fa965c0",
+              "score": 8.363408399999999
+            },
+            {
+              "id": "qaf:c2:76450032-0674-595e-baf2-c1e0e7835ab5",
+              "score": 8.2760537
+            },
+            {
+              "id": "qaf:c2:4290e37f-881c-5d82-b26b-9cc072ca8d4c",
+              "score": 8.236691
+            },
+            {
+              "id": "qaf:c2:766975cd-f95d-56e7-886c-840f78d0339e",
+              "score": 8.2196057
+            },
+            {
+              "id": "qaf:c2:d4f78349-d1a7-52be-907a-79a4180d8c4d",
+              "score": 8.114371
+            },
+            {
+              "id": "qaf:c2:7395a8cd-4d20-5233-b992-d670ce51a2a2",
+              "score": 7.966723999999999
+            },
+            {
+              "id": "qaf:c2:ca7ff105-93df-5e04-aba4-278905eaf731",
+              "score": 7.7972459999999995
+            },
+            {
+              "id": "qaf:c2:0b75df24-f380-5105-8928-e40a3eaef2aa",
+              "score": 7.783799
+            },
+            {
+              "id": "qaf:c2:b9e31e32-1ce7-5c3f-86df-8aa0a9270ed1",
+              "score": 7.783799
+            },
+            {
+              "id": "ezik:c2#2",
+              "score": 7.443591400000001
+            },
+            {
+              "id": "encyc:F01936",
+              "score": 6.110107
+            },
+            {
+              "id": "encyc:F00500",
+              "score": 4.0884307
+            },
+            {
+              "id": "encyc:F01575",
+              "score": 2.9877773000000003
+            },
+            {
+              "id": "ezik:c2#5",
+              "score": 2.8267118
+            },
+            {
+              "id": "ezik:c2#4",
+              "score": 2.8267118
+            },
+            {
+              "id": "ezik:c2#6",
+              "score": 2.8267118
+            }
+          ]
         },
         {
           "id": "c3",
-          "status": "NOT_RUN",
-          "error": "missing_key",
-          "precisionAt10": null,
-          "ms": null,
-          "search_units": 0,
-          "ranking": null
+          "status": "PASS",
+          "ms": 931.4284000000007,
+          "search_units": 2,
+          "precisionAt10": 0.9,
+          "ranking": [
+            {
+              "id": "qaf:c3:2c737357-fd3a-56cd-a22e-36f0d29152f7",
+              "score": 9.642676999999999
+            },
+            {
+              "id": "qaf:c3:fa785ea5-c0af-5e55-9058-d788fb61a0f2",
+              "score": 9.637253999999999
+            },
+            {
+              "id": "qaf:c3:0a72c649-f83f-51c2-a46d-8133279182c7",
+              "score": 9.611855
+            },
+            {
+              "id": "qaf:c3:864ffcd9-6308-5b51-b358-60c57842d3d1",
+              "score": 9.537253999999999
+            },
+            {
+              "id": "qaf:c3:72bb69fc-a1b2-578b-9e1e-4d190b3bbf4d",
+              "score": 9.510695
+            },
+            {
+              "id": "qaf:c3:25a0e5e6-9755-58ac-aba1-b6a1b230bac4",
+              "score": 9.4651765
+            },
+            {
+              "id": "qaf:c3:bab8ed17-304f-52f0-b057-97049fced901",
+              "score": 9.4572115
+            },
+            {
+              "id": "qaf:c3:35cbd62c-b07a-5707-affc-3832c9029365",
+              "score": 9.4511634
+            },
+            {
+              "id": "qaf:c3:b33234be-54af-5e9e-958b-fad1fdf2d0a7",
+              "score": 9.447098
+            },
+            {
+              "id": "qaf:c3:437224e8-e0a7-5f1a-8934-c57e67494f67",
+              "score": 9.418897600000001
+            },
+            {
+              "id": "qaf:c3:df14f935-f67f-5157-b18b-f8f968c1b045",
+              "score": 9.4113696
+            },
+            {
+              "id": "qaf:c3:bae3cde3-f97d-5c65-b45e-bae1a1cf09df",
+              "score": 9.387109
+            },
+            {
+              "id": "qaf:c3:d7c9cf6a-7581-563f-baba-38c924159797",
+              "score": 9.3814665
+            },
+            {
+              "id": "qaf:c3:84c2fc0d-4c4f-51b1-a4f8-3fb68f99a667",
+              "score": 9.371186999999999
+            },
+            {
+              "id": "qaf:c3:cfb89e46-c929-5a97-b9a1-d7299de3b4a3",
+              "score": 9.363083
+            },
+            {
+              "id": "qaf:c3:7f5237b6-d124-53c5-b9c5-4b56716249e0",
+              "score": 9.356059
+            },
+            {
+              "id": "ezik:c3#3",
+              "score": 9.342993
+            },
+            {
+              "id": "qaf:c3:da298e04-a8ca-5cac-99cd-1b86a6637ca2",
+              "score": 9.342993
+            },
+            {
+              "id": "qaf:c3:a9706faa-ae38-58cd-938c-3d4e0e986348",
+              "score": 9.3357635
+            },
+            {
+              "id": "qaf:c3:4c648897-7c78-5ee7-bc58-cd4af70d0cc7",
+              "score": 9.333337
+            },
+            {
+              "id": "qaf:c3:6df14daf-f0ae-54c3-a0dc-25370d0048ec",
+              "score": 9.33212
+            },
+            {
+              "id": "qaf:c3:240b1cc1-d3d7-5ff3-a180-d41099ce8b10",
+              "score": 9.292736999999999
+            },
+            {
+              "id": "qaf:c3:532704db-f627-5d4a-aeb0-e36f0f9a2300",
+              "score": 9.2592955
+            },
+            {
+              "id": "qaf:c3:143f497b-99fd-588a-9e1b-0b60e406a6ce",
+              "score": 9.255267
+            },
+            {
+              "id": "ezik:c3#1",
+              "score": 9.2046136
+            },
+            {
+              "id": "qaf:c3:032f3c82-d194-5025-ac90-22e20e637c8c",
+              "score": 9.1748023
+            },
+            {
+              "id": "qaf:c3:8a0d4a69-51ce-5b6d-a115-64a3b3794354",
+              "score": 9.130044999999999
+            },
+            {
+              "id": "qaf:c3:f24916c5-d74d-51a7-bd67-8f53f1947ed5",
+              "score": 9.129631999999999
+            },
+            {
+              "id": "qaf:c3:b32d2455-3175-5869-b844-9e1016d4745e",
+              "score": 8.9862424
+            },
+            {
+              "id": "qaf:c3:e7805d8e-3ff4-55a0-a4d1-e0c29cf98a7f",
+              "score": 8.661778
+            },
+            {
+              "id": "qaf:c3:13228f76-f0ef-5504-9278-a3410390118d",
+              "score": 8.551751399999999
+            },
+            {
+              "id": "encyc:F01878",
+              "score": 7.3987377
+            },
+            {
+              "id": "encyc:F01877",
+              "score": 7.0383453
+            },
+            {
+              "id": "encyc:F02899",
+              "score": 6.9064254
+            },
+            {
+              "id": "encyc:F02401",
+              "score": 6.3123059999999995
+            },
+            {
+              "id": "encyc:F02599",
+              "score": 5.752063
+            },
+            {
+              "id": "encyc:F02600",
+              "score": 5.5986769999999995
+            },
+            {
+              "id": "encyc:F00792",
+              "score": 5.249791999999999
+            },
+            {
+              "id": "encyc:F00350",
+              "score": 5.210812000000001
+            },
+            {
+              "id": "encyc:F01445",
+              "score": 5.132781
+            },
+            {
+              "id": "encyc:F02200",
+              "score": 5.0546855
+            },
+            {
+              "id": "encyc:F01768",
+              "score": 4.8594117
+            },
+            {
+              "id": "encyc:F00349",
+              "score": 4.2403027
+            },
+            {
+              "id": "encyc:F01664",
+              "score": 4.126248
+            },
+            {
+              "id": "encyc:F01575",
+              "score": 3.8639289999999997
+            },
+            {
+              "id": "encyc:F02543",
+              "score": 3.8269496
+            },
+            {
+              "id": "ezik:c3#2",
+              "score": 3.6080426
+            },
+            {
+              "id": "encyc:F03065",
+              "score": 3.6080426
+            },
+            {
+              "id": "encyc:F01327",
+              "score": 3.3250542999999997
+            },
+            {
+              "id": "encyc:F01974",
+              "score": 3.3250542999999997
+            }
+          ]
         }
       ],
-      "medianPrecisionAt10": null,
-      "medianMs": null,
-      "p90Ms": null,
-      "threshold": null,
-      "above": null,
-      "knownX": null,
-      "search_units": 0,
-      "availability": "NOT_VALIDATED: no API call was possible",
-      "price": null
+      "price": null,
+      "medianPrecisionAt10": 0.9,
+      "medianMs": 975.5298000000003,
+      "p90Ms": 1427.4296000000013,
+      "search_units": 17,
+      "availability": "LIVE_VALIDATED",
+      "threshold": 9.2278904,
+      "rule": "Strictly greater than the highest X score",
+      "above": {
+        "R": 82,
+        "P": 39,
+        "X": 0
+      },
+      "knownX": [
+        {
+          "id": "ezik:b3#4",
+          "score": 2.0535992,
+          "suppressed": true
+        },
+        {
+          "id": "ezik:b3#5",
+          "score": 2.0535992,
+          "suppressed": true
+        },
+        {
+          "id": "ezik:c1#3",
+          "score": 8.114371,
+          "suppressed": true
+        }
+      ]
     }
   ],
-  "stop": "Inherited proof gate: steps 5, 6 and 7 not executed. No production reranking, disclosure or consent change."
+  "billingComplete": true,
+  "billingNote": "Actual response search_units summed; no estimates.",
+  "selection": {
+    "status": "PRICE_REQUIRED",
+    "model": null,
+    "card_min": null,
+    "reason": "Quality qualifies; documented model prices are required to apply the unchanged cheapest-model rule."
+  },
+  "reason": "Quality qualifies; documented model prices are required to apply the unchanged cheapest-model rule."
 }
