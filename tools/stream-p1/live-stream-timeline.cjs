@@ -67,7 +67,7 @@ async function one(idx, qid, depth) {
   const t0 = now();
   const res = await fetch(URL_ASK, {
     method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-murabbi-device': DEVICE, 'x-ezik-ai-consent': '2026-08-06-1' },
+    headers: { 'content-type': 'application/json', 'x-murabbi-device': DEVICE, 'x-ezik-ai-consent': '2026-11-02-1' },
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(240000),
   });

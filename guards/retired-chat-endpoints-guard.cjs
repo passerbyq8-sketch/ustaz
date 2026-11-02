@@ -43,7 +43,7 @@ function responseDouble() {
 function request(method = 'POST', consent = true) {
   return {
     method,
-    headers: consent ? { 'x-ezik-ai-consent': '2026-08-06-1' } : {},
+    headers: consent ? { 'x-ezik-ai-consent': '2026-11-02-1' } : {},
     body: {
       max_tokens: 4096,
       stream: true,

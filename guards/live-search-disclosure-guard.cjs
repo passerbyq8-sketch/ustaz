@@ -120,7 +120,7 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
     headers: {
       'x-murabbi-device': DEVICE,
       'x-murabbi-founder': founder,
-      'x-ezik-ai-consent': '2026-08-06-1',
+      'x-ezik-ai-consent': '2026-11-02-1',
     },
     body: { system: 'أنت عزك', age: 25, band: 'adult', messages: [{ role: 'user', content: text }] },
   });
@@ -304,7 +304,7 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
       method: 'POST',
       headers: {
         'x-real-ip': '127.0.0.1', 'x-murabbi-device': voiceDevice,
-        'x-murabbi-founder': voiceFounder, 'x-ezik-ai-consent': '2026-08-06-1',
+        'x-murabbi-founder': voiceFounder, 'x-ezik-ai-consent': '2026-11-02-1',
       },
       body: Object.assign({
         max_tokens: 4096, stream: true, system: 'ignored by the server', age: 25, band: 'adult',

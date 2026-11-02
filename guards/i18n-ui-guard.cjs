@@ -70,7 +70,7 @@ const { parseHTML } = require('linkedom');
 // does not match the seeded profile is NOT consent -- which is the right behaviour, and is exactly
 // why it has to be threaded here: without it the app opens on the consent screen and every case
 // below would be measuring the wrong screen while reporting green on the right one.
-const AI_CONSENT_SEED = (pid) => JSON.stringify({ status: 'granted', version: '2026-08-06-1', pid: pid, grantedBy: 'user', at: '2026-08-06T00:00:00.000Z' });
+const AI_CONSENT_SEED = (pid) => JSON.stringify({ status: 'granted', version: '2026-11-02-1', pid: pid, grantedBy: 'user', at: '2026-08-06T00:00:00.000Z' });
 
 
 // This guard lives in guards/ rather than in the repo root on purpose: recon-audit requires

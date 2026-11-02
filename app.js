@@ -1061,7 +1061,7 @@ const founderTokenAlive=t=>{if(typeof t!=='string')return false;const p=t.split(
 // not the current one, or any thrown exception all resolve to NO CONSENT. There is no default
 // value and the OLD `disclosureAck` key is NOT consent -- it acknowledged that the tutor can be
 // wrong, which is a different statement about a different thing.
-const EZ_AI_CONSENT_KEY='ezik_ai_consent_v1';const EZ_AI_CONSENT_VERSION='2026-08-06-1';// The header every AI route re-checks server-side (lib/ai-consent.js). Hiding a button is not a
+const EZ_AI_CONSENT_KEY='ezik_ai_consent_v1';const EZ_AI_CONSENT_VERSION='2026-11-02-1';// The header every AI route re-checks server-side (lib/ai-consent.js). Hiding a button is not a
 // gate; the server refuses 403 without this, so a hand-made POST reaches no vendor either.
 const EZ_AI_CONSENT_HEADER='x-ezik-ai-consent';const EZ_AI_CONSENT_GRANTED='granted';const EZ_AI_CONSENT_DECLINED='declined';// WHOSE ANSWER THIS IS. Until this round the record answered for the DEVICE, and that was wrong
 // in exactly one direction: a second child profile created on a tablet whose first profile had

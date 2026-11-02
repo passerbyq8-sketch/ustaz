@@ -110,7 +110,7 @@ async function checkRelays() {
       res.end = () => res;
       await handler({
         method: 'POST',
-        headers: { 'x-ezik-ai-consent': '2026-08-06-1' },
+        headers: { 'x-ezik-ai-consent': '2026-11-02-1' },
         body: { messages: [{ role: 'user', content: 'relay retirement probe' }] },
         socket: { remoteAddress: '127.0.0.1' },
       }, res);
@@ -231,7 +231,7 @@ async function checkActiveRelaysHistorical() {
       // A CONSENTED client. The AI-consent gate (lib/ai-consent.js) refuses every relay 403
       // without this, so a probe of the relay's BEHAVIOUR has to present what a real, consented
       // client presents. The refusal itself is proved separately, in tools/ai-consent-probe.cjs.
-      'x-ezik-ai-consent': '2026-08-06-1',
+      'x-ezik-ai-consent': '2026-11-02-1',
     },
     // A client that ASKS for the unsupported field: the relay must strip it, not forward it.
     body: Object.assign({

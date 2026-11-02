@@ -1513,7 +1513,7 @@ const stripComments = (s) => String(s)
       try {
         await (await esm('api/ask.js')).default({
           method: 'POST',
-          headers: { 'x-murabbi-device': DEVICE, 'x-murabbi-founder': founder, 'x-ezik-ai-consent': '2026-08-06-1' },
+          headers: { 'x-murabbi-device': DEVICE, 'x-murabbi-founder': founder, 'x-ezik-ai-consent': '2026-11-02-1' },
           // The shipped client sends the age and its derived band together. Keep these world-path
           // fixtures on that real contract; absent/mismatched bodies are covered by the dedicated
           // reader-fields cases in the wiring guard.

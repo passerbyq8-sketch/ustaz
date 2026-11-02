@@ -65,7 +65,7 @@ async function waitForAttempt(section, offset = 0) {
       if (fetchOnly) Object.defineProperty(navigator, 'sendBeacon', { value: undefined });
       localStorage.setItem('child_profile', JSON.stringify({ name: 'TEST', age: 30, birthYear: 1996, pid: 'usage-test', gender: 'female' }));
       localStorage.setItem(['ezik', 'ui', 'lang', 'v1'].join('_'), 'en');
-      localStorage.setItem('ezik_ai_consent_v1', JSON.stringify({ status: 'granted', version: '2026-08-06-1', pid: 'usage-test' }));
+      localStorage.setItem('ezik_ai_consent_v1', JSON.stringify({ status: 'granted', version: '2026-11-02-1', pid: 'usage-test' }));
       localStorage.setItem('ezik_auth_session_v1', JSON.stringify({ session: 'OWNER_TEST_ONLY', email: 'test@example.invalid' }));
       if (location.pathname === '/') sessionStorage.setItem('ezik_resume_section_v1', 'home');
     }, process.env.USAGE_FETCH_ONLY === '1');

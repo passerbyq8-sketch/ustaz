@@ -21,7 +21,7 @@ import {
   applyCorsOrigin,
   searchBudgetCallerDigests,
 } from '../lib/ratelimit.js';
-import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS } from '../lib/ai-consent.js';
+import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS, AI_CONSENT_HEADER } from '../lib/ai-consent.js';
 import { guardDayCap, dayCapMessage, hasUnrevokedFounderToken, refundDayCap } from '../lib/daycap.js';
 import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
 import { languageGate, decideLanguage } from '../lib/lang/gate.js';
@@ -2144,7 +2144,7 @@ export default async function handler(req, res) {
           truncatedMark: TRUNCATED_MARK,
           runtime: currentRuntime,
           continueWhenNotCovered: bw2ContinueDecision().enabled,
-          aiConsentVersion: req.headers?.['x-ezik-ai-consent'] || '',
+          aiConsentVersion: req.headers?.[AI_CONSENT_HEADER] || '',
           // SPEED W6B B5: the lessons block under the answer is the lessons it rests on (lib/finalized-sse-writer.js).
           onLessonRows: (rows) => { finalizerContext.lessonRows = rows; },
         });

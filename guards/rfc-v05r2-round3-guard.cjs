@@ -159,7 +159,7 @@ async function main() {
   });
   const makeReq = (text, band) => ({
     method: 'POST',
-    headers: { 'x-murabbi-device': DEVICE, 'x-murabbi-founder': FOUNDER, 'x-ezik-ai-consent': '2026-08-06-1' }, /* consented client (lib/ai-consent.js); the refusal is proved in tools/ai-consent-probe.cjs */
+    headers: { 'x-murabbi-device': DEVICE, 'x-murabbi-founder': FOUNDER, 'x-ezik-ai-consent': '2026-11-02-1' }, /* consented client (lib/ai-consent.js); the refusal is proved in tools/ai-consent-probe.cjs */
     body: Object.assign({ system: 'أنت عزك', messages: [{ role: 'user', content: text }] },
       band === undefined ? {} : { band }),
   });

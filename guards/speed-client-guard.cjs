@@ -74,7 +74,7 @@ async function boot(htmlFile, { tashkeel = true, reduced = false, seed = {} } = 
   window.AbortController = AbortController;
   const data = {
     child_profile: JSON.stringify(PROFILE), disclosureAck: '1', tashkeel_v1: tashkeel ? '1' : '0',
-    ezik_ai_consent_v1: JSON.stringify({ status: 'granted', version: '2026-08-06-1', pid: PROFILE.pid, grantedBy: 'user', at: '2026-08-06T00:00:00.000Z' }),
+    ezik_ai_consent_v1: JSON.stringify({ status: 'granted', version: '2026-11-02-1', pid: PROFILE.pid, grantedBy: 'user', at: '2026-08-06T00:00:00.000Z' }),
     ...seed,
   };
   window.localStorage = {

@@ -229,7 +229,7 @@ async function main() {
 
   const makeReq = (text, band, extra = {}) => ({
     method: 'POST',
-    headers: Object.assign({ 'x-murabbi-device': DEVICE, 'x-murabbi-founder': FOUNDER, 'x-ezik-ai-consent': '2026-08-06-1' }, extra.headers || {}),
+    headers: Object.assign({ 'x-murabbi-device': DEVICE, 'x-murabbi-founder': FOUNDER, 'x-ezik-ai-consent': '2026-11-02-1' }, extra.headers || {}),
     body: Object.assign({ system: 'أنت عزك', messages: [{ role: 'user', content: text }] },
       band === undefined ? {} : { band }, extra.body || {}),
   });

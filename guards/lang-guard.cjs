@@ -1010,7 +1010,7 @@ const V = '﴿', W = '﴾';
         const frozen = []; const slow = []; const copyBad = []; const answerFrozen = []; let maxMs = 0;
         const alive = (page) => Promise.race([page.evaluate(() => new Promise((res) => setTimeout(() => res(true), 30))), new Promise((res) => setTimeout(() => res(false), 2000))]);
         for (const L of langs) {
-          const seed = (L === 'ar' ? '' : 'localStorage.setItem("' + ['ezik', 'ui', 'lang', 'v1'].join('_') + '","' + L + '");') + 'localStorage.setItem("child_profile",JSON.stringify({name:"Test",gender:"male",birthYear:1990,age:30,pid:"P1"}));localStorage.setItem("ezik_ai_consent_v1",JSON.stringify({status:"granted",version:"2026-08-06-1",grantedBy:"user",at:Date.now(),pid:"P1"}));';
+          const seed = (L === 'ar' ? '' : 'localStorage.setItem("' + ['ezik', 'ui', 'lang', 'v1'].join('_') + '","' + L + '");') + 'localStorage.setItem("child_profile",JSON.stringify({name:"Test",gender:"male",birthYear:1990,age:30,pid:"P1"}));localStorage.setItem("ezik_ai_consent_v1",JSON.stringify({status:"granted",version:"2026-11-02-1",grantedBy:"user",at:Date.now(),pid:"P1"}));';
           const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
           await ctx.addInitScript('try{' + seed + '}catch(e){}');
           await ctx.route(/\/api\/ask/, (r) => r.fulfill({ status: 200, headers: { 'content-type': 'text/event-stream; charset=utf-8' }, body: SSE }));
@@ -1324,7 +1324,7 @@ const V = '﴿', W = '﴾';
         const wrong = []; let tried = 0;
         for (const L of ['ar', 'en', 'fr', 'fa', 'ur', 'id']) {
           for (const gender of ['male', 'female']) {
-            const seed = (L === 'ar' ? '' : 'localStorage.setItem("' + ['ezik', 'ui', 'lang', 'v1'].join('_') + '","' + L + '");') + 'localStorage.setItem("child_profile",JSON.stringify({name:"Test",gender:"' + gender + '",birthYear:1990,age:30,pid:"P1"}));localStorage.setItem("ezik_ai_consent_v1",JSON.stringify({status:"granted",version:"2026-08-06-1",grantedBy:"user",at:Date.now(),pid:"P1"}));';
+            const seed = (L === 'ar' ? '' : 'localStorage.setItem("' + ['ezik', 'ui', 'lang', 'v1'].join('_') + '","' + L + '");') + 'localStorage.setItem("child_profile",JSON.stringify({name:"Test",gender:"' + gender + '",birthYear:1990,age:30,pid:"P1"}));localStorage.setItem("ezik_ai_consent_v1",JSON.stringify({status:"granted",version:"2026-11-02-1",grantedBy:"user",at:Date.now(),pid:"P1"}));';
             for (const S of STATES) {
               if (gender === 'female' && S.name !== 'offline' && S.name !== 'server error 500') continue;
               tried++;

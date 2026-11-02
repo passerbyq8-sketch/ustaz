@@ -237,7 +237,7 @@ async function createHandlerHarness(DAY, handler) {
     req.signal = new AbortController().signal;
     req.headers = {
       'x-murabbi-device': device,
-      'x-ezik-ai-consent': '2026-08-06-1',
+      'x-ezik-ai-consent': '2026-11-02-1',
       ...(founder ? { 'x-murabbi-founder': DAY.founderTokenFor(device) } : {}),
     };
     req.body = {

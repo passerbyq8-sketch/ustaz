@@ -756,7 +756,7 @@ const HUMAN_DIVINE_NAME_CASES = [
     const founder = DC.founderTokenFor(DEVICE);
     const makeReq = (text) => ({
       method: 'POST',
-      headers: { 'x-murabbi-device': DEVICE, 'x-murabbi-founder': founder, 'x-ezik-ai-consent': '2026-08-06-1' },
+      headers: { 'x-murabbi-device': DEVICE, 'x-murabbi-founder': founder, 'x-ezik-ai-consent': '2026-11-02-1' },
       body: { system: 'أنت عزك', age: 25, band: 'adult', messages: [{ role: 'user', content: text }] },
     });
     // Execute the parser shipped to the browser, not a more permissive test-only interpretation.

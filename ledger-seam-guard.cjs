@@ -482,7 +482,7 @@ const user = (t) => [{ role: 'user', content: t }];
     const founder = DC.founderTokenFor(device);
     const handlerRequest = () => ({
       method: 'POST',
-      headers: { 'x-murabbi-device': device, 'x-murabbi-founder': founder, 'x-ezik-ai-consent': '2026-08-06-1' },
+      headers: { 'x-murabbi-device': device, 'x-murabbi-founder': founder, 'x-ezik-ai-consent': '2026-11-02-1' },
       body: { band: 'adult', age: 30, messages: user(HANDLER_SEAM_Q) },
     });
     const handlerResponse = () => {
@@ -1547,7 +1547,7 @@ const user = (t) => [{ role: 'user', content: t }];
       const device = 'plannerroutingdevice' + String(requestNumber).padStart(3, '0');
       const headers = {
         'x-murabbi-device': device,
-        'x-ezik-ai-consent': '2026-08-06-1',
+        'x-ezik-ai-consent': '2026-11-02-1',
       };
       if (spec.authorized) headers['x-murabbi-founder'] = DC.founderTokenFor(device);
       const body = {

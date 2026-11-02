@@ -72,7 +72,7 @@ function boot(opts) {
   if (!window.crypto) window.crypto = require('crypto').webcrypto;
   const seed = {};
   seed.child_profile = JSON.stringify({ name: 'Noor', age: 30, gender: 'male', birthYear: 1996, pid: 'PF-GUARD', createdAt: '2026-01-01T00:00:00.000Z' });
-  seed.ezik_ai_consent_v1 = JSON.stringify({ status: 'granted', version: '2026-08-06-1', pid: 'PF-GUARD', grantedBy: 'user', at: '2026-08-06T00:00:00.000Z' });
+  seed.ezik_ai_consent_v1 = JSON.stringify({ status: 'granted', version: '2026-11-02-1', pid: 'PF-GUARD', grantedBy: 'user', at: '2026-08-06T00:00:00.000Z' });
   Object.assign(seed, opts.seed || {});
   window.localStorage = memStore(seed);
   window.sessionStorage = memStore({});

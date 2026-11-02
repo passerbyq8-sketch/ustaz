@@ -6384,7 +6384,7 @@ const storeFounderToken = (t) => { try { localStorage.setItem(FOUNDER_TOKEN_KEY,
 // value and the OLD `disclosureAck` key is NOT consent -- it acknowledged that the tutor can be
 // wrong, which is a different statement about a different thing.
 const EZ_AI_CONSENT_KEY = 'ezik_ai_consent_v1';
-const EZ_AI_CONSENT_VERSION = '2026-08-06-1';
+const EZ_AI_CONSENT_VERSION = '2026-11-02-1';
 // The header every AI route re-checks server-side (lib/ai-consent.js). Hiding a button is not a
 // gate; the server refuses 403 without this, so a hand-made POST reaches no vendor either.
 const EZ_AI_CONSENT_HEADER = 'x-ezik-ai-consent';

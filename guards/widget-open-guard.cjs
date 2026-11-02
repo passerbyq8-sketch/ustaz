@@ -90,7 +90,7 @@ function boot(opts) {
   const seed = {};
   if (opts.profile) {
     seed.child_profile = JSON.stringify(PROFILE);
-    if (opts.consent !== false) seed.ezik_ai_consent_v1 = JSON.stringify({ status: 'granted', version: '2026-08-06-1', pid: PROFILE_PID, grantedBy: 'user', at: '2026-08-06T00:00:00.000Z' });
+    if (opts.consent !== false) seed.ezik_ai_consent_v1 = JSON.stringify({ status: 'granted', version: '2026-11-02-1', pid: PROFILE_PID, grantedBy: 'user', at: '2026-08-06T00:00:00.000Z' });
   }
   seed.ezik_qibla_loc_v1 = JSON.stringify({ lat: 29.3759, lng: 47.9774 });
   seed.ezik_prayer_prefs_v1 = JSON.stringify({ method: 'kuwait', asr: 'standard', off: { fajr: 2 } });

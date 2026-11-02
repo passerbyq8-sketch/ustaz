@@ -76,7 +76,7 @@ if (!AI_COPY.title || !AI_COPY.lead || !AI_COPY.providers) throw new Error("Arab
 const CARD = { LINE1: dictAr('aic.line1'), LINE2: dictAr('aic.line2'), AGREE: dictAr('aic.agree'), DECLINE: dictAr('aic.decline'), MORE: dictAr('aic.more'), LESS: dictAr('aic.less') };
 
 const CONSENT_KEY = 'ezik_ai_consent_v1';
-const CONSENT_VERSION = '2026-08-06-1';
+const CONSENT_VERSION = '2026-11-02-1';
 const CONSENT_HEADER = 'x-ezik-ai-consent';
 const AI_ROUTES = ['/api/ask', '/api/chat', '/api/chat-fast', '/api/tashkeel', '/api/tts', '/api/stt'];
 
@@ -823,6 +823,7 @@ async function partE() {
 async function partF() {
   head('F. VERSION DRIFT -- an old or absent version re-asks');
   const cases = [
+    ['the immediately preceding pre-Cohere disclosure', JSON.stringify({ status: 'granted', version: '2026-08-06-1', pid: PROBE_PID, grantedBy: 'user', at: 'x' })],
     ['a record from an older disclosure', JSON.stringify({ status: 'granted', version: '2026-01-01-1', grantedBy: 'user', at: 'x' })],
     ['a record with no version at all', JSON.stringify({ status: 'granted', grantedBy: 'user' })],
     ['a record with a bogus status', JSON.stringify({ status: 'maybe', version: CONSENT_VERSION })],
