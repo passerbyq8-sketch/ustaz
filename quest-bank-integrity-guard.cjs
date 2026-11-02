@@ -2094,7 +2094,7 @@ const SEALED = {
   // 2026-10-31 USAGE production ship: reserved cache ezik-v127; app.js rebuilt; CORE membership unchanged; worker seal remeasured.
   // 2026-11-01 LANGS round C: reserved cache ezik-v128; app.js rebuilt (enabled list); CORE membership unchanged; worker seal remeasured.
   // 2026-11-02 device fixes ship: reserved cache ezik-v130; app.js and index.html rebuilt; CORE membership unchanged.
-  'sw.js': 'bbbb0b725509e3435926cc4377ddc60024476186f7dea094eae7691d5cacd58e',
+  'sw.js': '76f7e6c3ac816649dc0b8e5e30bf61f579d910549f9d4a62f310a92c98bf93e9',
 };
 
 // ---------------------------------------------------------------------------
@@ -3283,7 +3283,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2514387, of: 'app.js' },
+      { n: 2514402, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
