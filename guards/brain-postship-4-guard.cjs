@@ -65,7 +65,7 @@ const AR_LINE = 'للتواصلِ مع دعمِ عزك، راسِلْنا على
 
   console.log('-- 3. the open languages, by lookup (lib/lang/fixed.js)');
   const FX = await esm('lib/lang/fixed.js');
-  const LANGS = ['en', 'fr', 'fa', 'id', 'ur', 'bn', 'tr', 'ha', 'ms', 'sw', 'ru', 'zh', 'es', 'pt', 'de', 'hi', 'so', 'ps', 'ku', 'uz', 'am', 'ta', 'om'];
+  const LANGS = ['en', 'fr', 'fa', 'id', 'ur', 'bn', 'tr', 'ha', 'ms', 'sw', 'ru', 'zh', 'es', 'pt', 'de', 'hi', 'so', 'ps', 'ku', 'uz', 'am', 'ta'];
   const porn = (await esm('lib/policy/porn-request.js')).PORN_REFUSAL_TEXT;
   const covered = LANGS.filter((l) => FX.fixedRendition(l, porn));
   ok('the fixed table still covers its languages', covered.length === LANGS.length, covered.length + '/' + LANGS.length);

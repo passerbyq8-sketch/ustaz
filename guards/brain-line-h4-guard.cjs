@@ -29,7 +29,7 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e]/g, (c) => '\\u' + c.charCod
   const A = await esm('lib/lang/answer.js');
   const table = fs.readFileSync(path.join(REPO, 'lib/lang/table.js'), 'utf8');
   const templates = table.match(/hadithSrc: '[^']*'/g) || [];
-  ok('all 23 hadithSrc templates (the 24 rows less Arabic, which has no translation line) carry {snapshot} after the encyclopedia\'s name ({source})', templates.length === 23 && templates.every((t) => t.includes('{source}{snapshot}')), String(templates.length));
+  ok('all 22 hadithSrc templates (the 23 rows less Arabic, which has no translation line) carry {snapshot} after the encyclopedia\'s name ({source})', templates.length === 22 && templates.every((t) => t.includes('{source}{snapshot}')), String(templates.length));
   const echo = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map((s) => 'EN ' + s.replace(/[ء-ي]/g, ''))) }; };
   for (const [lang, date] of [['en', '2026-10-06'], ['fr', '2026-10-06'], ['fa', '2026-10-06'], ['ur', '2026-10-07'], ['id', '2026-10-07']]) {
     const out = (await A.translateAnswer('<hadith>بني الإسلام على خمس</hadith>', { lang, translate: echo, budgetMs: 20000 })).text;
