@@ -8,7 +8,7 @@ import { checkUsageLimit } from '../lib/ratelimit.js';
 import { __setRedisForTest, __resetRedis } from '../lib/ledger/redis.js';
 import { USAGE_SECTIONS, USAGE_TTL_SECONDS, USAGE_ACTIVE_TTL_SECONDS, WRITE_USAGE_SCRIPT, READ_USAGE_SCRIPT,
   READ_UNIONS_SCRIPT, READ_HASHES_SCRIPT, READ_RETURN_SCRIPT, writeUsage, readUsage, readUsageBoard, readUsageChat,
-  usageWindow, usageKeys, usageStatsKey, usageActiveKey, usageFields, usageStay, validUsageEvent } from '../lib/usage.js';
+  usageAnswerOutcome, usageWindow, usageKeys, usageStatsKey, usageActiveKey, usageFields, usageStay, validUsageEvent } from '../lib/usage.js';
 
 const require = createRequire(import.meta.url);
 const anon = 'a'.repeat(32);
@@ -376,4 +376,13 @@ test('the panel overview is one owner-only read, and each part fails alone', asy
   assert.equal(usageReads, 1);
   assert.equal(chatDays.length, 2);
   assert.notEqual(chatDays[0], chatDays[1]);
+});
+
+test('one answer has one outcome, and a refusal outranks an answer that ended', () => {
+  assert.equal(usageAnswerOutcome({ status: 'ended', flags: [] }), 'done');
+  assert.equal(usageAnswerOutcome({ status: 'ended' }), 'done');
+  assert.equal(usageAnswerOutcome({ status: 'ended', flags: ['refusal_fallback'] }), 'nofind');
+  assert.equal(usageAnswerOutcome({ status: 'open', flags: ['unsourced_withheld'] }), 'nofind');
+  assert.equal(usageAnswerOutcome({ status: 'open', flags: [] }), 'fault');
+  assert.equal(usageAnswerOutcome({ status: 'ended', flags: ['incomplete'] }), 'fault');
 });

@@ -21,7 +21,7 @@ const reports = Array.from({ length: 4 }, (_, i) => ({ id: 'r' + i, state: i < 2
   reason: ['wrong_info', 'wrong_ruling', 'inappropriate', 'other'][i], text: i === 3 ? '' : 'TEST note', contact: '', ts: '2026-11-02T08:00:00Z', appv: 'ezik-v132',
   source: i === 2 ? 'ghaws-question' : 'chat', userHead: 'TEST question ' + i, aiHead: i === 2 ? '' : 'TEST answer '.repeat(30), band: 'adult', mode: 'chat' }));
 const answers = Array.from({ length: 30 }, (_, i) => ({ trace: 't' + i, at: Date.UTC(2026, 10, 2, 20, 60 - i), route: i % 3 ? 'DEEN' : 'GEN', path: ['bw2', 'free-brain', 'stored'][i % 3],
-  depth: i % 2 ? 'deep' : 'brief', status: i === 4 ? 'open' : 'ended', flags: i % 7 === 0 ? ['refusal_fallback'] : [], cited: i % 4, first_byte_ms: 900 + i * 40, q_words: 5 + i, out_chars: 300 }));
+  depth: i % 2 ? 'deep' : 'brief', status: i === 4 ? 'open' : 'ended', flags: i % 7 === 0 ? ['refusal_fallback'] : [], cited: i % 4, first_byte_ms: 900 + i * 40, q_words: 5 + i, out_chars: 300, outcome: i % 7 === 0 ? 'nofind' : i === 4 ? 'fault' : 'done' }));
 const sections = [['home', 'TEST home', 90, 40], ['chat', 'TEST chat', 70, 33], ['treasure', 'TEST treasure', 40, 20], ['dima', 'TEST dima', 22, 11], ['ayah-tafsir', 'TEST hidden tafsir', 19, 9],
   ...Array.from({ length: 10 }, (_, i) => ['s' + i, 'TEST section ' + i, 15 - i, 8])];
 const board = { since: '20261101', active: 142, activeBefore: 120, opens: 300, opensBefore: 280, d1: { cohort: 80, returned: 30 }, d1Before: { cohort: 70, returned: 25 }, d7: null, d7Before: null,
@@ -205,13 +205,22 @@ const server = http.createServer((req, res) => {
     await period(1, 7);
     await period(2, 30);
     await page.locator('details.ezub-card summary').click();
-    await page.getByRole('cell', { name: 'TEST section 9', exact: true }).waitFor();
-    assert.equal(await page.getByRole('cell', { name: 'TEST hidden tafsir', exact: true }).count(), 0);
+    await page.getByRole('rowheader', { name: 'TEST section 9', exact: true }).waitFor();
+    assert.equal(await page.getByRole('rowheader', { name: 'TEST hidden tafsir', exact: true }).count(), 0);
     await page.locator('details.ezub-card summary').click();
     console.log('PASS: usage: period key, collapsed table, tafsir hidden');
 
     await nav(4).click();
     await page.locator('.ezcp-ans').first().waitFor();
+    assert.equal(await page.locator('.ezcp-ans').count(), 20, 'the first page of answers');
+    assert.equal(await page.locator('.ezcp-ans .ezcp-tag.is-done').count(), 16, 'complete answers');
+    assert.equal(await page.locator('.ezcp-ans .ezcp-tag.t-complaint').count(), 3, 'not-found answers');
+    assert.equal(await page.locator('.ezcp-ans .ezcp-tag.t-bug').count(), 1, 'incomplete answers');
+    await page.locator('.ezcp-ans-more summary').first().click();
+    await page.getByText('t0', { exact: true }).waitFor();
+    await page.locator('.ezcp-ans-more summary').first().click();
+    await page.locator('.ezcp .ezcp-more').click();
+    assert.equal(await page.locator('.ezcp-ans').count(), 30, 'show more reaches the rest');
     await fit('answers'); await longShot('6-answers');
     await nav(0).click();
     await page.locator('.ezcp-hero .ezcp-num').waitFor();

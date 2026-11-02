@@ -1768,6 +1768,28 @@ const EZ_I18N = {
     // ITEM O1 (91) -- 2026-10-15 brain-line: the answer log's tab (api/inbox.js kind 'answers').
     'inbox.tabAnswers': 'سجلُّ الأجوبة',
     'inbox.tabUsage': 'الاستخدام',
+    'panel.pointsN': '{n} نقاط',
+    'panel.fromTo': 'من ← إلى',
+    'panel.chatRose': 'ارتفعت',
+    'panel.chatSteady': 'مستقرة',
+    'panel.chatFell': 'انخفضت',
+    'panel.faster': 'أسرع',
+    'panel.slower': 'أبطأ',
+    'panel.peakAt': 'أعلى ساعة: {hour}',
+    'panel.answersToday': 'أجوبة اليوم',
+    'panel.readLast': 'قُرئ آخر {n}',
+    'panel.answerUnit': 'جوابًا',
+    'panel.others': 'أخرى',
+    'panel.latestAnswers': 'آخر الأجوبة',
+    'panel.fingerprint': 'بصمة بلا نص السؤال',
+    'panel.ansDone': 'اكتمل',
+    'panel.ansFault': 'لم يكتمل',
+    'panel.ansLength': 'الطول',
+    'panel.ansWords': '{n} كلمة',
+    'panel.ansSources': 'المصادر',
+    'panel.ansDepth': 'الطور',
+    'panel.moreAnswers': 'عرض المزيد من الأجوبة',
+    'panel.details': 'التفاصيل',
     'panel.brand': 'عزك',
     'panel.navOverview': 'نظرة عامة',
     'panel.navMessages': 'الرسائل',
@@ -3663,6 +3685,28 @@ const EZ_I18N = {
     'inbox.tabReports': 'Reports',
     'inbox.tabAnswers': 'Answer log',
     'inbox.tabUsage': 'Usage',
+    'panel.pointsN': '{n} points',
+    'panel.fromTo': 'From → to',
+    'panel.chatRose': 'Rose',
+    'panel.chatSteady': 'Steady',
+    'panel.chatFell': 'Fell',
+    'panel.faster': 'Faster',
+    'panel.slower': 'Slower',
+    'panel.peakAt': 'Busiest hour: {hour}',
+    'panel.answersToday': 'Answers today',
+    'panel.readLast': 'Last {n} read',
+    'panel.answerUnit': 'answers',
+    'panel.others': 'Other',
+    'panel.latestAnswers': 'Latest answers',
+    'panel.fingerprint': 'Fingerprint, no question text',
+    'panel.ansDone': 'Completed',
+    'panel.ansFault': 'Incomplete',
+    'panel.ansLength': 'Length',
+    'panel.ansWords': '{n} words',
+    'panel.ansSources': 'Sources',
+    'panel.ansDepth': 'Depth',
+    'panel.moreAnswers': 'Show more answers',
+    'panel.details': 'Details',
     'panel.brand': 'Ezik',
     'panel.navOverview': 'Overview',
     'panel.navMessages': 'Messages',
@@ -28623,8 +28667,8 @@ const EZIK_INBOX_TABS = [
   { id: 'feedback', k: 'inbox.tabFeedback' },
   { id: 'reports', k: 'inbox.tabReports' },
   // ITEM O1 (91) -- 2026-10-15 brain-line: the answer log, read only (no erase, no reply, no open).
-  { id: 'answers', k: 'inbox.tabAnswers' },
   { id: 'usage', k: 'inbox.tabUsage' },
+  { id: 'answers', k: 'inbox.tabAnswers' },
 ];
 
 // ITEM O1 (91) -- 2026-10-15 brain-line: ONE ANSWER'S RECORD ON ONE LINE. Every value is a count or a closed word the
@@ -28761,7 +28805,7 @@ function EzUbDelta({ now, before, points }) {
   if (change === 0) return <span className="ezub-soft" aria-label={ezT('usage.vsBefore')}>=</span>;
   return (
     <span className={'ezub-delta ' + (change > 0 ? 'up' : 'down')} aria-label={ezT('usage.vsBefore')}>
-      {(change > 0 ? '▲ ' : '▼ ') + Math.abs(change) + '%'}
+      {(change > 0 ? '▲ ' : '▼ ') + (points ? ezT('panel.pointsN', { n: Math.abs(change) }) : Math.abs(change) + '%')}
     </span>
   );
 }
@@ -28817,28 +28861,10 @@ function EzUbBars({ rows }) {
   const top = Math.max(...rows.map((r) => r.n), 1);
   return rows.map((r) => (
     <div className="ezub-row" key={r.k}>
-      <span>{r.k}</span><span>{ezUbNum(r.n)}</span>
+      <span>{r.k}</span><span>{r.text || ezUbNum(r.n)}</span>
       <span className="ezub-track"><span className="ezub-fill" style={{ width: Math.round((r.n / top) * 100) + '%' }} /></span>
     </div>
   ));
-}
-
-function EzUbChat({ chat }) {
-  if (chat === null) return <p className="ezub-soft">{ezT('usage.failed')}</p>;
-  if (!chat) return <div className="ezub-skel" />;
-  if (!chat.read) return <p className="ezub-soft">{ezT('usage.none')}</p>;
-  const pct = (n) => Math.round((n / chat.read) * 100) + '%';
-  return (
-    <>
-      <div className="ezub-stats">
-        <div className="ezub-kpi"><span>{ezT('usage.noFind')}</span><span className="ezub-big">{pct(chat.noFind)}</span></div>
-        <div className="ezub-kpi"><span>{ezT('usage.noSource')}</span><span className="ezub-big">{pct(chat.noSource)}</span></div>
-      </div>
-      <h3>{ezT('usage.topKinds')}</h3>
-      <EzUbBars rows={chat.top} />
-      <p className="ezub-soft">{ezT('usage.sample', { n: chat.read })}</p>
-    </>
-  );
 }
 
 const ezUbTime = (seconds) => (seconds < 60 ? ezT('usage.seconds', { n: seconds }) : ezT('usage.minutes', { n: Math.round(seconds / 60) }));
@@ -28854,20 +28880,52 @@ function EzUbHours({ hours, since }) {
       <div className="ezub-pair" dir="ltr" style={{ borderTop: 0 }}>
         {[0, 6, 12, 18, 23].map((h) => <span key={h} className="ezub-soft">{h}</span>)}
       </div>
+      <p className="ezub-soft">{ezT('panel.peakAt', { hour: hours.indexOf(top) + ':00' })}</p>
     </>
   );
 }
 
-function EzUbPerf({ chat }) {
+// The three quality cards, shared by the usage and answers screens. The word beside a number appears
+// only when both windows hold enough answers to say it.
+function EzCpQuality({ chat, before }) {
   if (chat === null) return <p className="ezub-soft">{ezT('usage.failed')}</p>;
   if (!chat) return <div className="ezub-skel" />;
-  if (chat.firstMs === null) return <p className="ezub-soft">{ezT('usage.none')}</p>;
+  if (!chat.read) return <p className="ezub-soft">{ezT('usage.none')}</p>;
+  const pct = (c, n) => Math.round((n / c.read) * 100);
+  const solid = !!before && before.read >= 20 && chat.read >= 20;
+  const word = (now, then) => (!solid ? '' : ezT(now - then >= 2 ? 'panel.chatRose' : then - now >= 2 ? 'panel.chatFell' : 'panel.chatSteady'));
+  const first = chat.firstMs;
+  const was = solid ? before.firstMs : null;
+  const pace = first === null || was === null ? ''
+    : ezT(first - was >= 200 ? 'panel.slower' : was - first >= 200 ? 'panel.faster' : 'panel.chatSteady');
   return (
-    <div className="ezub-stats">
-      <div className="ezub-kpi"><span>{ezT('usage.firstChar')}</span>
-        <span className="ezub-big">{ezT('usage.seconds', { n: (chat.firstMs / 1000).toFixed(1) })}</span></div>
-      <div className="ezub-kpi"><span>{ezT('usage.faults')}</span><span className="ezub-big">{ezUbNum(chat.faults)}</span></div>
-    </div>
+    <>
+      <div className="ezcp-grid3">
+        <EzCpMini label={ezT('usage.noFind')} value={pct(chat, chat.noFind) + '%'} note={solid ? word(pct(chat, chat.noFind), pct(before, before.noFind)) : ''} />
+        <EzCpMini label={ezT('usage.noSource')} value={pct(chat, chat.noSource) + '%'} note={solid ? word(pct(chat, chat.noSource), pct(before, before.noSource)) : ''} />
+        <EzCpMini label={ezT('usage.firstChar')} value={first === null ? '\u2014' : ezT('usage.seconds', { n: (first / 1000).toFixed(1) })} note={pace} />
+      </div>
+      <div className="ezub-pair" style={{ borderTop: 0 }}><span>{ezT('usage.faults')}</span><span>{ezUbNum(chat.faults)}</span></div>
+      <p className="ezub-soft">{ezT('usage.sample', { n: chat.read })}</p>
+    </>
+  );
+}
+
+function EzCpPlatform({ p }) {
+  const parts = [['usage.android', p.a, '#D6B25E'], ['usage.ios', p.i, '#7FDCC8'], ['usage.web', p.w, '#B9B4F5']];
+  const all = p.a + p.i + p.w;
+  return (
+    <>
+      <div className="ezcp-stack" dir="ltr" aria-hidden="true">
+        {parts.filter((x) => x[1] > 0).map(([k, n, color]) => <i key={k} style={{ flexGrow: n, background: color }} />)}
+      </div>
+      {parts.map(([k, n, color]) => (
+        <div className="ezub-pair" key={k}>
+          <span><i className="ezcp-dot" style={{ background: color }} aria-hidden="true" />{ezT(k)}</span>
+          <span>{Math.round((n / all) * 100) + '%'}</span>
+        </div>
+      ))}
+    </>
   );
 }
 
@@ -28877,9 +28935,9 @@ function EzikUsageBoard({ store }) {
   const [data, setData] = useState(null);
   const [failed, setFailed] = useState(false);
   const [chat, setChat] = useState(undefined);
+  const [chatBefore, setChatBefore] = useState(null);
   const own = useRef({});
   const memo = store || own;
-  const tableRef = useRef(null);
   useEffect(() => {
     const held = readAuthSession();
     if (!held) { setFailed(true); return undefined; }
@@ -28911,25 +28969,36 @@ function EzikUsageBoard({ store }) {
         setChat(res.data);
       });
     }
+    if (seen.chatBefore) setChatBefore(seen.chatBefore);
+    else {
+      setChatBefore(null);
+      const end = new Date(day + 'T00:00:00Z').getTime() - days * 86400000;
+      ezikInbox({ session: held.session, action: 'list', kind: 'usage-chat', day: new Date(end).toISOString().slice(0, 10).replace(/-/g, ''), days }, controller.signal).then((res) => {
+        if (!live || !res.ok || !res.data) return;
+        seen.chatBefore = res.data;
+        memo.current[id] = seen;
+        setChatBefore(res.data);
+      });
+    }
     return () => { live = false; clearTimeout(timer); try { controller.abort(); } catch (e) {} };
   }, [day, days]);
   const b = data && data.board;
   const items = data ? data.items : [];
   const since = (b && b.since) || '20261031';
-  const used = items.filter((r) => r.opens > 0);
-  const showTable = () => {
-    const el = tableRef.current;
-    if (!el) return;
-    el.open = true;
-    try { el.scrollIntoView({ block: 'start' }); } catch (e) {}
-  };
+  // The tafsir section stays logged, because an old Android widget still opens it; this panel does not list it.
+  const listed = ezCpSections(items);
+  const used = listed.filter((r) => r.opens > 0);
+  const hidden = items.filter((r) => listed.indexOf(r) === -1).map((r) => r.label);
+  const paths = b ? b.paths.filter((p) => hidden.indexOf(p.from) === -1 && hidden.indexOf(p.to) === -1).slice(0, 5) : [];
+  const stays = b ? b.stays.filter((r) => hidden.indexOf(r.label) === -1) : [];
+  const arrow = EZ_LANG_DIR[EZ_LANG] === 'ltr' ? ' \u2192 ' : ' \u2190 ';
   return (
     <div className="ezub">
       <style>{EZ_UB_CSS}</style>
       <div className="ezub-bar">
         {[[1, 'usage.day'], [7, 'usage.week'], [30, 'usage.month']].map(([n, k]) => (
-          <button key={n} type="button" className="ezhome-focus" aria-pressed={days === n}
-            onClick={() => setDays(n)} style={{ ...s.artChoice, ...(days === n ? s.artChoiceOn : null) }}>{ezT(k)}</button>
+          <button key={n} type="button" className="ezcp-chip-btn ezhome-focus" aria-pressed={days === n}
+            onClick={() => setDays(n)}>{ezT(k)}</button>
         ))}
         <input type="date" value={day} max={new Date().toISOString().slice(0, 10)}
           min={new Date(Date.now() - 399 * 86400000).toISOString().slice(0, 10)}
@@ -28956,22 +29025,31 @@ function EzikUsageBoard({ store }) {
             {b ? <EzUbTrend points={b.trend} since={since} /> : <EzUbCollecting since={since} />}
           </section>
           <section className="ezub-card">
-            <h3>{ezT('usage.topSections')}</h3>
-            {used.length ? <EzUbBars rows={used.slice(0, 8).map((r) => ({ k: r.label, n: r.opens }))} />
+            <div className="ezcp-line"><h3>{ezT('usage.topSections')}</h3><span className="ezub-soft">{ezT('usage.opens') + ' \u00B7 ' + ezT('usage.devices')}</span></div>
+            {used.length ? <EzUbBars rows={used.slice(0, 8).map((r) => ({ k: r.label, n: r.opens, text: ezUbNum(r.opens) + ' \u00B7 ' + ezUbNum(r.devices) }))} />
               : <p className="ezub-soft">{ezT('usage.none')}</p>}
-            <button type="button" className="ezub-link ezhome-focus" onClick={showTable}>{ezT('usage.allSections')}</button>
           </section>
+          <details className="ezub-card">
+            <summary>{ezT('usage.allSections') + ' (' + listed.length + ')'}</summary>
+            <p style={s.artNote}>{ezT('usage.note')}</p>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'start' }}>
+              <thead><tr>{['usage.section', 'usage.opens', 'usage.devices'].map((k) => <th key={k} scope="col" style={{ padding: 8 }}>{ezT(k)}</th>)}</tr></thead>
+              <tbody>{listed.map((r) => <tr key={r.section}>
+                <th scope="row" style={{ padding: 8 }}>{r.label}</th><td style={{ padding: 8 }}>{r.opens}</td><td style={{ padding: 8 }}>{r.devices}</td>
+              </tr>)}</tbody>
+            </table>
+          </details>
           <section className="ezub-card">
-            <h3>{ezT('usage.paths')}</h3>
-            {b && b.paths.length ? b.paths.map((p) => (
+            <div className="ezcp-line"><h3>{ezT('usage.paths')}</h3><span className="ezub-soft">{ezT('panel.fromTo')}</span></div>
+            {paths.length ? paths.map((p) => (
               <div className="ezub-pair" key={p.from + p.to}>
-                <span>{p.from + ' › ' + p.to}</span><span>{ezUbNum(p.n)}</span>
+                <span>{p.from + arrow + p.to}</span><span>{ezUbNum(p.n)}</span>
               </div>
             )) : <EzUbCollecting since={since} />}
           </section>
           <section className="ezub-card">
             <h3>{ezT('usage.chat')}</h3>
-            <EzUbChat chat={chat} />
+            <EzCpQuality chat={chat} before={chatBefore} />
           </section>
           <section className="ezub-card">
             <h3>{ezT('usage.peak')}</h3>
@@ -28979,10 +29057,10 @@ function EzikUsageBoard({ store }) {
           </section>
           <section className="ezub-card">
             <h3>{ezT('usage.dwell')}</h3>
-            {b && b.stays.length ? (
+            {stays.length ? (
               <>
                 <div className="ezub-pair"><span /><span className="ezub-soft">{ezT('usage.mean') + ' \u00B7 ' + ezT('usage.median')}</span></div>
-                {b.stays.map((r) => (
+                {stays.map((r) => (
                   <div className="ezub-pair" key={r.label}>
                     <span>{r.label}</span><span>{ezUbTime(r.mean) + ' \u00B7 ' + ezUbTime(r.median)}</span>
                   </div>
@@ -28991,14 +29069,10 @@ function EzikUsageBoard({ store }) {
             ) : <EzUbCollecting since={since} />}
           </section>
           <section className="ezub-card">
-            <h3>{ezT('usage.perf')}</h3>
-            <EzUbPerf chat={chat} />
-          </section>
-          <section className="ezub-card">
             <h3>{ezT('usage.platform')}</h3>
             {b && (b.platforms.a || b.platforms.i || b.platforms.w) ? (
               <>
-                <EzUbBars rows={[['usage.android', b.platforms.a], ['usage.ios', b.platforms.i], ['usage.web', b.platforms.w]].map(([k, n]) => ({ k: ezT(k), n }))} />
+                <EzCpPlatform p={b.platforms} />
                 {b.versions.map((v) => (
                   <div className="ezub-pair" key={v.v}><bdi dir="ltr">{v.v}</bdi><span>{ezUbNum(v.n)}</span></div>
                 ))}
@@ -29019,16 +29093,6 @@ function EzikUsageBoard({ store }) {
             ))}
             <div className="ezub-pair"><span>{ezT('usage.bought')}</span><span className="ezub-soft">{ezT('usage.pending')}</span></div>
           </section>
-          <details className="ezub-card" ref={tableRef}>
-            <summary>{ezT('usage.allSections')}</summary>
-            <p style={s.artNote}>{ezT('usage.note')}</p>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'start' }}>
-              <thead><tr>{['usage.section', 'usage.opens', 'usage.devices'].map((k) => <th key={k} scope="col" style={{ padding: 8 }}>{ezT(k)}</th>)}</tr></thead>
-              <tbody>{items.map((r) => <tr key={r.section}>
-                <th scope="row" style={{ padding: 8 }}>{r.label}</th><td style={{ padding: 8 }}>{r.opens}</td><td style={{ padding: 8 }}>{r.devices}</td>
-              </tr>)}</tbody>
-            </table>
-          </details>
         </>
       ) : null}
     </div>
@@ -29114,6 +29178,22 @@ position:relative;display:flex;flex-direction:column;height:100dvh;overflow:hidd
 .ezcp-field>:last-child{min-width:0;overflow-wrap:anywhere;text-align:end}
 .ezcp-quick{display:flex;gap:8px;flex-wrap:wrap}
 .ezcp textarea{min-height:120px;background:#0C181B}
+.ezcp .ezub{padding:0}
+.ezcp .ezub-card{border-radius:22px;background:#122226}
+.ezcp .ezub-big{font-size:36px}
+.ezcp input[type="date"],.ezcp select{color-scheme:dark}
+.ezcp .ezub-card summary{display:flex;align-items:center;min-height:44px}
+.ezcp-mini em{font-style:normal;font-size:12px;color:#7FDCC8}
+.ezcp-stack{display:flex;gap:2px;height:12px;margin-bottom:6px;border-radius:999px;overflow:hidden}
+.ezcp-stack i{display:block;flex-basis:0}
+.ezcp-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-inline-end:8px}
+.ezcp-h{margin:0;font-size:15px;font-weight:700;color:#F4EDE0}
+.ezcp-ans{display:flex;flex-direction:column;gap:10px;padding:14px}
+.ezcp-ans-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px}
+.ezcp-ans-facts div{display:flex;justify-content:space-between;gap:8px;font-size:13px;min-width:0}
+.ezcp-ans-facts span{color:#9FB1AE}
+.ezcp-ans-facts b{font-weight:700;color:#F4EDE0;overflow-wrap:anywhere;text-align:end}
+.ezcp-ans-more summary{display:flex;align-items:center;min-height:44px;font-size:13px;font-weight:700;color:#D6B25E;cursor:pointer}
 .ezcp-skel{height:112px;border-radius:22px;background:#172C31;animation:ezub-pulse 1.4s ease-in-out infinite}
 .ezcp-skel.is-tall{height:210px}
 .ezcp .ezhome-focus:focus-visible,.ezcp button:focus-visible{outline:2px solid #D6B25E;outline-offset:2px}
@@ -29156,11 +29236,12 @@ function EzCpShell({ kind, title, onNav, onBack, badges, actions, children }) {
   );
 }
 
-function EzCpMini({ label, value, soft }) {
+function EzCpMini({ label, value, soft, note }) {
   return (
     <div className="ezcp-card ezcp-mini">
       <strong className={soft ? 'is-soft' : undefined}>{value}</strong>
       <span>{label}</span>
+      {note ? <em>{note}</em> : null}
     </div>
   );
 }
@@ -29253,6 +29334,84 @@ function EzCpOverview({ data, failed, onGo, onRetry }) {
           <button type="button" className="ezcp-link ezhome-focus" onClick={() => onGo('usage')}>{ezT('panel.allSections')}</button></div>
         <div className="ezub">{top.length ? <EzUbBars rows={top.map((r) => ({ k: r.label, n: r.opens }))} /> : <p className="ezcp-soft">{collecting}</p>}</div>
       </section>
+    </>
+  );
+}
+
+const EZ_CP_OUTCOME = { done: ['panel.ansDone', ' is-done'], nofind: ['usage.noFind', ' t-complaint'], fault: ['panel.ansFault', ' t-bug'] };
+
+// One answer as a fingerprint: closed words and counts the log already holds, never the question.
+function EzCpAnswerCard({ r }) {
+  const outcome = EZ_CP_OUTCOME[r.outcome] || EZ_CP_OUTCOME.fault;
+  const facts = [
+    ['panel.ansLength', ezT('panel.ansWords', { n: r.q_words || 0 })],
+    ['panel.ansSources', ezUbNum(r.cited)],
+    ['usage.firstChar', Number.isFinite(r.first_byte_ms) ? ezT('usage.seconds', { n: (r.first_byte_ms / 1000).toFixed(1) }) : '\u2014'],
+    ['panel.ansDepth', r.depth || '\u2014'],
+  ];
+  return (
+    <section className="ezcp-card ezcp-ans">
+      <div className="ezcp-msg-meta">
+        <span className="ezcp-tag"><bdi dir="ltr">{r.route || r.path || '\u2014'}</bdi></span>
+        <span className={'ezcp-tag' + outcome[1]}>{ezT(outcome[0])}</span>
+        <span dir="ltr">{Number.isFinite(r.at) ? new Date(r.at).toISOString().slice(11, 16) : ''}</span>
+      </div>
+      <div className="ezcp-ans-facts">
+        {facts.map(([k, v]) => <div key={k}><span>{ezT(k)}</span><b>{v}</b></div>)}
+      </div>
+      <details className="ezcp-ans-more">
+        <summary>{ezT('panel.details')}</summary>
+        <EzikAnswerLogRow r={r} />
+      </details>
+    </section>
+  );
+}
+
+function EzCpAnswers({ rows, day, memo }) {
+  const [chat, setChat] = useState(undefined);
+  const [more, setMore] = useState(EZ_CP_PAGE);
+  useEffect(() => {
+    const held = readAuthSession();
+    if (!held) { setChat(null); return undefined; }
+    const id = day + ':1';
+    const seen = memo.current[id] || {};
+    if (seen.chat) { setChat(seen.chat); return undefined; }
+    let live = true;
+    const controller = new AbortController();
+    const timer = setTimeout(() => { try { controller.abort(); } catch (e) {} }, EZIK_INBOX_TIMEOUT_MS);
+    ezikInbox({ session: held.session, action: 'list', kind: 'usage-chat', day, days: 1 }, controller.signal).then((res) => {
+      clearTimeout(timer);
+      if (!live) return;
+      if (!res.ok || !res.data) { setChat(null); return; }
+      seen.chat = res.data;
+      memo.current[id] = seen;
+      setChat(res.data);
+    });
+    return () => { live = false; clearTimeout(timer); try { controller.abort(); } catch (e) {} };
+  }, [memo]);
+  const top = chat && chat.read ? chat.top : [];
+  const rest = chat ? chat.read - top.reduce((a, r) => a + r.n, 0) : 0;
+  const share = (n) => Math.round((n / chat.read) * 100) + '%';
+  return (
+    <>
+      <section className="ezcp-card ezcp-hero">
+        <div className="ezcp-line">
+          <span className="ezcp-sub">{ezT('panel.answersToday')}</span>
+          <span className="ezcp-soft">{ezCpDayLabel(day)}</span>
+        </div>
+        <div><span className="ezcp-num">{rows.length >= 200 ? '200+' : ezUbNum(rows.length)}</span><span className="ezcp-unit">{ezT('panel.answerUnit')}</span></div>
+        <p className="ezcp-soft">{ezT('panel.readLast', { n: 200 })}</p>
+      </section>
+      <EzCpQuality chat={chat} />
+      {top.length ? (
+        <section className="ezcp-card ezub">
+          <h2>{ezT('usage.topKinds')}</h2>
+          <EzUbBars rows={[...top.map((r) => ({ k: r.k, n: r.n, text: share(r.n) })), ...(rest > 0 ? [{ k: ezT('panel.others'), n: rest, text: share(rest) }] : [])]} />
+        </section>
+      ) : null}
+      <div className="ezcp-line"><h2 className="ezcp-h">{ezT('panel.latestAnswers')}</h2><span className="ezcp-soft">{ezT('panel.fingerprint')}</span></div>
+      {rows.slice(0, more).map((r) => <EzCpAnswerCard key={r.trace} r={r} />)}
+      {rows.length > more ? <button type="button" className="ezcp-more ezhome-focus" onClick={() => setMore(more + EZ_CP_PAGE)}>{ezT('panel.moreAnswers')}</button> : null}
     </>
   );
 }
@@ -29374,6 +29533,8 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
     setFilter('all');
     setMore(EZ_CP_PAGE);
     if (open) { if (!ezikHistBack()) setOpen(null); }
+    // The tab being left must not be drawn for a frame in the next tab's shape.
+    if (next !== kind) { setRows([]); setListState(EZIK_ART_LOADING); }
     setKind(next);
   };
   const refresh = () => { if (kind === 'overview') loadOverview(); else load(kind, true); };
@@ -29692,7 +29853,7 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
         <EzikUsageBoard store={usageMemo} />
       ) : kind === 'answers' ? (
         listState === EZIK_ART_DONE && rows.length > 0
-          ? <div style={s.artList}>{rows.map((r) => <EzikAnswerLogRow key={r.trace} r={r} />)}</div>
+          ? <EzCpAnswers key={ansDay} rows={rows} day={ansDay} memo={usageMemo} />
           : null
       ) : kind === 'feedback' && listState === EZIK_ART_DONE && rows.length > 0 ? (
         pageRows.map((r) => (

@@ -53,7 +53,7 @@ import { resolveActor, ROLE_OWNER } from '../lib/articles/roles.js';
 import { touchSession } from '../lib/auth/account.js';
 import { readJson as readAuthJson } from '../lib/auth/store.js';
 import { readAnswerLog, ANSWER_LOG_PATHS } from '../lib/answer-log.js';
-import { readUsage, readUsageChat, usageWindow } from '../lib/usage.js';
+import { readUsage, readUsageChat, usageAnswerOutcome, usageWindow } from '../lib/usage.js';
 import { TEXT_CAP } from './feedback.js';
 
 const redis = new Redis({
@@ -99,7 +99,7 @@ export async function answersList(body = {}) {
   if (statusAsked && !ANSWER_STATUSES.includes(statusAsked)) return { ok: false, error: 'inbox-answers-status' };
   const limit = Math.max(1, Math.min(LIST_WINDOW, Number.isInteger(body.limit) ? body.limit : LIST_WINDOW));
   const items = await readAnswerLog({ day, path: pathAsked, status: statusAsked, limit });
-  return { ok: true, kind: 'answers', day, window: LIST_WINDOW, total: items.length, items };
+  return { ok: true, kind: 'answers', day, window: LIST_WINDOW, total: items.length, items: items.map((r) => ({ ...r, outcome: usageAnswerOutcome(r) })) };
 }
 
 const REPLY_PREFIX = 'reply:v1:';
