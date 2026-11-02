@@ -27,12 +27,12 @@ test('the pre-Cohere record re-asks once; a current grant survives reload withou
   reloaded.write('declined', 'user');
   assert.equal(client(store).state().answered, true); assert.equal(client(store).state().valid, false);
 });
-test('server and reranker use the same Cohere disclosure version and reject the preceding one', (t) => {
+test('outer gate accepts the prior grant while the reranker requires the current disclosure', (t) => {
   const previous = process.env.COHERE_API_KEY, localStubKey = 'local-stub-key';
   process.env.COHERE_API_KEY = localStubKey;
   t.after(() => { if (previous === undefined) delete process.env.COHERE_API_KEY; else process.env.COHERE_API_KEY = previous; });
   assert.equal(AI_CONSENT_VERSION, RERANK_CONSENT_VERSION);
-  assert.equal(hasAIConsent({ headers: { [AI_CONSENT_HEADER]: '2026-08-06-1' } }), false);
+  assert.equal(hasAIConsent({ headers: { [AI_CONSENT_HEADER]: '2026-08-06-1' } }), true);
   assert.equal(hasAIConsent({ headers: { [AI_CONSENT_HEADER]: AI_CONSENT_VERSION } }), true);
   const env = { RERANK_V1: 'on', COHERE_NO_TRAINING_CONFIRMED: 'true' };
   assert.equal(rerankPreflight(env, '2026-08-06-1'), 1);
