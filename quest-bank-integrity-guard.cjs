@@ -2095,9 +2095,10 @@ const SEALED = {
   // 2026-11-01 LANGS round C: reserved cache ezik-v128; app.js rebuilt (enabled list); CORE membership unchanged; worker seal remeasured.
   // 2026-11-02 device fixes ship: reserved cache ezik-v130; app.js and index.html rebuilt; CORE membership unchanged.
   // 2026-11-02 TRANSLATE4 integrate: reserved cache ezik-v131; /lang/content/ network-first, no precache; app.js rebuilt; CORE membership unchanged.
-  //   2026-11-02 -- FIX-ROUND2 ship: cache ezik-v132 -> ezik-v134 (articles links and colours, the Word and PDF design, prayer label, mushaf page, sync, titles): app.js 2554770 -> 2577472 bytes, sha256 f596551a..1867; node tools/core-bytes.cjs --write: CORE_BYTES 3789725.
+  // 2026-11-02 TRANSLATE4 om: reserved cache ezik-v133; app.js rebuilt (enabled list); CORE membership unchanged.
+  //   2026-11-02 -- FIX-ROUND2 ship: cache ezik-v133 -> ezik-v134 (articles links and colours, the Word and PDF design, prayer label, mushaf page, sync, titles): app.js 2554775 -> 2577477 bytes, sha256 782e8320..78c3; node tools/core-bytes.cjs --write: CORE_BYTES 3789730.
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 58418 bytes).
-  'sw.js': '769a815ead629d6a657f85a22ed8591eeb8ab345f09c9b89644c214e0f52a322',
+  'sw.js': '8e49d566810de14f4e9b820df532bb11257dc11f0c55c8428c795ab92bd74330',
 };
 
 // ---------------------------------------------------------------------------
@@ -3286,7 +3287,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2577472, of: 'app.js' },
+      { n: 2577477, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

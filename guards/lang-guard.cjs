@@ -14,7 +14,7 @@
 // Usage: node guards/lang-guard.cjs
 'use strict';
 // TRANSLATE4 (2026-11-02): dictionaries the client builds that the server table has no row for yet. Oromo ships hidden; a later brain session adds its row and empties this list.
-const CLIENT_ONLY_LANGS = ['om'];
+const CLIENT_ONLY_LANGS = [];
 const fs = require('fs');
 const path = require('path');
 const REPO = path.join(__dirname, '..');
