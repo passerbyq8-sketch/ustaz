@@ -8972,6 +8972,20 @@
         "rights": "",
         "date": ""
       }
+    },
+    {
+      "id": "h:8d067a376a65",
+      "kind": "title",
+      "ar": "الجمعة",
+      "tr": "ጁሙዓ (ዓርብ)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
     }
   ]
 }

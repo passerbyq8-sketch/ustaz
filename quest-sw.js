@@ -16,7 +16,7 @@ const SHELL = [
   '/hanna-laha/index.html', '/hanna-laha/', '/hanna-laha/favicon.svg', '/icon.svg',
   '/quest-data/kunuz-bank-3147.js', '/quest-data/kunuz-levels-3147.js', '/quest-data/kunuz-geo-index.js',
   '/quest-data/kunuz-geo.js', '/quest-data/kunuz-packs-manifest.js',
-  '/quest-visual.js', '/quest-visual.css', '/quest-levels.js', '/quest-i18n.js',
+  '/quest-visual.js', '/quest-visual.css', '/quest-levels.js',
   '/quest-theme/theme.css', '/quest-theme/model.js', '/quest-theme/icons.js',
   '/quest-theme/history.js', '/quest-theme/journey.js', '/quest-theme/motion-kit.js',
   '/quest-theme/board-rooms.js', '/quest-theme/room-categories.js',
@@ -127,7 +127,7 @@ self.addEventListener('fetch', event => {
     })()); return;
   }
   const hannaPage = request.mode === 'navigate' && /^\/hanna-laha(?:\/|$)/.test(url.pathname);
-  const allowed = shellPaths.has(url.pathname) || hannaPage || url.pathname.startsWith('/quest-data/') || url.pathname.startsWith('/quest-theme/') || url.pathname.startsWith('/hanna-laha/assets/');
+  const allowed = shellPaths.has(url.pathname) || hannaPage || url.pathname.startsWith('/quest-data/') || url.pathname.startsWith('/quest-theme/') || url.pathname.startsWith('/quest-i18n/') || url.pathname.startsWith('/hanna-laha/assets/');
   if (!allowed) return;
   event.respondWith((async () => {
     const html = request.mode === 'navigate' || htmlPaths.has(url.pathname);

@@ -5682,6 +5682,20 @@
         "rights": "",
         "date": ""
       }
+    },
+    {
+      "id": "h:fff3fc4e628b",
+      "kind": "title",
+      "ar": "أذكار الصباح والمساء",
+      "tr": "የጠዋትና የማታ አዝካር (የአላህ ውዳሴዎች)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
     }
   ]
 }

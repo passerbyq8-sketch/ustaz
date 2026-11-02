@@ -27036,6 +27036,34 @@
         }
       ],
       "reopen_batch": "reopen-arbaeen-026.json"
+    },
+    {
+      "id": "h:0d39767b498a",
+      "kind": "title",
+      "ar": "الأربعين النووية",
+      "tr": "Al-Arba'iin An-Nawawiyyaa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:51f292fbcb68",
+      "kind": "title",
+      "ar": "النووي",
+      "tr": "An-Nawawii",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
     }
   ]
 }

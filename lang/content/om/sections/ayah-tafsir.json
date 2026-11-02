@@ -1151,6 +1151,20 @@
         }
       ],
       "reopen_batch": "retranslate-ayah-tafsir-001.json"
+    },
+    {
+      "id": "h:81ea68b9703b",
+      "kind": "title",
+      "ar": "مجموعة من المؤلفين",
+      "tr": "Barreessitoota garee",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
     }
   ]
 }

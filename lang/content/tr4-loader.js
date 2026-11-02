@@ -6,6 +6,11 @@
   var CONTENT_LANGS = { am: 1, om: 1, en: 1, fa: 1 };
   var SACRED = { quran: 1, hadith: 1, dua: 1, dhikr: 1 };
   var ARABIC_FORMATS = { 'missing-letter': 1, scramble: 1 };
+  /* Owner rule t11: these core categories test the Arabic language itself, so solo play hides them. Rooms are unchanged. */
+  var ARABIC_CATEGORIES = { 'arabic-language': 1, 'poetry-fusha': 1, 'poetry-nabati': 1 };
+  function cc(n) { return String.fromCharCode(n); }
+  var LETTERS = '[' + cc(0x621) + '-' + cc(0x64a) + cc(0x640) + cc(0x64b) + '-' + cc(0x652) + cc(0x670) + ']+';
+  var CHUNK = new RegExp(LETTERS + '(?:\\s+' + LETTERS + ')*', 'g'), NUMBER = '([0-9' + cc(0x660) + '-' + cc(0x669) + cc(0x6f0) + '-' + cc(0x6f9) + ']+)';
   var options = { base: '/lang/content/', direction: function (lang) { return lang === 'fa' ? 'rtl' : 'ltr'; }, text: function () { return ''; } };
   var cache = Object.create(null), hashes = new Map(), warned = false;
   function norm(s) {
@@ -89,11 +94,43 @@
     }
     return out;
   }
+  /* A label built at runtime: a translated word around an Arabic name, or a count around Arabic words.
+     Each Arabic chunk must be a title or a text item; a verse or a hadith is never touched here.
+     Persian labels hold Persian words in the same letters, so there a chunk may stay and a part of it may hit. */
+  function plain(index, text) {
+    var hit = index[hid(text)];
+    return hit && hit.tr && (hit.kind === 'title' || hit.kind === 'text') ? hit.tr : '';
+  }
+  function chunk(index, text, lang) {
+    var whole = plain(index, text); if (whole) return whole;
+    if (lang !== 'fa') return '';
+    var words = text.split(/\s+/);
+    for (var size = words.length - 1; size > 0; size--) for (var i = 0; i + size <= words.length; i++) {
+      var hit = plain(index, words.slice(i, i + size).join(' '));
+      if (hit) return [words.slice(0, i).join(' '), hit, words.slice(i + size).join(' ')].filter(Boolean).join(' ');
+    }
+    return '';
+  }
+  function mixed(index, patterns, text, lang) {
+    var t = text.trim(), p, m;
+    for (var i = 0; i < patterns.length; i++) {
+      p = patterns[i]; m = p.re.exec(t);
+      if (m) return p.names.reduce(function (s, n, j) { return s.split('{' + n + '}').join(m[j + 1]); }, p.tr);
+    }
+    var changed = false, failed = false;
+    var out = text.replace(CHUNK, function (c) {
+      var tr = chunk(index, c, lang);
+      if (tr) { changed = true; return tr; }
+      if (lang !== 'fa') failed = true;
+      return c;
+    });
+    return changed && !failed ? out : '';
+  }
   function credit(item) {
     if (item.tag !== 'published' || !item.src || !item.src.name) return '';
     return item.src.name + (item.src.version && item.src.name.indexOf(item.src.version) < 0 ? ' · ' + item.src.version : '');
   }
-  function place(root, data, index) {
+  function place(root, data, index, patterns) {
     var list = (records.get(root) || []).filter(function (r) {
       if (r.node.isConnected && r.node.nodeValue === r.shown) return true;
       clearRecord(r); return false;
@@ -108,7 +145,11 @@
     walk(root);
     nodes.forEach(function (n) {
       var parent = n.parentNode, item = lookup(index, n, n.nodeValue), many = item ? null : lines(index, n.nodeValue);
-      if (!item && !many) return;
+      if (!item && !many) {
+        var label = parent.tagName === 'OPTION' ? '' : mixed(index, patterns, n.nodeValue, lang);
+        if (label) { list.push({ node: n, ar: n.nodeValue, shown: label, extra: [] }); n.nodeValue = label; seen.add(n); }
+        return;
+      }
       if (item && (item.tag === 'arabic-only' || typeof item.tr !== 'string' || !item.tr)) return;
       var r = { node: n, ar: n.nodeValue, shown: n.nodeValue, extra: [] };
       function add(tag, text, cls, after) {
@@ -158,17 +199,22 @@
   /* The mounted root is observed only while a translated section is open. */
   function mount(root, lang, sections) {
     if (!CONTENT_LANGS[lang] || !root) return function () {};
-    var names = Array.isArray(sections) ? sections : [sections], alive = true, observer = null, timer = 0, index = null, data = { lang: lang };
+    var names = (Array.isArray(sections) ? sections : [sections]).concat('labels'), alive = true, observer = null, timer = 0, index = null, patterns = [], data = { lang: lang };
     function draw() {
       timer = 0; if (!alive || !index) return;
       if (observer) observer.disconnect();
-      place(root, data, index); machineNote(root, data, root.ownerDocument || document);
+      place(root, data, index, patterns); machineNote(root, data, root.ownerDocument || document);
       if (observer) observer.observe(root, { subtree: true, childList: true, characterData: true });
     }
     Promise.all(names.map(function (n) { return load(lang + '/sections/' + n + '.json'); })).then(function (rows) {
       if (!alive) return;
       index = Object.create(null);
       rows.forEach(function (row) {
+        ((row.data && row.data.patterns) || []).forEach(function (p) {
+          var keys = [], source = p.ar.split(/\{[a-z]+\}/).map(function (x) { return x.replace(/[.*+?^$()|[\]\\]/g, '\\$&'); }).join(NUMBER);
+          p.ar.replace(/\{([a-z]+)\}/g, function (_, k) { keys.push(k); return ''; });
+          patterns.push({ re: new RegExp('^' + source + '$'), names: keys, tr: p.tr });
+        });
         (row.data && Array.isArray(row.data.items) ? row.data.items : []).forEach(function (item) {
           if (!item || typeof item.ar !== 'string') return;
           index[hid(item.ar)] = index[hid(item.ar)] || item;
@@ -214,6 +260,7 @@
         var t = Object.prototype.hasOwnProperty.call(items, q[8]) ? items[q[8]] : null;
         if (!t || !Array.isArray(t[1]) || t[1].length !== q[4].length) { q.kzHide = true; return; }
         q.kzAr = [q[3], q[4], q[6]]; q[3] = t[0]; q[4] = t[1].slice(); if (t[2]) q[6] = t[2]; count++;
+        if (ARABIC_CATEGORIES[(global.DATA.cats[q[0]] || [])[0]]) q.kzHide = true;
       });
       global.DATA.cats.forEach(function (c) { if (typeof cats[c[0]] === 'string' && cats[c[0]]) c[1] = cats[c[0]]; });
       return count;

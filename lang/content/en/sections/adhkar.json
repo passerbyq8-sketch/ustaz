@@ -5833,6 +5833,20 @@
         "rights": "",
         "date": ""
       }
+    },
+    {
+      "id": "h:fff3fc4e628b",
+      "kind": "title",
+      "ar": "أذكار الصباح والمساء",
+      "tr": "Morning and evening adhkar (remembrances)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
     }
   ]
 }

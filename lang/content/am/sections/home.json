@@ -908,6 +908,258 @@
         "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions: 1. No modification, addition, or deletion of the content. 2. Clearly referring to the publisher and the source (QuranEnc.com). 3. Mentioning the version number when re-publishing the translation. 4. Keeping the transcript information inside the document. 5. Notifying the source (QuranEnc.com) of any note on the translation. 6. Updating the translation according to the latest version issued from the source (QuranEnc.com). 7. Inappropriate advertisements must not be included when displaying translations of the meanings of the Noble Quran.",
         "date": "2026-11-01"
       }
+    },
+    {
+      "id": "h:2725c261026a",
+      "kind": "text",
+      "ar": "المحرَّم",
+      "tr": "ሙሐረም",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8fe6e53eb018",
+      "kind": "text",
+      "ar": "صفر",
+      "tr": "ሰፈር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:12b9abd7e47f",
+      "kind": "text",
+      "ar": "ربيع الأوّل",
+      "tr": "ረቢዑል አወል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:27f4b96322c0",
+      "kind": "text",
+      "ar": "ربيع الآخر",
+      "tr": "ረቢዑል አኺር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:59e93f5e6ea8",
+      "kind": "text",
+      "ar": "جمادى الأولى",
+      "tr": "ጁማደል ኡላ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e27629c457c1",
+      "kind": "text",
+      "ar": "جمادى الآخرة",
+      "tr": "ጁማደል አኺራህ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f7ba2629e5cd",
+      "kind": "text",
+      "ar": "رجب",
+      "tr": "ረጀብ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cc36ae3dffc3",
+      "kind": "text",
+      "ar": "شعبان",
+      "tr": "ሻዕባን",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8b6c945cd4f9",
+      "kind": "text",
+      "ar": "رمضان",
+      "tr": "ረመዳን",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5dcf938f475c",
+      "kind": "text",
+      "ar": "شوّال",
+      "tr": "ሸዋል",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:06d78f194bec",
+      "kind": "text",
+      "ar": "ذو القعدة",
+      "tr": "ዙልቂዕዳህ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d95ae12c87e7",
+      "kind": "text",
+      "ar": "ذو الحجّة",
+      "tr": "ዙልሒጃህ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e9edeb603dee",
+      "kind": "text",
+      "ar": "هـ",
+      "tr": "ሂ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a5145b76546d",
+      "kind": "text",
+      "ar": "التاريخ الهجريّ",
+      "tr": "የሂጅራ ቀን አቆጣጠር",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:146f4125b308",
+      "kind": "text",
+      "ar": "إزاحة يدويّة بالأيّام",
+      "tr": "በእጅ በቀናት ማስተካከያ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fc7b180b4dc8",
+      "kind": "text",
+      "ar": "يُحسَب على هذا الجهاز بلا إنترنت، على تقويم أمّ القرى. إن خالفَ التقويمَ المعمولَ به عندك بيومٍ أو يومين فعدِّلْه من هنا.",
+      "tr": "ያለ በይነመረብ በዚህ መሣሪያ ላይ፣ በኡሙል ቁራ የቀን መቁጠሪያ ይሰላል። በአካባቢህ ከሚሠራበት የቀን አቆጣጠር በአንድ ወይም በሁለት ቀን ከተለየ ከዚህ አስተካክለው።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3c6e273c8f9a",
+      "kind": "text",
+      "ar": "لم يكتملْ حفظُ بعضِ الملفّاتِ للعملِ بلا إنترنت.",
+      "tr": "ያለ በይነመረብ ለመሥራት የአንዳንድ ፋይሎች ማስቀመጥ አልተጠናቀቀም።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:08185a932581",
+      "kind": "text",
+      "ar": "لم يُحفَظْ شيءٌ للعملِ بلا إنترنت: مساحةُ الجهازِ لا تكفي.",
+      "tr": "ያለ በይነመረብ ለመሥራት ምንም አልተቀመጠም፦ የመሣሪያው ቦታ በቂ አይደለም።",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
     }
   ]
 }

@@ -12298,6 +12298,62 @@
         "rights": "",
         "date": ""
       }
+    },
+    {
+      "id": "h:0d39767b498a",
+      "kind": "title",
+      "ar": "الأربعين النووية",
+      "tr": "اربعین نووی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:51f292fbcb68",
+      "kind": "title",
+      "ar": "النووي",
+      "tr": "نووی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d7270249029c",
+      "kind": "text",
+      "ar": "مصدر الصوتيات: قناة فضيلة الشيخ محمد بن صالح العثيمين",
+      "tr": "منبع صوت‌ها: کانال جناب شیخ محمد بن صالح عثیمین",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:458c29f83430",
+      "kind": "text",
+      "ar": "محمد بن صالح العثيمين",
+      "tr": "محمد بن صالح العثیمین",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
     }
   ],
   "quran_source": {

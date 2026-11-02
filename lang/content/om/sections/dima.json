@@ -8079,6 +8079,90 @@
           "pointer": "/ui/tomorrowNotification"
         }
       ]
+    },
+    {
+      "id": "h:bfdf8728538c",
+      "kind": "title",
+      "ar": "صحيح البخاري",
+      "tr": "Sahiih Al-Bukhaarii",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5e7e59318d4f",
+      "kind": "title",
+      "ar": "صحيح مسلم",
+      "tr": "Sahiih Muslim",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:abff783fb429",
+      "kind": "title",
+      "ar": "السنن الكبرى للنسائي",
+      "tr": "As-Sunan Al-Kubraa kan An-Nasaa'ii",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7f08faee4cfe",
+      "kind": "title",
+      "ar": "سنن الترمذي ت بشار",
+      "tr": "Sunan At-Tirmizii, tahqiiqa Bashshaar",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fb4fbcd242e3",
+      "kind": "title",
+      "ar": "سنن ابن ماجه",
+      "tr": "Sunan Ibn Maajah",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:96a8ce7b5570",
+      "kind": "title",
+      "ar": "سنن الدارمي",
+      "tr": "Sunan Ad-Daarimii",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
     }
   ]
 }

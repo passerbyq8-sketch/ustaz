@@ -305,6 +305,903 @@
         "rights": "",
         "date": ""
       }
+    },
+    {
+      "id": "h:632ee07c6ebb",
+      "kind": "dhikr",
+      "ar": "سبحان ربي العظيم",
+      "tr": "پاک است پروردگار بزرگ من",
+      "translit": "سُبحانَ رَبِّیَل عَظیم",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e1bba721f1fe",
+      "kind": "text",
+      "ar": "بعد صلاة العصر",
+      "tr": "بعد از نماز عصر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:356c532d0078",
+      "kind": "text",
+      "ar": "حديث",
+      "tr": "حدیث",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:90828ee2dc42",
+      "kind": "title",
+      "ar": "الطلاق",
+      "tr": "طلاق",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c4ffbb69c75c",
+      "kind": "title",
+      "ar": "النجم",
+      "tr": "نجم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2dcec7ee53b1",
+      "kind": "title",
+      "ar": "الشعراء",
+      "tr": "شعراء",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d691d33c6c95",
+      "kind": "dhikr",
+      "ar": "سبحان الله",
+      "tr": "الله از هر عیبی پاک است.",
+      "translit": "سُبحانَ اللّاه",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c6e09f392ca6",
+      "kind": "dhikr",
+      "ar": "الحمد لله",
+      "tr": "تمام ستایش از آن الله است.",
+      "translit": "الحَمدُ لِلّاه",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:469c225165b9",
+      "kind": "dhikr",
+      "ar": "أستغفر الله",
+      "tr": "از الله آمرزش می‌خواهم.",
+      "translit": "اَستَغفِرُ اللّاه",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fcb82174c444",
+      "kind": "dhikr",
+      "ar": "لا إله إلا الله",
+      "tr": "هیچ معبود برحقی جز الله نیست.",
+      "translit": "لا اِلاهَ اِلَّا اللّاه",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c09b41cf4427",
+      "kind": "dhikr",
+      "ar": "الله أكبر",
+      "tr": "الله بزرگ‌تر است.",
+      "translit": "اَللّاهُ اَکبَر",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:017bf6772d13",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده",
+      "tr": "الله را پاک می‌دانم و او را می‌ستایم.",
+      "translit": "سُبحانَ‌اللّاهِ وَبِحَمدِه",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e6087bad6840",
+      "kind": "text",
+      "ar": "اكتملت ديمتك اليوم · ٣ من ٣ قطرات",
+      "tr": "دیمۀ امروزت کامل شد · ٣ قطره از ٣ قطره",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e48e2b4c428f",
+      "kind": "text",
+      "ar": "أكمل",
+      "tr": "ادامه بده",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4e824e31d84d",
+      "kind": "text",
+      "ar": " من ٣ قطرات",
+      "tr": " قطره از ٣ قطره",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c0547a82a08f",
+      "kind": "text",
+      "ar": "بعد صلاة الفجر بنصف ساعة",
+      "tr": "نیم ساعت پس از نماز فجر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a65e23474be8",
+      "kind": "text",
+      "ar": "وقت الضحى",
+      "tr": "وقت ضحی (پس از بالا آمدن آفتاب)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:15edfcb8b923",
+      "kind": "text",
+      "ar": "بعد صلاة العشاء",
+      "tr": "پس از نماز عشا",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:13c2f2eb5acc",
+      "kind": "text",
+      "ar": "نلتقي غدًا بإذن الله",
+      "tr": "به خواست خدا فردا دیدار می‌کنیم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fba3f1065491",
+      "kind": "text",
+      "ar": "سورة ",
+      "tr": "سوره",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b10c7068d1c2",
+      "kind": "quran",
+      "ar": "إِنَّ مَعَ ٱلْعُسْرِ يُسْرًا",
+      "tr": "[آری؛] مسلماً با [هر] دشواری، آسانی است.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "94:6"
+      }
+    },
+    {
+      "id": "h:081d9bc2982a",
+      "kind": "quran",
+      "ar": "وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ",
+      "tr": "اوست كه آسمان‌ها و زمین را در شش روز آفرید؛ آنگاه [آن گونه كه شايسته جلال و مقام اوست] بر عرش قرار گرفت. هر چه در زمین نفوذ می‌كند یا از آن برمی‌آید و هر چه از آسمان فرود می‌آید یا در آن صعود می‌كند، [همه را] مى‌داند؛ و هر جا كه باشید، همراه شماست؛ و الله به آنچه مى‌كنید، بیناست.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "57:4"
+      }
+    },
+    {
+      "id": "h:4a1f7f045b27",
+      "kind": "text",
+      "ar": "الحديد",
+      "tr": "حدید",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:055d5a623196",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ مَعَ ٱلصَّـٰبِرِينَ",
+      "tr": "ای کسانی که ایمان آورده‌اید، از شکیبایی و نماز یاری بجویید [که] بی‌تردید، الله با شکیبایان است.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:153"
+      }
+    },
+    {
+      "id": "h:1c047dd9a1bf",
+      "kind": "text",
+      "ar": "البقرة",
+      "tr": "بقره",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:19636b5a750a",
+      "kind": "quran",
+      "ar": "فَٱذْكُرُونِىٓ أَذْكُرْكُمْ",
+      "tr": "پس مرا یاد کنید تا شما را یاد کنم و شکر مرا به جای آورید و از من ناسپاسی نکنید.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:152"
+      }
+    },
+    {
+      "id": "h:8bd511691f0f",
+      "kind": "quran",
+      "ar": "وَمَن يَتَّقِ ٱللَّهَ يَجْعَل لَّهُۥ مَخْرَجًا",
+      "tr": "و هنگامی که [آنها را طلاق دادید و] عده‌شان به سر رسید، آنان را به طرز شایسته‌ای نگه‌ دارید یا به طرز شایسته‌ای از آنها جدا شوید؛ و دو مرد عادل از خودتان را گواه بگیرید و شهادت را برای الله برپا دارید. این [حکمی است] که هر کس به الله و روز قیامت ایمان دارد، به آن پند و اندرز داده می‌شود؛ و هر‌ کس که از الله بترسد، راه نجاتی برای او قرار می‌دهد",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "65:2"
+      }
+    },
+    {
+      "id": "h:33e1ab66f020",
+      "kind": "quran",
+      "ar": "إِنَّ رَحْمَتَ ٱللَّهِ قَرِيبٌ مِّنَ ٱلْمُحْسِنِينَ",
+      "tr": "و در زمین ـ پس از آنکه [با بعثت پیامبران و دینداریِ مؤمنان] اصلاح گشته است ـ فتنه و فساد نکنید و او [= الله] را با بیم و امید بخوانید [که] بی‌تردید، رحمت الله به نیکوکاران نزدیک است.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "7:56"
+      }
+    },
+    {
+      "id": "h:03f12e1c22d1",
+      "kind": "text",
+      "ar": "الأعراف",
+      "tr": "اعراف",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3ee117fc0d9f",
+      "kind": "quran",
+      "ar": "وَإِذَا سَأَلَكَ عِبَادِى عَنِّى فَإِنِّى قَرِيبٌ",
+      "tr": "و [ای پیامبر،] هرگاه بندگانم دربارۀ من از تو بپرسند، [به آنان بگو] من نزدیکم و دعای دعاکننده را ـ هنگامی که مرا بخوانَد ـ اجابت می‌کنم؛ پس [آنان فقط] باید دعوت مرا بپذیرند و به من ایمان بیاورند؛ باشد که راه ‌یابند.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:186"
+      }
+    },
+    {
+      "id": "h:c2203c888d97",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ يُحِبُّ ٱلْمُحْسِنِينَ",
+      "tr": "و در راه الله انفاق کنید و [با فرار از میدان جهاد و ترک انفاق،] خود را با دست خویشتن به هلاکت نیفکنید؛ و نیکی کنید [که] به راستی الله نیکوکاران را دوست ‌دارد.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:195"
+      }
+    },
+    {
+      "id": "h:96aa67603852",
+      "kind": "quran",
+      "ar": "يَـٰبَنِىَّ ٱذْهَبُوا۟ فَتَحَسَّسُوا۟ مِن يُوسُفَ وَأَخِيهِ وَلَا تَا۟يْـَٔسُوا۟ مِن رَّوْحِ ٱللَّهِ ۖ إِنَّهُۥ لَا يَا۟يْـَٔسُ مِن رَّوْحِ ٱللَّهِ إِلَّا ٱلْقَوْمُ ٱلْكَـٰفِرُونَ",
+      "tr": "ای پسرانم، بروید و دربارۀ یوسف و برادرش جستجو کنید [و خبر بگیرید] و از رحمتِ الله مأیوس نشوید؛ [چرا که] جز گروه کافران، کسی از رحمت الله مأیوس نمی‌گردد».",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "12:87"
+      }
+    },
+    {
+      "id": "h:7694520808a7",
+      "kind": "text",
+      "ar": "يوسف",
+      "tr": "یوسف",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:68c54bc5300f",
+      "kind": "quran",
+      "ar": "وَبَشِّرِ ٱلصَّـٰبِرِينَ",
+      "tr": "و قطعاً شما را با چیزی از [قبیل] ترس و گرسنگی [= قحطی] و زیان مالی [= نابودی یا دشواریِ کسبِ آن] و جانی [= مرگ و میر یا شهادت] و زیان محصولات [کشاورزی] می‌آزماییم؛ و [ای پیامبر،] شکیبایان را [به آنچه در دنیا و آخرت برایشان فراهم می‌آید] بشارت بده؛",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:155"
+      }
+    },
+    {
+      "id": "h:9e0c3ddd0e64",
+      "kind": "quran",
+      "ar": "أَلَا بِذِكْرِ ٱللَّهِ تَطْمَئِنُّ ٱلْقُلُوبُ",
+      "tr": "[همان‌] کسانی که ایمان آورده‌اند و دل‌هایشان به یاد الله آرام می‌گیرد. آگاه باشید که تنها با یاد الله دل‌ها آرام می‌گیرد.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "13:28"
+      }
+    },
+    {
+      "id": "h:3db00e2a5f35",
+      "kind": "text",
+      "ar": "الرعد",
+      "tr": "رعد",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2a5502b81b6e",
+      "kind": "quran",
+      "ar": "وَمَا تَوْفِيقِىٓ إِلَّا بِٱللَّهِ",
+      "tr": "[شعیب] گفت: «ای قوم من، به من بگویید [که] اگر از سوی پروردگارم دلیل [و معجزۀ] آشکاری داشته باشم و از جانب خویش روزیِ نیکویی به من عطا کرده باشد، [آنگاه چه می‌کنید؟] و من نمی‌خواهم در آنچه شما را از آن بازمی‌دارم با شما مخالفت کنم [و خودم انجامش دهم‌]. تا آنجا که در توان دارم، جز اصلاح نمی‌خواهم؛ و توفیق من، جز به [لطف و خواستِ] الله نیست؛ بر او توکل کرده‌ام و به سوی او بازمی‌گردم.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "11:88"
+      }
+    },
+    {
+      "id": "h:fd9d2ec55193",
+      "kind": "text",
+      "ar": "هود",
+      "tr": "هود",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:54011ae117c4",
+      "kind": "quran",
+      "ar": "حَسْبُنَا ٱللَّهُ وَنِعْمَ ٱلْوَكِيلُ",
+      "tr": "همان کسانی‌ که برخی [از مشرکان] به آنان گفتند: «مردم [مکه] برای [جنگ با] شما گِرد آمده‌اند؛ پس از آنها بترسید» و[لی این سخن] بر ایمانشان افزود و گفتند: «الله برای [محافظت از] ما بس است و [او] بهترین [مراقب و] کارساز است».",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "3:173"
+      }
+    },
+    {
+      "id": "h:236876042743",
+      "kind": "text",
+      "ar": "آل عمران",
+      "tr": "آل عمران",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f201c0fc36ce",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ عَلَىٰ كُلِّ شَىْءٍ قَدِيرٌ",
+      "tr": "نزدیک است که برق، چشمانشان را برباید؛ هرگاه كه [برق مى‌زند و راه را] بر آنان روشن مى‌سازد، گامى در [پرتوِ] آن برمى‌دارند و چون تاریكى آنان را فراگیرد، [حیرت‏زده بر جای خود] بازمی‌ایستند؛ و اگر الله بخواهد، شنوایی و بینایی‌شان را از بین می‌برد؛ زیرا الله بر هر کاری تواناست.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:20"
+      }
+    },
+    {
+      "id": "h:70bd7bb2f321",
+      "kind": "quran",
+      "ar": "وَلَا تَهِنُوا۟ وَلَا تَحْزَنُوا۟ وَأَنتُمُ ٱلْأَعْلَوْنَ",
+      "tr": "و [ای مؤمنان، از جهاد در راه الله] سست [و ضعیف] نشوید و اندوهگین نگردید؛ و [بدانید که] اگر ایمان داشته باشید، شما برترید.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "3:139"
+      }
+    },
+    {
+      "id": "h:e5fcf67a2cdf",
+      "kind": "hadith",
+      "ar": "إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ",
+      "tr": "اعمال تنها به نیت‌ها بستگی دارند.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3025efe9a80e",
+      "kind": "text",
+      "ar": "البخاري",
+      "tr": "بخاری",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9aa2168631b1",
+      "kind": "quran",
+      "ar": "وَأَقِيمُوا۟ ٱلصَّلَوٰةَ وَءَاتُوا۟ ٱلزَّكَوٰةَ",
+      "tr": "و نماز را برپا دارید و زکات [اموالتان] را بپردازید و با نمازگزاران نماز بخوانید.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:43"
+      }
+    },
+    {
+      "id": "h:ad9108129939",
+      "kind": "quran",
+      "ar": "وَقُل رَّبِّ زِدْنِى عِلْمًا",
+      "tr": "پس بلند‌مرتبه است الله که فرمانروای حق است. و در [خواندنِ‌] قرآن ـ پیش از آنكه وحىِ آن بر تو پایان یابد ـ شتاب مكن؛ و بگو: «پروردگارا، بر دانشم بیفزاى».",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "20:114"
+      }
+    },
+    {
+      "id": "h:5e5430a5126e",
+      "kind": "text",
+      "ar": "طه",
+      "tr": "طه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b7c0ec44535e",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ غَفُورٌ رَّحِيمٌ",
+      "tr": "به تحقیق، [الله] مُردار و خون و گوشت خوک و آنچه را که [هنگام ذبح،] نامِ غیر الله بر آن برده شود بر شما حرام کرده است؛ پس هر كس [برای حفظ جان خود، به خوردن آنها] ناچار شود، در صورتی که سركش و زیاده‌خواه نباشد، بر او گناهی نیست. به راستی که الله آمرزندۀ مهربان است.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:173"
+      }
+    },
+    {
+      "id": "h:607185ca982d",
+      "kind": "quran",
+      "ar": "وَٱسْتَعِينُوا۟ بِٱلصَّبْرِ وَٱلصَّلَوٰةِ",
+      "tr": "و از شکیبایی و نماز یاری جویید؛ و به راستی که آن [= نماز] جز بر فروتنان، دشوار و گران است.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:45"
+      }
+    },
+    {
+      "id": "h:e021862d9629",
+      "kind": "quran",
+      "ar": "رَبَّنَآ ءَاتِنَا فِى ٱلدُّنْيَا حَسَنَةً",
+      "tr": "و برخی [دیگر] از ایشان [مؤمنانی] هستند که می‌گویند: «پروردگارا، در دنیا نیکی [= روزی، سلامتی، دانش و ایمان] به ما عطا کن و در آخرت [نیز] نیکی [عطا فرما] و ما را از عذاب آتش نگه دار».",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:201"
+      }
+    },
+    {
+      "id": "h:1dc6e85a61a8",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ لَا يُضِيعُ أَجْرَ ٱلْمُحْسِنِينَ",
+      "tr": "سزاوار نیست که اهل مدینه و اعراب [بادیه‌نشینِ] پیرامونِ آنان، از [همراهى با] رسول الله بازمانند و حفظ جان خویش را بر او مقدّم شمارند؛ زیرا در راه الله هیچ تشنگى و رنج و گرسنگی‌ای به آنان نمى‌رسد و در هیچ مكانى كه كافران را به خشم مى‌آورد قدم نمى‌گذارند و به دشمن هیچ [گزند و] دستبردی نمی‌رسانند، مگر اینكه به [پاداشِ] آن، کاری شایسته برای آنان [در نامه‌های اعمالشان] ثبت مى‌شود. به راستی که الله پاداش نیكوكاران را ضایع نمى‌گردانَد.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "9:120"
+      }
+    },
+    {
+      "id": "h:e6fb3916c2bf",
+      "kind": "text",
+      "ar": "التوبة",
+      "tr": "توبه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9bb7f1828d78",
+      "kind": "quran",
+      "ar": "وَلَا تَتَمَنَّوْا۟ مَا فَضَّلَ ٱللَّهُ بِهِۦ بَعْضَكُمْ عَلَىٰ بَعْضٍ ۚ لِّلرِّجَالِ نَصِيبٌ مِّمَّا ٱكْتَسَبُوا۟ ۖ وَلِلنِّسَآءِ نَصِيبٌ مِّمَّا ٱكْتَسَبْنَ ۚ وَسْـَٔلُوا۟ ٱللَّهَ مِن فَضْلِهِۦٓ ۗ إِنَّ ٱللَّهَ كَانَ بِكُلِّ شَىْءٍ عَلِيمًا",
+      "tr": "[ای مؤمنان،] آنچه را که الله به وسیلۀ آن، برخی از شما را بر برخی دیگر برتری داده‌ است، آرزو مکنید [تا دچار حسد نشوید]. مردان از آنچه به دست آورده‌اند [پاداش و] بهره‌ای دارند و زنان [نیز] از آنچه به دست آورده‌اند [اجر و] بهره‌ای دارند؛ و از بخشش الله [چیزی] بخواهید. بی‌تردید، الله به هر چیزی داناست.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "4:32"
+      }
+    },
+    {
+      "id": "h:0b0400fae8af",
+      "kind": "text",
+      "ar": "النساء",
+      "tr": "نساء",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:386a3a22cef1",
+      "kind": "quran",
+      "ar": "وَتَوَكَّلْ عَلَى ٱللَّهِ ۚ وَكَفَىٰ بِٱللَّهِ وَكِيلًا",
+      "tr": "و بر الله توکل كن و همین بس كه الله کارسازِ [تو] باشد.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "33:3"
+      }
+    },
+    {
+      "id": "h:0adb76910f31",
+      "kind": "text",
+      "ar": "الأحزاب",
+      "tr": "احزاب",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f85b4aea9792",
+      "kind": "quran",
+      "ar": "وَأَن لَّيْسَ لِلْإِنسَـٰنِ إِلَّا مَا سَعَىٰ",
+      "tr": "و اینكه انسان فقط ثمرۀ تلاش [و نیت] خود را خواهد داشت؛",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "53:39"
+      }
+    },
+    {
+      "id": "h:cead4b7f3215",
+      "kind": "quran",
+      "ar": "وَٱللَّهُ يُحِبُّ ٱلصَّـٰبِرِينَ",
+      "tr": "و چه بسیار پیامبرانی که توده‌های انبوهی همراهشان نبرد کردند؛ آنان هیچ‌گاه در برابر [سختی‌ها و] آنچه که در راه الله به ایشان رسید سستی نورزیدند و [در مقابل دشمن] درمانده نشدند؛ و الله شکیبایان را دوست دارد.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "3:146"
+      }
+    },
+    {
+      "id": "h:f75ef26652e8",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ بِٱلنَّاسِ لَرَءُوفٌ رَّحِيمٌ",
+      "tr": "همان‌گونه [که قبله‌ای پسندیده برای شما برگزیدیم] شما را نیز، امتی میانه[رو و اهل اعتدال] قرار دادیم تا [در روز قیامت] بر مردم گواه باشید [که پیامبران الهی پیامشان را به درستی ابلاغ کردند]؛ و پیامبر بر شما گواه باشد [که کلام الله را به شما رسانده است]؛ و ما قبله‌اى را كه پیشتر بر آن بودى [= بیت‌المقدس، قبله] قرار ندادیم، مگر به این هدف تا كسى را كه از پیامبر پیروى مى‌كند، از كسى كه به عقب بازمى‌گردد [و از اطاعت الله و رسولش رویگردان می‌شود] مشخص کنیم. مسلّماً این [حکم،] جز بر کسانی ‌که الله هدایتشان کرده باشد، سنگین و دشوار است. الله هرگز ایمان [و نماز] شما را ضایع نمی‌گردانَد. به راستی که الله نسبت به مردم، دلسوز و مهربان است.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:143"
+      }
+    },
+    {
+      "id": "h:b1aaccf3b100",
+      "kind": "quran",
+      "ar": "وَمَن يَتَوَكَّلْ عَلَى ٱللَّهِ فَهُوَ حَسْبُهُۥٓ",
+      "tr": "و او را از جایی که گمان ندارد، روزی می‌دهد؛ و هر کس بر الله توکل کند، او تعالی برایش کافی است. بی‌گمان، الله فرمان خود را به انجام می‌رسانَد. مسلّماً الله برای هر چیزی اندازه‌ای قرار داده است.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "65:3"
+      }
+    },
+    {
+      "id": "h:197f361c38c8",
+      "kind": "quran",
+      "ar": "إِنَّ مَعِىَ رَبِّى سَيَهْدِينِ",
+      "tr": "[موسی] گفت: «هرگز! بی‌تردید، پروردگارم با من است و مرا [به راه نجات] هدایت خواهد کرد».",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "26:62"
+      }
+    },
+    {
+      "id": "h:963c508cee1f",
+      "kind": "quran",
+      "ar": "قَالَ هَلْ ءَامَنُكُمْ عَلَيْهِ إِلَّا كَمَآ أَمِنتُكُمْ عَلَىٰٓ أَخِيهِ مِن قَبْلُ ۖ فَٱللَّهُ خَيْرٌ حَـٰفِظًا ۖ وَهُوَ أَرْحَمُ ٱلرَّٰحِمِينَ",
+      "tr": "[یعقوب] گفت: «آیا همان‌ گونه که پیشتر شما را نسبت به برادرش [یوسف] امین داشتم، [این بار هم] بر او امین بدانم؟ الله بهترین نگهبان است و او مهربان‌ترینِ مهربانان است».",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Persian Translation - Rowwad Translation Center",
+        "url": "https://quranenc.com/en/browse/persian_ih",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "12:64"
+      }
     }
   ]
 }

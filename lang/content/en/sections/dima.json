@@ -5205,6 +5205,216 @@
         "rights": "",
         "date": ""
       }
+    },
+    {
+      "id": "h:8a698ae7a876",
+      "kind": "title",
+      "ar": "ديمة",
+      "tr": "Dima",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bfdf8728538c",
+      "kind": "title",
+      "ar": "صحيح البخاري",
+      "tr": "Sahih al-Bukhari",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5e7e59318d4f",
+      "kind": "title",
+      "ar": "صحيح مسلم",
+      "tr": "Sahih Muslim",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:abff783fb429",
+      "kind": "title",
+      "ar": "السنن الكبرى للنسائي",
+      "tr": "Al-Sunan al-Kubra of al-Nasa'i",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7f08faee4cfe",
+      "kind": "title",
+      "ar": "سنن الترمذي ت بشار",
+      "tr": "Sunan al-Tirmidhi, ed. Bashar",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fb4fbcd242e3",
+      "kind": "title",
+      "ar": "سنن ابن ماجه",
+      "tr": "Sunan Ibn Majah",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:96a8ce7b5570",
+      "kind": "title",
+      "ar": "سنن الدارمي",
+      "tr": "Sunan al-Darimi",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9c5644a677fa",
+      "kind": "title",
+      "ar": "اللسان",
+      "tr": "The tongue",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:81bf3cfb3c54",
+      "kind": "title",
+      "ar": "القلب",
+      "tr": "The heart",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5a06c13ef9bd",
+      "kind": "title",
+      "ar": "الجوارح",
+      "tr": "The limbs",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b76444a321b7",
+      "kind": "title",
+      "ar": "اليوم",
+      "tr": "Today",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e776b0209b50",
+      "kind": "title",
+      "ar": "إلغاء",
+      "tr": "Cancel",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fc095a728402",
+      "kind": "title",
+      "ar": "إعدادات التنبيه",
+      "tr": "Alert settings",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5bf826c5e57c",
+      "kind": "title",
+      "ar": "إغلاق",
+      "tr": "Close",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:608631450563",
+      "kind": "title",
+      "ar": "اضغط",
+      "tr": "Tap",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
     }
   ]
 }

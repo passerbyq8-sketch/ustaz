@@ -1,0 +1,1193 @@
+{
+  "schema": "ezik-tr4/1",
+  "lang": "en",
+  "section": "home",
+  "title": {
+    "ar": "",
+    "tr": ""
+  },
+  "agent": "MERGE-FIX",
+  "generated": "2026-11-02T12:00:00+03:00",
+  "source_files": [
+    "app.jsx"
+  ],
+  "items": [
+    {
+      "id": "h:632ee07c6ebb",
+      "kind": "dhikr",
+      "ar": "سبحان ربي العظيم",
+      "tr": "Glory be to my Lord, al-'Azim (the Magnificent)",
+      "translit": "Subhana Rabbiyal-'Azim",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e6087bad6840",
+      "kind": "text",
+      "ar": "اكتملت ديمتك اليوم · ٣ من ٣ قطرات",
+      "tr": "Your Dima is complete today · 3 of 3 drops",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e48e2b4c428f",
+      "kind": "text",
+      "ar": "أكمل",
+      "tr": "Complete",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4e824e31d84d",
+      "kind": "text",
+      "ar": " من ٣ قطرات",
+      "tr": " of 3 drops",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c0547a82a08f",
+      "kind": "text",
+      "ar": "بعد صلاة الفجر بنصف ساعة",
+      "tr": "Half an hour after the Fajr prayer",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e1bba721f1fe",
+      "kind": "text",
+      "ar": "بعد صلاة العصر",
+      "tr": "After the Asr prayer",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:15edfcb8b923",
+      "kind": "text",
+      "ar": "بعد صلاة العشاء",
+      "tr": "After the Isha prayer",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:13c2f2eb5acc",
+      "kind": "text",
+      "ar": "نلتقي غدًا بإذن الله",
+      "tr": "We will meet tomorrow, in sha Allah (if Allah wills)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1b2833c6b4b4",
+      "kind": "text",
+      "ar": "رواه ",
+      "tr": "Narrated by ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fba3f1065491",
+      "kind": "text",
+      "ar": "سورة ",
+      "tr": "Surah ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:65965a3f7677",
+      "kind": "text",
+      "ar": "، آية ",
+      "tr": ", verse ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:356c532d0078",
+      "kind": "text",
+      "ar": "حديث",
+      "tr": "Hadith",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e5fcf67a2cdf",
+      "kind": "hadith",
+      "ar": "إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ",
+      "tr": "«إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ» [Actions are only by intentions]",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2725c261026a",
+      "kind": "text",
+      "ar": "المحرَّم",
+      "tr": "Muharram",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8fe6e53eb018",
+      "kind": "text",
+      "ar": "صفر",
+      "tr": "Safar",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:12b9abd7e47f",
+      "kind": "text",
+      "ar": "ربيع الأوّل",
+      "tr": "Rabi' al-Awwal",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:27f4b96322c0",
+      "kind": "text",
+      "ar": "ربيع الآخر",
+      "tr": "Rabi' al-Akhir",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:59e93f5e6ea8",
+      "kind": "text",
+      "ar": "جمادى الأولى",
+      "tr": "Jumada al-Ula",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e27629c457c1",
+      "kind": "text",
+      "ar": "جمادى الآخرة",
+      "tr": "Jumada al-Akhirah",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f7ba2629e5cd",
+      "kind": "text",
+      "ar": "رجب",
+      "tr": "Rajab",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cc36ae3dffc3",
+      "kind": "text",
+      "ar": "شعبان",
+      "tr": "Sha'ban",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8b6c945cd4f9",
+      "kind": "text",
+      "ar": "رمضان",
+      "tr": "Ramadan",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5dcf938f475c",
+      "kind": "text",
+      "ar": "شوّال",
+      "tr": "Shawwal",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:06d78f194bec",
+      "kind": "text",
+      "ar": "ذو القعدة",
+      "tr": "Dhu al-Qa'dah",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d95ae12c87e7",
+      "kind": "text",
+      "ar": "ذو الحجّة",
+      "tr": "Dhu al-Hijjah",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e9edeb603dee",
+      "kind": "text",
+      "ar": "هـ",
+      "tr": "AH",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a5145b76546d",
+      "kind": "text",
+      "ar": "التاريخ الهجريّ",
+      "tr": "Hijri date",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:146f4125b308",
+      "kind": "text",
+      "ar": "إزاحة يدويّة بالأيّام",
+      "tr": "Manual offset in days",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fc7b180b4dc8",
+      "kind": "text",
+      "ar": "يُحسَب على هذا الجهاز بلا إنترنت، على تقويم أمّ القرى. إن خالفَ التقويمَ المعمولَ به عندك بيومٍ أو يومين فعدِّلْه من هنا.",
+      "tr": "Calculated on this device without internet, using the Umm al-Qura calendar. If it differs by a day or two from the calendar followed where you are, adjust it here.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3c6e273c8f9a",
+      "kind": "text",
+      "ar": "لم يكتملْ حفظُ بعضِ الملفّاتِ للعملِ بلا إنترنت.",
+      "tr": "Some files could not be fully saved for offline use.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:08185a932581",
+      "kind": "text",
+      "ar": "لم يُحفَظْ شيءٌ للعملِ بلا إنترنت: مساحةُ الجهازِ لا تكفي.",
+      "tr": "Nothing was saved for offline use: there is not enough space on the device.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d691d33c6c95",
+      "kind": "dhikr",
+      "ar": "سبحان الله",
+      "tr": "Glory be to Allah.",
+      "translit": "Subhanallah.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c6e09f392ca6",
+      "kind": "dhikr",
+      "ar": "الحمد لله",
+      "tr": "All praise belongs to Allah.",
+      "translit": "Alhamdu lillah",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:469c225165b9",
+      "kind": "dhikr",
+      "ar": "أستغفر الله",
+      "tr": "I seek Allah's forgiveness.",
+      "translit": "Astaghfirullah.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fcb82174c444",
+      "kind": "dhikr",
+      "ar": "لا إله إلا الله",
+      "tr": "None is worthy of worship except Allah.",
+      "translit": "La ilaha illallah.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c09b41cf4427",
+      "kind": "dhikr",
+      "ar": "الله أكبر",
+      "tr": "Allah is greatest.",
+      "translit": "Allahu akbar.",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:017bf6772d13",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده",
+      "tr": "Glory and praise be to Allah.",
+      "translit": "Subhanallahi wa bihamdih",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a65e23474be8",
+      "kind": "text",
+      "ar": "وقت الضحى",
+      "tr": "At Duha time",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b10c7068d1c2",
+      "kind": "quran",
+      "ar": "إِنَّ مَعَ ٱلْعُسْرِ يُسْرًا",
+      "tr": "Indeed, with hardship [will be] ease.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "94:6"
+      }
+    },
+    {
+      "id": "h:081d9bc2982a",
+      "kind": "quran",
+      "ar": "وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ",
+      "tr": "It is He who created the heavens and earth in six days and then established Himself above the Throne.[1627] He knows what penetrates into the earth and what emerges from it and what descends from the heaven and what ascends therein; and He is with you[1628] wherever you are. And Allāh, of what you do, is Seeing.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "57:4"
+      }
+    },
+    {
+      "id": "h:4a1f7f045b27",
+      "kind": "title",
+      "ar": "الحديد",
+      "tr": "Al-Hadid",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:055d5a623196",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ مَعَ ٱلصَّـٰبِرِينَ",
+      "tr": "O you who have believed, seek help through patience and prayer. Indeed, Allāh is with the patient.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:153"
+      }
+    },
+    {
+      "id": "h:1c047dd9a1bf",
+      "kind": "title",
+      "ar": "البقرة",
+      "tr": "Al-Baqarah",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:19636b5a750a",
+      "kind": "quran",
+      "ar": "فَٱذْكُرُونِىٓ أَذْكُرْكُمْ",
+      "tr": "So remember Me; I will remember you. And be grateful to Me and do not deny Me.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:152"
+      }
+    },
+    {
+      "id": "h:8bd511691f0f",
+      "kind": "quran",
+      "ar": "وَمَن يَتَّقِ ٱللَّهَ يَجْعَل لَّهُۥ مَخْرَجًا",
+      "tr": "And when they have [nearly] fulfilled their term, either retain them according to acceptable terms or part with them according to acceptable terms. And bring to witness two just men from among you and establish the testimony for [the acceptance of] Allāh. That is instructed to whoever should believe in Allāh and the Last Day. And whoever fears Allāh - He will make for him a way out[1699]",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "65:2"
+      }
+    },
+    {
+      "id": "h:90828ee2dc42",
+      "kind": "title",
+      "ar": "الطلاق",
+      "tr": "At-Talaq",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:33e1ab66f020",
+      "kind": "quran",
+      "ar": "إِنَّ رَحْمَتَ ٱللَّهِ قَرِيبٌ مِّنَ ٱلْمُحْسِنِينَ",
+      "tr": "And cause not corruption upon the earth after its reformation. And invoke Him in fear and aspiration. Indeed, the mercy of Allāh is near to the doers of good.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "7:56"
+      }
+    },
+    {
+      "id": "h:03f12e1c22d1",
+      "kind": "title",
+      "ar": "الأعراف",
+      "tr": "Al-Araf",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3ee117fc0d9f",
+      "kind": "quran",
+      "ar": "وَإِذَا سَأَلَكَ عِبَادِى عَنِّى فَإِنِّى قَرِيبٌ",
+      "tr": "And when My servants ask you, [O Muḥammad], concerning Me - indeed I am near. I respond to the invocation of the supplicant when he calls upon Me. So let them respond to Me [by obedience] and believe in Me that they may be [rightly] guided.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:186"
+      }
+    },
+    {
+      "id": "h:c2203c888d97",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ يُحِبُّ ٱلْمُحْسِنِينَ",
+      "tr": "And spend in the way of Allāh and do not throw [yourselves] with your [own] hands into destruction [by refraining]. And do good; indeed, Allāh loves the doers of good.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:195"
+      }
+    },
+    {
+      "id": "h:96aa67603852",
+      "kind": "quran",
+      "ar": "يَـٰبَنِىَّ ٱذْهَبُوا۟ فَتَحَسَّسُوا۟ مِن يُوسُفَ وَأَخِيهِ وَلَا تَا۟يْـَٔسُوا۟ مِن رَّوْحِ ٱللَّهِ ۖ إِنَّهُۥ لَا يَا۟يْـَٔسُ مِن رَّوْحِ ٱللَّهِ إِلَّا ٱلْقَوْمُ ٱلْكَـٰفِرُونَ",
+      "tr": "O my sons, go and find out about Joseph and his brother and despair not of relief from Allāh. Indeed, no one despairs of relief from Allāh except the disbelieving people.\"",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "12:87"
+      }
+    },
+    {
+      "id": "h:7694520808a7",
+      "kind": "title",
+      "ar": "يوسف",
+      "tr": "Yusuf",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:68c54bc5300f",
+      "kind": "quran",
+      "ar": "وَبَشِّرِ ٱلصَّـٰبِرِينَ",
+      "tr": "And We will surely test you with something of fear and hunger and a loss of wealth and lives and fruits, but give good tidings to the patient,",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:155"
+      }
+    },
+    {
+      "id": "h:9e0c3ddd0e64",
+      "kind": "quran",
+      "ar": "أَلَا بِذِكْرِ ٱللَّهِ تَطْمَئِنُّ ٱلْقُلُوبُ",
+      "tr": "Those who have believed and whose hearts are assured by the remembrance of Allāh. Unquestionably, by the remembrance of Allāh hearts are assured.\"",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "13:28"
+      }
+    },
+    {
+      "id": "h:3db00e2a5f35",
+      "kind": "title",
+      "ar": "الرعد",
+      "tr": "Ar-Rad",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2a5502b81b6e",
+      "kind": "quran",
+      "ar": "وَمَا تَوْفِيقِىٓ إِلَّا بِٱللَّهِ",
+      "tr": "He said, \"O my people, have you considered: if I am upon clear evidence from my Lord and He has provided me with a good provision from Him...?[573] And I do not intend to differ from you in that which I have forbidden you; I only intend reform as much as I am able. And my success is not but through Allāh. Upon Him I have relied, and to Him I return.[574]",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "11:88"
+      }
+    },
+    {
+      "id": "h:fd9d2ec55193",
+      "kind": "title",
+      "ar": "هود",
+      "tr": "Hud",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:54011ae117c4",
+      "kind": "quran",
+      "ar": "حَسْبُنَا ٱللَّهُ وَنِعْمَ ٱلْوَكِيلُ",
+      "tr": "Those to whom people [i.e., hypocrites] said, \"Indeed, the people have gathered against you, so fear them.\" But it [merely] increased them in faith, and they said, \"Sufficient for us is Allāh, and [He is] the best Disposer of affairs.\"[150]",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "3:173"
+      }
+    },
+    {
+      "id": "h:236876042743",
+      "kind": "title",
+      "ar": "آل عمران",
+      "tr": "Al Imran",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f201c0fc36ce",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ عَلَىٰ كُلِّ شَىْءٍ قَدِيرٌ",
+      "tr": "The lightning almost snatches away their sight. Every time it lights [the way] for them, they walk therein; but when darkness comes over them, they stand [still]. And if Allāh had willed, He could have taken away their hearing and their sight. Indeed, Allāh is over all things competent.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:20"
+      }
+    },
+    {
+      "id": "h:70bd7bb2f321",
+      "kind": "quran",
+      "ar": "وَلَا تَهِنُوا۟ وَلَا تَحْزَنُوا۟ وَأَنتُمُ ٱلْأَعْلَوْنَ",
+      "tr": "So do not weaken and do not grieve, and you will be superior if you are [true] believers.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "3:139"
+      }
+    },
+    {
+      "id": "h:3025efe9a80e",
+      "kind": "text",
+      "ar": "البخاري",
+      "tr": "Al-Bukhari",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9aa2168631b1",
+      "kind": "quran",
+      "ar": "وَأَقِيمُوا۟ ٱلصَّلَوٰةَ وَءَاتُوا۟ ٱلزَّكَوٰةَ",
+      "tr": "And establish prayer and give zakāh[24] and bow with those who bow [in worship and obedience].",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:43"
+      }
+    },
+    {
+      "id": "h:ad9108129939",
+      "kind": "quran",
+      "ar": "وَقُل رَّبِّ زِدْنِى عِلْمًا",
+      "tr": "So high [above all] is Allāh, the Sovereign,[861] the Truth.[862] And, [O Muḥammad], do not hasten with [recitation of] the Qur’ān before its revelation is completed to you, and say, \"My Lord, increase me in knowledge.\"",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "20:114"
+      }
+    },
+    {
+      "id": "h:5e5430a5126e",
+      "kind": "title",
+      "ar": "طه",
+      "tr": "Ta Ha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b7c0ec44535e",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ غَفُورٌ رَّحِيمٌ",
+      "tr": "He has only forbidden to you dead animals,[60] blood, the flesh of swine, and that which has been dedicated to other than Allāh. But whoever is forced [by necessity], neither desiring [it] nor transgressing [its limit], there is no sin upon him. Indeed, Allāh is Forgiving and Merciful.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:173"
+      }
+    },
+    {
+      "id": "h:607185ca982d",
+      "kind": "quran",
+      "ar": "وَٱسْتَعِينُوا۟ بِٱلصَّبْرِ وَٱلصَّلَوٰةِ",
+      "tr": "And seek help through patience and prayer; and indeed, it is difficult except for the humbly submissive [to Allāh]",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:45"
+      }
+    },
+    {
+      "id": "h:e021862d9629",
+      "kind": "quran",
+      "ar": "رَبَّنَآ ءَاتِنَا فِى ٱلدُّنْيَا حَسَنَةً",
+      "tr": "But among them is he who says, \"Our Lord, give us in this world [that which is] good and in the Hereafter [that which is] good and protect us from the punishment of the Fire.\"",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:201"
+      }
+    },
+    {
+      "id": "h:1dc6e85a61a8",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ لَا يُضِيعُ أَجْرَ ٱلْمُحْسِنِينَ",
+      "tr": "It was not [proper] for the people of Madīnah and those surrounding them of the bedouins that they remain behind after [the departure of] the Messenger of Allāh or that they prefer themselves over his self.[507] That is because they are not afflicted by thirst or fatigue or hunger in the cause of Allāh, nor do they tread on any ground that enrages the disbelievers, nor do they inflict upon an enemy any infliction but that it is registered for them as a righteous deed. Indeed, Allāh does not allow to be lost the reward of the doers of good.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "9:120"
+      }
+    },
+    {
+      "id": "h:e6fb3916c2bf",
+      "kind": "title",
+      "ar": "التوبة",
+      "tr": "At-Tawbah",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9bb7f1828d78",
+      "kind": "quran",
+      "ar": "وَلَا تَتَمَنَّوْا۟ مَا فَضَّلَ ٱللَّهُ بِهِۦ بَعْضَكُمْ عَلَىٰ بَعْضٍ ۚ لِّلرِّجَالِ نَصِيبٌ مِّمَّا ٱكْتَسَبُوا۟ ۖ وَلِلنِّسَآءِ نَصِيبٌ مِّمَّا ٱكْتَسَبْنَ ۚ وَسْـَٔلُوا۟ ٱللَّهَ مِن فَضْلِهِۦٓ ۗ إِنَّ ٱللَّهَ كَانَ بِكُلِّ شَىْءٍ عَلِيمًا",
+      "tr": "And do not wish for that by which Allāh has made some of you exceed others. For men is a share of what they have earned, and for women is a share of[180] what they have earned. And ask Allāh of His bounty. Indeed Allāh is ever, of all things, Knowing.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "4:32"
+      }
+    },
+    {
+      "id": "h:0b0400fae8af",
+      "kind": "title",
+      "ar": "النساء",
+      "tr": "An-Nisa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:386a3a22cef1",
+      "kind": "quran",
+      "ar": "وَتَوَكَّلْ عَلَى ٱللَّهِ ۚ وَكَفَىٰ بِٱللَّهِ وَكِيلًا",
+      "tr": "And rely upon Allāh; and sufficient is Allāh as Disposer of affairs.[1179]",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "33:3"
+      }
+    },
+    {
+      "id": "h:0adb76910f31",
+      "kind": "title",
+      "ar": "الأحزاب",
+      "tr": "Al-Ahzab",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f85b4aea9792",
+      "kind": "quran",
+      "ar": "وَأَن لَّيْسَ لِلْإِنسَـٰنِ إِلَّا مَا سَعَىٰ",
+      "tr": "And that there is not for man except that [good] for which he strives",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "53:39"
+      }
+    },
+    {
+      "id": "h:c4ffbb69c75c",
+      "kind": "title",
+      "ar": "النجم",
+      "tr": "An-Najm",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cead4b7f3215",
+      "kind": "quran",
+      "ar": "وَٱللَّهُ يُحِبُّ ٱلصَّـٰبِرِينَ",
+      "tr": "And how many a prophet [fought in battle and] with him fought many religious scholars. But they never lost assurance due to what afflicted them in the cause of Allāh, nor did they weaken or submit. And Allāh loves the steadfast.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "3:146"
+      }
+    },
+    {
+      "id": "h:f75ef26652e8",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ بِٱلنَّاسِ لَرَءُوفٌ رَّحِيمٌ",
+      "tr": "And thus We have made you a median [i.e., just] community that you will be witnesses over the people and the Messenger will be a witness over you. And We did not make the qiblah which you used to face except that We might make evident who would follow the Messenger from who would turn back on his heels.[52] And indeed, it is difficult except for those whom Allāh has guided. And never would Allāh have caused you to lose your faith [i.e., your previous prayers]. Indeed Allāh is, to the people, Kind and Merciful.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "2:143"
+      }
+    },
+    {
+      "id": "h:b1aaccf3b100",
+      "kind": "quran",
+      "ar": "وَمَن يَتَوَكَّلْ عَلَى ٱللَّهِ فَهُوَ حَسْبُهُۥٓ",
+      "tr": "And will provide for him from where he does not expect. And whoever relies upon Allāh - then He is sufficient for him. Indeed, Allāh will accomplish His purpose. Allāh has already set for everything a [decreed] extent.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "65:3"
+      }
+    },
+    {
+      "id": "h:197f361c38c8",
+      "kind": "quran",
+      "ar": "إِنَّ مَعِىَ رَبِّى سَيَهْدِينِ",
+      "tr": "[Moses] said, \"No! Indeed, with me is my Lord; He will guide me.\"",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "26:62"
+      }
+    },
+    {
+      "id": "h:2dcec7ee53b1",
+      "kind": "title",
+      "ar": "الشعراء",
+      "tr": "Ash-Shuara",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:963c508cee1f",
+      "kind": "quran",
+      "ar": "قَالَ هَلْ ءَامَنُكُمْ عَلَيْهِ إِلَّا كَمَآ أَمِنتُكُمْ عَلَىٰٓ أَخِيهِ مِن قَبْلُ ۖ فَٱللَّهُ خَيْرٌ حَـٰفِظًا ۖ وَهُوَ أَرْحَمُ ٱلرَّٰحِمِينَ",
+      "tr": "He said, \"Should I entrust you with him except [under coercion] as I entrusted you with his brother before? But Allāh is the best guardian, and He is the most merciful of the merciful.\"",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "English Translation - Noor International Center",
+        "url": "https://quranenc.com/en/browse/english_saheeh",
+        "rights": "Attributed reuse, see SOURCES",
+        "date": "",
+        "ref": "12:64"
+      }
+    }
+  ]
+}

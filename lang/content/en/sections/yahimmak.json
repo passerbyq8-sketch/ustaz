@@ -9126,6 +9126,3324 @@
         "rights": "",
         "date": ""
       }
+    },
+    {
+      "id": "h:587310d3d169",
+      "kind": "title",
+      "ar": "الصلاة",
+      "tr": "Salah (prayer)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b49cc8856d6f",
+      "kind": "title",
+      "ar": "سورة الفاتحة وما أمكن من قصار السور",
+      "tr": "Surah al-Fatihah and as many of the short surahs as possible",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:594f74ab068e",
+      "kind": "title",
+      "ar": "من سورة الزلزلة إلى سورة الناس",
+      "tr": "From Surah al-Zalzalah to Surah al-Nas",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d202b7dec2b1",
+      "kind": "text",
+      "ar": "سورة الفاتحة وما أمكن من قصار السور، من سورة الزلزلة إلى سورة الناس",
+      "tr": "Surah al-Fatihah and as many of the short surahs as possible, from Surah al-Zalzalah to Surah al-Nas",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:77666c630ad6",
+      "kind": "text",
+      "ar": "تلقينا، وتصحيحًا للقراءة، وتحفيظًا، وشرحًا لما يجب فهمه",
+      "tr": "Teaching by oral instruction, correcting the recitation, having it memorised, and explaining what must be understood",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7810bec9e158",
+      "kind": "title",
+      "ar": "الدرس الأول سورة الفاتحة وقصار السور",
+      "tr": "Lesson One: Surah al-Fatihah and the short surahs",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f4e4a563622a",
+      "kind": "text",
+      "ar": "يجب أن نحرص على تعلم سورة الفاتحة وغيرها من السور خاصة من الزلزلة إلى الناس",
+      "tr": "We must be keen to learn Surah al-Fatihah and other surahs, especially from al-Zalzalah to al-Nas",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e3c6f2d2fe16",
+      "kind": "title",
+      "ar": "القراءة الصحيحة لسورة الفاتحة",
+      "tr": "The correct recitation of Surah al-Fatihah",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:25db8ddda17b",
+      "kind": "text",
+      "ar": "الفاتحة هي أعظم سورة في كتاب الله تبارك وتعالى",
+      "tr": "Al-Fatihah is the greatest surah in the Book of Allah, Blessed and Exalted is He",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0405a8729cac",
+      "kind": "text",
+      "ar": "وأولها وأعظمها: شهادة أن لا إله إلا الله، وأن محمدا رسول الله",
+      "tr": "The first and greatest of them: the shahadah (testimony) that there is no god but Allah and that Muhammad is the Messenger of Allah",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fa5176275030",
+      "kind": "text",
+      "ar": "وهي: الصلاة، والزكاة، وصوم رمضان، وحج بيت الله الحرام لمن استطاع إليه سبيلا",
+      "tr": "They are: salah (prayer), zakah (obligatory alms), sawm (fasting) of Ramadan, and hajj (pilgrimage) to the Sacred House of Allah for whoever is able to find a way there",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cf013adff969",
+      "kind": "title",
+      "ar": "الزكاة",
+      "tr": "Zakah (obligatory alms)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d73ab470adb3",
+      "kind": "title",
+      "ar": "(لا إله) نافيا جميع ما يعبد من دون الله",
+      "tr": "(La ilaha) [there is no god], negating everything that is worshipped besides Allah",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0f76aed3530b",
+      "kind": "text",
+      "ar": "(إلا الله) مثبتا العبادة لله وحده لا شريك له",
+      "tr": "(Illa Allah) [except Allah], affirming worship for Allah alone, who has no partner",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6cc115dcd74b",
+      "kind": "title",
+      "ar": "العلم",
+      "tr": "Knowledge",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0557ee04c858",
+      "kind": "title",
+      "ar": "العلم المنافي للجهل",
+      "tr": "Knowledge that negates ignorance",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:db7fc6fa33dd",
+      "kind": "title",
+      "ar": "واليقين المنافي للشك",
+      "tr": "And certainty that negates doubt",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e4905d9925f9",
+      "kind": "title",
+      "ar": "والإخلاص المنافي للشرك",
+      "tr": "And ikhlas (sincerity) that negates shirk (associating partners with Allah)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fec042a12d5e",
+      "kind": "title",
+      "ar": "والصدق المنافي للكذب",
+      "tr": "And truthfulness that negates lying",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8cd20a9b5057",
+      "kind": "title",
+      "ar": "والمحبة المنافية للبغض",
+      "tr": "And love that negates hatred",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0c85d1d82627",
+      "kind": "title",
+      "ar": "والقبول المنافي للرد",
+      "tr": "And acceptance that negates rejection",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3a92a6e79d40",
+      "kind": "title",
+      "ar": "والانقياد المنافي للشرك",
+      "tr": "And submission that negates shirk (associating partners with Allah)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bb2fcd3985f4",
+      "kind": "title",
+      "ar": "والكفر بما يعبد من دون الله",
+      "tr": "And disbelief in whatever is worshipped besides Allah",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b517077ca0ee",
+      "kind": "title",
+      "ar": "ومقتضاها: تصديقه فيما أخبر",
+      "tr": "And what it requires: believing him in what he has told",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1b67462b17a4",
+      "kind": "title",
+      "ar": "وطاعته فيما أمر",
+      "tr": "And obeying him in what he has commanded",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ba1363f9ff1e",
+      "kind": "title",
+      "ar": "واجتناب ما نهى عنه وزجر",
+      "tr": "And avoiding what he has forbidden and warned against",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6a8985e324ee",
+      "kind": "text",
+      "ar": "وألا يعبد الله إلا بما شرعه الله عز وجل، ورسوله صلى الله عليه وسلم",
+      "tr": "And that Allah is not worshipped except by what Allah, Mighty and Majestic, and His Messenger, peace and blessings be upon him, have legislated",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f3beafeab42a",
+      "kind": "text",
+      "ar": "ومقتضاها: تصديقه فيما أخبر، وطاعته فيما أمر",
+      "tr": "And what it requires: believing him in what he has told, and obeying him in what he has commanded",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:878f5f231d82",
+      "kind": "title",
+      "ar": "الدرس الثاني أركان الإسلام",
+      "tr": "Lesson Two: The arkan (pillars) of Islam",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4f94395700dc",
+      "kind": "title",
+      "ar": "الدرس الثالث أركان الإسلام",
+      "tr": "Lesson Three: The arkan (pillars) of Islam",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cb502c45d427",
+      "kind": "text",
+      "ar": "أركان الإسلام عبادات لها أجر عظيم جداً عند الله جل وعلا",
+      "tr": "The arkan (pillars) of Islam are acts of worship with a very great reward with Allah, Exalted and Majestic",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9bf3e2e90589",
+      "kind": "title",
+      "ar": "أن تؤمن بالله",
+      "tr": "That you believe in Allah",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4a38107a9172",
+      "kind": "title",
+      "ar": "وباليوم الآخر",
+      "tr": "And in the Last Day",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:861a1170b5b2",
+      "kind": "title",
+      "ar": "وتؤمن بالقدر خيره وشره من الله تعالى",
+      "tr": "And that you believe in qadar (divine decree), its good and its bad, from Allah the Exalted",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8c038b0b283b",
+      "kind": "title",
+      "ar": "أركان الإيمان، وهي ستة",
+      "tr": "The arkan (pillars) of iman (faith), and they are six",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:45765cff192d",
+      "kind": "title",
+      "ar": "الدرس الرابع أركان الإيمان",
+      "tr": "Lesson Four: The arkan (pillars) of iman (faith)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:34432f63fedf",
+      "kind": "title",
+      "ar": "ماهي أركان الإيمان ومن أين أخذت؟",
+      "tr": "What are the arkan (pillars) of iman (faith) and where were they taken from?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8c3bf09cab0d",
+      "kind": "title",
+      "ar": "الإيمان بالقدر",
+      "tr": "Iman (belief) in qadar (divine decree)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:08a50392b17e",
+      "kind": "title",
+      "ar": "الإيمان بالملائكة",
+      "tr": "Iman (belief) in the angels",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ef435a6d176d",
+      "kind": "text",
+      "ar": "أما توحيد الربوبية: فهو الإيمان بأن الله سبحانه",
+      "tr": "As for tawhid al-rububiyyah (the oneness of Allah's lordship): it is belief that Allah, Glorified is He,",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98a2e87e7fab",
+      "kind": "text",
+      "ar": "الخالق لكل شيء، والمتصرف في كل شيء، لا شريك له في ذلك",
+      "tr": "the Creator of everything, and the One who disposes of everything, with no partner in that",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1d4aa3b7e213",
+      "kind": "text",
+      "ar": "وأما توحيد الألوهية: فهو الإيمان بأن الله سبحانه هو المعبود بحق لا شريك له في ذلك",
+      "tr": "As for tawhid al-uluhiyyah (the oneness of Allah in worship): it is belief that Allah, Glorified is He, is the One truly worshipped, with no partner in that",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9ff1d1d4f891",
+      "kind": "text",
+      "ar": "وأما توحيد الأسماء والصفات: فهو الإيمان بكل ما ورد في القرآن الكريم، أو الأحاديث الصحيحة من أسماء الله وصفاته، وإثباتها لله وحده على الوجه اللائق به سبحانه",
+      "tr": "As for tawhid al-asma wa al-sifat (the oneness of Allah's names and attributes): it is belief in everything mentioned in the Noble Quran or the authentic hadiths of the names and attributes of Allah, and affirming them for Allah alone in the manner befitting Him, Glorified is He",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5d49754cadc9",
+      "kind": "text",
+      "ar": "فالشرك الأكبر: يوجب حبوط العمل والخلود في النار لمن مات عليه",
+      "tr": "Major shirk (associating partners with Allah): it requires the nullification of deeds and eternity in the Fire for whoever dies upon it",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:68d61f21ad4b",
+      "kind": "title",
+      "ar": "أما الشرك الأصغر: فهو ما ثبت بالنصوص من",
+      "tr": "As for minor shirk (associating partners with Allah): it is what has been established by the texts of",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:baccb27ce4f6",
+      "kind": "text",
+      "ar": "الكتاب أو السنة تسميته شركا، ولكنه ليس من جنس الشرك الأكبر",
+      "tr": "the Book or the Sunnah as being called shirk (associating partners with Allah), but it is not of the same kind as major shirk",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6cf60dfcd54d",
+      "kind": "text",
+      "ar": "وأقسام الشرك ثلاثة: شرك أكبر، وشرك أصغر، وشرك خفي",
+      "tr": "The categories of shirk (associating partners with Allah) are three: major shirk, minor shirk, and hidden shirk",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:14a33366105e",
+      "kind": "text",
+      "ar": "ويجوز أن يقسم الشرك إلى نوعين فقط: أكبر وأصغر، أما الشرك الخفي فإنه يعمهما",
+      "tr": "Shirk (associating partners with Allah) may also be divided into only two types: major and minor; as for hidden shirk, it covers both",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f31930e12562",
+      "kind": "title",
+      "ar": "ومن أنواعه: دعاء الأموات، والأصنام",
+      "tr": "Among its types: supplicating to the dead and to idols",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f438fb4f4659",
+      "kind": "title",
+      "ar": "دعاء الأموات، والأصنام، والاستغاثة بهم",
+      "tr": "Supplicating to the dead and to idols, and seeking rescue from them",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:97f24f2cd55b",
+      "kind": "text",
+      "ar": "دعاء الأموات، والأصنام، والاستغاثة بهم، والنذر لهم",
+      "tr": "Supplicating to the dead and to idols, seeking rescue from them, and making vows to them",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5e2cea427dd5",
+      "kind": "title",
+      "ar": "والنذر لهم، والذبح لهم، ونحو ذلك",
+      "tr": "And making vows to them, sacrificing to them, and the like",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf856180ffc1",
+      "kind": "title",
+      "ar": "كالرياء في بعض الأعمال",
+      "tr": "Such as riya (showing off) in some deeds",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:eb9b3cc1e22e",
+      "kind": "text",
+      "ar": "كالرياء في بعض الأعمال، والحلف بغير الله",
+      "tr": "Such as riya (showing off) in some deeds, and swearing by other than Allah",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b324871dfc5a",
+      "kind": "title",
+      "ar": "وقول: ما شاء الله وشاء فلان، ونحو ذلك",
+      "tr": "And saying: 'What Allah wills and so-and-so wills', and the like",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:04174686f061",
+      "kind": "hadith",
+      "ar": "الشرك الخفي، يقوم الرجل فيصلي فيزين صلاته لما يرى من نظر الرجل إليه",
+      "tr": "«الشرك الخفي، يقوم الرجل فيصلي فيزين صلاته لما يرى من نظر الرجل إليه» [Hidden shirk (associating partners with Allah): a man stands and prays, and he beautifies his prayer because of what he sees of a man looking at him]",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:aa05ff942ca5",
+      "kind": "title",
+      "ar": "الخالق لكل شيء، والمتصرف في كل شيء",
+      "tr": "The Creator of everything, and the One who disposes of everything",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:13241a166da1",
+      "kind": "text",
+      "ar": "وأما توحيد الألوهية: فهو الإيمان بأن الله سبحانه هو المعبود بحق",
+      "tr": "As for tawhid al-uluhiyyah (the oneness of Allah in worship): it is belief that Allah, Glorified is He, is the One truly worshipped",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fe89ca09472c",
+      "kind": "title",
+      "ar": "الدرس الخامس أقسام التوحيد وأقسام الشرك",
+      "tr": "Lesson Five: The categories of tawhid (the oneness of Allah) and the categories of shirk (associating partners with Allah)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:610a352b3a00",
+      "kind": "title",
+      "ar": "ما هي أقسام التوحيد؟",
+      "tr": "What are the categories of tawhid (the oneness of Allah)?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f2165f79842f",
+      "kind": "title",
+      "ar": "ما هي أقسام الشرك؟",
+      "tr": "What are the categories of shirk (associating partners with Allah)?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:73380859b8c4",
+      "kind": "title",
+      "ar": "الشرك الخفي",
+      "tr": "Hidden shirk (associating partners with Allah)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dbc3262bb20f",
+      "kind": "title",
+      "ar": "تسعة: الإسلام",
+      "tr": "Nine: Islam",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:59358defc511",
+      "kind": "title",
+      "ar": "والعقل",
+      "tr": "And sanity",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fccad3a57af4",
+      "kind": "title",
+      "ar": "والتمييز",
+      "tr": "And tamyiz (the age of discernment)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:02cfc66adf5b",
+      "kind": "title",
+      "ar": "ورفع الحدث",
+      "tr": "And removing hadath (the state of ritual impurity)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b1c70e67e991",
+      "kind": "title",
+      "ar": "وإزالة النجاسة",
+      "tr": "And removing najasah (physical impurity)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:65fdfe4d8e4e",
+      "kind": "title",
+      "ar": "وستر العورة",
+      "tr": "And covering the awrah (the parts of the body that must be covered)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:998c1636cf79",
+      "kind": "title",
+      "ar": "ودخول الوقت",
+      "tr": "And the entry of the prayer time",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:016e65d5120e",
+      "kind": "title",
+      "ar": "واستقبال القبلة",
+      "tr": "And facing the qiblah (the direction of prayer)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ddbc27666de9",
+      "kind": "title",
+      "ar": "والنية.",
+      "tr": "And the niyyah (intention).",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:39eb5235955c",
+      "kind": "title",
+      "ar": "شروط الصلاة، وهي تسعة",
+      "tr": "The conditions of salah (prayer), and they are nine",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8354bab4bf63",
+      "kind": "title",
+      "ar": "واستقبال القبلة، والنية",
+      "tr": "And facing the qiblah (the direction of prayer), and the niyyah (intention)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2194751780ad",
+      "kind": "title",
+      "ar": "الدرس السادس - شروط الصلاة",
+      "tr": "Lesson Six - The conditions of salah (prayer)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cddbaa808dc4",
+      "kind": "title",
+      "ar": "من شروط صحة الصلاة - استقبال القبلة",
+      "tr": "Among the conditions for the validity of salah (prayer) - facing the qiblah (the direction of prayer)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b7f5238e4db1",
+      "kind": "title",
+      "ar": "من شروط صحة الصلاة - النية",
+      "tr": "Among the conditions for the validity of salah (prayer) - the niyyah (intention)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1a37238bb0f0",
+      "kind": "title",
+      "ar": "من شروط الصلاة - ستر العورة",
+      "tr": "Among the conditions of salah (prayer) - covering the awrah (the parts of the body that must be covered)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a6660ff944a3",
+      "kind": "title",
+      "ar": "وتكبيرة الإحرام",
+      "tr": "And takbirat al-ihram (the opening 'Allahu akbar')",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e3ecb439b017",
+      "kind": "title",
+      "ar": "وقراءة الفاتحة",
+      "tr": "And reciting al-Fatihah",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:28b73f225e0d",
+      "kind": "title",
+      "ar": "وقراءة الفاتحة، والركوع",
+      "tr": "And reciting al-Fatihah, and ruku (bowing)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:878d96b9de97",
+      "kind": "title",
+      "ar": "والاعتدال بعد الركوع",
+      "tr": "And straightening up after ruku (bowing)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:466bfdc4bbf7",
+      "kind": "title",
+      "ar": "والسجود على الأعضاء السبعة",
+      "tr": "And sujud (prostration) on the seven body parts",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7b41dd4df098",
+      "kind": "title",
+      "ar": "والسجود على الأعضاء السبعة، والرفع منه",
+      "tr": "And sujud (prostration) on the seven body parts, and rising from it",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b407d51e0f18",
+      "kind": "title",
+      "ar": "والجلسة بين السجدتين",
+      "tr": "And sitting between the two prostrations",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c6b2fdfd75f1",
+      "kind": "title",
+      "ar": "والطمأنينة في جميع الأفعال",
+      "tr": "And tuma'ninah (stillness) in all the actions",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5191ee6e1764",
+      "kind": "title",
+      "ar": "والترتيب بين الأركان",
+      "tr": "And keeping the order among the arkan (pillars)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf32b6e054d5",
+      "kind": "title",
+      "ar": "والتشهد الأخير",
+      "tr": "And the final tashahhud (the seated testimony)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5e561d8115d6",
+      "kind": "title",
+      "ar": "والتشهد الأخير، والجلوس له",
+      "tr": "And the final tashahhud (the seated testimony), and sitting for it",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:37e3e0ec6e7a",
+      "kind": "title",
+      "ar": "والصلاة على النبي صلى الله عليه وسلم",
+      "tr": "And invoking blessings on the Prophet, peace and blessings be upon him",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dc27b60ccd79",
+      "kind": "title",
+      "ar": "والتسليمتان",
+      "tr": "And the two taslims (the closing greetings of peace)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a1bf44f5391a",
+      "kind": "title",
+      "ar": "وتكبيرة الإحرام، وقراءة الفاتحة",
+      "tr": "And takbirat al-ihram (the opening 'Allahu akbar'), and reciting al-Fatihah",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4daa548b509c",
+      "kind": "title",
+      "ar": "واجبات الصلاة، وهي ثمانية",
+      "tr": "The wajibat (obligatory acts) of salah (prayer), and they are eight",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:085efa6a860a",
+      "kind": "title",
+      "ar": "والتشهد الأول، والجلوس له",
+      "tr": "And the first tashahhud (the seated testimony), and sitting for it",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:af39c1889c3a",
+      "kind": "title",
+      "ar": "الدرس السابع أركان الصلاة",
+      "tr": "Lesson Seven: The arkan (pillars) of salah (prayer)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:94ffb6744b77",
+      "kind": "title",
+      "ar": "أركان الصلاة أربعة عشر ركناً",
+      "tr": "The arkan (pillars) of salah (prayer) are fourteen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:94f019f1ef07",
+      "kind": "title",
+      "ar": "من أركان الصلاة - القيام مع القدرة",
+      "tr": "Among the arkan (pillars) of salah (prayer) - standing, when able",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf1bd4486d74",
+      "kind": "text",
+      "ar": "من أركان الصلاة - الطمأنينة في جميع الأفعال",
+      "tr": "Among the arkan (pillars) of salah (prayer) - tuma'ninah (stillness) in all the actions",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a23ae08dc98f",
+      "kind": "text",
+      "ar": "وقول: (سمع الله لمن حمده) للإمام والمنفرد",
+      "tr": "And saying: (Sami'a Allahu liman hamidah) [Allah hears whoever praises Him], for the imam and the one praying alone",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dbb4db289067",
+      "kind": "title",
+      "ar": "وقول: (ربنا ولك",
+      "tr": "And saying: (Our Lord, and to You",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0afa385d8eb5",
+      "kind": "title",
+      "ar": "الحمد) للكل",
+      "tr": "be praise), for everyone",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:37fcb837edaa",
+      "kind": "title",
+      "ar": "وقول: (سبحان ربي العظيم) في الركوع",
+      "tr": "And saying: (Subhana Rabbiyal-'Azim) [Glory be to my Lord, al-'Azim (the Magnificent)] in ruku (bowing)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8a293fadb1d6",
+      "kind": "title",
+      "ar": "وقول: (سبحان ربي الأعلى) في السجود",
+      "tr": "And saying: (Subhana Rabbiyal-A'la) [Glory be to my Lord, al-A'la (the Most High)] in sujud (prostration)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:60caba612118",
+      "kind": "title",
+      "ar": "وقول: (رب اغفر لي) بين السجدتين",
+      "tr": "And saying: (Rabbighfir li) [My Lord, forgive me] between the two prostrations",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6217a7014a81",
+      "kind": "title",
+      "ar": "القيام مع القدرة، وتكبيرة الإحرام",
+      "tr": "Standing, when able, and takbirat al-ihram (the opening 'Allahu akbar')",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a85bc3aca377",
+      "kind": "title",
+      "ar": "الدرس الثامن واجبات الصلاة",
+      "tr": "Lesson Eight: The wajibat (obligatory acts) of salah (prayer)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1fd19b83a89a",
+      "kind": "title",
+      "ar": "واجبات الصلاة وهي ثمانية",
+      "tr": "The wajibat (obligatory acts) of salah (prayer), and they are eight",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f16ecef037a1",
+      "kind": "text",
+      "ar": "من واجبات الصلاة - جميع التكبرات غير تكبيرة الإحرام",
+      "tr": "Among the wajibat (obligatory acts) of salah (prayer) - all the takbirs (sayings of 'Allahu akbar') other than takbirat al-ihram (the opening takbir)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0a23a79eb5e9",
+      "kind": "text",
+      "ar": "من واجبات الصلاة - التشهد الأول والجلوس له",
+      "tr": "Among the wajibat (obligatory acts) of salah (prayer) - the first tashahhud (the seated testimony) and sitting for it",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:18ab9f99fb53",
+      "kind": "dua",
+      "ar": "كما باركت على",
+      "tr": "as You have blessed",
+      "translit": "kama barakta 'ala",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b777685846a5",
+      "kind": "dua",
+      "ar": "إبراهيم، وعلى آل إبراهيم إنك حميد مجيد",
+      "tr": "Ibrahim and the family of Ibrahim; You are indeed Hamid (the Praiseworthy), Majid (the Glorious)",
+      "translit": "Ibrahima wa 'ala ali Ibrahima innaka Hamidun Majid",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9b1cd39b45ae",
+      "kind": "title",
+      "ar": "في التشهد الأخير من عذاب جهنم",
+      "tr": "in the final tashahhud (the seated testimony), from the punishment of Jahannam (Hell)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e8e9172e60ca",
+      "kind": "text",
+      "ar": "ثم يَتَخير من الدعاء ما شاء، ولا سيما المأثور من ذلك",
+      "tr": "Then he chooses whatever du'a (supplication) he wishes, especially what has been transmitted of it",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0d17948c2dbe",
+      "kind": "text",
+      "ar": "ثم يستعيذ بالله في التشهد الأخير من عذاب جهنم، ومن عذاب القبر، ومن فتنة المحيا والممات، ومن فتنة المسيح الدجال",
+      "tr": "Then he seeks refuge in Allah in the final tashahhud (the seated testimony) from the punishment of Jahannam (Hell), from the punishment of the grave, from the trial of life and death, and from the trial of al-Masih al-Dajjal (the False Messiah)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f25ac086a482",
+      "kind": "title",
+      "ar": "من عذاب جهنم، ومن عذاب القبر",
+      "tr": "From the punishment of Jahannam (Hell), and from the punishment of the grave",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:97f261654046",
+      "kind": "title",
+      "ar": "الدرس التاسع بيان التشهد",
+      "tr": "Lesson Nine: Explaining the tashahhud (the seated testimony)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:52eaffd4ff90",
+      "kind": "title",
+      "ar": "بيان التشهد - التحيات",
+      "tr": "Explaining the tashahhud (the seated testimony) - al-Tahiyyat (the greetings)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dbf442b8be93",
+      "kind": "title",
+      "ar": "الفرق بين التشهد الأوسط والتشهد الأخير",
+      "tr": "The difference between the middle tashahhud (the seated testimony) and the final tashahhud",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e479925a287f",
+      "kind": "text",
+      "ar": "من الأدعية التي ينبغي أن يحرص عليها الإنسان بعد التشهد",
+      "tr": "Among the du'as (supplications) a person should be keen on after the tashahhud (the seated testimony)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:87046d09ee22",
+      "kind": "title",
+      "ar": "الاستفتاح.",
+      "tr": "Al-istiftah (the opening supplication).",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2810710cbb14",
+      "kind": "text",
+      "ar": "رفع اليدين مضمومتي الأصابع ممدودة حذو المنكبين أو الأذنين عند التكبير الأول، وعند الركوع، والرفع منه، وعند القيام من التشهد الأول إلى الثالثة",
+      "tr": "Raising the hands, with the fingers together and extended, level with the shoulders or the ears at the first takbir (saying 'Allahu akbar'), at ruku (bowing), when rising from it, and when standing from the first tashahhud (the seated testimony) to the third rak'ah (unit of prayer)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3725146570c5",
+      "kind": "text",
+      "ar": "ما زاد على قول: (ربنا ولك الحمد) بعد القيام من الركوع، وما زاد عن واحدة في الدعاء بالمغفرة بين السجدتين",
+      "tr": "Whatever exceeds saying: (Rabbana wa lakal-hamd) [Our Lord, and to You be praise] after standing from ruku (bowing), and whatever exceeds once in the supplication for forgiveness between the two prostrations",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:30dfc87cb83b",
+      "kind": "text",
+      "ar": "جلوس المصلي على رجله اليسرى مفروشة، ونصب اليمنى في التشهد الأول وبين السجدتين",
+      "tr": "The one praying sitting on his left foot laid flat, with the right foot upright, in the first tashahhud (the seated testimony) and between the two prostrations",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:18a4bdd73f06",
+      "kind": "text",
+      "ar": "الإشارة بالسبابة في التشهد الأول والثاني من حين جلس إلى نهاية التشهد وتحريكها عند الدعاء",
+      "tr": "Pointing with the index finger in the first and second tashahhud (the seated testimony) from the moment he sits until the end of the tashahhud, and moving it when making du'a (supplication)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:69a5cb68b303",
+      "kind": "text",
+      "ar": "الصلاة والتبريك على محمد، وآل محمد، وعلى إبراهيم، وآل إبراهيم في التشهد الأول",
+      "tr": "Invoking blessings and barakah (divine blessing) on Muhammad and the family of Muhammad, and on Ibrahim and the family of Ibrahim, in the first tashahhud (the seated testimony)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7abb4c2ed2c5",
+      "kind": "title",
+      "ar": "الدعاء في التشهد الأخير.",
+      "tr": "Du'a (supplication) in the final tashahhud (the seated testimony).",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:65a8de9dd557",
+      "kind": "text",
+      "ar": "الجهر بالقراءة في صلاة الفجر، وصلاة الجمعة، وصلاة العيدين، والاستسقاء، وفي الركعتين الأوليين من صلاة المغرب والعشاء",
+      "tr": "Reciting aloud in the Fajr prayer, the Jumu'ah (Friday) prayer, the two Eid prayers, and Istisqa (the prayer for rain), and in the first two rak'ahs (units of prayer) of Maghrib and Isha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:01143d8bdff6",
+      "kind": "text",
+      "ar": "ما زاد على قول المصلي: (ربنا ولك الحمد) ، بعد الرفع من الركوع في حق الإمام، والمأموم، والمنفرد، فإنه سنة",
+      "tr": "Whatever exceeds the saying of the one praying: (Rabbana wa lakal-hamd) [Our Lord, and to You be praise], after rising from ruku (bowing), for the imam, the one following him, and the one praying alone, for it is sunnah (recommended)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d8ccc7ed82b4",
+      "kind": "title",
+      "ar": "سنن الصلاة، ومنها:",
+      "tr": "The sunan (recommended acts) of salah (prayer), among them:",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:46d93a951314",
+      "kind": "title",
+      "ar": "الدرس العاشر - سنن الصلاة",
+      "tr": "Lesson Ten - The sunan (recommended acts) of salah (prayer)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:369a0c51cbcc",
+      "kind": "title",
+      "ar": "من سنن الصلاة - الاستفتاح",
+      "tr": "Among the sunan (recommended acts) of salah (prayer) - al-istiftah (the opening supplication)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3d89091a8212",
+      "kind": "text",
+      "ar": "من سنن الصلاة - جعل كف اليد اليمنى على اليسرى فوق الصدر حين القيام",
+      "tr": "Among the sunan (recommended acts) of salah (prayer) - placing the palm of the right hand over the left, on the chest, while standing",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b1cc7ae5b5f6",
+      "kind": "text",
+      "ar": "من سنن الصلاة - رفع اليدين مضمومتي الأصابع حذو المنكبين أو الأذنين",
+      "tr": "Among the sunan (recommended acts) of salah (prayer) - raising the hands, with the fingers together, level with the shoulders or the ears",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:11a81d50f67e",
+      "kind": "title",
+      "ar": "الضحك.",
+      "tr": "Laughing.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:638f30448821",
+      "kind": "title",
+      "ar": "الأكل.",
+      "tr": "Eating.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:04563c2db617",
+      "kind": "title",
+      "ar": "الشرب.",
+      "tr": "Drinking.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e3814bc57738",
+      "kind": "title",
+      "ar": "انكشاف العورة.",
+      "tr": "Exposure of the awrah (the parts of the body that must be covered).",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:988465c870c6",
+      "kind": "title",
+      "ar": "الانحراف الكثير عن جهة القبلة.",
+      "tr": "Turning far away from the direction of the qiblah (the direction of prayer).",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6caac058c438",
+      "kind": "title",
+      "ar": "العبث الكثير المتوالي في الصلاة.",
+      "tr": "Much continuous idle movement during the prayer.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98f4c1bdd4e1",
+      "kind": "title",
+      "ar": "انتقاض الطهارة.",
+      "tr": "Loss of tahara (ritual purity).",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e7bd005f0841",
+      "kind": "title",
+      "ar": "أما الناسي والجاهل فلا تبطل صلاته بذلك",
+      "tr": "As for the one who forgets and the one who does not know, his prayer is not invalidated by that",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b620f5e285fd",
+      "kind": "title",
+      "ar": "الدرس الحادي عشر - مبطلات الصلاة",
+      "tr": "Lesson Eleven - What invalidates salah (prayer)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2cfebf124430",
+      "kind": "title",
+      "ar": "مبطلات الصلاة وهي ثمانية",
+      "tr": "What invalidates salah (prayer), and they are eight things",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:44a6a76d35a6",
+      "kind": "text",
+      "ar": "من مبطلات الصلاة - الكلام العمد مع الذكر والعلم",
+      "tr": "Among what invalidates salah (prayer) - deliberate speech, while remembering and knowing",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:377f6fa05f1e",
+      "kind": "title",
+      "ar": "من مبطلات الصلاة - الضحك",
+      "tr": "Among what invalidates salah (prayer) - laughing",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:97bad446d077",
+      "kind": "title",
+      "ar": "عشرة: الإسلام",
+      "tr": "Ten: Islam",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf7ceb1ef252",
+      "kind": "text",
+      "ar": "واستصحاب حكمها بأن لا ينوي قطعها حتى تتم طهارته",
+      "tr": "And maintaining its ruling, by not intending to break it off until his purification is complete",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e51e0aa903f0",
+      "kind": "title",
+      "ar": "وانقطاع موجب الوضوء",
+      "tr": "And the cessation of what necessitates wudu (ablution)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a0879a52e04d",
+      "kind": "title",
+      "ar": "واستنجاء أو استجمار قبله",
+      "tr": "And istinja (cleaning with water) or istijmar (cleaning with stones) before it",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a9cadae0d1b9",
+      "kind": "title",
+      "ar": "وإزالة ما يمنع وصوله إلى البشرة",
+      "tr": "And removing whatever prevents it from reaching the skin",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d1ba7a59fdb1",
+      "kind": "title",
+      "ar": "ودخول وقت الصلاة في حق من حدثه دائم",
+      "tr": "And the entry of the prayer time, for one whose hadath (state of ritual impurity) is continuous",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:365bcf4c9bfd",
+      "kind": "title",
+      "ar": "شروط الوضوء، وهي عشرة",
+      "tr": "The conditions of wudu (ablution), and they are ten",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bed84e55c3f8",
+      "kind": "title",
+      "ar": "والتمييز، والنية",
+      "tr": "And tamyiz (the age of discernment), and the niyyah (intention)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e5d800cf7b8c",
+      "kind": "title",
+      "ar": "الدرس الثاني عشر شروط الوضوء",
+      "tr": "Lesson Twelve: The conditions of wudu (ablution)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:66610b232659",
+      "kind": "text",
+      "ar": "من شروط الوضوء - الإسلام والعقل والتمييز والنية",
+      "tr": "Among the conditions of wudu (ablution) - Islam, sanity, tamyiz (the age of discernment) and the niyyah (intention)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f747eb2423ea",
+      "kind": "text",
+      "ar": "من شروط الوضوء - استصحاب حكم النية حتى تتم طهارته وانقطاع موجب الوضوء",
+      "tr": "Among the conditions of wudu (ablution) - maintaining the ruling of the niyyah (intention) until his purification is complete, and the cessation of what necessitates wudu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3029c44d284d",
+      "kind": "text",
+      "ar": "من شروط الوضوء - إزالة ما يمنع وصول الماء إلى البشرة",
+      "tr": "Among the conditions of wudu (ablution) - removing whatever prevents water from reaching the skin",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9550a9d67f00",
+      "kind": "title",
+      "ar": "غسل الوجه ومنه المضمضة والاستنشاق",
+      "tr": "Washing the face, which includes madmadah (rinsing the mouth) and istinshaq (drawing water into the nose)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c6809177298e",
+      "kind": "title",
+      "ar": "وغسل اليدين مع المرفقين",
+      "tr": "And washing the hands, including the elbows",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dd48b60bb6a7",
+      "kind": "title",
+      "ar": "ومسح جميع الرأس ومنه الأذنان",
+      "tr": "And wiping the entire head, which includes the ears",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2b70ff7fef71",
+      "kind": "title",
+      "ar": "وغسل الرجلين مع الكعبين",
+      "tr": "And washing the feet, including the ankles",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:087f09fc3e2e",
+      "kind": "title",
+      "ar": "والترتيب، والموالاة",
+      "tr": "And keeping the order, and muwalah (continuity)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:709d03ee7a39",
+      "kind": "title",
+      "ar": "الدرس الثالث عشر فروض الوضوء",
+      "tr": "Lesson Thirteen: The furud (obligatory acts) of wudu (ablution)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6d717debbbbb",
+      "kind": "title",
+      "ar": "ما هي فروض الوضوء الستة ومن أين أخذت؟",
+      "tr": "What are the six furud (obligatory acts) of wudu (ablution) and where were they taken from?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:220d87f423d9",
+      "kind": "title",
+      "ar": "من أركان الوضوء - الترتيب",
+      "tr": "Among the arkan (pillars) of wudu (ablution) - keeping the order",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98d8cf74bbb1",
+      "kind": "text",
+      "ar": "من أركان الوضوء الموالاة وما المقصود بالموالاة؟",
+      "tr": "Among the arkan (pillars) of wudu (ablution) is muwalah; what is meant by muwalah (continuity)?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fb99207921fa",
+      "kind": "title",
+      "ar": "والخارج الفاحش النجس من الجسد",
+      "tr": "And foul, impure matter coming out of the body",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:10a8cc0701f8",
+      "kind": "title",
+      "ar": "وزوال العقل بنوم أو غيره",
+      "tr": "And loss of reason through sleep or otherwise",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1456223f7c66",
+      "kind": "text",
+      "ar": "ومس الفرج باليد قبلا كان أو دبرا من غير حائل",
+      "tr": "And touching the private part with the hand, front or back, without a barrier",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f89985a5065e",
+      "kind": "title",
+      "ar": "وأكل لحم الإبل",
+      "tr": "And eating camel meat",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e925307ea4aa",
+      "kind": "title",
+      "ar": "والردة عن الإسلام",
+      "tr": "And apostasy from Islam",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8edd459b01e4",
+      "kind": "text",
+      "ar": "أما غسل الميت: فالصحيح أنه لا ينقض الوضوء، وهو قول أكثر أهل العلم؛ لعدم الدليل على ذلك، لكن لو أصابت يد الغاسل فرج الميت من غير حائل وجب عليه الوضوء",
+      "tr": "As for washing the dead: the correct view is that it does not invalidate wudu (ablution), and this is the view of most scholars, because there is no evidence for that; but if the washer's hand touches the private part of the dead person without a barrier, wudu becomes obligatory on him",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bb05de34ac11",
+      "kind": "text",
+      "ar": "وهكذا مس المرأة لا ينقض الوضوء مطلقا، سواء كان ذلك عن شهوة، أو غير شهوة في أصح قولي العلماء ما لم يخرج منه شيء",
+      "tr": "Likewise, touching a woman does not invalidate wudu (ablution) at all, whether with desire or without desire, according to the sounder of the two views of the scholars, as long as nothing comes out of him",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:35b76c949382",
+      "kind": "title",
+      "ar": "نواقض الوضوء، وهي ستة",
+      "tr": "The things that invalidate wudu (ablution), and they are six",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9b45cf38e97d",
+      "kind": "text",
+      "ar": "أما غسل الميت: فالصحيح أنه لا ينقض الوضوء",
+      "tr": "As for washing the dead: the correct view is that it does not invalidate wudu (ablution)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cbba72dfb5be",
+      "kind": "title",
+      "ar": "الدرس الرابع عشر نواقض الوضوء",
+      "tr": "Lesson Fourteen: What invalidates wudu (ablution)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:30e94dfdd28d",
+      "kind": "title",
+      "ar": "ما هي نواقض الوضوء الستة؟",
+      "tr": "What are the six things that invalidate wudu (ablution)?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cfb1167de3ff",
+      "kind": "title",
+      "ar": "هل غسل الميت ينقض الوضوء؟",
+      "tr": "Does washing the dead invalidate wudu (ablution)?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0a6f677bddf0",
+      "kind": "title",
+      "ar": "هل لمس المرأة ينقض الوضوء؟",
+      "tr": "Does touching a woman invalidate wudu (ablution)?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1eefa7ac5349",
+      "kind": "title",
+      "ar": "ومنها: الصدق",
+      "tr": "Among them: truthfulness",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bc3ac9868597",
+      "kind": "title",
+      "ar": "والنزاهة عن كل ما حرم الله",
+      "tr": "And keeping clean of everything Allah has forbidden",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5163000ae305",
+      "kind": "title",
+      "ar": "حرم الله، وحسن",
+      "tr": "Allah has forbidden, and good",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:213efca581ec",
+      "kind": "title",
+      "ar": "الجوار،",
+      "tr": "neighbourliness,",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e849431fd018",
+      "kind": "title",
+      "ar": "ومساعدة ذوي الحاجة حسب الطاقة",
+      "tr": "And helping those in need according to one's ability",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a5500caeed5b",
+      "kind": "text",
+      "ar": "الدرس الخامس عشر الأخلاق المشروعة لكل مسلم",
+      "tr": "Lesson Fifteen: The manners prescribed for every Muslim",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f770d8666e81",
+      "kind": "title",
+      "ar": "من الأخلاق المشروعة لكل مسلم",
+      "tr": "Among the manners prescribed for every Muslim",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:52ea4afc79c8",
+      "kind": "title",
+      "ar": "من أخلاق المسلم - الصدق",
+      "tr": "Among the manners of the Muslim - truthfulness",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dfa9d7fd9738",
+      "kind": "title",
+      "ar": "من أخلاق المسلم - الحياء",
+      "tr": "Among the manners of the Muslim - haya (modesty)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a0772ea92bfd",
+      "kind": "title",
+      "ar": "ومنها: السلام",
+      "tr": "Among them: salam (the greeting of peace)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c3e8442879a3",
+      "kind": "title",
+      "ar": "وتشميت العاطس إذا حمد الله",
+      "tr": "And tashmit (invoking mercy for) the one who sneezes, if he praises Allah",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b78abb4afdb9",
+      "kind": "title",
+      "ar": "والأكل باليمين والشرب بها",
+      "tr": "And eating and drinking with the right hand",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:19d885340c24",
+      "kind": "title",
+      "ar": "الدرس السادس عشر الآداب الإسلامية",
+      "tr": "Lesson Sixteen: Islamic etiquette",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fe949f103960",
+      "kind": "title",
+      "ar": "من الآداب الإسلامية",
+      "tr": "Among Islamic etiquette",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b3cdfd955394",
+      "kind": "title",
+      "ar": "من الآداب الإسلامية - السلام",
+      "tr": "Among Islamic etiquette - salam (the greeting of peace)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:53bb44570d5a",
+      "kind": "title",
+      "ar": "من آداب السلام",
+      "tr": "Among the etiquette of salam (the greeting of peace)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a0ac332a84e7",
+      "kind": "title",
+      "ar": "وهي: الشرك بالله",
+      "tr": "They are: shirk (associating partners) with Allah",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cde6771361b0",
+      "kind": "title",
+      "ar": "والسحر",
+      "tr": "And sihr (sorcery)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:543f7a2721ab",
+      "kind": "title",
+      "ar": "وقتل النفس التي حَرم الله إلا بالحق",
+      "tr": "And killing the soul that Allah has made sacred, except by right",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b68aec031970",
+      "kind": "title",
+      "ar": "وأكل الربا",
+      "tr": "And consuming riba (usury)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:396724c07eeb",
+      "kind": "title",
+      "ar": "وأكل مال اليتيم",
+      "tr": "And consuming the wealth of the orphan",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:80152dee1ebd",
+      "kind": "title",
+      "ar": "والتولي يوم الزحف",
+      "tr": "And fleeing on the day of the advance in battle",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:350757d4f36d",
+      "kind": "title",
+      "ar": "وقذف المحصنات الغافلات المؤمنات",
+      "tr": "And slandering chaste, unaware, believing women",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:683bb6f410a5",
+      "kind": "title",
+      "ar": "ومنها: عقوق الوالدين",
+      "tr": "Among them: disobedience to parents",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fff65532d13f",
+      "kind": "title",
+      "ar": "وقطيعة الرحم",
+      "tr": "And severing the ties of kinship",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:279ed33088c2",
+      "kind": "title",
+      "ar": "وشهادة الزور",
+      "tr": "And false testimony",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c320a4aae404",
+      "kind": "title",
+      "ar": "والأيمان الكاذبة",
+      "tr": "And false oaths",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b587aac65678",
+      "kind": "title",
+      "ar": "وإيذاء الجار",
+      "tr": "And harming the neighbour",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1dda6d768896",
+      "kind": "text",
+      "ar": "وظلم الناس في الدماء، والأموال، والأعراض",
+      "tr": "And wronging people in their blood, their wealth and their honour",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3f1d510707c5",
+      "kind": "title",
+      "ar": "وشرب المسكر",
+      "tr": "And drinking intoxicants",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cb7cf5a7477c",
+      "kind": "title",
+      "ar": "ولعب القمار- وهو: الميسر-",
+      "tr": "And playing qimar (gambling), which is maysir (games of chance)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9872b9191236",
+      "kind": "title",
+      "ar": "والغيبة",
+      "tr": "And ghibah (backbiting)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3fc94a68aa97",
+      "kind": "title",
+      "ar": "والنميمة",
+      "tr": "And namimah (tale-bearing)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bbfbe1d80df2",
+      "kind": "title",
+      "ar": "والغيبة، والنميمة",
+      "tr": "And ghibah (backbiting), and namimah (tale-bearing)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e99eb37bc933",
+      "kind": "title",
+      "ar": "الدرس السابع عشر التحذير من الشرك",
+      "tr": "Lesson Seventeen: Warning against shirk (associating partners with Allah)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:80ead7d15a46",
+      "kind": "title",
+      "ar": "ما هنّ السبع الموبقات؟",
+      "tr": "What are the seven mubiqat (destructive sins)?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9aec97222a1e",
+      "kind": "title",
+      "ar": "ما معنى الموبقات وما هو أعظم ذنب؟",
+      "tr": "What does mubiqat (destructive sins) mean, and what is the greatest sin?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:45596aa81899",
+      "kind": "title",
+      "ar": "من السبع الموبقات - أكل الربا",
+      "tr": "Among the seven mubiqat (destructive sins) - consuming riba (usury)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c5d297f0895e",
+      "kind": "text",
+      "ar": "أولا: يشرع تلقين المحتضر: (لا إله إلا الله)",
+      "tr": "First: it is prescribed to prompt the dying person with: (La ilaha illa Allah) [There is no god but Allah]",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4d0ca7024718",
+      "kind": "text",
+      "ar": "ثانيا: إذا تيقن موته أغمضت عيناه وشد لحياه",
+      "tr": "Second: when his death is certain, his eyes are closed and his jaws are tied up",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8ed3f13965a1",
+      "kind": "text",
+      "ar": "ثالثا: يجب تغسيل الميت المسلم، إلا أن يكون شهيدا مات في المعركة فإنه لا يغسل ولا يصلى عليه، بل يدفن في ثيابه",
+      "tr": "Third: washing the dead Muslim is obligatory, unless he is a shahid (martyr) who died in battle, for he is not washed and the funeral prayer is not performed over him; rather, he is buried in his clothes",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:22793d8fd474",
+      "kind": "title",
+      "ar": "رابعا صفة غسل الميت",
+      "tr": "Fourth: How to wash the dead",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:78ac38c383ac",
+      "kind": "title",
+      "ar": "خامسا تكفين الميت",
+      "tr": "Fifth: Shrouding the dead",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2b6f70f5125b",
+      "kind": "text",
+      "ar": "سادسا: أحق الناس بغسله والصلاة عليه ودفنه: وصيه في ذلك، ثم الأب، ثم الجد، ثم الأقرب فالأقرب من العصبات في حق الرجل",
+      "tr": "Sixth: the people most entitled to wash him, pray over him and bury him are: the one he appointed for that, then the father, then the grandfather, then the nearest and next nearest of the asabah (male relatives on the father's side), in the case of a man",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8481851d4400",
+      "kind": "title",
+      "ar": "سابعا صفة الصلاة على الميت",
+      "tr": "Seventh: How to perform the funeral prayer",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8cbad96240bb",
+      "kind": "title",
+      "ar": "ثامنا صفة دفن الميت",
+      "tr": "Eighth: How to bury the dead",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:70db4d39456a",
+      "kind": "text",
+      "ar": "تاسعا: ويشرع لمن لم يُصَل عليه أن يصلي عليه بعد الدفن",
+      "tr": "Ninth: it is prescribed for whoever did not pray over him to pray over him after the burial",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a8fa455f2d55",
+      "kind": "text",
+      "ar": "عاشرا: لا يجوز لأهل الميت أن يصنعوا طعاما للناس",
+      "tr": "Tenth: it is not permissible for the family of the dead person to prepare food for people",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dde0eee6548f",
+      "kind": "text",
+      "ar": "حادي عشر: لا يجوز للمرأة الإحداد على ميت أكثر من ثلاثة أيام إلا على زوجها فإنه يجب عليها أن تحد عليه أربعة أشهر وعشرا، إلا أن تكون حاملا فعلى وضع الحمل",
+      "tr": "Eleventh: it is not permissible for a woman to observe ihdad (mourning) for a dead person for more than three days, except for her husband, for whom she must mourn four months and ten days, unless she is pregnant, in which case it is until she gives birth",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:521cb73a9878",
+      "kind": "text",
+      "ar": "ثاني عشر: يشرع للرجال زيارة القبور بين وقت وآخر للدعاء لهم، والترحم عليهم، وتذكر الموت وما بعده",
+      "tr": "Twelfth: it is prescribed for men to visit the graves from time to time to supplicate for them, ask mercy for them, and remember death and what comes after it",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e97563f1a333",
+      "kind": "text",
+      "ar": "يكبر أربعا، ويقرأ بعد الأولى: الفاتحة، وإن قرأ معها سورة قصيرة أو آية أو آيتين فحسن",
+      "tr": "He says the takbir ('Allahu akbar') four times, and after the first he recites al-Fatihah; and if he recites with it a short surah, or a verse or two, that is good",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:27d127f43b92",
+      "kind": "text",
+      "ar": "ثم يكبر الثانية ويصلي على النبي صلى الله عليه وسلم كصلاته في التشهد",
+      "tr": "Then he says the second takbir ('Allahu akbar') and invokes blessings on the Prophet, peace and blessings be upon him, as he does in the tashahhud (the seated testimony)",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a1772dd12bb8",
+      "kind": "text",
+      "ar": "ثم يكبر الثالثة، ويقول: (اللهم اغفر لِحينا وميتِنا، وشاهدنا وغائبنا، وصغيرنا وكبيرنا، وذَكَرِنا وأنثانَا",
+      "tr": "Then he says the third takbir ('Allahu akbar') and says: «اللهم اغفر لِحينا وميتِنا، وشاهدنا وغائبنا، وصغيرنا وكبيرنا، وذَكَرِنا وأنثانَا» [O Allah, forgive our living and our dead, those of us present and those absent, our young and our old, our males and our females]",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e52ff35f6069",
+      "kind": "text",
+      "ar": "ثم يكبر الرابعة، ويسلم تسليمة واحدة عن يمينه",
+      "tr": "Then he says the fourth takbir ('Allahu akbar') and gives one taslim (closing greeting of peace) to his right",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:87bfc066c8d8",
+      "kind": "title",
+      "ar": "يكبر أربعا",
+      "tr": "He says the takbir ('Allahu akbar') four times",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:eeb79ec01cb7",
+      "kind": "text",
+      "ar": "الدرس الثامن عشر تجهيز الميت والصلاة عليه",
+      "tr": "Lesson Eighteen: Preparing the dead and praying over them",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0f6de26a70eb",
+      "kind": "title",
+      "ar": "كيفية تكفين الميت",
+      "tr": "How to shroud the dead",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:163a5f30ff85",
+      "kind": "text",
+      "ar": "صُحِّح في هذه الصفحة حرفٌ في الحديث: «ففد» إلى «فقد»، كما في مجموع فتاوى ابن باز، ج٣ ص٢٩٠.",
+      "tr": "One letter in the hadith was corrected on this page: «ففد» to «فقد», as in Majmu' Fatawa Ibn Baz, vol. 3, p. 290.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0618181d807f",
+      "kind": "text",
+      "ar": "القرآن",
+      "tr": "Quran ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
     }
   ]
 }
