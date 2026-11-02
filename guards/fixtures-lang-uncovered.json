@@ -2003,6 +2003,31 @@
    "text": "نلتقي غدًا بإذن الله",
    "cat": "home-banner-kept-arabic",
    "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
+  },
+  {
+   "text": "نتيجة واحدة",
+   "cat": "other",
+   "reason": "Arabic counted noun of the fatwa results line (device check J10); ezikCountedResults returns it only when the language is Arabic, other languages keep the noun in their own sentence."
+  },
+  {
+   "text": "نتيجتان",
+   "cat": "other",
+   "reason": "Arabic counted noun of the fatwa results line (device check J10); ezikCountedResults returns it only when the language is Arabic, other languages keep the noun in their own sentence."
+  },
+  {
+   "text": "نتائج",
+   "cat": "other",
+   "reason": "Arabic counted noun of the fatwa results line (device check J10); ezikCountedResults returns it only when the language is Arabic, other languages keep the noun in their own sentence."
+  },
+  {
+   "text": "نتيجةً",
+   "cat": "other",
+   "reason": "Arabic counted noun of the fatwa results line (device check J10); ezikCountedResults returns it only when the language is Arabic, other languages keep the noun in their own sentence."
+  },
+  {
+   "text": "نتيجة",
+   "cat": "other",
+   "reason": "Arabic counted noun of the fatwa results line (device check J10); ezikCountedResults returns it only when the language is Arabic, other languages keep the noun in their own sentence."
   }
  ]
 }
