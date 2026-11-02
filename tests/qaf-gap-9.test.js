@@ -161,6 +161,16 @@ test('each issue is sent separately and keeps its own ordered top ten through th
   assert.equal(r.out.telemetry.pinnedRows, 20);
 });
 
+test('one source URL answering two issues retains both issue assignments after reranking', async (t) => {
+  const f = await fixture(t);
+  const question = 'عندي سؤالان: ما حكم المسح على الجوربين؟ وما حكم زكاة الذهب؟';
+  const r = await turn({ question, rows, env: { ...env, BW2_RETRIEVAL_MS: '1200' }, extra: { aiConsentVersion: consentVersion },
+    extraDeps: { searchFatwas: async (ctx) => ({ records: rows.map((row) => ({ ...row, id: row.recordId,
+      question: ctx.currentQuestion, answer: row.text })) }), rerankFetch: f.fetchImpl, rerankStore: store() } });
+  assert.equal(r.out.telemetry.rerank_used, 1); assert.equal(f.calls(), 2);
+  assert.equal(r.out.telemetry.emptyParts, 0);
+});
+
 test('real BW2 preserves the response on timeout, HTTP failure, missing key and KV failure', async (t) => {
   const baseline = await turn();
   const f = await fixture(t, (_, res) => { res.writeHead(500); res.end(); });
