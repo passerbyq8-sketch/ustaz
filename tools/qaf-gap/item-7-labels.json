@@ -1,0 +1,809 @@
+{
+  "_method": {
+    "by": "agent-provisional",
+    "ownerReviewRequired": true,
+    "unit": "Available original snippet, not the entire folded article search field",
+    "R": "Directly answers the named act and conditions",
+    "P": "Neighboring rule/condition or partial issue; does not resolve the full question",
+    "X": "Other issue, lexical homonym, other hadith, or a generic definition without the asked case",
+    "note": "Existing archived labels/reasons are retained. New local snippets were reviewed by title/opening and query-term windows; relevant neighboring passages were inspected. No new local snippet establishes the complete asked case."
+  },
+  "a1": {
+    "F00458": {
+      "label": "X",
+      "reason": "أَقَلُّ الْجَمْعِ: Available snippet concerns a different issue or generic definition; does not address combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F01829": {
+      "label": "X",
+      "reason": "صَلاَةُ الْجُمُعَةِ: Available snippet concerns a different issue or generic definition; does not address combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F02273": {
+      "label": "X",
+      "reason": "قَتْلٌ بِسَبَبٍ: Available snippet concerns a different issue or generic definition; does not address combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F03066": {
+      "label": "X",
+      "reason": "يَوْمُ الْجُمُعَةِ: Available snippet concerns a different issue or generic definition; does not address combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F00976": {
+      "label": "X",
+      "reason": "تَعْجِيلٌ: Available snippet concerns a different issue or generic definition; does not address combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F01173": {
+      "label": "P",
+      "reason": "جَمْعُ الصَّلَوَاتِ: Neighboring/partial passage; does not establish combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F01860": {
+      "label": "X",
+      "reason": "الصَّلَوَاتُ الْخَمْسُ الْمَفْرُوضَةُ: Available snippet concerns a different issue or generic definition; does not address combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F02615": {
+      "label": "X",
+      "reason": "مُزْدَلِفَةُ: Available snippet concerns a different issue or generic definition; does not address combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F02679": {
+      "label": "X",
+      "reason": "مَشْيٌ: Available snippet concerns a different issue or generic definition; does not address combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F03011": {
+      "label": "X",
+      "reason": "وِرْدٌ: Available snippet concerns a different issue or generic definition; does not address combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F00158": {
+      "label": "X",
+      "reason": "أَذَانٌ: Available snippet concerns a different issue or generic definition; does not address combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F00651": {
+      "label": "P",
+      "reason": "بَرْدٌ: Neighboring/partial passage; does not establish combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F01664": {
+      "label": "X",
+      "reason": "سُقُوطٌ: Available snippet concerns a different issue or generic definition; does not address combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F01698": {
+      "label": "X",
+      "reason": "السُّنَنُ الرَّوَاتِبُ: Available snippet concerns a different issue or generic definition; does not address combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F01818": {
+      "label": "X",
+      "reason": "صَلاَةٌ: Available snippet concerns a different issue or generic definition; does not address combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F01852": {
+      "label": "P",
+      "reason": "صَلاَةُ الْمُسَافِرِ: Neighboring/partial passage; does not establish combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F02321": {
+      "label": "X",
+      "reason": "قَضَاءُ الْفَوَائِتِ: Available snippet concerns a different issue or generic definition; does not address combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F02572": {
+      "label": "X",
+      "reason": "مُدْرِكٌ: Available snippet concerns a different issue or generic definition; does not address combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F03032": {
+      "label": "X",
+      "reason": "وَطَن: Available snippet concerns a different issue or generic definition; does not address combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F00035": {
+      "label": "X",
+      "reason": "أَبْطَحُ: Available snippet concerns a different issue or generic definition; does not address combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F00118": {
+      "label": "X",
+      "reason": "إِحْيَاءُ اللَّيْلِ: Available snippet concerns a different issue or generic definition; does not address combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F00514": {
+      "label": "X",
+      "reason": "أَمْنٌ: Available snippet concerns a different issue or generic definition; does not address combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F00590": {
+      "label": "P",
+      "reason": "أَوْقَاتُ الصَّلاَةِ: Neighboring/partial passage; does not establish combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F00645": {
+      "label": "X",
+      "reason": "بَدْوٌ: Available snippet concerns a different issue or generic definition; does not address combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F00756": {
+      "label": "X",
+      "reason": "تَأْخِيرٌ: Available snippet concerns a different issue or generic definition; does not address combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F00785": {
+      "label": "X",
+      "reason": "تَبَغٌ: Available snippet concerns a different issue or generic definition; does not address combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F00851": {
+      "label": "X",
+      "reason": "تَخْدِيرٌ: Available snippet concerns a different issue or generic definition; does not address combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F01007": {
+      "label": "X",
+      "reason": "تَغْيِيرٌ: Available snippet concerns a different issue or generic definition; does not address combining Maghrib/Isha in residence because of heavy rain."
+    },
+    "F01187": {
+      "label": "X",
+      "reason": "جَهْرٌ: Available snippet concerns a different issue or generic definition; does not address combining Maghrib/Isha in residence because of heavy rain."
+    }
+  },
+  "a2": {
+    "F01576": {
+      "label": "P",
+      "reason": "زَكَاةُ الْفِطْرِ: Neighboring/partial passage; does not establish cash instead of food for zakat al-fitr and the four schools."
+    },
+    "F01572": {
+      "label": "P",
+      "reason": "زَكَاة: Neighboring/partial passage; does not establish cash instead of food for zakat al-fitr and the four schools."
+    },
+    "F00145": {
+      "label": "X",
+      "reason": "إِخْرَاجٌ: Available snippet concerns a different issue or generic definition; does not address cash instead of food for zakat al-fitr and the four schools."
+    },
+    "F01620": {
+      "label": "X",
+      "reason": "وَالتَّفْصِيلُ فِي مُصْطَلَحِ (زَكَاةٍ).: Available snippet concerns a different issue or generic definition; does not address cash instead of food for zakat al-fitr and the four schools."
+    },
+    "F02123": {
+      "label": "X",
+      "reason": "غَالِبٌ: Available snippet concerns a different issue or generic definition; does not address cash instead of food for zakat al-fitr and the four schools."
+    },
+    "F00027": {
+      "label": "P",
+      "reason": "إِبْدَال: Neighboring/partial passage; does not establish cash instead of food for zakat al-fitr and the four schools."
+    },
+    "F00371": {
+      "label": "X",
+      "reason": "إِطْعَامٌ: Available snippet concerns a different issue or generic definition; does not address cash instead of food for zakat al-fitr and the four schools."
+    },
+    "F00465": {
+      "label": "X",
+      "reason": "أَكْلٌ: Available snippet concerns a different issue or generic definition; does not address cash instead of food for zakat al-fitr and the four schools."
+    },
+    "F00770": {
+      "label": "X",
+      "reason": "تَبْدِيلٌ: Available snippet concerns a different issue or generic definition; does not address cash instead of food for zakat al-fitr and the four schools."
+    },
+    "F00783": {
+      "label": "X",
+      "reason": "تَبْعِيضٌ: Available snippet concerns a different issue or generic definition; does not address cash instead of food for zakat al-fitr and the four schools."
+    },
+    "F00867": {
+      "label": "X",
+      "reason": "تَخْيِيرٌ: Available snippet concerns a different issue or generic definition; does not address cash instead of food for zakat al-fitr and the four schools."
+    },
+    "F01031": {
+      "label": "P",
+      "reason": "تَقْوِيمٌ: Neighboring/partial passage; does not establish cash instead of food for zakat al-fitr and the four schools."
+    },
+    "F01045": {
+      "label": "X",
+      "reason": "تَلَفٌ: Available snippet concerns a different issue or generic definition; does not address cash instead of food for zakat al-fitr and the four schools."
+    },
+    "F01180": {
+      "label": "X",
+      "reason": "جِنْسٌ: Available snippet concerns a different issue or generic definition; does not address cash instead of food for zakat al-fitr and the four schools."
+    },
+    "F01445": {
+      "label": "X",
+      "reason": "دَيْنُ اللَّهِ: Available snippet concerns a different issue or generic definition; does not address cash instead of food for zakat al-fitr and the four schools."
+    },
+    "F01818": {
+      "label": "X",
+      "reason": "صَلاَةٌ: Available snippet concerns a different issue or generic definition; does not address cash instead of food for zakat al-fitr and the four schools."
+    },
+    "F01843": {
+      "label": "X",
+      "reason": "صَلاَةُ الْعِيدَيْنِ: Available snippet concerns a different issue or generic definition; does not address cash instead of food for zakat al-fitr and the four schools."
+    },
+    "F02109": {
+      "label": "X",
+      "reason": "عِوَض: Available snippet concerns a different issue or generic definition; does not address cash instead of food for zakat al-fitr and the four schools."
+    },
+    "F02853": {
+      "label": "X",
+      "reason": "مَوْلُودٌ: Available snippet concerns a different issue or generic definition; does not address cash instead of food for zakat al-fitr and the four schools."
+    },
+    "F02997": {
+      "label": "X",
+      "reason": "أَحَدُهُمَا: أَنْ يَضِيقَ وَقْتُهُ بِالاِتِّفَاقِ.: Available snippet concerns a different issue or generic definition; does not address cash instead of food for zakat al-fitr and the four schools."
+    }
+  },
+  "a3": {
+    "F02321": {
+      "label": "P",
+      "reason": "قَضَاءُ الْفَوَائِتِ: Neighboring/partial passage; does not establish deliberately missed obligatory prayers after repentance."
+    },
+    "F00590": {
+      "label": "P",
+      "reason": "أَوْقَاتُ الصَّلاَةِ: Neighboring/partial passage; does not establish deliberately missed obligatory prayers after repentance."
+    },
+    "F01827": {
+      "label": "P",
+      "reason": "صَلاَةُ التَّوْبَةِ: Neighboring/partial passage; does not establish deliberately missed obligatory prayers after repentance."
+    },
+    "F01842": {
+      "label": "X",
+      "reason": "الصَّلاَةُ عَلَى النَّبِيِّ: Available snippet concerns a different issue or generic definition; does not address deliberately missed obligatory prayers after repentance."
+    },
+    "F02318": {
+      "label": "X",
+      "reason": "قَضَاء: Available snippet concerns a different issue or generic definition; does not address deliberately missed obligatory prayers after repentance."
+    },
+    "F00560": {
+      "label": "X",
+      "reason": "انْقِضَاءٌ: Available snippet concerns a different issue or generic definition; does not address deliberately missed obligatory prayers after repentance."
+    },
+    "F01841": {
+      "label": "X",
+      "reason": "الصَّلاَةُ عَلَى الرَّاحِلَةِ (أَوِ الدَّابَّةِ): Available snippet concerns a different issue or generic definition; does not address deliberately missed obligatory prayers after repentance."
+    },
+    "F01858": {
+      "label": "X",
+      "reason": "الصَّلاَةُ الْوُسْطَى: Available snippet concerns a different issue or generic definition; does not address deliberately missed obligatory prayers after repentance."
+    },
+    "F02319": {
+      "label": "X",
+      "reason": "قَضَاءُ الْحَاجَةِ: Available snippet concerns a different issue or generic definition; does not address deliberately missed obligatory prayers after repentance."
+    },
+    "F01227": {
+      "label": "X",
+      "reason": "حُدُودٌ: Available snippet concerns a different issue or generic definition; does not address deliberately missed obligatory prayers after repentance."
+    },
+    "F02219": {
+      "label": "X",
+      "reason": "فَسَاد: Available snippet concerns a different issue or generic definition; does not address deliberately missed obligatory prayers after repentance."
+    },
+    "F00141": {
+      "label": "X",
+      "reason": "اخْتِلاَلٌ: Available snippet concerns a different issue or generic definition; does not address deliberately missed obligatory prayers after repentance."
+    },
+    "F00224": {
+      "label": "X",
+      "reason": "اسْتِخْلاَفٌ: Available snippet concerns a different issue or generic definition; does not address deliberately missed obligatory prayers after repentance."
+    },
+    "F00226": {
+      "label": "X",
+      "reason": "اسْتِدْرَاكٌ: Available snippet concerns a different issue or generic definition; does not address deliberately missed obligatory prayers after repentance."
+    },
+    "F00273": {
+      "label": "P",
+      "reason": "اسْتِغْفَار: Neighboring/partial passage; does not establish deliberately missed obligatory prayers after repentance."
+    },
+    "F00356": {
+      "label": "X",
+      "reason": "إِصْلاَحٌ: Available snippet concerns a different issue or generic definition; does not address deliberately missed obligatory prayers after repentance."
+    },
+    "F00432": {
+      "label": "X",
+      "reason": "إِفْسَادٌ: Available snippet concerns a different issue or generic definition; does not address deliberately missed obligatory prayers after repentance."
+    },
+    "F00552": {
+      "label": "X",
+      "reason": "أَنْفٌ: Available snippet concerns a different issue or generic definition; does not address deliberately missed obligatory prayers after repentance."
+    },
+    "F00648": {
+      "label": "X",
+      "reason": "بَرَاءَةٌ: Available snippet concerns a different issue or generic definition; does not address deliberately missed obligatory prayers after repentance."
+    },
+    "F00669": {
+      "label": "X",
+      "reason": "بَصَرٌ: Available snippet concerns a different issue or generic definition; does not address deliberately missed obligatory prayers after repentance."
+    },
+    "F00674": {
+      "label": "X",
+      "reason": "بُطْلاَنٌ: Available snippet concerns a different issue or generic definition; does not address deliberately missed obligatory prayers after repentance."
+    },
+    "F00843": {
+      "label": "X",
+      "reason": "تَحْوِيلٌ: Available snippet concerns a different issue or generic definition; does not address deliberately missed obligatory prayers after repentance."
+    },
+    "F00869": {
+      "label": "X",
+      "reason": "تَدَارُكٌ: Available snippet concerns a different issue or generic definition; does not address deliberately missed obligatory prayers after repentance."
+    },
+    "F00881": {
+      "label": "X",
+      "reason": "تُرَابٌ: Available snippet concerns a different issue or generic definition; does not address deliberately missed obligatory prayers after repentance."
+    },
+    "F00976": {
+      "label": "X",
+      "reason": "تَعْجِيلٌ: Available snippet concerns a different issue or generic definition; does not address deliberately missed obligatory prayers after repentance."
+    },
+    "F00982": {
+      "label": "X",
+      "reason": "تَعْزِيرٌ: Available snippet concerns a different issue or generic definition; does not address deliberately missed obligatory prayers after repentance."
+    },
+    "F01204": {
+      "label": "X",
+      "reason": "حَامِلٌ: Available snippet concerns a different issue or generic definition; does not address deliberately missed obligatory prayers after repentance."
+    },
+    "F01207": {
+      "label": "X",
+      "reason": "حَبْسٌ: Available snippet concerns a different issue or generic definition; does not address deliberately missed obligatory prayers after repentance."
+    }
+  },
+  "b1": {
+    "F00139": {
+      "label": "X",
+      "reason": "اخْتِلاَفُ الدِّينِ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F00137": {
+      "label": "P",
+      "reason": "اخْتِلاَفٌ: Neighboring/partial passage; does not establish the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F00138": {
+      "label": "X",
+      "reason": "اخْتِلاَفُ الدَّارِ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F01171": {
+      "label": "X",
+      "reason": "جَمَاعَةٌ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F01612": {
+      "label": "X",
+      "reason": "سَبٌّ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F01831": {
+      "label": "X",
+      "reason": "صَلاَةُ الْحَاجَةِ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F01851": {
+      "label": "X",
+      "reason": "صَلاَةُ الْمَرِيضِ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F02565": {
+      "label": "X",
+      "reason": "مَدْحٌ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F02723": {
+      "label": "X",
+      "reason": "- وَغَيْرَ مَصْحُوبٍ بِهَا.: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F03018": {
+      "label": "X",
+      "reason": "وَسْوَسَةٌ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F00105": {
+      "label": "X",
+      "reason": "إِحْدَادٌ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F00175": {
+      "label": "X",
+      "reason": "أَرْحَامٌ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F00181": {
+      "label": "X",
+      "reason": "أَرْضٌ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F00216": {
+      "label": "X",
+      "reason": "اسْتِحْدَادٌ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F00271": {
+      "label": "X",
+      "reason": "اسْتِغَاثَة: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F00314": {
+      "label": "X",
+      "reason": "اسْتِيفَاء: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F00344": {
+      "label": "X",
+      "reason": "الأَْشْرِبَةُ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F00379": {
+      "label": "X",
+      "reason": "إِعَانَةٌ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F00467": {
+      "label": "X",
+      "reason": "أَلْبِسَةٌ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F00555": {
+      "label": "X",
+      "reason": "انْفِرَادٌ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F00585": {
+      "label": "X",
+      "reason": "أَهْلِيَّةٌ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F00655": {
+      "label": "X",
+      "reason": "بِرُّ الْوَالِدَيْنِ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F00681": {
+      "label": "X",
+      "reason": "بُكَاءٌ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F00686": {
+      "label": "X",
+      "reason": "بُلُوغٌ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F00756": {
+      "label": "X",
+      "reason": "تَأْخِيرٌ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F00801": {
+      "label": "X",
+      "reason": "تِجَارَةٌ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F00833": {
+      "label": "X",
+      "reason": "تَحَلُّلٌ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F00850": {
+      "label": "X",
+      "reason": "تَخَتُّمٌ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F00851": {
+      "label": "X",
+      "reason": "تَخْدِيرٌ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F00888": {
+      "label": "X",
+      "reason": "تَرَبُّعٌ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F00923": {
+      "label": "X",
+      "reason": "تَسْلِيمٌ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    },
+    "F00925": {
+      "label": "X",
+      "reason": "تَسْمِيَةٌ: Available snippet concerns a different issue or generic definition; does not address the grade/source of the specified disagreement-is-mercy hadith."
+    }
+  },
+  "b2": {
+    "F00947": {
+      "label": "X",
+      "reason": "تَصْحِيحٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F00023": {
+      "label": "X",
+      "reason": "إِبَاحَة: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F00131": {
+      "label": "X",
+      "reason": "اخْتِضَابٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F00223": {
+      "label": "X",
+      "reason": "اسْتِخْفَافٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F00327": {
+      "label": "X",
+      "reason": "إِسْلاَمٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F00615": {
+      "label": "X",
+      "reason": "إِيمَانٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F00655": {
+      "label": "X",
+      "reason": "بِرُّ الْوَالِدَيْنِ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F00667": {
+      "label": "X",
+      "reason": "بِشَارَةٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F00678": {
+      "label": "X",
+      "reason": "بُغَاةٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F00748": {
+      "label": "X",
+      "reason": "بَيْعَةٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F00806": {
+      "label": "X",
+      "reason": "تَجَسُّسٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F00934": {
+      "label": "X",
+      "reason": "تَشَبُّهٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F00957": {
+      "label": "X",
+      "reason": "تَصْوِيرٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F00981": {
+      "label": "X",
+      "reason": "تَعْرِيضٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F00997": {
+      "label": "X",
+      "reason": "تَعْوِيذٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F01095": {
+      "label": "X",
+      "reason": "تَوْسِعَةٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F01099": {
+      "label": "X",
+      "reason": "تَوَكُّلٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F01111": {
+      "label": "X",
+      "reason": "ثُبُوتٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F01158": {
+      "label": "X",
+      "reason": "جَزْمٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F01184": {
+      "label": "X",
+      "reason": "جِهَادٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F01191": {
+      "label": "X",
+      "reason": "جِوَارٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F01261": {
+      "label": "X",
+      "reason": "حَقٌّ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F01269": {
+      "label": "X",
+      "reason": "حَلِفٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F01296": {
+      "label": "X",
+      "reason": "حَيَاءٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F01488": {
+      "label": "X",
+      "reason": "رِبَاطٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F01506": {
+      "label": "X",
+      "reason": "رُخْصَةٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F01512": {
+      "label": "X",
+      "reason": "رِدَّةٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F01530": {
+      "label": "X",
+      "reason": "رِفْقٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F01574": {
+      "label": "X",
+      "reason": "لاَ شَيْءَ فِيهَا: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F01750": {
+      "label": "X",
+      "reason": "شَفَاعَةٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F01928": {
+      "label": "X",
+      "reason": "طَلاَقٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    },
+    "F01931": {
+      "label": "X",
+      "reason": "طُمَأْنِينَةٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified love-of-homeland hadith."
+    }
+  },
+  "b3": {
+    "F00422": {
+      "label": "X",
+      "reason": "إِفَاقَةٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified nightly al-Waqia hadith."
+    },
+    "F00449": {
+      "label": "X",
+      "reason": "إِقْرَاءٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified nightly al-Waqia hadith."
+    },
+    "F01704": {
+      "label": "X",
+      "reason": "سُورَة: Available snippet concerns a different issue or generic definition; does not address the grade of the specified nightly al-Waqia hadith."
+    },
+    "F02287": {
+      "label": "X",
+      "reason": "قُرْآنٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified nightly al-Waqia hadith."
+    },
+    "F02288": {
+      "label": "X",
+      "reason": "قِرَاءَاتٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified nightly al-Waqia hadith."
+    },
+    "F02289": {
+      "label": "X",
+      "reason": "قِرَاءَةٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified nightly al-Waqia hadith."
+    },
+    "F02294": {
+      "label": "X",
+      "reason": "قِرَان: Available snippet concerns a different issue or generic definition; does not address the grade of the specified nightly al-Waqia hadith."
+    },
+    "F02465": {
+      "label": "X",
+      "reason": "لَيْلَةُ الْقَدْرِ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified nightly al-Waqia hadith."
+    },
+    "F00027": {
+      "label": "X",
+      "reason": "إِبْدَال: Available snippet concerns a different issue or generic definition; does not address the grade of the specified nightly al-Waqia hadith."
+    },
+    "F00284": {
+      "label": "X",
+      "reason": "اسْتِقْرَاض: Available snippet concerns a different issue or generic definition; does not address the grade of the specified nightly al-Waqia hadith."
+    },
+    "F01791": {
+      "label": "X",
+      "reason": "صِحَّةٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified nightly al-Waqia hadith."
+    },
+    "F00283": {
+      "label": "X",
+      "reason": "اسْتِقْرَاء: Available snippet concerns a different issue or generic definition; does not address the grade of the specified nightly al-Waqia hadith."
+    },
+    "F00450": {
+      "label": "X",
+      "reason": "إِقْرَارٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified nightly al-Waqia hadith."
+    },
+    "F00559": {
+      "label": "X",
+      "reason": "انْقِرَاضٌ: Available snippet concerns a different issue or generic definition; does not address the grade of the specified nightly al-Waqia hadith."
+    },
+    "F02291": {
+      "label": "X",
+      "reason": "قَرَابَة: Available snippet concerns a different issue or generic definition; does not address the grade of the specified nightly al-Waqia hadith."
+    }
+  },
+  "c1": {
+    "F01501": {
+      "label": "X",
+      "reason": "رَجُلٌ: Available snippet concerns a different issue or generic definition; does not address intercourse in umrah before tawaf and ignorance of the prohibition."
+    },
+    "F01502": {
+      "label": "X",
+      "reason": "رِجْلٌ: Available snippet concerns a different issue or generic definition; does not address intercourse in umrah before tawaf and ignorance of the prohibition."
+    },
+    "F00109": {
+      "label": "P",
+      "reason": "الرُّكْنِ انْتِهَاءً».: Neighboring/partial passage; does not establish intercourse in umrah before tawaf and ignorance of the prohibition."
+    },
+    "F00112": {
+      "label": "P",
+      "reason": "إِحْصَارٌ: Neighboring/partial passage; does not establish intercourse in umrah before tawaf and ignorance of the prohibition."
+    },
+    "F00430": {
+      "label": "X",
+      "reason": "إِفْرَادٌ: Available snippet concerns a different issue or generic definition; does not address intercourse in umrah before tawaf and ignorance of the prohibition."
+    },
+    "F00823": {
+      "label": "P",
+      "reason": "تَحْرِيمٌ: Neighboring/partial passage; does not establish intercourse in umrah before tawaf and ignorance of the prohibition."
+    },
+    "F00838": {
+      "label": "X",
+      "reason": "تَحْلِيَةٌ: Available snippet concerns a different issue or generic definition; does not address intercourse in umrah before tawaf and ignorance of the prohibition."
+    },
+    "F01529": {
+      "label": "P",
+      "reason": "رَفْضٌ: Neighboring/partial passage; does not establish intercourse in umrah before tawaf and ignorance of the prohibition."
+    },
+    "F02246": {
+      "label": "X",
+      "reason": "فَوَات: Available snippet concerns a different issue or generic definition; does not address intercourse in umrah before tawaf and ignorance of the prohibition."
+    },
+    "F02294": {
+      "label": "X",
+      "reason": "قِرَان: Available snippet concerns a different issue or generic definition; does not address intercourse in umrah before tawaf and ignorance of the prohibition."
+    },
+    "F02389": {
+      "label": "X",
+      "reason": "كِسْوَةٌ: Available snippet concerns a different issue or generic definition; does not address intercourse in umrah before tawaf and ignorance of the prohibition."
+    },
+    "F02652": {
+      "label": "X",
+      "reason": "مُسَخَّرٌ: Available snippet concerns a different issue or generic definition; does not address intercourse in umrah before tawaf and ignorance of the prohibition."
+    },
+    "F00420": {
+      "label": "X",
+      "reason": "إِغْمَاءٌ: Available snippet concerns a different issue or generic definition; does not address intercourse in umrah before tawaf and ignorance of the prohibition."
+    },
+    "F00514": {
+      "label": "X",
+      "reason": "أَمْنٌ: Available snippet concerns a different issue or generic definition; does not address intercourse in umrah before tawaf and ignorance of the prohibition."
+    },
+    "F00783": {
+      "label": "X",
+      "reason": "تَبْعِيضٌ: Available snippet concerns a different issue or generic definition; does not address intercourse in umrah before tawaf and ignorance of the prohibition."
+    },
+    "F00907": {
+      "label": "X",
+      "reason": "تَزَاحُمٌ: Available snippet concerns a different issue or generic definition; does not address intercourse in umrah before tawaf and ignorance of the prohibition."
+    },
+    "F00937": {
+      "label": "X",
+      "reason": "تَشْبِيهٌ: Available snippet concerns a different issue or generic definition; does not address intercourse in umrah before tawaf and ignorance of the prohibition."
+    },
+    "F00967": {
+      "label": "X",
+      "reason": "تَطَيُّبٌ: Available snippet concerns a different issue or generic definition; does not address intercourse in umrah before tawaf and ignorance of the prohibition."
+    }
+  },
+  "c2": {
+    "F01936": {
+      "label": "P",
+      "reason": "طَوَافٌ: Neighboring/partial passage; does not establish menses during tawaf al-ifada, ignorance, and the schools."
+    },
+    "F00500": {
+      "label": "X",
+      "reason": "امْرَأَةٌ: Available snippet concerns a different issue or generic definition; does not address menses during tawaf al-ifada, ignorance, and the schools."
+    },
+    "F01575": {
+      "label": "X",
+      "reason": "مَنْ كَانَ عَلَيْهِ دَيْنٌ لِمَصْلَحَةِ نَفْسِهِ.: Available snippet concerns a different issue or generic definition; does not address menses during tawaf al-ifada, ignorance, and the schools."
+    }
+  },
+  "c3": {
+    "F01877": {
+      "label": "X",
+      "reason": "صَوْمٌ: Available snippet concerns a different issue or generic definition; does not address a specified-month fasting vow missed through recoverable illness."
+    },
+    "F01878": {
+      "label": "X",
+      "reason": "صَوْمُ التَّطَوُّعِ: Available snippet concerns a different issue or generic definition; does not address a specified-month fasting vow missed through recoverable illness."
+    },
+    "F01768": {
+      "label": "X",
+      "reason": "شَهْرٌ: Available snippet concerns a different issue or generic definition; does not address a specified-month fasting vow missed through recoverable illness."
+    },
+    "F02401": {
+      "label": "P",
+      "reason": "كَفَّارَة: Neighboring/partial passage; does not establish a specified-month fasting vow missed through recoverable illness."
+    },
+    "F01575": {
+      "label": "X",
+      "reason": "مَنْ كَانَ عَلَيْهِ دَيْنٌ لِمَصْلَحَةِ نَفْسِهِ.: Available snippet concerns a different issue or generic definition; does not address a specified-month fasting vow missed through recoverable illness."
+    },
+    "F02200": {
+      "label": "P",
+      "reason": "فِدْيَة: Neighboring/partial passage; does not establish a specified-month fasting vow missed through recoverable illness."
+    },
+    "F02543": {
+      "label": "X",
+      "reason": "مَحْكُومٌ عَلَيْهِ: Available snippet concerns a different issue or generic definition; does not address a specified-month fasting vow missed through recoverable illness."
+    },
+    "F02899": {
+      "label": "P",
+      "reason": "نَذْرٌ: Neighboring/partial passage; does not establish a specified-month fasting vow missed through recoverable illness."
+    },
+    "F00349": {
+      "label": "X",
+      "reason": "أَشْهُرُ الْحَجِّ: Available snippet concerns a different issue or generic definition; does not address a specified-month fasting vow missed through recoverable illness."
+    },
+    "F00350": {
+      "label": "X",
+      "reason": "الأَْشْهُرُ الْحُرُمُ: Available snippet concerns a different issue or generic definition; does not address a specified-month fasting vow missed through recoverable illness."
+    },
+    "F00792": {
+      "label": "P",
+      "reason": "تَتَابُعٌ: Neighboring/partial passage; does not establish a specified-month fasting vow missed through recoverable illness."
+    },
+    "F01327": {
+      "label": "X",
+      "reason": "خُصُومَةٌ: Available snippet concerns a different issue or generic definition; does not address a specified-month fasting vow missed through recoverable illness."
+    },
+    "F01445": {
+      "label": "P",
+      "reason": "دَيْنُ اللَّهِ: Neighboring/partial passage; does not establish a specified-month fasting vow missed through recoverable illness."
+    },
+    "F01664": {
+      "label": "X",
+      "reason": "سُقُوطٌ: Available snippet concerns a different issue or generic definition; does not address a specified-month fasting vow missed through recoverable illness."
+    },
+    "F01974": {
+      "label": "X",
+      "reason": "عِتْق: Available snippet concerns a different issue or generic definition; does not address a specified-month fasting vow missed through recoverable illness."
+    },
+    "F02599": {
+      "label": "P",
+      "reason": "مَرَضٌ: Neighboring/partial passage; does not establish a specified-month fasting vow missed through recoverable illness."
+    },
+    "F02600": {
+      "label": "X",
+      "reason": "مَرَضُ الْمَوْتِ: Available snippet concerns a different issue or generic definition; does not address a specified-month fasting vow missed through recoverable illness."
+    },
+    "F03065": {
+      "label": "X",
+      "reason": "يَوْمٌ: Available snippet concerns a different issue or generic definition; does not address a specified-month fasting vow missed through recoverable illness."
+    }
+  }
+}
