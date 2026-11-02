@@ -1,5 +1,5 @@
 {
-  "status": "PRICE_REQUIRED",
+  "status": "PASS",
   "completed": true,
   "selectionRule": "Choose the cheapest model with median precision@10 >= 0.8 and B2 precision@10 at least the lexical baseline. Break equal-cost ties by lower measured p90 latency. If none reaches 0.8, choose the best model reaching 0.7 and mark NEEDS_OWNER. If none reaches 0.7, mark FAILED and stop; do not execute later steps. Use the unchanged 450 candidates and committed R/P/X labels. Rejected API model names are recorded and excluded. No price or model result will be invented. Maximum calls: 40; model calls planned: 27 (nine questions for each of three models). Threshold: highest score among X candidates; only strictly greater scores can show a card.",
   "selectionRuleRecordedBeforeCalls": "EZIK-QAF-GAP-REPORT-D-2026-11-02.md, Step 4; report E before live calls",
@@ -5745,7 +5745,76 @@
           "score": 3.8762133999999997,
           "suppressed": true
         }
-      ]
+      ],
+      "cost": {
+        "usd": 0.034,
+        "upperBound": false,
+        "rows": [
+          {
+            "id": "a1",
+            "units": 2,
+            "unit": "search_units",
+            "usd": 0.004,
+            "upperBound": false
+          },
+          {
+            "id": "a2",
+            "units": 2,
+            "unit": "search_units",
+            "usd": 0.004,
+            "upperBound": false
+          },
+          {
+            "id": "a3",
+            "units": 2,
+            "unit": "search_units",
+            "usd": 0.004,
+            "upperBound": false
+          },
+          {
+            "id": "b1",
+            "units": 2,
+            "unit": "search_units",
+            "usd": 0.004,
+            "upperBound": false
+          },
+          {
+            "id": "b2",
+            "units": 2,
+            "unit": "search_units",
+            "usd": 0.004,
+            "upperBound": false
+          },
+          {
+            "id": "b3",
+            "units": 2,
+            "unit": "search_units",
+            "usd": 0.004,
+            "upperBound": false
+          },
+          {
+            "id": "c1",
+            "units": 2,
+            "unit": "search_units",
+            "usd": 0.004,
+            "upperBound": false
+          },
+          {
+            "id": "c2",
+            "units": 1,
+            "unit": "search_units",
+            "usd": 0.002,
+            "upperBound": false
+          },
+          {
+            "id": "c3",
+            "units": 2,
+            "unit": "search_units",
+            "usd": 0.004,
+            "upperBound": false
+          }
+        ]
+      }
     },
     {
       "model": "rerank-v4.0-fast",
@@ -7661,7 +7730,76 @@
           "score": 6.7026305,
           "suppressed": true
         }
-      ]
+      ],
+      "cost": {
+        "usd": 0.034,
+        "upperBound": false,
+        "rows": [
+          {
+            "id": "a1",
+            "units": 2,
+            "unit": "search_units",
+            "usd": 0.004,
+            "upperBound": false
+          },
+          {
+            "id": "a2",
+            "units": 2,
+            "unit": "search_units",
+            "usd": 0.004,
+            "upperBound": false
+          },
+          {
+            "id": "a3",
+            "units": 2,
+            "unit": "search_units",
+            "usd": 0.004,
+            "upperBound": false
+          },
+          {
+            "id": "b1",
+            "units": 2,
+            "unit": "search_units",
+            "usd": 0.004,
+            "upperBound": false
+          },
+          {
+            "id": "b2",
+            "units": 2,
+            "unit": "search_units",
+            "usd": 0.004,
+            "upperBound": false
+          },
+          {
+            "id": "b3",
+            "units": 2,
+            "unit": "search_units",
+            "usd": 0.004,
+            "upperBound": false
+          },
+          {
+            "id": "c1",
+            "units": 2,
+            "unit": "search_units",
+            "usd": 0.004,
+            "upperBound": false
+          },
+          {
+            "id": "c2",
+            "units": 1,
+            "unit": "search_units",
+            "usd": 0.002,
+            "upperBound": false
+          },
+          {
+            "id": "c3",
+            "units": 2,
+            "unit": "search_units",
+            "usd": 0.004,
+            "upperBound": false
+          }
+        ]
+      }
     },
     {
       "model": "rerank-v4.0-pro",
@@ -9577,16 +9715,5114 @@
           "score": 8.114371,
           "suppressed": true
         }
+      ],
+      "cost": {
+        "usd": 0.0425,
+        "upperBound": false,
+        "rows": [
+          {
+            "id": "a1",
+            "units": 2,
+            "unit": "search_units",
+            "usd": 0.005,
+            "upperBound": false
+          },
+          {
+            "id": "a2",
+            "units": 2,
+            "unit": "search_units",
+            "usd": 0.005,
+            "upperBound": false
+          },
+          {
+            "id": "a3",
+            "units": 2,
+            "unit": "search_units",
+            "usd": 0.005,
+            "upperBound": false
+          },
+          {
+            "id": "b1",
+            "units": 2,
+            "unit": "search_units",
+            "usd": 0.005,
+            "upperBound": false
+          },
+          {
+            "id": "b2",
+            "units": 2,
+            "unit": "search_units",
+            "usd": 0.005,
+            "upperBound": false
+          },
+          {
+            "id": "b3",
+            "units": 2,
+            "unit": "search_units",
+            "usd": 0.005,
+            "upperBound": false
+          },
+          {
+            "id": "c1",
+            "units": 2,
+            "unit": "search_units",
+            "usd": 0.005,
+            "upperBound": false
+          },
+          {
+            "id": "c2",
+            "units": 1,
+            "unit": "search_units",
+            "usd": 0.0025,
+            "upperBound": false
+          },
+          {
+            "id": "c3",
+            "units": 2,
+            "unit": "search_units",
+            "usd": 0.005,
+            "upperBound": false
+          }
+        ]
+      }
+    },
+    {
+      "model": "rerank-v5.0-fast",
+      "rows": [
+        {
+          "id": "a1",
+          "status": "PASS",
+          "ms": 1772.0431999999998,
+          "failureMs": 1772.0431999999998,
+          "billed_units": {
+            "input_tokens": 32935
+          },
+          "precisionAt10": 0.8,
+          "ranking": [
+            {
+              "id": "qaf:a1:21b47aeb-a5f9-5b1e-a035-640c6994a89c",
+              "score": 8.329514,
+              "relevance_score": 0.8329514
+            },
+            {
+              "id": "qaf:a1:35d1a7c8-07ce-5ec1-b8ff-cbf75bb22932",
+              "score": 8.2719237,
+              "relevance_score": 0.82719237
+            },
+            {
+              "id": "qaf:a1:771bb3a0-952f-5806-b3e4-d0162ae11bfe",
+              "score": 8.239281,
+              "relevance_score": 0.8239281
+            },
+            {
+              "id": "qaf:a1:4342cc3e-9712-54cc-9d8f-029a1130e57a",
+              "score": 8.2080793,
+              "relevance_score": 0.82080793
+            },
+            {
+              "id": "qaf:a1:144c6a79-e860-5b51-a5f0-186cb1501b29",
+              "score": 8.155567,
+              "relevance_score": 0.8155567
+            },
+            {
+              "id": "qaf:a1:db463408-2597-565a-91e2-e32f30eb4830",
+              "score": 8.1555104,
+              "relevance_score": 0.81555104
+            },
+            {
+              "id": "ezik:a1#1",
+              "score": 8.1378335,
+              "relevance_score": 0.81378335
+            },
+            {
+              "id": "qaf:a1:b475afed-03f2-5fb0-b99c-7565759a7c4e",
+              "score": 8.079467000000001,
+              "relevance_score": 0.8079467
+            },
+            {
+              "id": "qaf:a1:c2393446-5382-5e25-8f06-7d5a7ebc9255",
+              "score": 8.0629194,
+              "relevance_score": 0.80629194
+            },
+            {
+              "id": "qaf:a1:9208095d-fc92-5016-aa91-e21d6837b403",
+              "score": 8.018555000000001,
+              "relevance_score": 0.8018555
+            },
+            {
+              "id": "qaf:a1:b1e5b689-a518-59c8-9ccb-d289395e5ef3",
+              "score": 7.981823,
+              "relevance_score": 0.7981823
+            },
+            {
+              "id": "qaf:a1:afdb5f6f-ab78-5b2b-ac2d-d059761befba",
+              "score": 7.9286015,
+              "relevance_score": 0.79286015
+            },
+            {
+              "id": "qaf:a1:1fe324a9-14f3-5ef3-b645-cd2b4dc851e1",
+              "score": 7.919595,
+              "relevance_score": 0.7919595
+            },
+            {
+              "id": "qaf:a1:9796b039-6c6a-5101-b4c7-b6ff17eda0ad",
+              "score": 7.807258,
+              "relevance_score": 0.7807258
+            },
+            {
+              "id": "qaf:a1:fea02c33-9d51-563c-9b20-1d83b9383d6f",
+              "score": 7.7003706,
+              "relevance_score": 0.77003706
+            },
+            {
+              "id": "qaf:a1:ff4234aa-5499-5b72-9e10-069544b77602",
+              "score": 7.334959,
+              "relevance_score": 0.7334959
+            },
+            {
+              "id": "ezik:a1#4",
+              "score": 6.4480096,
+              "relevance_score": 0.64480096
+            },
+            {
+              "id": "encyc:F01173",
+              "score": 3.0631143,
+              "relevance_score": 0.30631143
+            },
+            {
+              "id": "encyc:F01852",
+              "score": 2.8539076000000003,
+              "relevance_score": 0.28539076
+            },
+            {
+              "id": "encyc:F00651",
+              "score": 2.4839346,
+              "relevance_score": 0.24839346
+            },
+            {
+              "id": "encyc:F00035",
+              "score": 1.7515779,
+              "relevance_score": 0.17515779
+            },
+            {
+              "id": "encyc:F01860",
+              "score": 0.932173,
+              "relevance_score": 0.0932173
+            },
+            {
+              "id": "encyc:F00590",
+              "score": 0.26068904,
+              "relevance_score": 0.026068904
+            },
+            {
+              "id": "encyc:F00976",
+              "score": 0.076051964,
+              "relevance_score": 0.0076051964
+            },
+            {
+              "id": "encyc:F00118",
+              "score": 0.06600018,
+              "relevance_score": 0.006600018
+            },
+            {
+              "id": "encyc:F01664",
+              "score": 0.063379426,
+              "relevance_score": 0.0063379426
+            },
+            {
+              "id": "encyc:F01187",
+              "score": 0.057270797,
+              "relevance_score": 0.0057270797
+            },
+            {
+              "id": "encyc:F02679",
+              "score": 0.042951684000000004,
+              "relevance_score": 0.0042951684
+            },
+            {
+              "id": "encyc:F01818",
+              "score": 0.041926710000000006,
+              "relevance_score": 0.004192671
+            },
+            {
+              "id": "encyc:F00645",
+              "score": 0.04073243,
+              "relevance_score": 0.004073243
+            },
+            {
+              "id": "encyc:F01829",
+              "score": 0.033705027,
+              "relevance_score": 0.0033705027
+            },
+            {
+              "id": "encyc:F02572",
+              "score": 0.02756052,
+              "relevance_score": 0.002756052
+            },
+            {
+              "id": "encyc:F02321",
+              "score": 0.02699797,
+              "relevance_score": 0.002699797
+            },
+            {
+              "id": "encyc:F00785",
+              "score": 0.02643157,
+              "relevance_score": 0.002643157
+            },
+            {
+              "id": "encyc:F00158",
+              "score": 0.025562758,
+              "relevance_score": 0.0025562758
+            },
+            {
+              "id": "encyc:F01698",
+              "score": 0.025438294,
+              "relevance_score": 0.0025438294
+            },
+            {
+              "id": "encyc:F00756",
+              "score": 0.023818032000000003,
+              "relevance_score": 0.0023818032
+            },
+            {
+              "id": "encyc:F00851",
+              "score": 0.019217831,
+              "relevance_score": 0.0019217831
+            },
+            {
+              "id": "encyc:F03011",
+              "score": 0.018605731,
+              "relevance_score": 0.0018605731
+            },
+            {
+              "id": "encyc:F02615",
+              "score": 0.018113711,
+              "relevance_score": 0.0018113711
+            },
+            {
+              "id": "encyc:F03066",
+              "score": 0.013779564,
+              "relevance_score": 0.0013779564
+            },
+            {
+              "id": "encyc:F00514",
+              "score": 0.013173328000000002,
+              "relevance_score": 0.0013173328
+            },
+            {
+              "id": "encyc:F02273",
+              "score": 0.012696497999999999,
+              "relevance_score": 0.0012696498
+            },
+            {
+              "id": "encyc:F00458",
+              "score": 0.011181617,
+              "relevance_score": 0.0011181617
+            },
+            {
+              "id": "encyc:F03032",
+              "score": 0.010489827,
+              "relevance_score": 0.0010489827
+            },
+            {
+              "id": "encyc:F01007",
+              "score": 0.00832568,
+              "relevance_score": 0.000832568
+            },
+            {
+              "id": "ezik:a1#3",
+              "score": 0.0074907154,
+              "relevance_score": 0.00074907154
+            },
+            {
+              "id": "ezik:a1#6",
+              "score": 0.0074907154,
+              "relevance_score": 0.00074907154
+            },
+            {
+              "id": "ezik:a1#2",
+              "score": 0.007490712,
+              "relevance_score": 0.0007490712
+            },
+            {
+              "id": "ezik:a1#5",
+              "score": 0.007490712,
+              "relevance_score": 0.0007490712
+            }
+          ],
+          "providerOutcome": "bad_response",
+          "observationNote": "Exact live scores independently validated offline; unchanged D provider rejected input_tokens billing because it requires search_units."
+        },
+        {
+          "id": "a2",
+          "status": "PASS",
+          "ms": 1106.3952000000002,
+          "failureMs": 1106.3952000000002,
+          "billed_units": {
+            "input_tokens": 30813
+          },
+          "precisionAt10": 1,
+          "ranking": [
+            {
+              "id": "qaf:a2:7d99e1a0-5f38-54e5-ab6d-d95a377668b1",
+              "score": 8.751116,
+              "relevance_score": 0.8751116
+            },
+            {
+              "id": "qaf:a2:625b4f8f-f6ac-545a-bd87-3e0d9b09f543",
+              "score": 8.720915999999999,
+              "relevance_score": 0.8720916
+            },
+            {
+              "id": "ezik:a2#3",
+              "score": 8.595126,
+              "relevance_score": 0.8595126
+            },
+            {
+              "id": "qaf:a2:356ea7aa-720f-5033-9c16-91d26a8fe7ca",
+              "score": 8.568667,
+              "relevance_score": 0.8568667
+            },
+            {
+              "id": "qaf:a2:a0f602de-3390-51af-8efd-5539a5fa78b8",
+              "score": 8.5238665,
+              "relevance_score": 0.85238665
+            },
+            {
+              "id": "qaf:a2:060c543b-a6c2-5c50-a8e7-61cf9989e310",
+              "score": 8.420428,
+              "relevance_score": 0.8420428
+            },
+            {
+              "id": "qaf:a2:ff89c916-401a-5cc2-9f3a-00ad0844ccca",
+              "score": 8.295356,
+              "relevance_score": 0.8295356
+            },
+            {
+              "id": "qaf:a2:12c3bbd4-0ad9-55fd-b388-7547ae9b28f6",
+              "score": 8.2943827,
+              "relevance_score": 0.82943827
+            },
+            {
+              "id": "qaf:a2:5d0139b1-7b8c-55c1-b71f-e79c0f2184cd",
+              "score": 8.257849,
+              "relevance_score": 0.8257849
+            },
+            {
+              "id": "qaf:a2:ec815d45-9bed-57f4-ab00-09e49f63398d",
+              "score": 8.131736,
+              "relevance_score": 0.8131736
+            },
+            {
+              "id": "qaf:a2:57290597-0cc8-5145-a9ea-c9b2c1869c16",
+              "score": 7.966326500000001,
+              "relevance_score": 0.79663265
+            },
+            {
+              "id": "qaf:a2:6c947083-c8c2-5dc7-ab04-5e37312aba4a",
+              "score": 7.930129,
+              "relevance_score": 0.7930129
+            },
+            {
+              "id": "qaf:a2:40a8daaf-322d-59b8-b9c8-0a8322fa2166",
+              "score": 7.772544999999999,
+              "relevance_score": 0.7772545
+            },
+            {
+              "id": "qaf:a2:71f44af7-dd5f-5b95-a7df-22c2afd6d280",
+              "score": 7.7178526000000005,
+              "relevance_score": 0.77178526
+            },
+            {
+              "id": "qaf:a2:341eac64-078e-59b7-815f-cd7370a225d8",
+              "score": 7.707033,
+              "relevance_score": 0.7707033
+            },
+            {
+              "id": "qaf:a2:62037973-e5b9-51bd-83ab-288b7f176684",
+              "score": 7.6928514,
+              "relevance_score": 0.76928514
+            },
+            {
+              "id": "qaf:a2:a8244260-b0ad-5d98-a28a-84125705a5f2",
+              "score": 7.656688000000001,
+              "relevance_score": 0.7656688
+            },
+            {
+              "id": "qaf:a2:7e18cb45-a2a0-58e3-b70c-f8d55d2e06da",
+              "score": 7.353616,
+              "relevance_score": 0.7353616
+            },
+            {
+              "id": "qaf:a2:7b290077-758c-525b-88ce-1a2ef9218443",
+              "score": 7.208848,
+              "relevance_score": 0.7208848
+            },
+            {
+              "id": "ezik:a2#1",
+              "score": 7.2043663,
+              "relevance_score": 0.72043663
+            },
+            {
+              "id": "qaf:a2:5d1963cd-8408-5cf3-bbc6-4496c44ce09f",
+              "score": 7.068925,
+              "relevance_score": 0.7068925
+            },
+            {
+              "id": "qaf:a2:6dec5f9b-4137-5f0f-8f2f-7819e33eff64",
+              "score": 7.0091176,
+              "relevance_score": 0.70091176
+            },
+            {
+              "id": "qaf:a2:5863cf6d-7673-59b4-b69f-36efa6d6c2d8",
+              "score": 7.0084804,
+              "relevance_score": 0.70084804
+            },
+            {
+              "id": "qaf:a2:0fc8a652-535a-5797-84b2-4b96e4831fdc",
+              "score": 6.9103769999999995,
+              "relevance_score": 0.6910377
+            },
+            {
+              "id": "ezik:a2#6",
+              "score": 6.6382664,
+              "relevance_score": 0.66382664
+            },
+            {
+              "id": "qaf:a2:3842b6b2-f6bd-5145-8ccd-6a0a036e7b6a",
+              "score": 5.644437,
+              "relevance_score": 0.5644437
+            },
+            {
+              "id": "encyc:F01576",
+              "score": 5.326804000000001,
+              "relevance_score": 0.5326804
+            },
+            {
+              "id": "qaf:a2:67e6ecc9-6cae-5e49-8811-09999e2b2d00",
+              "score": 4.9422714,
+              "relevance_score": 0.49422714
+            },
+            {
+              "id": "encyc:F01572",
+              "score": 3.7471357,
+              "relevance_score": 0.37471357
+            },
+            {
+              "id": "ezik:a2#4",
+              "score": 2.1424498,
+              "relevance_score": 0.21424498
+            },
+            {
+              "id": "encyc:F01620",
+              "score": 2.0722964,
+              "relevance_score": 0.20722964
+            },
+            {
+              "id": "encyc:F00027",
+              "score": 1.3488935,
+              "relevance_score": 0.13488935
+            },
+            {
+              "id": "encyc:F01445",
+              "score": 1.1725185,
+              "relevance_score": 0.11725185
+            },
+            {
+              "id": "encyc:F01031",
+              "score": 0.9115797999999999,
+              "relevance_score": 0.09115798
+            },
+            {
+              "id": "encyc:F00145",
+              "score": 0.8000336600000001,
+              "relevance_score": 0.080003366
+            },
+            {
+              "id": "encyc:F01843",
+              "score": 0.52585173,
+              "relevance_score": 0.052585173
+            },
+            {
+              "id": "encyc:F00465",
+              "score": 0.3504579,
+              "relevance_score": 0.03504579
+            },
+            {
+              "id": "encyc:F02997",
+              "score": 0.31540471999999997,
+              "relevance_score": 0.031540472
+            },
+            {
+              "id": "encyc:F00371",
+              "score": 0.27899338,
+              "relevance_score": 0.027899338
+            },
+            {
+              "id": "encyc:F01180",
+              "score": 0.22140320000000002,
+              "relevance_score": 0.02214032
+            },
+            {
+              "id": "encyc:F02123",
+              "score": 0.16130888999999998,
+              "relevance_score": 0.016130889
+            },
+            {
+              "id": "encyc:F01818",
+              "score": 0.12873094,
+              "relevance_score": 0.012873094
+            },
+            {
+              "id": "encyc:F00867",
+              "score": 0.079861665,
+              "relevance_score": 0.0079861665
+            },
+            {
+              "id": "encyc:F01045",
+              "score": 0.046295775,
+              "relevance_score": 0.0046295775
+            },
+            {
+              "id": "encyc:F02109",
+              "score": 0.036551305,
+              "relevance_score": 0.0036551305
+            },
+            {
+              "id": "encyc:F00770",
+              "score": 0.035836622,
+              "relevance_score": 0.0035836622
+            },
+            {
+              "id": "encyc:F00783",
+              "score": 0.03164267,
+              "relevance_score": 0.003164267
+            },
+            {
+              "id": "encyc:F02853",
+              "score": 0.020131778,
+              "relevance_score": 0.0020131778
+            },
+            {
+              "id": "ezik:a2#2",
+              "score": 0.013806523999999999,
+              "relevance_score": 0.0013806524
+            },
+            {
+              "id": "ezik:a2#5",
+              "score": 0.013806523999999999,
+              "relevance_score": 0.0013806524
+            }
+          ],
+          "providerOutcome": "bad_response",
+          "observationNote": "Exact live scores independently validated offline; unchanged D provider rejected input_tokens billing because it requires search_units."
+        },
+        {
+          "id": "a3",
+          "status": "PASS",
+          "ms": 1096.5155,
+          "failureMs": 1096.5155,
+          "billed_units": {
+            "input_tokens": 31176
+          },
+          "precisionAt10": 0.8,
+          "ranking": [
+            {
+              "id": "ezik:a3#3",
+              "score": 8.2685477,
+              "relevance_score": 0.82685477
+            },
+            {
+              "id": "qaf:a3:5020a923-6814-5044-b89b-283add54114e",
+              "score": 8.017794,
+              "relevance_score": 0.8017794
+            },
+            {
+              "id": "qaf:a3:9a539106-9dc5-5174-b6a4-4713d429df24",
+              "score": 7.8132909999999995,
+              "relevance_score": 0.7813291
+            },
+            {
+              "id": "qaf:a3:2b2eb4ce-491b-50ef-bb57-921442229225",
+              "score": 7.6104503999999995,
+              "relevance_score": 0.76104504
+            },
+            {
+              "id": "qaf:a3:d1227c90-c75b-58a9-aef7-2b189168dbbd",
+              "score": 7.43757,
+              "relevance_score": 0.743757
+            },
+            {
+              "id": "qaf:a3:0a7b8b9d-4281-520a-aab1-e540b53582e1",
+              "score": 7.3524076,
+              "relevance_score": 0.73524076
+            },
+            {
+              "id": "qaf:a3:680e810a-8525-5b0d-8a71-978c94f534ac",
+              "score": 7.260798,
+              "relevance_score": 0.7260798
+            },
+            {
+              "id": "qaf:a3:58069170-9434-5cd7-8c2a-9189e0280d1f",
+              "score": 7.1970403,
+              "relevance_score": 0.71970403
+            },
+            {
+              "id": "qaf:a3:dfb65683-8d39-5acc-a5ef-d2a7944c19e6",
+              "score": 6.897595,
+              "relevance_score": 0.6897595
+            },
+            {
+              "id": "qaf:a3:586dfca5-0b6a-5bff-9c29-c4651c11922a",
+              "score": 6.587435,
+              "relevance_score": 0.6587435
+            },
+            {
+              "id": "ezik:a3#5",
+              "score": 6.101718,
+              "relevance_score": 0.6101718
+            },
+            {
+              "id": "qaf:a3:5b123fec-340b-5e11-82dc-07a6e78c36d2",
+              "score": 5.720271500000001,
+              "relevance_score": 0.57202715
+            },
+            {
+              "id": "qaf:a3:e2cda786-e7ee-588b-8584-3cfa2a9d71b7",
+              "score": 5.669037,
+              "relevance_score": 0.5669037
+            },
+            {
+              "id": "qaf:a3:82d4b862-b826-53ea-a11b-b4058a16918f",
+              "score": 5.560272,
+              "relevance_score": 0.5560272
+            },
+            {
+              "id": "encyc:F02321",
+              "score": 4.8075184,
+              "relevance_score": 0.48075184
+            },
+            {
+              "id": "qaf:a3:d28a44b8-c0fb-5349-85b3-f18a3e5c3b98",
+              "score": 3.9288625,
+              "relevance_score": 0.39288625
+            },
+            {
+              "id": "qaf:a3:cbd93c94-4ea3-56fc-a923-60497252330e",
+              "score": 3.8773093,
+              "relevance_score": 0.38773093
+            },
+            {
+              "id": "qaf:a3:f76075c3-5f7a-5c3a-a251-4a530921f565",
+              "score": 2.6338375000000003,
+              "relevance_score": 0.26338375
+            },
+            {
+              "id": "encyc:F00976",
+              "score": 2.4821666000000002,
+              "relevance_score": 0.24821666
+            },
+            {
+              "id": "encyc:F00224",
+              "score": 1.8926038,
+              "relevance_score": 0.18926038
+            },
+            {
+              "id": "encyc:F00226",
+              "score": 1.1187281,
+              "relevance_score": 0.11187281
+            },
+            {
+              "id": "encyc:F02319",
+              "score": 0.9119078,
+              "relevance_score": 0.09119078
+            },
+            {
+              "id": "encyc:F01827",
+              "score": 0.87108485,
+              "relevance_score": 0.087108485
+            },
+            {
+              "id": "encyc:F00590",
+              "score": 0.64732715,
+              "relevance_score": 0.064732715
+            },
+            {
+              "id": "encyc:F00674",
+              "score": 0.561654,
+              "relevance_score": 0.0561654
+            },
+            {
+              "id": "encyc:F00982",
+              "score": 0.5017969,
+              "relevance_score": 0.05017969
+            },
+            {
+              "id": "encyc:F02219",
+              "score": 0.48318047000000003,
+              "relevance_score": 0.048318047
+            },
+            {
+              "id": "encyc:F02318",
+              "score": 0.39669808,
+              "relevance_score": 0.039669808
+            },
+            {
+              "id": "ezik:a3#4",
+              "score": 0.38112685,
+              "relevance_score": 0.038112685
+            },
+            {
+              "id": "encyc:F00356",
+              "score": 0.24877736,
+              "relevance_score": 0.024877736
+            },
+            {
+              "id": "encyc:F00273",
+              "score": 0.24098976,
+              "relevance_score": 0.024098976
+            },
+            {
+              "id": "encyc:F01227",
+              "score": 0.14803144000000001,
+              "relevance_score": 0.014803144
+            },
+            {
+              "id": "encyc:F01841",
+              "score": 0.12350843,
+              "relevance_score": 0.012350843
+            },
+            {
+              "id": "encyc:F00869",
+              "score": 0.1116878,
+              "relevance_score": 0.01116878
+            },
+            {
+              "id": "encyc:F00560",
+              "score": 0.09402791,
+              "relevance_score": 0.009402791
+            },
+            {
+              "id": "encyc:F00669",
+              "score": 0.09384709,
+              "relevance_score": 0.009384709
+            },
+            {
+              "id": "encyc:F01858",
+              "score": 0.07486761,
+              "relevance_score": 0.007486761
+            },
+            {
+              "id": "encyc:F01207",
+              "score": 0.05252903,
+              "relevance_score": 0.005252903
+            },
+            {
+              "id": "encyc:F00648",
+              "score": 0.05085327,
+              "relevance_score": 0.005085327
+            },
+            {
+              "id": "encyc:F00432",
+              "score": 0.04812682,
+              "relevance_score": 0.004812682
+            },
+            {
+              "id": "encyc:F00141",
+              "score": 0.046779667000000004,
+              "relevance_score": 0.0046779667
+            },
+            {
+              "id": "encyc:F00843",
+              "score": 0.045309453,
+              "relevance_score": 0.0045309453
+            },
+            {
+              "id": "encyc:F00552",
+              "score": 0.035448135,
+              "relevance_score": 0.0035448135
+            },
+            {
+              "id": "encyc:F01842",
+              "score": 0.032538706,
+              "relevance_score": 0.0032538706
+            },
+            {
+              "id": "encyc:F00881",
+              "score": 0.023761051999999998,
+              "relevance_score": 0.0023761052
+            },
+            {
+              "id": "encyc:F01204",
+              "score": 0.021873240000000002,
+              "relevance_score": 0.002187324
+            },
+            {
+              "id": "ezik:a3#2",
+              "score": 0.01013868,
+              "relevance_score": 0.001013868
+            },
+            {
+              "id": "ezik:a3#7",
+              "score": 0.01013868,
+              "relevance_score": 0.001013868
+            },
+            {
+              "id": "ezik:a3#1",
+              "score": 0.01013868,
+              "relevance_score": 0.001013868
+            },
+            {
+              "id": "ezik:a3#6",
+              "score": 0.01013868,
+              "relevance_score": 0.001013868
+            }
+          ],
+          "providerOutcome": "bad_response",
+          "observationNote": "Exact live scores independently validated offline; unchanged D provider rejected input_tokens billing because it requires search_units."
+        },
+        {
+          "id": "b1",
+          "status": "PASS",
+          "ms": 1086.4964,
+          "failureMs": 1086.4964,
+          "billed_units": {
+            "input_tokens": 33018
+          },
+          "precisionAt10": 0.8,
+          "ranking": [
+            {
+              "id": "qaf:b1:8a9d69b6-b984-548c-862e-bea2439d3109",
+              "score": 8.453269599999999,
+              "relevance_score": 0.84532696
+            },
+            {
+              "id": "qaf:b1:0ecc6387-4082-5ec2-b68e-5a003b85dc4b",
+              "score": 8.3727795,
+              "relevance_score": 0.83727795
+            },
+            {
+              "id": "qaf:b1:b9796be1-8997-5595-8a59-da92238cdc9d",
+              "score": 8.3622277,
+              "relevance_score": 0.83622277
+            },
+            {
+              "id": "qaf:b1:b52ce681-9372-5f80-8d81-3ba78aff7f12",
+              "score": 8.329986,
+              "relevance_score": 0.8329986
+            },
+            {
+              "id": "qaf:b1:61557126-a587-56fd-b0e5-bae231e0f74c",
+              "score": 8.253663,
+              "relevance_score": 0.8253663
+            },
+            {
+              "id": "qaf:b1:13419e61-01bd-5b91-a7b7-013a1732a176",
+              "score": 8.242488999999999,
+              "relevance_score": 0.8242489
+            },
+            {
+              "id": "qaf:b1:86c3ccd1-85c8-5a2c-adde-6d63fc5d1b33",
+              "score": 8.2395303,
+              "relevance_score": 0.82395303
+            },
+            {
+              "id": "qaf:b1:9f4a96a5-544d-5e5b-8194-50e0c08c39c7",
+              "score": 8.2113415,
+              "relevance_score": 0.82113415
+            },
+            {
+              "id": "qaf:b1:39c89db1-efe8-5d78-a796-0bf979975078",
+              "score": 8.202539,
+              "relevance_score": 0.8202539
+            },
+            {
+              "id": "qaf:b1:7edead1f-6345-5cb7-b1d7-26e7a980a153",
+              "score": 8.179503,
+              "relevance_score": 0.8179503
+            },
+            {
+              "id": "qaf:b1:929b24af-816d-5e18-a361-29ee11332fdf",
+              "score": 8.15001,
+              "relevance_score": 0.815001
+            },
+            {
+              "id": "qaf:b1:01cd0af9-6747-5c8a-afec-41f56102f7ca",
+              "score": 8.091123999999999,
+              "relevance_score": 0.8091124
+            },
+            {
+              "id": "qaf:b1:dc93d251-1f5c-567a-bb2b-a281e7fae7f5",
+              "score": 7.969851500000001,
+              "relevance_score": 0.79698515
+            },
+            {
+              "id": "qaf:b1:d6074a06-b650-5c48-87cd-36adfac58752",
+              "score": 7.9409623,
+              "relevance_score": 0.79409623
+            },
+            {
+              "id": "ezik:b1#2",
+              "score": 7.800572,
+              "relevance_score": 0.7800572
+            },
+            {
+              "id": "qaf:b1:226fbd5f-b8dc-5a1f-8ac4-bbcd1cf7ad1d",
+              "score": 7.7299076,
+              "relevance_score": 0.77299076
+            },
+            {
+              "id": "ezik:b1#1",
+              "score": 4.8237836000000005,
+              "relevance_score": 0.48237836
+            },
+            {
+              "id": "encyc:F01612",
+              "score": 0.28147345,
+              "relevance_score": 0.028147345
+            },
+            {
+              "id": "encyc:F01171",
+              "score": 0.2790439,
+              "relevance_score": 0.02790439
+            },
+            {
+              "id": "encyc:F00139",
+              "score": 0.25756203,
+              "relevance_score": 0.025756203
+            },
+            {
+              "id": "encyc:F00175",
+              "score": 0.20805612,
+              "relevance_score": 0.020805612
+            },
+            {
+              "id": "encyc:F00137",
+              "score": 0.19930888000000002,
+              "relevance_score": 0.019930888
+            },
+            {
+              "id": "encyc:F02723",
+              "score": 0.16831873,
+              "relevance_score": 0.016831873
+            },
+            {
+              "id": "encyc:F00138",
+              "score": 0.12666053,
+              "relevance_score": 0.012666053
+            },
+            {
+              "id": "encyc:F00851",
+              "score": 0.10281491000000001,
+              "relevance_score": 0.010281491
+            },
+            {
+              "id": "encyc:F00344",
+              "score": 0.07703953399999999,
+              "relevance_score": 0.0077039534
+            },
+            {
+              "id": "encyc:F00833",
+              "score": 0.076367334,
+              "relevance_score": 0.0076367334
+            },
+            {
+              "id": "encyc:F00655",
+              "score": 0.060625738,
+              "relevance_score": 0.0060625738
+            },
+            {
+              "id": "encyc:F00850",
+              "score": 0.051867225999999995,
+              "relevance_score": 0.0051867226
+            },
+            {
+              "id": "encyc:F01831",
+              "score": 0.037368524,
+              "relevance_score": 0.0037368524
+            },
+            {
+              "id": "encyc:F03018",
+              "score": 0.033829120000000004,
+              "relevance_score": 0.003382912
+            },
+            {
+              "id": "encyc:F00314",
+              "score": 0.033512323000000004,
+              "relevance_score": 0.0033512323
+            },
+            {
+              "id": "encyc:F00923",
+              "score": 0.03148711,
+              "relevance_score": 0.003148711
+            },
+            {
+              "id": "encyc:F02565",
+              "score": 0.030074324,
+              "relevance_score": 0.0030074324
+            },
+            {
+              "id": "encyc:F00555",
+              "score": 0.029198380000000003,
+              "relevance_score": 0.002919838
+            },
+            {
+              "id": "encyc:F00271",
+              "score": 0.029030295999999997,
+              "relevance_score": 0.0029030296
+            },
+            {
+              "id": "encyc:F00681",
+              "score": 0.027603933,
+              "relevance_score": 0.0027603933
+            },
+            {
+              "id": "encyc:F01851",
+              "score": 0.027281074000000002,
+              "relevance_score": 0.0027281074
+            },
+            {
+              "id": "encyc:F00801",
+              "score": 0.024636046,
+              "relevance_score": 0.0024636046
+            },
+            {
+              "id": "encyc:F00379",
+              "score": 0.023111447,
+              "relevance_score": 0.0023111447
+            },
+            {
+              "id": "encyc:F00216",
+              "score": 0.020385813,
+              "relevance_score": 0.0020385813
+            },
+            {
+              "id": "encyc:F00686",
+              "score": 0.020263523,
+              "relevance_score": 0.0020263523
+            },
+            {
+              "id": "encyc:F00467",
+              "score": 0.01928809,
+              "relevance_score": 0.001928809
+            },
+            {
+              "id": "encyc:F00181",
+              "score": 0.018649455,
+              "relevance_score": 0.0018649455
+            },
+            {
+              "id": "encyc:F00756",
+              "score": 0.018209163,
+              "relevance_score": 0.0018209163
+            },
+            {
+              "id": "encyc:F00105",
+              "score": 0.018008164,
+              "relevance_score": 0.0018008164
+            },
+            {
+              "id": "encyc:F00585",
+              "score": 0.016090056,
+              "relevance_score": 0.0016090056
+            },
+            {
+              "id": "encyc:F00925",
+              "score": 0.014892614000000002,
+              "relevance_score": 0.0014892614
+            },
+            {
+              "id": "encyc:F00888",
+              "score": 0.014657839999999998,
+              "relevance_score": 0.001465784
+            },
+            {
+              "id": "ezik:b1#3",
+              "score": 0.012574992,
+              "relevance_score": 0.0012574992
+            }
+          ],
+          "providerOutcome": "bad_response",
+          "observationNote": "Exact live scores independently validated offline; unchanged D provider rejected input_tokens billing because it requires search_units."
+        },
+        {
+          "id": "b2",
+          "status": "PASS",
+          "ms": 969.8554999999997,
+          "failureMs": 969.8554999999997,
+          "billed_units": {
+            "input_tokens": 34653
+          },
+          "precisionAt10": 1,
+          "ranking": [
+            {
+              "id": "qaf:b2:59d7e6d3-5781-5431-9b78-b7a8a8da8088",
+              "score": 8.3007264,
+              "relevance_score": 0.83007264
+            },
+            {
+              "id": "qaf:b2:234a3dcf-8ed1-5477-bc22-bd8abc4f45f9",
+              "score": 8.145693000000001,
+              "relevance_score": 0.8145693
+            },
+            {
+              "id": "ezik:b2#1",
+              "score": 8.056768,
+              "relevance_score": 0.8056768
+            },
+            {
+              "id": "ezik:b2#2",
+              "score": 8.037864,
+              "relevance_score": 0.8037864
+            },
+            {
+              "id": "qaf:b2:9220d79a-ce71-5e1d-b841-56bbe9c2831b",
+              "score": 8.009597000000001,
+              "relevance_score": 0.8009597
+            },
+            {
+              "id": "qaf:b2:d36d434c-75e4-5643-bb69-7d1326e541c5",
+              "score": 7.97863,
+              "relevance_score": 0.797863
+            },
+            {
+              "id": "qaf:b2:f109c1b3-5325-51b8-8087-3f1976bcf1df",
+              "score": 7.977609,
+              "relevance_score": 0.7977609
+            },
+            {
+              "id": "qaf:b2:cc7c88db-7264-52f8-9a09-42f630a59302",
+              "score": 7.8900373,
+              "relevance_score": 0.78900373
+            },
+            {
+              "id": "qaf:b2:df73570a-3434-584e-9e61-8cb4e5fc7669",
+              "score": 7.8663110000000005,
+              "relevance_score": 0.7866311
+            },
+            {
+              "id": "qaf:b2:120ccf8e-3a7b-5200-98d5-7e0ea2d77cbf",
+              "score": 7.849984,
+              "relevance_score": 0.7849984
+            },
+            {
+              "id": "qaf:b2:c02d1256-270d-52bb-bb7a-44bf3c27da7e",
+              "score": 7.803293999999999,
+              "relevance_score": 0.7803294
+            },
+            {
+              "id": "qaf:b2:ad9e0528-b989-530e-aa1e-fc91a5713ba5",
+              "score": 7.707218500000001,
+              "relevance_score": 0.77072185
+            },
+            {
+              "id": "qaf:b2:c13a4824-e756-5798-aaa7-4368bbb64ee7",
+              "score": 7.490513,
+              "relevance_score": 0.7490513
+            },
+            {
+              "id": "qaf:b2:1601cb58-ee02-5fc4-ba0f-718d4e1cdfda",
+              "score": 7.4448353,
+              "relevance_score": 0.74448353
+            },
+            {
+              "id": "qaf:b2:a10d5949-2eb5-574d-93c8-f0bd062a1709",
+              "score": 7.292101,
+              "relevance_score": 0.7292101
+            },
+            {
+              "id": "qaf:b2:4a0d4d8d-d739-5eb9-827e-3c4fd2d3b5b8",
+              "score": 6.59094,
+              "relevance_score": 0.659094
+            },
+            {
+              "id": "qaf:b2:b3cf6a7e-dacf-5f7b-8881-154f7a0d1310",
+              "score": 6.338941500000001,
+              "relevance_score": 0.63389415
+            },
+            {
+              "id": "encyc:F00947",
+              "score": 0.20203052,
+              "relevance_score": 0.020203052
+            },
+            {
+              "id": "encyc:F00615",
+              "score": 0.13874754,
+              "relevance_score": 0.013874754
+            },
+            {
+              "id": "encyc:F00655",
+              "score": 0.11080204499999999,
+              "relevance_score": 0.0110802045
+            },
+            {
+              "id": "encyc:F00981",
+              "score": 0.09689836,
+              "relevance_score": 0.009689836
+            },
+            {
+              "id": "encyc:F00327",
+              "score": 0.07349506,
+              "relevance_score": 0.007349506
+            },
+            {
+              "id": "encyc:F01512",
+              "score": 0.07131021,
+              "relevance_score": 0.007131021
+            },
+            {
+              "id": "encyc:F01931",
+              "score": 0.069727604,
+              "relevance_score": 0.0069727604
+            },
+            {
+              "id": "encyc:F01111",
+              "score": 0.066249063,
+              "relevance_score": 0.0066249063
+            },
+            {
+              "id": "encyc:F01506",
+              "score": 0.064982423,
+              "relevance_score": 0.0064982423
+            },
+            {
+              "id": "encyc:F00223",
+              "score": 0.05498486599999999,
+              "relevance_score": 0.0054984866
+            },
+            {
+              "id": "encyc:F00131",
+              "score": 0.052514332,
+              "relevance_score": 0.0052514332
+            },
+            {
+              "id": "encyc:F01099",
+              "score": 0.04637677,
+              "relevance_score": 0.004637677
+            },
+            {
+              "id": "encyc:F00678",
+              "score": 0.041033164999999996,
+              "relevance_score": 0.0041033165
+            },
+            {
+              "id": "encyc:F01269",
+              "score": 0.037312769999999995,
+              "relevance_score": 0.003731277
+            },
+            {
+              "id": "encyc:F01261",
+              "score": 0.03714751,
+              "relevance_score": 0.003714751
+            },
+            {
+              "id": "encyc:F01184",
+              "score": 0.03659177,
+              "relevance_score": 0.003659177
+            },
+            {
+              "id": "encyc:F00997",
+              "score": 0.036473227999999996,
+              "relevance_score": 0.0036473228
+            },
+            {
+              "id": "encyc:F00023",
+              "score": 0.033633038000000004,
+              "relevance_score": 0.0033633038
+            },
+            {
+              "id": "encyc:F00957",
+              "score": 0.033365248,
+              "relevance_score": 0.0033365248
+            },
+            {
+              "id": "encyc:F00667",
+              "score": 0.031529884,
+              "relevance_score": 0.0031529884
+            },
+            {
+              "id": "encyc:F00934",
+              "score": 0.030524153,
+              "relevance_score": 0.0030524153
+            },
+            {
+              "id": "encyc:F00748",
+              "score": 0.030007302,
+              "relevance_score": 0.0030007302
+            },
+            {
+              "id": "encyc:F01530",
+              "score": 0.028429839999999998,
+              "relevance_score": 0.002842984
+            },
+            {
+              "id": "encyc:F01488",
+              "score": 0.027077857,
+              "relevance_score": 0.0027077857
+            },
+            {
+              "id": "encyc:F01095",
+              "score": 0.026199652000000004,
+              "relevance_score": 0.0026199652
+            },
+            {
+              "id": "encyc:F01158",
+              "score": 0.026180074,
+              "relevance_score": 0.0026180074
+            },
+            {
+              "id": "encyc:F01296",
+              "score": 0.025201198,
+              "relevance_score": 0.0025201198
+            },
+            {
+              "id": "encyc:F01750",
+              "score": 0.024407196,
+              "relevance_score": 0.0024407196
+            },
+            {
+              "id": "encyc:F01191",
+              "score": 0.023475549999999998,
+              "relevance_score": 0.002347555
+            },
+            {
+              "id": "encyc:F01574",
+              "score": 0.022536050000000002,
+              "relevance_score": 0.002253605
+            },
+            {
+              "id": "encyc:F01928",
+              "score": 0.020044413,
+              "relevance_score": 0.0020044413
+            },
+            {
+              "id": "encyc:F00806",
+              "score": 0.019811862,
+              "relevance_score": 0.0019811862
+            },
+            {
+              "id": "ezik:b2#3",
+              "score": 0.013755943,
+              "relevance_score": 0.0013755943
+            }
+          ],
+          "providerOutcome": "bad_response",
+          "observationNote": "Exact live scores independently validated offline; unchanged D provider rejected input_tokens billing because it requires search_units."
+        },
+        {
+          "id": "b3",
+          "status": "PASS",
+          "ms": 800.2723000000005,
+          "failureMs": 800.2723000000005,
+          "billed_units": {
+            "input_tokens": 28442
+          },
+          "precisionAt10": 0.4,
+          "ranking": [
+            {
+              "id": "qaf:b3:fb885b42-f236-545a-a629-7f0eecda8179",
+              "score": 8.463404,
+              "relevance_score": 0.8463404
+            },
+            {
+              "id": "qaf:b3:4848d239-20af-5c03-b282-2809605174f6",
+              "score": 8.363363,
+              "relevance_score": 0.8363363
+            },
+            {
+              "id": "qaf:b3:34ff3a8d-f2e2-52ae-a6a8-0bc10a3c290c",
+              "score": 8.3259404,
+              "relevance_score": 0.83259404
+            },
+            {
+              "id": "qaf:b3:f22b01d8-a64d-52cc-b6d5-df3d80cb4094",
+              "score": 8.2942307,
+              "relevance_score": 0.82942307
+            },
+            {
+              "id": "qaf:b3:eae21270-c52b-522b-af24-0bd2aa4247a6",
+              "score": 8.292361,
+              "relevance_score": 0.8292361
+            },
+            {
+              "id": "qaf:b3:72bf9b95-079a-5a53-bf3a-edcb67ed8d77",
+              "score": 8.2757187,
+              "relevance_score": 0.82757187
+            },
+            {
+              "id": "qaf:b3:1dbd3390-4b61-597a-b217-9bb77692158c",
+              "score": 8.263304,
+              "relevance_score": 0.8263304
+            },
+            {
+              "id": "qaf:b3:da719cd8-faeb-5f74-af7c-b3d2ac3ca1e7",
+              "score": 8.2233316,
+              "relevance_score": 0.82233316
+            },
+            {
+              "id": "qaf:b3:333e2462-032e-55d2-acae-8a4afd1587dc",
+              "score": 8.21126,
+              "relevance_score": 0.821126
+            },
+            {
+              "id": "qaf:b3:1ca01b95-e1b2-5ffd-9cb2-f08b3f5953c2",
+              "score": 8.1531745,
+              "relevance_score": 0.81531745
+            },
+            {
+              "id": "qaf:b3:2ba5964f-c451-55a1-bdbb-153802b23263",
+              "score": 8.133879,
+              "relevance_score": 0.8133879
+            },
+            {
+              "id": "ezik:b3#1",
+              "score": 8.0970156,
+              "relevance_score": 0.80970156
+            },
+            {
+              "id": "qaf:b3:c55841d7-c935-55af-aaa0-02a806601597",
+              "score": 8.0512655,
+              "relevance_score": 0.80512655
+            },
+            {
+              "id": "qaf:b3:0d319669-804d-5f60-9051-ff0c9eb939a9",
+              "score": 8.0373883,
+              "relevance_score": 0.80373883
+            },
+            {
+              "id": "qaf:b3:b4be3b3c-662e-5193-8854-7d8604078ebf",
+              "score": 7.9510695,
+              "relevance_score": 0.79510695
+            },
+            {
+              "id": "qaf:b3:2f08a231-a92e-5dcc-b3bf-fed9c8413e30",
+              "score": 7.868727399999999,
+              "relevance_score": 0.78687274
+            },
+            {
+              "id": "qaf:b3:993248d5-98de-50c4-884c-b6585a0dc21c",
+              "score": 7.859266,
+              "relevance_score": 0.7859266
+            },
+            {
+              "id": "qaf:b3:a4c61a46-1e7d-5e47-8628-aff2376ddbd9",
+              "score": 7.7353559999999995,
+              "relevance_score": 0.7735356
+            },
+            {
+              "id": "qaf:b3:8dd3ea2b-e82b-516c-8626-8bb5c91243e2",
+              "score": 7.733531999999999,
+              "relevance_score": 0.7733532
+            },
+            {
+              "id": "qaf:b3:5355ef28-7841-5b23-9849-7952ee5a50ef",
+              "score": 7.7135929999999995,
+              "relevance_score": 0.7713593
+            },
+            {
+              "id": "qaf:b3:0c8306ac-a555-5361-8604-1c3a78c6eab3",
+              "score": 7.700690999999999,
+              "relevance_score": 0.7700691
+            },
+            {
+              "id": "qaf:b3:39f8c7f7-fcd2-5775-8f0f-64c8bab4544b",
+              "score": 7.6426125,
+              "relevance_score": 0.76426125
+            },
+            {
+              "id": "qaf:b3:62127b7b-47a0-5776-a460-bd3745b5c81d",
+              "score": 7.6096874,
+              "relevance_score": 0.76096874
+            },
+            {
+              "id": "qaf:b3:2ec8f23d-29fc-5823-bec5-a08151d0cc39",
+              "score": 7.569462,
+              "relevance_score": 0.7569462
+            },
+            {
+              "id": "qaf:b3:e47359e1-f2af-5a53-9a9a-92c66bafd00f",
+              "score": 7.560829999999999,
+              "relevance_score": 0.756083
+            },
+            {
+              "id": "ezik:b3#3",
+              "score": 7.5227094,
+              "relevance_score": 0.75227094
+            },
+            {
+              "id": "qaf:b3:1bbf029c-25d2-551b-b748-e9d849c8aaf4",
+              "score": 7.445057,
+              "relevance_score": 0.7445057
+            },
+            {
+              "id": "qaf:b3:d81ca66c-e62e-50ba-8a8f-3ec62c54cb86",
+              "score": 7.371023,
+              "relevance_score": 0.7371023
+            },
+            {
+              "id": "qaf:b3:a3694f93-b2a7-5081-9d5c-35b18ba45b46",
+              "score": 7.370227,
+              "relevance_score": 0.7370227
+            },
+            {
+              "id": "qaf:b3:ac199e23-cd36-5e0c-8d05-fbc7bb6bae95",
+              "score": 7.352441499999999,
+              "relevance_score": 0.73524415
+            },
+            {
+              "id": "qaf:b3:9246e56d-d2a7-5372-a1ea-664ffe959de1",
+              "score": 6.815622,
+              "relevance_score": 0.6815622
+            },
+            {
+              "id": "qaf:b3:3c9067d7-f3d7-54c6-aaf9-455bd7f67fe6",
+              "score": 6.689315000000001,
+              "relevance_score": 0.6689315
+            },
+            {
+              "id": "encyc:F00422",
+              "score": 0.23988447999999998,
+              "relevance_score": 0.023988448
+            },
+            {
+              "id": "encyc:F02288",
+              "score": 0.21509484999999998,
+              "relevance_score": 0.021509485
+            },
+            {
+              "id": "encyc:F00449",
+              "score": 0.17802663,
+              "relevance_score": 0.017802663
+            },
+            {
+              "id": "encyc:F02289",
+              "score": 0.13966332,
+              "relevance_score": 0.013966332
+            },
+            {
+              "id": "encyc:F01704",
+              "score": 0.09418815999999999,
+              "relevance_score": 0.009418816
+            },
+            {
+              "id": "encyc:F02465",
+              "score": 0.08305749,
+              "relevance_score": 0.008305749
+            },
+            {
+              "id": "encyc:F02287",
+              "score": 0.055540767,
+              "relevance_score": 0.0055540767
+            },
+            {
+              "id": "encyc:F00283",
+              "score": 0.048339613999999996,
+              "relevance_score": 0.0048339614
+            },
+            {
+              "id": "encyc:F01791",
+              "score": 0.045169634,
+              "relevance_score": 0.0045169634
+            },
+            {
+              "id": "encyc:F00027",
+              "score": 0.02614655,
+              "relevance_score": 0.002614655
+            },
+            {
+              "id": "encyc:F02294",
+              "score": 0.019419093,
+              "relevance_score": 0.0019419093
+            },
+            {
+              "id": "encyc:F00450",
+              "score": 0.018826715,
+              "relevance_score": 0.0018826715
+            },
+            {
+              "id": "encyc:F00559",
+              "score": 0.016244218,
+              "relevance_score": 0.0016244218
+            },
+            {
+              "id": "encyc:F02291",
+              "score": 0.013264669,
+              "relevance_score": 0.0013264669
+            },
+            {
+              "id": "encyc:F00284",
+              "score": 0.012696625,
+              "relevance_score": 0.0012696625
+            },
+            {
+              "id": "ezik:b3#5",
+              "score": 0.0097462966,
+              "relevance_score": 0.00097462966
+            },
+            {
+              "id": "ezik:b3#2",
+              "score": 0.0097462966,
+              "relevance_score": 0.00097462966
+            },
+            {
+              "id": "ezik:b3#4",
+              "score": 0.009746292,
+              "relevance_score": 0.0009746292
+            }
+          ],
+          "providerOutcome": "bad_response",
+          "observationNote": "Exact live scores independently validated offline; unchanged D provider rejected input_tokens billing because it requires search_units."
+        },
+        {
+          "id": "c1",
+          "status": "PASS",
+          "ms": 1080.7869999999994,
+          "failureMs": 1080.7869999999994,
+          "billed_units": {
+            "input_tokens": 39425
+          },
+          "precisionAt10": 0.5,
+          "ranking": [
+            {
+              "id": "qaf:c1:c19cdf5a-a6ba-5f8b-b2d8-8a36f7c71412",
+              "score": 7.731377999999999,
+              "relevance_score": 0.7731378
+            },
+            {
+              "id": "qaf:c1:07b71d69-6749-5c1a-9b7f-6ecd1ec890f3",
+              "score": 7.680605,
+              "relevance_score": 0.7680605
+            },
+            {
+              "id": "qaf:c1:3bf41528-db72-5b30-85a9-cdc0f4014bfe",
+              "score": 7.646505,
+              "relevance_score": 0.7646505
+            },
+            {
+              "id": "qaf:c1:d0a6bc4a-00eb-5b3f-a314-1946249b913a",
+              "score": 7.602779,
+              "relevance_score": 0.7602779
+            },
+            {
+              "id": "qaf:c1:e78eadd4-ef2f-532e-a086-f1b49f1b648b",
+              "score": 7.5944906,
+              "relevance_score": 0.75944906
+            },
+            {
+              "id": "qaf:c1:6a15ab5a-afac-55cc-8af5-56e0ea4cd118",
+              "score": 7.495734,
+              "relevance_score": 0.7495734
+            },
+            {
+              "id": "qaf:c1:90a7fe01-192f-563c-8660-b049d19c246b",
+              "score": 7.4591595,
+              "relevance_score": 0.74591595
+            },
+            {
+              "id": "qaf:c1:9119058f-aa1a-51fd-a24c-3b500e7adddb",
+              "score": 7.4491787,
+              "relevance_score": 0.74491787
+            },
+            {
+              "id": "qaf:c1:5747a155-0927-5998-9003-6e2fabd04764",
+              "score": 7.349804,
+              "relevance_score": 0.7349804
+            },
+            {
+              "id": "qaf:c1:174e046e-d801-5fd1-a86e-e8e67c01c9da",
+              "score": 7.164888400000001,
+              "relevance_score": 0.71648884
+            },
+            {
+              "id": "qaf:c1:e88cd90c-0d01-595e-9c91-443b62aea0b2",
+              "score": 7.086708000000001,
+              "relevance_score": 0.7086708
+            },
+            {
+              "id": "qaf:c1:4f14fd4d-4e39-5777-8bd3-27de8b28e442",
+              "score": 6.833476000000001,
+              "relevance_score": 0.6833476
+            },
+            {
+              "id": "qaf:c1:ab979ff9-b1e0-5ac9-bb2b-2f2a812ab7e5",
+              "score": 6.8286157,
+              "relevance_score": 0.68286157
+            },
+            {
+              "id": "qaf:c1:9a305f0f-a2b4-5a12-9d2e-1d4cbb6c28c4",
+              "score": 6.824669,
+              "relevance_score": 0.6824669
+            },
+            {
+              "id": "qaf:c1:232724cc-4c78-5924-ab55-14fa6852fcc6",
+              "score": 6.798515,
+              "relevance_score": 0.6798515
+            },
+            {
+              "id": "qaf:c1:8471f24b-276d-5698-adb8-895dc35e623c",
+              "score": 6.719191,
+              "relevance_score": 0.6719191
+            },
+            {
+              "id": "qaf:c1:8bcc87b6-9fe3-57ed-9e17-63340c333cdc",
+              "score": 6.575760000000001,
+              "relevance_score": 0.657576
+            },
+            {
+              "id": "qaf:c1:7485c44a-8c64-5252-b4b0-542742ac70c8",
+              "score": 6.482342,
+              "relevance_score": 0.6482342
+            },
+            {
+              "id": "qaf:c1:e5467bd2-3684-547c-9cf1-deb5b41d5126",
+              "score": 6.4655375,
+              "relevance_score": 0.64655375
+            },
+            {
+              "id": "qaf:c1:6aa70228-0ed6-5d8e-b9d7-26d9e26c6a5c",
+              "score": 6.4530104,
+              "relevance_score": 0.64530104
+            },
+            {
+              "id": "qaf:c1:eb8bf0f2-a063-5c02-9040-0de7d73f06e4",
+              "score": 6.4208364,
+              "relevance_score": 0.64208364
+            },
+            {
+              "id": "qaf:c1:afe9d59e-ce5b-56bd-b449-1238e8939b67",
+              "score": 6.4066016999999995,
+              "relevance_score": 0.64066017
+            },
+            {
+              "id": "qaf:c1:d563cd3e-dfda-56db-8f82-508630c655e8",
+              "score": 6.357199,
+              "relevance_score": 0.6357199
+            },
+            {
+              "id": "ezik:c1#2",
+              "score": 6.251812599999999,
+              "relevance_score": 0.62518126
+            },
+            {
+              "id": "encyc:F00109",
+              "score": 6.2436354000000005,
+              "relevance_score": 0.62436354
+            },
+            {
+              "id": "qaf:c1:94b02e50-c1d0-59d1-b5f3-b9195b6e2401",
+              "score": 6.2306213,
+              "relevance_score": 0.62306213
+            },
+            {
+              "id": "qaf:c1:f61f5681-da88-573c-b4bf-bd0327f67076",
+              "score": 5.9819126,
+              "relevance_score": 0.59819126
+            },
+            {
+              "id": "qaf:c1:da3d8ec3-60a2-5fdc-8431-cf36c616c024",
+              "score": 5.9466386,
+              "relevance_score": 0.59466386
+            },
+            {
+              "id": "qaf:c1:217f8a87-030f-5082-bef0-49786671823f",
+              "score": 5.7685137,
+              "relevance_score": 0.57685137
+            },
+            {
+              "id": "ezik:c1#1",
+              "score": 5.419701,
+              "relevance_score": 0.5419701
+            },
+            {
+              "id": "qaf:c1:c30d581e-7eca-5b55-b0e1-1e09c388d825",
+              "score": 5.0964089999999995,
+              "relevance_score": 0.5096409
+            },
+            {
+              "id": "encyc:F00430",
+              "score": 5.075365,
+              "relevance_score": 0.5075365
+            },
+            {
+              "id": "qaf:c1:bc5a056b-ae23-579e-b80d-f1c110655c44",
+              "score": 4.754459300000001,
+              "relevance_score": 0.47544593
+            },
+            {
+              "id": "encyc:F02294",
+              "score": 4.6187556,
+              "relevance_score": 0.46187556
+            },
+            {
+              "id": "ezik:c1#3",
+              "score": 4.0194333,
+              "relevance_score": 0.40194333
+            },
+            {
+              "id": "encyc:F00838",
+              "score": 3.514036,
+              "relevance_score": 0.3514036
+            },
+            {
+              "id": "encyc:F00823",
+              "score": 1.9489513,
+              "relevance_score": 0.19489513
+            },
+            {
+              "id": "encyc:F01529",
+              "score": 1.4017840000000001,
+              "relevance_score": 0.1401784
+            },
+            {
+              "id": "encyc:F01501",
+              "score": 1.0072371,
+              "relevance_score": 0.10072371
+            },
+            {
+              "id": "encyc:F00967",
+              "score": 0.98174624,
+              "relevance_score": 0.098174624
+            },
+            {
+              "id": "encyc:F00514",
+              "score": 0.6793464,
+              "relevance_score": 0.06793464
+            },
+            {
+              "id": "encyc:F00907",
+              "score": 0.45632772,
+              "relevance_score": 0.045632772
+            },
+            {
+              "id": "encyc:F02246",
+              "score": 0.36488703999999994,
+              "relevance_score": 0.036488704
+            },
+            {
+              "id": "encyc:F00112",
+              "score": 0.21365581,
+              "relevance_score": 0.021365581
+            },
+            {
+              "id": "encyc:F02389",
+              "score": 0.20341435000000002,
+              "relevance_score": 0.020341435
+            },
+            {
+              "id": "encyc:F02652",
+              "score": 0.08447431999999999,
+              "relevance_score": 0.008447432
+            },
+            {
+              "id": "encyc:F00783",
+              "score": 0.067176414,
+              "relevance_score": 0.0067176414
+            },
+            {
+              "id": "encyc:F00420",
+              "score": 0.065926686,
+              "relevance_score": 0.0065926686
+            },
+            {
+              "id": "encyc:F01502",
+              "score": 0.065514008,
+              "relevance_score": 0.0065514008
+            },
+            {
+              "id": "encyc:F00937",
+              "score": 0.031961405,
+              "relevance_score": 0.0031961405
+            }
+          ],
+          "providerOutcome": "bad_response",
+          "observationNote": "Exact live scores independently validated offline; unchanged D provider rejected input_tokens billing because it requires search_units."
+        },
+        {
+          "id": "c2",
+          "status": "PASS",
+          "ms": 871.0742000000009,
+          "failureMs": 871.0742000000009,
+          "billed_units": {
+            "input_tokens": 27202
+          },
+          "precisionAt10": 0.6,
+          "ranking": [
+            {
+              "id": "qaf:c2:1f90d78a-9b96-5f48-a2af-ace729231658",
+              "score": 8.062202000000001,
+              "relevance_score": 0.8062202
+            },
+            {
+              "id": "qaf:c2:318f611b-8063-5ca8-97b9-05ee957f8b13",
+              "score": 7.9784226,
+              "relevance_score": 0.79784226
+            },
+            {
+              "id": "qaf:c2:809526c7-1936-5b01-95ca-538cdbb99a9b",
+              "score": 7.9624950000000005,
+              "relevance_score": 0.7962495
+            },
+            {
+              "id": "ezik:c2#1",
+              "score": 7.903039,
+              "relevance_score": 0.7903039
+            },
+            {
+              "id": "qaf:c2:12f7df83-d609-5126-b0fb-699383310be8",
+              "score": 7.842460999999999,
+              "relevance_score": 0.7842461
+            },
+            {
+              "id": "qaf:c2:d4c415a1-ed9f-50bb-a1dd-8d931f63b258",
+              "score": 7.8254646,
+              "relevance_score": 0.78254646
+            },
+            {
+              "id": "qaf:c2:6976889c-fb05-5b34-8f2a-83199153fc34",
+              "score": 7.6898040000000005,
+              "relevance_score": 0.7689804
+            },
+            {
+              "id": "qaf:c2:e73e56cd-72a1-5b68-a647-155d77025dd9",
+              "score": 7.6810860000000005,
+              "relevance_score": 0.7681086
+            },
+            {
+              "id": "qaf:c2:63e8020c-66bd-50ab-abad-1ce96d677458",
+              "score": 7.6627284,
+              "relevance_score": 0.76627284
+            },
+            {
+              "id": "qaf:c2:9ecfe5b2-3848-58b0-9472-79b70f129ff7",
+              "score": 7.552038,
+              "relevance_score": 0.7552038
+            },
+            {
+              "id": "qaf:c2:2dfe0c8c-26ca-52f0-9f97-f9771846fa1d",
+              "score": 7.527156499999999,
+              "relevance_score": 0.75271565
+            },
+            {
+              "id": "qaf:c2:cef954c7-59ce-5e2f-a473-1194d793c141",
+              "score": 7.44116,
+              "relevance_score": 0.744116
+            },
+            {
+              "id": "qaf:c2:201ec678-0068-5875-8773-3d196e846711",
+              "score": 7.302840000000001,
+              "relevance_score": 0.730284
+            },
+            {
+              "id": "qaf:c2:c9dd6874-6c64-57f4-a533-321d07336234",
+              "score": 7.198966,
+              "relevance_score": 0.7198966
+            },
+            {
+              "id": "qaf:c2:e888e3c4-a80c-569e-a412-76edb5df7302",
+              "score": 7.141049000000001,
+              "relevance_score": 0.7141049
+            },
+            {
+              "id": "qaf:c2:dbbd3b4d-d46e-53cd-a31b-ebe4f0f41430",
+              "score": 7.108764600000001,
+              "relevance_score": 0.71087646
+            },
+            {
+              "id": "qaf:c2:e7649efc-9fe8-52ec-9987-540cadafa938",
+              "score": 7.0814776,
+              "relevance_score": 0.70814776
+            },
+            {
+              "id": "qaf:c2:96639307-a3c0-53f1-ba25-bbe3c890bd24",
+              "score": 7.067526600000001,
+              "relevance_score": 0.70675266
+            },
+            {
+              "id": "qaf:c2:e23af82d-38d6-50e6-9476-a617d1ea9b79",
+              "score": 6.894506,
+              "relevance_score": 0.6894506
+            },
+            {
+              "id": "qaf:c2:29196427-c68c-5a4b-a46b-43bcd28d129e",
+              "score": 6.8514289999999995,
+              "relevance_score": 0.6851429
+            },
+            {
+              "id": "qaf:c2:72b15aeb-fc5b-5deb-9176-1fb2c32870b8",
+              "score": 6.639861,
+              "relevance_score": 0.6639861
+            },
+            {
+              "id": "qaf:c2:d3eddde6-e4bb-5462-bee2-4c5c936cf482",
+              "score": 6.617538,
+              "relevance_score": 0.6617538
+            },
+            {
+              "id": "qaf:c2:d4f78349-d1a7-52be-907a-79a4180d8c4d",
+              "score": 6.563167,
+              "relevance_score": 0.6563167
+            },
+            {
+              "id": "qaf:c2:ebbfa419-2033-5ed0-af84-1506ac138ddc",
+              "score": 6.5555584,
+              "relevance_score": 0.65555584
+            },
+            {
+              "id": "qaf:c2:75800b17-6a6e-5d7e-99dd-82297fa965c0",
+              "score": 6.478147,
+              "relevance_score": 0.6478147
+            },
+            {
+              "id": "ezik:c2#3",
+              "score": 6.4459366,
+              "relevance_score": 0.64459366
+            },
+            {
+              "id": "qaf:c2:6962fb3f-d6c5-53c0-bfe6-9b74e502b09c",
+              "score": 6.3405544,
+              "relevance_score": 0.63405544
+            },
+            {
+              "id": "qaf:c2:5bd67698-0faf-5128-bbb0-3515e418f8d6",
+              "score": 6.259093,
+              "relevance_score": 0.6259093
+            },
+            {
+              "id": "qaf:c2:e830994f-b7ef-55ba-b3cb-c451315ea584",
+              "score": 6.230315600000001,
+              "relevance_score": 0.62303156
+            },
+            {
+              "id": "qaf:c2:76450032-0674-595e-baf2-c1e0e7835ab5",
+              "score": 6.169163600000001,
+              "relevance_score": 0.61691636
+            },
+            {
+              "id": "qaf:c2:5acb9101-0fe9-5323-b754-9489fb5cf931",
+              "score": 5.983321999999999,
+              "relevance_score": 0.5983322
+            },
+            {
+              "id": "qaf:c2:3ed1ca1c-da32-5529-9972-7e9e6f0179e0",
+              "score": 5.7559700000000005,
+              "relevance_score": 0.575597
+            },
+            {
+              "id": "qaf:c2:7395a8cd-4d20-5233-b992-d670ce51a2a2",
+              "score": 5.7244486000000006,
+              "relevance_score": 0.57244486
+            },
+            {
+              "id": "qaf:c2:c50584ef-9247-5608-8ab3-dfeb887bbc0a",
+              "score": 5.711815,
+              "relevance_score": 0.5711815
+            },
+            {
+              "id": "qaf:c2:7e2c0a0d-42ec-5572-8359-7ee161fd4c41",
+              "score": 5.63425,
+              "relevance_score": 0.563425
+            },
+            {
+              "id": "qaf:c2:1c45f973-8a58-5b49-a4a6-18ddff9fed5c",
+              "score": 5.4397243,
+              "relevance_score": 0.54397243
+            },
+            {
+              "id": "qaf:c2:4290e37f-881c-5d82-b26b-9cc072ca8d4c",
+              "score": 4.6317710000000005,
+              "relevance_score": 0.4631771
+            },
+            {
+              "id": "qaf:c2:766975cd-f95d-56e7-886c-840f78d0339e",
+              "score": 4.4060063,
+              "relevance_score": 0.44060063
+            },
+            {
+              "id": "qaf:c2:0b75df24-f380-5105-8928-e40a3eaef2aa",
+              "score": 4.2619136,
+              "relevance_score": 0.42619136
+            },
+            {
+              "id": "qaf:c2:b9e31e32-1ce7-5c3f-86df-8aa0a9270ed1",
+              "score": 4.0778947,
+              "relevance_score": 0.40778947
+            },
+            {
+              "id": "qaf:c2:ca7ff105-93df-5e04-aba4-278905eaf731",
+              "score": 3.7226524999999997,
+              "relevance_score": 0.37226525
+            },
+            {
+              "id": "encyc:F01936",
+              "score": 2.7647223999999997,
+              "relevance_score": 0.27647224
+            },
+            {
+              "id": "qaf:c2:c1fc5c4c-ba5e-506c-b402-c7cc05bdabcd",
+              "score": 2.7064445999999998,
+              "relevance_score": 0.27064446
+            },
+            {
+              "id": "qaf:c2:e9fe15da-56e8-57da-91de-dff18aa56d57",
+              "score": 2.6123592,
+              "relevance_score": 0.26123592
+            },
+            {
+              "id": "ezik:c2#2",
+              "score": 2.253481,
+              "relevance_score": 0.2253481
+            },
+            {
+              "id": "encyc:F00500",
+              "score": 0.32034088000000005,
+              "relevance_score": 0.032034088
+            },
+            {
+              "id": "encyc:F01575",
+              "score": 0.18463051000000003,
+              "relevance_score": 0.018463051
+            },
+            {
+              "id": "ezik:c2#4",
+              "score": 0.013451345,
+              "relevance_score": 0.0013451345
+            },
+            {
+              "id": "ezik:c2#6",
+              "score": 0.013451345,
+              "relevance_score": 0.0013451345
+            },
+            {
+              "id": "ezik:c2#5",
+              "score": 0.013451338,
+              "relevance_score": 0.0013451338
+            }
+          ],
+          "providerOutcome": "bad_response",
+          "observationNote": "Exact live scores independently validated offline; unchanged D provider rejected input_tokens billing because it requires search_units."
+        },
+        {
+          "id": "c3",
+          "status": "PASS",
+          "ms": 818.3410999999996,
+          "failureMs": 818.3410999999996,
+          "billed_units": {
+            "input_tokens": 33974
+          },
+          "precisionAt10": 0.9,
+          "ranking": [
+            {
+              "id": "qaf:c3:35cbd62c-b07a-5707-affc-3832c9029365",
+              "score": 8.354385,
+              "relevance_score": 0.8354385
+            },
+            {
+              "id": "qaf:c3:437224e8-e0a7-5f1a-8934-c57e67494f67",
+              "score": 8.352595,
+              "relevance_score": 0.8352595
+            },
+            {
+              "id": "qaf:c3:f24916c5-d74d-51a7-bd67-8f53f1947ed5",
+              "score": 8.112709500000001,
+              "relevance_score": 0.81127095
+            },
+            {
+              "id": "qaf:c3:fa785ea5-c0af-5e55-9058-d788fb61a0f2",
+              "score": 8.1114835,
+              "relevance_score": 0.81114835
+            },
+            {
+              "id": "qaf:c3:864ffcd9-6308-5b51-b358-60c57842d3d1",
+              "score": 8.074017999999999,
+              "relevance_score": 0.8074018
+            },
+            {
+              "id": "qaf:c3:2c737357-fd3a-56cd-a22e-36f0d29152f7",
+              "score": 8.0455744,
+              "relevance_score": 0.80455744
+            },
+            {
+              "id": "qaf:c3:84c2fc0d-4c4f-51b1-a4f8-3fb68f99a667",
+              "score": 7.975301999999999,
+              "relevance_score": 0.7975302
+            },
+            {
+              "id": "qaf:c3:0a72c649-f83f-51c2-a46d-8133279182c7",
+              "score": 7.969474,
+              "relevance_score": 0.7969474
+            },
+            {
+              "id": "qaf:c3:4c648897-7c78-5ee7-bc58-cd4af70d0cc7",
+              "score": 7.941439,
+              "relevance_score": 0.7941439
+            },
+            {
+              "id": "qaf:c3:240b1cc1-d3d7-5ff3-a180-d41099ce8b10",
+              "score": 7.9318416,
+              "relevance_score": 0.79318416
+            },
+            {
+              "id": "qaf:c3:25a0e5e6-9755-58ac-aba1-b6a1b230bac4",
+              "score": 7.9170359999999995,
+              "relevance_score": 0.7917036
+            },
+            {
+              "id": "qaf:c3:6df14daf-f0ae-54c3-a0dc-25370d0048ec",
+              "score": 7.880313,
+              "relevance_score": 0.7880313
+            },
+            {
+              "id": "qaf:c3:bab8ed17-304f-52f0-b057-97049fced901",
+              "score": 7.835947,
+              "relevance_score": 0.7835947
+            },
+            {
+              "id": "qaf:c3:72bb69fc-a1b2-578b-9e1e-4d190b3bbf4d",
+              "score": 7.6898029999999995,
+              "relevance_score": 0.7689803
+            },
+            {
+              "id": "qaf:c3:b32d2455-3175-5869-b844-9e1016d4745e",
+              "score": 7.646193500000001,
+              "relevance_score": 0.76461935
+            },
+            {
+              "id": "qaf:c3:d7c9cf6a-7581-563f-baba-38c924159797",
+              "score": 7.618149,
+              "relevance_score": 0.7618149
+            },
+            {
+              "id": "qaf:c3:df14f935-f67f-5157-b18b-f8f968c1b045",
+              "score": 7.558133,
+              "relevance_score": 0.7558133
+            },
+            {
+              "id": "qaf:c3:532704db-f627-5d4a-aeb0-e36f0f9a2300",
+              "score": 7.519679999999999,
+              "relevance_score": 0.751968
+            },
+            {
+              "id": "qaf:c3:cfb89e46-c929-5a97-b9a1-d7299de3b4a3",
+              "score": 7.5085974,
+              "relevance_score": 0.75085974
+            },
+            {
+              "id": "qaf:c3:da298e04-a8ca-5cac-99cd-1b86a6637ca2",
+              "score": 7.4916047,
+              "relevance_score": 0.74916047
+            },
+            {
+              "id": "qaf:c3:b33234be-54af-5e9e-958b-fad1fdf2d0a7",
+              "score": 7.313013000000001,
+              "relevance_score": 0.7313013
+            },
+            {
+              "id": "qaf:c3:bae3cde3-f97d-5c65-b45e-bae1a1cf09df",
+              "score": 7.300586,
+              "relevance_score": 0.7300586
+            },
+            {
+              "id": "qaf:c3:8a0d4a69-51ce-5b6d-a115-64a3b3794354",
+              "score": 7.222267,
+              "relevance_score": 0.7222267
+            },
+            {
+              "id": "qaf:c3:a9706faa-ae38-58cd-938c-3d4e0e986348",
+              "score": 7.1973807,
+              "relevance_score": 0.71973807
+            },
+            {
+              "id": "ezik:c3#3",
+              "score": 7.0858810000000005,
+              "relevance_score": 0.7085881
+            },
+            {
+              "id": "qaf:c3:7f5237b6-d124-53c5-b9c5-4b56716249e0",
+              "score": 6.772287500000001,
+              "relevance_score": 0.67722875
+            },
+            {
+              "id": "qaf:c3:143f497b-99fd-588a-9e1b-0b60e406a6ce",
+              "score": 6.7491573,
+              "relevance_score": 0.67491573
+            },
+            {
+              "id": "qaf:c3:e7805d8e-3ff4-55a0-a4d1-e0c29cf98a7f",
+              "score": 6.7298645,
+              "relevance_score": 0.67298645
+            },
+            {
+              "id": "ezik:c3#1",
+              "score": 6.6475135,
+              "relevance_score": 0.66475135
+            },
+            {
+              "id": "qaf:c3:13228f76-f0ef-5504-9278-a3410390118d",
+              "score": 6.066324,
+              "relevance_score": 0.6066324
+            },
+            {
+              "id": "qaf:c3:032f3c82-d194-5025-ac90-22e20e637c8c",
+              "score": 5.7665116,
+              "relevance_score": 0.57665116
+            },
+            {
+              "id": "encyc:F01877",
+              "score": 4.0684217,
+              "relevance_score": 0.40684217
+            },
+            {
+              "id": "encyc:F00792",
+              "score": 2.332097,
+              "relevance_score": 0.2332097
+            },
+            {
+              "id": "encyc:F02401",
+              "score": 2.1610068,
+              "relevance_score": 0.21610068
+            },
+            {
+              "id": "encyc:F02899",
+              "score": 1.8187134999999999,
+              "relevance_score": 0.18187135
+            },
+            {
+              "id": "encyc:F01878",
+              "score": 1.0341914,
+              "relevance_score": 0.10341914
+            },
+            {
+              "id": "encyc:F02200",
+              "score": 1.0012173,
+              "relevance_score": 0.10012173
+            },
+            {
+              "id": "encyc:F01445",
+              "score": 0.8153366,
+              "relevance_score": 0.08153366
+            },
+            {
+              "id": "encyc:F01575",
+              "score": 0.5160652,
+              "relevance_score": 0.05160652
+            },
+            {
+              "id": "encyc:F01768",
+              "score": 0.32170866,
+              "relevance_score": 0.032170866
+            },
+            {
+              "id": "encyc:F02599",
+              "score": 0.30789357,
+              "relevance_score": 0.030789357
+            },
+            {
+              "id": "encyc:F01664",
+              "score": 0.22391044,
+              "relevance_score": 0.022391044
+            },
+            {
+              "id": "encyc:F02543",
+              "score": 0.20346671,
+              "relevance_score": 0.020346671
+            },
+            {
+              "id": "encyc:F02600",
+              "score": 0.19210666,
+              "relevance_score": 0.019210666
+            },
+            {
+              "id": "encyc:F03065",
+              "score": 0.18554091,
+              "relevance_score": 0.018554091
+            },
+            {
+              "id": "encyc:F00349",
+              "score": 0.07737738499999999,
+              "relevance_score": 0.0077377385
+            },
+            {
+              "id": "encyc:F01327",
+              "score": 0.07667115000000001,
+              "relevance_score": 0.007667115
+            },
+            {
+              "id": "encyc:F00350",
+              "score": 0.071919356,
+              "relevance_score": 0.0071919356
+            },
+            {
+              "id": "encyc:F01974",
+              "score": 0.061708693,
+              "relevance_score": 0.0061708693
+            },
+            {
+              "id": "ezik:c3#2",
+              "score": 0.018107075,
+              "relevance_score": 0.0018107075
+            }
+          ],
+          "providerOutcome": "bad_response",
+          "observationNote": "Exact live scores independently validated offline; unchanged D provider rejected input_tokens billing because it requires search_units."
+        }
+      ],
+      "medianPrecisionAt10": 0.8,
+      "medianMs": 1080.7869999999994,
+      "p90Ms": 1772.0431999999998,
+      "availability": "LIVE_SCORES_OFFLINE_VALIDATED",
+      "threshold": 6.824669,
+      "cost": {
+        "usd": 0.005832759999999999,
+        "upperBound": false,
+        "rows": [
+          {
+            "id": "a1",
+            "units": 32935,
+            "unit": "tokens",
+            "usd": 0.0006587,
+            "upperBound": false
+          },
+          {
+            "id": "a2",
+            "units": 30813,
+            "unit": "tokens",
+            "usd": 0.00061626,
+            "upperBound": false
+          },
+          {
+            "id": "a3",
+            "units": 31176,
+            "unit": "tokens",
+            "usd": 0.00062352,
+            "upperBound": false
+          },
+          {
+            "id": "b1",
+            "units": 33018,
+            "unit": "tokens",
+            "usd": 0.00066036,
+            "upperBound": false
+          },
+          {
+            "id": "b2",
+            "units": 34653,
+            "unit": "tokens",
+            "usd": 0.00069306,
+            "upperBound": false
+          },
+          {
+            "id": "b3",
+            "units": 28442,
+            "unit": "tokens",
+            "usd": 0.00056884,
+            "upperBound": false
+          },
+          {
+            "id": "c1",
+            "units": 39425,
+            "unit": "tokens",
+            "usd": 0.0007885,
+            "upperBound": false
+          },
+          {
+            "id": "c2",
+            "units": 27202,
+            "unit": "tokens",
+            "usd": 0.00054404,
+            "upperBound": false
+          },
+          {
+            "id": "c3",
+            "units": 33974,
+            "unit": "tokens",
+            "usd": 0.00067948,
+            "upperBound": false
+          }
+        ]
+      },
+      "rule": "Strictly greater than the highest X score",
+      "above": {
+        "R": 110,
+        "P": 58,
+        "X": 0
+      },
+      "knownX": [
+        {
+          "id": "ezik:b3#4",
+          "score": 0.009746292,
+          "suppressed": true
+        },
+        {
+          "id": "ezik:b3#5",
+          "score": 0.0097462966,
+          "suppressed": true
+        },
+        {
+          "id": "ezik:c1#3",
+          "score": 4.0194333,
+          "suppressed": true
+        }
+      ]
+    },
+    {
+      "model": "rerank-v5.0-pro",
+      "rows": [
+        {
+          "id": "a1",
+          "status": "PASS",
+          "ms": 845.1051000000007,
+          "failureMs": 845.1051000000007,
+          "billed_units": {
+            "input_tokens": 28871
+          },
+          "precisionAt10": 0.8,
+          "ranking": [
+            {
+              "id": "qaf:a1:21b47aeb-a5f9-5b1e-a035-640c6994a89c",
+              "score": 8.583381,
+              "relevance_score": 0.8583381
+            },
+            {
+              "id": "qaf:a1:afdb5f6f-ab78-5b2b-ac2d-d059761befba",
+              "score": 8.559098,
+              "relevance_score": 0.8559098
+            },
+            {
+              "id": "qaf:a1:c2393446-5382-5e25-8f06-7d5a7ebc9255",
+              "score": 8.54245,
+              "relevance_score": 0.854245
+            },
+            {
+              "id": "qaf:a1:4342cc3e-9712-54cc-9d8f-029a1130e57a",
+              "score": 8.5412854,
+              "relevance_score": 0.85412854
+            },
+            {
+              "id": "qaf:a1:db463408-2597-565a-91e2-e32f30eb4830",
+              "score": 8.510731999999999,
+              "relevance_score": 0.8510732
+            },
+            {
+              "id": "qaf:a1:144c6a79-e860-5b51-a5f0-186cb1501b29",
+              "score": 8.4990275,
+              "relevance_score": 0.84990275
+            },
+            {
+              "id": "qaf:a1:1fe324a9-14f3-5ef3-b645-cd2b4dc851e1",
+              "score": 8.468029,
+              "relevance_score": 0.8468029
+            },
+            {
+              "id": "qaf:a1:fea02c33-9d51-563c-9b20-1d83b9383d6f",
+              "score": 8.4009975,
+              "relevance_score": 0.84009975
+            },
+            {
+              "id": "qaf:a1:35d1a7c8-07ce-5ec1-b8ff-cbf75bb22932",
+              "score": 8.391041,
+              "relevance_score": 0.8391041
+            },
+            {
+              "id": "qaf:a1:9796b039-6c6a-5101-b4c7-b6ff17eda0ad",
+              "score": 8.3632565,
+              "relevance_score": 0.83632565
+            },
+            {
+              "id": "qaf:a1:771bb3a0-952f-5806-b3e4-d0162ae11bfe",
+              "score": 8.3286375,
+              "relevance_score": 0.83286375
+            },
+            {
+              "id": "qaf:a1:9208095d-fc92-5016-aa91-e21d6837b403",
+              "score": 8.3190197,
+              "relevance_score": 0.83190197
+            },
+            {
+              "id": "qaf:a1:b475afed-03f2-5fb0-b99c-7565759a7c4e",
+              "score": 8.210849999999999,
+              "relevance_score": 0.821085
+            },
+            {
+              "id": "qaf:a1:b1e5b689-a518-59c8-9ccb-d289395e5ef3",
+              "score": 8.164704,
+              "relevance_score": 0.8164704
+            },
+            {
+              "id": "ezik:a1#1",
+              "score": 8.065952,
+              "relevance_score": 0.8065952
+            },
+            {
+              "id": "qaf:a1:ff4234aa-5499-5b72-9e10-069544b77602",
+              "score": 7.7164936,
+              "relevance_score": 0.77164936
+            },
+            {
+              "id": "ezik:a1#4",
+              "score": 7.121830999999999,
+              "relevance_score": 0.7121831
+            },
+            {
+              "id": "encyc:F01173",
+              "score": 4.5200202,
+              "relevance_score": 0.45200202
+            },
+            {
+              "id": "encyc:F01852",
+              "score": 0.8354493000000001,
+              "relevance_score": 0.08354493
+            },
+            {
+              "id": "encyc:F00651",
+              "score": 0.7899148,
+              "relevance_score": 0.07899148
+            },
+            {
+              "id": "encyc:F01664",
+              "score": 0.5505656999999999,
+              "relevance_score": 0.05505657
+            },
+            {
+              "id": "encyc:F01860",
+              "score": 0.40429007000000006,
+              "relevance_score": 0.040429007
+            },
+            {
+              "id": "encyc:F00035",
+              "score": 0.31502362,
+              "relevance_score": 0.031502362
+            },
+            {
+              "id": "encyc:F00645",
+              "score": 0.27528867,
+              "relevance_score": 0.027528867
+            },
+            {
+              "id": "encyc:F00590",
+              "score": 0.16258430000000001,
+              "relevance_score": 0.01625843
+            },
+            {
+              "id": "encyc:F00976",
+              "score": 0.12331826000000001,
+              "relevance_score": 0.012331826
+            },
+            {
+              "id": "encyc:F02321",
+              "score": 0.09802530000000001,
+              "relevance_score": 0.00980253
+            },
+            {
+              "id": "encyc:F00756",
+              "score": 0.06385549,
+              "relevance_score": 0.006385549
+            },
+            {
+              "id": "encyc:F01818",
+              "score": 0.06048884,
+              "relevance_score": 0.006048884
+            },
+            {
+              "id": "encyc:F01698",
+              "score": 0.045158486,
+              "relevance_score": 0.0045158486
+            },
+            {
+              "id": "encyc:F00458",
+              "score": 0.035233446,
+              "relevance_score": 0.0035233446
+            },
+            {
+              "id": "encyc:F02572",
+              "score": 0.033283764,
+              "relevance_score": 0.0033283764
+            },
+            {
+              "id": "encyc:F00118",
+              "score": 0.024928497,
+              "relevance_score": 0.0024928497
+            },
+            {
+              "id": "encyc:F00158",
+              "score": 0.02028498,
+              "relevance_score": 0.002028498
+            },
+            {
+              "id": "encyc:F01829",
+              "score": 0.020134393,
+              "relevance_score": 0.0020134393
+            },
+            {
+              "id": "encyc:F03066",
+              "score": 0.013627361000000001,
+              "relevance_score": 0.0013627361
+            },
+            {
+              "id": "encyc:F03011",
+              "score": 0.011674756000000001,
+              "relevance_score": 0.0011674756
+            },
+            {
+              "id": "encyc:F00514",
+              "score": 0.011484332,
+              "relevance_score": 0.0011484332
+            },
+            {
+              "id": "encyc:F02615",
+              "score": 0.010827447,
+              "relevance_score": 0.0010827447
+            },
+            {
+              "id": "encyc:F01187",
+              "score": 0.010489222999999999,
+              "relevance_score": 0.0010489223
+            },
+            {
+              "id": "encyc:F02679",
+              "score": 0.009928803,
+              "relevance_score": 0.0009928803
+            },
+            {
+              "id": "encyc:F01007",
+              "score": 0.008928107,
+              "relevance_score": 0.0008928107
+            },
+            {
+              "id": "encyc:F00785",
+              "score": 0.0089015294,
+              "relevance_score": 0.00089015294
+            },
+            {
+              "id": "encyc:F00851",
+              "score": 0.0088435685,
+              "relevance_score": 0.00088435685
+            },
+            {
+              "id": "encyc:F03032",
+              "score": 0.0086983223,
+              "relevance_score": 0.00086983223
+            },
+            {
+              "id": "ezik:a1#2",
+              "score": 0.0074848573,
+              "relevance_score": 0.00074848573
+            },
+            {
+              "id": "ezik:a1#5",
+              "score": 0.0074848573,
+              "relevance_score": 0.00074848573
+            },
+            {
+              "id": "ezik:a1#3",
+              "score": 0.0074848544,
+              "relevance_score": 0.00074848544
+            },
+            {
+              "id": "ezik:a1#6",
+              "score": 0.0074848544,
+              "relevance_score": 0.00074848544
+            },
+            {
+              "id": "encyc:F02273",
+              "score": 0.0067150913,
+              "relevance_score": 0.00067150913
+            }
+          ],
+          "providerOutcome": "bad_response",
+          "observationNote": "Exact live scores independently validated offline; unchanged D provider rejected input_tokens billing because it requires search_units."
+        },
+        {
+          "id": "a2",
+          "status": "PASS",
+          "ms": 835.3315999999995,
+          "failureMs": 835.3315999999995,
+          "billed_units": {
+            "input_tokens": 28511
+          },
+          "precisionAt10": 1,
+          "ranking": [
+            {
+              "id": "qaf:a2:625b4f8f-f6ac-545a-bd87-3e0d9b09f543",
+              "score": 8.764237999999999,
+              "relevance_score": 0.8764238
+            },
+            {
+              "id": "ezik:a2#3",
+              "score": 8.7361795,
+              "relevance_score": 0.87361795
+            },
+            {
+              "id": "qaf:a2:ff89c916-401a-5cc2-9f3a-00ad0844ccca",
+              "score": 8.658643,
+              "relevance_score": 0.8658643
+            },
+            {
+              "id": "qaf:a2:7d99e1a0-5f38-54e5-ab6d-d95a377668b1",
+              "score": 8.507063,
+              "relevance_score": 0.8507063
+            },
+            {
+              "id": "qaf:a2:a0f602de-3390-51af-8efd-5539a5fa78b8",
+              "score": 8.457489,
+              "relevance_score": 0.8457489
+            },
+            {
+              "id": "qaf:a2:060c543b-a6c2-5c50-a8e7-61cf9989e310",
+              "score": 8.440468,
+              "relevance_score": 0.8440468
+            },
+            {
+              "id": "qaf:a2:12c3bbd4-0ad9-55fd-b388-7547ae9b28f6",
+              "score": 8.407248000000001,
+              "relevance_score": 0.8407248
+            },
+            {
+              "id": "qaf:a2:356ea7aa-720f-5033-9c16-91d26a8fe7ca",
+              "score": 8.378969,
+              "relevance_score": 0.8378969
+            },
+            {
+              "id": "qaf:a2:ec815d45-9bed-57f4-ab00-09e49f63398d",
+              "score": 8.2458484,
+              "relevance_score": 0.82458484
+            },
+            {
+              "id": "qaf:a2:5d0139b1-7b8c-55c1-b71f-e79c0f2184cd",
+              "score": 8.11955,
+              "relevance_score": 0.811955
+            },
+            {
+              "id": "qaf:a2:71f44af7-dd5f-5b95-a7df-22c2afd6d280",
+              "score": 8.0994004,
+              "relevance_score": 0.80994004
+            },
+            {
+              "id": "qaf:a2:57290597-0cc8-5145-a9ea-c9b2c1869c16",
+              "score": 8.09459,
+              "relevance_score": 0.809459
+            },
+            {
+              "id": "qaf:a2:341eac64-078e-59b7-815f-cd7370a225d8",
+              "score": 8.033677,
+              "relevance_score": 0.8033677
+            },
+            {
+              "id": "qaf:a2:40a8daaf-322d-59b8-b9c8-0a8322fa2166",
+              "score": 8.0034703,
+              "relevance_score": 0.80034703
+            },
+            {
+              "id": "qaf:a2:0fc8a652-535a-5797-84b2-4b96e4831fdc",
+              "score": 7.956482,
+              "relevance_score": 0.7956482
+            },
+            {
+              "id": "qaf:a2:62037973-e5b9-51bd-83ab-288b7f176684",
+              "score": 7.789358,
+              "relevance_score": 0.7789358
+            },
+            {
+              "id": "qaf:a2:7e18cb45-a2a0-58e3-b70c-f8d55d2e06da",
+              "score": 7.6437795,
+              "relevance_score": 0.76437795
+            },
+            {
+              "id": "qaf:a2:a8244260-b0ad-5d98-a28a-84125705a5f2",
+              "score": 7.601474499999999,
+              "relevance_score": 0.76014745
+            },
+            {
+              "id": "qaf:a2:6c947083-c8c2-5dc7-ab04-5e37312aba4a",
+              "score": 7.558886,
+              "relevance_score": 0.7558886
+            },
+            {
+              "id": "ezik:a2#6",
+              "score": 7.2171485,
+              "relevance_score": 0.72171485
+            },
+            {
+              "id": "qaf:a2:67e6ecc9-6cae-5e49-8811-09999e2b2d00",
+              "score": 7.1543753,
+              "relevance_score": 0.71543753
+            },
+            {
+              "id": "qaf:a2:7b290077-758c-525b-88ce-1a2ef9218443",
+              "score": 6.935419400000001,
+              "relevance_score": 0.69354194
+            },
+            {
+              "id": "ezik:a2#1",
+              "score": 6.828959599999999,
+              "relevance_score": 0.68289596
+            },
+            {
+              "id": "qaf:a2:6dec5f9b-4137-5f0f-8f2f-7819e33eff64",
+              "score": 6.7057806,
+              "relevance_score": 0.67057806
+            },
+            {
+              "id": "qaf:a2:3842b6b2-f6bd-5145-8ccd-6a0a036e7b6a",
+              "score": 5.607571999999999,
+              "relevance_score": 0.5607572
+            },
+            {
+              "id": "qaf:a2:5863cf6d-7673-59b4-b69f-36efa6d6c2d8",
+              "score": 5.5102085999999995,
+              "relevance_score": 0.55102086
+            },
+            {
+              "id": "qaf:a2:5d1963cd-8408-5cf3-bbc6-4496c44ce09f",
+              "score": 5.00954,
+              "relevance_score": 0.500954
+            },
+            {
+              "id": "encyc:F01576",
+              "score": 4.3752056,
+              "relevance_score": 0.43752056
+            },
+            {
+              "id": "encyc:F00027",
+              "score": 2.4415997000000003,
+              "relevance_score": 0.24415997
+            },
+            {
+              "id": "ezik:a2#4",
+              "score": 2.2996636,
+              "relevance_score": 0.22996636
+            },
+            {
+              "id": "encyc:F01572",
+              "score": 1.7790065999999998,
+              "relevance_score": 0.17790066
+            },
+            {
+              "id": "encyc:F01445",
+              "score": 0.33149444,
+              "relevance_score": 0.033149444
+            },
+            {
+              "id": "encyc:F01031",
+              "score": 0.24694049999999998,
+              "relevance_score": 0.02469405
+            },
+            {
+              "id": "encyc:F01620",
+              "score": 0.18391604,
+              "relevance_score": 0.018391604
+            },
+            {
+              "id": "encyc:F00145",
+              "score": 0.14125189999999999,
+              "relevance_score": 0.01412519
+            },
+            {
+              "id": "encyc:F00371",
+              "score": 0.13449795,
+              "relevance_score": 0.013449795
+            },
+            {
+              "id": "encyc:F01180",
+              "score": 0.10516064,
+              "relevance_score": 0.010516064
+            },
+            {
+              "id": "encyc:F01818",
+              "score": 0.07757761,
+              "relevance_score": 0.007757761
+            },
+            {
+              "id": "encyc:F00465",
+              "score": 0.067792158,
+              "relevance_score": 0.0067792158
+            },
+            {
+              "id": "encyc:F01843",
+              "score": 0.06059604,
+              "relevance_score": 0.006059604
+            },
+            {
+              "id": "encyc:F02997",
+              "score": 0.0459536,
+              "relevance_score": 0.00459536
+            },
+            {
+              "id": "encyc:F02109",
+              "score": 0.03997505,
+              "relevance_score": 0.003997505
+            },
+            {
+              "id": "encyc:F00867",
+              "score": 0.027418728,
+              "relevance_score": 0.0027418728
+            },
+            {
+              "id": "encyc:F02123",
+              "score": 0.025098799999999998,
+              "relevance_score": 0.00250988
+            },
+            {
+              "id": "encyc:F00783",
+              "score": 0.02042965,
+              "relevance_score": 0.002042965
+            },
+            {
+              "id": "encyc:F00770",
+              "score": 0.017548407,
+              "relevance_score": 0.0017548407
+            },
+            {
+              "id": "encyc:F01045",
+              "score": 0.011934914,
+              "relevance_score": 0.0011934914
+            },
+            {
+              "id": "encyc:F02853",
+              "score": 0.008656926,
+              "relevance_score": 0.0008656926
+            },
+            {
+              "id": "ezik:a2#2",
+              "score": 0.007060317399999999,
+              "relevance_score": 0.00070603174
+            },
+            {
+              "id": "ezik:a2#5",
+              "score": 0.007060317399999999,
+              "relevance_score": 0.00070603174
+            }
+          ],
+          "providerOutcome": "bad_response",
+          "observationNote": "Exact live scores independently validated offline; unchanged D provider rejected input_tokens billing because it requires search_units."
+        },
+        {
+          "id": "a3",
+          "status": "PASS",
+          "ms": 826.1250999999993,
+          "failureMs": 826.1250999999993,
+          "billed_units": {
+            "input_tokens": 27511
+          },
+          "precisionAt10": 0.8,
+          "ranking": [
+            {
+              "id": "qaf:a3:9a539106-9dc5-5174-b6a4-4713d429df24",
+              "score": 8.061401,
+              "relevance_score": 0.8061401
+            },
+            {
+              "id": "qaf:a3:dfb65683-8d39-5acc-a5ef-d2a7944c19e6",
+              "score": 7.964297999999999,
+              "relevance_score": 0.7964298
+            },
+            {
+              "id": "ezik:a3#3",
+              "score": 7.876134,
+              "relevance_score": 0.7876134
+            },
+            {
+              "id": "qaf:a3:680e810a-8525-5b0d-8a71-978c94f534ac",
+              "score": 7.8099419999999995,
+              "relevance_score": 0.7809942
+            },
+            {
+              "id": "qaf:a3:5020a923-6814-5044-b89b-283add54114e",
+              "score": 7.630642,
+              "relevance_score": 0.7630642
+            },
+            {
+              "id": "qaf:a3:d1227c90-c75b-58a9-aef7-2b189168dbbd",
+              "score": 7.5988185,
+              "relevance_score": 0.75988185
+            },
+            {
+              "id": "qaf:a3:5b123fec-340b-5e11-82dc-07a6e78c36d2",
+              "score": 7.5983279999999995,
+              "relevance_score": 0.7598328
+            },
+            {
+              "id": "qaf:a3:0a7b8b9d-4281-520a-aab1-e540b53582e1",
+              "score": 7.3362213,
+              "relevance_score": 0.73362213
+            },
+            {
+              "id": "qaf:a3:586dfca5-0b6a-5bff-9c29-c4651c11922a",
+              "score": 7.053678,
+              "relevance_score": 0.7053678
+            },
+            {
+              "id": "qaf:a3:58069170-9434-5cd7-8c2a-9189e0280d1f",
+              "score": 6.9015450000000005,
+              "relevance_score": 0.6901545
+            },
+            {
+              "id": "qaf:a3:2b2eb4ce-491b-50ef-bb57-921442229225",
+              "score": 6.7127025,
+              "relevance_score": 0.67127025
+            },
+            {
+              "id": "qaf:a3:e2cda786-e7ee-588b-8584-3cfa2a9d71b7",
+              "score": 6.166021000000001,
+              "relevance_score": 0.6166021
+            },
+            {
+              "id": "ezik:a3#5",
+              "score": 5.393692,
+              "relevance_score": 0.5393692
+            },
+            {
+              "id": "qaf:a3:d28a44b8-c0fb-5349-85b3-f18a3e5c3b98",
+              "score": 5.0191975,
+              "relevance_score": 0.50191975
+            },
+            {
+              "id": "qaf:a3:cbd93c94-4ea3-56fc-a923-60497252330e",
+              "score": 4.5591402,
+              "relevance_score": 0.45591402
+            },
+            {
+              "id": "qaf:a3:f76075c3-5f7a-5c3a-a251-4a530921f565",
+              "score": 3.6503175,
+              "relevance_score": 0.36503175
+            },
+            {
+              "id": "qaf:a3:82d4b862-b826-53ea-a11b-b4058a16918f",
+              "score": 3.1640625,
+              "relevance_score": 0.31640625
+            },
+            {
+              "id": "encyc:F02321",
+              "score": 2.0598687,
+              "relevance_score": 0.20598687
+            },
+            {
+              "id": "encyc:F01827",
+              "score": 1.6860057,
+              "relevance_score": 0.16860057
+            },
+            {
+              "id": "encyc:F00976",
+              "score": 0.6274701,
+              "relevance_score": 0.06274701
+            },
+            {
+              "id": "encyc:F00226",
+              "score": 0.43775693,
+              "relevance_score": 0.043775693
+            },
+            {
+              "id": "encyc:F00273",
+              "score": 0.22360736999999997,
+              "relevance_score": 0.022360737
+            },
+            {
+              "id": "ezik:a3#4",
+              "score": 0.21440885999999998,
+              "relevance_score": 0.021440886
+            },
+            {
+              "id": "encyc:F00590",
+              "score": 0.19225863999999998,
+              "relevance_score": 0.019225864
+            },
+            {
+              "id": "encyc:F00869",
+              "score": 0.14805662,
+              "relevance_score": 0.014805662
+            },
+            {
+              "id": "encyc:F02318",
+              "score": 0.11367505,
+              "relevance_score": 0.011367505
+            },
+            {
+              "id": "encyc:F00674",
+              "score": 0.08364455999999999,
+              "relevance_score": 0.008364456
+            },
+            {
+              "id": "encyc:F02219",
+              "score": 0.0732028,
+              "relevance_score": 0.00732028
+            },
+            {
+              "id": "encyc:F02319",
+              "score": 0.040671005999999996,
+              "relevance_score": 0.0040671006
+            },
+            {
+              "id": "encyc:F01858",
+              "score": 0.038727522,
+              "relevance_score": 0.0038727522
+            },
+            {
+              "id": "encyc:F00669",
+              "score": 0.038432064,
+              "relevance_score": 0.0038432064
+            },
+            {
+              "id": "encyc:F00224",
+              "score": 0.036624034,
+              "relevance_score": 0.0036624034
+            },
+            {
+              "id": "encyc:F01841",
+              "score": 0.031657699,
+              "relevance_score": 0.0031657699
+            },
+            {
+              "id": "encyc:F00560",
+              "score": 0.026230671999999997,
+              "relevance_score": 0.0026230672
+            },
+            {
+              "id": "encyc:F00843",
+              "score": 0.024483174,
+              "relevance_score": 0.0024483174
+            },
+            {
+              "id": "encyc:F00552",
+              "score": 0.023212226000000002,
+              "relevance_score": 0.0023212226
+            },
+            {
+              "id": "encyc:F01842",
+              "score": 0.022191594000000002,
+              "relevance_score": 0.0022191594
+            },
+            {
+              "id": "encyc:F00982",
+              "score": 0.021271329999999998,
+              "relevance_score": 0.002127133
+            },
+            {
+              "id": "encyc:F00432",
+              "score": 0.019782607,
+              "relevance_score": 0.0019782607
+            },
+            {
+              "id": "encyc:F00648",
+              "score": 0.018155919,
+              "relevance_score": 0.0018155919
+            },
+            {
+              "id": "encyc:F01227",
+              "score": 0.018137342,
+              "relevance_score": 0.0018137342
+            },
+            {
+              "id": "encyc:F00881",
+              "score": 0.015332163000000001,
+              "relevance_score": 0.0015332163
+            },
+            {
+              "id": "encyc:F00356",
+              "score": 0.015035672,
+              "relevance_score": 0.0015035672
+            },
+            {
+              "id": "encyc:F00141",
+              "score": 0.013293935,
+              "relevance_score": 0.0013293935
+            },
+            {
+              "id": "encyc:F01207",
+              "score": 0.011764606,
+              "relevance_score": 0.0011764606
+            },
+            {
+              "id": "encyc:F01204",
+              "score": 0.009497151,
+              "relevance_score": 0.0009497151
+            },
+            {
+              "id": "ezik:a3#7",
+              "score": 0.006842059,
+              "relevance_score": 0.0006842059
+            },
+            {
+              "id": "ezik:a3#1",
+              "score": 0.006842059,
+              "relevance_score": 0.0006842059
+            },
+            {
+              "id": "ezik:a3#2",
+              "score": 0.006842055600000001,
+              "relevance_score": 0.00068420556
+            },
+            {
+              "id": "ezik:a3#6",
+              "score": 0.006842055600000001,
+              "relevance_score": 0.00068420556
+            }
+          ],
+          "providerOutcome": "bad_response",
+          "observationNote": "Exact live scores independently validated offline; unchanged D provider rejected input_tokens billing because it requires search_units."
+        },
+        {
+          "id": "b1",
+          "status": "PASS",
+          "ms": 694.3078999999998,
+          "failureMs": 694.3078999999998,
+          "billed_units": {
+            "input_tokens": 29043
+          },
+          "precisionAt10": 0.8,
+          "ranking": [
+            {
+              "id": "qaf:b1:8a9d69b6-b984-548c-862e-bea2439d3109",
+              "score": 8.567034999999999,
+              "relevance_score": 0.8567035
+            },
+            {
+              "id": "qaf:b1:7edead1f-6345-5cb7-b1d7-26e7a980a153",
+              "score": 8.268385499999999,
+              "relevance_score": 0.82683855
+            },
+            {
+              "id": "qaf:b1:0ecc6387-4082-5ec2-b68e-5a003b85dc4b",
+              "score": 8.172239,
+              "relevance_score": 0.8172239
+            },
+            {
+              "id": "qaf:b1:b9796be1-8997-5595-8a59-da92238cdc9d",
+              "score": 8.109512,
+              "relevance_score": 0.8109512
+            },
+            {
+              "id": "qaf:b1:b52ce681-9372-5f80-8d81-3ba78aff7f12",
+              "score": 8.021136,
+              "relevance_score": 0.8021136
+            },
+            {
+              "id": "qaf:b1:39c89db1-efe8-5d78-a796-0bf979975078",
+              "score": 7.9729444,
+              "relevance_score": 0.79729444
+            },
+            {
+              "id": "qaf:b1:929b24af-816d-5e18-a361-29ee11332fdf",
+              "score": 7.697552399999999,
+              "relevance_score": 0.76975524
+            },
+            {
+              "id": "qaf:b1:61557126-a587-56fd-b0e5-bae231e0f74c",
+              "score": 7.397565999999999,
+              "relevance_score": 0.7397566
+            },
+            {
+              "id": "qaf:b1:13419e61-01bd-5b91-a7b7-013a1732a176",
+              "score": 7.397057,
+              "relevance_score": 0.7397057
+            },
+            {
+              "id": "qaf:b1:86c3ccd1-85c8-5a2c-adde-6d63fc5d1b33",
+              "score": 7.326523,
+              "relevance_score": 0.7326523
+            },
+            {
+              "id": "qaf:b1:dc93d251-1f5c-567a-bb2b-a281e7fae7f5",
+              "score": 7.3066825,
+              "relevance_score": 0.73066825
+            },
+            {
+              "id": "qaf:b1:9f4a96a5-544d-5e5b-8194-50e0c08c39c7",
+              "score": 7.2338724,
+              "relevance_score": 0.72338724
+            },
+            {
+              "id": "qaf:b1:01cd0af9-6747-5c8a-afec-41f56102f7ca",
+              "score": 6.756425,
+              "relevance_score": 0.6756425
+            },
+            {
+              "id": "qaf:b1:d6074a06-b650-5c48-87cd-36adfac58752",
+              "score": 6.5971476,
+              "relevance_score": 0.65971476
+            },
+            {
+              "id": "qaf:b1:226fbd5f-b8dc-5a1f-8ac4-bbcd1cf7ad1d",
+              "score": 6.428554699999999,
+              "relevance_score": 0.64285547
+            },
+            {
+              "id": "ezik:b1#1",
+              "score": 5.9185904,
+              "relevance_score": 0.59185904
+            },
+            {
+              "id": "ezik:b1#2",
+              "score": 5.8088565,
+              "relevance_score": 0.58088565
+            },
+            {
+              "id": "encyc:F01171",
+              "score": 0.50122146,
+              "relevance_score": 0.050122146
+            },
+            {
+              "id": "encyc:F02723",
+              "score": 0.2110573,
+              "relevance_score": 0.02110573
+            },
+            {
+              "id": "encyc:F00139",
+              "score": 0.10523404,
+              "relevance_score": 0.010523404
+            },
+            {
+              "id": "encyc:F00137",
+              "score": 0.06444522999999999,
+              "relevance_score": 0.006444523
+            },
+            {
+              "id": "encyc:F00138",
+              "score": 0.039238613000000006,
+              "relevance_score": 0.0039238613
+            },
+            {
+              "id": "encyc:F02565",
+              "score": 0.036375107999999996,
+              "relevance_score": 0.0036375108
+            },
+            {
+              "id": "encyc:F00344",
+              "score": 0.028169092,
+              "relevance_score": 0.0028169092
+            },
+            {
+              "id": "encyc:F01831",
+              "score": 0.027047857,
+              "relevance_score": 0.0027047857
+            },
+            {
+              "id": "encyc:F00555",
+              "score": 0.024258913,
+              "relevance_score": 0.0024258913
+            },
+            {
+              "id": "encyc:F00216",
+              "score": 0.022407327999999997,
+              "relevance_score": 0.0022407328
+            },
+            {
+              "id": "encyc:F01612",
+              "score": 0.022050835999999997,
+              "relevance_score": 0.0022050836
+            },
+            {
+              "id": "encyc:F00181",
+              "score": 0.02104322,
+              "relevance_score": 0.002104322
+            },
+            {
+              "id": "encyc:F00175",
+              "score": 0.01962036,
+              "relevance_score": 0.001962036
+            },
+            {
+              "id": "encyc:F03018",
+              "score": 0.01952652,
+              "relevance_score": 0.001952652
+            },
+            {
+              "id": "encyc:F00681",
+              "score": 0.017602878,
+              "relevance_score": 0.0017602878
+            },
+            {
+              "id": "encyc:F00655",
+              "score": 0.016485982,
+              "relevance_score": 0.0016485982
+            },
+            {
+              "id": "encyc:F00379",
+              "score": 0.016108326,
+              "relevance_score": 0.0016108326
+            },
+            {
+              "id": "encyc:F00467",
+              "score": 0.013244382999999998,
+              "relevance_score": 0.0013244383
+            },
+            {
+              "id": "encyc:F00850",
+              "score": 0.012687648,
+              "relevance_score": 0.0012687648
+            },
+            {
+              "id": "encyc:F00923",
+              "score": 0.011867186,
+              "relevance_score": 0.0011867186
+            },
+            {
+              "id": "encyc:F00801",
+              "score": 0.011780564,
+              "relevance_score": 0.0011780564
+            },
+            {
+              "id": "encyc:F00105",
+              "score": 0.011458026,
+              "relevance_score": 0.0011458026
+            },
+            {
+              "id": "encyc:F00314",
+              "score": 0.011263749,
+              "relevance_score": 0.0011263749
+            },
+            {
+              "id": "encyc:F00833",
+              "score": 0.010678052,
+              "relevance_score": 0.0010678052
+            },
+            {
+              "id": "encyc:F00851",
+              "score": 0.010631345,
+              "relevance_score": 0.0010631345
+            },
+            {
+              "id": "encyc:F00271",
+              "score": 0.010199056,
+              "relevance_score": 0.0010199056
+            },
+            {
+              "id": "encyc:F00925",
+              "score": 0.010129098,
+              "relevance_score": 0.0010129098
+            },
+            {
+              "id": "encyc:F00585",
+              "score": 0.00986502,
+              "relevance_score": 0.000986502
+            },
+            {
+              "id": "encyc:F00686",
+              "score": 0.009781622,
+              "relevance_score": 0.0009781622
+            },
+            {
+              "id": "encyc:F01851",
+              "score": 0.009602477,
+              "relevance_score": 0.0009602477
+            },
+            {
+              "id": "encyc:F00756",
+              "score": 0.008354424499999999,
+              "relevance_score": 0.00083544245
+            },
+            {
+              "id": "encyc:F00888",
+              "score": 0.0077809265,
+              "relevance_score": 0.00077809265
+            },
+            {
+              "id": "ezik:b1#3",
+              "score": 0.006072732000000001,
+              "relevance_score": 0.0006072732
+            }
+          ],
+          "providerOutcome": "bad_response",
+          "observationNote": "Exact live scores independently validated offline; unchanged D provider rejected input_tokens billing because it requires search_units."
+        },
+        {
+          "id": "b2",
+          "status": "PASS",
+          "ms": 720.7764999999999,
+          "failureMs": 720.7764999999999,
+          "billed_units": {
+            "input_tokens": 30089
+          },
+          "precisionAt10": 0.9,
+          "ranking": [
+            {
+              "id": "qaf:b2:59d7e6d3-5781-5431-9b78-b7a8a8da8088",
+              "score": 8.3282524,
+              "relevance_score": 0.83282524
+            },
+            {
+              "id": "qaf:b2:234a3dcf-8ed1-5477-bc22-bd8abc4f45f9",
+              "score": 8.244755,
+              "relevance_score": 0.8244755
+            },
+            {
+              "id": "qaf:b2:d36d434c-75e4-5643-bb69-7d1326e541c5",
+              "score": 8.154341,
+              "relevance_score": 0.8154341
+            },
+            {
+              "id": "ezik:b2#1",
+              "score": 8.1019294,
+              "relevance_score": 0.81019294
+            },
+            {
+              "id": "qaf:b2:c02d1256-270d-52bb-bb7a-44bf3c27da7e",
+              "score": 8.094873,
+              "relevance_score": 0.8094873
+            },
+            {
+              "id": "qaf:b2:c13a4824-e756-5798-aaa7-4368bbb64ee7",
+              "score": 8.092229,
+              "relevance_score": 0.8092229
+            },
+            {
+              "id": "qaf:b2:1601cb58-ee02-5fc4-ba0f-718d4e1cdfda",
+              "score": 7.974072,
+              "relevance_score": 0.7974072
+            },
+            {
+              "id": "qaf:b2:ad9e0528-b989-530e-aa1e-fc91a5713ba5",
+              "score": 7.8515023,
+              "relevance_score": 0.78515023
+            },
+            {
+              "id": "qaf:b2:cc7c88db-7264-52f8-9a09-42f630a59302",
+              "score": 7.779110999999999,
+              "relevance_score": 0.7779111
+            },
+            {
+              "id": "qaf:b2:df73570a-3434-584e-9e61-8cb4e5fc7669",
+              "score": 7.675828300000001,
+              "relevance_score": 0.76758283
+            },
+            {
+              "id": "qaf:b2:9220d79a-ce71-5e1d-b841-56bbe9c2831b",
+              "score": 7.6075447,
+              "relevance_score": 0.76075447
+            },
+            {
+              "id": "ezik:b2#2",
+              "score": 7.4738747000000005,
+              "relevance_score": 0.74738747
+            },
+            {
+              "id": "qaf:b2:f109c1b3-5325-51b8-8087-3f1976bcf1df",
+              "score": 7.4518675000000005,
+              "relevance_score": 0.74518675
+            },
+            {
+              "id": "qaf:b2:120ccf8e-3a7b-5200-98d5-7e0ea2d77cbf",
+              "score": 7.4212473999999995,
+              "relevance_score": 0.74212474
+            },
+            {
+              "id": "qaf:b2:b3cf6a7e-dacf-5f7b-8881-154f7a0d1310",
+              "score": 6.684797,
+              "relevance_score": 0.6684797
+            },
+            {
+              "id": "qaf:b2:a10d5949-2eb5-574d-93c8-f0bd062a1709",
+              "score": 6.6517526,
+              "relevance_score": 0.66517526
+            },
+            {
+              "id": "qaf:b2:4a0d4d8d-d739-5eb9-827e-3c4fd2d3b5b8",
+              "score": 6.5664804,
+              "relevance_score": 0.65664804
+            },
+            {
+              "id": "encyc:F00947",
+              "score": 0.09440471,
+              "relevance_score": 0.009440471
+            },
+            {
+              "id": "encyc:F00615",
+              "score": 0.09307602,
+              "relevance_score": 0.009307602
+            },
+            {
+              "id": "encyc:F00327",
+              "score": 0.08577591000000001,
+              "relevance_score": 0.008577591
+            },
+            {
+              "id": "encyc:F01184",
+              "score": 0.055260696,
+              "relevance_score": 0.0055260696
+            },
+            {
+              "id": "encyc:F00748",
+              "score": 0.034358467000000004,
+              "relevance_score": 0.0034358467
+            },
+            {
+              "id": "encyc:F01931",
+              "score": 0.03320778,
+              "relevance_score": 0.003320778
+            },
+            {
+              "id": "encyc:F00655",
+              "score": 0.03306581,
+              "relevance_score": 0.003306581
+            },
+            {
+              "id": "encyc:F01488",
+              "score": 0.032511856,
+              "relevance_score": 0.0032511856
+            },
+            {
+              "id": "encyc:F01530",
+              "score": 0.030626961999999997,
+              "relevance_score": 0.0030626962
+            },
+            {
+              "id": "encyc:F01269",
+              "score": 0.027505633999999998,
+              "relevance_score": 0.0027505634
+            },
+            {
+              "id": "encyc:F00678",
+              "score": 0.02740895,
+              "relevance_score": 0.002740895
+            },
+            {
+              "id": "encyc:F00223",
+              "score": 0.025417819,
+              "relevance_score": 0.0025417819
+            },
+            {
+              "id": "encyc:F01512",
+              "score": 0.021298048,
+              "relevance_score": 0.0021298048
+            },
+            {
+              "id": "encyc:F01111",
+              "score": 0.021213456,
+              "relevance_score": 0.0021213456
+            },
+            {
+              "id": "encyc:F01574",
+              "score": 0.020338113,
+              "relevance_score": 0.0020338113
+            },
+            {
+              "id": "encyc:F01191",
+              "score": 0.019574882,
+              "relevance_score": 0.0019574882
+            },
+            {
+              "id": "encyc:F01099",
+              "score": 0.018767249,
+              "relevance_score": 0.0018767249
+            },
+            {
+              "id": "encyc:F00667",
+              "score": 0.01834341,
+              "relevance_score": 0.001834341
+            },
+            {
+              "id": "encyc:F00957",
+              "score": 0.01787854,
+              "relevance_score": 0.001787854
+            },
+            {
+              "id": "encyc:F01158",
+              "score": 0.017741015000000002,
+              "relevance_score": 0.0017741015
+            },
+            {
+              "id": "encyc:F01296",
+              "score": 0.017738254000000002,
+              "relevance_score": 0.0017738254
+            },
+            {
+              "id": "encyc:F00981",
+              "score": 0.017254567,
+              "relevance_score": 0.0017254567
+            },
+            {
+              "id": "encyc:F00934",
+              "score": 0.017227032,
+              "relevance_score": 0.0017227032
+            },
+            {
+              "id": "encyc:F01261",
+              "score": 0.015918982,
+              "relevance_score": 0.0015918982
+            },
+            {
+              "id": "encyc:F00131",
+              "score": 0.015886228999999998,
+              "relevance_score": 0.0015886229
+            },
+            {
+              "id": "encyc:F00023",
+              "score": 0.015723844,
+              "relevance_score": 0.0015723844
+            },
+            {
+              "id": "encyc:F01506",
+              "score": 0.014632646999999999,
+              "relevance_score": 0.0014632647
+            },
+            {
+              "id": "encyc:F01750",
+              "score": 0.014603386,
+              "relevance_score": 0.0014603386
+            },
+            {
+              "id": "encyc:F00806",
+              "score": 0.013312706,
+              "relevance_score": 0.0013312706
+            },
+            {
+              "id": "encyc:F00997",
+              "score": 0.012722634,
+              "relevance_score": 0.0012722634
+            },
+            {
+              "id": "encyc:F01095",
+              "score": 0.011671731,
+              "relevance_score": 0.0011671731
+            },
+            {
+              "id": "encyc:F01928",
+              "score": 0.011147641,
+              "relevance_score": 0.0011147641
+            },
+            {
+              "id": "ezik:b2#3",
+              "score": 0.006875025000000001,
+              "relevance_score": 0.0006875025
+            }
+          ],
+          "providerOutcome": "bad_response",
+          "observationNote": "Exact live scores independently validated offline; unchanged D provider rejected input_tokens billing because it requires search_units."
+        },
+        {
+          "id": "b3",
+          "status": "PASS",
+          "ms": 764.6762000000017,
+          "failureMs": 764.6762000000017,
+          "billed_units": {
+            "input_tokens": 25877
+          },
+          "precisionAt10": 0.6,
+          "ranking": [
+            {
+              "id": "qaf:b3:fb885b42-f236-545a-a629-7f0eecda8179",
+              "score": 8.662547499999999,
+              "relevance_score": 0.86625475
+            },
+            {
+              "id": "qaf:b3:2ba5964f-c451-55a1-bdbb-153802b23263",
+              "score": 8.451414,
+              "relevance_score": 0.8451414
+            },
+            {
+              "id": "qaf:b3:f22b01d8-a64d-52cc-b6d5-df3d80cb4094",
+              "score": 8.438139,
+              "relevance_score": 0.8438139
+            },
+            {
+              "id": "qaf:b3:da719cd8-faeb-5f74-af7c-b3d2ac3ca1e7",
+              "score": 8.267668500000001,
+              "relevance_score": 0.82676685
+            },
+            {
+              "id": "qaf:b3:a4c61a46-1e7d-5e47-8628-aff2376ddbd9",
+              "score": 8.262539,
+              "relevance_score": 0.8262539
+            },
+            {
+              "id": "qaf:b3:b4be3b3c-662e-5193-8854-7d8604078ebf",
+              "score": 8.1697106,
+              "relevance_score": 0.81697106
+            },
+            {
+              "id": "qaf:b3:4848d239-20af-5c03-b282-2809605174f6",
+              "score": 8.156436,
+              "relevance_score": 0.8156436
+            },
+            {
+              "id": "qaf:b3:1dbd3390-4b61-597a-b217-9bb77692158c",
+              "score": 8.133554,
+              "relevance_score": 0.8133554
+            },
+            {
+              "id": "ezik:b3#1",
+              "score": 8.1212854,
+              "relevance_score": 0.81212854
+            },
+            {
+              "id": "qaf:b3:34ff3a8d-f2e2-52ae-a6a8-0bc10a3c290c",
+              "score": 8.0954367,
+              "relevance_score": 0.80954367
+            },
+            {
+              "id": "qaf:b3:eae21270-c52b-522b-af24-0bd2aa4247a6",
+              "score": 8.065407,
+              "relevance_score": 0.8065407
+            },
+            {
+              "id": "qaf:b3:333e2462-032e-55d2-acae-8a4afd1587dc",
+              "score": 8.0000806,
+              "relevance_score": 0.80000806
+            },
+            {
+              "id": "qaf:b3:0d319669-804d-5f60-9051-ff0c9eb939a9",
+              "score": 7.995451,
+              "relevance_score": 0.7995451
+            },
+            {
+              "id": "qaf:b3:72bf9b95-079a-5a53-bf3a-edcb67ed8d77",
+              "score": 7.9869069999999995,
+              "relevance_score": 0.7986907
+            },
+            {
+              "id": "qaf:b3:1ca01b95-e1b2-5ffd-9cb2-f08b3f5953c2",
+              "score": 7.882791,
+              "relevance_score": 0.7882791
+            },
+            {
+              "id": "qaf:b3:0c8306ac-a555-5361-8604-1c3a78c6eab3",
+              "score": 7.8439534,
+              "relevance_score": 0.78439534
+            },
+            {
+              "id": "qaf:b3:8dd3ea2b-e82b-516c-8626-8bb5c91243e2",
+              "score": 7.8425574,
+              "relevance_score": 0.78425574
+            },
+            {
+              "id": "qaf:b3:2f08a231-a92e-5dcc-b3bf-fed9c8413e30",
+              "score": 7.813465600000001,
+              "relevance_score": 0.78134656
+            },
+            {
+              "id": "qaf:b3:c55841d7-c935-55af-aaa0-02a806601597",
+              "score": 7.763717999999999,
+              "relevance_score": 0.7763718
+            },
+            {
+              "id": "qaf:b3:5355ef28-7841-5b23-9849-7952ee5a50ef",
+              "score": 7.7555776,
+              "relevance_score": 0.77555776
+            },
+            {
+              "id": "qaf:b3:62127b7b-47a0-5776-a460-bd3745b5c81d",
+              "score": 7.589528,
+              "relevance_score": 0.7589528
+            },
+            {
+              "id": "qaf:b3:2ec8f23d-29fc-5823-bec5-a08151d0cc39",
+              "score": 7.3892426,
+              "relevance_score": 0.73892426
+            },
+            {
+              "id": "qaf:b3:39f8c7f7-fcd2-5775-8f0f-64c8bab4544b",
+              "score": 7.335528,
+              "relevance_score": 0.7335528
+            },
+            {
+              "id": "qaf:b3:1bbf029c-25d2-551b-b748-e9d849c8aaf4",
+              "score": 7.1971490000000005,
+              "relevance_score": 0.7197149
+            },
+            {
+              "id": "qaf:b3:ac199e23-cd36-5e0c-8d05-fbc7bb6bae95",
+              "score": 7.021433999999999,
+              "relevance_score": 0.7021434
+            },
+            {
+              "id": "qaf:b3:d81ca66c-e62e-50ba-8a8f-3ec62c54cb86",
+              "score": 7.005439999999999,
+              "relevance_score": 0.700544
+            },
+            {
+              "id": "qaf:b3:a3694f93-b2a7-5081-9d5c-35b18ba45b46",
+              "score": 6.919610499999999,
+              "relevance_score": 0.69196105
+            },
+            {
+              "id": "qaf:b3:e47359e1-f2af-5a53-9a9a-92c66bafd00f",
+              "score": 6.89813,
+              "relevance_score": 0.689813
+            },
+            {
+              "id": "qaf:b3:993248d5-98de-50c4-884c-b6585a0dc21c",
+              "score": 6.7644535999999995,
+              "relevance_score": 0.67644536
+            },
+            {
+              "id": "qaf:b3:9246e56d-d2a7-5372-a1ea-664ffe959de1",
+              "score": 6.3032687,
+              "relevance_score": 0.63032687
+            },
+            {
+              "id": "qaf:b3:3c9067d7-f3d7-54c6-aaf9-455bd7f67fe6",
+              "score": 5.9486490000000005,
+              "relevance_score": 0.5948649
+            },
+            {
+              "id": "ezik:b3#3",
+              "score": 5.8398914,
+              "relevance_score": 0.58398914
+            },
+            {
+              "id": "encyc:F00422",
+              "score": 0.09159317,
+              "relevance_score": 0.009159317
+            },
+            {
+              "id": "encyc:F01704",
+              "score": 0.04984828,
+              "relevance_score": 0.004984828
+            },
+            {
+              "id": "encyc:F02288",
+              "score": 0.041237883,
+              "relevance_score": 0.0041237883
+            },
+            {
+              "id": "encyc:F00449",
+              "score": 0.033704992,
+              "relevance_score": 0.0033704992
+            },
+            {
+              "id": "encyc:F02289",
+              "score": 0.03037431,
+              "relevance_score": 0.003037431
+            },
+            {
+              "id": "encyc:F01791",
+              "score": 0.025194557,
+              "relevance_score": 0.0025194557
+            },
+            {
+              "id": "encyc:F02465",
+              "score": 0.022440785999999997,
+              "relevance_score": 0.0022440786
+            },
+            {
+              "id": "encyc:F02287",
+              "score": 0.022424946,
+              "relevance_score": 0.0022424946
+            },
+            {
+              "id": "encyc:F00283",
+              "score": 0.012464117,
+              "relevance_score": 0.0012464117
+            },
+            {
+              "id": "encyc:F00450",
+              "score": 0.011388253000000001,
+              "relevance_score": 0.0011388253
+            },
+            {
+              "id": "encyc:F00284",
+              "score": 0.010784864,
+              "relevance_score": 0.0010784864
+            },
+            {
+              "id": "encyc:F02294",
+              "score": 0.010361327,
+              "relevance_score": 0.0010361327
+            },
+            {
+              "id": "encyc:F00559",
+              "score": 0.010231419,
+              "relevance_score": 0.0010231419
+            },
+            {
+              "id": "encyc:F00027",
+              "score": 0.009873421,
+              "relevance_score": 0.0009873421
+            },
+            {
+              "id": "encyc:F02291",
+              "score": 0.0095647114,
+              "relevance_score": 0.00095647114
+            },
+            {
+              "id": "ezik:b3#4",
+              "score": 0.005329324,
+              "relevance_score": 0.0005329324
+            },
+            {
+              "id": "ezik:b3#5",
+              "score": 0.005329321,
+              "relevance_score": 0.0005329321
+            },
+            {
+              "id": "ezik:b3#2",
+              "score": 0.005329321,
+              "relevance_score": 0.0005329321
+            }
+          ],
+          "providerOutcome": "bad_response",
+          "observationNote": "Exact live scores independently validated offline; unchanged D provider rejected input_tokens billing because it requires search_units."
+        },
+        {
+          "id": "c1",
+          "status": "PASS",
+          "ms": 813.7623999999996,
+          "failureMs": 813.7623999999996,
+          "billed_units": {
+            "input_tokens": 36115
+          },
+          "precisionAt10": 0.9,
+          "ranking": [
+            {
+              "id": "qaf:c1:8bcc87b6-9fe3-57ed-9e17-63340c333cdc",
+              "score": 8.1329054,
+              "relevance_score": 0.81329054
+            },
+            {
+              "id": "qaf:c1:c19cdf5a-a6ba-5f8b-b2d8-8a36f7c71412",
+              "score": 7.8832656,
+              "relevance_score": 0.78832656
+            },
+            {
+              "id": "qaf:c1:afe9d59e-ce5b-56bd-b449-1238e8939b67",
+              "score": 7.517621500000001,
+              "relevance_score": 0.75176215
+            },
+            {
+              "id": "qaf:c1:4f14fd4d-4e39-5777-8bd3-27de8b28e442",
+              "score": 7.5046587,
+              "relevance_score": 0.75046587
+            },
+            {
+              "id": "qaf:c1:9119058f-aa1a-51fd-a24c-3b500e7adddb",
+              "score": 7.259839,
+              "relevance_score": 0.7259839
+            },
+            {
+              "id": "qaf:c1:9a305f0f-a2b4-5a12-9d2e-1d4cbb6c28c4",
+              "score": 7.256781,
+              "relevance_score": 0.7256781
+            },
+            {
+              "id": "qaf:c1:e5467bd2-3684-547c-9cf1-deb5b41d5126",
+              "score": 7.081602,
+              "relevance_score": 0.7081602
+            },
+            {
+              "id": "qaf:c1:d0a6bc4a-00eb-5b3f-a314-1946249b913a",
+              "score": 7.077018600000001,
+              "relevance_score": 0.70770186
+            },
+            {
+              "id": "qaf:c1:232724cc-4c78-5924-ab55-14fa6852fcc6",
+              "score": 6.9901556,
+              "relevance_score": 0.69901556
+            },
+            {
+              "id": "qaf:c1:174e046e-d801-5fd1-a86e-e8e67c01c9da",
+              "score": 6.961146,
+              "relevance_score": 0.6961146
+            },
+            {
+              "id": "qaf:c1:da3d8ec3-60a2-5fdc-8431-cf36c616c024",
+              "score": 6.958326700000001,
+              "relevance_score": 0.69583267
+            },
+            {
+              "id": "qaf:c1:bc5a056b-ae23-579e-b80d-f1c110655c44",
+              "score": 6.772578,
+              "relevance_score": 0.6772578
+            },
+            {
+              "id": "qaf:c1:07b71d69-6749-5c1a-9b7f-6ecd1ec890f3",
+              "score": 6.761663599999999,
+              "relevance_score": 0.67616636
+            },
+            {
+              "id": "qaf:c1:8471f24b-276d-5698-adb8-895dc35e623c",
+              "score": 6.6761404,
+              "relevance_score": 0.66761404
+            },
+            {
+              "id": "qaf:c1:3bf41528-db72-5b30-85a9-cdc0f4014bfe",
+              "score": 6.645592000000001,
+              "relevance_score": 0.6645592
+            },
+            {
+              "id": "qaf:c1:94b02e50-c1d0-59d1-b5f3-b9195b6e2401",
+              "score": 6.508674,
+              "relevance_score": 0.6508674
+            },
+            {
+              "id": "qaf:c1:ab979ff9-b1e0-5ac9-bb2b-2f2a812ab7e5",
+              "score": 6.485033,
+              "relevance_score": 0.6485033
+            },
+            {
+              "id": "qaf:c1:7485c44a-8c64-5252-b4b0-542742ac70c8",
+              "score": 6.4365417,
+              "relevance_score": 0.64365417
+            },
+            {
+              "id": "qaf:c1:e78eadd4-ef2f-532e-a086-f1b49f1b648b",
+              "score": 6.3779783000000005,
+              "relevance_score": 0.63779783
+            },
+            {
+              "id": "qaf:c1:e88cd90c-0d01-595e-9c91-443b62aea0b2",
+              "score": 6.280293500000001,
+              "relevance_score": 0.62802935
+            },
+            {
+              "id": "qaf:c1:90a7fe01-192f-563c-8660-b049d19c246b",
+              "score": 6.14299,
+              "relevance_score": 0.614299
+            },
+            {
+              "id": "qaf:c1:d563cd3e-dfda-56db-8f82-508630c655e8",
+              "score": 5.7549566,
+              "relevance_score": 0.57549566
+            },
+            {
+              "id": "qaf:c1:217f8a87-030f-5082-bef0-49786671823f",
+              "score": 5.723007300000001,
+              "relevance_score": 0.57230073
+            },
+            {
+              "id": "qaf:c1:5747a155-0927-5998-9003-6e2fabd04764",
+              "score": 5.704446,
+              "relevance_score": 0.5704446
+            },
+            {
+              "id": "qaf:c1:eb8bf0f2-a063-5c02-9040-0de7d73f06e4",
+              "score": 5.690116,
+              "relevance_score": 0.5690116
+            },
+            {
+              "id": "qaf:c1:c30d581e-7eca-5b55-b0e1-1e09c388d825",
+              "score": 5.517744,
+              "relevance_score": 0.5517744
+            },
+            {
+              "id": "qaf:c1:f61f5681-da88-573c-b4bf-bd0327f67076",
+              "score": 5.080588499999999,
+              "relevance_score": 0.50805885
+            },
+            {
+              "id": "qaf:c1:6aa70228-0ed6-5d8e-b9d7-26d9e26c6a5c",
+              "score": 4.6919638,
+              "relevance_score": 0.46919638
+            },
+            {
+              "id": "ezik:c1#2",
+              "score": 4.4462264000000005,
+              "relevance_score": 0.44462264
+            },
+            {
+              "id": "encyc:F00109",
+              "score": 4.0127489999999995,
+              "relevance_score": 0.4012749
+            },
+            {
+              "id": "ezik:c1#1",
+              "score": 3.7644266999999996,
+              "relevance_score": 0.37644267
+            },
+            {
+              "id": "ezik:c1#3",
+              "score": 3.627722,
+              "relevance_score": 0.3627722
+            },
+            {
+              "id": "qaf:c1:6a15ab5a-afac-55cc-8af5-56e0ea4cd118",
+              "score": 3.5819307,
+              "relevance_score": 0.35819307
+            },
+            {
+              "id": "encyc:F00430",
+              "score": 2.4547811999999998,
+              "relevance_score": 0.24547812
+            },
+            {
+              "id": "encyc:F02294",
+              "score": 2.3675007,
+              "relevance_score": 0.23675007
+            },
+            {
+              "id": "encyc:F00823",
+              "score": 1.4093754,
+              "relevance_score": 0.14093754
+            },
+            {
+              "id": "encyc:F01529",
+              "score": 0.3131003,
+              "relevance_score": 0.03131003
+            },
+            {
+              "id": "encyc:F00907",
+              "score": 0.2847925,
+              "relevance_score": 0.02847925
+            },
+            {
+              "id": "encyc:F00112",
+              "score": 0.18658752,
+              "relevance_score": 0.018658752
+            },
+            {
+              "id": "encyc:F01501",
+              "score": 0.15966073,
+              "relevance_score": 0.015966073
+            },
+            {
+              "id": "encyc:F02246",
+              "score": 0.13893164,
+              "relevance_score": 0.013893164
+            },
+            {
+              "id": "encyc:F00514",
+              "score": 0.09874992,
+              "relevance_score": 0.009874992
+            },
+            {
+              "id": "encyc:F01502",
+              "score": 0.09592544,
+              "relevance_score": 0.009592544
+            },
+            {
+              "id": "encyc:F02389",
+              "score": 0.077052442,
+              "relevance_score": 0.0077052442
+            },
+            {
+              "id": "encyc:F00967",
+              "score": 0.06282158,
+              "relevance_score": 0.006282158
+            },
+            {
+              "id": "encyc:F00838",
+              "score": 0.060788966,
+              "relevance_score": 0.0060788966
+            },
+            {
+              "id": "encyc:F00783",
+              "score": 0.034260529,
+              "relevance_score": 0.0034260529
+            },
+            {
+              "id": "encyc:F00420",
+              "score": 0.03299045,
+              "relevance_score": 0.003299045
+            },
+            {
+              "id": "encyc:F02652",
+              "score": 0.017546946,
+              "relevance_score": 0.0017546946
+            },
+            {
+              "id": "encyc:F00937",
+              "score": 0.016232847,
+              "relevance_score": 0.0016232847
+            }
+          ],
+          "providerOutcome": "bad_response",
+          "observationNote": "Exact live scores independently validated offline; unchanged D provider rejected input_tokens billing because it requires search_units."
+        },
+        {
+          "id": "c2",
+          "status": "PASS",
+          "ms": 764.9297000000006,
+          "failureMs": 764.9297000000006,
+          "billed_units": {
+            "input_tokens": 26104
+          },
+          "precisionAt10": 0.6,
+          "ranking": [
+            {
+              "id": "qaf:c2:cef954c7-59ce-5e2f-a473-1194d793c141",
+              "score": 8.411187,
+              "relevance_score": 0.8411187
+            },
+            {
+              "id": "qaf:c2:1f90d78a-9b96-5f48-a2af-ace729231658",
+              "score": 8.055183,
+              "relevance_score": 0.8055183
+            },
+            {
+              "id": "qaf:c2:809526c7-1936-5b01-95ca-538cdbb99a9b",
+              "score": 8.0374295,
+              "relevance_score": 0.80374295
+            },
+            {
+              "id": "qaf:c2:63e8020c-66bd-50ab-abad-1ce96d677458",
+              "score": 7.996666,
+              "relevance_score": 0.7996666
+            },
+            {
+              "id": "qaf:c2:12f7df83-d609-5126-b0fb-699383310be8",
+              "score": 7.919253,
+              "relevance_score": 0.7919253
+            },
+            {
+              "id": "qaf:c2:d4c415a1-ed9f-50bb-a1dd-8d931f63b258",
+              "score": 7.839129,
+              "relevance_score": 0.7839129
+            },
+            {
+              "id": "qaf:c2:6962fb3f-d6c5-53c0-bfe6-9b74e502b09c",
+              "score": 7.7086926,
+              "relevance_score": 0.77086926
+            },
+            {
+              "id": "qaf:c2:9ecfe5b2-3848-58b0-9472-79b70f129ff7",
+              "score": 7.704292499999999,
+              "relevance_score": 0.77042925
+            },
+            {
+              "id": "ezik:c2#1",
+              "score": 7.6709586,
+              "relevance_score": 0.76709586
+            },
+            {
+              "id": "qaf:c2:e73e56cd-72a1-5b68-a647-155d77025dd9",
+              "score": 7.649751999999999,
+              "relevance_score": 0.7649752
+            },
+            {
+              "id": "qaf:c2:29196427-c68c-5a4b-a46b-43bcd28d129e",
+              "score": 7.5111187,
+              "relevance_score": 0.75111187
+            },
+            {
+              "id": "qaf:c2:d3eddde6-e4bb-5462-bee2-4c5c936cf482",
+              "score": 7.457998999999999,
+              "relevance_score": 0.7457999
+            },
+            {
+              "id": "qaf:c2:e888e3c4-a80c-569e-a412-76edb5df7302",
+              "score": 7.407037,
+              "relevance_score": 0.7407037
+            },
+            {
+              "id": "qaf:c2:7395a8cd-4d20-5233-b992-d670ce51a2a2",
+              "score": 7.2750425,
+              "relevance_score": 0.72750425
+            },
+            {
+              "id": "qaf:c2:1c45f973-8a58-5b49-a4a6-18ddff9fed5c",
+              "score": 7.1595379999999995,
+              "relevance_score": 0.7159538
+            },
+            {
+              "id": "qaf:c2:6976889c-fb05-5b34-8f2a-83199153fc34",
+              "score": 7.152526,
+              "relevance_score": 0.7152526
+            },
+            {
+              "id": "qaf:c2:c9dd6874-6c64-57f4-a533-321d07336234",
+              "score": 7.0618117,
+              "relevance_score": 0.70618117
+            },
+            {
+              "id": "qaf:c2:75800b17-6a6e-5d7e-99dd-82297fa965c0",
+              "score": 7.056533699999999,
+              "relevance_score": 0.70565337
+            },
+            {
+              "id": "qaf:c2:318f611b-8063-5ca8-97b9-05ee957f8b13",
+              "score": 7.052606,
+              "relevance_score": 0.7052606
+            },
+            {
+              "id": "qaf:c2:dbbd3b4d-d46e-53cd-a31b-ebe4f0f41430",
+              "score": 6.9574505,
+              "relevance_score": 0.69574505
+            },
+            {
+              "id": "qaf:c2:5bd67698-0faf-5128-bbb0-3515e418f8d6",
+              "score": 6.880733,
+              "relevance_score": 0.6880733
+            },
+            {
+              "id": "qaf:c2:2dfe0c8c-26ca-52f0-9f97-f9771846fa1d",
+              "score": 6.7774475,
+              "relevance_score": 0.67774475
+            },
+            {
+              "id": "qaf:c2:76450032-0674-595e-baf2-c1e0e7835ab5",
+              "score": 6.7683196,
+              "relevance_score": 0.67683196
+            },
+            {
+              "id": "qaf:c2:ebbfa419-2033-5ed0-af84-1506ac138ddc",
+              "score": 6.721338599999999,
+              "relevance_score": 0.67213386
+            },
+            {
+              "id": "qaf:c2:72b15aeb-fc5b-5deb-9176-1fb2c32870b8",
+              "score": 6.567018,
+              "relevance_score": 0.6567018
+            },
+            {
+              "id": "qaf:c2:c50584ef-9247-5608-8ab3-dfeb887bbc0a",
+              "score": 6.563328,
+              "relevance_score": 0.6563328
+            },
+            {
+              "id": "qaf:c2:201ec678-0068-5875-8773-3d196e846711",
+              "score": 6.552297,
+              "relevance_score": 0.6552297
+            },
+            {
+              "id": "qaf:c2:5acb9101-0fe9-5323-b754-9489fb5cf931",
+              "score": 6.548148,
+              "relevance_score": 0.6548148
+            },
+            {
+              "id": "qaf:c2:e830994f-b7ef-55ba-b3cb-c451315ea584",
+              "score": 6.3681909999999995,
+              "relevance_score": 0.6368191
+            },
+            {
+              "id": "qaf:c2:e23af82d-38d6-50e6-9476-a617d1ea9b79",
+              "score": 6.1929435,
+              "relevance_score": 0.61929435
+            },
+            {
+              "id": "qaf:c2:e7649efc-9fe8-52ec-9987-540cadafa938",
+              "score": 6.1890167,
+              "relevance_score": 0.61890167
+            },
+            {
+              "id": "qaf:c2:d4f78349-d1a7-52be-907a-79a4180d8c4d",
+              "score": 6.0512,
+              "relevance_score": 0.60512
+            },
+            {
+              "id": "qaf:c2:7e2c0a0d-42ec-5572-8359-7ee161fd4c41",
+              "score": 5.592364,
+              "relevance_score": 0.5592364
+            },
+            {
+              "id": "qaf:c2:4290e37f-881c-5d82-b26b-9cc072ca8d4c",
+              "score": 5.131996,
+              "relevance_score": 0.5131996
+            },
+            {
+              "id": "qaf:c2:96639307-a3c0-53f1-ba25-bbe3c890bd24",
+              "score": 5.063452000000001,
+              "relevance_score": 0.5063452
+            },
+            {
+              "id": "qaf:c2:3ed1ca1c-da32-5529-9972-7e9e6f0179e0",
+              "score": 4.949058,
+              "relevance_score": 0.4949058
+            },
+            {
+              "id": "qaf:c2:766975cd-f95d-56e7-886c-840f78d0339e",
+              "score": 4.3863383,
+              "relevance_score": 0.43863383
+            },
+            {
+              "id": "qaf:c2:c1fc5c4c-ba5e-506c-b402-c7cc05bdabcd",
+              "score": 4.254722,
+              "relevance_score": 0.4254722
+            },
+            {
+              "id": "ezik:c2#3",
+              "score": 3.8186365,
+              "relevance_score": 0.38186365
+            },
+            {
+              "id": "qaf:c2:0b75df24-f380-5105-8928-e40a3eaef2aa",
+              "score": 3.683332,
+              "relevance_score": 0.3683332
+            },
+            {
+              "id": "qaf:c2:ca7ff105-93df-5e04-aba4-278905eaf731",
+              "score": 3.542479,
+              "relevance_score": 0.3542479
+            },
+            {
+              "id": "qaf:c2:e9fe15da-56e8-57da-91de-dff18aa56d57",
+              "score": 3.1866863,
+              "relevance_score": 0.31866863
+            },
+            {
+              "id": "ezik:c2#2",
+              "score": 3.0296003999999996,
+              "relevance_score": 0.30296004
+            },
+            {
+              "id": "qaf:c2:b9e31e32-1ce7-5c3f-86df-8aa0a9270ed1",
+              "score": 2.2738132,
+              "relevance_score": 0.22738132
+            },
+            {
+              "id": "encyc:F01936",
+              "score": 0.7214505999999999,
+              "relevance_score": 0.07214506
+            },
+            {
+              "id": "encyc:F00500",
+              "score": 0.13782033000000002,
+              "relevance_score": 0.013782033
+            },
+            {
+              "id": "encyc:F01575",
+              "score": 0.019709847000000003,
+              "relevance_score": 0.0019709847
+            },
+            {
+              "id": "ezik:c2#4",
+              "score": 0.010535085,
+              "relevance_score": 0.0010535085
+            },
+            {
+              "id": "ezik:c2#6",
+              "score": 0.010535085,
+              "relevance_score": 0.0010535085
+            },
+            {
+              "id": "ezik:c2#5",
+              "score": 0.01053508,
+              "relevance_score": 0.001053508
+            }
+          ],
+          "providerOutcome": "bad_response",
+          "observationNote": "Exact live scores independently validated offline; unchanged D provider rejected input_tokens billing because it requires search_units."
+        },
+        {
+          "id": "c3",
+          "status": "PASS",
+          "ms": 941.4251999999979,
+          "failureMs": 941.4251999999979,
+          "billed_units": {
+            "input_tokens": 30652
+          },
+          "precisionAt10": 0.6,
+          "ranking": [
+            {
+              "id": "qaf:c3:0a72c649-f83f-51c2-a46d-8133279182c7",
+              "score": 7.6205015,
+              "relevance_score": 0.76205015
+            },
+            {
+              "id": "qaf:c3:4c648897-7c78-5ee7-bc58-cd4af70d0cc7",
+              "score": 7.607125,
+              "relevance_score": 0.7607125
+            },
+            {
+              "id": "qaf:c3:240b1cc1-d3d7-5ff3-a180-d41099ce8b10",
+              "score": 7.3558444000000005,
+              "relevance_score": 0.73558444
+            },
+            {
+              "id": "qaf:c3:fa785ea5-c0af-5e55-9058-d788fb61a0f2",
+              "score": 7.3284435000000006,
+              "relevance_score": 0.73284435
+            },
+            {
+              "id": "qaf:c3:f24916c5-d74d-51a7-bd67-8f53f1947ed5",
+              "score": 7.235218,
+              "relevance_score": 0.7235218
+            },
+            {
+              "id": "qaf:c3:da298e04-a8ca-5cac-99cd-1b86a6637ca2",
+              "score": 7.203798,
+              "relevance_score": 0.7203798
+            },
+            {
+              "id": "qaf:c3:864ffcd9-6308-5b51-b358-60c57842d3d1",
+              "score": 7.16138,
+              "relevance_score": 0.716138
+            },
+            {
+              "id": "ezik:c3#3",
+              "score": 7.0816195,
+              "relevance_score": 0.70816195
+            },
+            {
+              "id": "qaf:c3:25a0e5e6-9755-58ac-aba1-b6a1b230bac4",
+              "score": 7.0749426,
+              "relevance_score": 0.70749426
+            },
+            {
+              "id": "qaf:c3:2c737357-fd3a-56cd-a22e-36f0d29152f7",
+              "score": 6.983829999999999,
+              "relevance_score": 0.698383
+            },
+            {
+              "id": "qaf:c3:df14f935-f67f-5157-b18b-f8f968c1b045",
+              "score": 6.9070697,
+              "relevance_score": 0.69070697
+            },
+            {
+              "id": "qaf:c3:72bb69fc-a1b2-578b-9e1e-4d190b3bbf4d",
+              "score": 6.8632233,
+              "relevance_score": 0.68632233
+            },
+            {
+              "id": "qaf:c3:84c2fc0d-4c4f-51b1-a4f8-3fb68f99a667",
+              "score": 6.779285699999999,
+              "relevance_score": 0.67792857
+            },
+            {
+              "id": "qaf:c3:6df14daf-f0ae-54c3-a0dc-25370d0048ec",
+              "score": 6.76656,
+              "relevance_score": 0.676656
+            },
+            {
+              "id": "qaf:c3:bae3cde3-f97d-5c65-b45e-bae1a1cf09df",
+              "score": 6.696832000000001,
+              "relevance_score": 0.6696832
+            },
+            {
+              "id": "qaf:c3:a9706faa-ae38-58cd-938c-3d4e0e986348",
+              "score": 6.601378,
+              "relevance_score": 0.6601378
+            },
+            {
+              "id": "qaf:c3:35cbd62c-b07a-5707-affc-3832c9029365",
+              "score": 6.5760905,
+              "relevance_score": 0.65760905
+            },
+            {
+              "id": "qaf:c3:d7c9cf6a-7581-563f-baba-38c924159797",
+              "score": 6.440479999999999,
+              "relevance_score": 0.644048
+            },
+            {
+              "id": "qaf:c3:143f497b-99fd-588a-9e1b-0b60e406a6ce",
+              "score": 6.000680000000001,
+              "relevance_score": 0.600068
+            },
+            {
+              "id": "qaf:c3:437224e8-e0a7-5f1a-8934-c57e67494f67",
+              "score": 5.4717255,
+              "relevance_score": 0.54717255
+            },
+            {
+              "id": "qaf:c3:e7805d8e-3ff4-55a0-a4d1-e0c29cf98a7f",
+              "score": 5.392145,
+              "relevance_score": 0.5392145
+            },
+            {
+              "id": "qaf:c3:bab8ed17-304f-52f0-b057-97049fced901",
+              "score": 5.379504000000001,
+              "relevance_score": 0.5379504
+            },
+            {
+              "id": "qaf:c3:7f5237b6-d124-53c5-b9c5-4b56716249e0",
+              "score": 5.364801999999999,
+              "relevance_score": 0.5364802
+            },
+            {
+              "id": "ezik:c3#1",
+              "score": 5.071344399999999,
+              "relevance_score": 0.50713444
+            },
+            {
+              "id": "qaf:c3:8a0d4a69-51ce-5b6d-a115-64a3b3794354",
+              "score": 5.048265499999999,
+              "relevance_score": 0.50482655
+            },
+            {
+              "id": "qaf:c3:cfb89e46-c929-5a97-b9a1-d7299de3b4a3",
+              "score": 4.9679363,
+              "relevance_score": 0.49679363
+            },
+            {
+              "id": "qaf:c3:532704db-f627-5d4a-aeb0-e36f0f9a2300",
+              "score": 4.9441648,
+              "relevance_score": 0.49441648
+            },
+            {
+              "id": "qaf:c3:b33234be-54af-5e9e-958b-fad1fdf2d0a7",
+              "score": 4.7814682,
+              "relevance_score": 0.47814682
+            },
+            {
+              "id": "qaf:c3:032f3c82-d194-5025-ac90-22e20e637c8c",
+              "score": 4.5202443,
+              "relevance_score": 0.45202443
+            },
+            {
+              "id": "qaf:c3:13228f76-f0ef-5504-9278-a3410390118d",
+              "score": 3.7885584999999997,
+              "relevance_score": 0.37885585
+            },
+            {
+              "id": "qaf:c3:b32d2455-3175-5869-b844-9e1016d4745e",
+              "score": 3.0783867999999996,
+              "relevance_score": 0.30783868
+            },
+            {
+              "id": "encyc:F01877",
+              "score": 0.9462548,
+              "relevance_score": 0.09462548
+            },
+            {
+              "id": "encyc:F02899",
+              "score": 0.46785269999999995,
+              "relevance_score": 0.04678527
+            },
+            {
+              "id": "encyc:F01878",
+              "score": 0.30197043,
+              "relevance_score": 0.030197043
+            },
+            {
+              "id": "encyc:F00792",
+              "score": 0.26624132,
+              "relevance_score": 0.026624132
+            },
+            {
+              "id": "encyc:F01445",
+              "score": 0.23000717,
+              "relevance_score": 0.023000717
+            },
+            {
+              "id": "encyc:F02401",
+              "score": 0.2267603,
+              "relevance_score": 0.02267603
+            },
+            {
+              "id": "encyc:F02599",
+              "score": 0.097235665,
+              "relevance_score": 0.0097235665
+            },
+            {
+              "id": "encyc:F01664",
+              "score": 0.08408246,
+              "relevance_score": 0.008408246
+            },
+            {
+              "id": "encyc:F02600",
+              "score": 0.07175227,
+              "relevance_score": 0.007175227
+            },
+            {
+              "id": "encyc:F01768",
+              "score": 0.058112172,
+              "relevance_score": 0.0058112172
+            },
+            {
+              "id": "encyc:F00350",
+              "score": 0.03922242,
+              "relevance_score": 0.003922242
+            },
+            {
+              "id": "encyc:F00349",
+              "score": 0.032323864,
+              "relevance_score": 0.0032323864
+            },
+            {
+              "id": "encyc:F02200",
+              "score": 0.030028222,
+              "relevance_score": 0.0030028222
+            },
+            {
+              "id": "encyc:F02543",
+              "score": 0.023331926000000003,
+              "relevance_score": 0.0023331926
+            },
+            {
+              "id": "encyc:F01575",
+              "score": 0.021580851,
+              "relevance_score": 0.0021580851
+            },
+            {
+              "id": "encyc:F03065",
+              "score": 0.015476133999999999,
+              "relevance_score": 0.0015476134
+            },
+            {
+              "id": "encyc:F01327",
+              "score": 0.014532815000000001,
+              "relevance_score": 0.0014532815
+            },
+            {
+              "id": "ezik:c3#2",
+              "score": 0.013906817,
+              "relevance_score": 0.0013906817
+            },
+            {
+              "id": "encyc:F01974",
+              "score": 0.011848125000000001,
+              "relevance_score": 0.0011848125
+            }
+          ],
+          "providerOutcome": "bad_response",
+          "observationNote": "Exact live scores independently validated offline; unchanged D provider rejected input_tokens billing because it requires search_units."
+        }
+      ],
+      "medianPrecisionAt10": 0.8,
+      "medianMs": 813.7623999999996,
+      "p90Ms": 941.4251999999979,
+      "availability": "LIVE_SCORES_OFFLINE_VALIDATED",
+      "threshold": 7.256781,
+      "cost": {
+        "usd": 0.013138650000000002,
+        "upperBound": false,
+        "rows": [
+          {
+            "id": "a1",
+            "units": 28871,
+            "unit": "tokens",
+            "usd": 0.00144355,
+            "upperBound": false
+          },
+          {
+            "id": "a2",
+            "units": 28511,
+            "unit": "tokens",
+            "usd": 0.00142555,
+            "upperBound": false
+          },
+          {
+            "id": "a3",
+            "units": 27511,
+            "unit": "tokens",
+            "usd": 0.0013755500000000001,
+            "upperBound": false
+          },
+          {
+            "id": "b1",
+            "units": 29043,
+            "unit": "tokens",
+            "usd": 0.0014521500000000001,
+            "upperBound": false
+          },
+          {
+            "id": "b2",
+            "units": 30089,
+            "unit": "tokens",
+            "usd": 0.00150445,
+            "upperBound": false
+          },
+          {
+            "id": "b3",
+            "units": 25877,
+            "unit": "tokens",
+            "usd": 0.00129385,
+            "upperBound": false
+          },
+          {
+            "id": "c1",
+            "units": 36115,
+            "unit": "tokens",
+            "usd": 0.00180575,
+            "upperBound": false
+          },
+          {
+            "id": "c2",
+            "units": 26104,
+            "unit": "tokens",
+            "usd": 0.0013052,
+            "upperBound": false
+          },
+          {
+            "id": "c3",
+            "units": 30652,
+            "unit": "tokens",
+            "usd": 0.0015326,
+            "upperBound": false
+          }
+        ]
+      },
+      "rule": "Strictly greater than the highest X score",
+      "above": {
+        "R": 83,
+        "P": 31,
+        "X": 0
+      },
+      "knownX": [
+        {
+          "id": "ezik:b3#4",
+          "score": 0.005329324,
+          "suppressed": true
+        },
+        {
+          "id": "ezik:b3#5",
+          "score": 0.005329321,
+          "suppressed": true
+        },
+        {
+          "id": "ezik:c1#3",
+          "score": 3.627722,
+          "suppressed": true
+        }
       ]
     }
   ],
   "billingComplete": true,
   "billingNote": "Actual response search_units summed; no estimates.",
   "selection": {
-    "status": "PRICE_REQUIRED",
-    "model": null,
-    "card_min": null,
-    "reason": "Quality qualifies; documented model prices are required to apply the unchanged cheapest-model rule."
+    "status": "PASS",
+    "model": "rerank-v5.0-fast",
+    "card_min": 6.824669,
+    "raw_relevance_score": 0.6824669,
+    "scale": "production score = raw relevance_score * 10",
+    "costUsd": 0.005832759999999999
   },
-  "reason": "Quality qualifies; documented model prices are required to apply the unchanged cheapest-model rule."
+  "reason": "Choose the lowest measured nine-question dollar cost among complete models with median precision@10 >= 0.8 and B2 >= 0.9; break equal costs by lower p90 latency. If no model reaches 0.8, choose the best reaching 0.7 with NEEDS_OWNER; if none reaches 0.7, FAILED and stop. Rejected API names are excluded. RERANK_CARD_MIN is the highest X score on the production 0..10 scale; only strictly greater scores show cards.",
+  "f": {
+    "rule": "Choose the lowest measured nine-question dollar cost among complete models with median precision@10 >= 0.8 and B2 >= 0.9; break equal costs by lower p90 latency. If no model reaches 0.8, choose the best reaching 0.7 with NEEDS_OWNER; if none reaches 0.7, FAILED and stop. Rejected API names are excluded. RERANK_CARD_MIN is the highest X score on the production 0..10 scale; only strictly greater scores show cards.",
+    "apiCallLimit": 20,
+    "plannedCalls": 18,
+    "timeoutMs": 15000,
+    "providerUnmodifiedSha256": "e7759c22b313c3b3104defc9d5c4af8babccd86fef5925b0134ee246857a9187",
+    "apiCalls": 18,
+    "billingNote": "v5 literal input_tokens are token billing at owner rate; all fields preserved. No billing invented. D provider unchanged; numeric live scores verified offline after its legacy search_units check rejected token billing."
+  },
+  "pricing": {
+    "readAt": "2026-11-02",
+    "authority": "Owner directive F",
+    "table": [
+      {
+        "model": "rerank-v5.0-fast",
+        "unit": "tokens",
+        "usdPerUnit": 2e-8,
+        "displayedRate": "$0.02 / million tokens",
+        "source": "https://www.usagepricing.com/blueprint/activity/cohere-2026-10-23-rerank-5-per-token-pricing",
+        "capturedAt": "2026-10-23",
+        "predecessor": "rerank-v4.0-fast",
+        "readAt": "2026-11-02",
+        "evidence": "Owner-supplied directive F; no pricing website visited"
+      },
+      {
+        "model": "rerank-v5.0-pro",
+        "unit": "tokens",
+        "usdPerUnit": 5.0000000000000004e-8,
+        "displayedRate": "$0.05 / million tokens",
+        "source": "https://www.usagepricing.com/blueprint/activity/cohere-2026-10-23-rerank-5-per-token-pricing",
+        "capturedAt": "2026-10-23",
+        "predecessor": "rerank-v4.0-pro",
+        "readAt": "2026-11-02",
+        "evidence": "Owner-supplied directive F; no pricing website visited"
+      },
+      {
+        "model": "rerank-v4.0-fast",
+        "unit": "search_units",
+        "usdPerUnit": 0.002,
+        "displayedRate": "$2.00 / 1000 search units",
+        "source": "https://www.usagepricing.com/blueprint/activity/cohere-2026-10-23-rerank-5-per-token-pricing",
+        "capturedAt": "2026-10-16",
+        "readAt": "2026-11-02",
+        "evidence": "Owner-supplied directive F; no pricing website visited"
+      },
+      {
+        "model": "rerank-v4.0-pro",
+        "unit": "search_units",
+        "usdPerUnit": 0.0025,
+        "displayedRate": "$2.50 / 1000 search units",
+        "source": "https://www.usagepricing.com/blueprint/activity/cohere-2026-10-23-rerank-5-per-token-pricing",
+        "capturedAt": "2026-10-16",
+        "readAt": "2026-11-02",
+        "evidence": "Owner-supplied directive F; no pricing website visited"
+      },
+      {
+        "model": "rerank-v3.5",
+        "unit": "search_units",
+        "usdPerUnit": 0.002,
+        "displayedRate": "$0.002 / search unit",
+        "source": "https://aws.amazon.com/marketplace/pp/prodview-6q7el2wk6xcmo",
+        "note": "Cohere seller; Bedrock version, not Cohere current price table",
+        "readAt": "2026-11-02",
+        "evidence": "Owner-supplied directive F; no pricing website visited"
+      }
+    ],
+    "additionalSources": [
+      "https://docs.cohere.com/changelog/rerank-v5.md",
+      "https://docs.cohere.com/docs/rerank.md"
+    ]
+  }
 }
