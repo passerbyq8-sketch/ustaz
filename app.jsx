@@ -14256,7 +14256,8 @@ const ez110CountLessons = (n) => ez110PluralCount('lesson', n);
 function ezikCleanTitle(t) {
   const raw = typeof t === 'string' ? t : '';
   const out = raw.replace(/(^|\s)#[^\s#]+/g, ' ').replace(/^[\s!_#*]+|[\s_#*]+$/g, '').replace(/\s{2,}/g, ' ');
-  return out || raw;
+  // A title made only of tags keeps its words: no "#", and "_" reads as a space (fix round 2, J13).
+  return out || raw.replace(/[#_]+/g, ' ').replace(/s+/g, ' ').trim() || raw;
 }
 // Device check J10: the Arabic results line holds its noun here so the noun can follow the number; other languages keep
 // the noun in their own sentence.
