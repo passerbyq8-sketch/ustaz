@@ -751,7 +751,8 @@ const EZ_I18N = {
     'c.EZ_AIC_LINK_SUPPORT': 'الدعم',
     'c.EZ_AIC_VERSION_LABEL': 'نسخة الموافقة:',
     // THIRD ROUND -- the small consent card (owner-approved texts, decoded from the order's JSON, never retyped).
-    'aic.line1': 'بحسب ميزة الذكاء الاصطناعي التي تختارها، يُرسل النص أو الملفات التي تقدمها إلى Anthropic (Claude) أو ElevenLabs أو Brave Search لمعالجة طلبك.',
+    'aic.line1': 'بحسب ميزة الذكاء الاصطناعي التي تختارها، يُرسل النص أو الملفات التي تقدمها إلى Anthropic (Claude) أو ElevenLabs أو Brave Search أو Cohere لمعالجة طلبك.',
+    'aic.cohere': 'Cohere: ترتيب نتائج البحث بحسب صلتها بالسؤال. يُرسل نص السؤال أو شقّه والمقاطع المرشّحة، بلا بيانات الملف أو معرّفات الحساب والجهاز. قد تحتفظ Cohere بسجلات حتى 30 يومًا. يُشترط ضبط خيار منع استخدام البيانات في التدريب في حساب المزوّد قبل الإرسال.',
     'aic.line2': 'راجع التفاصيل، ثم اختر موافق لتفعيل هذه الميزات أو رفض لإبقائها متوقفة.',
     'aic.agree': 'موافق',
     'aic.decline': 'غير موافق',
@@ -2720,7 +2721,8 @@ const EZ_I18N = {
     'c.EZ_AIC_LINK_SUPPORT': 'Support',
     'c.EZ_AIC_VERSION_LABEL': 'Consent version:',
     // THIRD ROUND -- the small consent card.
-    'aic.line1': 'Depending on the AI feature you choose, the text or files you submit are sent to Anthropic (Claude), ElevenLabs or Brave Search to process your request.',
+    'aic.line1': 'Depending on the AI feature you choose, the text or files you submit are sent to Anthropic (Claude), ElevenLabs, Brave Search or Cohere to process your request.',
+    'aic.cohere': 'Cohere: ranks search results by relevance to your question. Only the question or its individual issue and candidate passages are sent, without profile details or account and device identifiers. Cohere may retain logs for up to 30 days. The provider account must be configured to prevent training use before sending.',
     'aic.line2': 'Review the details, then choose Agree to enable these features or Decline to keep them off.',
     'aic.agree': 'Agree',
     'aic.decline': 'Disagree',
@@ -28170,6 +28172,7 @@ const EZ_AIC_PROVIDERS = [
   ['Anthropic (Claude)', 'توليد الإجابات ومعالجة النصوص والصور والملفات.'],
   ['ElevenLabs', 'تحويل النصّ إلى صوت، وتحويل التسجيل الصوتيّ إلى نصّ عند استخدام المسار السحابيّ.'],
   ['Brave Search', 'إرسال عبارات بحث مشتقّة من السؤال للوصول إلى مصادر الويب.'],
+  ['Cohere', ''],
 ];
 // The first line was «لا تُستخدم هذه البيانات للإعلانات ولا لتتبُّعك» -- an absolute passive that
 // reads as a promise about what EVERY provider does with the data after it leaves us. We cannot
@@ -28226,7 +28229,7 @@ function AIConsentLinks() {
 // A LATIN PROVIDER NAME INSIDE A LINE IS ISOLATED LEFT-TO-RIGHT, exactly as the provider list and
 // the version number already are: "Anthropic (Claude)" in an RTL sentence otherwise has its
 // parentheses mirrored by the bidi algorithm.
-const EZ_AIC_LATIN_NAMES = /(Anthropic \(Claude\)|ElevenLabs|Brave Search)/;
+const EZ_AIC_LATIN_NAMES = /(Anthropic \(Claude\)|ElevenLabs|Brave Search|Cohere)/;
 function ezAicLine(text) {
   return String(text || '').split(EZ_AIC_LATIN_NAMES).map((part, i) => (
     i % 2 === 1 ? <span key={i} dir="ltr" style={s.aicProvider}>{part}</span> : part
@@ -28264,7 +28267,7 @@ function AIConsentGate({ age, current, onGrant, onDecline, onBack }) {
           <div style={s.aicSubhead}>{EZ_AIC_PROVIDERS_TITLE}</div>
           <ul style={s.aicList}>
             {EZ_AIC_PROVIDERS.map(([n, d]) => (
-              <li key={n} style={s.aicItem}><span style={s.aicProvider}>{n}</span>{': ' + d}</li>
+              <li key={n} style={s.aicItem}>{n === 'Cohere' ? ezAicLine(ezT('aic.cohere')) : <><span style={s.aicProvider}>{n}</span>{': ' + d}</>}</li>
             ))}
           </ul>
           <ul style={s.aicList}>
@@ -37247,7 +37250,7 @@ let EZ_AIS_BY_USER = ezT('c.EZ_AIS_BY_USER');
 // ".Search". The vendor names are one LTR run and are isolated as one; the sentence keeps its
 // Arabic label and drops the trailing stop, which had nowhere correct to sit.
 let EZ_AIS_PROVIDERS_LABEL = ezT('c.EZ_AIS_PROVIDERS_LABEL');
-const EZ_AIS_PROVIDERS_NAMES = 'Anthropic (Claude) — ElevenLabs — Brave Search';
+const EZ_AIS_PROVIDERS_NAMES = 'Anthropic (Claude) — ElevenLabs — Brave Search — Cohere';
 const EZ_AIS_PROVIDERS = EZ_AIS_PROVIDERS_LABEL + ' ' + EZ_AIS_PROVIDERS_NAMES;
 let EZ_AIS_WITHDRAW = ezT('c.EZ_AIS_WITHDRAW');
 let EZ_AIS_REVIEW = ezT('c.EZ_AIS_REVIEW');
