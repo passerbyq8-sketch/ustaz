@@ -190,7 +190,8 @@ function untaggedDigest(api, msgs) {
   }
   return h.digest('hex');
 }
-const UNTAGGED_SHA256 = 'e3bc085683d153a4d02dd9094d24dcb7f7fe48ba29877c0bb424875a329cd34c';   // cut on 456eed10's app.js (POSTSHIP19_APP), 13 answers
+// Fix round 2, N3: re-cut once, for one sample's <document> card, whose blocks now carry dir. With dir taken out of the build the digest is e3bc0856.. again, so nothing else moved.
+const UNTAGGED_SHA256 = '1bf8133fbb313a22ba8b5d6852f9bb697497c181f2525381bbe54873d34f3d61';
 
 // one mutant per surface: the fix taken out of the shipped build
 const MUTANTS = [
