@@ -13,6 +13,8 @@
 //   h9 an Arabic question (or one with no declared key language) passes through UNTOUCHED: same req, same res, no fetch
 // Usage: node guards/lang-guard.cjs
 'use strict';
+// TRANSLATE4 (2026-11-02): dictionaries the client builds that the server table has no row for yet. Oromo ships hidden; a later brain session adds its row and empties this list.
+const CLIENT_ONLY_LANGS = ['om'];
 const fs = require('fs');
 const path = require('path');
 const REPO = path.join(__dirname, '..');
@@ -735,7 +737,7 @@ const V = '﴿', W = '﴾';
     ok('the client list is the table filtered by the baked list (source slice found)', i0 > 0 && i1 > i0);
     const offered = (host) => { const ctx = { location: { hostname: host }, EZIK_ENABLED_LANGS: file.enabled }; vm.createContext(ctx); vm.runInContext(jsx.slice(i0, i1) + '\nthis.out = EZ_LANGUAGES.map((l) => l.code);', ctx); return ctx.out; };
     ok('production hosts (ezik.app, www.ezik.app, an unknown host) offer exactly the list', ['ezik.app', 'www.ezik.app', 'example.org'].every((h) => JSON.stringify(offered(h).sort()) === JSON.stringify(listed.slice().sort())), JSON.stringify(offered('ezik.app')));
-    ok('preview hosts (*.vercel.app, localhost, 127.0.0.1, no host) offer every built language', ['ustaz-x-musaed-s-projects1.vercel.app', 'localhost', '127.0.0.1', ''].every((h) => offered(h).length === table.length));
+    ok('preview hosts (*.vercel.app, localhost, 127.0.0.1, no host) offer every built language', ['ustaz-x-musaed-s-projects1.vercel.app', 'localhost', '127.0.0.1', ''].every((h) => offered(h).length === table.length + CLIENT_ONLY_LANGS.length));
   }
 
   console.log('\n=== E2 (amendment 5): NO SILENT ARABIC, AND A BOUND ON THE TIME A TRANSLATION CAN TAKE ===');
@@ -956,7 +958,7 @@ const V = '﴿', W = '﴾';
       const d = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
       for (const k of ['common.copy', 'common.copied', 'x.156']) if (typeof d[k] !== 'string' || !d[k].trim() || d[k] === (k === 'common.copy' ? 'نسخ' : '')) bad.push(f + ':' + k);
     }
-    ok('J5: the three words of the answer row have a row in each file-backed language (English is the inline dictionary)', bad.length === 0 && fs.readdirSync(dir).filter((x) => /\.json$/.test(x)).length === Object.keys(T.LANG_TABLE).filter((l) => l !== 'ar' && l !== 'en').length, bad.join(' '));
+    ok('J5: the three words of the answer row have a row in each file-backed language (English is the inline dictionary)', bad.length === 0 && fs.readdirSync(dir).filter((x) => /\.json$/.test(x)).length === Object.keys(T.LANG_TABLE).filter((l) => l !== 'ar' && l !== 'en').length + CLIENT_ONLY_LANGS.length, bad.join(' '));
   }
   {
     // (6) THE GLOSSARY OFFERS REAL TERMS ONLY, FEW, AND NEVER A WORD WITH TWO MEANINGS
@@ -1039,7 +1041,7 @@ const V = '﴿', W = '﴾';
           } catch (e) { copyBad.push(L + '(' + String(e.message).split('\n')[0].slice(0, 50) + ')'); }
           await Promise.race([ctx.close(), new Promise((res) => setTimeout(res, 3000))]);
         }
-        ok('J2: Settings opens and the page answers within 2 s under every built language (' + langs.length + ' tried, slowest ' + maxMs + ' ms)', frozen.length === 0 && slow.length === 0 && langs.length === Object.keys(T.LANG_TABLE).length, 'frozen: ' + frozen.join(' ') + ' slow: ' + slow.join(' '));
+        ok('J2: Settings opens and the page answers within 2 s under every built language (' + langs.length + ' tried, slowest ' + maxMs + ' ms)', frozen.length === 0 && slow.length === 0 && langs.length === Object.keys(T.LANG_TABLE).length + CLIENT_ONLY_LANGS.length, 'frozen: ' + frozen.join(' ') + ' slow: ' + slow.join(' '));
         ok('J2: the page with an answer on it answers within 2 s under every language', answerFrozen.length === 0, answerFrozen.join(' '));
         ok('J5: the copy button of the answer row shows the language\'s own word (text and accessible name) under every built language', copyBad.length === 0, copyBad.join(' | '));
         await Promise.race([browser.close(), new Promise((res) => setTimeout(res, 4000))]);
@@ -1287,7 +1289,7 @@ const V = '﴿', W = '﴾';
         if (typeof v !== 'string' || !v.trim()) bad.push(f + ':' + b + '.' + g); else if (v === arRow[b + '.' + g]) sameAsArabic.push(f + ':' + b + '.' + g);
       }
     }
-    ok('M1: every file-backed language has all ten rows (5 buckets x male/female), none empty', files.length === Object.keys(T.LANG_TABLE).filter((l) => l !== 'ar' && l !== 'en').length && bad.length === 0, bad.join(' '));
+    ok('M1: every file-backed language has all ten rows (5 buckets x male/female), none empty', files.length === Object.keys(T.LANG_TABLE).filter((l) => l !== 'ar' && l !== 'en').length + CLIENT_ONLY_LANGS.length && bad.length === 0, bad.join(' '));
     ok('M1: no language file repeats the Arabic sentence as its row', sameAsArabic.length === 0, sameAsArabic.join(' '));
     ok('M1: Arabic and English each hold the ten rows inline, the English ones without Arabic letters', BUCKETS.every((b) => ['male', 'female'].every((g) => arRow[b + '.' + g] && enRow[b + '.' + g])));
     ok('M1: the marker of a cut answer still names a bucket of the same table', /FRIENDLY_ERRORS\[m\[1\]\]/.test(app));
