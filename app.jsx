@@ -18212,14 +18212,25 @@ function readAdhkarProgress() {
   try { o = JSON.parse(raw); } catch (e) { return empty; }
   if (!o || typeof o !== 'object' || o.d !== today) return empty;
   if (!o.n || typeof o.n !== 'object') return empty;
+  // FIX ROUND 2, R4: counters merge at their largest, so a count zeroed on one device came back on the next sync. A zero raises
+  // the item's round in g, and later presses count under key~round: a count from an older round no longer reads at all.
+  const g = o.g && typeof o.g === 'object' ? o.g : {};
   const n = {};
   for (const k of Object.keys(o.n)) {
-    if (!A2_ID_RE.test(k)) continue;
+    const cut = k.indexOf('~');
+    const base = cut === -1 ? k : k.slice(0, cut);
+    if (!A2_ID_RE.test(base)) continue;
     const v = o.n[k];
     if (!Number.isInteger(v) || v < 1) continue;
-    n[k] = v;
+    if ((cut === -1 ? 0 : Number(k.slice(cut + 1))) !== (g[base] || 0)) continue;
+    n[base] = v;
   }
-  return { d: today, n: n };
+  return Object.keys(g).length ? { d: today, n: n, g: g } : { d: today, n: n };
+}
+function writeAdhkarProgress(rec) {
+  const g = rec.g || {}, n = {};
+  for (const k of Object.keys(rec.n)) n[g[k] ? k + '~' + g[k] : k] = rec.n[k];
+  try { localStorage.setItem(ADHKAR_PROGRESS_KEY, JSON.stringify(Object.assign({}, rec, { n: n }))); } catch (e) {}
 }
 const adhkarCountOf = (rec, catId, i) => (rec && rec.n && rec.n[adhkarItemKey(catId, i)]) || 0;
 // The ONLY writer of the progress key. One press is one increment: it adds exactly 1 and it
@@ -18234,8 +18245,8 @@ function bumpAdhkarCount(catId, i, target) {
   if (cur >= cap) return rec;
   const n = Object.assign({}, rec.n);
   n[key] = cur + 1;
-  const next = { d: rec.d, n: n };
-  try { localStorage.setItem(ADHKAR_PROGRESS_KEY, JSON.stringify(next)); } catch (e) {}
+  const next = Object.assign({}, rec, { n: n });
+  writeAdhkarProgress(next);
   return next;
 }
 // THE ONLY WAY BACK DOWN, and it is a DELETION rather than a decrement: the item's own key
@@ -18252,8 +18263,8 @@ function zeroAdhkarCount(catId, i) {
   if (rec.n[key] === undefined) return rec;
   const n = Object.assign({}, rec.n);
   delete n[key];
-  const next = { d: rec.d, n: n };
-  try { localStorage.setItem(ADHKAR_PROGRESS_KEY, JSON.stringify(next)); } catch (e) {}
+  const next = { d: rec.d, n: n, g: Object.assign({}, rec.g, { [key]: ((rec.g && rec.g[key]) || 0) + 1 }) };
+  writeAdhkarProgress(next);
   return next;
 }
 // COMPLETE means the item's own target was reached, and nothing else means it. Both counters
@@ -41540,6 +41551,16 @@ function khatmahReadMark(raw, total) {
 function khatmahStampOf(o, pg) { const v = o && typeof o === 'object' ? o[pg] : 0; return Number.isFinite(v) && v > 0 ? v : 0; }
 function khatmahResetOf(rec) { return rec && Number.isFinite(rec.r) && rec.r > 0 ? rec.r : 0; }
 function khatmahPageLive(rec, pg) { return khatmahStampOf(rec.t, pg) >= Math.max(khatmahStampOf(rec.x, pg), khatmahResetOf(rec)); }
+// FIX ROUND 2, R4: the two position marks are an array, and the counter merge JOINS arrays, so a cleared or moved mark came
+// back and a mark in the second slot was lost. Each slot now also travels in mk as { a: stamp, v: 'page|surah|label' }, '' when
+// empty: the merge keeps the larger stamp and the newer text, and mk decides any slot it names over the old array.
+function khatmahSlot(i, mark) { return { [i]: { a: Date.now(), v: mark ? [mark.p, mark.s, mark.l || ''].join('|') : '' } }; }
+function khatmahSlotRead(rec, i, total) {
+  const e = rec.mk && typeof rec.mk === 'object' ? rec.mk[i] : null;
+  if (!e || typeof e !== 'object' || !Number.isFinite(e.a) || typeof e.v !== 'string') return khatmahReadMark(Array.isArray(rec.m) ? rec.m[i] : null, total);
+  const c = e.v.split('|');
+  return c.length === 3 ? khatmahReadMark({ p: Number(c[0]), s: Number(c[1]), l: c[2] }, total) : null;
+}
 function readKhatmah(pk) {
   const total = khatmahTotalPages();
   const out = khatmahEmpty();
@@ -41558,9 +41579,7 @@ function readKhatmah(pk) {
     }
   }
   if (Number.isInteger(rec.c) && rec.c >= 0 && rec.c <= KHATMAH_DONE_MAX) out.c = rec.c;
-  if (Array.isArray(rec.m)) {
-    for (let i = 0; i < KHATMAH_MARKS; i++) out.m[i] = khatmahReadMark(rec.m[i], total);
-  }
+  for (let i = 0; i < KHATMAH_MARKS; i++) out.m[i] = khatmahSlotRead(rec, i, total);
   return out;
 }
 
@@ -41579,6 +41598,8 @@ function writeKhatmah(pk, rec) {
   if (Object.keys(x).length) entry.x = x;
   const r = Math.max(khatmahResetOf(old), khatmahResetOf(rec));
   if (r) entry.r = r;
+  const mk = Object.assign({}, old.mk, rec.mk);
+  if (Object.keys(mk).length) entry.mk = mk;
   map[pk] = entry;
   try { localStorage.setItem(KHATMAH_KEY, JSON.stringify(map)); return true; } catch (e) { return false; }
 }
@@ -41636,13 +41657,13 @@ function khatmahPlaceMark(pk, rec, i, pg, sr) {
   if (!next) return { rec: rec, ok: true };
   const marks = rec.m.slice();
   marks[i] = next;
-  return khatmahCommit(pk, rec, { p: rec.p, c: rec.c, m: marks });
+  return khatmahCommit(pk, rec, { p: rec.p, c: rec.c, m: marks, mk: khatmahSlot(i, next) });
 }
 function khatmahClearMark(pk, rec, i) {
   if (!Number.isInteger(i) || i < 0 || i >= KHATMAH_MARKS) return { rec: rec, ok: true };
   const marks = rec.m.slice();
   marks[i] = null;
-  return khatmahCommit(pk, rec, { p: rec.p, c: rec.c, m: marks });
+  return khatmahCommit(pk, rec, { p: rec.p, c: rec.c, m: marks, mk: khatmahSlot(i, null) });
 }
 function khatmahNameMark(pk, rec, i, label) {
   if (!Number.isInteger(i) || i < 0 || i >= KHATMAH_MARKS) return { rec: rec, ok: true };
@@ -41651,7 +41672,7 @@ function khatmahNameMark(pk, rec, i, label) {
   const l = (typeof label === 'string' && KHATMAH_LABEL_IDS.indexOf(label) !== -1) ? label : '';
   const marks = rec.m.slice();
   marks[i] = { p: cur.p, s: cur.s, l: l };
-  return khatmahCommit(pk, rec, { p: rec.p, c: rec.c, m: marks });
+  return khatmahCommit(pk, rec, { p: rec.p, c: rec.c, m: marks, mk: khatmahSlot(i, marks[i]) });
 }
 
 // The word a label id is drawn as, in the language in use. An id that is not one of the four
