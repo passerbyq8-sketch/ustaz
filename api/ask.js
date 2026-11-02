@@ -2169,6 +2169,7 @@ export default async function handler(req, res) {
           unitsProvedHadith: t.unitsProvedHadith,
           heldEmpty: t.heldEmpty, heldToolAnnouncement: t.heldToolAnnouncement, heldReviewFailed: t.heldReviewFailed, heldUnsupportedAttribution: t.heldUnsupportedAttribution,
           heldSelfContradiction: t.heldSelfContradiction, heldIncompleteSentence: t.heldIncompleteSentence, heldAnswerGenderMismatch: t.heldAnswerGenderMismatch,
+          heldGradeConflict: t.heldGradeConflict,
           heldUncitedAttribution: t.heldUncitedAttribution, heldUncitedRuling: t.heldUncitedRuling, heldRemovedPerson: t.heldRemovedPerson, heldUnsupportedGroup: t.heldUnsupportedGroup, heldUnsupportedConsensus: t.heldUnsupportedConsensus,
           heldUnsupportedSchool: t.heldUnsupportedSchool, heldUnsupportedMatn: t.heldUnsupportedMatn, heldTakhrijRefused: t.heldTakhrijRefused, heldTakhrijEmptied: t.heldTakhrijEmptied,
           heldGradeRuleFailed: t.heldGradeRuleFailed, heldGradeEmptied: t.heldGradeEmptied, heldRepeat: t.heldRepeat, heldDependentOnHeld: t.heldDependentOnHeld,

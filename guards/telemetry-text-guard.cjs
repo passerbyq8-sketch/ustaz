@@ -262,6 +262,7 @@ const BW2_FIELDS = [
   'heldEmpty', 'heldToolAnnouncement', 'heldReviewFailed', 'heldUnsupportedAttribution',
   'heldUncitedAttribution', 'heldUncitedRuling',
   'heldSelfContradiction', 'heldIncompleteSentence', 'heldAnswerGenderMismatch',
+  'heldGradeConflict',
   // Count of before-writing units that name the removed person asked about; no sentence text.
   'heldRemovedPerson',
   'heldUnsupportedGroup', 'heldUnsupportedConsensus',

@@ -7,6 +7,7 @@ import { createHash } from 'node:crypto';
 const repo = fileURLToPath(new URL('../../', import.meta.url));
 const scratch = path.join(repo, 'node_modules/.cache/qaf-gap');
 const session = process.argv[2];
+const phase = process.argv[3] || '1a';
 if (!session) throw new Error('Usage: node tools/qaf-gap/item-1-proof.mjs <saved-live-session>');
 globalThis.fetch = () => { throw new Error('NETWORK_FORBIDDEN'); };
 const digest = (data) => createHash('sha256').update(data).digest('hex');
@@ -25,7 +26,7 @@ function instrument(root) {
 fs.mkdirSync(path.join(scratch, 'current'), { recursive: true });
 fs.cpSync(path.join(repo, 'lib'), path.join(scratch, 'current/lib'), { recursive: true });
 fs.copyFileSync(path.join(repo, 'package.json'), path.join(scratch, 'current/package.json'));
-const baselineRoot = path.join(scratch, 'baseline');
+const baselineRoot = path.join(scratch, phase === '1b' ? 'item-1a-baseline' : 'baseline');
 const currentRoot = path.join(scratch, 'current');
 // The BW2 import graph also reaches the unchanged API search adapters.
 for (const root of [baselineRoot, currentRoot]) fs.cpSync(path.join(repo, 'api'), path.join(root, 'api'), { recursive: true });
@@ -98,6 +99,7 @@ for (const group of ['a', 'b', 'c']) {
     const wireBefore = await replay(before, text, question);
     const wireAfter = await replay(after, text, question);
     saved.push({ id, question, text, before: a.verdict.selfContradiction, after: b.verdict.selfContradiction,
+      gradeBefore: a.verdict.gradeConsistency || { detected: false }, gradeAfter: b.verdict.gradeConsistency,
       integrity: b.verdict.sentenceIntegrity, printed: { contradiction: printedReview.verdict.selfContradiction, integrity: printedReview.verdict.sentenceIntegrity },
       wireReplay: { before: wireBefore, after: wireAfter },
       limitation: 'Published wire has already stripped [[n]] and omitted the pinned table; unit replay is not a reconstruction of the original writer stream.' });
@@ -110,11 +112,14 @@ const integrityCaught = requiredIntegrity.filter((id) => saved.find((record) => 
 const result = { baseline: '5244c86dbedc65558320ffc8df7246ee5faa924a', inputs, corpus: { count: corpus.length, sha256: digest(corpusBytes),
   questionCount: questionMap.size, heldBefore, heldAfter, releasedBefore, releasedAfter, changes: regression }, saved,
   acceptance: { requiredContradictions, contradictionsCaught, requiredIntegrity, integrityCaught,
-    passed: !saved.find((record) => record.id === 'a2').after.detected && integrityCaught.length === 4
+    passed: phase === '1b' ? saved.find((record) => record.id === 'b3').gradeAfter.detected
+      && !saved.find((record) => record.id === 'b1').gradeAfter.detected
+      && !saved.find((record) => record.id === 'b2').gradeAfter.detected && regression.length === 0
+      : !saved.find((record) => record.id === 'a2').after.detected && integrityCaught.length === 4
       && regression.every((record) => /:Q(?:17|20)\//u.test(record.id))
       && regression.some((record) => record.id.includes(':Q17/'))
       && regression.some((record) => record.id.includes(':Q20/')) } };
-const output = path.join(scratch, 'item-1-proof.json');
+const output = path.join(scratch, phase === '1b' ? 'item-1b-proof.json' : 'item-1-proof.json');
 fs.writeFileSync(output, JSON.stringify(result, null, 2) + '\n', 'utf8');
 console.log(JSON.stringify({ output, corpus: { count: corpus.length, heldBefore, heldAfter, releasedBefore, releasedAfter, changedAnswers: regression.length },
   saved: saved.map((record) => ({ id: record.id, contradiction: record.after, integrity: record.integrity })), acceptance: result.acceptance }, null, 2));
