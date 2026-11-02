@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createReranker, rerank } from '../lib/rerank/index.js';
 const rows = [{ id: 'a', text: 'partial', title: 'A' }, { id: 'b', text: 'direct', title: 'B' }, { id: 'c', text: 'unrelated', title: 'C' }];
+const localStubKey = 'local-stub-key';
 
 test('local ONNX pairs query/passages, loads once, scores and stably orders topK offline', async () => {
   const config = {};
@@ -22,7 +23,7 @@ test('local ONNX pairs query/passages, loads once, scores and stably orders topK
 
 test('pointwise scores are bounded, requests run in a bounded pool, and IDs stay input-owned', async () => {
   let active = 0, peak = 0;
-  const run = createReranker({ provider: 'anthropic-pointwise', env: { ANTHROPIC_API_KEY: 'local-stub-key', RERANK_CONCURRENCY: '2' },
+  const run = createReranker({ provider: 'anthropic-pointwise', env: { ANTHROPIC_API_KEY: localStubKey, RERANK_CONCURRENCY: '2' },
     fetchImpl: async (url, init) => {
       assert.equal(url, 'https://api.anthropic.com/v1/messages');
       peak = Math.max(peak, ++active);
@@ -32,7 +33,7 @@ test('pointwise scores are bounded, requests run in a bounded pool, and IDs stay
     } });
   assert.deepEqual(await run('question', rows, { topK: 2 }), [{ id: 'b', score: 10 }, { id: 'a', score: 5 }]);
   assert.equal(peak, 2);
-  const invalid = createReranker({ provider: 'anthropic-pointwise', env: { ANTHROPIC_API_KEY: 'local-stub-key' },
+  const invalid = createReranker({ provider: 'anthropic-pointwise', env: { ANTHROPIC_API_KEY: localStubKey },
     fetchImpl: async () => ({ ok: true, json: async () => ({ content: [{ type: 'text', text: '{"score":99}' }] }) }) });
   await assert.rejects(invalid('question', rows), /RERANK_SCORE_INVALID/);
 });
