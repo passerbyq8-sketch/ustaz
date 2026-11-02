@@ -53,7 +53,7 @@ test('local HTTP reranks top ten, counts literal tokens, and transmits only quer
   assert.equal(f.received[0].model, 'rerank-v5.0-fast'); assert.equal(f.received[0].top_n, 10);
   assert.equal(/private-|identity|account|age|device/.test(JSON.stringify(f.received)), false);
   assert.equal([...db.counts.values()][0], 1234); assert.equal(db.calls[0].args[1], RERANK_DAILY_CAP);
-  assert.match(db.calls[0].keys[0], /^ezik:rerank-budget:v1:development:\d{4}-\d{2}-\d{2}$/);
+  assert.match(db.calls[0].keys[0], /^ezik:rerank-budget:v1:\d{4}-\d{2}-\d{2}$/);
   assert.ok(db.calls[0].args[2] > Date.now() / 1000);
   assert.equal(RERANK_DAILY_CAP * 0.02 / 1e6, 4);
 });
@@ -95,6 +95,17 @@ test('concurrent reservations enforce the spend cap before transport', async (t)
   const options = opts(f, { store: db, env: { ...env, RERANK_DAILY_CAP: String(rows.length * 65536) } });
   const answers = await Promise.all(Array.from({ length: 8 }, () => rerankPools(options)));
   assert.equal(answers.filter((r) => r.ok).length, 1); assert.equal(f.calls(), 1);
+});
+
+test('preview and production share one daily spend cap in the same KV store', async (t) => {
+  const f = await fixture(t, (_, res) => { res.writeHead(200, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ results: [{ index: 0, relevance_score: 0.9 }], meta: { billed_units: { input_tokens: 65536 } } })); });
+  const db = store();
+  const options = opts(f, { store: db, pools: [{ question: 'plain question', rows: rows.slice(0, 1) }] });
+  const preview = await rerankPools({ ...options, env: { ...env, VERCEL_ENV: 'preview', RERANK_DAILY_CAP: '65536' } });
+  const production = await rerankPools({ ...options, env: { ...env, VERCEL_ENV: 'production', RERANK_DAILY_CAP: '65536' } });
+  assert.equal(preview.ok, true); assert.equal(production.ok, false);
+  assert.equal(production.telemetry.rerank_fallback_code, 4); assert.equal(f.calls(), 1);
 });
 
 test('expanded retrieval asks tolerant fatwas up to 50 and library within its existing 30-row ceiling, per part', async () => {
