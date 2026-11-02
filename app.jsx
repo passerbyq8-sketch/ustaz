@@ -753,7 +753,6 @@ const EZ_I18N = {
     // THIRD ROUND -- the small consent card (owner-approved texts, decoded from the order's JSON, never retyped).
     'aic.line1': 'بحسب ميزة الذكاء الاصطناعي التي تختارها، يُرسل النص أو الملفات التي تقدمها إلى Anthropic (Claude) أو ElevenLabs أو Brave Search أو Cohere لمعالجة طلبك.',
     'aic.cohere': 'Cohere: ترتيب نتائج البحث بحسب صلتها بالسؤال. يُرسل نص السؤال أو شقّه والمقاطع المرشّحة، بلا بيانات الملف أو معرّفات الحساب والجهاز. قد تحتفظ Cohere بسجلات حتى 30 يومًا. يُشترط ضبط خيار منع استخدام البيانات في التدريب في حساب المزوّد قبل الإرسال.',
-    'aic.reask': 'إذا رفضت، تستمر الخدمة كما كانت بدون Cohere.',
     'aic.line2': 'راجع التفاصيل، ثم اختر موافق لتفعيل هذه الميزات أو رفض لإبقائها متوقفة.',
     'aic.agree': 'موافق',
     'aic.decline': 'غير موافق',
@@ -2724,7 +2723,6 @@ const EZ_I18N = {
     // THIRD ROUND -- the small consent card.
     'aic.line1': 'Depending on the AI feature you choose, the text or files you submit are sent to Anthropic (Claude), ElevenLabs, Brave Search or Cohere to process your request.',
     'aic.cohere': 'Cohere: ranks search results by relevance to your question. Only the question or its individual issue and candidate passages are sent, without profile details or account and device identifiers. Cohere may retain logs for up to 30 days. The provider account must be configured to prevent training use before sending.',
-    'aic.reask': 'If you decline, the service continues as before without Cohere.',
     'aic.line2': 'Review the details, then choose Agree to enable these features or Decline to keep them off.',
     'aic.agree': 'Agree',
     'aic.decline': 'Disagree',
@@ -28254,6 +28252,12 @@ function ezAicLine(text) {
   ));
 }
 
+// This update notice is scoped to the two owner-approved languages. Keeping it
+// separate from EZ_I18N leaves the shared key contract of all 22 other files intact.
+const EZ_AIC_REASK_COPY = Object.freeze({
+  ar: 'إذا رفضت، تستمر الخدمة كما كانت بدون Cohere.',
+  en: 'If you decline, the service continues as before without Cohere.',
+});
 function AIConsentGate({ age, current, onGrant, onDecline, onBack }) {
   useEzLang();
   const [more, setMore] = useState(false);
@@ -28276,7 +28280,7 @@ function AIConsentGate({ age, current, onGrant, onDecline, onBack }) {
     <div className="theme-dark ezhome ezgate" style={s.onboardingContainer}>
       <div className="ezgate-wrap"><section className="ezgate-card" style={more ? { ...s.aicCard, ...s.aicCardOpen } : s.aicCard} aria-label={EZ_AIC_TITLE} data-ezik-aic="card">
         <p style={s.aicLine} data-ezik-aic="line1">{ezAicLine(ezT('aic.line1'))}</p>
-        <p style={s.aicLine} data-ezik-aic="line2"><span data-ezik-aic={reask ? 'reask' : undefined}>{ezAicLine(ezT(reask ? 'aic.reask' : 'aic.line2'))}</span></p>
+        <p style={s.aicLine} data-ezik-aic="line2"><span data-ezik-aic={reask ? 'reask' : undefined}>{ezAicLine(reask ? EZ_AIC_REASK_COPY[EZ_LANG] : ezT('aic.line2'))}</span></p>
         <button type="button" onClick={() => setMore(!more)} aria-expanded={more ? 'true' : 'false'}
           aria-controls="ezik-aic-details" data-ezik-aic="more" style={s.aicMoreBtn}>{ezT(more ? 'aic.less' : 'aic.more')}</button>
         {more && <div id="ezik-aic-details" style={{ ...s.aicDetails, ...s.aicDetailsOpen }} data-ezik-aic="details">
