@@ -20,7 +20,8 @@
 //      that request to the free-brain path with its first round forced to search_sources. By default (I3f,
 //      SPEED PIPES fix 3) the same empty table goes there by itself: no sentence, no offer, no button
 //   I4 a question outside BW2's scope (general): today's wire and today's rendering. The wire equals the
-//      one BEFORE_WRITING_V2=off produces AND the one production's tree (af3e995) produced for the same
+//      one BEFORE_WRITING_V2=off produces apart from retrieve/general replacing its write status,
+//      AND the one production's tree (af3e995) produced, less statuses, for the same
 //      request body; the completed DOM equals production's client on those bytes. Both baselines were
 //      recorded from production's tree into guards/fixtures-speed-integration-general.json.
 //
@@ -80,7 +81,14 @@ const LABELS = {
 const FOUND = ' \u0648\u062c\u062f ';
 const HIT_STAGES = ['fatwa', 'library', 'encyclopedia', 'lessons'];
 const arabicDigits = (n) => String(n).replace(/[0-9]/g, (d) => String.fromCharCode(0x0660 + Number(d)));
-const labelFor = (f) => LABELS[f.stage] + (HIT_STAGES.includes(f.stage) && f.hits > 0 ? FOUND + arabicDigits(f.hits) : '');
+const labelFor = (f) => {
+  // Item 4's source frames name the titles the reader sees, up to three plus the remainder.
+  if (HIT_STAGES.includes(f.stage) && Array.isArray(f.titles) && f.titles.length) {
+    return '\u064a\u0642\u0631\u0623 \u0641\u064a: ' + f.titles.slice(0, 3).join(' · ')
+      + (f.titles.length > 3 ? ' +' + arabicDigits(f.titles.length - 3) : '');
+  }
+  return LABELS[f.stage] + (HIT_STAGES.includes(f.stage) && f.hits > 0 ? FOUND + arabicDigits(f.hits) : '');
+};
 const OFFER_LABEL = '\u0627\u0628\u062d\u062b \u0641\u064a \u0627\u0644\u0645\u0648\u0627\u0642\u0639 \u0627\u0644\u0622\u0646';
 
 const framesOf = (writes) => writes.join('').split('\n\n').filter((f) => f.startsWith('data: '))
@@ -469,8 +477,17 @@ async function main(args) {
         !!s && !s.crashed && fb && fb.bw2 === false && !s.logOf('[bw2]') && todaysStatuses(frames),
         ascii(JSON.stringify(fb)));
       const off = s ? await server.drive(seen[0].body, seen[0].headers, { ...SCENARIOS().general.server, env: { BEFORE_WRITING_V2: 'off' } }) : null;
-      ok('I4b its wire is byte-identical to the wire with BEFORE_WRITING_V2=off',
-        !!off && off.writes.join('') === s.writes.join(''), ascii(JSON.stringify({ on: s && sha(s.writes.join('')), off: off && sha(off.writes.join('')) })));
+      const provisionalRetrieve = 'data: ' + JSON.stringify({ type: 'ezik_status', stage: 'retrieve' }) + '\n\n';
+      const provisionalGeneral = 'data: ' + JSON.stringify({ type: 'ezik_status', stage: 'general' }) + '\n\n';
+      const offWrite = 'data: ' + JSON.stringify({ type: 'ezik_status', stage: 'write' }) + '\n\n';
+      const onWire = s ? s.writes.join('') : '';
+      const statusOrder = frames.filter((f) => f.type === 'ezik_status').map((f) => f.stage);
+      const offStatuses = off ? framesOf(off.writes).filter((f) => f.type === 'ezik_status').map((f) => f.stage) : [];
+      ok('I4b retrieve/general replaces only the off wire\'s write status; all other bytes match',
+        !!off && onWire.startsWith(provisionalRetrieve) && JSON.stringify(statusOrder) === '["retrieve","general"]'
+          && JSON.stringify(offStatuses) === '["write"]'
+          && onWire.replace(provisionalRetrieve, '').replace(provisionalGeneral, '') === off.writes.join('').replace(offWrite, ''),
+        ascii(JSON.stringify({ on: s && sha(onWire), off: off && sha(off.writes.join('')), statusOrder, offStatuses })));
       ok('I4c the client\'s request body equals production\'s for the same question',
         !!seen[0] && JSON.stringify(seen[0].body) === JSON.stringify(base.body), ascii(JSON.stringify({ now: seen[0] && sha(JSON.stringify(seen[0].body)), prod: sha(JSON.stringify(base.body)) })));
       // I4d WAS: the whole wire is byte-identical to production's. IS: byte-identical once the order's status frames (whole

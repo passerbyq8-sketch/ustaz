@@ -1348,7 +1348,6 @@ export default async function handler(req, res) {
       runtime: sorterPlan.ask ? 'STORED_FIQH' : lexicalRuntimeOfRequest,
       liveSearch: readLiveSearch(body), excluded: bw2ScopeExclusion(currentQuestionText),
     }).takes;
-  if (earlyRetrieve) res.write(`data: ${JSON.stringify({ type: 'ezik_status', stage: 'retrieve' })}\n\n`);
 
   // ONE WAY OUT, USED BY EVERY DETERMINISTIC BRANCH BELOW. The headers are already committed at
   // this point, so this is not sendSynthesizedText(): it writes one text delta, one message_stop
@@ -1604,6 +1603,8 @@ export default async function handler(req, res) {
     failureText: FINALIZER_REFUSAL,
     onReject: (detail) => console.warn('[finalized-sse] rejected', detail),
   });
+  // A provisional status still precedes the sorter wait, through the finalized response.
+  if (earlyRetrieve) res.write(`data: ${JSON.stringify({ type: 'ezik_status', stage: 'retrieve' })}\n\n`);
   const ownedSourceTag = (source) => {
     const card = buildSourceTag({ ...source, kind: source && (source.kind || source.sourceKind) || 'card' });
     if (card && card.tag && !finalizerContext.sourceCards.some((item) => item.tag === card.tag)) {
