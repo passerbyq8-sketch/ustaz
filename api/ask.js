@@ -1340,6 +1340,16 @@ export default async function handler(req, res) {
   let keepAlive = setInterval(() => { try { res.write(': keepalive\n\n'); } catch {} }, 10000);
   const clearKeepAlive = () => { if (keepAlive) { clearInterval(keepAlive); keepAlive = null; } };
 
+  // The sorter can take 1500 ms. A potentially eligible BW2 turn acknowledges
+  // retrieval immediately; a WORLDLY verdict corrects this provisional stage below.
+  const earlyRetrieve = !closedDeenAnswers && !graveHazardClass && !pornBlocked && !supportContact
+    && !removedIdentityQuestion && freeBrainOnAtSorter && beforeWritingV2Takes({
+      enabled: beforeWritingV2Decision().enabled, band,
+      runtime: sorterPlan.ask ? 'STORED_FIQH' : lexicalRuntimeOfRequest,
+      liveSearch: readLiveSearch(body), excluded: bw2ScopeExclusion(currentQuestionText),
+    }).takes;
+  if (earlyRetrieve) res.write(`data: ${JSON.stringify({ type: 'ezik_status', stage: 'retrieve' })}\n\n`);
+
   // ONE WAY OUT, USED BY EVERY DETERMINISTIC BRANCH BELOW. The headers are already committed at
   // this point, so this is not sendSynthesizedText(): it writes one text delta, one message_stop
   // and closes ONCE. Every early return in this handler goes through it, which is what keeps the
@@ -1870,6 +1880,9 @@ export default async function handler(req, res) {
     const sorterState = sorted ? sorted.sorter : sorterPlan.sorter;
     const currentRuntime = runtimeAfterSorter(lexicalRuntimeOfRequest, sorterState);
     const effectiveRoute = currentRuntime === 'GENERAL' ? 'GEN' : 'DEEN';
+    if (earlyRetrieve && currentRuntime === 'GENERAL') {
+      res.write(`data: ${JSON.stringify({ type: 'ezik_status', stage: 'general' })}\n\n`);
+    }
     logRoute({ route: effectiveRoute, runtime: currentRuntime, sorter: sorterState, sorterMs: sorted ? sorted.ms : 0, frame: frameFor(currentRuntime, sorterState) });
 
     const topicClass = classifyTopic(questionText, currentPlan, effectiveRoute);

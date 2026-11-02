@@ -674,6 +674,7 @@ const EZ_I18N = {
     'x.658': 'وجد {n}',
     'x.659': 'طوّره: مساعد الراجحي',
     'x.660': 'وسائل التواصل:',
+    'x.661': 'يقرأ في: {titles}',
     'p.12': 'نوع الملف غير مدعوم: {a} | {b}',
     'f.5': 'بلا اسم',
     'f.6': 'بلا نوع',
@@ -2642,6 +2643,7 @@ const EZ_I18N = {
     'x.658': 'found {n}',
     'x.659': 'Developed by: Musaed Al-Rajhi',
     'x.660': 'Contact:',
+    'x.661': 'Reading in: {titles}',
     'p.12': 'File type not supported: {a} | {b}',
     'f.5': 'no name',
     'f.6': 'no type',
@@ -10265,10 +10267,17 @@ const EZIK_READING_STAGES = Object.freeze({
   lessons: 'x.254',
   judge: 'x.255',
   write: 'x.256',
+  general: 'x.256',
 });
 function ezikReadingStatus(evt) {
   if (!evt || !Object.prototype.hasOwnProperty.call(EZIK_READING_STAGES, evt.stage)) return null;
   const source = ['fatwa', 'library', 'encyclopedia', 'lessons'].includes(evt.stage);
+  const titles = source && Array.isArray(evt.titles)
+    ? [...new Set(evt.titles.filter((title) => typeof title === 'string' && title.trim()).map((title) => title.trim()))] : [];
+  if (titles.length) {
+    const shown = titles.slice(0, 3).join(' · ') + (titles.length > 3 ? ' +' + toArabicDigits(titles.length - 3) : '');
+    return ezT('x.661', { titles: shown });
+  }
   const hits = source && Number.isInteger(evt.hits) && evt.hits > 0
     ? ' ' + ezT('x.658', { n: toArabicDigits(evt.hits) }) : '';
   return ezT(EZIK_READING_STAGES[evt.stage]) + hits;

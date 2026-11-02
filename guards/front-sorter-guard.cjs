@@ -296,12 +296,12 @@ async function main() {
     });
   };
   const makeRes = () => ({
-    writes: [], ended: 0, statusCode: 0, headers: {}, headersSent: false,
+    writes: [], timestamps: [], startedAt: performance.now(), ended: 0, statusCode: 0, headers: {}, headersSent: false,
     status(c) { this.statusCode = c; return this; },
     setHeader(k, v) { this.headers[String(k).toLowerCase()] = v; return this; },
     getHeader(k) { return this.headers[String(k).toLowerCase()]; },
     flushHeaders() { this.headersSent = true; },
-    write(s) { this.headersSent = true; this.writes.push(String(s)); return true; },
+    write(s) { this.headersSent = true; this.writes.push(String(s)); this.timestamps.push(performance.now() - this.startedAt); return true; },
     end() { this.ended += 1; this.headersSent = true; return this; },
     json(o) { this.jsonBody = o; this.ended += 1; return this; },
     once() { return this; }, on() { return this; }, removeListener() { return this; },
@@ -315,7 +315,7 @@ async function main() {
   const WRITER_TEXT = '\u0647\u0630\u0627 \u062c\u0648\u0627\u0628 \u0627\u062e\u062a\u0628\u0627\u0631.';
   let ipSeq = 0;
   // scenario: { sorter: 'WORLDLY'|'RELIGIOUS'|'hang'|'http'|'junk' }, env, band, age, depth, messages
-  async function drive(messages, { sorter = 'RELIGIOUS', env = {}, band = 'adult', age = 35, body = {} } = {}) {
+  async function drive(messages, { sorter = 'RELIGIOUS', sorterDelayMs = 0, env = {}, band = 'adult', age = 35, body = {} } = {}) {
     for (const k of ENV_KEYS) delete process.env[k];
     process.env.ANTHROPIC_API_KEY = 'guard-not-a-real-key';
     process.env.BRAVE_API_KEY = 'guard-not-a-real-key';
@@ -344,6 +344,7 @@ async function main() {
         if (b.system === FS.FRONT_SORTER_SYSTEM) {
           counts.sorter += 1;
           model.push(b);
+          if (sorterDelayMs) await new Promise((resolve) => setTimeout(resolve, sorterDelayMs));
           if (sorter === 'hang') return new Promise((_, rej) => { if (init.signal) init.signal.addEventListener('abort', () => rej(new Error('aborted'))); });
           if (sorter === 'http') return jsonResponse(u, { error: 'x' }, 529);
           const text = sorter === 'junk' ? 'It depends.' : sorter;
@@ -392,6 +393,18 @@ async function main() {
     return { res, model, counts, logs, logOf, crashed };
   }
   const t1 = FIX.map[0].q;
+  // QAF gap 4: drive the real handler with a deliberately slow sorter, measuring
+  // actual socket writes from request entry, including the WORLDLY correction.
+  for (const sorter of ['RELIGIOUS', 'WORLDLY']) {
+    const d = await drive(msgs(t1), { sorter, sorterDelayMs: 700 });
+    const frames = d.res.writes.flatMap((s, i) => s.split('\n\n').filter((line) => line.startsWith('data: '))
+      .map((line) => ({ ...JSON.parse(line.slice(6)), ms: d.res.timestamps[i] })));
+    const statuses = frames.filter((f) => f.type === 'ezik_status');
+    ok('QAF4 ' + sorter + ': first retrieve frame within 500 ms, before slow sorter',
+      !d.crashed && statuses[0]?.stage === 'retrieve' && statuses[0].ms <= 500);
+    if (sorter === 'WORLDLY') ok('QAF4 WORLDLY: later status corrects the provisional retrieval', statuses.some((f) => f.stage === 'general' && f.ms >= 650));
+    console.log('QAF_GAP4_TIMING ' + JSON.stringify({ sorter, statuses }));
+  }
   const deepBody = { depth: 'deep' };
   const ROUTE_SORTER = ['not_asked', 'ruling_cue', 'worldly', 'religious', 'timeout', 'error', 'disabled'];
   const RUNTIMES = ['GENERAL', 'STORED_FIQH', 'HADITH', 'LOCAL_QURAN', 'LOCAL_ADHKAR', 'LOCAL_WORSHIP'];
