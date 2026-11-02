@@ -13,9 +13,12 @@ export async function turn({ question = 'ما حكم المسح على الجو�
   const wire = {
     status: (...args) => { events.push({ type: 'status', args, at: performance.now() }); return true; },
     delta: (delta) => { sent += delta; events.push({ type: 'delta', text: delta, at: performance.now() }); return true; },
+    replace: (text) => { sent = text; events.push({ type: 'replace', text }); return true; },
     liveOffer: () => { events.push({ type: 'offer' }); return true; },
     finish: () => { events.push({ type: 'finish' }); },
     get sent() { return sent; },
+    get opened() { return sent.length > 0; },
+    get dead() { return false; },
   };
   const deps = {
     runTool: async (name, input, ctx) => {
