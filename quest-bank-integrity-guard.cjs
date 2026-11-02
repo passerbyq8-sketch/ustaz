@@ -2098,7 +2098,7 @@ const SEALED = {
   // 2026-11-02 TRANSLATE4 om: reserved cache ezik-v133; app.js rebuilt (enabled list); CORE membership unchanged.
   //   2026-11-02 -- FIX-ROUND2 ship: cache ezik-v133 -> ezik-v134 (articles links and colours, the Word and PDF design, prayer label, mushaf page, sync, titles): app.js 2554775 -> 2577477 bytes, sha256 782e8320..78c3; node tools/core-bytes.cjs --write: CORE_BYTES 3789730.
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 58418 bytes).
-  'sw.js': 'c6966a6a5403bcb2d026980de7e89d48a3f2650c530e6f95cae119abfa40c81a',
+  'sw.js': 'b4e26f2d4fed19c1a5bdeed4c747e4b99982aee9a07a6ab6e0cecc2bbb3044ed',
 };
 
 // ---------------------------------------------------------------------------
