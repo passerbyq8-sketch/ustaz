@@ -2168,6 +2168,7 @@ export default async function handler(req, res) {
           // SPEED FIX 3, C4: units released by a hadith proof.
           unitsProvedHadith: t.unitsProvedHadith,
           heldEmpty: t.heldEmpty, heldToolAnnouncement: t.heldToolAnnouncement, heldReviewFailed: t.heldReviewFailed, heldUnsupportedAttribution: t.heldUnsupportedAttribution,
+          heldSelfContradiction: t.heldSelfContradiction, heldIncompleteSentence: t.heldIncompleteSentence, heldAnswerGenderMismatch: t.heldAnswerGenderMismatch,
           heldUncitedAttribution: t.heldUncitedAttribution, heldUncitedRuling: t.heldUncitedRuling, heldRemovedPerson: t.heldRemovedPerson, heldUnsupportedGroup: t.heldUnsupportedGroup, heldUnsupportedConsensus: t.heldUnsupportedConsensus,
           heldUnsupportedSchool: t.heldUnsupportedSchool, heldUnsupportedMatn: t.heldUnsupportedMatn, heldTakhrijRefused: t.heldTakhrijRefused, heldTakhrijEmptied: t.heldTakhrijEmptied,
           heldGradeRuleFailed: t.heldGradeRuleFailed, heldGradeEmptied: t.heldGradeEmptied, heldRepeat: t.heldRepeat, heldDependentOnHeld: t.heldDependentOnHeld,

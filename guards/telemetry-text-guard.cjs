@@ -261,6 +261,7 @@ const BW2_FIELDS = [
   // one count per hold reason, held<Reason> over the closed list lib/bw2-units.js BW2_HOLD_REASONS.
   'heldEmpty', 'heldToolAnnouncement', 'heldReviewFailed', 'heldUnsupportedAttribution',
   'heldUncitedAttribution', 'heldUncitedRuling',
+  'heldSelfContradiction', 'heldIncompleteSentence', 'heldAnswerGenderMismatch',
   // Count of before-writing units that name the removed person asked about; no sentence text.
   'heldRemovedPerson',
   'heldUnsupportedGroup', 'heldUnsupportedConsensus',
