@@ -1990,6 +1990,44 @@ run('the sanitiser strips a javascript: URL, in a link and as bare text', async 
   return JSON.stringify(a.body);
 });
 
+run('N1: an http(s) link keeps its address, every other scheme keeps only its label', async () => {
+  const { g, editor } = await seeded();
+  const a = await createShaped(g, editor.session, 'articles', 'article', 'Links',
+    '[one](https://e.com/x) [two](http://e.com/y) [three](ftp://e.com) [four](mailto:x@e.com) [five](tel:1) ![six](https://e.com/i.png) [seven](//e.com)');
+  is(a.body.indexOf('[one](https://e.com/x)') !== -1 && a.body.indexOf('[two](http://e.com/y)') !== -1, 'an http(s) link lost its address: ' + a.body);
+  is(!/ftp:|mailto:|tel:|i\.png|\]\(\/\//.test(a.body), 'another scheme survived: ' + a.body);
+  is(/three four five six seven/.test(a.body), 'a label was destroyed: ' + a.body);
+  return JSON.stringify(a.body);
+});
+
+run('N2: only a palette colour survives, and the three palettes agree', async () => {
+  const { g, editor } = await seeded();
+  const a = await createShaped(g, editor.session, 'articles', 'article', '{{gold:Painted}} title',
+    '{{gold:kept}} {{red:word}} {{blue:}} {{blue:<b onclick=z>q}}');
+  is(a.body.indexOf('{{gold:kept}}') !== -1, 'a palette token was lost: ' + a.body);
+  is(!/\{\{red|\{\{blue:\}\}|<|onclick/.test(a.body), 'a token outside the rule survived: ' + a.body);
+  is(a.title === 'Painted title', 'a title carried a token: ' + a.title);
+  const read = (n) => fs.readFileSync(path.join(REPO, n), 'utf8');
+  const names = /ARTICLE_COLORS = Object\.freeze\(\[([^\]]+)\]/.exec(read('lib/articles/store.js'))[1].match(/[a-z]+/g);
+  const app = read('app.jsx'), page = read('index.html');
+  eq(names.length, 8, 'the palette size');
+  for (const c of names) {
+    is(app.indexOf("['" + c + "', 'articles.color." + c + "']") !== -1, 'app.jsx has no ' + c);
+    is(page.indexOf('.ezart-c-' + c + '{color:var(--ezart-' + c + ')}') !== -1, 'index.html has no class for ' + c);
+  }
+  return names.join(' ');
+});
+
+run('N1, N2: the new notation costs the sanitiser nothing on hostile input', async () => {
+  const { g, editor } = await seeded();
+  const t0 = Date.now();
+  for (const bad of ['{{'.repeat(9000), '[('.repeat(9000), '{{a:'.repeat(5000), '[a]('.repeat(5000)]) {
+    await createShaped(g, editor.session, 'articles', 'article', 'Hostile', bad);
+  }
+  is(Date.now() - t0 < 4000, 'slow: ' + (Date.now() - t0) + ' ms');
+  return (Date.now() - t0) + ' ms for four 20 KB bodies';
+});
+
 run('...and it KEEPS a paragraph, a heading, a list and emphasis', async () => {
   const { g, editor } = await seeded();
   const source = [
@@ -2646,9 +2684,9 @@ const MUTANTS = [
     // ANCHORED WITH THE LINE BELOW IT, because the identical sweep runs a second time inside
     // sanitizeTitle and a mutant with two possible sites is a mutant that mutates neither.
     from: "  t = t.replace(ANY_TAG, '').replace(TRAILING_TAG, '').replace(/[<>]/g, '');\n"
-      + '  // 4. Links keep their words and lose their addresses; then the schemes that execute, in case one',
+      + '  // 4. A link keeps its address only when that address is http(s); then the schemes that execute, in case one was',
     to: "  t = t.replace(ANY_TAG, '').replace(TRAILING_TAG, '');\n"
-      + '  // 4. Links keep their words and lose their addresses; then the schemes that execute, in case one',
+      + '  // 4. A link keeps its address only when that address is http(s); then the schemes that execute, in case one was',
   },
   {
     // D-11's vocabulary opened. safeKind() is what stops a caller's own word reaching the record

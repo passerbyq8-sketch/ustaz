@@ -1437,6 +1437,19 @@ const EZ_I18N = {
     'articles.sectionLocked': 'القسمُ لا يتغيّر بعد أوّلِ حفظ، لأنّ الرابطَ المنشورَ مبنيٌّ عليه.',
     'articles.fieldBody': 'النصّ',
     'articles.formatHint': 'تنسيقٌ محدود: فقرةٌ بسطرٍ فارغ، وعنوانٌ فرعيٌّ بـ ## في أوّل السطر، وقائمةٌ بـ - أو 1. ، وتأكيدٌ بـ **نصّ**. ما عدا ذلك يُزال في الخادم.',
+    'articles.colorLabel': 'لون النصّ',
+    'articles.colorHint': 'حدِّد الكلماتِ في النصّ ثمّ اضغطْ لونًا.',
+    'articles.colorNone': 'بلا لون',
+    'articles.linkHint': 'الرابط: يكفي لصقُه، أو [النصّ](https://...).',
+    'articles.preview': 'معاينة',
+    'articles.color.blue': 'أزرق',
+    'articles.color.navy': 'كحليّ',
+    'articles.color.teal': 'فيروزيّ',
+    'articles.color.green': 'أخضر',
+    'articles.color.gold': 'ذهبيّ',
+    'articles.color.rose': 'وردي',
+    'articles.color.purple': 'بنفسجيّ',
+    'articles.color.slate': 'رماديّ',
     'articles.saveDraft': 'حفظٌ كمسوَّدة',
     'articles.publish': 'نشر',
     'articles.unpublish': 'إلغاءُ النشر',
@@ -3346,6 +3359,19 @@ const EZ_I18N = {
     'articles.sectionLocked': 'The section does not change after the first save, because the published link is built on it.',
     'articles.fieldBody': 'Body',
     'articles.formatHint': 'Limited formatting: a blank line for a paragraph, ## for a sub-heading, - or 1. for a list, **text** for emphasis. Everything else is stripped on the server.',
+    'articles.colorLabel': 'Text colour',
+    'articles.colorHint': 'Select words in the text, then press a colour.',
+    'articles.colorNone': 'No colour',
+    'articles.linkHint': 'A link: paste it, or write [text](https://...).',
+    'articles.preview': 'Preview',
+    'articles.color.blue': 'Blue',
+    'articles.color.navy': 'Navy',
+    'articles.color.teal': 'Teal',
+    'articles.color.green': 'Green',
+    'articles.color.gold': 'Gold',
+    'articles.color.rose': 'Rose',
+    'articles.color.purple': 'Purple',
+    'articles.color.slate': 'Slate',
     'articles.saveDraft': 'Save as a draft',
     'articles.publish': 'Publish',
     'articles.unpublish': 'Unpublish',
@@ -15266,6 +15292,10 @@ const EZIK_ART_HEADING = '## ';
 const EZIK_ART_SUBHEADING = '### ';
 const EZIK_ART_BULLET = '- ';
 const EZIK_ART_NUMBER = '1. ';
+// N2 (fix round 2): the closed palette, the same names as ARTICLE_COLORS in lib/articles/store.js. A body holds {{name:words}}
+// and the reader draws the class .ezart-c-<name> from index.html; no style ever comes from a body.
+const EZIK_ART_COLORS = [['blue', 'articles.color.blue'], ['navy', 'articles.color.navy'], ['teal', 'articles.color.teal'], ['green', 'articles.color.green'],
+  ['gold', 'articles.color.gold'], ['rose', 'articles.color.rose'], ['purple', 'articles.color.purple'], ['slate', 'articles.color.slate']];
 
 /* ---- THE TWO CALLS, on the shape ezikLessonsScreenSearch established ---------------------- */
 
@@ -15434,15 +15464,29 @@ function ezikArticleBlocks(body) {
 function ezikArticleInline(text) {
   const src = String(text === null || text === undefined ? '' : text);
   const parts = [];
-  const re = /(\*\*[^*\n]+\*\*|\*[^*\n]+\*)/g;
+  // N1 and N2 (fix round 2): a colour token, a [label](url), a bare url, then emphasis. Only http and https can match a link,
+  // so no other scheme ever becomes one. A link or a colour is still a React element and its words are text children.
+  const re = /(\{\{[a-z]{1,12}:[^{}\n]+\}\}|\[[^\]\n]+\]\(https?:\/\/[^\s()]+\)|https?:\/\/[^\s<>()[\]{}«»"']+|\*\*[^*\n]+\*\*|\*[^*\n]+\*)/gi;
   let last = 0;
   let key = 0;
   let m = re.exec(src);
   while (m) {
     if (m.index > last) parts.push(src.slice(last, m.index));
     const token = m[0];
-    if (token.slice(0, 2) === '**') parts.push(<strong key={'b' + (key++)}>{token.slice(2, -2)}</strong>);
-    else parts.push(<em key={'i' + (key++)}>{token.slice(1, -1)}</em>);
+    if (token.slice(0, 2) === '{{') {
+      const cut = token.indexOf(':'), name = token.slice(2, cut);
+      if (EZIK_ART_COLORS.some((c) => c[0] === name)) parts.push(<span key={'c' + (key++)} className={'ezart-c-' + name}>{ezikArticleInline(token.slice(cut + 1, -2))}</span>);
+      else parts.push(token);
+    } else if (token[0] === '[') {
+      const cut = token.indexOf('](');
+      parts.push(<EzikArticleLink key={'l' + (key++)} url={token.slice(cut + 2, -1)}>{token.slice(1, cut)}</EzikArticleLink>);
+    } else if (/^https?:/i.test(token)) {
+      // A sentence's own mark after a bare url is not part of the address.
+      const url = token.replace(/[.,:;!?'،؛؟۔]+$/, '');
+      parts.push(<EzikArticleLink key={'l' + (key++)} url={url} bare>{ezikReadableUrl(url)}</EzikArticleLink>);
+      if (url.length < token.length) parts.push(token.slice(url.length));
+    } else if (token.slice(0, 2) === '**') parts.push(<strong key={'b' + (key++)}>{ezikArticleInline(token.slice(2, -2))}</strong>);
+    else parts.push(<em key={'i' + (key++)}>{ezikArticleInline(token.slice(1, -1))}</em>);
     last = m.index + token.length;
     m = re.exec(src);
   }
@@ -15450,7 +15494,44 @@ function ezikArticleInline(text) {
   return parts;
 }
 
-/** The rendered body. Paragraphs, two levels of sub-heading, two kinds of list, emphasis. */
+// N1 (fix round 2): an address on this application's own domains stays inside it, as a path on this origin. Any other http(s)
+// address leaves the way the source chips do: a real link, and the parental gate first on a child's profile.
+function ezikArticleOwnPath(url) {
+  try {
+    const u = new URL(url), h = u.hostname.replace(/^www\./, '');
+    return h === 'ezik.app' || h === 'almurabbi.app' || u.hostname === window.location.hostname ? u.pathname + u.search + u.hash : null;
+  } catch (e) { return null; }
+}
+function EzikArticleLink({ url, bare, children }) {
+  const [gate, setGate] = useState(null);
+  const own = ezikArticleOwnPath(url);
+  const dir = bare ? 'ltr' : 'auto';
+  if (own !== null) return <a href={own} dir={dir} style={s.artLink}>{children}</a>;
+  if (!(PARENTAL_GATE_ENABLED && childProfileActive())) return <a href={url} target="_blank" rel="noopener noreferrer" dir={dir} style={s.artLink}>{children}</a>;
+  return (
+    <>
+      <a href={url} target="_blank" rel="noopener noreferrer" dir={dir} style={s.artLink}
+        onClick={(e) => { e.preventDefault(); setGate({ a: 2 + Math.floor(Math.random() * 8), b: 2 + Math.floor(Math.random() * 8) }); }}>{children}</a>
+      {gate && <AdultGate a={gate.a} b={gate.b}
+        onPass={() => { setGate(null); try { window.open(url, '_blank', 'noopener,noreferrer'); } catch (e) {} }}
+        onCancel={() => setGate(null)} />}
+    </>
+  );
+}
+
+/** The selected words of a body wrapped in a colour token (name) or freed of one (null). One token a line, inside any line marker. */
+function ezikArticlePaint(src, a, b, name) {
+  const pick = src.slice(a, b);
+  if (!pick.trim()) return null;
+  const paint = (line) => {
+    const m = /^(#{2,3} |- |1\. )?(.*)$/.exec(line);
+    const words = m[2].replace(/\{\{[a-z]{1,12}:/g, '').replace(/\}\}/g, '');
+    return !words.trim() ? line : (m[1] || '') + (name ? '{{' + name + ':' + words + '}}' : words);
+  };
+  return src.slice(0, a) + pick.split('\n').map(paint).join('\n') + src.slice(b);
+}
+
+/** The rendered body. Paragraphs, two levels of sub-heading, two kinds of list, emphasis, links, colours. */
 function EzikArticleBody({ body }) {
   const blocks = ezikArticleBlocks(body);
   if (blocks.length === 0) return null;
@@ -15712,11 +15793,20 @@ function EzikArticleWriter({ section, grant, onBack, onChanged }) {
   const [pendingDelete, setPendingDelete] = useState(null);
   const abortRef = useRef(null);
   const aliveRef = useRef(true);
+  const bodyRef = useRef(null);
 
   useEffect(() => () => {
     aliveRef.current = false;
     if (abortRef.current) { try { abortRef.current.abort(); } catch (e) {} }
   }, []);
+
+  // N2 (fix round 2): the selection in the box, wrapped in the closed notation. The box itself stays plain text.
+  const paintBody = (name) => {
+    const el = bodyRef.current;
+    if (!el) return;
+    const next = ezikArticlePaint(body, el.selectionStart, el.selectionEnd, name);
+    if (next !== null) setBody(next);
+  };
 
   const call = (payload) => {
     if (abortRef.current) { try { abortRef.current.abort(); } catch (e) {} }
@@ -15848,10 +15938,27 @@ function EzikArticleWriter({ section, grant, onBack, onChanged }) {
           onChange={(e) => setTitle(e.target.value)} aria-label={titleLabel} style={s.artInput} />
       </EzShellGroup>
 
-      <EzShellGroup title={bodyLabel} hint={ezT('articles.formatHint')}>
-        <textarea className="ezhome-focus" dir="auto" rows="12" value={body}
+      <EzShellGroup title={bodyLabel} hint={ezT('articles.formatHint') + ' ' + ezT('articles.linkHint')}>
+        <textarea ref={bodyRef} className="ezhome-focus" dir="auto" rows="12" value={body}
           onChange={(e) => setBody(e.target.value)} aria-label={bodyLabel} style={s.artTextarea} />
       </EzShellGroup>
+
+      <EzShellGroup title={ezT('articles.colorLabel')} hint={ezT('articles.colorHint')}>
+        <div style={s.artChoiceRow} data-ezart-palette="1">
+          {EZIK_ART_COLORS.map((c) => (
+            <button key={c[0]} type="button" className={'ezhome-focus ezart-c-' + c[0]} style={{ ...s.artChoice, ...s.artSwatch }}
+              onMouseDown={(e) => e.preventDefault()} onClick={() => paintBody(c[0])}>{ezT(c[1])}</button>
+          ))}
+          <button type="button" className="ezhome-focus" style={s.artChoice} onMouseDown={(e) => e.preventDefault()}
+            onClick={() => paintBody(null)}>{ezT('articles.colorNone')}</button>
+        </div>
+      </EzShellGroup>
+
+      {/\{\{[a-z]/.test(body) ? (
+        <EzShellGroup title={ezT('articles.preview')}>
+          <div style={s.artPreview}><EzikArticleBody body={body} /></div>
+        </EzShellGroup>
+      ) : null}
 
       {/* The two answers, and they are never the same colour: a refusal is drawn in the error
           treatment and an outcome she asked for is not. */}
@@ -44587,6 +44694,9 @@ const s = {
   artInput: { width: '100%', minHeight: 44, padding: '10px 14px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', fontSize: 15, fontFamily: 'inherit', boxSizing: 'border-box' },
   artTextarea: { width: '100%', minHeight: 220, padding: '12px 14px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', fontSize: 15, lineHeight: 2, fontFamily: 'inherit', boxSizing: 'border-box', resize: 'vertical' },
   artChoiceRow: { display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' },
+  artLink: { color: 'var(--accent-ink)', textDecoration: 'underline', overflowWrap: 'anywhere', unicodeBidi: 'isolate' },
+  artSwatch: { background: 'var(--a3-surface)' },
+  artPreview: { padding: '10px 12px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)' },
   artChoice: { minHeight: 44, padding: '8px 16px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'transparent', color: 'var(--a3-ink)', fontSize: 14, fontFamily: 'inherit', cursor: 'pointer' },
   artChoiceOn: { background: 'var(--a3-ice)', fontWeight: 700 },
   artAction: { minHeight: 44, padding: '10px 18px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'transparent', color: 'var(--a3-ink)', fontSize: 15, fontFamily: 'inherit', cursor: 'pointer' },

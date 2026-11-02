@@ -1651,6 +1651,11 @@
     #print-area tr,#print-area td,#print-area th{page-break-inside:avoid}
     #print-area{height:auto !important;overflow:visible !important}
   }
+  /* FIX ROUND 2, N2: the closed palette of article text. Eight names, each a pair readable on the light and the dark card. */
+  :root{--ezart-blue:#1D4ED8;--ezart-navy:#12327A;--ezart-teal:#0F766E;--ezart-green:#2C7A4B;--ezart-gold:#8A6100;--ezart-rose:#B3264E;--ezart-purple:#6D3FC4;--ezart-slate:#55615C}
+  :root[data-theme="dark"]{--ezart-blue:#8FB4FF;--ezart-navy:#A8C6FF;--ezart-teal:#5EEAD4;--ezart-green:#8FDDAC;--ezart-gold:#F0C674;--ezart-rose:#FF9CB5;--ezart-purple:#C9B3FF;--ezart-slate:#C0CAC5}
+  .ezart-c-blue{color:var(--ezart-blue)}.ezart-c-navy{color:var(--ezart-navy)}.ezart-c-teal{color:var(--ezart-teal)}.ezart-c-green{color:var(--ezart-green)}
+  .ezart-c-gold{color:var(--ezart-gold)}.ezart-c-rose{color:var(--ezart-rose)}.ezart-c-purple{color:var(--ezart-purple)}.ezart-c-slate{color:var(--ezart-slate)}
   /* ---- S116 UI LANGUAGE. Additive, namespaced, and it declares no colour of its own:
      every value below is a token the theme already publishes, so light and dark both work
      by construction and theme 33 is not touched. Logical properties only, so the same rule
