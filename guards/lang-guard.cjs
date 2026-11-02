@@ -533,6 +533,35 @@ const V = '﴿', W = '﴾';
     const d0 = appSrc.slice(0, di).split('\n').length; const d1 = appSrc.slice(0, dj).split('\n').length + 1;
     const found = new Set();
     const ast = parser.parse(appSrc, { sourceType: 'module', plugins: ['jsx'], errorRecovery: true });
+    // G3: the owner scoped the consent-update notice to Arabic and English only.
+    // Register this explicit bilingual table without changing the universal key
+    // contract or exempting any unregistered interface literal from the ratchet.
+    const scopedInit = ast.program.body.filter((n) => n.type === 'VariableDeclaration')
+      .flatMap((n) => n.declarations).find((n) => n.id.name === 'EZ_AIC_REASK_COPY')?.init;
+    const scopedCopy = (init) => {
+      if (init?.type !== 'CallExpression' || init.callee?.type !== 'MemberExpression'
+        || init.callee.object?.name !== 'Object' || init.callee.property?.name !== 'freeze'
+        || init.arguments.length !== 1 || init.arguments[0]?.type !== 'ObjectExpression') return null;
+      const props = init.arguments[0].properties;
+      if (props.length !== 2 || props.some((p) => p.type !== 'ObjectProperty' || p.computed || p.value.type !== 'StringLiteral')) return null;
+      const rows = Object.fromEntries(props.map((p) => [p.key.name || p.key.value, p.value.value]));
+      if (JSON.stringify(Object.keys(rows).sort()) !== JSON.stringify(['ar', 'en'])
+        || !rows.ar.trim() || !ARABIC.test(rows.ar) || !rows.en.trim() || ARABIC.test(rows.en)) return null;
+      return rows;
+    };
+    const consentCopy = scopedCopy(scopedInit);
+    ok('G3: the scoped consent update is a frozen, complete Arabic/English pair with no other language or shared key',
+      !!consentCopy && !Object.prototype.hasOwnProperty.call(DI.ar, 'aic.reask') && !Object.prototype.hasOwnProperty.call(DI.en, 'aic.reask'));
+    if (consentCopy) coveredSet.add(consentCopy.ar.trim());
+    const changedProps = (props) => ({ ...scopedInit, arguments: [{ ...scopedInit.arguments[0], properties: props }] });
+    if (consentCopy) {
+      const props = scopedInit.arguments[0].properties;
+      ok('G3 MUTANT: a scoped notice without its English translation is rejected', scopedCopy(changedProps(props.slice(0, 1))) === null);
+      ok('G3 MUTANT: adding a third language to the approved scoped pair is rejected', scopedCopy(changedProps([...props, { ...props[1], key: { type: 'Identifier', name: 'fr' } }])) === null);
+      ok('G3 MUTANT: an Arabic-only English row is rejected', scopedCopy(changedProps([props[0], { ...props[1], value: props[0].value }])) === null);
+      const unrelated = 'نص اختبار غير مسجل G_SCOPE_MUTANT';
+      ok('G3 MUTANT: an unrelated new Arabic UI literal remains outside coverage', !coveredSet.has(unrelated) && !pats.some((p) => p.test(unrelated)));
+    }
     (function walk(n) {
       if (!n || typeof n.type !== 'string') return;
       let v = null;
