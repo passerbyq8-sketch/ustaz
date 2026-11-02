@@ -928,8 +928,8 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         && FLAGS1.BW2_HOLD_UNCITED_RULINGS_DEFAULT === true && offExplicit.deltas.join('').includes(probe)
         && FLAGS1.bw2HoldUncitedRulingsDecision({ BW2_HOLD_UNCITED_RULINGS: 'off' }).enabled === false,
         ascii(offRun.deltas.join('|') + ' || ' + offExplicit.deltas.join('|')));
-      ok('R4f ...on: held in STORED_FIQH; released in HADITH and when it carries a valid [[n]]',
-        !onRun.deltas.join('').includes(probe) && hadRun.deltas.join('').includes(probe) && citedOn.deltas.join('').includes(probe)
+      ok('R4f ...on: held in STORED_FIQH and HADITH; released when it carries a valid [[n]]',
+        !onRun.deltas.join('').includes(probe) && !hadRun.deltas.join('').includes(probe) && citedOn.deltas.join('').includes(probe)
         && FLAGS1.bw2HoldUncitedRulingsDecision({ BW2_HOLD_UNCITED_RULINGS: 'on' }).enabled === true,
         ascii([onRun, hadRun, citedOn].map((r) => r.deltas.join('')).join(' || ')));
     }

@@ -3,6 +3,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
+import { classifyReligiousRuntime } from '../../lib/stored-deen.js';
+import { planAsk } from '../../lib/ask-plan.js';
 
 const repo = fileURLToPath(new URL('../../', import.meta.url));
 const scratch = path.join(repo, 'node_modules/.cache/qaf-gap');
@@ -26,7 +28,7 @@ function instrument(root) {
 fs.mkdirSync(path.join(scratch, 'current'), { recursive: true });
 fs.cpSync(path.join(repo, 'lib'), path.join(scratch, 'current/lib'), { recursive: true });
 fs.copyFileSync(path.join(repo, 'package.json'), path.join(scratch, 'current/package.json'));
-const baselineRoot = path.join(scratch, phase === '1b' ? 'item-1a-baseline' : 'baseline');
+const baselineRoot = path.join(scratch, phase === '2' ? 'item-1b-baseline' : phase === '1b' ? 'item-1a-baseline' : 'baseline');
 const currentRoot = path.join(scratch, 'current');
 // The BW2 import graph also reaches the unchanged API search adapters.
 for (const root of [baselineRoot, currentRoot]) fs.cpSync(path.join(repo, 'api'), path.join(root, 'api'), { recursive: true });
@@ -35,11 +37,13 @@ const after = await load(instrument(currentRoot));
 const oldReview = await load(path.join(baselineRoot, 'lib/output-reviewer.js'));
 const newReview = await load(path.join(repo, 'lib/output-reviewer.js'));
 
-async function replay(module, text, question = '') {
+async function replay(module, text, question = '', runtimeOverride = '') {
   const held = [];
   globalThis.__qafGapHeld = held;
   const deltas = [];
-  const r = module.createBw2Releaser({ question, emit: (delta) => { deltas.push(delta); return true; } });
+  const runtime = runtimeOverride || classifyReligiousRuntime(question, planAsk([{ role: 'user', content: question }], { policyEnabled: true }), 'religious');
+  const holdUncitedRulings = phase === '2' && (runtime === 'STORED_FIQH' || (module === after && runtime === 'HADITH'));
+  const r = module.createBw2Releaser({ question, holdUncitedRulings, emit: (delta) => { deltas.push(delta); return true; } });
   for (const chunk of text.match(/[\s\S]{1,17}/gu) || []) r.push(chunk);
   const out = await r.end();
   if (deltas.join('') !== out.text) throw new Error('Wire differs from summary');
@@ -96,8 +100,9 @@ for (const group of ['a', 'b', 'c']) {
     const a = oldReview.reviewAnswer({ ...opts, text });
     const b = newReview.reviewAnswer({ ...opts, text });
     const printedReview = newReview.reviewAnswer({ ...opts, text: printed });
-    const wireBefore = await replay(before, text, question);
-    const wireAfter = await replay(after, text, question);
+    const savedRuntime = group === 'b' ? 'HADITH' : 'STORED_FIQH';
+    const wireBefore = await replay(before, text, question, savedRuntime);
+    const wireAfter = await replay(after, text, question, savedRuntime);
     saved.push({ id, question, text, before: a.verdict.selfContradiction, after: b.verdict.selfContradiction,
       gradeBefore: a.verdict.gradeConsistency || { detected: false }, gradeAfter: b.verdict.gradeConsistency,
       integrity: b.verdict.sentenceIntegrity, printed: { contradiction: printedReview.verdict.selfContradiction, integrity: printedReview.verdict.sentenceIntegrity },
@@ -112,14 +117,15 @@ const integrityCaught = requiredIntegrity.filter((id) => saved.find((record) => 
 const result = { baseline: '5244c86dbedc65558320ffc8df7246ee5faa924a', inputs, corpus: { count: corpus.length, sha256: digest(corpusBytes),
   questionCount: questionMap.size, heldBefore, heldAfter, releasedBefore, releasedAfter, changes: regression }, saved,
   acceptance: { requiredContradictions, contradictionsCaught, requiredIntegrity, integrityCaught,
-    passed: phase === '1b' ? saved.find((record) => record.id === 'b3').gradeAfter.detected
+    passed: phase === '2' ? regression.every((record) => record.addedHolds.every((u) => ['uncited_ruling', 'dependent_on_held', 'dependent_opening'].includes(u.reason)))
+      : phase === '1b' ? saved.find((record) => record.id === 'b3').gradeAfter.detected
       && !saved.find((record) => record.id === 'b1').gradeAfter.detected
       && !saved.find((record) => record.id === 'b2').gradeAfter.detected && regression.length === 0
       : !saved.find((record) => record.id === 'a2').after.detected && integrityCaught.length === 4
       && regression.every((record) => /:Q(?:17|20)\//u.test(record.id))
       && regression.some((record) => record.id.includes(':Q17/'))
       && regression.some((record) => record.id.includes(':Q20/')) } };
-const output = path.join(scratch, phase === '1b' ? 'item-1b-proof.json' : 'item-1-proof.json');
+const output = path.join(scratch, phase === '2' ? 'item-2-proof.json' : phase === '1b' ? 'item-1b-proof.json' : 'item-1-proof.json');
 fs.writeFileSync(output, JSON.stringify(result, null, 2) + '\n', 'utf8');
 console.log(JSON.stringify({ output, corpus: { count: corpus.length, heldBefore, heldAfter, releasedBefore, releasedAfter, changedAnswers: regression.length },
   saved: saved.map((record) => ({ id: record.id, contradiction: record.after, integrity: record.integrity })), acceptance: result.acceptance }, null, 2));
