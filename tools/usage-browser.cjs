@@ -108,7 +108,7 @@ async function waitForAttempt(section, offset = 0) {
       detail: { channel: SHELL_SCHED_CHANNEL, v: SHELL_SCHED_VERSION, op: 'open', route: 'chat' }
     })));
     await page.locator('.ezc-rail button.ezc-icon').first().click();
-    await page.getByRole('button', { name: 'Inbox — readers’ messages and replying to them', exact: true }).click();
+    await page.getByRole('button', { name: 'Control panel — readers’ messages, reports and usage', exact: true }).click();
     await page.getByRole('button', { name: 'Usage', exact: true }).click();
     await page.getByText('Active devices', { exact: true }).waitFor();
     assert.equal(await page.getByRole('cell', { name: '17', exact: true }).isVisible(), false);

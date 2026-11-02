@@ -1761,13 +1761,72 @@ const EZ_I18N = {
     'feedback.mineNoReply': 'لم يصِلْ ردٌّ بعد.',
     'feedback.mineNew': 'ردٌّ جديد',
     // ITEM 92-ج -- THE OWNER'S INBOX. Arabic first, as every key in this file is.
-    'menu.inbox': 'صندوق الرسائل',
-    'menu.inboxAria': 'صندوق الرسائل — رسائلُ القرّاءِ والرَّدُّ عليها',
+    'menu.inbox': 'لوحة التحكم',
+    'menu.inboxAria': 'لوحة التحكم — رسائلُ القرّاءِ والبلاغاتُ والاستخدام',
     'inbox.tabFeedback': 'اقتراحات وشكاوى',
     'inbox.tabReports': 'بلاغات',
     // ITEM O1 (91) -- 2026-10-15 brain-line: the answer log's tab (api/inbox.js kind 'answers').
     'inbox.tabAnswers': 'سجلُّ الأجوبة',
     'inbox.tabUsage': 'الاستخدام',
+    'panel.brand': 'عزك',
+    'panel.navOverview': 'نظرة عامة',
+    'panel.navMessages': 'الرسائل',
+    'panel.navReports': 'البلاغات',
+    'panel.navUsage': 'الاستخدام',
+    'panel.navAnswers': 'الأجوبة',
+    'panel.refresh': 'تحديث',
+    'panel.newN': '{n} جديدة',
+    'panel.activeToday': 'الأجهزة النشطة اليوم',
+    'panel.devices': 'جهازًا',
+    'panel.devicesToday': '{n} جهازًا اليوم',
+    'panel.sectionOpens': 'فتحات الأقسام',
+    'panel.returnD1': 'العودة بعد يوم',
+    'panel.newMessages': 'رسائل جديدة',
+    'panel.attention': 'تحتاج انتباهك',
+    'panel.attCount': '{n} أمور',
+    'panel.attNone': 'لا شيء يحتاج انتباهك الآن.',
+    'panel.attMessages': '{n} رسائل جديدة في الاقتراحات والشكاوى',
+    'panel.attReports': '{n} بلاغات جديدة',
+    'panel.attNoFind': '«لم أجد» ارتفعت إلى {now}% من {before}% أمس',
+    'panel.lastAnswers': 'آخر {n} جواب',
+    'panel.topToday': 'الأكثر استخدامًا اليوم',
+    'panel.allSections': 'كل الأقسام',
+    'panel.waiting': 'بانتظار ردّك',
+    'panel.answered': 'تم الرد',
+    'panel.filterAll': 'الكل',
+    'panel.filterSuggestions': 'اقتراحات',
+    'panel.filterComplaints': 'شكاوى',
+    'panel.filterBugs': 'أعطال',
+    'panel.filterChat': 'المحادثة',
+    'panel.filterKunuz': 'كنوز المعرفة',
+    'panel.openReply': 'فتح والرد',
+    'panel.showMore': 'عرض المزيد ({n})',
+    'panel.device': 'الجهاز',
+    'panel.version': 'الإصدار',
+    'panel.source': 'المصدر',
+    'panel.quickThanks': 'شكرًا لك، سجّلناها',
+    'panel.quickWorking': 'قيد المعالجة',
+    'panel.quickMore': 'نحتاج تفاصيل أكثر',
+    'panel.replySend': 'إرسال الرد',
+    'panel.replyHint': 'يصل الرد للمرسِل داخل عزك، ويراه من حسابه',
+    'panel.deleteThis': 'حذف هذه الرسالة',
+    'panel.inReview': 'قيد المراجعة',
+    'panel.closed': 'أُغلقت',
+    'panel.closedOne': 'تمت مراجعته',
+    'panel.reviewed': 'تمت المراجعة',
+    'panel.openAnswer': 'فتح الجواب',
+    'panel.openQuestion': 'فتح السؤال',
+    'panel.reportedAnswer': 'الجواب المبلَّغ عنه',
+    'panel.readerNote': 'ملاحظة القارئ',
+    'panel.reasonWrongInfo': 'معلومة خاطئة',
+    'panel.reasonWrongRuling': 'حكم شرعي خاطئ',
+    'panel.reasonInappropriate': 'محتوى غير مناسب',
+    'panel.reasonOther': 'شيء آخر',
+    'panel.bandYoung': 'صغير',
+    'panel.bandTeen': 'يافع',
+    'panel.bandAdult': 'بالغ',
+    'panel.modeChat': 'محادثة',
+    'panel.modeCall': 'مكالمة',
     'usage.section': 'القسم',
     'usage.opens': 'عدد الفتحات',
     'usage.devices': 'عدد الأجهزة',
@@ -1814,7 +1873,7 @@ const EZ_I18N = {
     'usage.seconds': '{n} ث',
     'usage.minutes': '{n} د',
     'inbox.empty': 'لا رسائلَ هنا.',
-    'inbox.failed': 'تعذَّرَ فتحُ الصندوق.',
+    'inbox.failed': 'تعذَّرَ فتحُ اللوحة.',
     'inbox.stateNew': 'جديدة',
     'inbox.stateRead': 'مقروءة',
     'inbox.stateAnswered': 'مُجابة',
@@ -3598,12 +3657,71 @@ const EZ_I18N = {
     'feedback.mineReply': 'Reply',
     'feedback.mineNoReply': 'No reply yet.',
     'feedback.mineNew': 'New reply',
-    'menu.inbox': 'Inbox',
-    'menu.inboxAria': 'Inbox — readers\u2019 messages and replying to them',
+    'menu.inbox': 'Control panel',
+    'menu.inboxAria': 'Control panel — readers\u2019 messages, reports and usage',
     'inbox.tabFeedback': 'Suggestions and complaints',
     'inbox.tabReports': 'Reports',
     'inbox.tabAnswers': 'Answer log',
     'inbox.tabUsage': 'Usage',
+    'panel.brand': 'Ezik',
+    'panel.navOverview': 'Overview',
+    'panel.navMessages': 'Messages',
+    'panel.navReports': 'Reports',
+    'panel.navUsage': 'Usage',
+    'panel.navAnswers': 'Answers',
+    'panel.refresh': 'Refresh',
+    'panel.newN': '{n} new',
+    'panel.activeToday': 'Active devices today',
+    'panel.devices': 'devices',
+    'panel.devicesToday': '{n} devices today',
+    'panel.sectionOpens': 'Section opens',
+    'panel.returnD1': 'Back after a day',
+    'panel.newMessages': 'New messages',
+    'panel.attention': 'Needs your attention',
+    'panel.attCount': '{n} items',
+    'panel.attNone': 'Nothing needs your attention right now.',
+    'panel.attMessages': '{n} new messages in suggestions and complaints',
+    'panel.attReports': '{n} new reports',
+    'panel.attNoFind': '«Not found» rose to {now}% from {before}% yesterday',
+    'panel.lastAnswers': 'Last {n} answers',
+    'panel.topToday': 'Most used today',
+    'panel.allSections': 'All sections',
+    'panel.waiting': 'Awaiting your reply',
+    'panel.answered': 'Replied',
+    'panel.filterAll': 'All',
+    'panel.filterSuggestions': 'Suggestions',
+    'panel.filterComplaints': 'Complaints',
+    'panel.filterBugs': 'Faults',
+    'panel.filterChat': 'Chat',
+    'panel.filterKunuz': 'Treasures of Knowledge',
+    'panel.openReply': 'Open and reply',
+    'panel.showMore': 'Show more ({n})',
+    'panel.device': 'Device',
+    'panel.version': 'Version',
+    'panel.source': 'Source',
+    'panel.quickThanks': 'Thank you, we have noted it',
+    'panel.quickWorking': 'We are working on it',
+    'panel.quickMore': 'We need more details',
+    'panel.replySend': 'Send the reply',
+    'panel.replyHint': 'The reply reaches the sender inside Ezik, on their account',
+    'panel.deleteThis': 'Delete this message',
+    'panel.inReview': 'Under review',
+    'panel.closed': 'Closed',
+    'panel.closedOne': 'Reviewed',
+    'panel.reviewed': 'Mark reviewed',
+    'panel.openAnswer': 'Open the answer',
+    'panel.openQuestion': 'Open the question',
+    'panel.reportedAnswer': 'The reported answer',
+    'panel.readerNote': 'Reader\'s note',
+    'panel.reasonWrongInfo': 'Wrong information',
+    'panel.reasonWrongRuling': 'Wrong religious ruling',
+    'panel.reasonInappropriate': 'Inappropriate content',
+    'panel.reasonOther': 'Something else',
+    'panel.bandYoung': 'Child',
+    'panel.bandTeen': 'Teen',
+    'panel.bandAdult': 'Adult',
+    'panel.modeChat': 'Chat',
+    'panel.modeCall': 'Call',
     'usage.section': 'Section',
     'usage.opens': 'Opens',
     'usage.devices': 'Devices',
@@ -3650,7 +3768,7 @@ const EZ_I18N = {
     'usage.seconds': '{n}s',
     'usage.minutes': '{n}m',
     'inbox.empty': 'Nothing here.',
-    'inbox.failed': 'The inbox could not be opened.',
+    'inbox.failed': 'The panel could not be opened.',
     'inbox.stateNew': 'New',
     'inbox.stateRead': 'Read',
     'inbox.stateAnswered': 'Answered',
@@ -28501,6 +28619,7 @@ function ezikInboxWhen(ts) {
 }
 
 const EZIK_INBOX_TABS = [
+  { id: 'overview', k: 'menu.inbox' },
   { id: 'feedback', k: 'inbox.tabFeedback' },
   { id: 'reports', k: 'inbox.tabReports' },
   // ITEM O1 (91) -- 2026-10-15 brain-line: the answer log, read only (no erase, no reply, no open).
@@ -28547,6 +28666,15 @@ const EZIK_INBOX_SOURCE_K = {
   'ghaws-game': 'inbox.srcGhawsGame',
   'harb-game': 'inbox.srcHarbGame',
 };
+const EZ_CP_PAGE = 20;
+const EZ_CP_FB_FILTERS = [{ id: 'all', k: 'panel.filterAll' }, { id: 'suggestion', k: 'panel.filterSuggestions' }, { id: 'complaint', k: 'panel.filterComplaints' }, { id: 'bug', k: 'panel.filterBugs' }];
+const EZ_CP_RP_FILTERS = [{ id: 'all', k: 'panel.filterAll' }, { id: 'chat', k: 'panel.filterChat' }, { id: 'kunuz', k: 'panel.filterKunuz' }];
+const ezCpRpGroup = (src) => (src === 'chat' ? 'chat' : src ? 'kunuz' : '');
+const ezCpTypeK = (t) => ((EZIK_FB_TYPES.find((x) => x.id === t) || EZIK_FB_TYPES[0]).k);
+const EZ_CP_REASON_K = { wrong_info: 'panel.reasonWrongInfo', wrong_ruling: 'panel.reasonWrongRuling', inappropriate: 'panel.reasonInappropriate', other: 'panel.reasonOther' };
+const ezCpReasonK = (r) => EZ_CP_REASON_K[r] || 'panel.reasonOther';
+const ezCpBandK = (b) => ({ young: 'panel.bandYoung', teen: 'panel.bandTeen', adult: 'panel.bandAdult' }[b] || '');
+const ezCpModeK = (m) => ({ chat: 'panel.modeChat', call: 'panel.modeCall' }[m] || '');
 const ezikInboxSourceK = (v) => (typeof v === 'string' && Object.prototype.hasOwnProperty.call(EZIK_INBOX_SOURCE_K, v) ? EZIK_INBOX_SOURCE_K[v] : '');
 
 // 🔴 ERASING IS REAL, AND THE THREE SHAPES OF IT ARE ONE CALL -- RULINGS م١..م٨ OF 2026-09-13.
@@ -28743,13 +28871,14 @@ function EzUbPerf({ chat }) {
   );
 }
 
-function EzikUsageBoard() {
+function EzikUsageBoard({ store }) {
   const [day, setDay] = useState(() => new Date().toISOString().slice(0, 10));
   const [days, setDays] = useState(1);
   const [data, setData] = useState(null);
   const [failed, setFailed] = useState(false);
   const [chat, setChat] = useState(undefined);
-  const memo = useRef({});
+  const own = useRef({});
+  const memo = store || own;
   const tableRef = useRef(null);
   useEffect(() => {
     const held = readAuthSession();
@@ -28906,8 +29035,238 @@ function EzikUsageBoard() {
   );
 }
 
+// The owner's control panel. Always dark, whatever the app theme: the --a3 tokens are re-declared on
+// its own root, so every card, list and form inside it follows without a second palette.
+const EZ_CP_CSS = `
+.ezcp{--a3-page:#0C181B;--a3-surface:#122226;--a3-ice:#172C31;--a3-lift:#172C31;--a3-line:#234047;--a3-ink:#F4EDE0;--a3-muted:#9FB1AE;--a3-blue:#D6B25E;--a3-cyan:#D6B25E;--ink:#F4EDE0;--red:#F0A89B;
+position:relative;display:flex;flex-direction:column;height:100dvh;overflow:hidden;color:#F4EDE0;background:radial-gradient(120% 40% at 85% -8%,rgba(214,178,94,.16),rgba(214,178,94,0) 60%),#0C181B}
+.ezcp .ezub{--ub-up:#7FDCC8;--ub-down:#F0A35E}
+.ezcp button,.ezcp a{font-family:inherit}
+.ezcp-head{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 10px;flex-shrink:0}
+.ezcp-title{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.ezcp-title span{font-size:12px;color:#9FB1AE}
+.ezcp-title h1{margin:0;font-family:'Amiri',serif;font-weight:700;font-size:23px;line-height:1.25;color:#F4EDE0;overflow-wrap:anywhere}
+.ezcp-icon{all:unset;box-sizing:border-box;flex-shrink:0;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:15px;border:1px solid #234047;background:#122226;color:#F4EDE0;cursor:pointer}
+.ezcp-icon svg{stroke:currentColor}
+.ezcp-act{all:unset;box-sizing:border-box;flex-shrink:0;min-height:44px;padding:0 12px;display:inline-flex;align-items:center;border-radius:15px;border:1px solid #234047;background:#122226;color:#F4EDE0;font-size:14px;font-weight:700;cursor:pointer}
+.ezcp-act[aria-pressed="true"]{border-color:#D6B25E;color:#D6B25E}
+.ezcp-act.is-danger{border-color:#5A3A34;color:#F0A89B}
+.ezcp-act:disabled,.ezcp-gold:disabled{opacity:.5;cursor:default}
+.ezcp-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.ezcp-wrap{box-sizing:border-box;max-width:600px;margin:0 auto;padding:6px 16px calc(env(safe-area-inset-bottom,0px) + 104px);display:flex;flex-direction:column;gap:14px}
+.ezcp-nav{position:absolute;inset-inline:0;bottom:0;z-index:3;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:6px 6px calc(env(safe-area-inset-bottom,0px) + 6px);background:rgba(12,24,27,.9);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid #234047}
+.ezcp-nav button{all:unset;box-sizing:border-box;position:relative;min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-radius:15px;color:#9FB1AE;font-size:11.5px;font-weight:700;text-align:center;cursor:pointer}
+.ezcp-nav button[aria-current="page"]{color:#D6B25E;background:rgba(214,178,94,.1)}
+.ezcp-nav svg{stroke:currentColor}
+.ezcp-nav b{position:absolute;top:4px;inset-inline-end:calc(50% - 22px);min-width:17px;height:17px;padding:0 4px;box-sizing:border-box;border-radius:999px;background:#F0A35E;color:#241C08;font-size:11px;line-height:17px}
+.ezcp-card{box-sizing:border-box;background:#122226;border:1px solid #234047;border-radius:22px;padding:16px;min-width:0;animation:ezub-in .32s ease both}
+.ezcp-card h2{margin:0;font-size:15px;font-weight:700;color:#F4EDE0}
+.ezcp-line{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.ezcp-hero{display:flex;flex-direction:column;gap:12px;padding:20px;border-radius:26px;border-color:rgba(214,178,94,.3);background:linear-gradient(160deg,#18332F 0%,#102226 70%)}
+.ezcp-soft{font-size:13px;line-height:1.6;color:#9FB1AE;margin:0}
+.ezcp-sub{font-size:13px;color:#B7C6C3}
+.ezcp-num{font-size:58px;line-height:1;font-weight:800;color:#F4EDE0;font-variant-numeric:tabular-nums}
+.ezcp-unit{font-size:15px;color:#D6B25E;margin-inline-start:8px}
+.ezcp-pill{display:inline-flex;align-items:center;padding:6px 11px;border-radius:999px;background:rgba(92,201,181,.14);font-size:13px}
+.ezcp-grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.ezcp-grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.ezcp-mini{display:flex;flex-direction:column;gap:6px;padding:13px 12px;border-radius:22px}
+.ezcp-mini strong{font-size:23px;line-height:1.15;font-weight:800;color:#F4EDE0;font-variant-numeric:tabular-nums}
+.ezcp-mini strong.is-soft{font-size:13px;font-weight:500;color:#9FB1AE;line-height:1.5}
+.ezcp-mini span{font-size:12px;color:#B7C6C3}
+.ezcp-row{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;min-height:50px;padding:9px 2px;border-top:1px solid #234047;color:#F4EDE0;font-size:14px;line-height:1.5;cursor:pointer}
+.ezcp-row:first-of-type{border-top:0}
+.ezcp-row>span:first-child{flex:1;min-width:0}
+.ezcp-row small{font-size:13px;color:#9FB1AE}
+.ezcp-door{all:unset;box-sizing:border-box;display:flex;flex-direction:column;gap:5px;min-height:84px;padding:14px;border-radius:22px;border:1px solid #234047;background:#172C31;cursor:pointer}
+.ezcp-door b{font-size:15px;color:#F4EDE0}
+.ezcp-door span{font-size:13px;color:#D6B25E}
+.ezcp-link{all:unset;box-sizing:border-box;min-height:44px;display:inline-flex;align-items:center;font-size:14px;font-weight:700;color:#D6B25E;cursor:pointer}
+.ezcp-chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.ezcp-chip-btn{all:unset;box-sizing:border-box;flex-shrink:0;min-height:44px;padding:0 15px;display:inline-flex;align-items:center;border-radius:999px;border:1px solid #234047;color:#B7C6C3;font-size:14px;cursor:pointer}
+.ezcp-chip-btn[aria-pressed="true"]{background:#D6B25E;border-color:#D6B25E;color:#241C08;font-weight:700}
+.ezcp-tag{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;background:#172C31;font-size:12.5px;color:#B7C6C3}
+.ezcp-tag.t-suggestion{color:#7FDCC8}.ezcp-tag.t-complaint{color:#F5C697}.ezcp-tag.t-bug{color:#C6C2F8}
+.ezcp-tag.is-new{color:#F5C697;font-weight:700}
+.ezcp-tag.is-new::before{content:'';width:7px;height:7px;border-radius:50%;background:#F0A35E}
+.ezcp-tag.is-done{color:#7FDCC8}
+.ezcp-msg{display:flex;align-items:stretch;gap:8px}
+.ezcp-msg.is-new .ezcp-msg-main{border-color:rgba(240,163,94,.55)}
+.ezcp-msg input{width:24px;height:24px;margin:13px 0;flex-shrink:0;accent-color:#D6B25E}
+.ezcp-msg-main{all:unset;box-sizing:border-box;flex:1;min-width:0;display:flex;flex-direction:column;gap:9px;padding:14px;border-radius:22px;border:1px solid #234047;background:#122226;cursor:pointer;animation:ezub-in .32s ease both}
+.ezcp-msg-meta{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:12.5px;color:#9FB1AE}
+.ezcp-msg-text{font-size:15px;line-height:1.75;color:#F4EDE0;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.ezcp-msg-more{font-size:13px;color:#D6B25E;font-weight:700}
+.ezcp-trash{align-self:center}
+.ezcp-more{all:unset;box-sizing:border-box;min-height:48px;text-align:center;border-radius:18px;border:1px solid #234047;color:#F4EDE0;font-size:14px;font-weight:700;cursor:pointer}
+.ezcp-rep{display:flex;flex-direction:column;gap:10px}
+.ezcp-rep h3{margin:0;font-size:12.5px;font-weight:700;color:#9FB1AE}
+.ezcp-rep p{margin:0;font-size:14.5px;line-height:1.75;color:#F4EDE0;overflow-wrap:anywhere}
+.ezcp-fade{max-height:96px;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,#000 55%,transparent);mask-image:linear-gradient(180deg,#000 55%,transparent)}
+.ezcp-note{padding:9px 12px;border-radius:15px;background:#172C31}
+.ezcp-gold{all:unset;box-sizing:border-box;min-height:50px;width:100%;text-align:center;border-radius:18px;background:linear-gradient(180deg,#E2C375,#C79F44);color:#241C08;font-size:15.5px;font-weight:800;cursor:pointer}
+.ezcp-btn{all:unset;box-sizing:border-box;flex:1;min-height:46px;padding:0 12px;text-align:center;border-radius:15px;border:1px solid #234047;color:#F4EDE0;font-size:14px;font-weight:700;cursor:pointer}
+.ezcp-btn.is-danger{border-color:#5A3A34;color:#F0A89B}
+.ezcp-big{margin:0;font-size:19px;line-height:1.9;color:#F4EDE0;overflow-wrap:anywhere;white-space:pre-wrap}
+.ezcp-field{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid #234047;font-size:14px;color:#F4EDE0}
+.ezcp-field:first-child{border-top:0}
+.ezcp-field>span:first-child{color:#9FB1AE;flex-shrink:0}
+.ezcp-field>:last-child{min-width:0;overflow-wrap:anywhere;text-align:end}
+.ezcp-quick{display:flex;gap:8px;flex-wrap:wrap}
+.ezcp textarea{min-height:120px;background:#0C181B}
+.ezcp-skel{height:112px;border-radius:22px;background:#172C31;animation:ezub-pulse 1.4s ease-in-out infinite}
+.ezcp-skel.is-tall{height:210px}
+.ezcp .ezhome-focus:focus-visible,.ezcp button:focus-visible{outline:2px solid #D6B25E;outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.ezcp-card,.ezcp-msg-main,.ezcp-skel{animation:none}}
+`;
+const EZ_CP_NAV = {
+  overview: ['panel.navOverview', 'M4 13h6v7H4zM14 4h6v16h-6zM4 4h6v5H4z'],
+  feedback: ['panel.navMessages', 'M4 5h16v12H9l-5 4z'],
+  reports: ['panel.navReports', 'M6 21V4h12l-2 4 2 4H6'],
+  usage: ['panel.navUsage', 'M4 20V10M10 20V4M16 20v-7M21 20H3'],
+  answers: ['panel.navAnswers', 'M6 3h12v18H6zM9 8h6M9 12h6M9 16h4'],
+};
+const ezCpIcon = (d, size) => (
+  <svg width={size || 21} height={size || 21} viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>
+);
+const EZ_CP_REFRESH = 'M20 11a8 8 0 1 0-2.3 6.3M20 5v6h-6';
+const EZ_CP_TRASH = 'M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14';
+
+function EzCpShell({ kind, title, onNav, onBack, badges, actions, children }) {
+  return (
+    <div className="ezcp">
+      <style>{EZ_UB_CSS + EZ_CP_CSS}</style>
+      <header className="ezcp-head">
+        <button type="button" className="ezcp-icon ezhome-focus" onClick={onBack} aria-label={ezT('common.back')}
+          style={EZ_LANG_DIR[EZ_LANG] === 'ltr' ? { transform: 'scaleX(-1)' } : null}>{A2_ICON_BACK}</button>
+        <div className="ezcp-title"><span>{ezT('panel.brand')}</span><h1>{title}</h1></div>
+        {actions || null}
+      </header>
+      <div className="ezcp-scroll"><div className="ezcp-wrap">{children}</div></div>
+      <nav className="ezcp-nav" aria-label={ezT('menu.inbox')}>
+        {EZIK_INBOX_TABS.map((t) => (
+          <button key={t.id} type="button" className="ezhome-focus" aria-current={kind === t.id ? 'page' : undefined} onClick={() => onNav(t.id)}>
+            {ezCpIcon(EZ_CP_NAV[t.id][1])}
+            <span>{ezT(EZ_CP_NAV[t.id][0])}</span>
+            {badges && badges[t.id] > 0 ? <b aria-label={ezT('panel.newN', { n: badges[t.id] })}>{badges[t.id]}</b> : null}
+          </button>
+        ))}
+      </nav>
+    </div>
+  );
+}
+
+function EzCpMini({ label, value, soft }) {
+  return (
+    <div className="ezcp-card ezcp-mini">
+      <strong className={soft ? 'is-soft' : undefined}>{value}</strong>
+      <span>{label}</span>
+    </div>
+  );
+}
+
+// «لم أجد» counts as risen only when both days hold enough answers to say so.
+const ezCpNoFind = (chat) => (chat && chat.read ? Math.round((chat.noFind / chat.read) * 100) : null);
+const ezCpNoFindRose = (now, before) => !!now && !!before && now.read >= 20 && before.read >= 20
+  && ezCpNoFind(now) - ezCpNoFind(before) >= 2;
+const EZ_CP_HIDDEN = ['ayah-tafsir'];
+const ezCpSections = (items) => (items || []).filter((r) => EZ_CP_HIDDEN.indexOf(r.section) === -1);
+const ezCpDayLabel = (day) => {
+  try {
+    return new Date(day.slice(0, 4) + '-' + day.slice(4, 6) + '-' + day.slice(6, 8) + 'T12:00:00Z')
+      .toLocaleDateString(ezLangEntry(EZ_LANG).locale, { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
+  } catch (e) { return ezUbDate(day); }
+};
+
+function EzCpOverview({ data, failed, onGo, onRetry }) {
+  if (failed) {
+    return (
+      <div role="alert" style={s.artError}>
+        <span>{ezT('inbox.failed')}</span>
+        <button type="button" className="ezhome-focus" onClick={onRetry} style={s.artRetry}>{ezT('common.retry')}</button>
+      </div>
+    );
+  }
+  if (!data) {
+    return (
+      <div role="status" aria-label={ezT('common.loading')} style={{ display: 'contents' }}>
+        <div className="ezcp-skel is-tall" />
+        <div className="ezcp-grid3">{[0, 1, 2].map((i) => <div key={i} className="ezcp-skel" />)}</div>
+        <div className="ezcp-skel is-tall" />
+      </div>
+    );
+  }
+  const u = data.usage;
+  const b = u && u.board;
+  const since = (b && b.since) || '20261031';
+  const unread = data.unread || {};
+  const opens = u ? u.items.reduce((a, r) => a + (r.opens || 0), 0) : null;
+  const d1 = b ? ezUbRate(b.d1) : null;
+  const top = ezCpSections(u && u.items).filter((r) => r.opens > 0 && r.section !== 'home').slice(0, 3);
+  const collecting = ezT('usage.collecting', { date: ezUbDate(since) });
+  const attention = [];
+  if (unread.feedback > 0) attention.push({ to: 'feedback', text: ezT('panel.attMessages', { n: unread.feedback }) });
+  if (unread.reports > 0) attention.push({ to: 'reports', text: ezT('panel.attReports', { n: unread.reports }) });
+  if (ezCpNoFindRose(data.chat, data.chatBefore)) {
+    attention.push({ to: 'answers', text: ezT('panel.attNoFind', { now: ezCpNoFind(data.chat), before: ezCpNoFind(data.chatBefore) }) });
+  }
+  const count = (n) => (n === null || n === undefined ? '—' : ezUbNum(n));
+  return (
+    <>
+      <section className="ezcp-card ezcp-hero">
+        <div className="ezcp-line">
+          <span className="ezcp-sub">{ezT('panel.activeToday')}</span>
+          <span className="ezcp-soft">{data.day ? ezCpDayLabel(data.day) : ''}</span>
+        </div>
+        {b ? (
+          <>
+            <div className="ezcp-line">
+              <div><span className="ezcp-num">{ezUbNum(b.active)}</span><span className="ezcp-unit">{ezT('panel.devices')}</span></div>
+              {b.activeBefore > 0 ? <span className="ezcp-pill ezub"><EzUbDelta now={b.active} before={b.activeBefore} /></span> : null}
+            </div>
+            <EzUbTrend points={b.trend} since={since} />
+          </>
+        ) : <p className="ezcp-soft">{collecting}</p>}
+      </section>
+      <div className="ezcp-grid3">
+        <EzCpMini label={ezT('panel.sectionOpens')} value={opens === null ? collecting : ezUbNum(opens)} soft={opens === null} />
+        <EzCpMini label={ezT('panel.returnD1')} value={d1 === null ? collecting : d1 + '%'} soft={d1 === null} />
+        <EzCpMini label={ezT('panel.newMessages')} value={count(unread.feedback)} />
+      </div>
+      <section className="ezcp-card">
+        <div className="ezcp-line"><h2>{ezT('panel.attention')}</h2>
+          {attention.length ? <span className="ezcp-soft">{ezT('panel.attCount', { n: attention.length })}</span> : null}</div>
+        {attention.length ? attention.map((a) => (
+          <button key={a.to} type="button" className="ezcp-row ezhome-focus" onClick={() => onGo(a.to)}>
+            <span>{a.text}</span><small aria-hidden="true">‹</small>
+          </button>
+        )) : <p className="ezcp-soft">{ezT('panel.attNone')}</p>}
+      </section>
+      <div className="ezcp-grid2">
+        <button type="button" className="ezcp-door ezhome-focus" onClick={() => onGo('feedback')}><b>{ezT('inbox.tabFeedback')}</b><span>{ezT('panel.newN', { n: count(unread.feedback) })}</span></button>
+        <button type="button" className="ezcp-door ezhome-focus" onClick={() => onGo('reports')}><b>{ezT('panel.navReports')}</b><span>{ezT('panel.newN', { n: count(unread.reports) })}</span></button>
+        <button type="button" className="ezcp-door ezhome-focus" onClick={() => onGo('usage')}><b>{ezT('panel.navUsage')}</b><span>{b ? ezT('panel.devicesToday', { n: ezUbNum(b.active) }) : collecting}</span></button>
+        <button type="button" className="ezcp-door ezhome-focus" onClick={() => onGo('answers')}><b>{ezT('inbox.tabAnswers')}</b><span>{data.chat ? ezT('panel.lastAnswers', { n: data.chat.read }) : '—'}</span></button>
+      </div>
+      <section className="ezcp-card">
+        <div className="ezcp-line"><h2>{ezT('panel.topToday')}</h2>
+          <button type="button" className="ezcp-link ezhome-focus" onClick={() => onGo('usage')}>{ezT('panel.allSections')}</button></div>
+        <div className="ezub">{top.length ? <EzUbBars rows={top.map((r) => ({ k: r.label, n: r.opens }))} /> : <p className="ezcp-soft">{collecting}</p>}</div>
+      </section>
+    </>
+  );
+}
+
 function EzikInboxSheet({ onBack, onRead, onCount }) {
-  const [kind, setKind] = useState('feedback');
+  const [kind, setKind] = useState('overview');
+  // Every read here spends the shared auth limiter (20 a minute, 200 a day per address), so what
+  // was read stays until the owner asks to refresh or an erase changes it.
+  const [over, setOver] = useState(null);
+  const [overFailed, setOverFailed] = useState(false);
+  const usageMemo = useRef({});
+  const listMemo = useRef({});
+  const [filter, setFilter] = useState('all');
+  const [more, setMore] = useState(EZ_CP_PAGE);
   // POSTSHIP ITEM 5: the day the answer-log tab reads (api/inbox.js answersList takes it; it was never sent).
   const [ansDay, setAnsDay] = useState(() => ezikAnswerLogDays()[0]);
   const [listState, setListState] = useState(EZIK_ART_IDLE);
@@ -28945,10 +29304,37 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
     if (abortRef.current) { try { abortRef.current.abort(); } catch (e) {} }
   }, []);
 
-  const load = (which) => {
+  const loadOverview = () => {
+    const held = readAuthSession();
+    if (!held) { setOverFailed(true); return; }
+    setOverFailed(false);
+    ezikInbox({ session: held.session, action: 'list', kind: 'overview' }).then((res) => {
+      if (!aliveRef.current) return;
+      if (!res.ok || !res.data) { setOverFailed(true); return; }
+      if (res.data.usage) usageMemo.current[res.data.day + ':1'] = { board: res.data.usage, chat: res.data.chat || undefined };
+      setOver(res.data);
+    });
+  };
+  useEffect(() => { loadOverview(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+  const setUnread = (which, fn) => setOver((prev) => {
+    if (!prev || !prev.unread) return prev;
+    const n = prev.unread[which];
+    return Object.assign({}, prev, { unread: Object.assign({}, prev.unread, { [which]: typeof fn === 'function' ? (typeof n === 'number' ? fn(n) : n) : fn }) });
+  });
+  const load = (which, force) => {
     if (abortRef.current) { try { abortRef.current.abort(); } catch (e) {} }
     // The usage tab is its own board with its own reads; the list has nothing to show for it.
-    if (which === 'usage') { abortRef.current = null; setRows([]); setListState(EZIK_ART_IDLE); return; }
+    if (which === 'usage' || which === 'overview') { abortRef.current = null; setRows([]); setListState(EZIK_ART_IDLE); return; }
+    const memoId = which === 'answers' ? which + ansDay : which;
+    const kept = !force && listMemo.current[memoId];
+    if (kept) {
+      abortRef.current = null;
+      setRows(kept.items);
+      setWin(kept.win);
+      setStored(kept.stored);
+      setListState(EZIK_ART_DONE);
+      return;
+    }
     const held = readAuthSession();
     if (!held) { setRows([]); setListState(EZIK_ART_FAILED); return; }
     const controller = new AbortController();
@@ -28967,6 +29353,8 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
       setRows(res.data.items);
       setWin(Number.isInteger(res.data.window) ? res.data.window : 0);
       setStored(Number.isInteger(res.data.stored) ? res.data.stored : res.data.items.length);
+      listMemo.current[memoId] = { items: res.data.items, win: Number.isInteger(res.data.window) ? res.data.window : 0, stored: Number.isInteger(res.data.stored) ? res.data.stored : res.data.items.length };
+      if (which !== 'answers' && Number.isInteger(res.data.unread)) setUnread(which, res.data.unread);
       setListState(EZIK_ART_DONE);
     });
   };
@@ -28977,15 +29365,18 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
   // reach the tab it was not asked about (§4-3), and the cheapest way to guarantee that is for
   // nothing about an erase to survive the switch at all.
   const switchKind = (next) => {
-    if (next === kind) return;
+    if (next === kind && !open) return;
     setPicking(false);
     setPicked([]);
     setAsk(null);
     setDelNote('');
     setDelErr('');
-    setOpen(null);
+    setFilter('all');
+    setMore(EZ_CP_PAGE);
+    if (open) { if (!ezikHistBack()) setOpen(null); }
     setKind(next);
   };
+  const refresh = () => { if (kind === 'overview') loadOverview(); else load(kind, true); };
 
   const stopPicking = () => { setPicking(false); setPicked([]); setAsk(null); };
   const togglePick = (id) => {
@@ -29029,13 +29420,30 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
       }
       setPicked([]);
       setPicking(false);
-      if (got > 0) { setOpen(null); load(kind); }
+      if (Number.isInteger(res.data && res.data.unread)) setUnread(kind, res.data.unread);
+      if (got > 0) { if (open) { if (!ezikHistBack()) setOpen(null); } load(kind, true); }
     });
   };
 
   // OPENING A MESSAGE IS WHAT FILES IT AS READ, and the mark is the server's to lay -- this call
   // IS the read. The row is patched from the answer rather than from an assumption about what the
   // server did, so the list and the store cannot come to disagree about the state of one message.
+  const noteRead = (id, state) => {
+    const change = (r) => (r.id === id ? Object.assign({}, r, { state }) : r);
+    setRows((prev) => prev.map(change));
+    const kept = listMemo.current[kind];
+    if (kept) kept.items = kept.items.map(change);
+  };
+  // «تمت المراجعة» IS THE EXISTING READ MARK: a report has no other state on the server.
+  const markReviewed = (row) => {
+    const held = readAuthSession();
+    if (!held) return;
+    ezikInbox({ session: held.session, action: 'read', id: row.id, kind }).then((res) => {
+      if (!aliveRef.current || !res.ok || !res.data || !res.data.item) return;
+      noteRead(row.id, res.data.item.state);
+      if (row.state === 'new') setUnread(kind, (n) => Math.max(0, n - 1));
+    });
+  };
   const openItem = (row) => {
     const held = readAuthSession();
     if (!held) return;
@@ -29050,8 +29458,9 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
       if (!aliveRef.current) return;
       if (!res.ok || !res.data || !res.data.item) { setOpen({ item: row, reply: null, from: '', loading: false }); return; }
       setOpen({ item: res.data.item, reply: res.data.reply || null, from: res.data.item.from || '', loading: false });
-      setRows((prev) => prev.map((r) => (r.id === row.id ? Object.assign({}, r, { state: res.data.item.state }) : r)));
-      if (typeof onRead === 'function') onRead();
+      noteRead(row.id, res.data.item.state);
+      if (row.state === 'new') setUnread(kind, (n) => Math.max(0, n - 1));
+      if (typeof onRead === 'function' && kind === 'feedback' && row.state === 'new') onRead();
     });
   };
 
@@ -29077,11 +29486,11 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
         reply: res.data.reply || null,
         item: Object.assign({}, prev.item, { state: 'answered' }),
       }) : prev));
-      setRows((prev) => prev.map((r) => (r.id === open.item.id ? Object.assign({}, r, { state: 'answered' }) : r)));
+      noteRead(open.item.id, 'answered');
     });
   };
 
-  const back = () => { if (open) { setOpen(null); return; } onBack(); };
+  const back = () => { if (open) { if (!ezikHistBack()) setOpen(null); return; } onBack(); };
 
   // THE SENTENCE THAT STANDS BETWEEN A PRESS AND AN ERASE. «وحده» and «المحدَّد» are asked lightly
   // and «الكل» is asked with its number and with what it costs the senders (ruling م٦); all three
@@ -29108,159 +29517,118 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
   );
 
   // ---- THE OPENED MESSAGE ----
+  const badges = { feedback: over && over.unread ? over.unread.feedback : 0, reports: over && over.unread ? over.unread.reports : 0 };
   if (open) {
     const it = open.item;
     const replyable = kind === 'feedback' && it.hasSender === true;
     const asking = !!ask && ask.what === 'one' && ask.id === it.id;
+    const isDone = it.state === 'answered' || (kind === 'reports' && it.state === 'read');
     return (
-      <EzShell title={ezT('menu.inbox')} onBack={back} backLabel={ezT('common.back')}>
-        <section style={s.artRead}>
-          <div style={s.artRowMeta}>
-            <span style={s.artQaMark}>{ezT(EZIK_INBOX_STATE_K[it.state] || 'inbox.stateNew')}</span>
-            <span style={s.artRowDate}>{ezikInboxWhen(it.ts)}</span>
-            <span style={s.artRowDate} dir="ltr">{ezikInboxAppv(it.appv)}</span>
-            {kind === 'reports' ? <span style={s.artRowDate}>{ezikInboxSourceK(it.source) ? ezT(ezikInboxSourceK(it.source)) : '—'}</span> : null}
+      <EzCpShell kind={kind} title={ezT(kind === 'reports' ? 'panel.navReports' : 'inbox.tabFeedback')} onNav={switchKind} onBack={back} badges={badges}>
+        <section className="ezcp-card ezcp-rep">
+          <div className="ezcp-msg-meta">
+            <span className={'ezcp-tag' + (it.state === 'new' ? ' is-new' : isDone ? ' is-done' : '')}>{ezT(EZIK_INBOX_STATE_K[it.state] || 'inbox.stateNew')}</span>
+            {kind === 'feedback' ? <span className={'ezcp-tag t-' + it.type}>{ezT(ezCpTypeK(it.type))}</span> : <span className="ezcp-tag">{ezT(ezCpReasonK(it.reason))}</span>}
+            <span>{ezikInboxWhen(it.ts)}</span>
           </div>
-          <div style={s.asmaaField}>
-            <span style={s.artFieldLabel}>{ezT('inbox.from')}</span>
-            {/* DECISION ج١ AND ج٢ -- the address is the ACCOUNT RECORD'S, fetched by the server at
-                this moment and stored on no message. A message that predates the sender field, or
-                whose account has since been deleted, reads «بلا عنوان» -- which is the truth about
-                it and not an error. */}
-            <span style={s.artRowDate} dir="auto">{open.from || ezT('inbox.noSender')}</span>
-          </div>
-          {it.contact ? (
-            <div style={s.asmaaField}>
-              <span style={s.artFieldLabel}>{ezT('inbox.contact')}</span>
-              <span style={s.artRowDate} dir="auto">{it.contact}</span>
-            </div>
-          ) : null}
-          {/* ITEM 107 -- A REPORT IS READ WITH THE EXCHANGE IT IS ABOUT. api/inbox.js `read` hands back
-              `user` and `ai` for the reports list only, as api/report.js stored them; they are drawn
-              in full, as this panel draws every long text today, and a field that is empty -- a game
-              report has no question and no answer -- is not drawn as an empty box. */}
+          {/* A report is read with the exchange it is about, in full; an empty field is not drawn. */}
           {kind === 'reports' ? (
             <>
-              {typeof it.user === 'string' && it.user ? (
-                <div style={s.asmaaField}>
-                  <span style={s.artFieldLabel}>{ezT('inbox.reportQuestion')}</span>
-                  <p style={s.asmaaQuote} dir="auto">{it.user}</p>
-                </div>
-              ) : null}
-              {typeof it.ai === 'string' && it.ai ? (
-                <div style={s.asmaaField}>
-                  <span style={s.artFieldLabel}>{ezT('inbox.reportAnswer')}</span>
-                  <p style={s.asmaaQuote} dir="auto">{it.ai}</p>
-                </div>
-              ) : null}
-              {it.text ? (
-                <div style={s.asmaaField}>
-                  <span style={s.artFieldLabel}>{ezT('inbox.reportNote')}</span>
-                  <p style={s.artPara} dir="auto">{it.text}</p>
-                </div>
-              ) : null}
+              {typeof it.user === 'string' && it.user ? <div><h3>{ezT('inbox.reportQuestion')}</h3><p dir="auto">{it.user}</p></div> : null}
+              {typeof it.ai === 'string' && it.ai ? <div><h3>{ezT('inbox.reportAnswer')}</h3><p dir="auto">{it.ai}</p></div> : null}
+              {it.text ? <div className="ezcp-note"><h3>{ezT('inbox.reportNote')}</h3><p dir="auto">{it.text}</p></div> : null}
             </>
-          ) : (
-            <p style={s.artPara} dir="auto">{it.text}</p>
-          )}
-
-          {open.reply && open.reply.text ? (
-            <div style={s.asmaaField}>
-              <span style={s.artFieldLabel}>{ezT('feedback.mineReply')}</span>
-              <p style={s.asmaaQuote} dir="auto">{open.reply.text}</p>
-            </div>
-          ) : null}
-
-          {/* «وحده وحده» ON THE OPENED MESSAGE (§4-1), and it asks before it acts like every other
-              erase here. Both tabs carry it: erasing a report writes nothing into anybody's view
-              and so is not the reply decision ج١٠ forbids. */}
-          {asking ? askBlock(ezT('inbox.deleteOneAsk'), ezT('inbox.deleteWarnShort'), () => runDelete({ ids: [it.id] }))
-            : (
-              <div style={s.artChoiceRow}>
-                <button type="button" className="ezhome-focus" disabled={delBusy}
-                  onClick={() => { setDelNote(''); setDelErr(''); setAsk({ what: 'one', id: it.id }); }}
-                  style={{ ...s.artAction, ...s.inboxDanger, opacity: delBusy ? 0.5 : 1 }}
-                  aria-label={ezT('inbox.deleteAria')}>{ezT('inbox.delete')}</button>
-              </div>
-            )}
-          {deleteLines}
-
-          {/* DECISION ج١٠ -- THE REPORTS TAB HAS NO REPLY CONTROL AT ALL. Not a disabled one and
-              not a hidden one: the box is not built. api/inbox.js refuses a report by structure
-              rather than by a flag, and this is the same refusal expressed on the screen. */}
-          {kind === 'reports' ? (
-            <div role="status" style={s.artNote}>{ezT('inbox.reportsReadOnly')}</div>
-          ) : replyable ? (
-            <EzShellGroup title={ezT('inbox.replyLabel')}>
-              <textarea className="ezhome-focus" dir="auto" rows="5" value={reply}
-                maxLength={String(EZIK_FB_TEXT_CAP)} onChange={(e) => setReply(e.target.value)}
-                aria-label={ezT('inbox.replyLabel')} style={s.artTextarea} />
-              <div role="status" style={s.artNote}>{ezT('inbox.remaining', { n: EZIK_FB_TEXT_CAP - reply.length })}</div>
-              {err ? <div role="alert" style={s.artError}><span>{err}</span></div> : null}
-              {note ? <div role="status" style={s.artNote}>{note}</div> : null}
-              <div style={s.artChoiceRow}>
-                <button type="button" className="ezhome-focus" disabled={busy} onClick={sendReply}
-                  style={{ ...s.artAction, ...s.artActionStrong, opacity: busy ? 0.5 : 1 }}>
-                  {busy ? ezT('inbox.replySending') : ezT('inbox.replySend')}
-                </button>
-              </div>
-            </EzShellGroup>
-          ) : (
-            <div role="status" style={s.artNote}>{ezT('inbox.replyNoSender')}</div>
-          )}
+          ) : <p className="ezcp-big" dir="auto">{it.text}</p>}
         </section>
-      </EzShell>
+        <section className="ezcp-card">
+          {/* The address is the account record's, fetched by the server at this moment. */}
+          <div className="ezcp-field"><span>{ezT('inbox.from')}</span><span dir="auto">{open.from || ezT('inbox.noSender')}</span></div>
+          {it.contact ? <div className="ezcp-field"><span>{ezT('inbox.contact')}</span><span dir="auto">{it.contact}</span></div> : null}
+          {kind === 'reports'
+            ? <div className="ezcp-field"><span>{ezT('panel.source')}</span><span>{ezikInboxSourceK(it.source) ? ezT(ezikInboxSourceK(it.source)) : '—'}</span></div>
+            : <div className="ezcp-field"><span>{ezT('panel.device')}</span><span className="ezcp-soft">{ezT('usage.pending')}</span></div>}
+          <div className="ezcp-field"><span>{ezT('panel.version')}</span><span dir="ltr">{ezikInboxAppv(it.appv)}</span></div>
+        </section>
+        {open.reply && open.reply.text ? (
+          <section className="ezcp-card ezcp-rep"><h3>{ezT('feedback.mineReply')}</h3><p dir="auto">{open.reply.text}</p></section>
+        ) : null}
+        {/* The reports tab has no reply control at all: the box is not built (decision ج١٠). */}
+        {kind === 'reports' ? (
+          <div role="status" style={s.artNote}>{ezT('inbox.reportsReadOnly')}</div>
+        ) : replyable ? (
+          <section className="ezcp-card ezcp-rep">
+            <h3>{ezT('inbox.replyLabel')}</h3>
+            <div className="ezcp-quick">
+              {['panel.quickThanks', 'panel.quickWorking', 'panel.quickMore'].map((k) => (
+                <button key={k} type="button" className="ezcp-chip-btn ezhome-focus" onClick={() => setReply(ezT(k))}>{ezT(k)}</button>
+              ))}
+            </div>
+            <textarea className="ezhome-focus" dir="auto" rows="5" value={reply}
+              maxLength={String(EZIK_FB_TEXT_CAP)} onChange={(e) => setReply(e.target.value)}
+              aria-label={ezT('inbox.replyLabel')} style={s.artTextarea} />
+            <div role="status" className="ezcp-soft">{ezT('inbox.remaining', { n: EZIK_FB_TEXT_CAP - reply.length })}</div>
+            {err ? <div role="alert" style={s.artError}><span>{err}</span></div> : null}
+            {note ? <div role="status" className="ezcp-soft">{note}</div> : null}
+            <button type="button" className="ezcp-gold ezhome-focus" disabled={busy} onClick={sendReply}>
+              {busy ? ezT('inbox.replySending') : ezT('panel.replySend')}
+            </button>
+            <p className="ezcp-soft" style={{ textAlign: 'center' }}>{ezT('panel.replyHint')}</p>
+          </section>
+        ) : (
+          <div role="status" style={s.artNote}>{ezT('inbox.replyNoSender')}</div>
+        )}
+        {asking ? askBlock(ezT('inbox.deleteOneAsk'), ezT('inbox.deleteWarnShort'), () => runDelete({ ids: [it.id] })) : (
+          <button type="button" className="ezcp-btn is-danger ezhome-focus" disabled={delBusy} aria-label={ezT('inbox.deleteAria')}
+            style={{ flex: 'none' }} onClick={() => { setDelNote(''); setDelErr(''); setAsk({ what: 'one', id: it.id }); }}>{ezT('panel.deleteThis')}</button>
+        )}
+        {deleteLines}
+      </EzCpShell>
     );
   }
 
   // ---- THE LIST ----
   // THE NUMBER «الكل» NAMES IS THE STORED ONE (ruling م٦). It falls back to the rows on screen
-  // only when the route did not say -- an older deployment -- and never names a larger promise
-  // than what is about to happen.
+  // only when the route did not say -- an older deployment.
   const allCount = stored > 0 ? stored : rows.length;
+  const canErase = kind !== 'usage' && kind !== 'answers' && listState === EZIK_ART_DONE && rows.length > 0;
+  const isList = kind === 'feedback' || kind === 'reports';
+  const filters = kind === 'feedback' ? EZ_CP_FB_FILTERS : EZ_CP_RP_FILTERS;
+  const inFilter = (r) => filter === 'all' || (kind === 'feedback' ? r.type === filter : ezCpRpGroup(r.source) === filter);
+  const shownRows = rows.filter(inFilter);
+  const tally = (st) => rows.filter((r) => r.state === st).length;
+  const pageRows = shownRows.slice(0, more);
+  const headActions = (
+    <>
+      {canErase ? (
+        <>
+          <button type="button" className="ezcp-act ezhome-focus" aria-pressed={picking}
+            onClick={() => { if (picking) { stopPicking(); } else { setDelNote(''); setDelErr(''); setPicking(true); } }}>
+            {picking ? ezT('inbox.selectEnd') : ezT('inbox.selectStart')}
+          </button>
+          <button type="button" className="ezcp-act is-danger ezhome-focus" disabled={delBusy}
+            onClick={() => { setDelNote(''); setDelErr(''); setAsk({ what: 'all', id: '' }); }}>{ezT('inbox.delete')}</button>
+        </>
+      ) : null}
+      {kind !== 'usage' && !picking ? (
+        <button type="button" className="ezcp-icon ezhome-focus" aria-label={ezT('panel.refresh')} onClick={refresh}>{ezCpIcon(EZ_CP_REFRESH, 19)}</button>
+      ) : null}
+    </>
+  );
+  const tabTitle = (EZIK_INBOX_TABS.find((t) => t.id === kind) || EZIK_INBOX_TABS[0]).k;
   return (
-    <EzShell title={ezT('menu.inbox')} onBack={back} backLabel={ezT('common.back')}>
-      <EzShellGroup title={ezT('menu.inbox')}>
-        <div style={s.artChoiceRow}>
-          {EZIK_INBOX_TABS.map((t) => (
-            <button key={t.id} type="button" className="ezhome-focus" aria-pressed={kind === t.id}
-              onClick={() => switchKind(t.id)}
-              style={{ ...s.artChoice, ...(kind === t.id ? s.artChoiceOn : null) }}>{ezT(t.k)}</button>
-          ))}
+    <EzCpShell kind={kind} title={ezT(tabTitle)} onNav={switchKind} onBack={back} badges={badges} actions={headActions}>
+      {kind === 'overview' ? <EzCpOverview data={over} failed={overFailed} onGo={switchKind} onRetry={refresh} /> : null}
+      {/* «المحدَّد» -- the bar that names how many are ticked and is the only way to erase them. */}
+      {picking ? (
+        <div style={s.inboxBar}>
+          <span style={s.inboxAskText}>{ezT('inbox.selectedN', { n: picked.length })}</span>
+          <button type="button" className="ezcp-act is-danger ezhome-focus" disabled={delBusy || picked.length === 0}
+            onClick={() => { setDelNote(''); setDelErr(''); setAsk({ what: 'selected', id: '' }); }}>
+            {ezT('inbox.deleteSelected')}
+          </button>
         </div>
-        {/* THE THREE ERASES LIVE INSIDE THE PANEL THAT IS ALREADY OPEN (ruling م٨) -- no new menu
-            row and no new `screen` key. They are drawn only over a list that has something in it,
-            because an erase control above «لا رسائلَ هنا» is a control with nothing to act on. */}
-        {kind !== 'usage' && kind !== 'answers' && listState === EZIK_ART_DONE && rows.length > 0 ? (
-          <div style={s.artChoiceRow}>
-            <button type="button" className="ezhome-focus" aria-pressed={picking}
-              onClick={() => { if (picking) { stopPicking(); } else { setDelNote(''); setDelErr(''); setPicking(true); } }}
-              style={{ ...s.artChoice, ...(picking ? s.artChoiceOn : null) }}>
-              {picking ? ezT('inbox.selectEnd') : ezT('inbox.selectStart')}
-            </button>
-            <button type="button" className="ezhome-focus" disabled={delBusy}
-              onClick={() => { setDelNote(''); setDelErr(''); setAsk({ what: 'all', id: '' }); }}
-              style={{ ...s.artChoice, ...s.inboxDanger, opacity: delBusy ? 0.5 : 1 }}>{ezT('inbox.deleteAll')}</button>
-          </div>
-        ) : null}
-        {/* «المحدَّد» -- the bar that names how many are ticked and is the only way to erase them.
-            It is drawn even at zero so the count the owner is building is always on screen, and
-            its button is dead until there is something to act on. */}
-        {picking ? (
-          <div style={s.inboxBar}>
-            <span style={s.inboxAskText}>{ezT('inbox.selectedN', { n: picked.length })}</span>
-            <button type="button" className="ezhome-focus" disabled={delBusy || picked.length === 0}
-              onClick={() => { setDelNote(''); setDelErr(''); setAsk({ what: 'selected', id: '' }); }}
-              style={{ ...s.artAction, ...s.inboxDanger, opacity: (delBusy || picked.length === 0) ? 0.5 : 1 }}>
-              {ezT('inbox.deleteSelected')}
-            </button>
-          </div>
-        ) : null}
-      </EzShellGroup>
-
-      {/* RULING م٦ IN ITS STRONGEST FORM: «الكل» names the number and says out loud that the
-          senders lose their copies, because that is the one consequence of this button that is
-          not visible from the screen it is pressed on. «المحدَّد» is asked lightly beside it. */}
+      ) : null}
+      {/* RULING م٦: «الكل» names the number and says out loud that the senders lose their copies. */}
       {ask && ask.what === 'all'
         ? askBlock(ezT('inbox.deleteAllAsk', { n: allCount }), ezT('inbox.deleteAllWarn'), () => runDelete({ all: true }))
         : null}
@@ -29269,96 +29637,132 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
         : null}
       {deleteLines}
 
-      {listState === EZIK_ART_LOADING ? <div role="status" style={s.artNote}>{ezT('common.loading')}</div> : null}
+      {listState === EZIK_ART_LOADING ? (
+        <div role="status" aria-label={ezT('common.loading')} style={{ display: 'contents' }}>
+          <div className="ezcp-grid3">{[0, 1, 2].map((i) => <div key={i} className="ezcp-skel" />)}</div>
+          <div className="ezcp-skel is-tall" />
+        </div>
+      ) : null}
       {listState === EZIK_ART_FAILED ? (
         <div role="alert" style={s.artError}>
           <span>{ezT('inbox.failed')}</span>
-          <button type="button" className="ezhome-focus" onClick={() => load(kind)} style={s.artRetry}>{ezT('common.retry')}</button>
+          <button type="button" className="ezhome-focus" onClick={() => load(kind, true)} style={s.artRetry}>{ezT('common.retry')}</button>
         </div>
       ) : null}
-      {listState === EZIK_ART_DONE && rows.length === 0 ? (
+      {isList && listState === EZIK_ART_DONE && rows.length === 0 ? (
         <div style={s.artEmpty}>
           <div style={s.artEmptyTitle}>{ezT('inbox.empty')}</div>
+        </div>
+      ) : null}
+      {isList && listState === EZIK_ART_DONE ? (
+        kind === 'feedback' ? (
+          <div className="ezcp-grid3">
+            <EzCpMini label={ezT('inbox.stateNew')} value={ezUbNum(tally('new'))} />
+            <EzCpMini label={ezT('panel.waiting')} value={ezUbNum(tally('read'))} />
+            <EzCpMini label={ezT('panel.answered')} value={ezUbNum(tally('answered'))} />
+          </div>
+        ) : (
+          <div className="ezcp-grid3">
+            <EzCpMini label={ezT('inbox.stateNew')} value={ezUbNum(tally('new'))} />
+            <EzCpMini label={ezT('panel.inReview')} value={ezT('usage.pending')} soft />
+            <EzCpMini label={ezT('panel.closed')} value={ezUbNum(tally('read'))} />
+          </div>
+        )
+      ) : null}
+      {isList && listState === EZIK_ART_DONE && rows.length > 0 ? (
+        <div className="ezcp-chips">
+          {filters.map((f) => (
+            <button key={f.id} type="button" className="ezcp-chip-btn ezhome-focus" aria-pressed={filter === f.id}
+              onClick={() => { setFilter(f.id); setMore(EZ_CP_PAGE); }}>
+              {ezT(f.k) + ' · ' + rows.filter((r) => f.id === 'all' || (kind === 'feedback' ? r.type === f.id : ezCpRpGroup(r.source) === f.id)).length}
+            </button>
+          ))}
         </div>
       ) : null}
       {kind === 'answers' ? (
         <div style={{ margin: '8px 0' }}>
           <select value={ansDay} onChange={(e) => setAnsDay(e.target.value)} dir="ltr"
             aria-label={ezT('inbox.tabAnswers')} className="ezhome-focus"
-            style={{ font: 'inherit', padding: '6px 10px', borderRadius: 8, border: '1px solid var(--a3-line, #ccc)', background: 'transparent', color: 'inherit' }}>
+            style={{ font: 'inherit', minHeight: 44, padding: '6px 10px', borderRadius: 12, border: '1px solid var(--a3-line, #ccc)', background: 'transparent', color: 'inherit' }}>
             {ezikAnswerLogDays().map((d) => <option key={d} value={d}>{d.slice(0, 4) + '-' + d.slice(4, 6) + '-' + d.slice(6, 8)}</option>)}
           </select>
         </div>
       ) : null}
       {kind === 'usage' ? (
-        <EzikUsageBoard />
+        <EzikUsageBoard store={usageMemo} />
       ) : kind === 'answers' ? (
         listState === EZIK_ART_DONE && rows.length > 0
           ? <div style={s.artList}>{rows.map((r) => <EzikAnswerLogRow key={r.trace} r={r} />)}</div>
           : null
-      ) : listState === EZIK_ART_DONE && rows.length > 0 ? (
-        <>
-          <div style={s.artList}>
-            {rows.map((r) => (
-              /* THE ROW IS A CONTAINER AND NOT A BUTTON ANY MORE, because it now carries a second
-                 control beside the one that opens it, and a button inside a button is markup no
-                 browser and no screen reader agrees about. The opening half keeps s.artRow, so
-                 nothing about how the row LOOKS moved. */
-              <div key={r.id} style={s.inboxRowWrap}>
-                {picking ? (
-                  <input type="checkbox" checked={picked.indexOf(r.id) !== -1}
-                    onChange={() => togglePick(r.id)} style={s.inboxPick}
-                    aria-label={ezT('inbox.selectAria')} />
-                ) : null}
-                <button type="button" className="ezhome-focus" style={{ ...s.artRow, ...s.inboxRowMain }}
-                  onClick={() => (picking ? togglePick(r.id) : openItem(r))}>
-                  <div style={s.artRowMeta}>
-                    <span style={s.artQaMark}>{ezT(EZIK_INBOX_STATE_K[r.state] || 'inbox.stateNew')}</span>
-                    <span style={s.artRowDate}>{ezikInboxWhen(r.ts)}</span>
-                    <span style={s.artRowDate} dir="ltr">{ezikInboxAppv(r.appv)}</span>
-                    {kind === 'reports' ? <span style={s.artRowDate}>{ezikInboxSourceK(r.source) ? ezT(ezikInboxSourceK(r.source)) : '—'}</span> : null}
-                    {r.hasSender === false ? <span style={s.artRowDate}>{ezT('inbox.noSender')}</span> : null}
-                  </div>
-                  {/* ITEM 107 -- A REPORT ROW IS NEVER BLANK. Its note is drawn exactly as before; with no
-                      note, the question's opening words that api/inbox.js cut for the row are drawn in
-                      the row's secondary style; with neither (a record older than the field), a neutral
-                      line from the dictionary. The feedback tab draws its text as it always did. */}
-                  {kind !== 'reports' || r.text ? (
-                    <span style={s.artRowTitle} dir="auto">{r.text}</span>
-                  ) : (typeof r.userHead === 'string' && r.userHead) ? (
-                    <span style={s.artRowDate} dir="auto">{r.userHead}</span>
-                  ) : (
-                    <span style={s.artRowDate}>{ezT('inbox.reportNoText')}</span>
-                  )}
-                </button>
-                {/* «وحده وحده» ON THE ROW (§4-1). It is not drawn while the selection mode is on:
-                    there the row belongs to the batch, and two ways to erase the same row on the
-                    same screen is the second one being pressed by mistake. */}
-                {!picking ? (
-                  <button type="button" className="ezhome-focus" disabled={delBusy}
-                    onClick={() => { setDelNote(''); setDelErr(''); setAsk({ what: 'one', id: r.id }); }}
-                    style={{ ...s.inboxIcon, opacity: delBusy ? 0.5 : 1 }} aria-label={ezT('inbox.deleteAria')}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--a3-muted)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M6 6l1 14h10l1-14" />
-                    </svg>
-                  </button>
-                ) : null}
-              </div>
-            ))}
+      ) : kind === 'feedback' && listState === EZIK_ART_DONE && rows.length > 0 ? (
+        pageRows.map((r) => (
+          <div key={r.id} className={'ezcp-msg' + (r.state === 'new' ? ' is-new' : '')}>
+            {picking ? (
+              <input type="checkbox" checked={picked.indexOf(r.id) !== -1} onChange={() => togglePick(r.id)} aria-label={ezT('inbox.selectAria')} />
+            ) : null}
+            <button type="button" className="ezcp-msg-main ezhome-focus" onClick={() => (picking ? togglePick(r.id) : openItem(r))}>
+              <span className="ezcp-msg-meta">
+                <span className={'ezcp-tag t-' + r.type}>{ezT(ezCpTypeK(r.type))}</span>
+                <span className={'ezcp-tag' + (r.state === 'new' ? ' is-new' : r.state === 'answered' ? ' is-done' : '')}>{ezT(EZIK_INBOX_STATE_K[r.state] || 'inbox.stateNew')}</span>
+                <span>{ezikInboxWhen(r.ts)}</span>
+                <span dir="ltr">{ezikInboxAppv(r.appv)}</span>
+                {r.hasSender === false ? <span>{ezT('inbox.noSender')}</span> : null}
+              </span>
+              <span className="ezcp-msg-text" dir="auto">{r.text}</span>
+              {!picking ? <span className="ezcp-msg-more">{ezT('panel.openReply')}</span> : null}
+            </button>
+            {!picking ? (
+              <button type="button" className="ezcp-icon ezcp-trash ezhome-focus" disabled={delBusy} aria-label={ezT('inbox.deleteAria')}
+                onClick={() => { setDelNote(''); setDelErr(''); setAsk({ what: 'one', id: r.id }); }}>{ezCpIcon(EZ_CP_TRASH, 17)}</button>
+            ) : null}
           </div>
-          {/* The one-row question is drawn UNDER the list rather than inside the row it names, so
-              a long message is not pushed off the screen by its own confirmation. It stays next
-              to a list where that row is still visible and unmoved. */}
-          {ask && ask.what === 'one'
-            ? askBlock(ezT('inbox.deleteOneAsk'), ezT('inbox.deleteWarnShort'), () => runDelete({ ids: [ask.id] }))
-            : null}
-          {/* THE WINDOW IS NAMED RATHER THAN IMPLIED. api/inbox.js answers over the newest N of a
-              list that is trimmed to five thousand, and a screen that showed those N without
-              saying so would let the owner believe he had reached the end of his inbox. */}
-          {win ? <div role="status" style={s.artNote}>{ezT('inbox.window', { n: win })}</div> : null}
-        </>
+        ))
+      ) : kind === 'reports' && listState === EZIK_ART_DONE && rows.length > 0 ? (
+        pageRows.map((r) => (
+          <div key={r.id} className={'ezcp-msg' + (r.state === 'new' ? ' is-new' : '')}>
+            {picking ? (
+              <input type="checkbox" checked={picked.indexOf(r.id) !== -1} onChange={() => togglePick(r.id)} aria-label={ezT('inbox.selectAria')} />
+            ) : null}
+            <section className="ezcp-card ezcp-rep" style={{ flex: 1, ...(r.state === 'new' ? { borderColor: 'rgba(240,163,94,.55)' } : null) }}>
+              <div className="ezcp-msg-meta">
+                <span className="ezcp-tag t-complaint">{ezT(ezCpReasonK(r.reason))}</span>
+                <span className="ezcp-tag">{ezikInboxSourceK(r.source) ? ezT(ezikInboxSourceK(r.source)) : '—'}</span>
+                <span className={'ezcp-tag' + (r.state === 'new' ? ' is-new' : ' is-done')}>{ezT(r.state === 'new' ? 'inbox.stateNew' : 'panel.closedOne')}</span>
+                <span>{ezikInboxWhen(r.ts)}</span>
+              </div>
+              {r.userHead ? <div><h3>{ezT('inbox.reportQuestion')}</h3><p dir="auto">{r.userHead}</p></div> : null}
+              {r.aiHead ? <div><h3>{ezT('panel.reportedAnswer')}</h3><p className="ezcp-fade" dir="auto">{r.aiHead}</p></div> : null}
+              {r.text ? <div className="ezcp-note"><h3>{ezT('panel.readerNote')}</h3><p dir="auto">{r.text}</p></div> : null}
+              {!r.userHead && !r.aiHead && !r.text ? <p className="ezcp-soft">{ezT('inbox.reportNoText')}</p> : null}
+              <div className="ezcp-msg-meta">
+                {ezCpBandK(r.band) ? <span>{ezT(ezCpBandK(r.band))}</span> : null}
+                {ezCpModeK(r.mode) ? <span>{ezT(ezCpModeK(r.mode))}</span> : null}
+                <span dir="ltr">{ezikInboxAppv(r.appv)}</span>
+              </div>
+              {!picking ? (
+                <div className="ezcp-line" style={{ flexWrap: 'nowrap' }}>
+                  {r.state === 'new'
+                    ? <button type="button" className="ezcp-btn ezhome-focus" onClick={() => markReviewed(r)}>{ezT('panel.reviewed')}</button>
+                    : null}
+                  <button type="button" className="ezcp-btn ezhome-focus" onClick={() => openItem(r)}>{ezT(r.source === 'chat' || r.aiHead ? 'panel.openAnswer' : 'panel.openQuestion')}</button>
+                  <button type="button" className="ezcp-icon ezcp-trash ezhome-focus" disabled={delBusy} aria-label={ezT('inbox.deleteAria')}
+                    onClick={() => { setDelNote(''); setDelErr(''); setAsk({ what: 'one', id: r.id }); }}>{ezCpIcon(EZ_CP_TRASH, 17)}</button>
+                </div>
+              ) : <button type="button" className="ezcp-btn ezhome-focus" onClick={() => togglePick(r.id)}>{ezT('inbox.selectAria')}</button>}
+            </section>
+          </div>
+        ))
       ) : null}
-    </EzShell>
+      {isList && listState === EZIK_ART_DONE && shownRows.length > more ? (
+        <button type="button" className="ezcp-more ezhome-focus" onClick={() => setMore(more + EZ_CP_PAGE)}>{ezT('panel.showMore', { n: shownRows.length - more })}</button>
+      ) : null}
+      {/* The one-row question is drawn under the list, so a long message does not push it away. */}
+      {ask && ask.what === 'one'
+        ? askBlock(ezT('inbox.deleteOneAsk'), ezT('inbox.deleteWarnShort'), () => runDelete({ ids: [ask.id] }))
+        : null}
+      {/* The window is named rather than implied: the list is the newest N of up to five thousand. */}
+      {isList && listState === EZIK_ART_DONE && rows.length > 0 && win ? <div role="status" className="ezcp-soft">{ezT('inbox.window', { n: win })}</div> : null}
+    </EzCpShell>
   );
 }
 // The two screens that SEND, when consent has not been granted. Never a blank page: it names the

@@ -351,3 +351,29 @@ test('usage list follows the existing owner gate; strangers, readers and editors
   assert.equal(invalid.statusCode, 400);
   assert.equal(reads, 2);
 });
+
+test('the panel overview is one owner-only read, and each part fails alone', async () => {
+  const source = fs.readFileSync(new URL('../api/inbox.js', import.meta.url), 'utf8')
+    .replace(/^import .*;\r?\n/gm, '').replace(/export default /g, '').replace(/export /g, '');
+  let actor = null, usageReads = 0;
+  const chatDays = [];
+  const context = vm.createContext({
+    process: { env: {} }, TEXT_CAP: 5000, console: { error() {} },
+    Redis: class {}, applyCorsOrigin() {}, checkAuthLimit: async () => ({ ok: true }), clientAddress: () => 'test',
+    resolveActor: async () => actor, ROLE_OWNER: 'owner', DEVICE_HEADER: 'x-device', usageWindow,
+    readUsage: async () => { usageReads++; throw Error('offline'); },
+    readUsageChat: async (b) => { chatDays.push(b.day); return { ok: true, read: 1 }; },
+  });
+  vm.runInContext(source + '\nglobalThis.runInbox = handler;', context);
+  const req = { method: 'POST', body: { action: 'list', kind: 'overview' } };
+  for (actor of [null, { role: 'none' }, { role: 'editor' }]) {
+    const res = response(); await context.runInbox(req, res); assert.equal(res.statusCode, 401);
+  }
+  assert.equal(usageReads, 0);
+  actor = { role: 'owner' };
+  const res = response(); await context.runInbox(req, res);
+  assert.equal(res.statusCode, 200);
+  assert.equal(usageReads, 1);
+  assert.equal(chatDays.length, 2);
+  assert.notEqual(chatDays[0], chatDays[1]);
+});

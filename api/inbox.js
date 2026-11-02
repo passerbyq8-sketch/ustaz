@@ -317,6 +317,17 @@ function userHeadOf(item) {
   return points.length > USER_HEAD_CAP ? points.slice(0, USER_HEAD_CAP).join('') + '\u2026' : flat;
 }
 
+// The report card's fading excerpt of the answer. Cut here, so the list stays light and the whole
+// answer still travels on `read` only.
+const AI_HEAD_CAP = 320;
+function aiHeadOf(item) {
+  const v = item.obj && item.obj.ai;
+  if (typeof v !== 'string') return '';
+  const points = Array.from(v.replace(/\s+/g, ' ').trim());
+  return points.length > AI_HEAD_CAP ? points.slice(0, AI_HEAD_CAP).join('') + '\u2026' : points.join('');
+}
+const textOf = (item, field) => (typeof item.obj[field] === 'string' ? item.obj[field] : '');
+
 /**
  * ITEM 107 -- THE REPORTED QUESTION AND ANSWER, FOR THE ONE REPORT THE OWNER OPENED.
  *
@@ -425,6 +436,7 @@ export default async function handler(req, res) {
 async function ownerAction(req, res, body, action) {
   if (action === 'list') {
     if (body.kind === 'answers') return res.status(200).json(await answersList(body));
+    if (body.kind === 'overview') return res.status(200).json(await panelOverview());
     if (body.kind === 'usage' || body.kind === 'usage-chat') {
       try { usageWindow(body); }
       catch { return res.status(400).json({ ok: false, error: 'inbox-usage-window' }); }
@@ -458,7 +470,7 @@ async function ownerAction(req, res, body, action) {
         stored: Number.isInteger(stored) ? stored : items.length,
         // ITEM 107 -- the reports tab alone carries `userHead`; the feedback list is untouched.
         items: items.slice(0, limit).map((it) => (kind === 'reports'
-          ? Object.assign(listRow(it, marks), { userHead: userHeadOf(it) })
+          ? Object.assign(listRow(it, marks), { userHead: userHeadOf(it), aiHead: aiHeadOf(it), band: textOf(it, 'band'), mode: textOf(it, 'mode') })
           : listRow(it, marks))),
       });
     } catch (e) {
@@ -606,6 +618,24 @@ async function unreadAfter(kind) {
   } catch (e) {
     return null;
   }
+}
+
+/**
+ * THE CONTROL PANEL'S FIRST SCREEN IN ONE READ. Every call here spends the shared auth limiter, and
+ * this screen would otherwise cost five. It writes nothing, and each part fails alone: a dead usage
+ * store costs the usage cards and not the message counts. The caller is already proved the owner.
+ */
+async function panelOverview() {
+  const { dates } = usageWindow({ days: 7 });
+  const part = (run) => run.catch(() => null);
+  const [usage, chat, chatBefore, feedback, reports] = await Promise.all([
+    part(readUsage({ day: dates[0], days: 1 })),
+    part(readUsageChat({ day: dates[0], days: 1 })),
+    part(readUsageChat({ day: dates[1], days: 1 })),
+    unreadAfter('feedback'),
+    unreadAfter('reports'),
+  ]);
+  return { ok: true, kind: 'overview', day: dates[0], usage, chat, chatBefore, unread: { feedback, reports } };
 }
 
 /**
