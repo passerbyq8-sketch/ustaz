@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import { rerankPools, RERANK_DAILY_CAP, RERANK_CARD_MIN, RERANK_CONSENT_VERSION, RESERVE } from '../lib/rerank/runtime.js';
+import { rerankPools, reservationFor, RERANK_DAILY_CAP, RERANK_CARD_MIN, RERANK_CONSENT_VERSION, RESERVE } from '../lib/rerank/runtime.js';
 import { createCohereReranker } from '../lib/rerank/cohere.js';
 import { createBw2Releaser } from '../lib/bw2-units.js';
 import { gatherRerankPools } from '../lib/bw2-rerank.js';
@@ -42,6 +42,7 @@ async function fixture(t, handler) {
 }
 const opts = (f, extra = {}) => ({ pools: [{ question: 'plain question', rows }], env, consentVersion,
   remainingMs: 1200, fetchImpl: f.fetchImpl, store: store(), ...extra });
+const reserved = reservationFor('plain question', rows);
 
 test('local HTTP reranks top ten, counts literal tokens, and transmits only query and passage texts', async (t) => {
   const f = await fixture(t), db = store();
@@ -74,17 +75,17 @@ test('timeout uses remaining retrieval budget and is distinct from HTTP errors; 
   const f = await fixture(t, () => {}), db = store(), started = Date.now();
   const r = await rerankPools(opts(f, { remainingMs: 40, store: db }));
   assert.equal(r.telemetry.rerank_fallback_code, 3); assert.equal(r.telemetry.rerank_timeouts, 1); assert.equal(r.telemetry.rerank_errors, 0);
-  assert.ok(Date.now() - started < 500); assert.equal([...db.counts.values()][0], rows.length * 65536);
+  assert.ok(Date.now() - started < 500); assert.equal([...db.counts.values()][0], reserved);
   const err = await fixture(t, (_, res) => { res.writeHead(401); res.end(); });
   const failed = await rerankPools(opts(err));
   assert.equal(failed.telemetry.rerank_errors, 1); assert.equal(failed.telemetry.rerank_timeouts, 0);
 });
 
-test('missing billing uses conservative two-window reservation; malformed billing remains invalid', async (t) => {
+test('missing billing keeps the sent-byte reservation; malformed billing remains invalid', async (t) => {
   const f = await fixture(t, (body, res) => { res.writeHead(200, { 'content-type': 'application/json' });
     res.end(JSON.stringify({ results: body.documents.map((_, index) => ({ index, relevance_score: 0.8 })).slice(0, body.top_n) })); });
   const db = store(), r = await rerankPools(opts(f, { store: db }));
-  assert.equal(r.ok, true); assert.equal(r.telemetry.rerank_units, rows.length * 65536);
+  assert.equal(r.ok, true); assert.equal(r.telemetry.rerank_units, reserved);
   assert.equal(db.calls.length, 1);
   const ranking = await createCohereReranker({ fetchImpl: f.fetchImpl })('plain question', rows.map((r) => ({ ...r, id: r.recordId })), { topK: 10 });
   assert.equal(ranking.meta.billed_units, null);
@@ -92,20 +93,47 @@ test('missing billing uses conservative two-window reservation; malformed billin
 
 test('concurrent reservations enforce the spend cap before transport', async (t) => {
   const f = await fixture(t), db = store();
-  const options = opts(f, { store: db, env: { ...env, RERANK_DAILY_CAP: String(rows.length * 65536) } });
+  const options = opts(f, { store: db, env: { ...env, RERANK_DAILY_CAP: String(reserved) } });
   const answers = await Promise.all(Array.from({ length: 8 }, () => rerankPools(options)));
   assert.equal(answers.filter((r) => r.ok).length, 1); assert.equal(f.calls(), 1);
 });
 
 test('preview and production share one daily spend cap in the same KV store', async (t) => {
+  const pairBound = reservationFor('plain question', rows.slice(0, 1));
   const f = await fixture(t, (_, res) => { res.writeHead(200, { 'content-type': 'application/json' });
-    res.end(JSON.stringify({ results: [{ index: 0, relevance_score: 0.9 }], meta: { billed_units: { input_tokens: 65536 } } })); });
+    res.end(JSON.stringify({ results: [{ index: 0, relevance_score: 0.9 }], meta: { billed_units: { input_tokens: pairBound } } })); });
   const db = store();
   const options = opts(f, { store: db, pools: [{ question: 'plain question', rows: rows.slice(0, 1) }] });
-  const preview = await rerankPools({ ...options, env: { ...env, VERCEL_ENV: 'preview', RERANK_DAILY_CAP: '65536' } });
-  const production = await rerankPools({ ...options, env: { ...env, VERCEL_ENV: 'production', RERANK_DAILY_CAP: '65536' } });
+  const preview = await rerankPools({ ...options, env: { ...env, VERCEL_ENV: 'preview', RERANK_DAILY_CAP: String(pairBound) } });
+  const production = await rerankPools({ ...options, env: { ...env, VERCEL_ENV: 'production', RERANK_DAILY_CAP: String(pairBound) } });
   assert.equal(preview.ok, true); assert.equal(production.ok, false);
   assert.equal(production.telemetry.rerank_fallback_code, 4); assert.equal(f.calls(), 1);
+});
+
+test('reservation counts UTF-8 bytes of the exact capped outgoing query and documents', async (t) => {
+  const f = await fixture(t), db = store();
+  const question = 'سؤال 🟢', poolRows = Array.from({ length: 53 }, (_, i) => ({ snippet: 'نص ' + i }));
+  const r = await rerankPools(opts(f, { store: db, pools: [{ question, rows: poolRows }] }));
+  assert.equal(r.ok, true);
+  const body = f.received[0];
+  assert.equal(body.documents.length, 50);
+  const bound = body.documents.reduce((sum, doc) => sum + Buffer.byteLength(body.query) + Buffer.byteLength(doc) + 64, 0);
+  assert.equal(db.calls[0].args[0], bound);
+});
+
+test('mismatched billing and errors retain the byte bound, and a near-cap call is refused', async (t) => {
+  const f = await fixture(t, (body, res) => { res.writeHead(200, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ results: body.documents.map((_, index) => ({ index, relevance_score: 0.8 })).slice(0, body.top_n),
+      meta: { billed_units: { search_units: 2 } } })); });
+  const db = store(), r = await rerankPools(opts(f, { store: db }));
+  assert.equal(r.ok, true); assert.equal(r.telemetry.rerank_units, reserved);
+  assert.equal([...db.counts.values()][0], reserved); assert.equal(db.calls.length, 1);
+  const err = await fixture(t, (_, res) => { res.writeHead(500); res.end(); }), errDb = store();
+  assert.equal((await rerankPools(opts(err, { store: errDb }))).telemetry.rerank_fallback_code, 6);
+  assert.equal([...errDb.counts.values()][0], reserved);
+  db.counts.set(db.calls[0].keys[0], RERANK_DAILY_CAP - reserved + 1);
+  const refused = await rerankPools(opts(f, { store: db }));
+  assert.equal(refused.telemetry.rerank_fallback_code, 4); assert.equal(f.calls(), 1);
 });
 
 test('expanded retrieval asks tolerant fatwas up to 50 and library within its existing 30-row ceiling, per part', async () => {
