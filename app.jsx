@@ -10727,7 +10727,7 @@ function Ez110PrayerCard({ onOpen, hijri, onQibla }) {
   // alone. One system in the whole app: what the section shows, the card shows (guards: lang, prayerfeatures card-digits).
   const log = readPrayerLog()[prayerDayIso(today)] || null;
   const dayStart = prayerInstant(today.y, today.m, today.d, 0, place, prayerTzOn(today.y, today.m, today.d, place));
-  const curKey = status && status.current && typeof status.currentAt === 'number' && status.currentAt >= dayStart ? status.current : null;
+  const curKey = status && status.current && typeof status.currentAt === 'number' && status.currentAt >= dayStart && !prayerSunrisePassed(status, now, loc, prefs) ? status.current : null;
   return (
     <div className="ez110-prayer" data-ez110-prayer-card="1">
       <span className="ez110-prayer-arch" aria-hidden="true" />
@@ -31185,6 +31185,7 @@ function PrayerTimesPanel({ loc, day, onDay, part, onLoc, onCity }) {
   const anyMissing = PRAYER_KEYS.some((k) => t[k] === null);
   // Where the reader is in the day: only meaningful for today.
   const status = isToday ? prayerStatus(now, loc, prefs) : null;
+  const sunPast = isToday ? prayerSunrisePassed(status, now, loc, prefs) : null;
   const label = (k) => ezT('widget.prayer.' + k);
   // PRAYER REBUILD (29 October 2026): the settings sheet (panel 6) draws the offsets, the switch and the alerts as three
   // pieces in three groups; the thirty-day table left for its own sheet (panel 7) and is drawn only on the whole panel
@@ -31223,7 +31224,7 @@ function PrayerTimesPanel({ loc, day, onDay, part, onLoc, onCity }) {
         ) : null}
         {status && status.current ? (
           <div className="ez110-pcard-prev" data-ezik-prev="head">
-            {ezT('panel.prev')} {'\u00B7'} <span data-ezik-prev="name">{label(status.current)}</span> <bdi dir="ltr" data-ezik-prev="time">{prayerClockUi(prayerInstantMinutes(status.currentAt, loc))}</bdi>
+            {ezT('panel.prev')} {'\u00B7'} <span data-ezik-prev="name">{label(sunPast ? 'sunrise' : status.current)}</span> <bdi dir="ltr" data-ezik-prev="time">{prayerClockUi(prayerInstantMinutes(sunPast || status.currentAt, loc))}</bdi>
           </div>
         ) : null}
         {status && status.next ? (
@@ -31240,7 +31241,7 @@ function PrayerTimesPanel({ loc, day, onDay, part, onLoc, onCity }) {
           </div>
         ) : null}
         {status && status.next && typeof status.currentAt === 'number' ? (
-          <div className="ez110-pcard-bar" aria-hidden="true"><i style={{ width: Math.max(0, Math.min(100, Math.round(100 * (now.getTime() - status.currentAt) / Math.max(1, status.next.at - status.currentAt)))) + '%' }} /></div>
+          <div className="ez110-pcard-bar" aria-hidden="true"><i style={{ width: Math.max(0, Math.min(100, Math.round(100 * (now.getTime() - (sunPast || status.currentAt)) / Math.max(1, status.next.at - (sunPast || status.currentAt))))) + '%' }} /></div>
         ) : null}
       </section>
       {/* THE DATE STRIP: the Hijri day in the heading face, the Gregorian under it with \u00ABtoday\u00BB, the two day arrows, and
@@ -31268,7 +31269,7 @@ function PrayerTimesPanel({ loc, day, onDay, part, onLoc, onCity }) {
           span, as the guards read it. */}
       <div className="ez110-plist" role="list">
       {PRAYER_KEYS.map((k) => {
-        const isCur = !!status && status.current === k;
+        const isCur = !!status && status.current === k && !sunPast;
         const isNext = !!status && !!status.next && status.next.key === k && !isCur;
         const bellOn = !prefs.per || prefs.per[k] !== false;
         return (
@@ -31665,6 +31666,17 @@ function prayerStatus(now, loc, prefs) {
   }
   return { current: cur ? cur.key : null, currentAt: cur ? cur.at : null, next: nxt ? { key: nxt.key, at: nxt.at } : null,
     remainingMs: nxt ? nxt.at - ms : null };
+}
+// FIX ROUND 2, R5: the time of Fajr ends at sunrise. prayerStatus stays as it is (the sunrise is no prayer, and the alerts
+// and the next prayer read it); only what is DRAWN as "now" stops there. The instant of today's sunrise once it has passed
+// while Fajr is still the last prayer, else null.
+function prayerSunrisePassed(status, now, loc, prefs) {
+  if (!status || status.current !== 'fajr' || typeof status.currentAt !== 'number') return null;
+  const place = prayerZoneOf(loc), d = prayerTodayParts(now, place), tz = prayerTzOn(d.y, d.m, d.d, place);
+  const sun = prayerTimesFor(d.y, d.m, d.d, loc.lat, loc.lng, tz, prefs.method, prefs.asr, prefs.off).sunrise;
+  if (typeof sun !== 'number' || !isFinite(sun)) return null;
+  const at = prayerInstant(d.y, d.m, d.d, sun, place, tz);
+  return at > status.currentAt && now.getTime() >= at ? at : null;
 }
 // hh:mm:ss in the reader's digits.
 function prayerCountdownText(ms) {
@@ -36019,7 +36031,7 @@ function PrayerLogCard({ loc }) {
         {ADHAN_KEYS.map((k, i) => {
           const mark = day[k];
           const can = curIdx >= 0 && i <= curIdx;
-          const isCur = curIdx === i;
+          const isCur = curIdx === i && !prayerSunrisePassed(status, now, loc, prefs);
           return (
             <button key={k} type="button" disabled={!can} onClick={() => press(k)} data-ezik-log="dot" data-ezik-log-k={k} data-ezik-log-state={mark || 'none'} data-ezik-log-can={can ? '1' : '0'}
               aria-label={ezT('widget.prayer.' + k) + ': ' + stateOf(mark)}
