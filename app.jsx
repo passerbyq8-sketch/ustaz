@@ -1787,7 +1787,7 @@ const EZ_I18N = {
     'panel.ansLength': 'الطول',
     'panel.ansWords': '{n} كلمة',
     'panel.ansSources': 'المصادر',
-    'panel.ansDepth': 'الطور',
+    'panel.ansDepth': 'طور الجواب',
     'panel.moreAnswers': 'عرض المزيد من الأجوبة',
     'panel.details': 'التفاصيل',
     'panel.brand': 'عزك',
