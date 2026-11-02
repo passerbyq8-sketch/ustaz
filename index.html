@@ -1626,10 +1626,19 @@
   .ezparent-mark{width:11px;height:14px;flex-shrink:0;border:2px solid var(--a3-cyan);
     border-radius:60% 60% 12% 12%;border-bottom-color:transparent}
   #print-area{display:none}
-  #print-area h1{font-size:20pt;color:#12327A;margin:0 0 10pt}
-  #print-area h2{font-size:15pt;color:#12327A;margin:12pt 0 5pt}
-  #print-area h3{font-size:13pt;color:#12327A;margin:10pt 0 4pt}
-  #print-area h4{font-size:12pt;color:#12327A;margin:8pt 0 4pt}
+  /* N3 (fix round 2): the print sheet carries the design of the Word file. The title block, the heading ladder, styled lists,
+     striped tables, and one block each for an ayah, a hadith and a quotation. A block's direction is its own dir attribute. */
+  #print-area,#print-area *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #print-area h1{font-size:22pt;color:#fff;background:#12327A;border-bottom:4pt solid #C9A24B;border-radius:6pt 6pt 0 0;padding:14pt 16pt;margin:0 0 16pt;unicode-bidi:plaintext;text-align:start}
+  #print-area .doc-ayah{font-family:"Amiri","Traditional Arabic",serif;font-size:17pt;font-weight:700;line-height:2;color:#12327A;background:#FBF6E9;border:1pt solid #C9A24B;border-radius:6pt;padding:9pt 14pt;margin:10pt 0 12pt;text-align:center;page-break-inside:avoid}
+  #print-area .doc-hadith{color:#1E5B37;background:#EDF6F0;border-inline-start:4pt solid #2C7A4B;border-radius:4pt;padding:8pt 12pt;margin:9pt 0 11pt;page-break-inside:avoid}
+  #print-area .doc-quote{color:#3B4A63;background:#F1F5FC;border-inline-start:3pt solid #8FA3C7;border-radius:4pt;padding:7pt 12pt;margin:7pt 0 10pt}
+  #print-area li::marker{color:#C9A24B;font-weight:700}
+  #print-area ol li::marker{color:#1D4ED8}
+  #print-area tbody tr:nth-child(odd) td{background:#F1F5FC}
+  #print-area h2{font-size:17pt;color:#12327A;border-bottom:1.5pt solid #C9A24B;padding-bottom:3pt;margin:16pt 0 7pt;page-break-after:avoid}
+  #print-area h3{font-size:14.5pt;color:#1D4ED8;margin:12pt 0 5pt;page-break-after:avoid}
+  #print-area h4{font-size:13pt;color:#0F766E;margin:10pt 0 4pt;page-break-after:avoid}
   #print-area p{margin:6pt 0}
   /* ITEM 42-ب, MEASURED: a percent-escaped fatwa url carries no break opportunity, so it was
      drawn past the right edge of the paper. These two let any run break where it must -- they
@@ -1637,14 +1646,16 @@
      class docToHtml puts on a line that is nothing but a link. */
   #print-area p,#print-area li,#print-area td,#print-area th{overflow-wrap:anywhere}
   #print-area .doc-url{word-break:break-all;direction:ltr;text-align:right;unicode-bidi:isolate}
-  #print-area ul,#print-area ol{margin:6pt 1.2em 6pt 0;padding:0}
+  #print-area ul,#print-area ol{margin-block:6pt;margin-inline:1.4em 0;padding:0}
   #print-area li{margin:3pt 0}
   #print-area strong{font-weight:700}
   #print-area table{border-collapse:collapse;width:100%;margin:8pt 0}
-  #print-area th,#print-area td{border:1px solid #999;padding:5pt 8pt;text-align:right}
-  #print-area th{background:#EDF1FA;color:#12327A}
+  #print-area th,#print-area td{border:1px solid #C4D0E6;padding:5pt 8pt;text-align:start}
+  #print-area th{background:#12327A;color:#fff}
+  .doc-rendered .doc-ayah{text-align:center;font-weight:700;color:var(--verse-ink);background:var(--tint);border-radius:8px;padding:8px 12px}
+  .doc-rendered .doc-hadith,.doc-rendered .doc-quote{background:var(--tint);border-inline-start:3px solid var(--line);border-radius:6px;padding:6px 10px}
   @media print{
-    @page{size:A4;margin:1.5cm}
+    @page{size:A4;margin:1.6cm 1.5cm 1.9cm;@bottom-center{content:counter(page) " / " counter(pages);direction:ltr;unicode-bidi:bidi-override;font-size:9pt;color:#6B7A94}}
     html,body{background:#fff;height:auto !important;overflow:visible !important}
     body > *:not(#print-area){display:none !important}
     #print-area{display:block !important;direction:rtl;text-align:right;font-family:"Amiri","Arial",serif;line-height:1.9;color:#222;font-size:14pt}

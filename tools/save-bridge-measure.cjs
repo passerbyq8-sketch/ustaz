@@ -203,6 +203,8 @@ const HARNESS_PARTS = [
   'const title = env.title;',
   'const content = env.content;',
   'const docToHtml = env.docToHtml;',
+  'const ezikDocxBytes = env.ezikDocxBytes;',
+  'const ezikDocByline = env.ezikDocByline;',
   'const ' + text(V_SAVE) + ';',
   'const ' + text(V_EXPORT) + ';',
   'return {',
@@ -275,8 +277,9 @@ function fakeDocument(clicks, trap) {
 /** A Blob that weighs its parts in UTF-8 bytes, which is exactly what a real one reports. */
 const enc = new TextEncoder();
 function FakeBlob(parts, opts) {
-  const t = (parts || []).map((p) => String(p)).join('');
-  this.size = enc.encode(t).length;
+  const bytes = (parts || []).filter((p) => p instanceof Uint8Array).reduce((a, p) => a + p.length, 0);
+  const t = (parts || []).filter((p) => !(p instanceof Uint8Array)).map((p) => String(p)).join('');
+  this.size = enc.encode(t).length + bytes;
   this.type = (opts && opts.type) || '';
   this.text = t;
 }
@@ -333,6 +336,8 @@ function baseEnv() {
     title: '',
     content: '',
     docToHtml: () => '',
+    ezikDocxBytes: () => new TextEncoder().encode(''),
+    ezikDocByline: () => '',
   };
 }
 
@@ -386,6 +391,9 @@ function scene(opts, factory) {
     title: o.title === undefined ? DOC_TITLE : o.title,
     content: 'ignored -- docToHtml below is what the press actually renders',
     docToHtml: () => (o.body === undefined ? DOC_BODY : o.body),
+    // N3: the package itself is proved in markdown-guard. Here it is the bytes a press carries, and this stands for them.
+    ezikDocxBytes: (t, md) => new TextEncoder().encode('<h1>' + t + '</h1>' + (o.body === undefined ? DOC_BODY : o.body) + md),
+    ezikDocByline: () => '',
   };
   const h = make(env);
   if (o.lang) h.setLang(o.lang);
@@ -441,20 +449,20 @@ run('م١ without a shell: the anchor is clicked exactly as it was, and nothing 
   return '1 anchor -> ' + CONTRACT.EZIK_CARD_FILE + ', 0 messages, 0 listeners, 0 lines';
 });
 
-run('م٢ without a shell: the same anchor, the same .doc name, the same blob, nothing posted', () => {
+run('م٢ without a shell: the same anchor, the same .docx name, the same blob, nothing posted', () => {
   const s = scene({ shell: null, label: 'the browser document path' });
   s.h.exportDoc();
   eq(s.sent.length, 0, 'messages posted');
   eq(s.clicks.length, 1, 'anchors clicked');
   eq(s.clicks[0].tag, 'a', 'the element clicked');
-  eq(s.clicks[0].download, DOC_TITLE + '.doc', 'the download name');
+  eq(s.clicks[0].download, DOC_TITLE + '.docx', 'the download name');
   is(/^blob:/.test(s.clicks[0].href), 'the href was not an object URL: ' + s.clicks[0].href);
   eq(s.objectUrls.length, 1, 'object URLs created');
   eq(s.objectUrls[0].type, CONTRACT.EZIK_WORD_MIME, 'the blob type the browser path writes');
   eq(s.saids, [], 'reader lines drawn in a browser');
   eq(s.env.document.body.attached.length, 0, 'anchors left attached to the document');
   eq(s.clock.delays(), [1000], 'the revoke the browser path has always scheduled, in ms');
-  return '1 anchor -> ' + DOC_TITLE + '.doc, type ' + CONTRACT.EZIK_WORD_MIME
+  return '1 anchor -> ' + DOC_TITLE + '.docx, type ' + CONTRACT.EZIK_WORD_MIME
     + ', 1 object URL, 0 messages, 0 lines';
 });
 
@@ -570,12 +578,12 @@ run('م٢ size equals blob.size, byte for byte, and the b64 decodes back to the 
   s.h.exportDoc();
   const m = onlyMessage(s);
   // The document the BROWSER path would have written, built through the same one builder.
-  const doc = s.h.ezikWordDoc(DOC_TITLE, DOC_TITLE, '<h1>' + DOC_TITLE + '</h1>' + DOC_BODY);
+  const doc = s.h.ezikWordDoc(DOC_TITLE, DOC_TITLE, s.env.content);
   eq(m.size, doc.blob.size, 'the size field against the Blob the browser path weighs');
   eq(CONTRACT.ezikDlRawBytes(m.b64), m.size, 'the count re-derived from the characters sent');
-  const back = Buffer.from(m.b64, 'base64').toString('utf8');
-  eq(back.length, doc.html.length, 'the length of the document decoded back out of b64');
-  is(back === doc.html, 'the bytes the shell receives are not the bytes the browser would write');
+  const back = Buffer.from(m.b64, 'base64');
+  eq(back.length, doc.bytes.length, 'the length of the document decoded back out of b64');
+  is(back.equals(Buffer.from(doc.bytes)), 'the bytes the shell receives are not the bytes the browser would write');
   return 'size=' + m.size + ' = blob.size = re-derived from b64; decoded === the browser document';
 });
 
@@ -1032,6 +1040,8 @@ const DRAW_SRC = babel.transformSync([
   'const deriveCaps = env.deriveCaps;',
   'const printAsPdf = env.printAsPdf;',
   'const docToHtml = env.docToHtml;',
+  'const ezikDocxBytes = env.ezikDocxBytes;',
+  'const ezikDocByline = env.ezikDocByline;',
   'const ezikDrawReplyCard = env.ezikDrawReplyCard;',
   // ITEM 94: the image press's summariser, handed in here for the same reason as the line above.
   'const ezikSummaryAsk = env.ezikSummaryAsk;',
@@ -1169,6 +1179,8 @@ function drawScene(opts) {
     deriveCaps: () => ({ export: true }),
     printAsPdf: () => {},
     docToHtml: () => DOC_BODY,
+    ezikDocxBytes: () => new TextEncoder().encode(DOC_BODY),
+    ezikDocByline: () => '',
     ezikSummaryAsk: o.summaryAsk || (() => ({ then: (onOk) => { onOk(null); } })),
     ezikDrawReplyCard: () => ({ url: CARD_URL }),
   };

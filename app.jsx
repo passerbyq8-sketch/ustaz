@@ -1440,7 +1440,7 @@ const EZ_I18N = {
     'articles.colorLabel': 'لون النصّ',
     'articles.colorHint': 'حدِّد الكلماتِ في النصّ ثمّ اضغطْ لونًا.',
     'articles.colorNone': 'بلا لون',
-    'articles.linkHint': 'الرابط: يكفي لصقُه، أو [النصّ](https://...).',
+    'articles.linkHint': 'الرابط: يكفي لصقُه، أو [النصّ]({url}).',
     'articles.preview': 'معاينة',
     'articles.color.blue': 'أزرق',
     'articles.color.navy': 'كحليّ',
@@ -3362,7 +3362,7 @@ const EZ_I18N = {
     'articles.colorLabel': 'Text colour',
     'articles.colorHint': 'Select words in the text, then press a colour.',
     'articles.colorNone': 'No colour',
-    'articles.linkHint': 'A link: paste it, or write [text](https://...).',
+    'articles.linkHint': 'A link: paste it, or write [text]({url}).',
     'articles.preview': 'Preview',
     'articles.color.blue': 'Blue',
     'articles.color.navy': 'Navy',
@@ -7641,7 +7641,7 @@ function ezikDlFromDataUrl(bridge, dataUrl, filename, onDone) {
 function ezikDlB64Text(text) {
   if (typeof TextEncoder === 'undefined' || typeof btoa !== 'function') return null;
   let bytes = null;
-  try { bytes = new TextEncoder().encode(String(text)); } catch (e) { return null; }
+  try { bytes = text instanceof Uint8Array ? text : new TextEncoder().encode(String(text)); } catch (e) { return null; }
   let bin = '';
   for (let i = 0; i < bytes.length; i += 0x8000) {
     bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
@@ -7657,31 +7657,28 @@ function ezikDlFromText(bridge, text, mime, declaredBytes, filename, onDone) {
 
 // تصدير محتوى HTML كملفّ Word (.doc): Word/Docs يعرضان العربيّة RTL بأنفسهما،
 // فنتخطّى مشكلة تشكيل العربيّة في توليد PDF داخل المتصفّح. (نمط تنزيل قياسيّ عبر <a download>)
-// THE TYPE THIS EXPORT ACTUALLY BUILDS, read from here by everything that has to name it. It is
-// `application/msword` and not the wordprocessingml type beside it in SHELL_DL_MIMES: what the
-// builder writes is an HTML document Word opens, not an OOXML package. Measured, not assumed.
-const EZIK_WORD_MIME = 'application/msword';
+// THE TYPE THIS EXPORT ACTUALLY BUILDS, read from here by everything that has to name it. Since N3 (fix round 2) it is the
+// wordprocessingml type beside it in SHELL_DL_MIMES: what the builder writes is a real OOXML package. The shell in the stores
+// already accepts this type and names the file .docx from it, so no wrapper update stands behind this.
+const EZIK_WORD_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
 // THE DOCUMENT IS BUILT HERE AND DELIVERED BELOW, and the split is the whole point: the shell
 // path sends the VERY BYTES the browser path would have written, rather than a second rendering
 // of the same document that could quietly differ from it. The Blob is built on both paths
 // because its own `size` is the independent second count the request's `size` is checked against.
-const ezikWordDoc = (filename, title, bodyHtml) => {
-  const html = '\ufeff<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'
-    + '<head><meta charset="utf-8"><title>' + title + '</title>'
-    + '<style>@page{size:A4;margin:2cm} body{font-family:"Arial","Amiri",serif;direction:rtl;text-align:right;line-height:1.9;font-size:14pt;color:#222} h1{color:#12327A;font-size:20pt} h2{color:#12327A;font-size:15pt} h3{color:#12327A;font-size:13pt} h4{color:#12327A;font-size:12pt} ul,ol{margin-right:1em} strong{font-weight:bold} table{border-collapse:collapse;width:100%;margin:8pt 0} th,td{border:1px solid #999;padding:4pt 8pt;text-align:right} th{background:#EDF1FA;color:#12327A}</style>'
-    + '</head><body dir="rtl" lang="ar">' + bodyHtml + '</body></html>';
+const ezikWordDoc = (filename, title, md) => {
+  const bytes = ezikDocxBytes(title, md, ezikDocByline());
   return {
-    html: html,
-    blob: new Blob([html], { type: EZIK_WORD_MIME }),
-    name: /\.doc$/.test(filename) ? filename : filename + '.doc',
+    bytes: bytes,
+    blob: new Blob([bytes], { type: EZIK_WORD_MIME }),
+    name: /\.docx$/.test(filename) ? filename : filename + '.docx',
   };
 };
 
 // THE BROWSER'S OWN DELIVERY, UNCHANGED. The same anchor, the same href, the same download name,
 // the same click, the same revoke a second later. Nothing on this path knows a shell exists.
-const downloadAsWord = (filename, title, bodyHtml) => {
-  const doc = ezikWordDoc(filename, title, bodyHtml);
+const downloadAsWord = (filename, title, md) => {
+  const doc = ezikWordDoc(filename, title, md);
   const url = URL.createObjectURL(doc.blob);
   const a = document.createElement('a');
   a.href = url;
@@ -9431,6 +9428,41 @@ const ezikReadableUrl = (u) => {
 };
 
 const docToHtml = (md) => {
+  const blocks = ezikDocBlocks(md), base = ezDocBase(blocks);
+  const dir = (t) => ' dir="' + ezDocDir(t, base) + '"';
+  return blocks.map((b) => {
+    if (b.t === 'table') {
+      const head = b.head.join(' ');
+      let tbl = '<table' + dir(head) + '><thead><tr>' + b.head.map((h) => '<th' + dir(h) + '>' + inlineFmt(h) + '</th>').join('') + '</tr></thead>';
+      if (b.rows.length) tbl += '<tbody>' + b.rows.map((r) => '<tr>' + r.map((c) => '<td' + dir(c) + '>' + inlineFmt(c) + '</td>').join('') + '</tr>').join('') + '</tbody>';
+      return tbl + '</table>';
+    }
+    if (b.t === 'ul' || b.t === 'ol') return '<' + b.t + dir(b.items.join(' ')) + '>' + b.items.map((x) => '<li' + dir(x) + '>' + inlineFmt(x) + '</li>').join('') + '</' + b.t + '>';
+    // A line that is nothing but a url is the reply's own reference. It is printed readable and
+    // on a paragraph that is allowed to break anywhere, so it can neither be unreadable nor run
+    // off the page. inlineFmt still does the escaping -- no tag is built from raw input here.
+    if (b.t === 'url') return '<p class="doc-url"' + (base === 'ltr' ? ' style="text-align:left"' : '') + '>' + inlineFmt(b.text) + '</p>';
+    if (b.t === 'p') return '<p' + dir(b.text) + '>' + inlineFmt(b.text) + '</p>';
+    if (b.t === 'ayah' || b.t === 'hadith' || b.t === 'quote') return '<p class="doc-' + b.t + '"' + dir(b.text) + '>' + inlineFmt(b.text) + '</p>';
+    return '<' + b.t + dir(b.text) + '>' + inlineFmt(b.text) + '</' + b.t + '>';
+  }).join('\n');
+};
+
+// EZDOC-START
+// N3 (fix round 2, the owner's note of 2 November 2026): ONE READING OF A DOCUMENT, TWO FILES. ezikDocBlocks reads the
+// markdown of a <document> into blocks; docToHtml draws them for the card and the print sheet, and ezikDocxBytes writes them
+// as a real Word package. A real package because the old export was HTML named .doc: dir on <body> is not a paragraph's
+// direction to Word, so the text opened left to right. Here every paragraph carries its own direction, read from its letters,
+// so Arabic is right to left with nobody asking, English keeps its own, and a mixed line takes the side most of it is on.
+// Nothing here changes a word. The ayah and hadith blocks only choose how a line the writer wrote is drawn.
+const EZDOC_RTL = /[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFC]/g;
+const EZDOC_LTR = /[A-Za-z\u00C0-\u024F\u0370-\u058F\u0900-\u1FFF\u3040-\uD7A3]/g;
+const ezDocDir = (t, base) => {
+  const r = (String(t).match(EZDOC_RTL) || []).length, l = (String(t).match(EZDOC_LTR) || []).length;
+  return r === 0 && l === 0 ? base : (r >= l ? 'rtl' : 'ltr');
+};
+const ezDocShare = (t, re) => { const m = t.match(re); return m ? m.join('').length / t.length : 0; };
+function ezikDocBlocks(md) {
   const lines = String(md || '').replace(/\r\n?/g, '\n').split('\n');
   const out = [];
   let i = 0;
@@ -9440,38 +9472,159 @@ const docToHtml = (md) => {
     const t = lines[i].trim();
     if (!t) { i++; continue; }
     if (t.includes('|') && i + 1 < lines.length && isSep(lines[i + 1])) {
-      const headers = parseRow(t);
+      const head = parseRow(t);
       i += 2;
       const rows = [];
       while (i < lines.length && lines[i].trim() && lines[i].includes('|')) { rows.push(parseRow(lines[i])); i++; }
-      let tbl = '<table><thead><tr>' + headers.map((h) => '<th>' + inlineFmt(h) + '</th>').join('') + '</tr></thead>';
-      if (rows.length) tbl += '<tbody>' + rows.map((r) => '<tr>' + r.map((c) => '<td>' + inlineFmt(c) + '</td>').join('') + '</tr>').join('') + '</tbody>';
-      tbl += '</table>';
-      out.push(tbl); continue;
+      out.push({ t: 'table', head: head, rows: rows });
+      continue;
     }
-    let m;
-    if ((m = t.match(/^####\s+(.*)$/))) { out.push('<h4>' + inlineFmt(m[1]) + '</h4>'); i++; continue; }
-    if ((m = t.match(/^###\s+(.*)$/))) { out.push('<h3>' + inlineFmt(m[1]) + '</h3>'); i++; continue; }
-    if ((m = t.match(/^##\s+(.*)$/)))  { out.push('<h2>' + inlineFmt(m[1]) + '</h2>'); i++; continue; }
-    if ((m = t.match(/^#\s+(.*)$/)))   { out.push('<h1>' + inlineFmt(m[1]) + '</h1>'); i++; continue; }
+    const h = t.match(/^(#{1,4})\s+(.*)$/);
+    if (h) { out.push({ t: 'h' + h[1].length, text: h[2] }); i++; continue; }
     if (/^[-•*]\s+/.test(t)) {
       const items = [];
-      while (i < lines.length && /^[-•*]\s+/.test(lines[i].trim())) { items.push('<li>' + inlineFmt(lines[i].trim().replace(/^[-•*]\s+/, '')) + '</li>'); i++; }
-      out.push('<ul>' + items.join('') + '</ul>'); continue;
+      while (i < lines.length && /^[-•*]\s+/.test(lines[i].trim())) { items.push(lines[i].trim().replace(/^[-•*]\s+/, '')); i++; }
+      out.push({ t: 'ul', items: items });
+      continue;
     }
     if (/^\d+[.)]\s+/.test(t)) {
       const items = [];
-      while (i < lines.length && /^\d+[.)]\s+/.test(lines[i].trim())) { items.push('<li>' + inlineFmt(lines[i].trim().replace(/^\d+[.)]\s+/, '')) + '</li>'); i++; }
-      out.push('<ol>' + items.join('') + '</ol>'); continue;
+      while (i < lines.length && /^\d+[.)]\s+/.test(lines[i].trim())) { items.push(lines[i].trim().replace(/^\d+[.)]\s+/, '')); i++; }
+      out.push({ t: 'ol', items: items });
+      continue;
     }
-    // A line that is nothing but a url is the reply's own reference. It is printed readable and
-    // on a paragraph that is allowed to break anywhere, so it can neither be unreadable nor run
-    // off the page. inlineFmt still does the escaping -- no tag is built from raw input here.
-    if (EZIK_BARE_URL.test(t)) { out.push('<p class="doc-url">' + inlineFmt(ezikReadableUrl(t)) + '</p>'); i++; continue; }
-    out.push('<p>' + inlineFmt(t) + '</p>'); i++;
+    if (EZIK_BARE_URL.test(t)) { out.push({ t: 'url', text: ezikReadableUrl(t) }); i++; continue; }
+    i++;
+    const quoted = /^>/.test(t), text = t.replace(/^>+\s*/, '');
+    if (!text) continue;
+    if (ezDocShare(text, /﴿[^﴾]*﴾/g) >= 0.5) out.push({ t: 'ayah', text: text });
+    else if (/ﷺ|صلى الله عليه وسلم|صلّى الله عليه وسلّم|رسول الله|النبي|النبيّ|حديث/.test(text) && ezDocShare(text, /«[^»]*»/g) >= 0.5) out.push({ t: 'hadith', text: text });
+    else out.push({ t: quoted ? 'quote' : 'p', text: text });
   }
-  return out.join('\n');
+  return out;
+}
+const ezDocBase = (blocks) => {
+  const all = blocks.map((b) => b.text || (b.items || []).join(' ') || (b.head || []).concat.apply(b.head || [], b.rows || []).join(' ')).join(' ');
+  return ezDocDir(all, 'rtl');
 };
+// THE WORD PACKAGE. Styles carry the design; a paragraph carries its style and its direction; a run carries bold and rtl.
+const EZDOC_FONT = '<w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:cs="Arial"/>';
+const ezDocXml = (s) => String(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const ezDocRuns = (text, dir) => {
+  let out = '';
+  String(text).split(/\*\*/).forEach((part, n) => {
+    const bold = n % 2 === 1 ? '<w:b/><w:bCs/>' : '';
+    (part.match(/[^A-Za-z\u00C0-\u024F]+|[A-Za-z\u00C0-\u024F](?:[A-Za-z\u00C0-\u024F0-9 .,:;'/_%&+()-]*[A-Za-z\u00C0-\u024F0-9)%])?/g) || []).forEach((seg) => {
+      const latin = /^[A-Za-z\u00C0-\u024F]/.test(seg), rtl = !latin && (dir === 'rtl' || EZDOC_RTL.test(seg));
+      EZDOC_RTL.lastIndex = 0;
+      out += '<w:r><w:rPr>' + bold + (rtl ? '<w:rtl/>' : '') + '</w:rPr><w:t xml:space="preserve">' + ezDocXml(seg) + '</w:t></w:r>';
+    });
+  });
+  return out;
+};
+const ezDocPara = (text, style, base, extra) => {
+  const dir = ezDocDir(text, base);
+  return '<w:p><w:pPr><w:pStyle w:val="' + style + '"/>' + (extra || '') + (dir === 'rtl' ? '<w:bidi/>' : '') + '</w:pPr>' + ezDocRuns(text, dir) + '</w:p>';
+};
+const ezDocTable = (b, base) => {
+  const cols = Math.max(1, b.head.length, ...b.rows.map((r) => r.length)), w = Math.floor(9638 / cols);
+  const row = (cells, header, odd) => {
+    let x = '<w:tr><w:trPr><w:cantSplit/>' + (header ? '<w:tblHeader/>' : '') + '</w:trPr>';
+    for (let c = 0; c < cols; c++) {
+      x += '<w:tc><w:tcPr><w:tcW w:w="' + w + '" w:type="dxa"/>' + (header ? '<w:shd w:val="clear" w:color="auto" w:fill="12327A"/>' : odd ? '<w:shd w:val="clear" w:color="auto" w:fill="F1F5FC"/>' : '')
+        + '<w:vAlign w:val="center"/></w:tcPr>' + ezDocPara(cells[c] || '', header ? 'EzCellHead' : 'EzCell', base) + '</w:tc>';
+    }
+    return x + '</w:tr>';
+  };
+  const edge = (n) => '<w:' + n + ' w:val="single" w:sz="4" w:space="0" w:color="C4D0E6"/>';
+  return '<w:tbl><w:tblPr>' + (ezDocDir(b.head.join(' '), base) === 'rtl' ? '<w:bidiVisual/>' : '') + '<w:tblW w:w="5000" w:type="pct"/><w:tblBorders>'
+    + ['top', 'left', 'bottom', 'right', 'insideH', 'insideV'].map(edge).join('') + '</w:tblBorders><w:tblLayout w:type="fixed"/><w:tblCellMar><w:top w:w="60" w:type="dxa"/><w:left w:w="120" w:type="dxa"/><w:bottom w:w="60" w:type="dxa"/><w:right w:w="120" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>'
+    + Array(cols).fill('<w:gridCol w:w="' + w + '"/>').join('') + '</w:tblGrid>' + row(b.head, true, false) + b.rows.map((r, n) => row(r, false, n % 2 === 0)).join('') + '</w:tbl><w:p><w:pPr><w:pStyle w:val="EzGap"/></w:pPr></w:p>';
+};
+const ezDocStyle = (id, name, based, pPr, rPr, next) => '<w:style w:type="paragraph" w:styleId="' + id + '"><w:name w:val="' + name + '"/>' + (based ? '<w:basedOn w:val="' + based + '"/>' : '')
+  + (next ? '<w:next w:val="Normal"/>' : '') + '<w:qFormat/><w:pPr>' + pPr + '</w:pPr><w:rPr>' + rPr + '</w:rPr></w:style>';
+const ezDocInk = (hex, half) => (hex ? '<w:color w:val="' + hex + '"/>' : '') + (half ? '<w:sz w:val="' + half + '"/><w:szCs w:val="' + half + '"/>' : '');
+const ezDocEdge = (side, hex, sz, space) => '<w:' + side + ' w:val="single" w:sz="' + sz + '" w:space="' + space + '" w:color="' + hex + '"/>';
+const ezDocShd = (hex) => '<w:shd w:val="clear" w:color="auto" w:fill="' + hex + '"/>';
+const ezDocStyles = () => '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr>' + EZDOC_FONT + ezDocInk('222B3A', 24) + '<w:lang w:val="en-US" w:bidi="ar-SA"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="140" w:line="340" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>'
+  + '<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style>'
+  + ezDocStyle('EzTitle', 'Title', 'Normal', '<w:keepNext/>' + '<w:pBdr>' + ezDocEdge('top', '12327A', 48, 1) + ezDocEdge('left', '12327A', 48, 8) + ezDocEdge('right', '12327A', 48, 8) + '</w:pBdr>' + ezDocShd('12327A') + '<w:spacing w:before="0" w:after="0" w:line="300" w:lineRule="auto"/>', '<w:b/><w:bCs/>' + ezDocInk('FFFFFF', 44), 1)
+  + ezDocStyle('EzByline', 'Subtitle', 'Normal', '<w:pBdr>' + ezDocEdge('left', '12327A', 48, 8) + ezDocEdge('bottom', 'C9A24B', 36, 6) + ezDocEdge('right', '12327A', 48, 8) + '</w:pBdr>' + ezDocShd('12327A') + '<w:spacing w:before="0" w:after="320"/>', ezDocInk('DCE6FA', 22), 1)
+  + ezDocStyle('Heading1', 'heading 1', 'Normal', '<w:keepNext/><w:pBdr>' + ezDocEdge('bottom', 'C9A24B', 12, 4) + '</w:pBdr><w:spacing w:before="320" w:after="140"/><w:outlineLvl w:val="0"/>', '<w:b/><w:bCs/>' + ezDocInk('12327A', 34), 1)
+  + ezDocStyle('Heading2', 'heading 2', 'Normal', '<w:keepNext/><w:spacing w:before="240" w:after="100"/><w:outlineLvl w:val="1"/>', '<w:b/><w:bCs/>' + ezDocInk('1D4ED8', 29), 1)
+  + ezDocStyle('Heading3', 'heading 3', 'Normal', '<w:keepNext/><w:spacing w:before="200" w:after="80"/><w:outlineLvl w:val="2"/>', '<w:b/><w:bCs/>' + ezDocInk('0F766E', 26), 1)
+  + ezDocStyle('EzAyah', 'Ayah', 'Normal', '<w:keepLines/><w:pBdr>' + ezDocEdge('top', 'C9A24B', 8, 8) + ezDocEdge('left', 'C9A24B', 8, 10) + ezDocEdge('bottom', 'C9A24B', 8, 8) + ezDocEdge('right', 'C9A24B', 8, 10) + '</w:pBdr>' + ezDocShd('FBF6E9') + '<w:spacing w:before="200" w:after="240" w:line="320" w:lineRule="auto"/><w:ind w:left="200" w:right="200"/><w:jc w:val="center"/>', '<w:rFonts w:ascii="Traditional Arabic" w:hAnsi="Traditional Arabic" w:cs="Traditional Arabic"/><w:b/><w:bCs/>' + ezDocInk('12327A', 34), 0)
+  + ezDocStyle('EzHadith', 'Hadith', 'Normal', '<w:keepLines/><w:pBdr>' + ezDocEdge('left', '2C7A4B', 36, 10) + ezDocEdge('right', '2C7A4B', 36, 10) + '</w:pBdr>' + ezDocShd('EDF6F0') + '<w:spacing w:before="160" w:after="220"/><w:ind w:left="200" w:right="200"/>', ezDocInk('1E5B37', 25), 0)
+  + ezDocStyle('EzQuote', 'Quote', 'Normal', '<w:pBdr>' + ezDocEdge('left', '8FA3C7', 24, 10) + ezDocEdge('right', '8FA3C7', 24, 10) + '</w:pBdr>' + ezDocShd('F1F5FC') + '<w:spacing w:before="120" w:after="180"/><w:ind w:left="200" w:right="200"/>', ezDocInk('3B4A63', 0), 0)
+  + ezDocStyle('EzList', 'List Paragraph', 'Normal', '<w:spacing w:after="70"/>', '', 0)
+  + ezDocStyle('EzCell', 'Table Text', 'Normal', '<w:spacing w:after="0" w:line="300" w:lineRule="auto"/>', ezDocInk('', 22), 0)
+  + ezDocStyle('EzCellHead', 'Table Head', 'EzCell', '<w:keepNext/>', '<w:b/><w:bCs/>' + ezDocInk('FFFFFF', 22), 0)
+  + ezDocStyle('EzUrl', 'Reference', 'Normal', '', ezDocInk('1D4ED8', 21), 0)
+  + ezDocStyle('EzGap', 'Gap', 'Normal', '<w:spacing w:after="60" w:line="120" w:lineRule="exact"/>', '', 0)
+  + ezDocStyle('EzFoot', 'Page Foot', 'Normal', '<w:spacing w:after="0"/><w:jc w:val="center"/>', ezDocInk('6B7A94', 19), 0)
+  + '</w:styles>';
+const ezDocLevel = (fmt, text, hex) => '<w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="' + fmt + '"/><w:lvlText w:val="' + text + '"/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="500" w:hanging="320"/></w:pPr><w:rPr><w:b/><w:bCs/><w:color w:val="' + hex + '"/></w:rPr></w:lvl>';
+const ezDocNumbering = (ols) => {
+  let nums = '<w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num>';
+  for (let n = 0; n < ols; n++) nums += '<w:num w:numId="' + (n + 2) + '"><w:abstractNumId w:val="1"/><w:lvlOverride w:ilvl="0"><w:startOverride w:val="1"/></w:lvlOverride></w:num>';
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:abstractNum w:abstractNumId="0"><w:multiLevelType w:val="hybridMultilevel"/>' + ezDocLevel('bullet', '•', 'C9A24B') + '</w:abstractNum><w:abstractNum w:abstractNumId="1"><w:multiLevelType w:val="hybridMultilevel"/>' + ezDocLevel('decimal', '%1.', '1D4ED8') + '</w:abstractNum>' + nums + '</w:numbering>';
+};
+const ezDocZip = (files) => {
+  const enc = new TextEncoder(), table = [];
+  for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; table[n] = c >>> 0; }
+  const crc = (b) => { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = table[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+  const le = (n, size) => { const o = []; for (let i = 0; i < size; i++) o.push((n >>> (8 * i)) & 255); return o; };
+  const parts = [], central = [];
+  let at = 0;
+  for (const f of files) {
+    const name = enc.encode(f[0]), data = enc.encode(f[1]), sum = crc(data);
+    const common = [].concat(le(20, 2), le(0, 2), le(0, 2), le(0, 2), le(0x21, 2), le(sum, 4), le(data.length, 4), le(data.length, 4), le(name.length, 2), le(0, 2));
+    const head = Uint8Array.from(le(0x04034b50, 4).concat(common));
+    parts.push(head, name, data);
+    central.push(Uint8Array.from(le(0x02014b50, 4).concat(le(20, 2), common, le(0, 2), le(0, 2), le(0, 2), le(0, 4), le(at, 4))), name);
+    at += head.length + name.length + data.length;
+  }
+  const size = central.reduce((a, b) => a + b.length, 0);
+  const end = Uint8Array.from(le(0x06054b50, 4).concat(le(0, 2), le(0, 2), le(files.length, 2), le(files.length, 2), le(size, 4), le(at, 4), le(0, 2)));
+  const all = parts.concat(central, [end]), out = new Uint8Array(at + size + end.length);
+  let p = 0;
+  for (const b of all) { out.set(b, p); p += b.length; }
+  return out;
+};
+function ezikDocxBytes(title, md, byline) {
+  const blocks = ezikDocBlocks(md), base = ezDocDir(title + ' ', ezDocBase(blocks)) === 'rtl' || ezDocBase(blocks) === 'rtl' ? 'rtl' : 'ltr';
+  let ols = 0;
+  const STYLE = { h1: 'Heading1', h2: 'Heading1', h3: 'Heading2', h4: 'Heading3', ayah: 'EzAyah', hadith: 'EzHadith', quote: 'EzQuote', url: 'EzUrl', p: 'Normal' };
+  const body = ezDocPara(title, 'EzTitle', base) + ezDocPara(byline || ' ', 'EzByline', base) + blocks.map((b) => {
+    if (b.t === 'table') return ezDocTable(b, base);
+    if (b.t === 'ul' || b.t === 'ol') {
+      const id = b.t === 'ul' ? 1 : (++ols) + 1;
+      return b.items.map((x) => ezDocPara(x, 'EzList', base, '<w:numPr><w:ilvl w:val="0"/><w:numId w:val="' + id + '"/></w:numPr>')).join('');
+    }
+    return ezDocPara(b.text, STYLE[b.t], b.t === 'url' ? 'ltr' : base);
+  }).join('');
+  const W = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
+  const XML = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>', PKG = 'application/vnd.openxmlformats-officedocument.wordprocessingml.', REL = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+  const field = (code) => '<w:fldSimple w:instr=" ' + code + ' "><w:r><w:t>1</w:t></w:r></w:fldSimple>';
+  return ezDocZip([
+    ['[Content_Types].xml', XML + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="' + PKG + 'document.main+xml"/><Override PartName="/word/styles.xml" ContentType="' + PKG + 'styles+xml"/><Override PartName="/word/numbering.xml" ContentType="' + PKG + 'numbering+xml"/><Override PartName="/word/settings.xml" ContentType="' + PKG + 'settings+xml"/><Override PartName="/word/footer1.xml" ContentType="' + PKG + 'footer+xml"/></Types>'],
+    ['_rels/.rels', XML + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="' + REL + '/officeDocument" Target="word/document.xml"/></Relationships>'],
+    ['word/_rels/document.xml.rels', XML + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="' + REL + '/styles" Target="styles.xml"/><Relationship Id="rId2" Type="' + REL + '/numbering" Target="numbering.xml"/><Relationship Id="rId3" Type="' + REL + '/settings" Target="settings.xml"/><Relationship Id="rId4" Type="' + REL + '/footer" Target="footer1.xml"/></Relationships>'],
+    ['word/document.xml', XML + '<w:document ' + W + '><w:body>' + body + '<w:sectPr><w:footerReference w:type="default" r:id="rId4"/><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="567" w:footer="500" w:gutter="0"/>' + (base === 'rtl' ? '<w:bidi/>' : '') + '</w:sectPr></w:body></w:document>'],
+    ['word/styles.xml', ezDocStyles()],
+    ['word/numbering.xml', ezDocNumbering(ols)],
+    ['word/settings.xml', XML + '<w:settings ' + W + '><w:compat><w:compatSetting w:name="compatibilityMode" w:uri="http://schemas.microsoft.com/office/word" w:val="15"/></w:compat><w:themeFontLang w:val="en-US" w:bidi="ar-SA"/></w:settings>'],
+    ['word/footer1.xml', XML + '<w:ftr ' + W + '><w:p><w:pPr><w:pStyle w:val="EzFoot"/></w:pPr>' + field('PAGE') + '<w:r><w:t xml:space="preserve"> / </w:t></w:r>' + field('NUMPAGES') + '</w:p></w:ftr>'],
+  ]);
+}
+// EZDOC-END
+// The small line under the title of a Word file: the application's name and the day. Display only.
+function ezikDocByline() {
+  const rtl = EZ_LANG === 'ar' || (ezLangEntry(EZ_LANG) || {}).dir === 'rtl';
+  let day = '';
+  try { day = new Date().toLocaleDateString((ezLangEntry(EZ_LANG) || {}).locale || EZ_LANG, { year: 'numeric', month: 'long', day: 'numeric' }); } catch (e) {}
+  return (rtl ? 'عزك' : 'Ezik') + (day ? ' · ' + day : '');
+}
 
 // ============================================================
 // deriveCaps — single source of truth for age-band capability gating.
@@ -15938,7 +16091,7 @@ function EzikArticleWriter({ section, grant, onBack, onChanged }) {
           onChange={(e) => setTitle(e.target.value)} aria-label={titleLabel} style={s.artInput} />
       </EzShellGroup>
 
-      <EzShellGroup title={bodyLabel} hint={ezT('articles.formatHint') + ' ' + ezT('articles.linkHint')}>
+      <EzShellGroup title={bodyLabel} hint={ezT('articles.formatHint') + ' ' + ezT('articles.linkHint', { url: 'https://...' })}>
         <textarea ref={bodyRef} className="ezhome-focus" dir="auto" rows="12" value={body}
           onChange={(e) => setBody(e.target.value)} aria-label={bodyLabel} style={s.artTextarea} />
       </EzShellGroup>
@@ -27903,19 +28056,18 @@ function DocumentCard({ title, content, age }) {
   // browser would have written. With no bridge this is the single call it always was.
   const exportDoc = () => {
     const name = title || 'مستند';
-    const body = '<h1>' + escapeHtml(name) + '</h1>' + docToHtml(content);
     const bridge = ezikDlBridge();
     if (bridge) {
       if (stopRef.current) { stopRef.current(); stopRef.current = null; }
       setSaid('');
-      const doc = ezikWordDoc(name, name, body);
-      stopRef.current = ezikDlFromText(bridge, doc.html, EZIK_WORD_MIME, doc.blob.size, name, (line) => {
+      const doc = ezikWordDoc(name, name, content);
+      stopRef.current = ezikDlFromText(bridge, doc.bytes, EZIK_WORD_MIME, doc.blob.size, name, (line) => {
         stopRef.current = null;
         setSaid(line || '');
       });
       return;
     }
-    downloadAsWord(name, name, body);
+    downloadAsWord(name, name, content);
   };
   const exportPdf = () => printAsPdf(title || 'مستند', docToHtml(content));
   const canExport = deriveCaps(age).export;

@@ -387,6 +387,36 @@ console.log('\n=== D. THE WIRING (index.html) ===');
       .every((l) => /print-area|area\.innerHTML/.test(l)));
   eq('...and there is still no insertAdjacentHTML anywhere', uses(html, IAH), 0);
 
+  // N3 (fix round 2): THE WORD FILE IS A REAL PACKAGE AND ARABIC IS RIGHT TO LEFT WITHOUT ANYBODY ASKING. The builder is lifted
+  // from the shipped source and run on one sample; the package is read back out of its own zip.
+  {
+    const a = html.indexOf('// EZDOC-START'), z = html.indexOf('// EZDOC-END');
+    ok('N3 the document builder is marked', a !== -1 && z > a);
+    const pre = /const EZIK_BARE_URL = [^\n]+/.exec(html)[0];
+    const lift = new Function(pre + '\nconst ezikReadableUrl = (u) => u;\n' + html.slice(a, z) + '\nreturn { ezikDocxBytes, ezikDocBlocks, ezDocDir };')();
+    const sample = '## عنوان\nفقرة عربية فيها كلمة Word داخل السطر.\n\n﴿الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ﴾\n\nقال رسول الله ﷺ: «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى»\n\n- بند\n\n| أ | ب |\n|---|---|\n| ١ | ٢ |\n\nThis line is English only.\n<script>alert(1)</script> & done';
+    eq('N3 the blocks read an ayah, a hadith, a list and a table', lift.ezikDocBlocks(sample).map((b) => b.t).join(' '), 'h2 p ayah hadith ul table p p');
+    const bytes = lift.ezikDocxBytes('عنوان <المستند>', sample, 'عزك');
+    const parts = {};
+    for (let i = 0; i + 30 < bytes.length && bytes[i] === 0x50 && bytes[i + 1] === 0x4b && bytes[i + 2] === 3 && bytes[i + 3] === 4;) {
+      const u32 = (o) => (bytes[o] | (bytes[o + 1] << 8) | (bytes[o + 2] << 16) | (bytes[o + 3] << 24)) >>> 0, u16 = (o) => bytes[o] | (bytes[o + 1] << 8);
+      const size = u32(i + 18), nl = u16(i + 26), xl = u16(i + 28), name = Buffer.from(bytes.slice(i + 30, i + 30 + nl)).toString();
+      parts[name] = Buffer.from(bytes.slice(i + 30 + nl + xl, i + 30 + nl + xl + size)).toString('utf8');
+      i += 30 + nl + xl + size;
+    }
+    eq('N3 the package holds its eight parts', Object.keys(parts).sort().join(' '), '[Content_Types].xml _rels/.rels word/_rels/document.xml.rels word/document.xml word/footer1.xml word/numbering.xml word/settings.xml word/styles.xml');
+    const doc = parts['word/document.xml'], paras = doc.match(/<w:p>.*?<\/w:p>/g);
+    const of = (t) => paras.filter((p) => p.indexOf(t) !== -1)[0] || '';
+    ok('N3 an Arabic paragraph is bidi with rtl runs', /<w:bidi\/>/.test(of('فقرة عربية')) && /<w:rtl\/>/.test(of('فقرة عربية')));
+    ok('N3 a Latin word inside it is not an rtl run', /<w:rPr><\/w:rPr><w:t xml:space="preserve">Word<\/w:t>/.test(of('فقرة عربية')));
+    ok('N3 an English line keeps its own direction', !/<w:bidi\/>/.test(of('This line is English')));
+    ok('N3 the ayah and the hadith have their own styles', /w:val="EzAyah"/.test(of('الْحَمْدُ')) && /w:val="EzHadith"/.test(of('إنما الأعمال')));
+    ok('N3 the table reads right to left', /<w:bidiVisual\/>/.test(doc));
+    ok('N3 the section is right to left and has a footer', /<w:footerReference[^>]*\/>.*<w:bidi\/><\/w:sectPr>/.test(doc) && /PAGE/.test(parts['word/footer1.xml']));
+    ok('N3 markup in the text is text', doc.indexOf('<script') === -1 && doc.indexOf('&lt;المستند&gt;') !== -1);
+    ok('N3 every part is well formed by count', Object.values(parts).every((x) => (x.match(/</g) || []).length === (x.match(/>/g) || []).length));
+  }
+
   // APPLIED TO PROSE ONLY — after parseRichMessage has lifted every card out.
   ok('the renderer is applied to the text segment',
     /seg\.type === 'text'[\s\S]{0,900}?<EzikMarkdown text=\{tashkeel \? seg\.content : stripTashkeelOutsideQuran\(seg\.content\)\} \/>/.test(html));
