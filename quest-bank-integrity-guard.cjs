@@ -2095,7 +2095,9 @@ const SEALED = {
   // 2026-11-01 LANGS round C: reserved cache ezik-v128; app.js rebuilt (enabled list); CORE membership unchanged; worker seal remeasured.
   // 2026-11-02 device fixes ship: reserved cache ezik-v130; app.js and index.html rebuilt; CORE membership unchanged.
   // 2026-11-02 TRANSLATE4 integrate: reserved cache ezik-v131; /lang/content/ network-first, no precache; app.js rebuilt; CORE membership unchanged.
-  'sw.js': 'fd9b04b3d89ee2088423cb950ad99bb3fd3686721e6f8c170cf073c8bdcde2d9',
+  //   2026-11-02 -- FIX-ROUND2 ship: cache ezik-v132 -> ezik-v134 (articles links and colours, the Word and PDF design, prayer label, mushaf page, sync, titles): app.js 2554770 -> 2577472 bytes, sha256 f596551a..1867; node tools/core-bytes.cjs --write: CORE_BYTES 3789725.
+//                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 58418 bytes).
+  'sw.js': '769a815ead629d6a657f85a22ed8591eeb8ab345f09c9b89644c214e0f52a322',
 };
 
 // ---------------------------------------------------------------------------
@@ -3271,7 +3273,7 @@ async function compare(bankPath) {
     //  { n, sum: [a, b] }  n is the byte sum of those files on disk
     //  { n, dir: 'count' | 'sum' | 'mean' }   n is that statistic over the mushaf page scans
     const SW_PROSE = [
-      { n: 179146, of: 'index.html' },
+      { n: 181795, of: 'index.html' },
       // ITEM 85. The two CORE entries the self-hosted faces added, stated in the worker's byte
       // table beside the rest and re-derived here from the files they name. They are the arabic
       // and latin cuts of Noto Naskh Arabic, which is what the first screen is painted in.
@@ -3284,7 +3286,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2554770, of: 'app.js' },
+      { n: 2577472, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
