@@ -21962,6 +21962,9 @@ function App() {
     try { if (window.logSection) window.logSection(route); } catch (_) {}
     if (route !== 'chat') ez110TakeBarNav();
     widgetChatFocusRef.current = false;
+    // FIX ROUND 2, R2: the open surah outlives the mushaf screen, so a link that left the reader and one that came back
+    // reopened that surah at its first page and saved it over the page the reader left. Only standing in the reader keeps it.
+    if (!(cur === 'mushaf' && route === 'mushaf')) setSelectedSurah(null);
     setAsmaaOpen(route === 'asmaa');
     setAboutOpen(false);
     setSourcesOpen(false);
