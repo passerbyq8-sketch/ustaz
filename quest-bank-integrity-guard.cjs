@@ -2099,7 +2099,8 @@ const SEALED = {
   //   2026-11-02 -- FIX-ROUND2 ship: cache ezik-v133 -> ezik-v134 (articles links and colours, the Word and PDF design, prayer label, mushaf page, sync, titles): app.js 2554775 -> 2577477 bytes, sha256 782e8320..78c3; node tools/core-bytes.cjs --write: CORE_BYTES 3789730.
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 58418 bytes).
   // 2026-11-03 IAP-LAUNCH-SIGNIN source commit e4754ef0: cache ezik-v135; app.js rebuilt at the same byte length; CORE unchanged. Digest measured from the committed sw.js blob at CR = 0.
-  'sw.js': 'c45fbe146bc4c7473e667b91db0c06df3d01f2022b9a3f6d679945de38fa85eb',
+  // 2026-11-04 QAF-GAP-N2: ezik-v136; rebuild and CORE measurement, then LF worker seal.
+  'sw.js': 'd96eaa9d8ef54b87829714194a19969499d73e90491e2bed2ba78b1be6899b54',
 };
 
 // ---------------------------------------------------------------------------
