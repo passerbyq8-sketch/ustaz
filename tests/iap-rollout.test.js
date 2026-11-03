@@ -23,7 +23,7 @@ const accountA = 'acct:v1:google:rollout-a';
 const accountB = 'acct:v1:apple:rollout-b';
 
 async function withEnv(values, operation) {
-  const keys = ['IAP_ENFORCE', 'IAP_TEST_ACCOUNTS', 'IAP_ENTRY_ACCOUNTS', 'REVENUECAT_WEBHOOK_SECRET'];
+  const keys = ['IAP_ENFORCE', 'IAP_SIGNIN', 'IAP_TEST_ACCOUNTS', 'IAP_ENTRY_ACCOUNTS', 'REVENUECAT_WEBHOOK_SECRET'];
   const before = Object.fromEntries(keys.map((key) => [key, process.env[key]]));
   for (const key of keys) {
     if (Object.prototype.hasOwnProperty.call(values, key)) process.env[key] = values[key];
@@ -101,6 +101,88 @@ async function runIapBridge(mode, accountSession = null) {
   await new Promise((resolve) => setTimeout(resolve, 0));
   await new Promise((resolve) => setTimeout(resolve, 0));
   return { document, calls, starts };
+}
+
+async function runFreeSignInGate(signin, scenario, entrypoint, lockedPage = false) {
+  const source = await readFile(new URL('../hanna-laha/assets/iap-bridge-v1.js', import.meta.url), 'utf8');
+  const { document } = parseHTML('<html><body></body></html>');
+  const windowListeners = new Map();
+  const window = {
+    location: { pathname: '/quest-ghaws.html', search: '', hash: '', href: '' },
+    addEventListener(type, fn) { windowListeners.set(type, fn); },
+    removeEventListener(type) { windowListeners.delete(type); },
+  };
+  const initialStorage = {};
+  const session = ['no-session', 'no-session-resume'].includes(scenario) ? '' : 's'.repeat(32);
+  if (session) initialStorage.ezik_auth_session_v1 = JSON.stringify({ session });
+  const offline = scenario === 'offline';
+  if (offline) {
+    initialStorage.ezik_iap_verified_mode_v1 = JSON.stringify({
+      schema: 1, mode: 'free', signin, verifiedAt: Date.now(),
+    });
+  }
+  const localStorage = memoryStorage(initialStorage);
+  const sessionStorage = memoryStorage();
+  const calls = [];
+  const noop = () => {};
+  const navigator = { onLine: !offline };
+  let allowed = 0;
+  let starts = 0;
+  document.readyState = 'loading';
+  document.visibilityState = 'visible';
+  const originalCreateElement = document.createElement.bind(document);
+  document.createElement = (tag) => {
+    const element = originalCreateElement(tag);
+    if (typeof element.focus !== 'function') element.focus = noop;
+    return element;
+  };
+  const statusBody = signin === 'none' ? { mode: 'free' }
+    : { mode: 'free', signin: signin === 'invalid' ? 'other' : signin };
+  const fetch = async (url) => {
+    calls.push(String(url));
+    if (String(url).endsWith('/api/iap-status')) {
+      return { ok: true, status: 200, json: async () => statusBody };
+    }
+    if (String(url).endsWith('/api/iap-balance')) {
+      if (scenario === '401') return { ok: false, status: 401, json: async () => ({}) };
+      if (scenario === 'server-failure') throw new Error('balance-unavailable');
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ appUserId: accountB, enforced: false, purchaseEntry: false, credits: 0 }),
+      };
+    }
+    throw new Error('unexpected-fetch');
+  };
+  vm.runInNewContext(source, { window, document, localStorage, sessionStorage, fetch, navigator, setTimeout, clearTimeout });
+  if (entrypoint === 'access') {
+    await window.ezikIapCheckGameAccess('ghaws', () => { allowed += 1; }, '/quest-ghaws.html', { lockedPage });
+  } else {
+    window.ezikIapStart(() => { starts += 1; }, 'room-1', 'hanna');
+  }
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  let dialogSeenBeforeResume = false;
+  if (scenario === 'no-session-resume' && ['all', 'host'].includes(signin)) {
+    dialogSeenBeforeResume = !!document.querySelector('[role="dialog"]');
+    const onStorage = windowListeners.get('storage');
+    localStorage.setItem('ezik_auth_session_v1', JSON.stringify({ session: 'signed-in-after-dialog' }));
+    await onStorage({ type: 'storage', key: 'ezik_auth_session_v1' });
+  }
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  const dialog = document.querySelector('[role="dialog"]');
+  return {
+    calls, allowed, starts, dialog, dialogSeenBeforeResume,
+    dialogTitle: dialog?.querySelector('h2')?.textContent || '',
+    dialogCopy: dialog?.querySelector('.ezik-iap-copy')?.textContent || '',
+    dialogLine: dialog?.querySelector('.ezik-iap-content p')?.textContent || '',
+    returnButton: dialog?.querySelector('.ezik-iap-content button.ezik-iap-button-secondary')?.textContent || '',
+    dialogText: dialog?.textContent || '',
+    signInLink: dialog?.querySelector('a[href="/?ezik_iap_signin=1"]') || null,
+    closeButton: dialog?.querySelector('.ezik-iap-header button') || null,
+    windowListeners,
+    verifiedMode: localStorage.getItem('ezik_iap_verified_mode_v1'),
+  };
 }
 
 class MemoryIapStore {
@@ -296,6 +378,97 @@ test('public IAP status contains only the mode and reveals no account ids', asyn
     assert.doesNotMatch(JSON.stringify(res.body), /rollout-a|rollout-b/);
     assert.match(res.headers['cache-control'], /max-age=30/);
   });
+});
+
+test('public IAP status exposes only exact free-mode sign-in rules', async () => {
+  for (const configuredMode of [undefined, 'test', 'all', 'free']) {
+    for (const configuredSignIn of [undefined, 'all', 'host', 'other']) {
+      const env = {};
+      if (configuredMode !== undefined) env.IAP_ENFORCE = configuredMode;
+      if (configuredSignIn !== undefined) env.IAP_SIGNIN = configuredSignIn;
+      await withEnv(env, async () => {
+        const res = responseDouble();
+        iapStatus(request('GET'), res);
+        const mode = ['test', 'all', 'free'].includes(configuredMode) ? configuredMode : 'off';
+        const signin = mode === 'free' && ['all', 'host'].includes(configuredSignIn) ? configuredSignIn : null;
+        const expected = signin ? { mode, signin } : { mode };
+        assert.equal(res.statusCode, 200);
+        assert.equal(JSON.stringify(res.body), JSON.stringify(expected), `mode=${configuredMode} signin=${configuredSignIn}`);
+      });
+    }
+  }
+});
+
+test('free sign-in bridge gates allow only the configured account checks and preserve none calls', async () => {
+  const scenarios = ['no-session', 'valid-session', '401', 'server-failure', 'offline', 'no-session-resume'];
+  const expectedTitle = "تسجيل الدخول";
+  const expectedCopy = "ألعاب كنوز المعرفة مجانية للجميع، ويلزم تسجيل الدخول إلى حساب عزك قبل اللعب.";
+  const expectedLine = "سجّل الدخول، ثم ارجع إلى هذه الصفحة للمتابعة.";
+  for (const entrypoint of ['access', 'start']) {
+    for (const signin of ['all', 'host', 'none']) {
+      for (const scenario of scenarios) {
+        const result = await runFreeSignInGate(signin, scenario, entrypoint);
+        const gated = signin !== 'none';
+        const needsDialog = gated && ['no-session', '401'].includes(scenario);
+        const shouldCallBalance = gated && !['no-session', 'offline'].includes(scenario);
+        const expectedCalls = scenario === 'offline' ? [] : ['../api/iap-status'];
+        if (shouldCallBalance) expectedCalls.push('../api/iap-balance');
+        assert.deepEqual(result.calls, expectedCalls, `${entrypoint} rule=${signin} scenario=${scenario}`);
+        assert.equal(result.allowed, entrypoint === 'access' && !needsDialog ? 1 : 0, `${entrypoint} rule=${signin} scenario=${scenario}`);
+        assert.equal(result.starts, entrypoint === 'start' && !needsDialog ? 1 : 0, `${entrypoint} rule=${signin} scenario=${scenario}`);
+        if (needsDialog) {
+          assert.ok(result.dialog, `${entrypoint} rule=${signin} scenario=${scenario} dialog`);
+          assert.equal(result.dialogTitle, expectedTitle);
+          assert.equal(result.dialogCopy, expectedCopy);
+          assert.equal(result.dialogLine, expectedLine);
+          assert.ok(result.signInLink);
+          assert.ok(result.closeButton, 'unlocked page keeps its close button');
+          assert.doesNotMatch(result.dialogText, /purchase|trial|week/i);
+        } else {
+          assert.equal(result.dialog, null, `${entrypoint} rule=${signin} scenario=${scenario} dialog`);
+        }
+        if (gated && scenario === 'no-session-resume') assert.equal(result.dialogSeenBeforeResume, true);
+        if (scenario !== 'offline') {
+          const verified = JSON.parse(result.verifiedMode);
+          assert.equal(verified.mode, 'free');
+          assert.equal(verified.signin, signin);
+        }
+      }
+    }
+  }
+  for (const scenario of ['no-session', 'offline']) {
+    const invalid = await runFreeSignInGate('invalid', scenario, 'access');
+    assert.equal(invalid.allowed, 1);
+    assert.equal(invalid.dialog, null);
+    assert.deepEqual(invalid.calls, scenario === 'offline' ? [] : ['../api/iap-status']);
+  }
+});
+
+test('all five sign-in strings render without outer guillemets', async () => {
+  const opening = String.fromCharCode(0x00ab);
+  const closing = String.fromCharCode(0x00bb);
+  const assertUnwrapped = (value, label) => {
+    assert.equal(value.startsWith(opening), false, `${label} starts with an opening guillemet`);
+    assert.equal(value.endsWith(closing), false, `${label} ends with a closing guillemet`);
+  };
+  const unlocked = await runFreeSignInGate('all', 'no-session', 'access');
+  assertUnwrapped(unlocked.dialogTitle, 'dialog title');
+  assertUnwrapped(unlocked.dialogCopy, 'dialog copy');
+  assertUnwrapped(unlocked.dialogLine, 'dialog line');
+
+  const locked = await runFreeSignInGate('all', 'no-session', 'access', true);
+  assert.equal(locked.closeButton, null);
+  assertUnwrapped(locked.returnButton, 'locked-page return button');
+
+  const journey = await readFile(new URL('../quest-theme/journey.js', import.meta.url), 'utf8');
+  const markupSource = journey.match(/function homeNoticeMarkup\(\) \{[\s\S]*?\n  \}/)?.[0];
+  assert.ok(markupSource);
+  const renderNotice = new Function('M', 'esc', 'ar', 'button', `${markupSource}; return homeNoticeMarkup;`)(
+    { homeNotice: { kind: 'signin-required' } }, String, String, (label) => `<button>${label}</button>`,
+  );
+  const { document } = parseHTML(renderNotice());
+  const notice = document.querySelector('.j-note')?.textContent || '';
+  assertUnwrapped(notice, 'home notice');
 });
 
 test('web owner skips sign-in and choice UI when off or when their balance is unenforced', async () => {

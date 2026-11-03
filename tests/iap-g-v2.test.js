@@ -565,7 +565,7 @@ test('off and signed-out test mode show no home notice or trial start', async ()
   assert.equal(firstEntry.calls.filter((call) => call.url.endsWith('/api/iap-trial-start')).length, 1);
 });
 
-test('all-mode signed-out join links bypass sign-in; every direct game page gets an entry gate', async () => {
+test('all-mode signed-out join links bypass sign-in after the public rule lookup; every direct game page gets an entry gate', async () => {
   for (const [pathname, search] of [
     ['/hanna-laha/join', '?rooms=1'],
     ['/hanna-laha/j/1234', ''],
@@ -575,7 +575,7 @@ test('all-mode signed-out join links bypass sign-in; every direct game page gets
     const bridge = await makeBridge({ mode: 'all', pathname, search });
     assert.equal(await bridge.window.ezikIapPageGate, true);
     assert.equal(bridge.document.querySelector('[role="dialog"]'), null);
-    assert.deepEqual(bridge.calls, []);
+    assert.deepEqual(bridge.calls.map((call) => call.url), ['../api/iap-status']);
   }
   const direct = await makeBridge({ mode: 'all', pathname: '/quest-test.html' });
   assert.equal(await direct.window.ezikIapPageGate, false);

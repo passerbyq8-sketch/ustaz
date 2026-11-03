@@ -94,6 +94,8 @@ function makeHomeEntry({ userAgent, platform = '', maxTouchPoints = 0, bridge = 
     sourceOf('isIosWebViewWithMessaging'),
     sourceOf('hasNativeIosPurchaseBridge'),
     optionalSourceOf('hasNativePurchaseBridge') || 'async function hasNativePurchaseBridge() { return !!(window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === "function"); }',
+    'async function getEnforcementState() { const mode = await getEnforcementMode(); return { mode, signin: "none" }; }',
+    optionalSourceOf('waitForHomeSignIn'),
     sourceOf('enterKunuzHome'),
     'return enterKunuzHome;'
   ].join(String.fromCharCode(10));
