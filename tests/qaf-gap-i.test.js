@@ -127,6 +127,16 @@ test('I F6 duty: reverse direction is framed, while existing two-view framing is
   assert.ok(!framed.text.includes('قول آخر'));
 });
 
+test('I F6 duty: opposing clauses within a single streamed sentence are explicitly framed', async () => {
+  const sentence = 'الصحيح أنه لا قضاء للصيام المتروك عمدا، وقال ابن باز: عليه القضاء مع الإطعام';
+  const row = { ...ROW, ref: 1, text: sentence };
+  const r = createBw2Releaser({ rows: [row], question: q03, emit: () => true });
+  r.push(sentence + ' [[1]].');
+  const out = await r.end();
+  assert.equal(out.held, 0); assert.ok(out.text.includes(sentence));
+  assert.match(out.text, /خلاف[^\n]*وجوب القضاء/u);
+});
+
 const q06 = 'ما صحة حديث «من قرأ سورة يس في ليلة أصبح مغفورًا له»؟';
 async function q06Release(first, later, laterRow = true) {
   const evidence = [
