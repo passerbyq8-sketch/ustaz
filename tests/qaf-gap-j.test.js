@@ -86,7 +86,8 @@ test('J2: scored subset precedes all remaining evidence in original order, inclu
   const scored = Array.from({ length: 10 }, (_, i) => 40 + i);
   const expected = [...scored, ...rows.map((_, i) => i).filter(i => !scored.includes(i))];
   assert.deepEqual(r.pools[0].rows.map(r => r.text), expected.map(i => rows[i].text));
-  assert.equal(r.pools[0].rows.filter(canShowRerankCard).length, 10);
+  // K2 supersedes J's score-required card rule for the 53 unreturned rows.
+  assert.equal(r.pools[0].rows.filter(canShowRerankCard).length, 63);
   assert.ok(r.pools[0].rows.slice(10).every(r => r.rerankScore === undefined && r.rerankCardMin === RERANK_CARD_MIN));
 });
 

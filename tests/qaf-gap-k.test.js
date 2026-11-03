@@ -1,8 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { turn, ROW } from '../tools/qaf-gap/turn-harness.mjs';
-import { RERANK_CONSENT_VERSION, RESERVE } from '../lib/rerank/runtime.js';
+import { RERANK_CONSENT_VERSION, RERANK_CARD_MIN, RESERVE } from '../lib/rerank/runtime.js';
 import { TAKHRIJ_LADDER_IDS } from '../lib/takhrij-ladder.js';
+import { canShowRerankCard } from '../lib/rerank/card.js';
+import { createBw2Releaser } from '../lib/bw2-units.js';
 
 const localStubKey = 'local-stub-key';
 const enabled = { RERANK_V1: 'on', COHERE_NO_TRAINING_CONFIRMED: 'true' };
@@ -187,4 +189,32 @@ test('K2 fallback: all 12 shapes retain byte-identical judge/writer input and cl
   process.env.COHERE_API_KEY = localStubKey;
   const off = await turn(fixture(shapes[0], false)), on = await turn(fixture(shapes[0], true));
   assert.equal(on.calls.judge[0].user, off.calls.judge[0].user);
+});
+
+test('K2 cards: unscored kept rows retain flag-off cards; only an existing score at or below the measured boundary suppresses', async t => {
+  stubKey(t);
+  const buildSourceTag = row => ({ tag: '<source url="' + row.url + '">local-card</source>', url: row.url });
+  for (const [score, expected] of [[undefined, true], [RERANK_CARD_MIN - .1, false], [RERANK_CARD_MIN, false], [RERANK_CARD_MIN + 1e-8, true]]) {
+    for (const kind of ['fatwa', 'lib_book', 'encyclopedia', 'lesson']) {
+      assert.equal(canShowRerankCard({ kind, rerankScore: score, rerankCardMin: RERANK_CARD_MIN }), expected);
+    }
+    const r = createBw2Releaser({ rows: [{ ...ROW, ref: 1, rerankScore: score, rerankCardMin: RERANK_CARD_MIN }],
+      emit: () => true, cards: { buildSourceTag, max: 3 } });
+    r.push('يجوز المسح على الجوربين إذا كانا صفيقين [[1]].');
+    assert.equal((await r.end()).cardsSent, expected ? 1 : 0);
+  }
+  const base = { extra: { cards: { buildSourceTag, max: 3 } } };
+  const off = await turn(base);
+  const on = await turn({ ...base, env: enabled,
+    extra: { ...base.extra, aiConsentVersion: RERANK_CONSENT_VERSION },
+    extraDeps: {
+      searchFatwas: async () => ({ records: Array.from({ length: 10 }, (_, i) => ({ id: 'extra-' + i,
+        title: 'extra-' + i, url: 'https://source.invalid/extra/' + i, answer: ROW.text })) }),
+      rerankStore: { evalScript: async () => 1 }, rerankFetch: async (_u, init) => response(JSON.parse(init.body)),
+    } });
+  assert.equal(on.out.telemetry.rerank_used, 1);
+  assert.equal(on.out.telemetry.pinnedRows, 1);
+  assert.equal(off.out.telemetry.cardsSent, 1);
+  assert.equal(on.out.telemetry.cardsSent, off.out.telemetry.cardsSent);
+  assert.equal(on.sent, off.sent);
 });

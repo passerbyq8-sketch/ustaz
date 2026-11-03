@@ -81,8 +81,9 @@ test('I F1: reranking preserves legacy passages displaced by expanded rows, incl
     consentVersion: RERANK_CONSENT_VERSION, fetchImpl: rankStub(received), store: { evalScript: async () => 1 } });
   assert.equal(out.ok, true); assert.equal(out.pools[0].rows.length, 63);
   assert.equal(received[0].documents.length, 50); assert.equal(received[0].top_n, 10);
-  assert.equal(out.pools[0].rows.filter(canShowRerankCard).length, 3);
-  assert.ok(out.pools[0].rows.slice(50).every((r) => r.rerankCardMin === RERANK_CARD_MIN && !canShowRerankCard(r)));
+  // K2: seven returned low scores suppress cards; all 53 unscored rows remain eligible.
+  assert.equal(out.pools[0].rows.filter(canShowRerankCard).length, 56);
+  assert.ok(out.pools[0].rows.slice(50).every((r) => r.rerankScore === undefined && canShowRerankCard(r)));
 });
 
 test('I F1: expanded same-URL text never replaces the original passage and every original reaches the judge', async (t) => {
