@@ -99,14 +99,14 @@ test('K2 membership: all 12 AB shapes judge exactly flag-off rows while provider
     JSON.stringify(off.calls.writer).match(/prewrite-original-\d+/g).sort());
 });
 
-test('K2 concurrency: judge is issued while provider response is pending, then both writer and releaser use the same sorted kept refs', async t => {
+test('K2 concurrency: judge is issued while provider response is pending, then writer and releaser keep original refs (L2)', async t => {
   stubKey(t);
   let judgeIssued = false, providerPending = false, release;
   const pending = new Promise(resolve => { release = resolve; });
   const rows = Array.from({ length: 3 }, (_, i) => ({ ...ROW, title: 'candidate-' + i, url: ROW.url + '/' + i }));
   const running = turn({ rows, env: enabled, extra: { aiConsentVersion: RERANK_CONSENT_VERSION,
     cards: { buildSourceTag: row => ({ tag: '<source url="' + row.url + '">card-' + row.title + '</source>', url: row.url }) } },
-    text: 'يجوز المسح على الجوربين إذا كانا صفيقين [[1]].',
+    text: 'يجوز المسح على الجوربين إذا كانا صفيقين [[2]].',
     extraDeps: {
       searchFatwas: async () => ({ records: [] }), rerankStore: { evalScript: async () => 1 },
       ask: async () => { judgeIssued = true; return JSON.stringify({ d: { 1: 1, 2: 0, 3: 1 } }); },
@@ -121,7 +121,7 @@ test('K2 concurrency: judge is issued while provider response is pending, then b
   try { assert.equal(providerPending, true); assert.equal(judgeIssued, true); }
   finally { release(); }
   const r = await running, writer = JSON.stringify(r.calls.writer[0]);
-  assert.ok(writer.indexOf('candidate-2') < writer.indexOf('candidate-0'));
+  assert.ok(writer.indexOf('candidate-0') < writer.indexOf('candidate-2'));
   assert.ok(!writer.includes('candidate-1'));
   assert.ok(r.sent.includes('card-candidate-2'), r.sent);
   assert.ok(!r.sent.includes('card-candidate-0'));
@@ -140,8 +140,8 @@ test('K2 concurrency: judge is issued while provider response is pending, then b
       ] }), { headers: { 'content-type': 'application/json' } }),
     } });
   const body = JSON.stringify(mixed.calls.writer[0]);
-  assert.ok(body.indexOf('candidate-2') < body.indexOf('candidate-0'));
-  assert.ok(body.indexOf('candidate-0') < body.indexOf('candidate-3'));
+  assert.ok(body.indexOf('candidate-0') < body.indexOf('candidate-2'));
+  assert.ok(body.indexOf('candidate-2') < body.indexOf('candidate-3'));
   assert.ok(!body.includes('candidate-1') && !body.includes('provider-only-'));
 });
 
