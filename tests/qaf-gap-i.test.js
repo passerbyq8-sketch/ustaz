@@ -126,3 +126,38 @@ test('I F6 duty: reverse direction is framed, while existing two-view framing is
   const framed = await q03Release('في حكم القضاء بعد التوبة قولان: القول الأول لا يلزمه القضاء', 'القول الثاني: قال ابن باز عليه القضاء مع الإطعام');
   assert.ok(!framed.text.includes('قول آخر'));
 });
+
+const q06 = 'ما صحة حديث «من قرأ سورة يس في ليلة أصبح مغفورًا له»؟';
+async function q06Release(first, later, laterRow = true) {
+  const evidence = [
+    { kind: 'lib_book', ref: 1, recordId: 'lib:1', author: 'ابن كثير', publisher: 'ابن كثير',
+      bookTitle: 'تفسير القرآن العظيم', title: 'تفسير القرآن العظيم', text: first },
+    ...(laterRow ? [{ kind: 'lib_book', ref: 2, recordId: 'lib:2', author: 'اللجنة الدائمة للبحوث العلمية والإفتاء',
+      publisher: 'اللجنة الدائمة للبحوث العلمية والإفتاء', bookTitle: 'فتاوى اللجنة الدائمة', title: 'فتاوى اللجنة الدائمة', text: later }] : []),
+  ];
+  const r = createBw2Releaser({ rows: evidence, question: q06, emit: () => true });
+  r.push(first + ' [[1]].\n\n' + later + ' [[2]].');
+  return r.end();
+}
+
+test('I F6 grade: good isnad and very weak for the same hadith retain both attributions with an explicit frame', async () => {
+  const first = 'قال ابن كثير: إسناده جيد', later = 'قالت اللجنة الدائمة: هذا حديث ضعيف جدا';
+  const out = await q06Release(first, later);
+  assert.equal(out.held, 0); assert.ok(out.text.includes(first)); assert.ok(out.text.includes(later));
+  assert.match(out.text, /اختلف[^\n]*الحكم على هذا الحديث/u);
+});
+
+test('I F6 grade: quoted good-isnad wording is also framed against an attributed weak grade', async () => {
+  const first = 'قال ابن كثير: «إسناده جيد»', later = 'قالت اللجنة الدائمة: هذا حديث ضعيف جدا';
+  const out = await q06Release(first, later);
+  assert.equal(out.held, 0); assert.ok(out.text.includes(first)); assert.ok(out.text.includes(later));
+  assert.match(out.text, /اختلف[^\n]*الحكم على هذا الحديث/u);
+});
+
+test('I F6 grade: existing disagreement is not repeated, and framing cannot rescue an unsupported authority', async () => {
+  const first = 'قال ابن كثير: إسناده جيد', later = 'واختلف العلماء في الحكم على هذا الحديث، فقالت اللجنة الدائمة: هذا حديث ضعيف جدا';
+  const out = await q06Release(first, later);
+  assert.equal(out.held, 0); assert.equal(out.text.match(/اختلف/gu)?.length, 1);
+  const unsupported = await q06Release(first, 'قالت اللجنة الدائمة: هذا حديث ضعيف جدا', false);
+  assert.ok(unsupported.held > 0); assert.ok(!unsupported.text.includes('ضعيف جدا'));
+});
