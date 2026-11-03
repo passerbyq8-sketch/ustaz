@@ -44,14 +44,14 @@ const opts = (f, extra = {}) => ({ pools: [{ question: 'plain question', rows }]
   deadlineMs: 1200, fetchImpl: f.fetchImpl, store: store(), ...extra });
 const reserved = reservationFor('plain question', rows);
 
-test('local HTTP reranks top ten, counts literal tokens, and transmits only query and passage texts', async (t) => {
+test('local HTTP reranks all candidates, counts literal tokens, and transmits only query and passage texts', async (t) => {
   const f = await fixture(t), db = store();
   const r = await rerankPools(opts(f, { store: db }));
   assert.equal(r.ok, true); assert.equal(r.telemetry.rerank_used, 1); assert.equal(r.telemetry.rerank_units, 1234);
-  assert.equal(r.pools[0].rows.length, 10); assert.equal(r.pools[0].rows[0].recordId, '14');
+  assert.equal(r.pools[0].rows.length, rows.length); assert.equal(r.pools[0].rows[0].recordId, '14');
   assert.equal(r.pools[0].rows[0].rerankScore, 10); assert.equal(r.pools[0].rows[0].rerankCardMin, RERANK_CARD_MIN);
   assert.deepEqual(Object.keys(f.received[0]).sort(), ['documents','model','query','top_n']);
-  assert.equal(f.received[0].model, 'rerank-v5.0-fast'); assert.equal(f.received[0].top_n, 10);
+  assert.equal(f.received[0].model, 'rerank-v5.0-fast'); assert.equal(f.received[0].top_n, rows.length);
   assert.equal(/private-|identity|account|age|device/.test(JSON.stringify(f.received)), false);
   assert.equal([...db.counts.values()][0], 1234); assert.equal(db.calls[0].args[1], RERANK_DAILY_CAP);
   assert.match(db.calls[0].keys[0], /^ezik:rerank-budget:v1:\d{4}-\d{2}-\d{2}$/);
@@ -146,12 +146,12 @@ test('expanded retrieval asks tolerant fatwas up to 50 and library within its ex
   assert.ok(pools.every((p, i) => p.rows.length === 2 && p.rows.every((r) => r.qpart === i)));
 });
 
-test('real BW2 linkage gives reordered top ten to the unchanged judge, with identity excluded', async (t) => {
+test('real BW2 linkage gives all reordered evidence to the unchanged judge, with identity excluded', async (t) => {
   const f = await fixture(t);
   const r = await turn({ rows, env: { ...env, BW2_RETRIEVAL_MS: '1200' }, extra: { aiConsentVersion: consentVersion, requestedIdentity: { name: 'private-name' } },
     extraDeps: { searchFatwas: async () => ({ records: rows.map((r) => ({ ...r, id: r.recordId, question: 'question', answer: r.text })) }), rerankFetch: f.fetchImpl, rerankStore: store() } });
   assert.equal(r.out.telemetry.rerank_used, 1); assert.equal(f.calls(), 1);
-  assert.equal(r.out.telemetry.pinnedRows, 10);
+  assert.equal(r.out.telemetry.pinnedRows, rows.length);
   assert.ok(r.calls.judge[0].user.indexOf('row-9') < r.calls.judge[0].user.indexOf('row-8'));
   assert.equal(JSON.stringify(f.received).includes('private-'), false);
 });
@@ -176,7 +176,7 @@ test('real BW2 fallback preserves the exact old response for cap, missing consen
   assert.equal(f.calls(), 0);
 });
 
-test('each issue is sent separately and keeps its own ordered top ten through the real BW2 judge', async (t) => {
+test('each issue is sent separately and keeps all its ordered evidence through the real BW2 judge', async (t) => {
   const f = await fixture(t);
   const question = 'عندي سؤالان: ما حكم المسح على الجوربين؟ وما حكم زكاة الذهب؟';
   const r = await turn({ question, rows, env: { ...env, BW2_RETRIEVAL_MS: '1200' }, extra: { aiConsentVersion: consentVersion },
@@ -184,9 +184,9 @@ test('each issue is sent separately and keeps its own ordered top ten through th
       url: row.url + encodeURIComponent(ctx.currentQuestion), question: ctx.currentQuestion, answer: row.text })) }),
       rerankFetch: f.fetchImpl, rerankStore: store() } });
   assert.equal(r.out.telemetry.rerank_used, 1); assert.equal(f.calls(), 2);
-  assert.ok(f.received.every((body) => body.query !== question && body.top_n === 10));
+  assert.ok(f.received.every((body) => body.query !== question && body.top_n === body.documents.length));
   assert.equal(new Set(f.received.map((body) => body.query)).size, 2);
-  assert.equal(r.out.telemetry.pinnedRows, 20);
+  assert.equal(r.out.telemetry.pinnedRows, f.received.reduce((sum, body) => sum + body.documents.length, 0));
 });
 
 test('one source URL answering two issues retains both issue assignments after reranking', async (t) => {
@@ -243,7 +243,7 @@ test('H1: full 3500ms retrieval still gives a 900ms rerank its own deadline', as
   assert.ok(providerStarted - started >= 3500);
   assert.equal(r.out.telemetry.rerank_used, 1); assert.equal(r.out.telemetry.rerank_fallback_code, 0);
   assert.ok(r.out.telemetry.rerank_ms >= 900 && r.out.telemetry.rerank_ms < 1500);
-  assert.equal(r.out.telemetry.pinnedRows, 10); assert.equal([...db.counts.values()][0], 1234);
+  assert.equal(r.out.telemetry.pinnedRows, rows.length + 1); assert.equal([...db.counts.values()][0], 1234);
   t.diagnostic(JSON.stringify({ proof: 'H1-a-e', retrieval_ms: r.out.telemetry.fatwaMs,
     provider_start_ms: providerStarted - started, rerank_ms: r.out.telemetry.rerank_ms, total_ms: Date.now() - started, billed: 1234 }));
 });
@@ -273,7 +273,7 @@ test('H1: three issues start together, preserve issue order, and share one 1500m
     assert.ok(elapsed < 1750);
     if (delay === 900) {
       assert.equal(r.ok, true); assert.deepEqual(r.pools.map((pool) => pool.question), pools.map((pool) => pool.question));
-      assert.ok(r.pools.every((pool) => pool.rows.length === 10 && pool.rows[0].recordId === '14'));
+      assert.ok(r.pools.every((pool) => pool.rows.length === rows.length && pool.rows[0].recordId === '14'));
       assert.equal(r.telemetry.rerank_units, 3 * 1234); assert.equal([...db.counts.values()][0], 3 * 1234);
       assert.equal(db.calls.filter((call) => call.script === RESERVE).length, 3);
       assert.equal(db.calls.length, 6);
