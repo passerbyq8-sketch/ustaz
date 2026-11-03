@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import { rerankPools, reservationFor, RERANK_DAILY_CAP, RERANK_CARD_MIN, RERANK_CONSENT_VERSION, RESERVE } from '../lib/rerank/runtime.js';
+import { rerankPools, reservationFor, RERANK_DAILY_CAP, RERANK_CARD_MIN, RERANK_CONSENT_VERSION, RERANK_DEADLINE_MS, RESERVE } from '../lib/rerank/runtime.js';
 import { createCohereReranker } from '../lib/rerank/cohere.js';
 import { createBw2Releaser } from '../lib/bw2-units.js';
 import { gatherRerankPools } from '../lib/bw2-rerank.js';
@@ -41,7 +41,7 @@ async function fixture(t, handler) {
   return { fetchImpl, received, calls: () => calls };
 }
 const opts = (f, extra = {}) => ({ pools: [{ question: 'plain question', rows }], env, consentVersion,
-  remainingMs: 1200, fetchImpl: f.fetchImpl, store: store(), ...extra });
+  deadlineMs: 1200, fetchImpl: f.fetchImpl, store: store(), ...extra });
 const reserved = reservationFor('plain question', rows);
 
 test('local HTTP reranks top ten, counts literal tokens, and transmits only query and passage texts', async (t) => {
@@ -71,9 +71,9 @@ test('off, no consent, stale consent, missing key, cap and unavailable KV never 
   assert.equal(f.calls(), 0);
 });
 
-test('timeout uses remaining retrieval budget and is distinct from HTTP errors; reservations remain charged', async (t) => {
+test('timeout uses the independent rerank deadline and is distinct from HTTP errors; reservations remain charged', async (t) => {
   const f = await fixture(t, () => {}), db = store(), started = Date.now();
-  const r = await rerankPools(opts(f, { remainingMs: 40, store: db }));
+  const r = await rerankPools(opts(f, { deadlineMs: 40, store: db }));
   assert.equal(r.telemetry.rerank_fallback_code, 3); assert.equal(r.telemetry.rerank_timeouts, 1); assert.equal(r.telemetry.rerank_errors, 0);
   assert.ok(Date.now() - started < 500); assert.equal([...db.counts.values()][0], reserved);
   const err = await fixture(t, (_, res) => { res.writeHead(401); res.end(); });
@@ -214,4 +214,90 @@ test('real BW2 preserves the response on timeout, HTTP failure, missing key and 
   delete process.env.COHERE_API_KEY;
   const missing = await turn(options);
   assert.equal(missing.sent, baseline.sent); assert.equal(missing.out.telemetry.rerank_fallback_code, 2);
+});
+
+function delayedRanking(ms, arrived = () => {}) {
+  return (body, res) => {
+    arrived();
+    setTimeout(() => {
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ results: body.documents.map((_, index) => ({ index, relevance_score: (index + 1) / body.documents.length }))
+        .reverse().slice(0, body.top_n), meta: { billed_units: { input_tokens: 1234 } } }));
+    }, ms);
+  };
+}
+
+test('H1: full 3500ms retrieval still gives a 900ms rerank its own deadline', async (t) => {
+  const f = await fixture(t, delayedRanking(900)), db = store();
+  let providerStarted = 0;
+  const started = Date.now();
+  const r = await turn({ env: { ...env, BW2_RETRIEVAL_MS: '3500' }, extra: { aiConsentVersion: consentVersion },
+    extraDeps: {
+      runTool: async () => new Promise(() => {}),
+      searchStoredCorpus: async () => ({ records: [ROW] }), encyclopediaRow: (row) => row,
+      searchFatwas: async () => ({ records: rows.map((row) => ({ ...row, id: row.recordId, question: 'question', answer: row.text })) }),
+      rerankFetch: (url, init) => { providerStarted = Date.now(); return f.fetchImpl(url, init); }, rerankStore: db,
+    } });
+  assert.equal(RERANK_DEADLINE_MS, 1500);
+  assert.equal(r.out.telemetry.fatwaMs, 3500); assert.equal(r.out.telemetry.fatwaTimedOut, true);
+  assert.ok(providerStarted - started >= 3500);
+  assert.equal(r.out.telemetry.rerank_used, 1); assert.equal(r.out.telemetry.rerank_fallback_code, 0);
+  assert.ok(r.out.telemetry.rerank_ms >= 900 && r.out.telemetry.rerank_ms < 1500);
+  assert.equal(r.out.telemetry.pinnedRows, 10); assert.equal([...db.counts.values()][0], 1234);
+  t.diagnostic(JSON.stringify({ proof: 'H1-a-e', retrieval_ms: r.out.telemetry.fatwaMs,
+    provider_start_ms: providerStarted - started, rerank_ms: r.out.telemetry.rerank_ms, total_ms: Date.now() - started, billed: 1234 }));
+});
+
+test('H1: 1600ms provider falls back to the unchanged old candidates at 1500ms', async (t) => {
+  const baseline = await turn(), f = await fixture(t, delayedRanking(1600)), db = store();
+  const r = await turn({ env, extra: { aiConsentVersion: consentVersion },
+    extraDeps: { searchFatwas: async () => ({ records: [] }), rerankFetch: f.fetchImpl, rerankStore: db } });
+  assert.equal(r.out.telemetry.rerank_used, 0); assert.equal(r.out.telemetry.rerank_fallback_code, 3);
+  assert.equal(r.out.telemetry.rerank_timeouts, 1); assert.equal(r.out.telemetry.rerank_errors, 0);
+  assert.ok(r.out.telemetry.rerank_ms >= 1450 && r.out.telemetry.rerank_ms < 1750);
+  assert.equal(r.sent, baseline.sent); assert.equal(r.calls.judge[0].user, baseline.calls.judge[0].user);
+  assert.equal(db.calls.length, 1); assert.equal([...db.counts.values()][0], db.calls[0].args[0]);
+  t.diagnostic(JSON.stringify({ proof: 'H1-b', rerank_ms: r.out.telemetry.rerank_ms,
+    fallback: 3, old_candidates_unchanged: true, retained_reservation: db.calls[0].args[0] }));
+});
+
+test('H1: three issues start together, preserve issue order, and share one 1500ms ceiling', async (t) => {
+  const pools = [0, 1, 2].map((i) => ({ question: 'issue-' + i, rows }));
+  for (const delay of [900, 1600]) {
+    const arrivals = [], f = await fixture(t, delayedRanking(delay, () => arrivals.push(Date.now()))), db = store();
+    const started = Date.now();
+    const r = await rerankPools({ pools, env, consentVersion, fetchImpl: f.fetchImpl, store: db });
+    const elapsed = Date.now() - started;
+    assert.equal(f.calls(), 3); assert.equal(arrivals.length, 3);
+    assert.ok(Math.max(...arrivals) - Math.min(...arrivals) < 250);
+    assert.ok(elapsed < 1750);
+    if (delay === 900) {
+      assert.equal(r.ok, true); assert.deepEqual(r.pools.map((pool) => pool.question), pools.map((pool) => pool.question));
+      assert.ok(r.pools.every((pool) => pool.rows.length === 10 && pool.rows[0].recordId === '14'));
+      assert.equal(r.telemetry.rerank_units, 3 * 1234); assert.equal([...db.counts.values()][0], 3 * 1234);
+      assert.equal(db.calls.filter((call) => call.script === RESERVE).length, 3);
+      assert.equal(db.calls.length, 6);
+    } else {
+      assert.equal(r.ok, false); assert.equal(r.telemetry.rerank_fallback_code, 3);
+      assert.equal(r.pools, undefined); assert.equal(db.calls.length, 3);
+      assert.equal([...db.counts.values()][0], db.calls.reduce((sum, call) => sum + call.args[0], 0));
+    }
+    t.diagnostic(JSON.stringify({ proof: 'H1-c-d', issues: 3, stub_ms: delay, elapsed_ms: elapsed,
+      start_spread_ms: Math.max(...arrivals) - Math.min(...arrivals), rerank_ms: r.telemetry.rerank_ms,
+      fallback: r.telemetry.rerank_fallback_code, charged: [...db.counts.values()][0] }));
+  }
+});
+
+test('H1: KV work shares the issue deadline and a partial success never replaces old pools', async (t) => {
+  const f = await fixture(t, (body, res) => delayedRanking(body.query === 'fast' ? 50 : 900)(body, res));
+  const db = store(), slowStore = { async evalScript(...args) {
+    if (args[0] === RESERVE) await new Promise((resolve) => setTimeout(resolve, 800));
+    return db.evalScript(...args);
+  } };
+  const pools = [{ question: 'fast', rows }, { question: 'slow', rows }];
+  const r = await rerankPools({ pools, env, consentVersion, store: slowStore, fetchImpl: f.fetchImpl });
+  assert.equal(r.ok, false); assert.equal(r.pools, undefined); assert.equal(r.telemetry.rerank_fallback_code, 3);
+  assert.ok(r.telemetry.rerank_ms < 1750); assert.equal(f.calls(), 2);
+  assert.equal(db.calls.length, 3);
+  assert.equal([...db.counts.values()][0], 1234 + reservationFor('slow', rows));
 });
