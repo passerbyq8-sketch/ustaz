@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { turn, ROW } from '../tools/qaf-gap/turn-harness.mjs';
 import { rerankPools, RERANK_CONSENT_VERSION, RERANK_CARD_MIN } from '../lib/rerank/runtime.js';
 import { canShowRerankCard } from '../lib/rerank/card.js';
+import { createBw2Releaser } from '../lib/bw2-units.js';
 
 const localStubKey = 'local-stub-key';
 const enabled = { RERANK_V1: 'on', COHERE_NO_TRAINING_CONFIRMED: 'true' };
@@ -93,4 +94,35 @@ test('I F1: expanded same-URL text never replaces the original passage and every
   assert.equal(r.out.telemetry.rerank_used, 1);
   assert.ok(r.calls.judge[0].user.includes('original-passage'));
   assert.ok(!r.calls.judge[0].user.includes('different-expanded-passage'));
+});
+
+const q03 = 'ما حكم قضاء الصيام الذي تركه المسلم عمدًا سنوات ثم تاب؟';
+async function q03Release(first, later) {
+  const evidence = [
+    { ...ROW, ref: 1, publisher: 'ابن عثيمين', url: 'https://binothaimeen.net/fatwa/1', text: first },
+    { ...ROW, ref: 2, url: 'https://binbaz.org.sa/fatwas/2', text: later },
+  ];
+  const emitted = [];
+  const r = createBw2Releaser({ rows: evidence, question: q03, emit: (part) => { emitted.push(part); return true; } });
+  r.push(first + ' [[1]].\n\n');
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.ok(emitted.join('').includes(first)); // The first view streams before the second arrives.
+  r.push(later + ' [[2]].');
+  const out = await r.end();
+  assert.equal(out.held, 0); assert.ok(out.text.includes(first));
+  assert.ok(out.text.includes(later.replace(/^القول الثاني:\s*/u, '')));
+  return out;
+}
+
+test('I F6 duty: retain and explicitly frame writer no-make-up then attributed make-up with feeding', async () => {
+  const out = await q03Release('الصحيح أنه لا قضاء للصيام المتروك عمدا', 'قال ابن باز: عليه القضاء مع الإطعام');
+  assert.match(out.text, /قول آخر[^\n]*يخالف/u);
+  assert.ok(out.text.indexOf('قول آخر') > out.text.indexOf('لا قضاء'));
+});
+
+test('I F6 duty: reverse direction is framed, while existing two-view framing is retained once', async () => {
+  const reverse = await q03Release('من ترك الصيام عمدا يلزمه القضاء', 'قال ابن باز: ليس عليه قضاء للصيام المتروك عمدا');
+  assert.match(reverse.text, /قول آخر[^\n]*يخالف/u);
+  const framed = await q03Release('في حكم القضاء بعد التوبة قولان: القول الأول لا يلزمه القضاء', 'القول الثاني: قال ابن باز عليه القضاء مع الإطعام');
+  assert.ok(!framed.text.includes('قول آخر'));
 });
