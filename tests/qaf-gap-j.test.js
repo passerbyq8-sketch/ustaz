@@ -111,6 +111,7 @@ test('J2/J3: conservative success and every fallback retain original judge order
       ['reserve times out', 3, { store: async () => new Promise(() => {}) }],
       ['minimum', 6, { env: { RERANK_CARD_MIN: 'invalid' } }],
       ['HTTP', 6, { fetch: async () => new Response('', { status: 400 }) }],
+      ['one failed sibling', 6, { fetch: async (_u, init) => { const b = JSON.parse(init.body); return b.query.includes('الذهب') ? response(b) : new Response('', { status: 400 }); } }],
       ['transport', 6, { fetch: async () => { throw new TypeError('local transport failure'); } }],
       ['JSON', 6, { fetch: async () => new Response('{', { headers: { 'content-type': 'application/json' } }) }],
       ['response indices', 6, { fetch: async () => new Response(JSON.stringify({ results: [{ index: 999, relevance_score: .9 }] }), { headers: { 'content-type': 'application/json' } }) }],
@@ -141,4 +142,46 @@ test('J2/J3: conservative success and every fallback retain original judge order
   }
   assert.ok(successBodies.length > 0);
   assert.ok(successBodies.every(b => b.top_n === Math.min(10, b.documents.length)));
+  const bulk = [];
+  await turn(fixture(q02, [['lib_book', 23], ['fatwa', 6], ['encyclopedia', 4], ['lesson', 3]], true, bulk));
+  assert.equal(bulk[0].top_n, 10);
+});
+
+test('J4: every code-6 exit emits one bounded diagnostic without request text, credentials or transport details', async t => {
+  key(t);
+  const lines = [], previous = console.warn;
+  console.warn = (...args) => lines.push(args);
+  t.after(() => { console.warn = previous; });
+  const question = 'PRIVATEQUERY', rows = [{ ...ROW, text: 'PRIVATEDOCUMENT' }];
+  const options = { pools: [{ question, rows }], env: enabled, consentVersion: RERANK_CONSENT_VERSION,
+    store: { evalScript: async () => 1 } };
+  const malformed = async () => new Response('{', { headers: { 'content-type': 'application/json' } });
+  const scenarios = [
+    [{ fetchImpl: async () => new Response(JSON.stringify({ message: 'Provider rejected: PRIVATEQUERY PRIVATEDOCUMENT Bearer ' + localStubKey + '\r\nعربي ' + 'z'.repeat(200) }), { status: 422 }) }, 422, 1, 'CohereRerankError'],
+    [{ fetchImpl: malformed }, 200, 1, 'CohereRerankError'],
+    [{ fetchImpl: async () => ({ ok: false, status: 401, text: async () => { throw new Error('unreadable response'); } }) }, 401, 1, 'CohereRerankError'],
+    [{ fetchImpl: async () => { throw new TypeError('PRIVATEQUERY transport detail ' + localStubKey); } }, undefined, 1, 'CohereRerankError'],
+    [{ env: { ...enabled, RERANK_CARD_MIN: 'invalid' } }, undefined, 0, 'Error'],
+    [{ pools: null }, undefined, 0, 'TypeError'],
+    [{ pools: [{ question, rows: [{ text: { toString() { throw new TypeError('PRIVATEDOCUMENT'); } } }] }] }, undefined, 1, 'TypeError'],
+    [{ pools: [{ question, rows: [{ text: 'plain', get url() { throw new RangeError('PRIVATEDOCUMENT'); } }] }],
+      fetchImpl: async (_u, init) => response(JSON.parse(init.body)) }, 200, 1, 'RangeError'],
+    [{ pools: [{ question, rows }, { question, rows }], fetchImpl: async () => new Response('', { status: 503 }) }, 503, 1, 'CohereRerankError'],
+  ];
+  for (const [extra, status, count, errorName] of scenarios) {
+    lines.length = 0;
+    const r = await rerankPools({ ...options, ...extra });
+    assert.equal(r.telemetry.rerank_fallback_code, 6);
+    assert.equal(lines.length, 1);
+    const [tag, payload] = lines[0];
+    assert.equal(tag, '[rerank]');
+    assert.equal(payload.status, status); assert.equal(payload.errorName, errorName);
+    assert.equal(payload.candidates, count); assert.equal(payload.count, count);
+    assert.equal(payload.rerank_fallback_code, 6);
+    assert.equal(payload.rerank_units, r.telemetry.rerank_units);
+    assert.equal(payload.rerank_ms, r.telemetry.rerank_ms);
+    assert.ok(Object.keys(payload).every(k => ['rerank_fallback_code', 'status', 'errorName', 'candidates', 'count', 'rerank_units', 'rerank_ms', 'error'].includes(k)));
+    assert.ok(!/PRIVATEQUERY|PRIVATEDOCUMENT|local-stub-key|transport detail/.test(JSON.stringify(payload)));
+    if (payload.error) { assert.ok(/^[\x20-\x7e]{1,120}$/.test(payload.error)); assert.ok(payload.error.startsWith('Provider rejected:')); }
+  }
 });
