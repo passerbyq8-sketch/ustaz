@@ -146,13 +146,14 @@ test('expanded retrieval asks tolerant fatwas up to 50 and library within its ex
   assert.ok(pools.every((p, i) => p.rows.length === 2 && p.rows.every((r) => r.qpart === i)));
 });
 
-test('real BW2 linkage gives all reordered evidence to the unchanged judge, with identity excluded', async (t) => {
+test('real BW2 linkage gives the judge flag-off evidence, with provider identity excluded', async (t) => {
   const f = await fixture(t);
+  const baseline = await turn({ rows });
   const r = await turn({ rows, env: { ...env, BW2_RETRIEVAL_MS: '1200' }, extra: { aiConsentVersion: consentVersion, requestedIdentity: { name: 'private-name' } },
     extraDeps: { searchFatwas: async () => ({ records: rows.map((r) => ({ ...r, id: r.recordId, question: 'question', answer: r.text })) }), rerankFetch: f.fetchImpl, rerankStore: store() } });
   assert.equal(r.out.telemetry.rerank_used, 1); assert.equal(f.calls(), 1);
-  assert.equal(r.out.telemetry.pinnedRows, rows.length);
-  assert.ok(r.calls.judge[0].user.indexOf('row-9') < r.calls.judge[0].user.indexOf('row-8'));
+  assert.equal(r.out.telemetry.pinnedRows, baseline.out.telemetry.pinnedRows);
+  assert.equal(r.calls.judge[0].user, baseline.calls.judge[0].user);
   assert.equal(JSON.stringify(f.received).includes('private-'), false);
 });
 
@@ -186,19 +187,23 @@ test('each issue is sent separately and keeps all its ordered evidence through t
   assert.equal(r.out.telemetry.rerank_used, 1); assert.equal(f.calls(), 2);
   assert.ok(f.received.every((body) => body.query !== question && body.top_n === Math.min(10, body.documents.length)));
   assert.equal(new Set(f.received.map((body) => body.query)).size, 2);
-  // Original scoped evidence can exceed the restored, deduplicated wire pool.
-  assert.ok(r.out.telemetry.pinnedRows >= f.received.reduce((sum, body) => sum + body.documents.length, 0));
+  // K2: provider-only expanded passages never become judge evidence.
+  const baseline = await turn({ question, rows });
+  assert.equal(r.calls.judge[0].user, baseline.calls.judge[0].user);
+  assert.equal(r.out.telemetry.pinnedRows, baseline.out.telemetry.pinnedRows);
   assert.equal((r.calls.judge[0].user.match(/^\[\d+\] /gmu) || []).length, r.out.telemetry.pinnedRows);
 });
 
-test('one source URL answering two issues retains both issue assignments after reranking', async (t) => {
+test('one source URL answering two issues retains exactly the flag-off issue assignments', async (t) => {
   const f = await fixture(t);
   const question = 'عندي سؤالان: ما حكم المسح على الجوربين؟ وما حكم زكاة الذهب؟';
   const r = await turn({ question, rows, env: { ...env, BW2_RETRIEVAL_MS: '1200' }, extra: { aiConsentVersion: consentVersion },
     extraDeps: { searchFatwas: async (ctx) => ({ records: rows.map((row) => ({ ...row, id: row.recordId,
       question: ctx.currentQuestion, answer: row.text })) }), rerankFetch: f.fetchImpl, rerankStore: store() } });
   assert.equal(r.out.telemetry.rerank_used, 1); assert.equal(f.calls(), 2);
-  assert.equal(r.out.telemetry.emptyParts, 0);
+  const baseline = await turn({ question, rows });
+  assert.equal(r.calls.judge[0].user, baseline.calls.judge[0].user);
+  assert.equal(r.out.telemetry.emptyParts, baseline.out.telemetry.emptyParts);
 });
 
 test('real BW2 preserves the response on timeout, HTTP failure, missing key and KV failure', async (t) => {
@@ -236,7 +241,7 @@ test('H1: full 3500ms retrieval still gives a 900ms rerank its own deadline', as
   const r = await turn({ env: { ...env, BW2_RETRIEVAL_MS: '3500' }, extra: { aiConsentVersion: consentVersion },
     extraDeps: {
       runTool: async () => new Promise(() => {}),
-      searchStoredCorpus: async () => ({ records: [ROW] }), encyclopediaRow: (row) => row,
+      searchStoredCorpus: async () => ({ records: [{ ...ROW, kind: 'encyclopedia', snippet: ROW.text }] }), encyclopediaRow: (row) => row,
       searchFatwas: async () => ({ records: rows.map((row) => ({ ...row, id: row.recordId, question: 'question', answer: row.text })) }),
       rerankFetch: (url, init) => { providerStarted = Date.now(); return f.fetchImpl(url, init); }, rerankStore: db,
     } });
@@ -245,7 +250,7 @@ test('H1: full 3500ms retrieval still gives a 900ms rerank its own deadline', as
   assert.ok(providerStarted - started >= 3500);
   assert.equal(r.out.telemetry.rerank_used, 1); assert.equal(r.out.telemetry.rerank_fallback_code, 0);
   assert.ok(r.out.telemetry.rerank_ms >= 900 && r.out.telemetry.rerank_ms < 1500);
-  assert.equal(r.out.telemetry.pinnedRows, rows.length + 1); assert.equal([...db.counts.values()][0], 1234);
+  assert.equal(r.out.telemetry.pinnedRows, 1); assert.equal([...db.counts.values()][0], 1234);
   t.diagnostic(JSON.stringify({ proof: 'H1-a-e', retrieval_ms: r.out.telemetry.fatwaMs,
     provider_start_ms: providerStarted - started, rerank_ms: r.out.telemetry.rerank_ms, total_ms: Date.now() - started, billed: 1234 }));
 });
