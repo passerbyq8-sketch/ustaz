@@ -70,7 +70,7 @@ test('I F1: Q02 retains all 36 judge candidates and all eight kept passages with
   }
   assert.equal(on.out.telemetry.rerank_used, 1);
   assert.ok(judged.every((body) => (body.user.match(/^\[\d+\] /gmu) || []).length === 36));
-  assert.equal(received.length, 1); assert.equal(received[0].top_n, 36);
+  assert.equal(received.length, 1); assert.equal(received[0].top_n, 10);
 });
 
 test('I F1: reranking preserves legacy passages displaced by expanded rows, including rows past provider cap', async (t) => {
@@ -80,7 +80,7 @@ test('I F1: reranking preserves legacy passages displaced by expanded rows, incl
   const out = await rerankPools({ pools: [{ question, rows: pool }], env: enabled,
     consentVersion: RERANK_CONSENT_VERSION, fetchImpl: rankStub(received), store: { evalScript: async () => 1 } });
   assert.equal(out.ok, true); assert.equal(out.pools[0].rows.length, 63);
-  assert.equal(received[0].documents.length, 50); assert.equal(received[0].top_n, 50);
+  assert.equal(received[0].documents.length, 50); assert.equal(received[0].top_n, 10);
   assert.equal(out.pools[0].rows.filter(canShowRerankCard).length, 3);
   assert.ok(out.pools[0].rows.slice(50).every((r) => r.rerankCardMin === RERANK_CARD_MIN && !canShowRerankCard(r)));
 });

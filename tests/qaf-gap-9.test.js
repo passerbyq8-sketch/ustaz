@@ -51,7 +51,7 @@ test('local HTTP reranks all candidates, counts literal tokens, and transmits on
   assert.equal(r.pools[0].rows.length, rows.length); assert.equal(r.pools[0].rows[0].recordId, '14');
   assert.equal(r.pools[0].rows[0].rerankScore, 10); assert.equal(r.pools[0].rows[0].rerankCardMin, RERANK_CARD_MIN);
   assert.deepEqual(Object.keys(f.received[0]).sort(), ['documents','model','query','top_n']);
-  assert.equal(f.received[0].model, 'rerank-v5.0-fast'); assert.equal(f.received[0].top_n, rows.length);
+  assert.equal(f.received[0].model, 'rerank-v5.0-fast'); assert.equal(f.received[0].top_n, 10);
   assert.equal(/private-|identity|account|age|device/.test(JSON.stringify(f.received)), false);
   assert.equal([...db.counts.values()][0], 1234); assert.equal(db.calls[0].args[1], RERANK_DAILY_CAP);
   assert.match(db.calls[0].keys[0], /^ezik:rerank-budget:v1:\d{4}-\d{2}-\d{2}$/);
@@ -184,9 +184,11 @@ test('each issue is sent separately and keeps all its ordered evidence through t
       url: row.url + encodeURIComponent(ctx.currentQuestion), question: ctx.currentQuestion, answer: row.text })) }),
       rerankFetch: f.fetchImpl, rerankStore: store() } });
   assert.equal(r.out.telemetry.rerank_used, 1); assert.equal(f.calls(), 2);
-  assert.ok(f.received.every((body) => body.query !== question && body.top_n === body.documents.length));
+  assert.ok(f.received.every((body) => body.query !== question && body.top_n === Math.min(10, body.documents.length)));
   assert.equal(new Set(f.received.map((body) => body.query)).size, 2);
-  assert.equal(r.out.telemetry.pinnedRows, f.received.reduce((sum, body) => sum + body.documents.length, 0));
+  // Original scoped evidence can exceed the restored, deduplicated wire pool.
+  assert.ok(r.out.telemetry.pinnedRows >= f.received.reduce((sum, body) => sum + body.documents.length, 0));
+  assert.equal((r.calls.judge[0].user.match(/^\[\d+\] /gmu) || []).length, r.out.telemetry.pinnedRows);
 });
 
 test('one source URL answering two issues retains both issue assignments after reranking', async (t) => {
