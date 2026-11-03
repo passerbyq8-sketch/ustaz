@@ -1158,13 +1158,18 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       const s11 = await run({ question: F.q11, writerText: F.authHeld11 + ' ' + F.a11[0] + ' ' + U.s1 });
       const PROVED6 = '\u0631\u0648\u0627\u0647 \u0645\u0633\u0644\u0645 \u0641\u064a \u0635\u062d\u064a\u062d\u0647 \u0645\u0646 \u062d\u062f\u064a\u062b \u062a\u0645\u064a\u0645 \u0627\u0644\u062f\u0627\u0631\u064a \u0631\u0636\u064a \u0627\u0644\u0644\u0647 \u0639\u0646\u0647 [[1]].';
       const p6 = await run({ question: Q6_SOURCE, fatwa: [ROW_Q6], writerText: [PROVED6, w].join('\n'), takhrijImpl: silent });
-      ok('C7i the source questions of q6 and q11: no proved unit, the not-covered sentence and the offer alone; a proved unit first, then today\x27s checks',
+      // N section 3 N2(b): pinned asked-matn evidence opens q6 without a proving unit; q11 lacks it.
+      ok('C7i pinned q6 evidence releases its three checked units without proof; q11 remains closed; explicit proof still works',
         UNITS.asksHadithSource(Q6_SOURCE) && UNITS.asksHadithSource(F.q11) && !UNITS.asksHadithSource(Q6)
-        && s6.deltas.join('') === NOT_COVERED && hasOffer(s6) && s6.out.telemetry.heldDependentOpening >= 1
-        && s11.deltas.join('') === NOT_COVERED && hasOffer(s11)
+        && s6.deltas.join('') === c1.deltas.join('') && !hasOffer(s6)
+        && s6.out.telemetry.unitsReleased === 3 && s6.out.telemetry.unitsHeld === 0 && s6.out.telemetry.unitsProvedHadith === 0
+        && s6.out.telemetry.heldDependentOpening === 0 && s6.out.telemetry.continued === ''
+        && s11.deltas.join('') === NOT_COVERED && hasOffer(s11) && s11.out.telemetry.unitsReleased === 0
+        && s11.out.telemetry.unitsHeld === 3 && s11.out.telemetry.heldUncitedAttribution === 1
+        && s11.out.telemetry.heldDependentOnHeld === 1 && s11.out.telemetry.heldDependentOpening === 1
         && p6.deltas.join('').startsWith(PROVED6.replace(' [[1]]', '')) && p6.deltas.join('').includes(Q6_MATN) && p6.deltas.join('').includes(Q6_AFTER)
-        && p6.out.telemetry.unitsProvedHadith >= 1 && !hasOffer(p6),
-        ascii(s6.deltas.join('|') + ' || ' + s11.deltas.join('|') + ' || ' + p6.deltas.join('|')) + JSON.stringify([s6, s11, p6].map((r) => r.out.telemetry.heldDependentOpening)));
+        && p6.out.telemetry.unitsProvedHadith === 1 && p6.out.telemetry.unitsReleased === 4 && p6.out.telemetry.unitsHeld === 0 && !hasOffer(p6),
+        ascii(s6.deltas.join('|') + ' || ' + s11.deltas.join('|') + ' || ' + p6.deltas.join('|')));
     }
     {
       const TOL = 250;
@@ -1288,9 +1293,17 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       // The same answer when no kept row names Muslim: the row that carries the text alone proves nothing more.
       const n = await run({ question: Q1, fatwa: [R_TEXT, R_NONE], writerText: q1Text(1, 2), takhrijImpl: silent });
       const nt = n.deltas.join('');
-      ok('C4d a row that carries the text without the named collection does not prove it: held, as today, and the not-covered sentence',
-        !nt.includes(W1) && !nt.includes(W3) && n.out.telemetry.unitsProvedHadith === 0 && nt.includes(NOT_COVERED) && hasOffer(n)
-        && n.out.telemetry.heldUnsupportedAttribution === 3 && n.out.telemetry.heldUncitedAttribution === 2 && n.out.telemetry.heldDependentOnHeld === 1,
+      const nNoMatn = await run({ question: Q1, fatwa: [{ ...R_TEXT, text: R_NONE_TEXT, passage: R_NONE_TEXT }, R_NONE], writerText: q1Text(1, 2), takhrijImpl: silent });
+      // N section 3 N2(b): only the pinned matn opens the gate; all six independent holds survive.
+      ok('C4d the six attribution/dependency holds remain; pinned matn alone permits exactly the side unit, with no hadith proof',
+        nt === noWaw(W7) && hasOffer(n) && n.out.telemetry.continued === ''
+        && n.out.telemetry.unitsReleased === 1 && n.out.telemetry.unitsHeld === 6 && n.out.telemetry.unitsProvedHadith === 0
+        && n.out.telemetry.heldUnsupportedAttribution === 3 && n.out.telemetry.heldUncitedAttribution === 2 && n.out.telemetry.heldDependentOnHeld === 1
+        && n.out.telemetry.heldDependentOpening === 0
+        && nNoMatn.deltas.join('') === NOT_COVERED && hasOffer(nNoMatn) && nNoMatn.out.telemetry.unitsReleased === 0
+        && nNoMatn.out.telemetry.unitsHeld === 7 && nNoMatn.out.telemetry.unitsProvedHadith === 0
+        && nNoMatn.out.telemetry.heldUnsupportedAttribution === 3 && nNoMatn.out.telemetry.heldUncitedAttribution === 2
+        && nNoMatn.out.telemetry.heldDependentOnHeld === 1 && nNoMatn.out.telemetry.heldDependentOpening === 1,
         ascii(nt) + ' ' + JSON.stringify(n.out.telemetry));
       // ...unless the takhrij proves it. The local library's own answer for this hadith, measured: sourced, "(Muslim)",
       // no Companion named. So it proves the unit that names Muslim, and not the one that also names Tamim al-Dari.
@@ -1525,14 +1538,18 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         return { text: text.slice(0, at) + ' (' + PAREN4 + ')' + text.slice(at), entries: [{ matn: M4, sourced: true, parenthetical: PAREN4, companion: '' }] };
       };
       const q4 = (writerText, library = [R_IBN, R_ENC], question = Q4) => run({ question, fatwa: [], libOn: true, library, writerText, takhrijImpl: byLibrary4 });
+      const prose = (r) => r.deltas.filter((d) => !/^\s*<(?:book|source)\b/u.test(d)).map((d) => d.replace(/^\n/u, ''));
+      const exactProse = (r, expected) => JSON.stringify(prose(r)) === JSON.stringify(expected);
+      const OWN_PROVED = ANS_OWN.replace('\u00bb', '\u00bb (' + PAREN4 + ')');
 
       const a = await q4([SIDE_C, ANS_MUSLIM, ANS_ABU_MALIK].join('\n'));
       const at = a.deltas.join('');
       const ta = a.out.telemetry;
-      ok('C7a q4: the side unit is held at the opening (dependent_opening); the answering unit the carrying row proves goes out first, on that row',
-        at.startsWith(ANS_ABU_MALIK) && !at.includes(SIDE.slice(0, 20)) && !at.includes(ANS_MUSLIM.slice(0, 12)) && ta.heldDependentOpening === 1
-        && ta.heldUncitedAttribution === 1 && ta.unitsProvedHadith === 1 && ta.unitsReleased === 1 && !at.includes(NOT_COVERED) && !hasOffer(a)
-        && at.includes('\u0627\u0644\u0645\u0648\u0633\u0648\u0639\u0629'), ascii(a.deltas.join('|')) + ' ' + JSON.stringify(ta));
+      // N section 3 N2(a,b): the checked side precedes the proof, and the unsupported Muslim credit stays held.
+      ok('C7a q4 releases the checked side before the answering proof, retaining the uncited attribution hold',
+        exactProse(a, [SIDE, ANS_ABU_MALIK]) && !at.includes(ANS_MUSLIM.slice(0, 12)) && ta.heldDependentOpening === 0
+        && ta.heldUncitedAttribution === 1 && ta.unitsHeld === 1 && ta.unitsProvedHadith === 1 && ta.unitsReleased === 2
+        && !at.includes(NOT_COVERED) && !hasOffer(a) && at.includes('\u0627\u0644\u0645\u0648\u0633\u0648\u0639\u0629'), ascii(a.deltas.join('|')) + ' ' + JSON.stringify(ta));
       const f = await q4([ANS_ABU_MALIK, SIDE_C, ANS_MUSLIM].join('\n'));
       const ft = f.deltas.join('');
       ok('C7b ...and the side unit may follow it: after the first proved unit, today\x27s checks (the unit naming Muslim, which nothing carries, stays held)',
@@ -1545,16 +1562,22 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         && n.out.telemetry.heldDependentOpening === 1, ascii(n.deltas.join('|')) + ' ' + JSON.stringify(n.out.telemetry));
       const th = await q4([SIDE_C, THIS_HADITH].join('\n'));
       const wa = await q4([SIDE_C, WA_THIS_HADITH, ANS_ABU_MALIK].join('\n'));
-      ok('C7d a proved unit opening "this hadith" means the asked hadith and goes out first, after the held side unit too; behind wa it stays R5\x27s connector',
-        th.deltas.join('').startsWith(THIS_HADITH) && th.out.telemetry.heldDependentOnHeld === 0 && th.out.telemetry.heldDependentOpening === 1
-        && th.out.telemetry.unitsProvedHadith === 1 && !wa.deltas.join('').includes(WA_THIS_HADITH) && wa.out.telemetry.heldDependentOnHeld === 1
-        && wa.deltas.join('').startsWith(ANS_ABU_MALIK), ascii(th.deltas.join('|') + ' || ' + wa.deltas.join('|')));
+      // N section 3 N2(a,b): a released side supplies the connector context; the repeated proof is still held.
+      ok('C7d this-hadith proof follows the side; wa has a released antecedent and the redundant later proof is held',
+        exactProse(th, [SIDE, THIS_HADITH]) && th.out.telemetry.heldDependentOnHeld === 0 && th.out.telemetry.heldDependentOpening === 0
+        && th.out.telemetry.unitsProvedHadith === 1 && th.out.telemetry.unitsReleased === 2 && th.out.telemetry.unitsHeld === 0
+        && exactProse(wa, [SIDE, WA_THIS_HADITH]) && wa.out.telemetry.heldDependentOnHeld === 0 && wa.out.telemetry.heldDependentOpening === 0
+        && wa.out.telemetry.unitsReleased === 2 && wa.out.telemetry.unitsProvedHadith === 1 && wa.out.telemetry.unitsHeld === 1 && wa.out.telemetry.heldRepeat === 1,
+        ascii(th.deltas.join('|') + ' || ' + wa.deltas.join('|')));
       const ld = await q4([LEAD, ANS_OWN, SIDE_C].join('\n'));
       const ldn = await q4([LEAD, SIDE_C, ANS_ABU_MALIK].join('\n'));
-      ok('C7e a lead-in goes out with the proved unit it introduces, in one delta; a lead-in before the side unit is held with it',
-        (ld.deltas[0] || '').startsWith(LEAD + '\n') && (ld.deltas[0] || '').includes(M4) && ld.out.telemetry.unitsProvedHadith === 1
-        && ld.deltas.join('').includes(drop(SIDE_C)) && !ldn.deltas.join('').includes(LEAD) && ldn.deltas.join('').startsWith(ANS_ABU_MALIK)
-        && ldn.out.telemetry.heldDependentOpening === 1, ascii(ld.deltas.join('|') + ' || ' + ldn.deltas.join('|')));
+      // N section 3 N2(a,b): a lead stays attached to its checked unit, including a resumed side unit.
+      ok('C7e the lead and its checked unit share one delta, before the following unit in both writer orders',
+        exactProse(ld, [LEAD + '\n' + OWN_PROVED, SIDE]) && ld.out.telemetry.unitsProvedHadith === 1
+        && ld.out.telemetry.unitsReleased === 2 && ld.out.telemetry.unitsHeld === 0
+        && exactProse(ldn, [LEAD + '\n' + SIDE, ANS_ABU_MALIK]) && ldn.out.telemetry.unitsProvedHadith === 1
+        && ldn.out.telemetry.unitsReleased === 2 && ldn.out.telemetry.unitsHeld === 0 && ldn.out.telemetry.heldDependentOpening === 0,
+        ascii(ld.deltas.join('|') + ' || ' + ldn.deltas.join('|')));
       const GRADE4 = '\u0645\u0627 \u0635\u062d\u0629 \u062d\u062f\u064a\u062b: \u0627\u0644\u0637\u0647\u0648\u0631 \u0634\u0637\u0631 \u0627\u0644\u0625\u064a\u0645\u0627\u0646\u061f';
       const MEANING4 = '\u0645\u0627 \u0645\u0639\u0646\u0649 \u062d\u062f\u064a\u062b: \u0627\u0644\u0637\u0647\u0648\u0631 \u0634\u0637\u0631 \u0627\u0644\u0625\u064a\u0645\u0627\u0646\u061f';
       const g = await q4([SIDE_C, ANS_ABU_MALIK].join('\n'), [R_IBN, R_ENC], GRADE4);
@@ -1588,19 +1611,55 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         && UNITS.narratorsNamed('\u0639\u0646 \u0623\u0628\u064a \u062f\u0627\u0648\u062f \u0631\u0636\u064a \u0627\u0644\u0644\u0647 \u0639\u0646\u0647.').length === 0 && UNITS.narratorsNamed('\u0639\u0646 \u0627\u0644\u0628\u062e\u0627\u0631\u064a \u0631\u0636\u064a \u0627\u0644\u0644\u0647 \u0639\u0646\u0647.').length === 0
         && JSON.stringify(UNITS.collectionsNamed(ANS_MUSLIM)) === JSON.stringify(['\u0645\u0633\u0644\u0645']),
         JSON.stringify([UNITS.narratorsNamed(ANS_MUSLIM), UNITS.narratorsNamed(ANS_ABU_MALIK)]));
+      // N section 3 N2(a,b): preserve narrator checks and release the checked side before its proof.
       ok('C8b a kunya\x27s case does not change the name: "an Abi Malik" is carried by the row\x27s "rawa Abu Malik"; another kunya is not',
-        own.deltas.join('').startsWith(ANS_OWN.slice(0, 30)) && own.out.telemetry.unitsProvedHadith === 1 && own.out.telemetry.heldDependentOpening === 1
+        exactProse(own, [SIDE, OWN_PROVED]) && own.out.telemetry.unitsProvedHadith === 1 && own.out.telemetry.heldDependentOpening === 0
+        && own.out.telemetry.unitsReleased === 2 && own.out.telemetry.unitsHeld === 0
         && UNITS.textNamesNarrator('\u0645\u0627 \u0631\u0648\u0649 \u0627\u0628\u0648 \u0645\u0627\u0644\u0643 \u0627\u0644\u0627\u0634\u0639\u0631\u064a \u0631\u0636\u064a \u0627\u0644\u0644\u0647', '\u0627\u0628\u064a \u0645\u0627\u0644\u0643 \u0627\u0644\u0627\u0634\u0639\u0631\u064a')
         && UNITS.textNamesNarrator('\u0645\u0627 \u0631\u0648\u0649 \u0627\u0628\u0648 \u0645\u0627\u0644\u0643 \u0627\u0644\u0627\u0634\u0639\u0631\u064a \u0631\u0636\u064a \u0627\u0644\u0644\u0647', '\u0627\u0628\u0627 \u0645\u0627\u0644\u0643 \u0627\u0644\u0627\u0634\u0639\u0631\u064a')
         && !UNITS.textNamesNarrator('\u0639\u0646 \u0627\u0628\u064a \u0628\u0643\u0631 \u0631\u0636\u064a \u0627\u0644\u0644\u0647 \u0639\u0646\u0647', '\u0627\u0628\u0648 \u0647\u0631\u064a\u0631\u0647') && !UNITS.textNamesNarrator('\u0645\u0627 \u0631\u0648\u0649 \u0627\u0628\u0648 \u0645\u0627\u0644\u0643 \u0627\u0644\u0627\u0634\u0639\u0631\u064a', '\u0627\u0628\u0648 \u0647\u0631\u064a\u0631\u0647'),
         ascii(own.deltas.join('|')) + ' ' + JSON.stringify(own.out.telemetry));
       const rw = await q4([SIDE_C, RAWA_THIS].join('\n'));
       const hw = await q4([SIDE_C, HUWA].join('\n'));
-      ok('C8c "rawa hadha al-hadith X" and "rawahu huwa X" name X: read, carried by the row, and out first',
-        rw.deltas.join('').startsWith(RAWA_THIS) && rw.out.telemetry.unitsProvedHadith === 1 && hw.deltas.join('').startsWith(noWaw(HUWA))
+      // N section 3 N2(a,b): both narrator forms follow the checked side in writer order.
+      ok('C8c "rawa hadha al-hadith X" and "rawahu huwa X" name X: read, carried by the row, and released after the side',
+        exactProse(rw, [SIDE, RAWA_THIS]) && rw.out.telemetry.unitsProvedHadith === 1 && exactProse(hw, [SIDE, HUWA])
+        && rw.out.telemetry.unitsReleased === 2 && rw.out.telemetry.unitsHeld === 0
+        && hw.out.telemetry.unitsReleased === 2 && hw.out.telemetry.unitsHeld === 0
         && hw.out.telemetry.unitsProvedHadith === 1 && JSON.stringify(UNITS.narratorsNamed(RAWA_THIS)) === JSON.stringify(['\u0627\u0628\u0648 \u0645\u0627\u0644\u0643 \u0627\u0644\u0627\u0634\u0639\u0631\u064a'])
         && JSON.stringify(UNITS.narratorsNamed(HUWA)) === JSON.stringify(['\u0627\u0628\u0648 \u0645\u0627\u0644\u0643 \u0627\u0644\u0627\u0634\u0639\u0631\u064a']),
         ascii(rw.deltas.join('|') + ' || ' + hw.deltas.join('|')));
+
+      // N2 protective checks: no model, no network; use the actual releaser and full turn.
+      const closed = await q4(SIDE_C, [R_IBN]);
+      ok('P1 absent asked matn keeps the gate-only unit held and the no-evidence turn on its existing ending',
+        closed.deltas.join('') === NOT_COVERED && hasOffer(closed) && closed.out.telemetry.continued === ''
+        && closed.out.telemetry.unitsReleased === 0 && closed.out.telemetry.unitsProvedHadith === 0
+        && closed.out.telemetry.unitsHeld === 1 && closed.out.telemetry.heldDependentOpening === 1,
+        JSON.stringify(closed.out.telemetry));
+      const SIDE2 = '\u0627\u0644\u0628\u062d\u062b \u0641\u064a \u0627\u0644\u0623\u0633\u0627\u0646\u064a\u062f \u064a\u062d\u062a\u0627\u062c \u0625\u0644\u0649 \u0639\u0646\u0627\u064a\u0629.';
+      const AFTER = '\u062a\u0644\u0643 \u062e\u0644\u0627\u0635\u0629 \u0627\u0644\u0643\u0644\u0627\u0645.';
+      const lateProof = async (text) => ({ text, entries: text.includes(M4)
+        ? [{ matn: M4, sourced: true, parenthetical: '\u0645\u0633\u0644\u0645', companion: '\u0623\u0628\u0648 \u0645\u0627\u0644\u0643 \u0627\u0644\u0623\u0634\u0639\u0631\u064a' }] : [] });
+      const lateRun = (writerText) => run({ question: Q4, fatwa: [], libOn: true, library: [R_IBN], writerText, takhrijImpl: lateProof });
+      const blockedLate = await lateRun([ANS_MUSLIM, SIDE_C, ANS_OWN].join('\n'));
+      const blockedInitial = await q4([ANS_MUSLIM, SIDE_C, ANS_OWN].join('\n'));
+      ok('P2 neither deferred nor initial opening releases a unit with an independent attribution hold',
+        [blockedLate, blockedInitial].every((r) => r.out.telemetry.heldUncitedAttribution === 1
+          && r.out.telemetry.unitsHeld === 1 && r.out.telemetry.unitsReleased === 2 && r.out.telemetry.unitsProvedHadith === 1
+          && !r.deltas.join('').includes(ANS_MUSLIM))
+        && exactProse(blockedLate, [noWaw(SIDE), ANS_OWN]) && exactProse(blockedInitial, [noWaw(SIDE), OWN_PROVED]),
+        JSON.stringify([blockedLate.out.telemetry, blockedInitial.out.telemetry]));
+      const late = await lateRun([SIDE_C, SIDE2, ANS_OWN, AFTER].join('\n'));
+      ok('P3 two deferred units precede the opener and the later unit in exact writer order',
+        exactProse(late, [noWaw(SIDE), SIDE2, ANS_OWN, AFTER]) && late.out.telemetry.unitsReleased === 4
+        && late.out.telemetry.unitsHeld === 0 && late.out.telemetry.unitsProvedHadith === 1 && late.out.telemetry.heldDependentOpening === 0,
+        ascii(prose(late).join('|')) + ' ' + JSON.stringify(late.out.telemetry));
+      const never = await lateRun([SIDE_C, SIDE2].join('\n'));
+      ok('P4 without an opening proof both deferred units remain held through end of turn',
+        never.deltas.join('') === NOT_COVERED && hasOffer(never) && never.out.telemetry.unitsReleased === 0
+        && never.out.telemetry.unitsProvedHadith === 0 && never.out.telemetry.unitsHeld === 2 && never.out.telemetry.heldDependentOpening === 2,
+        JSON.stringify(never.out.telemetry));
 
       // Question 3: the question's own credit ("fi al-sahihayn") was read into the hadith, so the takhrij looked up a text
       // the library credits to al-Bukhari alone. The takhrij fake is the library's measured answer for each text looked up;
