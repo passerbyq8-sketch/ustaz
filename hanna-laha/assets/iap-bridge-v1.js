@@ -169,10 +169,10 @@
     var modal = openModal('تسجيل الدخول', 'يلزم تسجيل الدخول إلى حساب عزك قبل بدء الجلسة أو الشراء.');
     line(modal.content, 'سجّل الدخول إلى حساب عزك، ثم ارجع إلى هذه الغرفة للمتابعة.');
     if (options.signinRule === true) {
-      modal.card.querySelector('h2').textContent = '«تسجيل الدخول»';
-      modal.paragraph.textContent = '«ألعاب كنوز المعرفة مجانية للجميع، ويلزم تسجيل الدخول إلى حساب عزك قبل اللعب.»';
+      modal.card.querySelector('h2').textContent = 'تسجيل الدخول';
+      modal.paragraph.textContent = 'ألعاب كنوز المعرفة مجانية للجميع، ويلزم تسجيل الدخول إلى حساب عزك قبل اللعب.';
       var followUp = modal.content.querySelector('p');
-      if (followUp) followUp.textContent = '«سجّل الدخول، ثم ارجع إلى هذه الصفحة للمتابعة.»';
+      if (followUp) followUp.textContent = 'سجّل الدخول، ثم ارجع إلى هذه الصفحة للمتابعة.';
       if (options.lockedPage === true) {
         if (modal.closeButton && modal.closeButton.parentNode) modal.closeButton.parentNode.removeChild(modal.closeButton);
         modal.closeButton = null;
@@ -188,7 +188,7 @@
     signIn.textContent = 'تسجيل الدخول';
     modal.content.append(signIn);
     if (options.signinRule === true && options.lockedPage === true) {
-      modal.content.append(button('«العودة إلى كنوز المعرفة»', function () {
+      modal.content.append(button('العودة إلى كنوز المعرفة', function () {
         closeModal(); window.location.href = '/quest.html';
       }, true));
     }

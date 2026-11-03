@@ -103,7 +103,7 @@ async function runIapBridge(mode, accountSession = null) {
   return { document, calls, starts };
 }
 
-async function runFreeSignInGate(signin, scenario, entrypoint) {
+async function runFreeSignInGate(signin, scenario, entrypoint, lockedPage = false) {
   const source = await readFile(new URL('../hanna-laha/assets/iap-bridge-v1.js', import.meta.url), 'utf8');
   const { document } = parseHTML('<html><body></body></html>');
   const windowListeners = new Map();
@@ -156,7 +156,7 @@ async function runFreeSignInGate(signin, scenario, entrypoint) {
   };
   vm.runInNewContext(source, { window, document, localStorage, sessionStorage, fetch, navigator, setTimeout, clearTimeout });
   if (entrypoint === 'access') {
-    await window.ezikIapCheckGameAccess('ghaws', () => { allowed += 1; }, '/quest-ghaws.html');
+    await window.ezikIapCheckGameAccess('ghaws', () => { allowed += 1; }, '/quest-ghaws.html', { lockedPage });
   } else {
     window.ezikIapStart(() => { starts += 1; }, 'room-1', 'hanna');
   }
@@ -175,6 +175,8 @@ async function runFreeSignInGate(signin, scenario, entrypoint) {
     calls, allowed, starts, dialog, dialogSeenBeforeResume,
     dialogTitle: dialog?.querySelector('h2')?.textContent || '',
     dialogCopy: dialog?.querySelector('.ezik-iap-copy')?.textContent || '',
+    dialogLine: dialog?.querySelector('.ezik-iap-content p')?.textContent || '',
+    returnButton: dialog?.querySelector('.ezik-iap-content button.ezik-iap-button-secondary')?.textContent || '',
     dialogText: dialog?.textContent || '',
     signInLink: dialog?.querySelector('a[href="/?ezik_iap_signin=1"]') || null,
     closeButton: dialog?.querySelector('.ezik-iap-header button') || null,
@@ -399,9 +401,9 @@ test('public IAP status exposes only exact free-mode sign-in rules', async () =>
 
 test('free sign-in bridge gates allow only the configured account checks and preserve none calls', async () => {
   const scenarios = ['no-session', 'valid-session', '401', 'server-failure', 'offline', 'no-session-resume'];
-  const expectedTitle = "«تسجيل الدخول»";
-  const expectedCopy = "«ألعاب كنوز المعرفة مجانية للجميع، ويلزم تسجيل الدخول إلى حساب عزك قبل اللعب.»";
-  const expectedLine = "«سجّل الدخول، ثم ارجع إلى هذه الصفحة للمتابعة.»";
+  const expectedTitle = "تسجيل الدخول";
+  const expectedCopy = "ألعاب كنوز المعرفة مجانية للجميع، ويلزم تسجيل الدخول إلى حساب عزك قبل اللعب.";
+  const expectedLine = "سجّل الدخول، ثم ارجع إلى هذه الصفحة للمتابعة.";
   for (const entrypoint of ['access', 'start']) {
     for (const signin of ['all', 'host', 'none']) {
       for (const scenario of scenarios) {
@@ -418,7 +420,7 @@ test('free sign-in bridge gates allow only the configured account checks and pre
           assert.ok(result.dialog, `${entrypoint} rule=${signin} scenario=${scenario} dialog`);
           assert.equal(result.dialogTitle, expectedTitle);
           assert.equal(result.dialogCopy, expectedCopy);
-          assert.ok(result.dialogText.includes(expectedLine));
+          assert.equal(result.dialogLine, expectedLine);
           assert.ok(result.signInLink);
           assert.ok(result.closeButton, 'unlocked page keeps its close button');
           assert.doesNotMatch(result.dialogText, /purchase|trial|week/i);
@@ -440,6 +442,33 @@ test('free sign-in bridge gates allow only the configured account checks and pre
     assert.equal(invalid.dialog, null);
     assert.deepEqual(invalid.calls, scenario === 'offline' ? [] : ['../api/iap-status']);
   }
+});
+
+test('all five sign-in strings render without outer guillemets', async () => {
+  const opening = String.fromCharCode(0x00ab);
+  const closing = String.fromCharCode(0x00bb);
+  const assertUnwrapped = (value, label) => {
+    assert.equal(value.startsWith(opening), false, `${label} starts with an opening guillemet`);
+    assert.equal(value.endsWith(closing), false, `${label} ends with a closing guillemet`);
+  };
+  const unlocked = await runFreeSignInGate('all', 'no-session', 'access');
+  assertUnwrapped(unlocked.dialogTitle, 'dialog title');
+  assertUnwrapped(unlocked.dialogCopy, 'dialog copy');
+  assertUnwrapped(unlocked.dialogLine, 'dialog line');
+
+  const locked = await runFreeSignInGate('all', 'no-session', 'access', true);
+  assert.equal(locked.closeButton, null);
+  assertUnwrapped(locked.returnButton, 'locked-page return button');
+
+  const journey = await readFile(new URL('../quest-theme/journey.js', import.meta.url), 'utf8');
+  const markupSource = journey.match(/function homeNoticeMarkup\(\) \{[\s\S]*?\n  \}/)?.[0];
+  assert.ok(markupSource);
+  const renderNotice = new Function('M', 'esc', 'ar', 'button', `${markupSource}; return homeNoticeMarkup;`)(
+    { homeNotice: { kind: 'signin-required' } }, String, String, (label) => `<button>${label}</button>`,
+  );
+  const { document } = parseHTML(renderNotice());
+  const notice = document.querySelector('.j-note')?.textContent || '';
+  assertUnwrapped(notice, 'home notice');
 });
 
 test('web owner skips sign-in and choice UI when off or when their balance is unenforced', async () => {

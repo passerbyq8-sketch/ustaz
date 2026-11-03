@@ -183,7 +183,7 @@
       const remaining = days === 1 ? 'تنتهي تجربتك المجانية اليوم.' : 'متبقّي ' + ar(days) + ' أيام.';
       copy = 'ألعاب كنوز المعرفة مجانية لك لمدة ٧ أيام (' + remaining + ') ما زلنا نحسّن الألعاب. بعد الأسبوع، يلزم اشتراك أسبوع أو شهر أو سنة لدخول أي لعبة. الأسعار تحت زر «اشتر لعبة».';
     }
-    if (notice.kind === 'signin-required') copy = '«ألعاب كنوز المعرفة مجانية للجميع. سجّل الدخول لتبدأ اللعب.»';
+    if (notice.kind === 'signin-required') copy = 'ألعاب كنوز المعرفة مجانية للجميع. سجّل الدخول لتبدأ اللعب.';
     if (!copy) return '';
     return '<aside class="j-form-card j-iap-notice" role="status"><p class="j-note">' + esc(copy) + '</p><div class="j-actions">' + button('إخفاء', 'dismiss-home-notice', 'j-secondary') + '</div></aside>';
   }

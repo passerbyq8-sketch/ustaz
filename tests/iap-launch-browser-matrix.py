@@ -24,11 +24,11 @@ GAME_PATHS = {
     "hanna-laha": "/hanna-laha/",
 }
 BANK_STAMP = "local-iap-launch-bank-v1"
-SIGNIN_TITLE = "«تسجيل الدخول»"
-SIGNIN_COPY = "«ألعاب كنوز المعرفة مجانية للجميع، ويلزم تسجيل الدخول إلى حساب عزك قبل اللعب.»"
-SIGNIN_LINE = "«سجّل الدخول، ثم ارجع إلى هذه الصفحة للمتابعة.»"
-SIGNIN_HOME_NOTICE = "«ألعاب كنوز المعرفة مجانية للجميع. سجّل الدخول لتبدأ اللعب.»"
-SIGNIN_RETURN = "«العودة إلى كنوز المعرفة»"
+SIGNIN_TITLE = "تسجيل الدخول"
+SIGNIN_COPY = "ألعاب كنوز المعرفة مجانية للجميع، ويلزم تسجيل الدخول إلى حساب عزك قبل اللعب."
+SIGNIN_LINE = "سجّل الدخول، ثم ارجع إلى هذه الصفحة للمتابعة."
+SIGNIN_HOME_NOTICE = "ألعاب كنوز المعرفة مجانية للجميع. سجّل الدخول لتبدأ اللعب."
+SIGNIN_RETURN = "العودة إلى كنوز المعرفة"
 EXTERNAL_REQUESTS = []
 os.makedirs(OUT, exist_ok=True)
 os.chdir(REPO)
@@ -289,16 +289,23 @@ def run_home_cell(browser, config, name):
     finally:
         context.close()
 
+def assert_no_outer_guillemets(value, name):
+    assert not value.startswith("\u00ab") and not value.endswith("\u00bb"), name + ": outer guillemets found"
+
 def assert_signin_dialog(page, locked, name):
     dialog = page.locator('.ezik-iap-card')
     dialog.wait_for(state="visible", timeout=30000)
     text = dialog.inner_text()
+    for selector, label in (('h2', 'title'), ('.ezik-iap-copy', 'copy'), ('.ezik-iap-content > p', 'line')):
+        assert_no_outer_guillemets(dialog.locator(selector).inner_text(), name + ": sign-in " + label)
     assert SIGNIN_TITLE in text and SIGNIN_COPY in text and SIGNIN_LINE in text, name + ": sign-in dialog copy mismatch"
     assert page.locator('a[href="/?ezik_iap_signin=1"]').count() == 1, name + ": existing sign-in link missing"
     close_count = page.locator('.ezik-iap-header button').count()
     if locked:
         assert close_count == 0, name + ": locked page dialog has a close button"
-        assert page.get_by_role('button', name=SIGNIN_RETURN).count() == 1, name + ": locked page return button missing"
+        return_button = page.get_by_role('button', name=SIGNIN_RETURN)
+        assert return_button.count() == 1, name + ": locked page return button missing"
+        assert_no_outer_guillemets(return_button.inner_text(), name + ": sign-in return button")
     else:
         assert close_count == 1, name + ": unlocked dialog must keep its close button"
         assert page.get_by_role('button', name=SIGNIN_RETURN).count() == 0, name + ": unlocked dialog has a return button"
@@ -339,6 +346,7 @@ def run_signin_home_cell(browser, rule, platform):
         assert response and response.status == 200, name + ": home did not load"
         assert home["entry"] is False, name + ": purchase entry is visible"
         assert home["signInRuleNotice"] == SIGNIN_HOME_NOTICE, name + ": sign-in notice copy mismatch"
+        assert_no_outer_guillemets(home["signInRuleNotice"], name + ": sign-in home notice")
         assert page.locator('.j-iap-notice [data-action="dismiss-home-notice"]').count() == 1, name + ": existing hide button missing"
         assert not any(word in home["signInRuleNotice"].casefold() for word in ('purchase', 'week', 'trial', 'شراء', 'أسبوع', 'تجربة'))
         save_shot(page, name + ".png")
