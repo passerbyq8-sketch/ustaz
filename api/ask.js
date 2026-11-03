@@ -147,6 +147,7 @@ import { runClosedDeenTurn } from '../lib/closed-deen.js';
 import { LIB_MAX_CHARS_PER_HIT_DEFAULT } from '../lib/lib-contract.js';
 import { freeBrainDecision, beforeWritingV2Decision, beforeWritingV2Takes, readLiveSearch, bw2ContinueDecision } from '../lib/free-brain/flag.js';
 import { bw2ScopeExclusion } from '../lib/bw2-scope.js';
+import { createBw2Diagnostic } from '../lib/bw2-diagnostic.js';
 // THE FRONT SORTER AND THE GENERAL FRAME (order EZIK-SORTER-ORDER-2026-10-01). One fast-model call
 // separates a worldly request that carries a religious-looking word from a religious one BEFORE it is
 // framed; a turn that ends GENERAL is then answered in the general frame. Both modules are pure.
@@ -2099,6 +2100,9 @@ export default async function handler(req, res) {
     let bw2HandOver = null;
     if (bw2Taken) {
       const { runBw2Turn, createBw2Wire } = await import('../lib/before-writing-v2.js');
+      const diagnostic = createBw2Diagnostic(req, { question: questionText,
+        consent: req.headers?.[AI_CONSENT_HEADER] || '', requestStartedAt });
+      if (diagnostic) res.setBw2Diagnostic(diagnostic);
       const beforeBw2 = {
         allowWireOwnedCards: finalizerContext.allowWireOwnedCards,
         consistencyContext: finalizerContext.consistencyContext,
@@ -2121,6 +2125,7 @@ export default async function handler(req, res) {
       try {
         bw2Out = await runBw2Turn({
           question: questionText,
+          diagnostic,
           messages: body.messages,
           mode: readRequestedDepth(body.depth) || 'brief',
           band,

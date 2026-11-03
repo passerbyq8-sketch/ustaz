@@ -1,0 +1,67 @@
+{
+  "Q01-shape": {
+    "response": "f5b3677ce18546e293ad922aaa14ba46ff77882e56808998a8c6b29fbb3d12bc",
+    "log": "ef1b26917f9c322378ffea94e2f93d3627aad3cce12d4bb87227d317bf3b39bd",
+    "calls": "908a291498993bb661eb3ae705f2e2843f1cee33b9d20a5130ae4292f5d196c5"
+  },
+  "Q04-shape": {
+    "response": "6a4190bbe46bbb6ae7b4b9b755a380f83fee100eb6f6a668f3de677bb784927a",
+    "log": "32b0a9e3aa478055764b87f675d8060d279d29e434141ddaa7090dd5824656f5",
+    "calls": "bce8beb9bf06822ec3e18ba3e66588c0e2b56160b95cfd4bfb2a226b437c3746"
+  },
+  "dependent": {
+    "response": "a9216cd1a374f5c9efb6bce209359f40a203a14e5fe0d752f5985782b6357930",
+    "log": "d1dc0a0f20eb464ab76c2800210beed4ff86d4f636a07552a85ba42b4c1c5f25",
+    "calls": "ad0db8108a9939f29942b969f97e6292328bef28727d8aa2b0f47fa8b6279bab"
+  },
+  "dependent-opening": {
+    "response": "a9216cd1a374f5c9efb6bce209359f40a203a14e5fe0d752f5985782b6357930",
+    "log": "60def6172c2cf969a6af9931dbf44f1b14bb2d8eb244bd0959c8c58189e71357",
+    "calls": "ad0db8108a9939f29942b969f97e6292328bef28727d8aa2b0f47fa8b6279bab"
+  },
+  "marker": {
+    "response": "a9216cd1a374f5c9efb6bce209359f40a203a14e5fe0d752f5985782b6357930",
+    "log": "694a40489b4605819cf5c8575bf6eb2d3eb07b43e1c4d1c38ba4c291ebc3fbe8",
+    "calls": "12c130427b43c165a1392c82ded53df36abf83b92cdd60a932e245955867a485"
+  },
+  "released": {
+    "response": "3027eea3b2d28a792dbeec53d82cf1dff3de3fa5459680645fafab34d2e7fbfd",
+    "log": "f6115290e92c852b1eef9588c05760c024067bf6af1af44e7e340a3e2d94d998",
+    "calls": "12c130427b43c165a1392c82ded53df36abf83b92cdd60a932e245955867a485"
+  },
+  "continuation": {
+    "response": "0562484a301c37b0a2cffd01b4d85188f71a4331ce94dfeff39443fba220741e",
+    "log": "1c236d93458065255146f6451e51b085c2348509b2d532ff5a06c891802183a8",
+    "calls": "5d3df693c98a27eecb8d00a033da730de9f024ea3f86cace579611321651b8d3"
+  },
+  "refusal": {
+    "response": "043cd488d77e3275794579e5ef253db039788a11bf316b9c13f4dd46a612ab04",
+    "log": "c06eb5db04645526273984961156bde5b9bb4b981e92ae2ee54dea4719c741c3",
+    "calls": "12c130427b43c165a1392c82ded53df36abf83b92cdd60a932e245955867a485"
+  },
+  "no-rows": {
+    "response": "025165f37bf322a66411f6a407b5c0ad4d1e2b72745820df3b596873edfc1ee8",
+    "log": "fd122a58a6f36eca286c33c70ce8bae24058440dbabe14cabae3791326a73db6",
+    "calls": "5c4d5db9dcb55ab96e90a98532aee4e63a19e00a069ad1542a93d76529d5cb58"
+  },
+  "judge-none": {
+    "response": "1c438d2208bec7105b473c464845d5d53f8b42d5189815d2821ed07cc9ca33c4",
+    "log": "1a5d8c3a0cba0906c0d465f704c4aceab4e82e03bb441e171f839584d36326a1",
+    "calls": "d2e254ad80f3619d491f1111bcc6a9aca9e92dcde5c1e7a6d2e35c0530a82d9a"
+  },
+  "judge-missing": {
+    "response": "1c438d2208bec7105b473c464845d5d53f8b42d5189815d2821ed07cc9ca33c4",
+    "log": "2721a332f99b2f45dc3d353e7b5d21455eb89813dec267ccb474cb0000263125",
+    "calls": "d2e254ad80f3619d491f1111bcc6a9aca9e92dcde5c1e7a6d2e35c0530a82d9a"
+  },
+  "ranked": {
+    "response": "3027eea3b2d28a792dbeec53d82cf1dff3de3fa5459680645fafab34d2e7fbfd",
+    "log": "8b1f3903627299a8fbdff74ee45732b10295bcf81e908819c32e0d430d8d094e",
+    "calls": "d3bab1c30cb9b16ea3bf966ed6bb8deab272b6ab9cbb9058f974ab2b129067f3"
+  },
+  "takhrij": {
+    "response": "fb4c76516399dc125fc0a600a30cd3af455a7c3b70c587e6e24382f4bd41eaaa",
+    "log": "f73d14e88f71395cc3c20f59675d957f6a647e648c4ab8dae6c8be8493cec1c4",
+    "calls": "ca171064f626139c506eb5265dc9ac477009b667c61b99eb37d01997048bbefc"
+  }
+}
