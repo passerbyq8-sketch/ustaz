@@ -117,7 +117,7 @@
     card.append(header, paragraph, content);
     backdrop.append(card);
     backdrop.addEventListener('click', function (event) {
-      if (options.closeButton !== false && event.target === backdrop && (!active || active.busy !== true)) closeModal();
+      if (active && active.closeButton && event.target === backdrop && active.busy !== true) closeModal();
     });
     document.body.append(backdrop);
     active = { backdrop: backdrop, card: card, paragraph: paragraph, content: content, closeButton: close, busy: false };
@@ -163,10 +163,23 @@
     return node;
   }
 
-  function showSignIn(resumeAction) {
+  function showSignIn(resumeAction, options) {
+    options = options || {};
     pendingSignInAction = typeof resumeAction === 'function' ? resumeAction : null;
     var modal = openModal('تسجيل الدخول', 'يلزم تسجيل الدخول إلى حساب عزك قبل بدء الجلسة أو الشراء.');
     line(modal.content, 'سجّل الدخول إلى حساب عزك، ثم ارجع إلى هذه الغرفة للمتابعة.');
+    if (options.signinRule === true) {
+      modal.card.querySelector('h2').textContent = '«تسجيل الدخول»';
+      modal.paragraph.textContent = '«ألعاب كنوز المعرفة مجانية للجميع، ويلزم تسجيل الدخول إلى حساب عزك قبل اللعب.»';
+      var followUp = modal.content.querySelector('p');
+      if (followUp) followUp.textContent = '«سجّل الدخول، ثم ارجع إلى هذه الصفحة للمتابعة.»';
+      if (options.lockedPage === true) {
+        if (modal.closeButton && modal.closeButton.parentNode) modal.closeButton.parentNode.removeChild(modal.closeButton);
+        modal.closeButton = null;
+        modal.card.tabIndex = -1;
+        modal.card.focus();
+      }
+    }
     var signIn = document.createElement('a');
     signIn.className = 'ezik-iap-button';
     signIn.href = '/?ezik_iap_signin=1';
@@ -174,6 +187,11 @@
     signIn.rel = 'noopener noreferrer';
     signIn.textContent = 'تسجيل الدخول';
     modal.content.append(signIn);
+    if (options.signinRule === true && options.lockedPage === true) {
+      modal.content.append(button('«العودة إلى كنوز المعرفة»', function () {
+        closeModal(); window.location.href = '/quest.html';
+      }, true));
+    }
     watchForSignIn();
   }
 
@@ -210,6 +228,7 @@
   }
 
   var cachedEnforcementMode = '';
+  var cachedSignInRule = 'none';
   var cachedEnforcementAt = 0;
   var VERIFIED_MODE_KEY = 'ezik_iap_verified_mode_v1';
   var VERIFIED_ENTRY_DECISION_KEY = 'ezik_iap_entry_decision_v1';
@@ -218,7 +237,14 @@
     try {
       var verified = JSON.parse(localStorage.getItem(VERIFIED_MODE_KEY) || 'null');
       if (verified && verified.schema === 1 && ['off', 'test', 'all', 'free'].includes(verified.mode)
-        && Number.isFinite(verified.verifiedAt) && verified.verifiedAt > 0) return verified;
+        && Number.isFinite(verified.verifiedAt) && verified.verifiedAt > 0) {
+        return {
+          schema: 1,
+          mode: verified.mode,
+          signin: verified.mode === 'free' && ['all', 'host'].includes(verified.signin) ? verified.signin : 'none',
+          verifiedAt: verified.verifiedAt,
+        };
+      }
     } catch (e) {}
     return null;
   }
@@ -273,15 +299,15 @@
     return null;
   }
 
-  async function getEnforcementMode() {
+  async function getEnforcementState() {
     // Keep the last public mode and account-scoped entry decision for offline home rendering.
     if (typeof navigator !== 'undefined' && navigator.onLine === false) {
       var verified = readVerifiedMode();
-      if (verified) return verified.mode;
+      if (verified) return verified;
       throw new Error('iap-status-unavailable');
     }
     if (cachedEnforcementMode && Date.now() - cachedEnforcementAt < 30000) {
-      return cachedEnforcementMode;
+      return { mode: cachedEnforcementMode, signin: cachedSignInRule };
     }
     var response = await fetch('../api/iap-status', {
       method: 'GET',
@@ -292,10 +318,15 @@
     if (!response.ok || !['off', 'test', 'all', 'free'].includes(data.mode)) {
       throw new Error('iap-status-unavailable');
     }
+    cachedSignInRule = data.mode === 'free' && ['all', 'host'].includes(data.signin) ? data.signin : 'none';
     cachedEnforcementMode = data.mode;
     cachedEnforcementAt = Date.now();
-    try { localStorage.setItem(VERIFIED_MODE_KEY, JSON.stringify({ schema: 1, mode: data.mode, verifiedAt: cachedEnforcementAt })); } catch (e) {}
-    return data.mode;
+    try { localStorage.setItem(VERIFIED_MODE_KEY, JSON.stringify({ schema: 1, mode: data.mode, signin: cachedSignInRule, verifiedAt: cachedEnforcementAt })); } catch (e) {}
+    return { mode: data.mode, signin: cachedSignInRule };
+  }
+
+  async function getEnforcementMode() {
+    return (await getEnforcementState()).mode;
   }
 
   async function startWithoutIap(context) {
@@ -497,16 +528,43 @@
     }));
   }
 
-  async function checkGameAccess(gameId, onAllowed, returnPath) {
+  async function checkGameAccess(gameId, onAllowed, returnPath, accessOptions) {
+    accessOptions = accessOptions && typeof accessOptions === 'object' ? accessOptions : {};
     async function continueIfAllowed() {
       if (typeof onAllowed === 'function') await Promise.resolve(onAllowed());
       return true;
     }
     if (!['ghaws', 'harb', 'test', 'board', 'hanna'].includes(gameId)) return false;
     if (active) return false;
-    var mode;
-    try { mode = await getEnforcementMode(); } catch (e) { mode = 'all'; }
-    if (mode === 'off' || mode === 'free' || mode === 'test' && !authSession()) return continueIfAllowed();
+    var enforcement;
+    try { enforcement = await getEnforcementState(); } catch (e) { enforcement = { mode: 'all', signin: 'none' }; }
+    var mode = enforcement.mode;
+    if (accessOptions.joiner === true && (mode !== 'free' || enforcement.signin !== 'all')) return continueIfAllowed();
+    var freeSignInRequired = mode === 'free' && (accessOptions.joiner === true
+      ? enforcement.signin === 'all'
+      : ['all', 'host'].includes(enforcement.signin));
+    if (mode === 'free' && !freeSignInRequired) return continueIfAllowed();
+    if (freeSignInRequired) {
+      var freeSession = authSession();
+      var freeReturnPath = returnPath || window.location.pathname + window.location.search + window.location.hash;
+      var freeResume = function () { return checkGameAccess(gameId, onAllowed, freeReturnPath, accessOptions); };
+      var signInOptions = { signinRule: true, lockedPage: accessOptions.lockedPage === true };
+      if (!freeSession) {
+        if (accessOptions.lockedPage === true) accessOptions.waitingForSignIn = true;
+        showSignIn(freeResume, signInOptions);
+        return false;
+      }
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) return continueIfAllowed();
+      var freeBalance;
+      try { freeBalance = await getBalance(freeSession); } catch (e) { freeBalance = { ok: false, status: 503, data: {} }; }
+      if (!freeBalance.ok && freeBalance.status === 401) {
+        if (accessOptions.lockedPage === true) accessOptions.waitingForSignIn = true;
+        showSignIn(freeResume, signInOptions);
+        return false;
+      }
+      return continueIfAllowed();
+    }
+    if (mode === 'off' || mode === 'test' && !authSession()) return continueIfAllowed();
     var session = authSession();
     if (!session) { showSignIn(function () { return checkGameAccess(gameId, onAllowed, returnPath); }); return false; }
     var response;
@@ -923,10 +981,33 @@
     };
     window.__ezikIapStartGame = start;
     window.__ezikIapRoomCode = roomCode;
-    var mode;
-    try { mode = await getEnforcementMode(); }
-    catch (e) { mode = 'all'; }
-    if (mode === 'off' || mode === 'free' || mode === 'test' && !authSession()) {
+    var enforcement;
+    try { enforcement = await getEnforcementState(); }
+    catch (e) { enforcement = { mode: 'all', signin: 'none' }; }
+    var mode = enforcement.mode;
+    if (mode === 'free') {
+      if (!['all', 'host'].includes(enforcement.signin)) {
+        stopSignInWatch();
+        await startWithoutIap(startContext);
+        return;
+      }
+      var freeSession = authSession();
+      var resumeFreeStart = function () { return beginStart(start, roomCode, gameId, options); };
+      if (!freeSession) { showSignIn(resumeFreeStart, { signinRule: true }); return; }
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        await startWithoutIap(startContext);
+        return;
+      }
+      var freeBalance;
+      try { freeBalance = await getBalance(freeSession); } catch (e) { freeBalance = { ok: false, status: 503, data: {} }; }
+      if (!freeBalance.ok && freeBalance.status === 401) {
+        showSignIn(resumeFreeStart, { signinRule: true });
+        return;
+      }
+      await startWithoutIap(startContext);
+      return;
+    }
+    if (mode === 'off' || mode === 'test' && !authSession()) {
       stopSignInWatch();
       await startWithoutIap(startContext);
       return;
@@ -984,17 +1065,45 @@
     }
   }
 
+  function waitForHomeSignIn(onUpdate, notice) {
+    onUpdate(notice, false);
+    if (homeSignInCleanup) homeSignInCleanup();
+    var done = false;
+    var resume = function () {
+      if (done || !authSession()) return;
+      done = true;
+      if (homeSignInCleanup) homeSignInCleanup();
+      window.ezikIapEnterHome(onUpdate).catch(function () {});
+    };
+    var onStorage = function (event) { if (!event || event.key === SESSION_KEY) resume(); };
+    var onFocus = function () { resume(); };
+    var onVisibility = function () { if (document.visibilityState === 'visible') resume(); };
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+    homeSignInCleanup = function () {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+      homeSignInCleanup = null;
+    };
+  }
+
   async function enterKunuzHome(onUpdate) {
     if (typeof onUpdate !== 'function') return;
-    var mode;
-    try { mode = await getEnforcementMode(); } catch (e) { mode = ''; }
-    if (!mode) {
-      var lastMode = typeof readVerifiedMode === 'function' ? readVerifiedMode() : null;
-      if (lastMode && lastMode.mode === 'free') mode = 'free';
-    }
+    var enforcement = null;
+    try { enforcement = await getEnforcementState(); } catch (e) {}
+    if (!enforcement) enforcement = typeof readVerifiedMode === 'function' ? readVerifiedMode() : null;
+    var mode = enforcement ? enforcement.mode : '';
     if (mode === 'free') {
       var freeSession = authSession();
-      if (!freeSession || !await hasNativePurchaseBridge()) { onUpdate(null, false); return; }
+      if (!freeSession) {
+        if (enforcement && ['all', 'host'].includes(enforcement.signin)) waitForHomeSignIn(onUpdate, { kind: 'signin-required' });
+        else onUpdate(null, false);
+        return;
+      }
+      onUpdate(null, false);
+      if (!await hasNativePurchaseBridge()) return;
       var freeBalance;
       try { freeBalance = await getBalance(freeSession); } catch (e) { freeBalance = { ok: false }; }
       if (freeBalance.ok && freeBalance.data && typeof freeBalance.data.purchaseEntry === 'boolean') {
@@ -1017,27 +1126,7 @@
     var session = authSession();
     if (!session) {
       if (mode !== 'all') { onUpdate(null, false); return; }
-      onUpdate({ kind: 'sign-in' }, false);
-      if (homeSignInCleanup) homeSignInCleanup();
-      var done = false;
-      var resume = function () {
-        if (done || !authSession()) return;
-        done = true;
-        if (homeSignInCleanup) homeSignInCleanup();
-        window.ezikIapEnterHome(onUpdate).catch(function () {});
-      };
-      var onStorage = function (event) { if (!event || event.key === SESSION_KEY) resume(); };
-      var onFocus = function () { resume(); };
-      var onVisibility = function () { if (document.visibilityState === 'visible') resume(); };
-      window.addEventListener('storage', onStorage);
-      window.addEventListener('focus', onFocus);
-      document.addEventListener('visibilitychange', onVisibility);
-      homeSignInCleanup = function () {
-        window.removeEventListener('storage', onStorage);
-        window.removeEventListener('focus', onFocus);
-        document.removeEventListener('visibilitychange', onVisibility);
-        homeSignInCleanup = null;
-      };
+      waitForHomeSignIn(onUpdate, { kind: 'sign-in' });
       return;
     }
     var purchasesApplicable = false;
@@ -1143,19 +1232,41 @@
     var isBoardJoin = gameId === 'board' && /(?:^|[?&])board=\d{4,6}(?:&|$)/.test(search);
     var joinOnly = ['harb', 'board', 'hanna'].includes(gameId) && /(?:^|[?&])iap_join=1(?:&|$)/.test(search);
     if (isHannaJoin || isBoardJoin || joinOnly) {
-      window.ezikIapPageGate = Promise.resolve(true);
+      lockEntryPage(true);
+      var joinReturnPath = window.location.pathname + search + (window.location.hash || '');
+      window.ezikIapPageGate = checkGameAccess(gameId, function () { lockEntryPage(false); }, joinReturnPath, {
+        joiner: true,
+        lockedPage: true,
+      }).then(function (allowed) {
+        if (allowed === true) lockEntryPage(false);
+        return allowed === true;
+      });
       return;
     }
     lockEntryPage(true);
-    var settled = false, initialAllowed = null;
     var returnPath = window.location.pathname + search + (window.location.hash || '');
-    window.ezikIapPageGate = checkGameAccess(gameId, function () {
-      if (settled && initialAllowed === false && window.location.reload) window.location.reload();
-    }, returnPath).then(function (allowed) {
+    var accessOptions = { lockedPage: true };
+    var settled = false, initialAllowed = null;
+    var pageGateDeferred = false, pageGatePassed = false, resolvePageGate = null;
+    var allowPage = function () {
+      lockEntryPage(false);
+      if (pageGateDeferred) {
+        pageGatePassed = true;
+        if (resolvePageGate) resolvePageGate(true);
+      } else if (settled && initialAllowed === false && window.location.reload) {
+        window.location.reload();
+      }
+    };
+    window.ezikIapPageGate = checkGameAccess(gameId, allowPage, returnPath, accessOptions).then(function (allowed) {
       settled = true;
       initialAllowed = allowed === true;
-      if (allowed === true) lockEntryPage(false);
-      return allowed === true;
+      if (allowed === true) { lockEntryPage(false); return true; }
+      if (!accessOptions.waitingForSignIn) return false;
+      pageGateDeferred = true;
+      return new Promise(function (resolve) {
+        resolvePageGate = resolve;
+        if (pageGatePassed) resolve(true);
+      });
     });
   }
 

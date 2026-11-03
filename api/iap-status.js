@@ -1,5 +1,5 @@
 import { applyCorsOrigin } from '../lib/ratelimit.js';
-import { iapEnforcementMode } from '../lib/iap/store.js';
+import { iapEnforcementMode, iapSignInRule } from '../lib/iap/store.js';
 
 export default function handler(req, res) {
   applyCorsOrigin(req, res);
@@ -10,5 +10,7 @@ export default function handler(req, res) {
   }
   if (req.method !== 'GET') return res.status(405).json({ ok: false, error: 'method-not-allowed' });
   res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=30');
-  return res.status(200).json({ mode: iapEnforcementMode() });
+  const mode = iapEnforcementMode();
+  const signin = iapSignInRule(mode);
+  return res.status(200).json(signin === 'none' ? { mode } : { mode, signin });
 }
