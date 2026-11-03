@@ -96,6 +96,21 @@ test('I F1: expanded same-URL text never replaces the original passage and every
   assert.ok(!r.calls.judge[0].user.includes('different-expanded-passage'));
 });
 
+test('I F1: an unassigned global row is kept once without inventing coverage of every question part', async (t) => {
+  stubKey(t);
+  const received = [], question = 'عندي سؤالان: ما حكم المسح على الجوربين؟ وما حكم زكاة الذهب؟';
+  const global = { ...ROW, kind: 'encyclopedia', recordId: 'global', snippet: ROW.text };
+  const r = await turn({ question, env: enabled, extra: { aiConsentVersion: RERANK_CONSENT_VERSION },
+    extraDeps: { rerankFetch: rankStub(received, () => 0.9), rerankStore: { evalScript: async () => 1 },
+      runTool: async () => ({ added: [], text: '', calls: 1 }),
+      searchFatwas: async () => ({ records: [] }), encyclopediaRow: (row) => row,
+      searchStoredCorpus: async (_q, opts) => ({ records: opts.limit === 6 ? [global] : [] }) } });
+  assert.equal(r.out.telemetry.parts, 2);
+  assert.equal(r.out.telemetry.pinnedRows, 1);
+  assert.equal(r.out.telemetry.emptyParts, 2);
+  assert.equal((r.calls.judge[0].user.match(/^\[\d+\] /gmu) || []).length, 1);
+});
+
 const q03 = 'ما حكم قضاء الصيام الذي تركه المسلم عمدًا سنوات ثم تاب؟';
 async function q03Release(first, later) {
   const evidence = [
