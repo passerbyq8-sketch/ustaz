@@ -173,26 +173,9 @@ function fakeClock(startMs) {
 }
 
 function runLua(script, keys, argv, store) {
-  const locals = Object.create(null);
-  const lines = String(script).split('\n').map((l) => l.trim()).filter(Boolean);
-  for (const line of lines) {
-    let m;
-    if ((m = /^local\s+(\w+)\s*=\s*redis\.call\('GET',\s*KEYS\[(\d+)\]\)$/.exec(line))) {
-      locals[m[1]] = store.rawGet(keys[Number(m[2]) - 1]);
-      continue;
-    }
-    if ((m = /^if\s+(\w+)\s+then\s+redis\.call\('DEL',\s*KEYS\[(\d+)\]\)\s+end$/.exec(line))) {
-      const v = locals[m[1]];
-      if (v !== null && v !== undefined) store.rawDel(keys[Number(m[2]) - 1]);
-      continue;
-    }
-    if ((m = /^return\s+(\w+)$/.exec(line))) {
-      const v = locals[m[1]];
-      return v === undefined ? null : v;
-    }
-    throw new Error('the fake store cannot run this Lua line: ' + line);
-  }
-  return null;
+  return require('../tests/auth-lua-fixture.cjs').runAuthLua(script, keys, argv, {
+    get: store.rawGet, set: store.rawSet, del: store.rawDel,
+  });
 }
 
 function fakeStore(clock, opts) {
@@ -212,7 +195,8 @@ function fakeStore(clock, opts) {
       if (rec.expiresAt !== null && rec.expiresAt <= clock.now()) { map.delete(k); return null; }
       return rec.value;
     },
-    rawDel(k) { map.delete(k); },
+    rawDel(k) { if (o.throwOn && o.throwOn.has('del')) throw Error('delete failure'); ops.push({cmd:'del',key:k}); return map.delete(k) ? 1 : 0; },
+    rawSet(k,v,ttl) { if (o.throwOn && o.throwOn.has('set')) throw Error('write failure'); ops.push({cmd:'set',key:k,ex:ttl||null}); map.set(k,{value:v,expiresAt:ttl?clock.now()+ttl*1000:null}); return 'OK'; },
     ttlOf(k) {
       const rec = map.get(k);
       if (!rec || rec.expiresAt === null) return null;

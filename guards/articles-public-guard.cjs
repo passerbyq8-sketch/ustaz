@@ -434,7 +434,14 @@ function fakeStore(clock, opts) {
   };
   // The auth store's one-shot consume. Never reached by the articles path, and present so that
   // loading lib/auth/store.js cannot fall over on a method the fake does not have.
-  Redis.prototype.eval = async function () { return null; };
+  Redis.prototype.eval = async function (script, keys, argv) {
+    refuse('eval');
+    return require('../tests/auth-lua-fixture.cjs').runAuthLua(script, keys, argv, {
+      get(k) { refuse('get'); const r = map.get(k); return r && (r.expiresAt === null || r.expiresAt > clock.now()) ? r.value : null; },
+      set(k, v, ttl) { refuse('set'); ops.push({ cmd: 'set', key: k, ex: ttl || null }); map.set(k, { value: v, expiresAt: ttl ? clock.now() + ttl * 1000 : null }); return 'OK'; },
+      del(k) { refuse('del'); ops.push({ cmd: 'del', key: k }); return map.delete(k) ? 1 : 0; },
+    });
+  };
 
   self.Redis = Redis;
   return self;
@@ -1085,26 +1092,34 @@ run('a store error resolves to no access, never to access', async () => {
     });
     eq(await broken.roles.resolveActor({ body: { session: 'any-session-at-all' } }), null,
       'an actor resolved against a store refusing ' + cmd.toUpperCase());
-    eq(await broken.roles.isRootOwner('acct:v1:google:' + FIXTURE.ownerSub), false,
-      'an owner resolved against a store refusing ' + cmd.toUpperCase());
-    eq((await broken.roles.roleFor('acct:v1:google:' + FIXTURE.ownerSub)).role, 'none',
-      'a role resolved against a store refusing ' + cmd.toUpperCase());
+    if (cmd === 'get') {
+      for (const read of [() => broken.roles.isRootOwner('acct:v1:google:' + FIXTURE.ownerSub),
+        () => broken.roles.roleFor('acct:v1:google:' + FIXTURE.ownerSub)]) {
+        let unavailable = false;
+        try { await read(); } catch (e) { unavailable = e.message === 'auth-unavailable'; }
+        is(unavailable, 'unreadable authority must be unavailable');
+      }
+      eq((await broken.roles.resolveActorState({ body: { session: 'any-session-at-all' } })).state, 'unknown', 'outage state');
+    } else {
+      eq(await broken.roles.isRootOwner('acct:v1:google:' + FIXTURE.ownerSub), false, 'missing account is not owner');
+      eq((await broken.roles.roleFor('acct:v1:google:' + FIXTURE.ownerSub)).role, 'none', 'missing account has no role');
+    }
 
     const write = await callAdmin(broken, {
       session: 'any-session-at-all', action: 'create', section: 'articles', title: 'x', body: 'y',
     });
-    eq(write.statusCode, 401, 'the writing door against a store refusing ' + cmd.toUpperCase());
+    eq(write.statusCode, cmd === 'get' ? 503 : 401, 'the writing door against a store refusing ' + cmd.toUpperCase());
     const grant = await callRoles(broken, {
       session: 'any-session-at-all', action: 'grant', accountKey: owner.accountKey, sections: ['articles'],
     });
-    eq(grant.statusCode, 401, 'the roles door against a store refusing ' + cmd.toUpperCase());
+    eq(grant.statusCode, cmd === 'get' ? 503 : 401, 'the roles door against a store refusing ' + cmd.toUpperCase());
   }
 
   // And the reader's door refuses rather than printing an empty section as if it were empty.
   const readBroken = buildGraph({ storeThrowsOn: ['zrange'] });
   const list = await callList(readBroken, { section: 'articles' });
   eq(list.statusCode, 503, 'an unreadable index answered as an empty section');
-  return 'GET-refusing and SET-refusing stores -> 401 on both writing doors; ZRANGE-refusing -> 503, not an empty list';
+  return 'GET-refusing -> 503; absent session -> 401; ZRANGE-refusing -> 503';
 });
 
 /* -- THE EDITOR ROSTER: THE SECOND RUNG ------------------------------------- */
@@ -2739,8 +2754,8 @@ const MUTANTS = [
   {
     name: 'M4 an account with no grant defaults to editor',
     file: 'lib/articles/roles.js',
-    from: '  if (grant) return { role: grant.role, sections: grant.sections };\n  return { role: ROLE_NONE, sections: [] };',
-    to: '  if (grant) return { role: grant.role, sections: grant.sections };\n  return { role: ROLE_EDITOR, sections: SECTIONS.slice() };',
+    from: "return grant ? { role: grant.role, sections: grant.sections } : none;",
+    to: "return grant ? { role: grant.role, sections: grant.sections } : { role: ROLE_EDITOR, sections: SECTIONS.slice() };",
   },
   {
     name: 'M5 grantRole stops checking for owner',
@@ -2801,19 +2816,8 @@ const MUTANTS = [
     // digest off the row changes nothing until the process is replaced.
     name: 'M12 the resolved role is cached across requests',
     file: 'lib/articles/roles.js',
-    from: 'export async function roleFor(accountKeyString) {\n'
-      + '  const key = safeAccountKey(accountKeyString);\n'
-      + '  if (!key) return { role: ROLE_NONE, sections: [] };',
-    to: 'const __ROLE_CACHE = new Map();\n'
-      + 'export async function roleFor(accountKeyString) {\n'
-      + '  if (__ROLE_CACHE.has(accountKeyString)) return __ROLE_CACHE.get(accountKeyString);\n'
-      + '  const __answer = await __roleForUncached(accountKeyString);\n'
-      + '  __ROLE_CACHE.set(accountKeyString, __answer);\n'
-      + '  return __answer;\n'
-      + '}\n'
-      + 'async function __roleForUncached(accountKeyString) {\n'
-      + '  const key = safeAccountKey(accountKeyString);\n'
-      + '  if (!key) return { role: ROLE_NONE, sections: [] };',
+    from: "export async function roleFor(accountKeyString, expectedGeneration) {",
+    to: "const __ROLE_CACHE = new Map();\nexport async function roleFor(accountKeyString, expectedGeneration) {\n  if (__ROLE_CACHE.has(accountKeyString)) return __ROLE_CACHE.get(accountKeyString);\n  const answer = await __roleForUncached(accountKeyString, expectedGeneration);\n  __ROLE_CACHE.set(accountKeyString, answer); return answer;\n}\nasync function __roleForUncached(accountKeyString, expectedGeneration) {",
   },
   {
     // The fail-open. An unconfigured deployment -- which is this one, today -- would hand every

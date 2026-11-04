@@ -166,7 +166,7 @@ export default async function handler(req, res) {
   try { await weldByVerifiedEmail(account.key, claims.email, claims.emailVerified); }
   catch (e) { console.warn('[auth] weld skipped'); }
 
-  const minted = await mintSession(account.key);
+  const minted = await mintSession(account.key, account.generation);
   if (!minted.ok) return res.status(503).json({ ok: false, error: minted.code });
 
   // FOUR FIELDS, THE SAME FOUR api/auth-exchange.js RETURNS, named one at a time so a field added

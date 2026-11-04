@@ -30,6 +30,24 @@ async function harness() {
     async del(key) { if (faults.down) throw Error('synthetic outage'); return data.delete(key) ? 1 : 0; },
     async expire(key, ttl) { if (faults.down) throw Error('synthetic outage'); const held = data.get(key); if (held) held.until = now + ttl * 1000; return held ? 1 : 0; },
   };
+  redis.eval = async (script, keys, args) => {
+    if (faults.down || faults.eval) throw Error('synthetic store outage');
+    if (redis.beforeEval) await redis.beforeEval(script, keys, args);
+    return require('./auth-lua-fixture.cjs').runAuthLua(script, keys, args, {
+      get(key) {
+        if (faults.get) throw Error('synthetic read outage');
+        const held = data.get(key);
+        if (held && held.until && held.until <= now) { data.delete(key); return null; }
+        return held ? JSON.stringify(held.value) : null;
+      },
+      set(key, value, ttl) {
+        if (faults.set) throw Error('synthetic write outage');
+        operations.push({ key, opts: { ex: ttl } });
+        data.set(key, { value: JSON.parse(value), until: ttl ? now + ttl * 1000 : 0 }); return 'OK';
+      },
+      del(key) { if (faults.del) throw Error('synthetic delete outage'); return data.delete(key) ? 1 : 0; },
+    });
+  };
   const pair = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
   const jwk = { ...pair.publicKey.export({ format: 'jwk' }), kid: 'synthetic-key', alg: 'RS256', use: 'sig' };
   const nonce = 'synthetic-native-nonce-for-security-test';
@@ -56,7 +74,7 @@ async function harness() {
     else if (id === '@upstash/redis') mod = synthetic(id, { Redis: class { constructor() { return redis; } } });
     else if (id.endsWith('/lib/ratelimit.js')) mod = synthetic(id, { applyCorsOrigin() {}, checkAuthLimit: async () => ({ ok: true }) });
     else if (id.endsWith('/lib/sync/service.js')) mod = synthetic(id, { weldByVerifiedEmail: async () => ({ welded: false }), eraseForAccountDelete: async () => {} });
-    else if (id.endsWith('/lib/daycap.js')) mod = synthetic(id, { DEVICE_HEADER: 'x-murabbi-device', safeId: value => value || null, kuwaitDayStamp: () => 'synthetic-day', DAY_CAP_TTL_SECONDS: 172800 });
+    else if (id.endsWith('/lib/daycap.js')) mod = synthetic(id, { DEVICE_HEADER: 'x-murabbi-device', FOUNDER_HEADER: 'x-founder', hasUnrevokedFounderToken: async () => false, safeId: value => value || null, kuwaitDayStamp: () => 'synthetic-day', DAY_CAP_TTL_SECONDS: 172800 });
     else if (id.endsWith('/lib/answer-log.js')) mod = synthetic(id, { readAnswerLog: async () => [], ANSWER_LOG_PATHS: [] });
     else if (id.endsWith('/lib/usage.js')) mod = synthetic(id, { readUsage() {}, readUsageChat() {}, usageAnswerOutcome() {}, usageWindow() {} });
     else if (id.endsWith('.json')) mod = synthetic(id, { default: JSON.parse(fs.readFileSync(id, 'utf8')) });

@@ -47,7 +47,7 @@
 import { applyCorsOrigin, checkAuthLimit } from '../lib/ratelimit.js';
 import { clientAddress } from '../lib/attempts.js';
 import { DEVICE_HEADER } from '../lib/daycap.js';
-import { resolveActor, grantRole, revokeRole, ROLE_OWNER } from '../lib/articles/roles.js';
+import { resolveActorState, grantRole, revokeRole, ROLE_OWNER } from '../lib/articles/roles.js';
 
 export const ROLE_ACTIONS = Object.freeze(['grant', 'revoke']);
 
@@ -88,7 +88,9 @@ export default async function handler(req, res) {
   // session and no role, and an editor all leave here through this single return -- so the
   // response they receive is identical by CONSTRUCTION and not by two literals that agree. See
   // the head of this file: an editor must not be able to tell that this door exists.
-  const actor = await resolveActor(req);
+  const resolved = await resolveActorState(req);
+  if (resolved.state === 'unknown') return res.status(503).json({ ok: false, error: 'roles-unavailable' });
+  const actor = resolved.actor;
   if (!actor || actor.role !== ROLE_OWNER) {
     return res.status(401).json({ ok: false, error: 'roles-unauthenticated' });
   }

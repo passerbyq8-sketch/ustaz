@@ -1258,7 +1258,13 @@ function fakeRedis(opts) {
       return 1;
     },
     async expire(k) { touched.push(k); return 1; },
-    async eval() { return null; },
+    async eval(script, keys, argv) {
+      return require('../tests/auth-lua-fixture.cjs').runAuthLua(script, keys, argv, {
+        get(k) { touched.push(k); if (o.failGet && o.failGet(k)) throw Error('read failure'); return map.has(k) ? map.get(k) : null; },
+        set(k, v) { touched.push(k); if (o.failSet && o.failSet(k)) throw Error('write failure'); map.set(k, v); return 'OK'; },
+        del(k) { touched.push(k); if (o.failDel && o.failDel(k)) throw Error('delete failure'); return map.delete(k) ? 1 : 0; },
+      });
+    },
   };
 }
 
@@ -1424,10 +1430,10 @@ async function serverCases() {
     return FX.parentKey + ' standing; 0 pc: keys read or written';
   });
 
-  await runAsync('zero new store families: every key the route touched is one of the three', async () => {
+  await runAsync('the deletion families are exact: account, index, session, grant, persistent generation', async () => {
     const s = await seed({});
     await callRoute(s, {});
-    const allowed = [STORE.ACCOUNT_PREFIX, STORE.EMAIL_INDEX_PREFIX, STORE.SESSION_PREFIX];
+    const allowed = [STORE.ACCOUNT_PREFIX, STORE.EMAIL_INDEX_PREFIX, STORE.SESSION_PREFIX, 'role:v1:', 'auth:generation:v1:'];
     const strays = s.redis.touched.filter((k) => !allowed.some((p) => String(k).indexOf(p) === 0));
     eq(Array.from(new Set(strays)), [], 'keys outside the three declared families');
     is(!/process\.env/.test(ROUTE_SRC), ROUTE + ' reads an environment variable');
@@ -1513,9 +1519,9 @@ async function serverCases() {
     const s = await seed({ failGet: () => true });
     const r = await callRoute(s, {});
     is(r.res.body.ok !== true, 'an unreadable store was reported as a delete');
-    eq(r.res.statusCode, 401, 'the status when the session cannot be read');
+    eq(r.res.statusCode, 503, 'the status when the session cannot be read');
     is(s.redis.map.has(s.key) && s.redis.map.has(s.idxKey), 'keys went missing on an unreadable store');
-    return '401, and every seeded key still standing';
+    return '503, and every seeded key still standing';
   });
 
   await runAsync('the throttle refuses when it cannot count, and the route stops there', async () => {
@@ -1560,18 +1566,22 @@ async function serverCases() {
     return 'refused -> 503 auth-delete-sync, account kept; held -> erased first, then the account';
   });
 
-  await runAsync('the route reuses revokeSession -- the call lib/auth/account.js was waiting for', async () => {
+  await runAsync('compound deletion revokes every session through a persistent generation', async () => {
     const account = fs.readFileSync(path.join(REPO, 'lib', 'auth', 'account.js'), 'utf8');
     const compound = account.slice(account.indexOf('export async function deleteAccount'));
     is(compound.length > 100, 'lib/auth/account.js no longer declares deleteAccount');
-    is(/revokeSession\(/.test(compound), 'deleteAccount no longer revokes through revokeSession');
     is(typeof ACCOUNT.deleteAccount === 'function', 'lib/auth/account.js exports no deleteAccount');
     // The compound delete refuses a call with no session rather than half-deleting.
     const s = await seed({});
+    const second = await ACCOUNT.mintSession(s.key);
+    is(second.ok, 'second session minted');
     const bad = await ACCOUNT.deleteAccount(s.key, '');
     eq(bad.ok, false, 'deleteAccount with no session id');
     is(s.redis.map.has(s.key), 'deleteAccount erased the record before it checked its arguments');
-    return 'revokeSession called from deleteAccount; a session-less call erases nothing';
+    eq((await ACCOUNT.deleteAccount(s.key, s.sessionId)).ok, true, 'compound delete');
+    is(s.redis.map.has(STORE.generationKey(s.key)), 'persistent generation missing');
+    eq((await ACCOUNT.sessionState(second.session)).state, 'dead', 'second session invalidated');
+    return 'all sessions revoked; a session-less call erases nothing';
   });
 }
 

@@ -1140,5 +1140,10 @@
     "name": "securityiapenvironment",
     "script": "tests/iap-environment-security.test.js",
     "args": ""
+  },
+  {
+    "name": "securitysessionlifecycle",
+    "script": "guards/security-session-lifecycle-guard.cjs",
+    "args": ""
   }
 ]

@@ -67,7 +67,7 @@
 import { applyCorsOrigin, checkAuthLimit } from '../lib/ratelimit.js';
 import { clientAddress } from '../lib/attempts.js';
 import { DEVICE_HEADER, FOUNDER_HEADER, hasUnrevokedFounderToken } from '../lib/daycap.js';
-import { resolveActor, actorMaySection, selfFacts } from '../lib/articles/roles.js';
+import { resolveActorState, actorMaySection, selfFacts } from '../lib/articles/roles.js';
 import {
   createArticle,
   updateArticle,
@@ -121,7 +121,9 @@ export default async function handler(req, res) {
   const action = typeof body.action === 'string' ? body.action : '';
   if (!ACTIONS.includes(action)) return res.status(400).json({ ok: false, error: 'articles-action' });
 
-  const actor = await resolveActor(req);
+  const resolved = await resolveActorState(req);
+  if (resolved.state === 'unknown') return res.status(503).json({ ok: false, error: 'articles-unavailable' });
+  const actor = resolved.actor;
   if (!actor) {
     // THE REFUSAL IS BYTE FOR BYTE WHAT IT ALWAYS WAS FOR EVERYBODY BUT THE OWNER. A stranger, a
     // signed-in reader with no grant, an editor, a signed-out reader and somebody guessing session

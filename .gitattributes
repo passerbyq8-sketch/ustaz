@@ -1100,3 +1100,7 @@ tests/sync-merge-security.test.js text eol=lf
 tests/iap-environment-security.test.js text eol=lf
 tests/iap-environment-matrix.test.js text eol=lf
 tests/iap-memory-store.js text eol=lf
+tests/auth-lua-fixture.cjs text eol=lf
+tests/auth-session-lifecycle.test.cjs text eol=lf
+tests/security-auth-harness.cjs text eol=lf
+guards/security-session-lifecycle-guard.cjs text eol=lf
