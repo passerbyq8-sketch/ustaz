@@ -1970,41 +1970,6 @@
    "cat": "stored-content-kept-arabic"
   },
   {
-   "text": "وقت الضحى",
-   "cat": "home-banner-kept-arabic",
-   "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
-  },
-  {
-   "text": "أكمل",
-   "cat": "home-banner-kept-arabic",
-   "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
-  },
-  {
-   "text": "من ٣ قطرات",
-   "cat": "home-banner-kept-arabic",
-   "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
-  },
-  {
-   "text": "بعد صلاة الفجر بنصف ساعة",
-   "cat": "home-banner-kept-arabic",
-   "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
-  },
-  {
-   "text": "بعد صلاة العصر",
-   "cat": "home-banner-kept-arabic",
-   "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
-  },
-  {
-   "text": "بعد صلاة العشاء",
-   "cat": "home-banner-kept-arabic",
-   "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
-  },
-  {
-   "text": "نلتقي غدًا بإذن الله",
-   "cat": "home-banner-kept-arabic",
-   "reason": "Approved Dima home-banner copy remains Arabic; only its title is localized."
-  },
-  {
    "text": "نتيجة واحدة",
    "cat": "other",
    "reason": "Arabic counted noun of the fatwa results line (device check J10); ezikCountedResults returns it only when the language is Arabic, other languages keep the noun in their own sentence."
@@ -2028,6 +1993,16 @@
    "text": "نتيجة",
    "cat": "other",
    "reason": "Arabic counted noun of the fatwa results line (device check J10); ezikCountedResults returns it only when the language is Arabic, other languages keep the noun in their own sentence."
+  },
+  {
+   "text": "جهرا",
+   "cat": "migration-data",
+   "reason": "Old/new canonical place names are migration data, not UI copy."
+  },
+  {
+   "text": "الجهراء",
+   "cat": "migration-data",
+   "reason": "Old/new canonical place names are migration data, not UI copy."
   }
  ]
 }
