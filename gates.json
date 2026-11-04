@@ -1115,5 +1115,10 @@
     "name": "c1placename",
     "script": "guards/c1-place-name-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1usagelocales",
+    "script": "guards/c1-usage-locales-guard.cjs",
+    "args": ""
   }
 ]
