@@ -746,17 +746,35 @@ const V = '﴿', W = '﴾';
     const save = process.env.VERCEL_ENV;
     const mkq = (key, q) => ({ method: 'POST', headers: { 'x-ezik-lang': key }, body: JSON.stringify({ messages: [{ role: 'user', content: q }] }) });
     const ES = '¿Cuál es el estado de la oración del viajero en el islam?'; const FRQ = 'Quel est le statut de la prière du voyageur en islam ?';
+    const TR = 'Namaz nasıl kılınır?';
+    // Item 5-a: the negative witness must still be disabled in the current config.
+    // Real detector fixtures keep this check useful when another language opens.
+    const disabledFixtures = {
+      pt: 'Qual é a regra da oração do viajante no islã?',
+      ru: 'Как совершать намаз?',
+    };
+    const disabledCode = Object.keys(disabledFixtures).find((code) => table.includes(code) && !listed.includes(code));
+    ok('E1 has a genuinely disabled language fixture', !!disabledCode);
+    const disabledQuestion = disabledFixtures[disabledCode];
+    ok('the disabled witness is detected in both Arabic and its own interface', !!disabledCode
+      && D.detectQuestionLang(disabledQuestion, 'ar') === disabledCode
+      && D.detectQuestionLang(disabledQuestion, disabledCode) === disabledCode);
     try {
       process.env.VERCEL_ENV = 'production';
-      const a = G.decideLanguage(mkq('ar', ES)), b = G.decideLanguage(mkq('es', ES)), c = G.decideLanguage(mkq('fr', FRQ)), d = G.decideLanguage(mkq('ar', FRQ)), e = G.decideLanguage(mkq('ar', 'Namaz nasıl kılınır?'));
-      ok('production: a Spanish question (any interface language) is NOT in the language layer - it takes the origin/main road, the inner handler with the very same req and res', a.translate === false && a.reason === 'not_enabled' && b.translate === false && b.reason === 'not_enabled', JSON.stringify([a, b]));
-      ok('production: a Turkish question (a built, not enabled language) takes the same road', e.translate === false && e.reason === 'not_enabled', JSON.stringify(e));
+      const a = G.decideLanguage(mkq('ar', disabledQuestion)), b = G.decideLanguage(mkq(disabledCode, disabledQuestion));
+      ok('production: a genuinely disabled question in either interface takes the not-enabled road', a.translate === false && a.reason === 'not_enabled' && b.translate === false && b.reason === 'not_enabled', JSON.stringify([a, b]));
+      for (const [code, question] of [['es', ES], ['tr', TR]]) {
+        const decisions = ['ar', code].map((key) => G.decideLanguage(mkq(key, question)));
+        ok('production: ' + code + ' routing follows the enabled config in both interfaces', decisions.every((d) => listed.includes(code)
+          ? d.translate === true && d.lang === code : d.translate === false && d.reason === 'not_enabled'), JSON.stringify(decisions));
+      }
+      const c = G.decideLanguage(mkq('fr', FRQ)), d = G.decideLanguage(mkq('ar', FRQ));
       ok('production: an enabled language still answers in its own language (French question)', c.translate === true && c.lang === 'fr' && d.translate === true && d.lang === 'fr', JSON.stringify([c, d]));
       let called = 0; const resP = { headersSent: false, status() { return this; }, setHeader() {}, getHeader() {}, json() {}, end() {}, write() { return true; }, on() {} };
-      const reqP = mkq('ar', ES); let sawSame = null; await G.languageGate(reqP, resP, async (rq, rs) => { called++; sawSame = rq === reqP && rs === resP && typeof rq.__langTranslateQuestion !== 'function'; }, { log() {} });
+      const reqP = mkq('ar', disabledQuestion); let sawSame = null; await G.languageGate(reqP, resP, async (rq, rs) => { called++; sawSame = rq === reqP && rs === resP && typeof rq.__langTranslateQuestion !== 'function'; }, { log() {} });
       ok('production: the gate hands a not-enabled language to the inner handler untouched (same req, same res, no translation hook)', called === 1 && sawSame === true);
       process.env.VERCEL_ENV = 'preview';
-      const f = G.decideLanguage(mkq('ar', ES)), g = G.decideLanguage(mkq('es', ES)), h = G.decideLanguage(mkq('ar', 'Namaz nasıl kılınır?'));
+      const f = G.decideLanguage(mkq('ar', ES)), g = G.decideLanguage(mkq('es', ES)), h = G.decideLanguage(mkq('ar', TR));
       ok('preview: Spanish and Turkish questions are answered in their own language', f.translate === true && f.lang === 'es' && g.translate === true && h.translate === true && h.lang === 'tr', JSON.stringify([f, g, h]));
     } finally { if (save === undefined) delete process.env.VERCEL_ENV; else process.env.VERCEL_ENV = save; }
     // the client: the baked list equals the file, and the offered list is the file on production, the whole table on a preview

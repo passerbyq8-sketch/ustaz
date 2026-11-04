@@ -1110,5 +1110,20 @@
     "name": "iaplaunch",
     "script": "tools/iap-launch-tests.cjs",
     "args": ""
+  },
+  {
+    "name": "c1placename",
+    "script": "guards/c1-place-name-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1usagelocales",
+    "script": "guards/c1-usage-locales-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1dimahome",
+    "script": "guards/c1-dima-home-guard.cjs",
+    "args": ""
   }
 ]

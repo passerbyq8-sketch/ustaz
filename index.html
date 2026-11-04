@@ -1846,6 +1846,27 @@
 
 
 </style>
+<style id="dima-home-layout">
+/* Item 5-a: home sentences occupy their own rows; the garden has reserved space below. */
+.ezist-nav[data-dima-home-banner="true"] .dimaHomeBanner{height:auto;min-height:176px;padding:58px 16px 74px;box-sizing:border-box}
+.dimaHomeBanner[dir="ltr"]{direction:ltr;text-align:start}
+.dimaHomeBanner[dir="rtl"]{direction:rtl;text-align:start}
+.dimaHomeText,.dimaHomeText.is-complete{position:relative;inset:auto;width:auto}
+.dimaHomeProgressRow{flex-wrap:wrap}
+.dimaHomeProgress{white-space:normal;min-width:0}
+.dimaHomeProgressLabel{overflow-wrap:anywhere}
+.dimaHomeText.is-complete .dimaHomeDoneBadge{height:auto;min-height:24px;white-space:normal;padding-block:4px;overflow-wrap:anywhere}
+.dimaHomeDoneBadge svg{flex-shrink:0}
+.dimaHomeMeet{min-width:0;overflow-wrap:anywhere}
+</style>
+<style id="dima-scene-layout">
+/* Item 5-a: a wrapping caption row is outside the cloud and plant artwork. */
+.dimaRoot .dimaScene{display:flex;flex-direction:column;flex:0 0 auto;height:auto;min-height:104px}
+.dimaSceneTop{position:relative;inset:auto;flex:0 0 auto;padding:7px 12px;flex-wrap:wrap;direction:inherit;overflow-wrap:anywhere;color:var(--dima-text,#17201C)}
+.dimaSceneTop span{white-space:normal}
+.dimaSceneArt{position:relative;flex:0 0 88px;height:88px;min-width:0}
+@media (max-height:700px){.dimaScene{flex-basis:auto;height:auto}.dimaSceneTop{top:auto}.dimaSceneArt{height:72px;flex-basis:72px}.dimaIntro .dimaScene,.dimaNotifyIntro .dimaScene,.dimaNotifySettings .dimaScene{flex-basis:auto;height:auto}}
+</style>
 </head>
 <body>
 <script id="ezik-diagnostic-catcher">
