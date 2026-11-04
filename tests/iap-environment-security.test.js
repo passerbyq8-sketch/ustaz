@@ -1,11 +1,9 @@
-// SEC-020: deliberately red regression retained under C2 ORDER 1.
-// Do not register as a passing gate or weaken these assertions. The implementation
-// awaits the owner's Apple App Review / Google licensed-tester policy and the
-// redacted provider configuration requested by P5. No live service is contacted.
+// SEC-020: provider-authenticated environments and server-selected review entitlements.
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import test from 'node:test';
 import { handleIapWebhook } from '../api/iap-webhook.js';
+import './iap-environment-matrix.test.js';
 
 function response() {
   return { statusCode: 0, status(code) { this.statusCode = code; return this; },
@@ -13,9 +11,10 @@ function response() {
 }
 
 async function fixture(run) {
-  const names = ['VERCEL_ENV', 'REVENUECAT_WEBHOOK_SECRET', 'IAP_ENFORCE'];
+  const names = ['VERCEL_ENV', 'REVENUECAT_WEBHOOK_SECRET', 'IAP_ENFORCE', 'IAP_REVIEW_ACCOUNTS'];
   const before = names.map(name => process.env[name]);
   process.env.VERCEL_ENV = 'production';
+  delete process.env.IAP_REVIEW_ACCOUNTS;
   process.env.REVENUECAT_WEBHOOK_SECRET = crypto.randomBytes(24).toString('hex');
   const calls = { reads: 0, mutations: 0 };
   const event = { type: 'NON_RENEWING_PURCHASE', environment: 'PRODUCTION',
@@ -66,9 +65,9 @@ for (const [label, environment] of [['missing', undefined], ['empty', ''], ['low
   ['array', ['PRODUCTION']], ['object', {}], ['unknown', 'UNKNOWN']]) {
   test('SEC-020 ' + label + ' environment never reaches account or ledger', async () => {
     await fixture(async ({ calls, send }) => {
-      await send({ environment });
+      assert.equal((await send({ environment })).statusCode, 400);
       assert.deepEqual(calls, { reads: 0, mutations: 0 });
-      // The deterministic invalid-event response still needs the owner contract.
+      // Invalid provider environments are rejected deterministically.
     });
   });
 }

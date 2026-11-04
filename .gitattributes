@@ -1097,3 +1097,6 @@ tests/build-dependency-security.test.js text eol=lf
 tests/workflow-security.test.js text eol=lf
 tests/sync-crypto-security.test.js text eol=lf
 tests/sync-merge-security.test.js text eol=lf
+tests/iap-environment-security.test.js text eol=lf
+tests/iap-environment-matrix.test.js text eol=lf
+tests/iap-memory-store.js text eol=lf

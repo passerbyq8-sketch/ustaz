@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import test from 'node:test';
+import test, { beforeEach } from 'node:test';
 import vm from 'node:vm';
 import { parseHTML } from 'linkedom';
 
@@ -22,6 +22,7 @@ import {
 
 const account = 'acct:v1:google:iap-g-v2';
 const session = 's'.repeat(32);
+beforeEach(() => { process.env.VERCEL_ENV = 'production'; process.env.IAP_REVIEW_ACCOUNTS = account; });
 
 function responseDouble() {
   return {
@@ -286,7 +287,8 @@ test('new non-renewing pass ids grant month/year access and their cancellation w
   assert.equal(IAP_PRODUCTS.ezik_pass_month_1.nonRenewing, true);
   const store = new MemoryIapStore();
   const hookKey = 'hook-key';
-  const eventBase = { app_user_id: account, store: 'APP_STORE', transaction_id: 'new-pass-transaction', event_timestamp_ms: Date.now() };
+  delete process.env.IAP_REVIEW_ACCOUNTS;
+  const eventBase = { environment: 'PRODUCTION', app_user_id: account, store: 'APP_STORE', transaction_id: 'new-pass-transaction', event_timestamp_ms: Date.now() };
   __setIapStoreForTest(store);
   const oldSecret = process.env.REVENUECAT_WEBHOOK_SECRET;
   process.env.REVENUECAT_WEBHOOK_SECRET = hookKey;

@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 
 import { readJsonStrict } from '../lib/auth/store.js';
 import { IAP_PRODUCTS, applyTransactionEvent } from '../lib/iap/store.js';
+import { purchaseNamespace } from '../lib/iap/environment.js';
 
 export const MAX_WEBHOOK_BYTES = 64 * 1024;
 
@@ -45,12 +46,17 @@ export async function handleIapWebhook(req, res, dependencies = {}) {
   const body = bodyOf(req);
   let size = Infinity;
   try { size = Buffer.byteLength(JSON.stringify(body), 'utf8'); } catch { /* invalid body */ }
-  if (!body || size > MAX_WEBHOOK_BYTES || !body.event || typeof body.event !== 'object') {
+  if (!body || size > MAX_WEBHOOK_BYTES || !body.event || typeof body.event !== 'object' || Array.isArray(body.event)) {
     return res.status(400).json({ ok: false, error: 'iap-webhook-body' });
   }
 
   const event = body.event;
   if (event.type === 'TEST') return res.status(200).json({ ok: true, status: 'test' });
+  if (event.environment !== 'PRODUCTION' && event.environment !== 'SANDBOX') {
+    return res.status(400).json({ ok: false, error: 'iap-webhook-environment' });
+  }
+  const namespace = purchaseNamespace(event.app_user_id, event.environment);
+  if (!namespace) return res.status(200).json({ ok: true, status: 'ignored-environment' });
   const productId = typeof event.product_id === 'string' ? event.product_id : '';
   if (!Object.prototype.hasOwnProperty.call(IAP_PRODUCTS, productId)) {
     return res.status(200).json({ ok: true, status: 'ignored' });
@@ -86,7 +92,7 @@ export async function handleIapWebhook(req, res, dependencies = {}) {
       action,
       eventType: event.type,
       time: Number(event.event_timestamp_ms),
-    });
+    }, namespace);
     if (!applied.ok) return res.status(400).json(applied);
     return res.status(200).json({ ok: true, status: applied.status });
   } catch (e) {

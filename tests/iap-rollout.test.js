@@ -23,7 +23,7 @@ const accountA = 'acct:v1:google:rollout-a';
 const accountB = 'acct:v1:apple:rollout-b';
 
 async function withEnv(values, operation) {
-  const keys = ['IAP_ENFORCE', 'IAP_SIGNIN', 'IAP_TEST_ACCOUNTS', 'IAP_ENTRY_ACCOUNTS', 'REVENUECAT_WEBHOOK_SECRET'];
+  const keys = ['VERCEL_ENV', 'IAP_REVIEW_ACCOUNTS', 'IAP_ENFORCE', 'IAP_SIGNIN', 'IAP_TEST_ACCOUNTS', 'IAP_ENTRY_ACCOUNTS', 'REVENUECAT_WEBHOOK_SECRET'];
   const before = Object.fromEntries(keys.map((key) => [key, process.env[key]]));
   for (const key of keys) {
     if (Object.prototype.hasOwnProperty.call(values, key)) process.env[key] = values[key];
@@ -335,7 +335,7 @@ test('balance marks listed and unlisted test accounts', async () => {
 test('purchase webhook credits an account while enforcement is off or free', async () => {
   const webhookFixture = ['rollout', 'test', 'secret'].join('-');
   for (const [mode, transactionId] of [['off', 'rollout-off-purchase-1'], ['free', 'rollout-free-purchase-1']]) {
-    await withEnv({ IAP_ENFORCE: mode, REVENUECAT_WEBHOOK_SECRET: webhookFixture }, async () => {
+    await withEnv({ VERCEL_ENV: 'production', IAP_ENFORCE: mode, REVENUECAT_WEBHOOK_SECRET: webhookFixture }, async () => {
       assert.equal(isIapEnforced(accountA), false);
       const store = new MemoryIapStore();
       __setIapStoreForTest(store);
@@ -343,7 +343,7 @@ test('purchase webhook credits an account while enforcement is off or free', asy
         const res = responseDouble();
         await handleIapWebhook(request('POST', { authorization: webhookFixture }, {
           event: {
-            type: 'NON_RENEWING_PURCHASE',
+            type: 'NON_RENEWING_PURCHASE', environment: 'PRODUCTION',
             product_id: 'ezik_games_3',
             app_user_id: accountA,
             store: 'APP_STORE',
