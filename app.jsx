@@ -16847,7 +16847,9 @@ function DimaScene({ plants, todayCount, instant, data }) {
   const ui = data && data.ui ? (english && data.ui.en ? data.ui.en : data.ui) : null;
   const landTitle = ui && ui.landTitle ? ui.landTitle : ezT('dima.todayPractices');
   const landCount = ui && ui.landCount ? ui.landCount.replace('{n}', countText).replace('{total}', totalText) : countText;
-  return <figure className="dimaScene" role="img" aria-label={ezT('dima.garden')}>
+  return <figure className="dimaScene" role="img" aria-label={ezT('dima.garden')} dir={EZ_LANG_DIR[EZ_LANG] || 'ltr'}>
+    <div className="dimaSceneTop"><strong>{landTitle}</strong><span>{landCount}</span></div>
+    <div className="dimaSceneArt">
     <svg className="dimaWeather" viewBox="0 0 390 104" preserveAspectRatio="none" aria-hidden="true">
       <g fill="var(--dima-cloud)">
         <ellipse cx="76" cy="32" rx="30" ry="13" /><circle cx="65" cy="25" r="12" /><circle cx="83" cy="22" r="15" />
@@ -16855,11 +16857,11 @@ function DimaScene({ plants, todayCount, instant, data }) {
       </g>
       <g fill="var(--dima-rain)"><path d="M50 43q-4 7 0 7t0-7m21 0q-4 7 0 7t0-7m20 0q-4 7 0 7t0-7m132 4q-4 7 0 7t0-7m19 0q-4 7 0 7t0-7" /></g>
     </svg>
-    <div className="dimaSceneTop"><strong>{landTitle}</strong><span>{landCount}</span></div>
     <div className="dimaPlants" dir="rtl">
       {(Array.isArray(plants) ? plants : []).slice(0, 7).map((plant, i) => <DimaPlant key={plant.key || i} stage={plant.stage} today={i === 0} instant={instant} />)}
     </div>
     <div className="dimaSoil" aria-hidden="true" />
+    </div>
   </figure>;
 }
 function dimaDayTitle(index, english, data) {

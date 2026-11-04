@@ -2100,7 +2100,7 @@ const SEALED = {
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 58418 bytes).
   // 2026-11-03 IAP-LAUNCH-SIGNIN source commit e4754ef0: cache ezik-v135; app.js rebuilt at the same byte length; CORE unchanged. Digest measured from the committed sw.js blob at CR = 0.
   // 2026-11-04 QAF-GAP-N2: ezik-v136; rebuild and CORE measurement, then LF worker seal.
-  'sw.js': '8c34d117b8105b5917f1b7b848c0a682be2c38a7e49ec1efbcdf7b0442dd2a70',
+  'sw.js': 'fbc3d6baf44432ed424f8b9239754a137dc3b5c2427468dbeaf89d686985ac26',
 };
 
 // ---------------------------------------------------------------------------
@@ -3276,7 +3276,7 @@ async function compare(bankPath) {
     //  { n, sum: [a, b] }  n is the byte sum of those files on disk
     //  { n, dir: 'count' | 'sum' | 'mean' }   n is that statistic over the mushaf page scans
     const SW_PROSE = [
-      { n: 182625, of: 'index.html' },
+      { n: 183334, of: 'index.html' },
       // ITEM 85. The two CORE entries the self-hosted faces added, stated in the worker's byte
       // table beside the rest and re-derived here from the files they name. They are the arabic
       // and latin cuts of Noto Naskh Arabic, which is what the first screen is painted in.
@@ -3289,7 +3289,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2581265, of: 'app.js' },
+      { n: 2581364, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
