@@ -1092,3 +1092,10 @@ guards/brain-postship3-row7a-guard.cjs text eol=lf
 
 lib/route-log.js text eol=lf
 guards/brain-postship3-route-log-guard.cjs text eol=lf
+guards/c1-place-name-guard.cjs text eol=lf
+guards/c1-usage-locales-guard.cjs text eol=lf
+guards/c1-dima-home-guard.cjs text eol=lf
+guards/dima-packs-guard.cjs text eol=lf
+guards/dima-translations-guard.cjs text eol=lf
+guards/about-store-badges-guard.cjs text eol=lf
+tests/security-headers.test.js text eol=lf
