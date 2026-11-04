@@ -48,7 +48,7 @@ import crypto from 'node:crypto';
 import { Redis } from '@upstash/redis';
 import { applyCorsOrigin } from '../lib/ratelimit.js';
 import { DEVICE_HEADER, DAY_CAP_TTL_SECONDS, kuwaitDayStamp, safeId } from '../lib/daycap.js';
-import { touchSession } from '../lib/auth/account.js';
+import { sessionState } from '../lib/auth/account.js';
 import appVersionFile from '../config/app-version.json' with { type: 'json' };
 
 const redis = new Redis({
@@ -219,8 +219,9 @@ export default async function handler(req, res) {
   let accountKey = '';
   if (session) {
     try {
-      const held = await touchSession(session);
-      if (held && typeof held.accountKey === 'string') accountKey = held.accountKey;
+      const state = await sessionState(session);
+      if (state.state === 'unknown') return res.status(503).json({ error: 'could not save feedback; please try again later' });
+      if (state.state === 'live') accountKey = state.record.accountKey;
     } catch (e) {
       // A store fault while resolving a session is NOT a signed-out reader, and must not be
       // reported as one: telling a signed-in person to sign in again would send them round a loop

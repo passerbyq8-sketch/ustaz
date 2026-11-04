@@ -67,7 +67,7 @@
 import { applyCorsOrigin, checkAuthLimit } from '../lib/ratelimit.js';
 import { clientAddress } from '../lib/attempts.js';
 import { DEVICE_HEADER, FOUNDER_HEADER, hasUnrevokedFounderToken } from '../lib/daycap.js';
-import { resolveActor, actorMaySection, selfFacts } from '../lib/articles/roles.js';
+import { resolveActorState, actorMaySection, selfFacts } from '../lib/articles/roles.js';
 import {
   createArticle,
   updateArticle,
@@ -99,6 +99,8 @@ function refuse(res, code) {
   return res.status(503).json({ ok: false, error: code });
 }
 
+export const MAX_ARTICLE_REQUEST_BYTES = 1024 * 1024;
+
 export default async function handler(req, res) {
   applyCorsOrigin(req, res);
   if (req.method === 'OPTIONS') {
@@ -112,6 +114,11 @@ export default async function handler(req, res) {
   }
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'method-not-allowed' });
 
+  let requestBytes;
+  try { requestBytes = Buffer.byteLength(typeof req.body === 'string' ? req.body : JSON.stringify(req.body ?? {}), 'utf8'); }
+  catch { return res.status(400).json({ ok: false, error: 'articles-body' }); }
+  if (requestBytes > MAX_ARTICLE_REQUEST_BYTES) return res.status(413).json({ ok: false, error: 'articles-body-too-large' });
+
   // Fails CLOSED -- see lib/ratelimit.js AUTH_FAIL_OPEN. A write we cannot count is one we do not
   // make; and unlike a reader's question, a write that waits a minute has lost nothing.
   const rl = await checkAuthLimit(clientAddress(req, 'unknown'));
@@ -121,7 +128,9 @@ export default async function handler(req, res) {
   const action = typeof body.action === 'string' ? body.action : '';
   if (!ACTIONS.includes(action)) return res.status(400).json({ ok: false, error: 'articles-action' });
 
-  const actor = await resolveActor(req);
+  const resolved = await resolveActorState(req);
+  if (resolved.state === 'unknown') return res.status(503).json({ ok: false, error: 'articles-unavailable' });
+  const actor = resolved.actor;
   if (!actor) {
     // THE REFUSAL IS BYTE FOR BYTE WHAT IT ALWAYS WAS FOR EVERYBODY BUT THE OWNER. A stranger, a
     // signed-in reader with no grant, an editor, a signed-out reader and somebody guessing session

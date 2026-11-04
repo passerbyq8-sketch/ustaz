@@ -67,7 +67,7 @@ export default async function handler(req, res) {
     return res.status(503).json({ ok: false, error: 'auth-account-unreadable' });
   }
 
-  const minted = await mintSession(record.accountKey);
+  const minted = await mintSession(record.accountKey, record.generation ?? 'legacy');
   if (!minted.ok) return res.status(503).json({ ok: false, error: minted.code });
 
   // FOUR FIELDS. Named one at a time -- the account record is never spread into the response,

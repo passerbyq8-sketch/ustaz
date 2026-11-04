@@ -49,8 +49,8 @@ import { Redis } from '@upstash/redis';
 import { applyCorsOrigin, checkAuthLimit } from '../lib/ratelimit.js';
 import { clientAddress } from '../lib/attempts.js';
 import { DEVICE_HEADER } from '../lib/daycap.js';
-import { resolveActor, ROLE_OWNER } from '../lib/articles/roles.js';
-import { touchSession } from '../lib/auth/account.js';
+import { resolveActorState, ROLE_OWNER } from '../lib/articles/roles.js';
+import { sessionState } from '../lib/auth/account.js';
 import { readJson as readAuthJson } from '../lib/auth/store.js';
 import { readAnswerLog, ANSWER_LOG_PATHS } from '../lib/answer-log.js';
 import { readUsage, readUsageChat, usageAnswerOutcome, usageWindow } from '../lib/usage.js';
@@ -386,16 +386,8 @@ async function addressOf(accountKey) {
  * written into a record VALUE by api/feedback.js -- so it travels as the session seam minted it.
  */
 async function sessionAccount(req) {
-  try {
-    const body = (req && req.body && typeof req.body === 'object') ? req.body : {};
-    const session = typeof body.session === 'string' ? body.session : '';
-    if (session.length === 0) return '';
-    const record = await touchSession(session);
-    if (!record || typeof record.accountKey !== 'string') return '';
-    return record.accountKey;
-  } catch (e) {
-    return '';
-  }
+  const session = typeof req?.body?.session === 'string' ? req.body.session : '';
+  return sessionState(session);
 }
 
 export default async function handler(req, res) {
@@ -420,14 +412,18 @@ export default async function handler(req, res) {
   // and an editor all leave here through this single return, so what they receive is identical by
   // CONSTRUCTION and not by three literals that agree today. See the head of this file.
   if (OWNER_ACTIONS.includes(action)) {
-    const actor = await resolveActor(req);
+    const resolved = await resolveActorState(req);
+    if (resolved.state === 'unknown') return res.status(503).json({ ok: false, error: 'inbox-store' });
+    const actor = resolved.actor;
     if (!actor || actor.role !== ROLE_OWNER) {
       return res.status(401).json({ ok: false, error: 'inbox-unauthenticated' });
     }
     return ownerAction(req, res, body, action);
   }
 
-  const accountKey = await sessionAccount(req);
+  const state = await sessionAccount(req);
+  if (state.state === 'unknown') return res.status(503).json({ ok: false, error: 'inbox-store' });
+  const accountKey = state.state === 'live' ? state.record.accountKey : '';
   if (!accountKey) return res.status(401).json({ ok: false, error: 'inbox-signin-required' });
   return senderAction(res, body, action, accountKey);
 }

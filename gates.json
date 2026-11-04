@@ -1145,5 +1145,45 @@
     "name": "securityheaders",
     "script": "tests/security-headers.test.js",
     "args": ""
+  },
+  {
+    "name": "securitynativereplay",
+    "script": "guards/security-native-replay-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "securitybuilddeps",
+    "script": "tests/build-dependency-security.test.js",
+    "args": ""
+  },
+  {
+    "name": "securityworkflow",
+    "script": "tests/workflow-security.test.js",
+    "args": ""
+  },
+  {
+    "name": "securitysynccrypto",
+    "script": "tests/sync-crypto-security.test.js",
+    "args": ""
+  },
+  {
+    "name": "securitysyncmerge",
+    "script": "tests/sync-merge-security.test.js",
+    "args": ""
+  },
+  {
+    "name": "securityiapenvironment",
+    "script": "tests/iap-environment-security.test.js",
+    "args": ""
+  },
+  {
+    "name": "securitysessionlifecycle",
+    "script": "guards/security-session-lifecycle-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "securityarticleinput",
+    "script": "guards/security-article-input-guard.cjs",
+    "args": ""
   }
 ]

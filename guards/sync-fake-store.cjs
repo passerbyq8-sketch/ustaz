@@ -55,6 +55,13 @@ function makeStore(opts) {
     },
     async eval(script, keys, argv) {
       dead(); ops.push(['eval', keys[0]]);
+      if (script.includes('-- auth-cas-v1')) {
+        return require('../tests/auth-lua-fixture.cjs').runAuthLua(script, keys, argv, {
+          get(k) { const e = data.get(k); return e ? e.v : null; },
+          set(k, v) { ops.push(['set', k]); data.set(k, { t: 'str', v }); return 'OK'; },
+          del(k) { ops.push(['del', k]); return data.delete(k) ? 1 : 0; },
+        });
+      }
       if (/HSTRLEN/.test(script)) {
         const [r, q, v, m] = keys; const [id, expected, envlp, quota] = argv;
         const vm = h(v); const cur = vm && vm.has(id) ? String(vm.get(id)) : '0';

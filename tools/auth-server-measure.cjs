@@ -229,26 +229,9 @@ function fakeClock(startMs) {
  * the behaviour ("a replayed state is refused") instead of by the harness falling over.
  */
 function runLua(script, keys, argv, store) {
-  const locals = Object.create(null);
-  const lines = String(script).split('\n').map((l) => l.trim()).filter(Boolean);
-  for (const line of lines) {
-    let m;
-    if ((m = /^local\s+(\w+)\s*=\s*redis\.call\('GET',\s*KEYS\[(\d+)\]\)$/.exec(line))) {
-      locals[m[1]] = store.rawGet(keys[Number(m[2]) - 1]);
-      continue;
-    }
-    if ((m = /^if\s+(\w+)\s+then\s+redis\.call\('DEL',\s*KEYS\[(\d+)\]\)\s+end$/.exec(line))) {
-      const v = locals[m[1]];
-      if (v !== null && v !== undefined) store.rawDel(keys[Number(m[2]) - 1]);
-      continue;
-    }
-    if ((m = /^return\s+(\w+)$/.exec(line))) {
-      const v = locals[m[1]];
-      return v === undefined ? null : v;
-    }
-    throw new Error('the fake store cannot run this Lua line: ' + line);
-  }
-  return null;
+  return require('../tests/auth-lua-fixture.cjs').runAuthLua(script, keys, argv, {
+    get: store.rawGet, set: store.rawSet, del: store.rawDel,
+  });
 }
 
 /**
@@ -272,7 +255,15 @@ function fakeStore(clock, opts) {
       if (rec.expiresAt !== null && rec.expiresAt <= clock.now()) { map.delete(k); return null; }
       return rec.value;
     },
-    rawDel(k) { map.delete(k); },
+    rawDel(k) {
+      if (o.throwOn && o.throwOn.has('del')) throw new Error('fake store refused DEL');
+      ops.push({ cmd: 'del', key: k }); return map.delete(k) ? 1 : 0;
+    },
+    rawSet(k, v, ttl) {
+      if (o.throwOn && o.throwOn.has('set')) throw new Error('fake store refused SET');
+      ops.push({ cmd: 'set', key: k, ex: ttl || null });
+      map.set(k, { value: v, expiresAt: ttl ? clock.now() + ttl * 1000 : null }); return 'OK';
+    },
     ttlOf(k) {
       const rec = map.get(k);
       if (!rec || rec.expiresAt === null) return null;
@@ -802,7 +793,7 @@ run('R4 the only removals on the sign-in path are the two one-shot records', asy
   // because counting only the first would call a path with no plain DEL "zero deletes" and pass
   // while the script quietly removed anything it liked.
   const removals = g.store.ops
-    .filter((op) => op.cmd === 'del' || (op.cmd === 'eval' && /redis\.call\('DEL'/.test(op.script)))
+    .filter((op) => op.cmd === 'del')
     .map((op) => op.key);
   is(removals.length >= 2, 'the state and the ticket were not both consumed (' + removals.length + ')');
   for (const k of removals) {
@@ -830,7 +821,7 @@ run('R5 the session is sess:v1:<32 random bytes>, four hundred days, and slides 
   const key = g.storeMod.sessionKey(id);
   eq(g.store.ttlOf(key), CONTRACT.SESSION_TTL, 'the session TTL in seconds');
   const record = JSON.parse(g.store.rawGet(key));
-  eq(Object.keys(record).sort(), ['accountKey', 'createdAt', 'expiresAt'], 'the session record fields');
+  eq(Object.keys(record).sort(), ['accountKey', 'createdAt', 'expiresAt', 'generation'], 'the session record fields');
 
   g.clock.advance(30 * 24 * 60 * 60 * 1000);
   const touched = await g.account.touchSession(id);
@@ -1396,19 +1387,19 @@ run('a store that cannot be written stops the flow rather than half-finishing it
   return '503 on the start; the return refuses rather than proceeding';
 });
 
-run('the six key families are the six declared prefixes and nothing else', async () => {
+run('the seven auth key families are exact, including persistent deletion generations', async () => {
   const g = buildGraph({});
   const { ticket } = await fullFlow(g);
   await legExchange(g, { body: { ticket } });
   const allowed = [CONTRACT.STATE_PREFIX, CONTRACT.TICKET_PREFIX, CONTRACT.JWKS_PREFIX,
-    CONTRACT.ACCOUNT_PREFIX, CONTRACT.EMAIL_INDEX_PREFIX, CONTRACT.SESSION_PREFIX];
+    CONTRACT.ACCOUNT_PREFIX, CONTRACT.EMAIL_INDEX_PREFIX, CONTRACT.SESSION_PREFIX, 'auth:generation:v1:'];
   const touched = new Set(g.store.ops.map((op) => op.key));
   for (const key of touched) {
     is(allowed.some((p) => key.startsWith(p)), 'the sign-in path touched an unexpected key: ' + key);
   }
-  eq(allowed, ['auth:state:v1:', 'auth:ticket:v1:', 'auth:jwks:v1:', 'acct:v1:', 'acctidx:v1:email:', 'sess:v1:'],
+  eq(allowed, ['auth:state:v1:', 'auth:ticket:v1:', 'auth:jwks:v1:', 'acct:v1:', 'acctidx:v1:email:', 'sess:v1:', 'auth:generation:v1:'],
     'the declared prefixes');
-  return touched.size + ' keys touched, all inside the six families';
+  return touched.size + ' keys touched, all inside the seven families';
 });
 
 run('zero new store variables, and no read of process.env outside a known list', async () => {
@@ -1625,8 +1616,8 @@ mutant('م٣ `email_verified` is believed whenever it is a string',
 
 mutant('م٤ a sixth field is written into the account record',
   'lib/auth/account.js',
-  '    emailVerified: input.emailVerified === true,\n',
-  '    emailVerified: input.emailVerified === true,\n    picture: input.picture || \'\',\n',
+  '      emailVerified: input.emailVerified === true,\n',
+  '      emailVerified: input.emailVerified === true,\n    picture: input.picture || \'\',\n',
   async () => {
     const g = buildGraph({ mutate: MUT });
     await fullFlow(g);

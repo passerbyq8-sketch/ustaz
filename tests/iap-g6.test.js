@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+process.env.VERCEL_ENV = 'production';
+delete process.env.IAP_REVIEW_ACCOUNTS;
 import vm from 'node:vm';
 import { parseHTML } from 'linkedom';
 
@@ -178,7 +180,7 @@ test('week pass grants seven days, extends an active pass, refunds seven days, a
     });
     const beforeWeek = await readBalance(account);
     const event = {
-      app_user_id: account, store: 'APP_STORE', transaction_id: 'week-pass-transaction',
+      environment: 'PRODUCTION', app_user_id: account, store: 'APP_STORE', transaction_id: 'week-pass-transaction',
       product_id: 'ezik_pass_week_1', event_timestamp_ms: Date.now(),
     };
     const purchase = responseDouble();

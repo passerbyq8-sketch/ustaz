@@ -215,6 +215,7 @@ export default async function handler(req, res) {
   const written = await writeJson(ticketKey(ticket), {
     v: TICKET_RECORD_VERSION,
     accountKey: account.key,
+    generation: account.generation,
     deviceId: typeof record.deviceId === 'string' ? record.deviceId : '',
     createdAt: Date.now(),
   }, TICKET_TTL_SECONDS);
