@@ -349,7 +349,7 @@ every purpose and `capabilityEligible()` is false for every capability. **Regist
 
 ## K. Gates and tests
 
-Expected success signature for the integrated roster, not a completed integration run. CURRENT_RECON retains the inherited record pending the actual step-6 full run; integration evidence is recorded in REPORT-C1-ORDER-2-INTEG1.md:
+Success signature for the integrated roster. CURRENT_RECON records the actual 321/0/0 counts before the report self-check in the full run on ca6247d6 (2026-11-04T19:33:20.113Z); recon requires that pre-check count, not its final summary including this check. Full-run results and final acceptance evidence are recorded in REPORT-C1-ORDER-3-INTEG1.md:
 
 All 228 gates in the current roster run sequentially through tools/run-gates.cjs. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
 
@@ -422,7 +422,7 @@ dimatranslations 0
 aboutstorebadges 0
 securityheaders 0
 TOTAL_GATES        228/228 PASS
-CURRENT_RECON PASS=317 WARN=0 FAIL=0
+CURRENT_RECON PASS=321 WARN=0 FAIL=0
 PRE_REBASE_UPSTREAM_TOTAL_GATES 206/206 PASS
 PRE_REBASE_UPSTREAM_RECON PASS=299 WARN=0 FAIL=0
 PRE_REBASE_BRANCH_TOTAL_GATES 208/208 PASS
