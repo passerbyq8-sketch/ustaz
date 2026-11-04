@@ -1115,5 +1115,10 @@
     "name": "securitynativereplay",
     "script": "guards/security-native-replay-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "securitybuilddeps",
+    "script": "tests/build-dependency-security.test.js",
+    "args": ""
   }
 ]
