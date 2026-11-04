@@ -1130,5 +1130,10 @@
     "name": "securitysynccrypto",
     "script": "tests/sync-crypto-security.test.js",
     "args": ""
+  },
+  {
+    "name": "securitysyncmerge",
+    "script": "tests/sync-merge-security.test.js",
+    "args": ""
   }
 ]
