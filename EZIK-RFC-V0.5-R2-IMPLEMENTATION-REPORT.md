@@ -349,13 +349,15 @@ every purpose and `capabilityEligible()` is false for every capability. **Regist
 
 ## K. Gates and tests
 
+C2 2026-11-04: appended `securitysynccrypto` (`tests/sync-crypto-security.test.js`); branch roster 225. Unit red/green/mutation evidence and final suite results are in REPORT-C2-ORDER-2.md in the session archive.
+
 C2 2026-11-04: appended `securityworkflow` (`tests/workflow-security.test.js`); branch roster 224. Unit red/green/mutation evidence and final suite results are in REPORT-C2-ORDER-2.md in the session archive.
 
 C2 2026-11-04: appended `securitybuilddeps` (`tests/build-dependency-security.test.js`); branch roster 223. Unit red/green/mutation evidence and final suite results are in REPORT-C2-ORDER-2.md in the session archive.
 
 C2 2026-11-04: appended `securitynativereplay` (`guards/security-native-replay-guard.cjs`); branch roster 222. Unit red/green/mutation evidence and final suite results are in REPORT-C2-ORDER-2.md in the session archive.
 
-All 224 gates run sequentially by the authorized gates-seq.cjs runner from gates.json. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
+All 225 gates run sequentially by the authorized gates-seq.cjs runner from gates.json. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -386,6 +388,10 @@ kunuznorepeat 0 · kunuzcats 0 · kunuzgroups 0 · kunuzwarengine 0 · kunuztest
 liveworldkill 0 · livenumbersrc 0 · sahihaynlink 0 · previewdaycap 0 · libmujaz 0 · libquote 0 · encycbrain 0 · widgetopen 0 · lib108 0 · speedclient 0 · prayerojeiri 0 · prayerfeatures 0 · lang 0 · speedbw2 0 · speedintegration 0 · speedpipes 0 · frontsorter 0 · impermissibleearly 0 · syncserver 0 · syncclient 0 · syncmemory 0 · ez110edges 0 · ez110override 0 · ez110names 0 · memorizer86 0 · memorizer86nospend 0 · arbaeensharh 0
 compassmath 0 · locationauto 0 · hijrievents 0 · prayerlog 0
 iaplaunch 0
+securitysynccrypto 0
+securityworkflow 0
+securitybuilddeps 0
+securitynativereplay 0
 brainlineb1 0  brainlineb2 0  brainlineb3 0  brainlinec1 0  brainlinec2 0  brainlinec3 0  brainlinec4 0  brainlinec5 0  brainlinec6 0  brainlinec7 0  brainlined1a 0  brainlined1b 0  brainlined2 0  brainlined3 0  brainlined4 0  brainlined5 0  brainlinee1 0  brainlinee2 0  brainlineo1 0  brainlineo2 0  brainlineo3a 0  brainlineo3b 0  brainlinez1 0  brainlinez2 0  brainlinez3 0  brainlineh1 0  brainlineh2 0  brainlineh3 0  brainlineh4 0  brainlinet1 0  harvesttools 0  brainliner21 0  brainliner22 0  brainliner23 0  brainliner24 0  brainliner25 0  brainliner26 0  brainliner27 0  brainliner28 0
 ```
 
@@ -418,14 +424,14 @@ postship3identityframes 0
 postship3attributiontrigger 0
 postship3row7a 0
 postship3routelog 0
-TOTAL_GATES        224/224 PASS
-CURRENT_RECON PASS=317 WARN=0 FAIL=0
+TOTAL_GATES        225/225 PASS
+CURRENT_RECON PASS=318 WARN=0 FAIL=0
 PRE_REBASE_UPSTREAM_TOTAL_GATES 206/206 PASS
 PRE_REBASE_UPSTREAM_RECON PASS=299 WARN=0 FAIL=0
 PRE_REBASE_BRANCH_TOTAL_GATES 208/208 PASS
 PRE_REBASE_BRANCH_RECON PASS=301 WARN=0 FAIL=0
-MERGED_GATES 224 (calculated from gates.json)
-POST_REBUILD_FINAL_GATES 224/224 PASS
+MERGED_GATES 225 (calculated from gates.json)
+POST_REBUILD_FINAL_GATES 225/225 PASS
 DIFF_CHECK         PASS (exit 0)
 OLD_FIXTURES       9/9 drive clean (F1–F9); F6 rewritten per owner decision
 NEW_FIXTURES       rfcpolicy 125/125 · rfcruntime 96/96

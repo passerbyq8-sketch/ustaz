@@ -1095,3 +1095,4 @@ guards/brain-postship3-route-log-guard.cjs text eol=lf
 guards/security-native-replay-guard.cjs text eol=lf
 tests/build-dependency-security.test.js text eol=lf
 tests/workflow-security.test.js text eol=lf
+tests/sync-crypto-security.test.js text eol=lf

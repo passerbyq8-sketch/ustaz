@@ -1125,5 +1125,10 @@
     "name": "securityworkflow",
     "script": "tests/workflow-security.test.js",
     "args": ""
+  },
+  {
+    "name": "securitysynccrypto",
+    "script": "tests/sync-crypto-security.test.js",
+    "args": ""
   }
 ]
