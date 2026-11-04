@@ -1,0 +1,1476 @@
+{
+  "schema": "ezik-dima-pack/1",
+  "version": 1,
+  "language": "ar",
+  "audience": "all-ages",
+  "sourceBase": {
+    "path": "dima/dima-v1.json",
+    "sha256": "09554894aeef74616a9e030f74f4542b83dc4a1aadf6220d427167c064dae15c"
+  },
+  "editorialPolicy": "Daily assignments are educational selections, not claims of a prescribed act or reward for a particular date. Quoted sources support the general practice. No grades added.",
+  "id": "dima-ramadan-001",
+  "kind": "seasonal",
+  "season": {
+    "id": "ramadan",
+    "hijriMonth": 9,
+    "firstDay": 1,
+    "lastDay": 30,
+    "priority": 300
+  },
+  "days": [
+    {
+      "id": "dima.ramadan.01",
+      "position": 1,
+      "lisanRef": "l01",
+      "qalb": {
+        "id": "dima.ramadan.01.qalb",
+        "text": "ابدأ يومك في رمضان بنية طيبة في عمل صغير",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.01.qalb.note",
+        "note": "وَمَآ أُمِرُوٓا۟ إِلَّا لِيَعْبُدُوا۟ ٱللَّهَ مُخْلِصِينَ لَهُ ٱلدِّينَ حُنَفَآءَ وَيُقِيمُوا۟ ٱلصَّلَوٰةَ وَيُؤْتُوا۟ ٱلزَّكَوٰةَ ۚ وَذَٰلِكَ دِينُ ٱلْقَيِّمَةِ",
+        "kind": "quran",
+        "src": "البينة: ٥",
+        "actionId": "dima.ramadan.01.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "surah": 98,
+          "ayah": 5
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.01.jawarih",
+        "text": "استقبل أحد أهل بيتك بابتسامة هادئة",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.01.jawarih.note",
+        "note": "تَبَسُّمُكَ فِي وَجْهِ أَخِيكَ لَكَ صَدَقَةٌ",
+        "kind": "hadith",
+        "src": "الترمذي",
+        "actionId": "dima.ramadan.01.jawarih.action",
+        "action": "ابتسمتُ",
+        "verified": {
+          "book": "سنن الترمذي ت بشار",
+          "ref": "3/404",
+          "subjectId": "FC-000658",
+          "atomId": "FC-000658:1351:001",
+          "volume": 3,
+          "page": 404
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.01.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.01.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.02",
+      "position": 2,
+      "lisanRef": "l02",
+      "qalb": {
+        "id": "dima.ramadan.02.qalb",
+        "text": "تأمّل نعمة اجتماع أهلك على الخير",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.02.qalb.note",
+        "note": "وَإِذْ تَأَذَّنَ رَبُّكُمْ لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ ۖ وَلَئِن كَفَرْتُمْ إِنَّ عَذَابِى لَشَدِيدٌ",
+        "kind": "quran",
+        "src": "إبراهيم: ٧",
+        "actionId": "dima.ramadan.02.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "surah": 14,
+          "ayah": 7
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.02.jawarih",
+        "text": "رتّب شيئًا مشتركًا في البيت لتخفّف عن أهلك",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.02.jawarih.note",
+        "note": "كَانَ يَكُونُ فِي مِهْنَةِ أَهْلِهِ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.ramadan.02.jawarih.action",
+        "action": "ساعدتُ",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "1/136",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:0434:001",
+          "volume": 1,
+          "page": 136
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.02.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.02.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.03",
+      "position": 3,
+      "lisanRef": "l03",
+      "qalb": {
+        "id": "dima.ramadan.03.qalb",
+        "text": "ادع لمن تذكّرت من أهلك وأصحابك",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.03.qalb.note",
+        "note": "دَعْوَةُ الْمَرْءِ الْمُسْلِمِ لِأَخِيهِ بِظَهْرِ الْغَيْبِ مُسْتَجَابَةٌ، عِنْدَ رَأْسِهِ مَلَكٌ مُوَكَّلٌ كُلَّمَا دَعَا لِأَخِيهِ بِخَيْرٍ، قَالَ الْمَلَكُ الْمُوَكَّلُ بِهِ: آمِينَ وَلَكَ بِمِثْلٍ",
+        "kind": "hadith",
+        "src": "مسلم",
+        "actionId": "dima.ramadan.03.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "book": "صحيح مسلم",
+          "ref": "4/2094",
+          "subjectId": "FC-000648",
+          "atomId": "FC-000648:1246:002",
+          "volume": 4,
+          "page": 2094
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.03.jawarih",
+        "text": "قل كلمة طيبة لشخص بذل جهدًا اليوم",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.03.jawarih.note",
+        "note": "وَالكَلِمَةُ الطَّيِّبَةُ صَدَقَةٌ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.ramadan.03.jawarih.action",
+        "action": "قلتُ خيرًا",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "4/56",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:1856:001",
+          "volume": 4,
+          "page": 56
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.03.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.03.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.04",
+      "position": 4,
+      "lisanRef": "l04",
+      "qalb": {
+        "id": "dima.ramadan.04.qalb",
+        "text": "تأنّ في كلامك عندما تنشغل",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.04.qalb.note",
+        "note": "مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَاليَوْمِ الآخِرِ فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.ramadan.04.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "8/11",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:3194:001",
+          "volume": 8,
+          "page": 11
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.04.jawarih",
+        "text": "قدّم مساعدة صغيرة من غير أن تتحدث عنها",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.04.jawarih.note",
+        "note": "وَرَجُلٌ تَصَدَّقَ بِصَدَقَةٍ فَأَخْفَاهَا حَتَّى لاَ تَعْلَمَ شِمَالُهُ مَا تُنْفِقُ يَمِينُهُ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.ramadan.04.jawarih.action",
+        "action": "ساعدتُ",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "2/111",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:0891:001",
+          "volume": 2,
+          "page": 111
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.04.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.04.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.05",
+      "position": 5,
+      "lisanRef": "l05",
+      "qalb": {
+        "id": "dima.ramadan.05.qalb",
+        "text": "اشكر الله على ما تجد من طعام وماء",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.05.qalb.note",
+        "note": "وَإِن تَعُدُّوا۟ نِعْمَةَ ٱللَّهِ لَا تُحْصُوهَآ ۗ إِنَّ ٱللَّهَ لَغَفُورٌ رَّحِيمٌ",
+        "kind": "quran",
+        "src": "النحل: ١٨",
+        "actionId": "dima.ramadan.05.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "surah": 16,
+          "ayah": 18
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.05.jawarih",
+        "text": "اسأل قريبًا عن حاله بكلمة أو رسالة لطيفة",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.05.jawarih.note",
+        "note": "مَنْ أَحَبَّ أَنْ يُبْسَطَ لَهُ فِي رِزْقِهِ، وَيُنْسَأَ لَهُ فِي أَثَرِهِ، فَلْيَصِلْ رَحِمَهُ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.ramadan.05.jawarih.action",
+        "action": "وصلتُ رحمي",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "8/5",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:3175:001",
+          "volume": 8,
+          "page": 5
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.05.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.05.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.06",
+      "position": 6,
+      "lisanRef": "l06",
+      "qalb": {
+        "id": "dima.ramadan.06.qalb",
+        "text": "جدّد نيتك قبل أن تساعد أحدًا",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.06.qalb.note",
+        "note": "وَمَآ أُمِرُوٓا۟ إِلَّا لِيَعْبُدُوا۟ ٱللَّهَ مُخْلِصِينَ لَهُ ٱلدِّينَ حُنَفَآءَ وَيُقِيمُوا۟ ٱلصَّلَوٰةَ وَيُؤْتُوا۟ ٱلزَّكَوٰةَ ۚ وَذَٰلِكَ دِينُ ٱلْقَيِّمَةِ",
+        "kind": "quran",
+        "src": "البينة: ٥",
+        "actionId": "dima.ramadan.06.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "surah": 98,
+          "ayah": 5
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.06.jawarih",
+        "text": "ابدأ من تلقاه بالسلام",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.06.jawarih.note",
+        "note": "أَفْشُوا السَّلَامَ بَيْنَكُمْ",
+        "kind": "hadith",
+        "src": "مسلم",
+        "actionId": "dima.ramadan.06.jawarih.action",
+        "action": "سلّمتُ",
+        "verified": {
+          "book": "صحيح مسلم",
+          "ref": "1/74",
+          "subjectId": "FC-000648",
+          "atomId": "FC-000648:0033:001",
+          "volume": 1,
+          "page": 74
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.06.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.06.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.07",
+      "position": 7,
+      "lisanRef": "l07",
+      "qalb": {
+        "id": "dima.ramadan.07.qalb",
+        "text": "تذكّر من يسّر لك تعلّم شيء نافع",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.07.qalb.note",
+        "note": "وَٱللَّهُ أَخْرَجَكُم مِّنۢ بُطُونِ أُمَّهَـٰتِكُمْ لَا تَعْلَمُونَ شَيْـًٔا وَجَعَلَ لَكُمُ ٱلسَّمْعَ وَٱلْأَبْصَـٰرَ وَٱلْأَفْـِٔدَةَ ۙ لَعَلَّكُمْ تَشْكُرُونَ",
+        "kind": "quran",
+        "src": "النحل: ٧٨",
+        "actionId": "dima.ramadan.07.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "surah": 16,
+          "ayah": 78
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.07.jawarih",
+        "text": "شارك أهلك في تقديم الطعام أو ترتيبه",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.07.jawarih.note",
+        "note": "تُطْعِمُ الطَّعَامَ، وَتَقْرَأُ السَّلاَمَ عَلَى مَنْ عَرَفْتَ وَمَنْ لَمْ تَعْرِفْ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.ramadan.07.jawarih.action",
+        "action": "شاركتُ",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "1/12",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:0009:001",
+          "volume": 1,
+          "page": 12
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.07.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.07.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.08",
+      "position": 8,
+      "lisanRef": "l08",
+      "qalb": {
+        "id": "dima.ramadan.08.qalb",
+        "text": "اختر لحظة هادئة لذكر الله",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.08.qalb.note",
+        "note": "وَٱذْكُر رَّبَّكَ فِى نَفْسِكَ تَضَرُّعًا وَخِيفَةً وَدُونَ ٱلْجَهْرِ مِنَ ٱلْقَوْلِ بِٱلْغُدُوِّ وَٱلْـَٔاصَالِ وَلَا تَكُن مِّنَ ٱلْغَـٰفِلِينَ",
+        "kind": "quran",
+        "src": "الأعراف: ٢٠٥",
+        "actionId": "dima.ramadan.08.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "surah": 7,
+          "ayah": 205
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.08.jawarih",
+        "text": "إن غضبت، توقّف قليلًا قبل أن ترد",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.08.jawarih.note",
+        "note": "لَيْسَ الشَّدِيدُ بِالصُّرَعَةِ، إِنَّمَا الشَّدِيدُ الَّذِي يَمْلِكُ نَفْسَهُ عِنْدَ الغَضَبِ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.ramadan.08.jawarih.action",
+        "action": "تمهّلتُ",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "8/28",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:3239:001",
+          "volume": 8,
+          "page": 28
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.08.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.08.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.09",
+      "position": 9,
+      "lisanRef": "l09",
+      "qalb": {
+        "id": "dima.ramadan.09.qalb",
+        "text": "اسأل الله اليسر فيما يصعب عليك",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.09.qalb.note",
+        "note": "فَإِنَّ مَعَ ٱلْعُسْرِ يُسْرًا",
+        "kind": "quran",
+        "src": "الشرح: ٥",
+        "actionId": "dima.ramadan.09.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "surah": 94,
+          "ayah": 5
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.09.jawarih",
+        "text": "علّم من يرغب شيئًا نافعًا تعرفه جيدًا",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.09.jawarih.note",
+        "note": "مَنْ دَلَّ عَلَى خَيْرٍ فَلَهُ مِثْلُ أَجْرِ فَاعِلِهِ",
+        "kind": "hadith",
+        "src": "مسلم",
+        "actionId": "dima.ramadan.09.jawarih.action",
+        "action": "علّمتُ",
+        "verified": {
+          "book": "صحيح مسلم",
+          "ref": "3/1506",
+          "subjectId": "FC-000648",
+          "atomId": "FC-000648:0877:001",
+          "volume": 3,
+          "page": 1506
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.09.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.09.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.10",
+      "position": 10,
+      "lisanRef": "l10",
+      "qalb": {
+        "id": "dima.ramadan.10.qalb",
+        "text": "تذكّر عملًا يسيرًا تستطيع الاستمرار فيه",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.10.qalb.note",
+        "note": "أَحَبَّ الأَعْمَالِ إِلَى اللَّهِ أَدْوَمُهَا وَإِنْ قَلَّ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.ramadan.10.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "8/98",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:3431:002",
+          "volume": 8,
+          "page": 98
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.10.jawarih",
+        "text": "اسأل من حولك عن مساعدة بسيطة يحتاجها",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.10.jawarih.note",
+        "note": "وَاللهُ فِي عَوْنِ الْعَبْدِ مَا كَانَ الْعَبْدُ فِي عَوْنِ أَخِيهِ",
+        "kind": "hadith",
+        "src": "مسلم",
+        "actionId": "dima.ramadan.10.jawarih.action",
+        "action": "ساعدتُ",
+        "verified": {
+          "book": "صحيح مسلم",
+          "ref": "4/2074",
+          "subjectId": "FC-000648",
+          "atomId": "FC-000648:1234:001",
+          "volume": 4,
+          "page": 2074
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.10.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.10.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.11",
+      "position": 11,
+      "lisanRef": "l11",
+      "qalb": {
+        "id": "dima.ramadan.11.qalb",
+        "text": "استحضر شكر الله عند ترتيب طعامك",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.11.qalb.note",
+        "note": "وَإِذْ تَأَذَّنَ رَبُّكُمْ لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ ۖ وَلَئِن كَفَرْتُمْ إِنَّ عَذَابِى لَشَدِيدٌ",
+        "kind": "quran",
+        "src": "إبراهيم: ٧",
+        "actionId": "dima.ramadan.11.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "surah": 14,
+          "ayah": 7
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.11.jawarih",
+        "text": "خاطب صغيرًا بكلمة تشجعه ولا تسخر منه",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.11.jawarih.note",
+        "note": "وَالكَلِمَةُ الطَّيِّبَةُ صَدَقَةٌ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.ramadan.11.jawarih.action",
+        "action": "شجّعتُ",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "4/56",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:1856:001",
+          "volume": 4,
+          "page": 56
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.11.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.11.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.12",
+      "position": 12,
+      "lisanRef": "l12",
+      "qalb": {
+        "id": "dima.ramadan.12.qalb",
+        "text": "ادع لشخص بعيد عنك",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.12.qalb.note",
+        "note": "دَعْوَةُ الْمَرْءِ الْمُسْلِمِ لِأَخِيهِ بِظَهْرِ الْغَيْبِ مُسْتَجَابَةٌ، عِنْدَ رَأْسِهِ مَلَكٌ مُوَكَّلٌ كُلَّمَا دَعَا لِأَخِيهِ بِخَيْرٍ، قَالَ الْمَلَكُ الْمُوَكَّلُ بِهِ: آمِينَ وَلَكَ بِمِثْلٍ",
+        "kind": "hadith",
+        "src": "مسلم",
+        "actionId": "dima.ramadan.12.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "book": "صحيح مسلم",
+          "ref": "4/2094",
+          "subjectId": "FC-000648",
+          "atomId": "FC-000648:1246:002",
+          "volume": 4,
+          "page": 2094
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.12.jawarih",
+        "text": "أبعد شيئًا صغيرًا يؤذي في مكان آمن، أو اطلب مساعدة كبير",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.12.jawarih.note",
+        "note": "وَأَدْنَاهَا إِمَاطَةُ الْأَذَى عَنِ الطَّرِيقِ",
+        "kind": "hadith",
+        "src": "مسلم",
+        "actionId": "dima.ramadan.12.jawarih.action",
+        "action": "أبعدتُ الأذى",
+        "verified": {
+          "book": "صحيح مسلم",
+          "ref": "1/63",
+          "subjectId": "FC-000648",
+          "atomId": "FC-000648:0023:001",
+          "volume": 1,
+          "page": 63
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.12.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.12.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.13",
+      "position": 13,
+      "lisanRef": "l01",
+      "qalb": {
+        "id": "dima.ramadan.13.qalb",
+        "text": "تأمّل أثر السلام في لقاء الناس",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.13.qalb.note",
+        "note": "مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَاليَوْمِ الآخِرِ فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.ramadan.13.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "8/11",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:3194:001",
+          "volume": 8,
+          "page": 11
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.13.jawarih",
+        "text": "بعد خطأ صغير، بادر بعمل حسن تستطيع فعله",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.13.jawarih.note",
+        "note": "وَأَتْبِعِ السَّيِّئَةَ الْحَسَنَةَ تَمْحُهَا",
+        "kind": "hadith",
+        "src": "الدارمي",
+        "actionId": "dima.ramadan.13.jawarih.action",
+        "action": "فعلتُ خيرًا",
+        "verified": {
+          "book": "سنن الدارمي",
+          "ref": "3/1837",
+          "subjectId": "FC-000637",
+          "atomId": "FC-000637:1191:001",
+          "volume": 3,
+          "page": 1837
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.13.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.13.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.14",
+      "position": 14,
+      "lisanRef": "l02",
+      "qalb": {
+        "id": "dima.ramadan.14.qalb",
+        "text": "راجع نيتك في عمل لا يراك فيه أحد",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.14.qalb.note",
+        "note": "وَمَآ أُمِرُوٓا۟ إِلَّا لِيَعْبُدُوا۟ ٱللَّهَ مُخْلِصِينَ لَهُ ٱلدِّينَ حُنَفَآءَ وَيُقِيمُوا۟ ٱلصَّلَوٰةَ وَيُؤْتُوا۟ ٱلزَّكَوٰةَ ۚ وَذَٰلِكَ دِينُ ٱلْقَيِّمَةِ",
+        "kind": "quran",
+        "src": "البينة: ٥",
+        "actionId": "dima.ramadan.14.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "surah": 98,
+          "ayah": 5
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.14.jawarih",
+        "text": "اختر اليوم عملًا خفيفًا تطيقه",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.14.jawarih.note",
+        "note": "خُذُوا مِنَ العَمَلِ مَا تُطِيقُونَ، فَإِنَّ اللَّهَ لاَ يَمَلُّ حَتَّى تَمَلُّوا",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.ramadan.14.jawarih.action",
+        "action": "اخترتُ عملي",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "3/38",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:1223:001",
+          "volume": 3,
+          "page": 38
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.14.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.14.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.15",
+      "position": 15,
+      "lisanRef": "l03",
+      "qalb": {
+        "id": "dima.ramadan.15.qalb",
+        "text": "احمد الله على فرصة جديدة للإحسان",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.15.qalb.note",
+        "note": "وَإِن تَعُدُّوا۟ نِعْمَةَ ٱللَّهِ لَا تُحْصُوهَآ ۗ إِنَّ ٱللَّهَ لَغَفُورٌ رَّحِيمٌ",
+        "kind": "quran",
+        "src": "النحل: ١٨",
+        "actionId": "dima.ramadan.15.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "surah": 16,
+          "ayah": 18
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.15.jawarih",
+        "text": "اعرض على أهلك مساعدة قصيرة تناسب قدرتك",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.15.jawarih.note",
+        "note": "كَانَ يَكُونُ فِي مِهْنَةِ أَهْلِهِ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.ramadan.15.jawarih.action",
+        "action": "عرضتُ المساعدة",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "1/136",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:0434:001",
+          "volume": 1,
+          "page": 136
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.15.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.15.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.16",
+      "position": 16,
+      "lisanRef": "l04",
+      "qalb": {
+        "id": "dima.ramadan.16.qalb",
+        "text": "تأنّ عندما تضيق بانتظار شيء",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.16.qalb.note",
+        "note": "قُلْ يَـٰعِبَادِ ٱلَّذِينَ ءَامَنُوا۟ ٱتَّقُوا۟ رَبَّكُمْ ۚ لِلَّذِينَ أَحْسَنُوا۟ فِى هَـٰذِهِ ٱلدُّنْيَا حَسَنَةٌ ۗ وَأَرْضُ ٱللَّهِ وَٰسِعَةٌ ۗ إِنَّمَا يُوَفَّى ٱلصَّـٰبِرُونَ أَجْرَهُم بِغَيْرِ حِسَابٍ",
+        "kind": "quran",
+        "src": "الزمر: ١٠",
+        "actionId": "dima.ramadan.16.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "surah": 39,
+          "ayah": 10
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.16.jawarih",
+        "text": "سلّم على جارك إن لقيته، أو اسأل عنه مع أهلك",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.16.jawarih.note",
+        "note": "مَا زَالَ جِبْرِيلُ يُوصِينِي بِالْجَارِ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.ramadan.16.jawarih.action",
+        "action": "سألتُ عنه",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "8/10",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:3191:001",
+          "volume": 8,
+          "page": 10
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.16.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.16.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.17",
+      "position": 17,
+      "lisanRef": "l05",
+      "qalb": {
+        "id": "dima.ramadan.17.qalb",
+        "text": "تذكّر نعمة من يعتني بك",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.17.qalb.note",
+        "note": "وَٱللَّهُ أَخْرَجَكُم مِّنۢ بُطُونِ أُمَّهَـٰتِكُمْ لَا تَعْلَمُونَ شَيْـًٔا وَجَعَلَ لَكُمُ ٱلسَّمْعَ وَٱلْأَبْصَـٰرَ وَٱلْأَفْـِٔدَةَ ۙ لَعَلَّكُمْ تَشْكُرُونَ",
+        "kind": "quran",
+        "src": "النحل: ٧٨",
+        "actionId": "dima.ramadan.17.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "surah": 16,
+          "ayah": 78
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.17.jawarih",
+        "text": "اشكر شخصًا على معروف محدد صنعه لك",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.17.jawarih.note",
+        "note": "وَالكَلِمَةُ الطَّيِّبَةُ صَدَقَةٌ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.ramadan.17.jawarih.action",
+        "action": "شكرتُه",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "4/56",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:1856:001",
+          "volume": 4,
+          "page": 56
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.17.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.17.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.18",
+      "position": 18,
+      "lisanRef": "l06",
+      "qalb": {
+        "id": "dima.ramadan.18.qalb",
+        "text": "اختر كلامًا لطيفًا مع أهل بيتك",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.18.qalb.note",
+        "note": "مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَاليَوْمِ الآخِرِ فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.ramadan.18.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "8/11",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:3194:001",
+          "volume": 8,
+          "page": 11
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.18.jawarih",
+        "text": "شارك بشيء يسير تملكه إن استطعت",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.18.jawarih.note",
+        "note": "اتَّقُوا النَّارَ وَلَوْ بِشِقِّ تَمْرَةٍ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.ramadan.18.jawarih.action",
+        "action": "شاركتُ",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "2/109",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:0885:001",
+          "volume": 2,
+          "page": 109
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.18.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.18.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.19",
+      "position": 19,
+      "lisanRef": "l07",
+      "qalb": {
+        "id": "dima.ramadan.19.qalb",
+        "text": "اسأل الله أن يعينك على الخير",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.19.qalb.note",
+        "note": "أَنَا عِنْدَ ظَنِّ عَبْدِي بِي",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.ramadan.19.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "9/120",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:3853:001",
+          "volume": 9,
+          "page": 120
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.19.jawarih",
+        "text": "اطمئن على مريض برسالة قصيرة تناسب حاله",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.19.jawarih.note",
+        "note": "مَنْ عَادَ مَرِيضًا، لَمْ يَزَلْ فِي خُرْفَةِ الْجَنَّةِ",
+        "kind": "hadith",
+        "src": "مسلم",
+        "actionId": "dima.ramadan.19.jawarih.action",
+        "action": "اطمأننتُ",
+        "verified": {
+          "book": "صحيح مسلم",
+          "ref": "4/1989",
+          "subjectId": "FC-000648",
+          "atomId": "FC-000648:1171:001",
+          "volume": 4,
+          "page": 1989
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.19.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.19.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.20",
+      "position": 20,
+      "lisanRef": "l08",
+      "qalb": {
+        "id": "dima.ramadan.20.qalb",
+        "text": "استغفر الله وانْوِ إصلاح خطأ صغير",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.20.qalb.note",
+        "note": "وَٱلَّذِينَ إِذَا فَعَلُوا۟ فَـٰحِشَةً أَوْ ظَلَمُوٓا۟ أَنفُسَهُمْ ذَكَرُوا۟ ٱللَّهَ فَٱسْتَغْفَرُوا۟ لِذُنُوبِهِمْ وَمَن يَغْفِرُ ٱلذُّنُوبَ إِلَّا ٱللَّهُ وَلَمْ يُصِرُّوا۟ عَلَىٰ مَا فَعَلُوا۟ وَهُمْ يَعْلَمُونَ",
+        "kind": "quran",
+        "src": "آل عمران: ١٣٥",
+        "actionId": "dima.ramadan.20.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "surah": 3,
+          "ayah": 135
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.20.jawarih",
+        "text": "اسقِ نبتة تحتاج الماء بقدر حاجتها",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.20.jawarih.note",
+        "note": "مَا مِنْ مُسْلِمٍ يَغْرِسُ غَرْسًا إِلَّا كَانَ مَا أُكِلَ مِنْهُ لَهُ صَدَقَةً",
+        "kind": "hadith",
+        "src": "مسلم",
+        "actionId": "dima.ramadan.20.jawarih.action",
+        "action": "سقيتُها",
+        "verified": {
+          "book": "صحيح مسلم",
+          "ref": "3/1188",
+          "subjectId": "FC-000648",
+          "atomId": "FC-000648:0686:001",
+          "volume": 3,
+          "page": 1188
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.20.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.20.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.21",
+      "position": 21,
+      "lisanRef": "l09",
+      "qalb": {
+        "id": "dima.ramadan.21.qalb",
+        "text": "اجعل في يومك لحظة لذكر الله",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.21.qalb.note",
+        "note": "وَٱذْكُر رَّبَّكَ فِى نَفْسِكَ تَضَرُّعًا وَخِيفَةً وَدُونَ ٱلْجَهْرِ مِنَ ٱلْقَوْلِ بِٱلْغُدُوِّ وَٱلْـَٔاصَالِ وَلَا تَكُن مِّنَ ٱلْغَـٰفِلِينَ",
+        "kind": "quran",
+        "src": "الأعراف: ٢٠٥",
+        "actionId": "dima.ramadan.21.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "surah": 7,
+          "ayah": 205
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.21.jawarih",
+        "text": "استعد للصلاة في وقتها بما تحتاجه من غير استعجال",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.21.jawarih.note",
+        "note": "الصَّلاَةُ عَلَى وَقْتِهَا",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.ramadan.21.jawarih.action",
+        "action": "استعددتُ",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "1/112",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:0354:001",
+          "volume": 1,
+          "page": 112
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.21.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.21.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.22",
+      "position": 22,
+      "lisanRef": "l10",
+      "qalb": {
+        "id": "dima.ramadan.22.qalb",
+        "text": "تأمّل خيرًا تعلمته هذا الشهر",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.22.qalb.note",
+        "note": "وَٱللَّهُ أَخْرَجَكُم مِّنۢ بُطُونِ أُمَّهَـٰتِكُمْ لَا تَعْلَمُونَ شَيْـًٔا وَجَعَلَ لَكُمُ ٱلسَّمْعَ وَٱلْأَبْصَـٰرَ وَٱلْأَفْـِٔدَةَ ۙ لَعَلَّكُمْ تَشْكُرُونَ",
+        "kind": "quran",
+        "src": "النحل: ٧٨",
+        "actionId": "dima.ramadan.22.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "surah": 16,
+          "ayah": 78
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.22.jawarih",
+        "text": "ساعد صغيرًا في تعلّم كلمة أو مهارة نافعة",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.22.jawarih.note",
+        "note": "مَنْ دَلَّ عَلَى خَيْرٍ فَلَهُ مِثْلُ أَجْرِ فَاعِلِهِ",
+        "kind": "hadith",
+        "src": "مسلم",
+        "actionId": "dima.ramadan.22.jawarih.action",
+        "action": "ساعدتُه",
+        "verified": {
+          "book": "صحيح مسلم",
+          "ref": "3/1506",
+          "subjectId": "FC-000648",
+          "atomId": "FC-000648:0877:001",
+          "volume": 3,
+          "page": 1506
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.22.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.22.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.23",
+      "position": 23,
+      "lisanRef": "l11",
+      "qalb": {
+        "id": "dima.ramadan.23.qalb",
+        "text": "جدّد رجاءك في الله",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.23.qalb.note",
+        "note": "أَنَا عِنْدَ ظَنِّ عَبْدِي بِي",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.ramadan.23.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "9/120",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:3853:001",
+          "volume": 9,
+          "page": 120
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.23.jawarih",
+        "text": "تجاوز عن هفوة يسيرة من صاحبك إن استطعت",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.23.jawarih.note",
+        "note": "وَمَا زَادَ اللهُ عَبْدًا بِعَفْوٍ، إِلَّا عِزًّا",
+        "kind": "hadith",
+        "src": "مسلم",
+        "actionId": "dima.ramadan.23.jawarih.action",
+        "action": "عفوتُ",
+        "verified": {
+          "book": "صحيح مسلم",
+          "ref": "4/2001",
+          "subjectId": "FC-000648",
+          "atomId": "FC-000648:1177:001",
+          "volume": 4,
+          "page": 2001
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.23.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.23.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.24",
+      "position": 24,
+      "lisanRef": "l12",
+      "qalb": {
+        "id": "dima.ramadan.24.qalb",
+        "text": "ادع بالخير لمن تعرف ومن لا تعرف",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.24.qalb.note",
+        "note": "دَعْوَةُ الْمَرْءِ الْمُسْلِمِ لِأَخِيهِ بِظَهْرِ الْغَيْبِ مُسْتَجَابَةٌ، عِنْدَ رَأْسِهِ مَلَكٌ مُوَكَّلٌ كُلَّمَا دَعَا لِأَخِيهِ بِخَيْرٍ، قَالَ الْمَلَكُ الْمُوَكَّلُ بِهِ: آمِينَ وَلَكَ بِمِثْلٍ",
+        "kind": "hadith",
+        "src": "مسلم",
+        "actionId": "dima.ramadan.24.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "book": "صحيح مسلم",
+          "ref": "4/2094",
+          "subjectId": "FC-000648",
+          "atomId": "FC-000648:1246:002",
+          "volume": 4,
+          "page": 2094
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.24.jawarih",
+        "text": "ساعد شخصًا في حمل شيء خفيف مناسب لقدرتك",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.24.jawarih.note",
+        "note": "وَاللهُ فِي عَوْنِ الْعَبْدِ مَا كَانَ الْعَبْدُ فِي عَوْنِ أَخِيهِ",
+        "kind": "hadith",
+        "src": "مسلم",
+        "actionId": "dima.ramadan.24.jawarih.action",
+        "action": "ساعدتُ",
+        "verified": {
+          "book": "صحيح مسلم",
+          "ref": "4/2074",
+          "subjectId": "FC-000648",
+          "atomId": "FC-000648:1234:001",
+          "volume": 4,
+          "page": 2074
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.24.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.24.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.25",
+      "position": 25,
+      "lisanRef": "l01",
+      "qalb": {
+        "id": "dima.ramadan.25.qalb",
+        "text": "اشكر الله على ما تيسّر من العمل",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.25.qalb.note",
+        "note": "وَإِذْ تَأَذَّنَ رَبُّكُمْ لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ ۖ وَلَئِن كَفَرْتُمْ إِنَّ عَذَابِى لَشَدِيدٌ",
+        "kind": "quran",
+        "src": "إبراهيم: ٧",
+        "actionId": "dima.ramadan.25.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "surah": 14,
+          "ayah": 7
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.25.jawarih",
+        "text": "ابتسم لمن يعمل معك أو يتعلم معك",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.25.jawarih.note",
+        "note": "تَبَسُّمُكَ فِي وَجْهِ أَخِيكَ لَكَ صَدَقَةٌ",
+        "kind": "hadith",
+        "src": "الترمذي",
+        "actionId": "dima.ramadan.25.jawarih.action",
+        "action": "ابتسمتُ",
+        "verified": {
+          "book": "سنن الترمذي ت بشار",
+          "ref": "3/404",
+          "subjectId": "FC-000658",
+          "atomId": "FC-000658:1351:001",
+          "volume": 3,
+          "page": 404
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.25.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.25.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.26",
+      "position": 26,
+      "lisanRef": "l02",
+      "qalb": {
+        "id": "dima.ramadan.26.qalb",
+        "text": "فكّر في مساعدة صغيرة تقدمها برضا",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.26.qalb.note",
+        "note": "وَمَآ أُمِرُوٓا۟ إِلَّا لِيَعْبُدُوا۟ ٱللَّهَ مُخْلِصِينَ لَهُ ٱلدِّينَ حُنَفَآءَ وَيُقِيمُوا۟ ٱلصَّلَوٰةَ وَيُؤْتُوا۟ ٱلزَّكَوٰةَ ۚ وَذَٰلِكَ دِينُ ٱلْقَيِّمَةِ",
+        "kind": "quran",
+        "src": "البينة: ٥",
+        "actionId": "dima.ramadan.26.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "surah": 98,
+          "ayah": 5
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.26.jawarih",
+        "text": "اقرأ مما تحفظ من القرآن بتأنّ",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.26.jawarih.note",
+        "note": "مَنْ قَرَأَ حَرْفًا مِنْ كِتَابِ اللهِ فَلَهُ بِهِ حَسَنَةٌ، وَالحَسَنَةُ بِعَشْرِ أَمْثَالِهَا",
+        "kind": "hadith",
+        "src": "الترمذي",
+        "actionId": "dima.ramadan.26.jawarih.action",
+        "action": "قرأتُ",
+        "verified": {
+          "book": "سنن الترمذي ت بشار",
+          "ref": "5/25",
+          "subjectId": "FC-000658",
+          "atomId": "FC-000658:1936:001",
+          "volume": 5,
+          "page": 25
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.26.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.26.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.27",
+      "position": 27,
+      "lisanRef": "l03",
+      "qalb": {
+        "id": "dima.ramadan.27.qalb",
+        "text": "راجع كلمة تريد أن تقولها، واختر خيرها",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.27.qalb.note",
+        "note": "مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَاليَوْمِ الآخِرِ فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.ramadan.27.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "8/11",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:3194:001",
+          "volume": 8,
+          "page": 11
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.27.jawarih",
+        "text": "أصلح أثر كلمة آذيت بها أحدًا باعتذار لطيف",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.27.jawarih.note",
+        "note": "وَأَتْبِعِ السَّيِّئَةَ الْحَسَنَةَ تَمْحُهَا",
+        "kind": "hadith",
+        "src": "الدارمي",
+        "actionId": "dima.ramadan.27.jawarih.action",
+        "action": "اعتذرتُ",
+        "verified": {
+          "book": "سنن الدارمي",
+          "ref": "3/1837",
+          "subjectId": "FC-000637",
+          "atomId": "FC-000637:1191:001",
+          "volume": 3,
+          "page": 1837
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.27.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.27.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.28",
+      "position": 28,
+      "lisanRef": "l04",
+      "qalb": {
+        "id": "dima.ramadan.28.qalb",
+        "text": "تذكّر عملًا خفيًا استطعت فعله",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.28.qalb.note",
+        "note": "وَمَآ أُمِرُوٓا۟ إِلَّا لِيَعْبُدُوا۟ ٱللَّهَ مُخْلِصِينَ لَهُ ٱلدِّينَ حُنَفَآءَ وَيُقِيمُوا۟ ٱلصَّلَوٰةَ وَيُؤْتُوا۟ ٱلزَّكَوٰةَ ۚ وَذَٰلِكَ دِينُ ٱلْقَيِّمَةِ",
+        "kind": "quran",
+        "src": "البينة: ٥",
+        "actionId": "dima.ramadan.28.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "surah": 98,
+          "ayah": 5
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.28.jawarih",
+        "text": "أعد شيئًا إلى مكانه لتسهّل على أهل البيت",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.28.jawarih.note",
+        "note": "كَانَ يَكُونُ فِي مِهْنَةِ أَهْلِهِ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.ramadan.28.jawarih.action",
+        "action": "رتّبتُ",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "1/136",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:0434:001",
+          "volume": 1,
+          "page": 136
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.28.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.28.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.29",
+      "position": 29,
+      "lisanRef": "l05",
+      "qalb": {
+        "id": "dima.ramadan.29.qalb",
+        "text": "اسأل الله القبول والعون على الاستمرار",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.29.qalb.note",
+        "note": "وَقَالَ رَبُّكُمُ ٱدْعُونِىٓ أَسْتَجِبْ لَكُمْ ۚ إِنَّ ٱلَّذِينَ يَسْتَكْبِرُونَ عَنْ عِبَادَتِى سَيَدْخُلُونَ جَهَنَّمَ دَاخِرِينَ",
+        "kind": "quran",
+        "src": "غافر: ٦٠",
+        "actionId": "dima.ramadan.29.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "surah": 40,
+          "ayah": 60
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.29.jawarih",
+        "text": "ابدأ لقاءك اليوم بسلام واضح لطيف",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.29.jawarih.note",
+        "note": "أَفْشُوا السَّلَامَ بَيْنَكُمْ",
+        "kind": "hadith",
+        "src": "مسلم",
+        "actionId": "dima.ramadan.29.jawarih.action",
+        "action": "سلّمتُ",
+        "verified": {
+          "book": "صحيح مسلم",
+          "ref": "1/74",
+          "subjectId": "FC-000648",
+          "atomId": "FC-000648:0033:001",
+          "volume": 1,
+          "page": 74
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.29.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.29.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.ramadan.30",
+      "position": 30,
+      "lisanRef": "l06",
+      "qalb": {
+        "id": "dima.ramadan.30.qalb",
+        "text": "اختر خيرًا يسيرًا تحب أن يستمر بعد رمضان",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.30.qalb.note",
+        "note": "أَحَبَّ الأَعْمَالِ إِلَى اللَّهِ أَدْوَمُهَا وَإِنْ قَلَّ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.ramadan.30.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "8/98",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:3431:002",
+          "volume": 8,
+          "page": 98
+        }
+      },
+      "jawarih": {
+        "id": "dima.ramadan.30.jawarih",
+        "text": "اجعل لك اليوم خطوة صغيرة تستطيع تكرارها",
+        "textKind": "guidance",
+        "noteId": "dima.ramadan.30.jawarih.note",
+        "note": "خُذُوا مِنَ العَمَلِ مَا تُطِيقُونَ، فَإِنَّ اللَّهَ لاَ يَمَلُّ حَتَّى تَمَلُّوا",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.ramadan.30.jawarih.action",
+        "action": "فعلتُها",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "3/38",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:1223:001",
+          "volume": 3,
+          "page": 38
+        }
+      },
+      "teaser": {
+        "id": "dima.ramadan.30.teaser",
+        "text": "خير يسير في رمضان"
+      },
+      "notification": {
+        "id": "dima.ramadan.30.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    }
+  ]
+}

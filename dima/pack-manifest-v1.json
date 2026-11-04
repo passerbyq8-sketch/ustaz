@@ -1,0 +1,98 @@
+{
+  "schema": "ezik-dima-manifest/1",
+  "id": "dima-packs",
+  "version": 1,
+  "language": "ar",
+  "legacy": {
+    "path": "/dima/dima-v1.json",
+    "sha256": "09554894aeef74616a9e030f74f4542b83dc4a1aadf6220d427167c064dae15c",
+    "packId": "dima-regular-001",
+    "firstDay": 1,
+    "lastDay": 30,
+    "dayIdPattern": "dima.regular.NNN"
+  },
+  "regular": [
+    {
+      "id": "dima-regular-001",
+      "version": 1,
+      "legacy": true,
+      "firstDay": 1,
+      "lastDay": 30
+    },
+    {
+      "id": "dima-regular-002",
+      "version": 1,
+      "path": "/dima/pack-regular-002.json",
+      "firstDay": 31,
+      "lastDay": 60
+    }
+  ],
+  "seasonal": [
+    {
+      "id": "ramadan",
+      "version": 1,
+      "path": "/dima/pack-ramadan-001.json",
+      "hijriMonth": 9,
+      "firstDay": 1,
+      "lastDay": 30,
+      "priority": 300,
+      "count": 30,
+      "packId": "dima-ramadan-001"
+    },
+    {
+      "id": "dhul-hijjah",
+      "version": 1,
+      "path": "/dima/pack-dhul-hijjah-001.json",
+      "hijriMonth": 12,
+      "firstDay": 1,
+      "lastDay": 10,
+      "priority": 300,
+      "count": 10,
+      "packId": "dima-dhul-hijjah-001"
+    },
+    {
+      "id": "white-days",
+      "version": 1,
+      "path": "/dima/pack-white-days-001.json",
+      "hijriMonth": null,
+      "firstDay": 13,
+      "lastDay": 15,
+      "priority": 200,
+      "count": 3,
+      "packId": "dima-white-days-001"
+    }
+  ],
+  "precedence": [
+    "ramadan",
+    "dhul-hijjah",
+    "white-days",
+    "friday",
+    "regular"
+  ],
+  "afterLast": "repeat-all-available",
+  "notifications": {
+    "repeat": {
+      "id": "dima.repeat.notification",
+      "text": "ديمة اليوم من الأيام المتاحة، وخيرك محفوظ"
+    },
+    "later": {
+      "id": "dima.later.notification",
+      "text": "تذكير ديمة: قطرة الجوارح تنتظرك"
+    }
+  },
+  "labels": {
+    "repeat": {
+      "id": "dima.repeat.label",
+      "text": "إعادة من الأيام المتاحة"
+    },
+    "repeatHelp": {
+      "id": "dima.repeat.help",
+      "text": "نكرر الأيام المتاحة مع حفظ تقدمك"
+    },
+    "season": {
+      "id": "dima.season.label",
+      "text": "بطاقة موسمية"
+    }
+  },
+  "sourceEvidence": "/dima/pack-source-evidence-v1.json"
+}

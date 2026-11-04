@@ -1,0 +1,171 @@
+{
+  "schema": "ezik-dima-pack/1",
+  "version": 1,
+  "language": "ar",
+  "audience": "all-ages",
+  "sourceBase": {
+    "path": "dima/dima-v1.json",
+    "sha256": "09554894aeef74616a9e030f74f4542b83dc4a1aadf6220d427167c064dae15c"
+  },
+  "editorialPolicy": "Daily assignments are educational selections, not claims of a prescribed act or reward for a particular date. Quoted sources support the general practice. No grades added.",
+  "id": "dima-white-days-001",
+  "kind": "seasonal",
+  "season": {
+    "id": "white-days",
+    "hijriMonth": null,
+    "firstDay": 13,
+    "lastDay": 15,
+    "priority": 200
+  },
+  "days": [
+    {
+      "id": "dima.white-days.13",
+      "position": 13,
+      "lisanRef": "l01",
+      "qalb": {
+        "id": "dima.white-days.13.qalb",
+        "text": "اجعل لك لحظة لذكر الله في هذا اليوم",
+        "textKind": "guidance",
+        "noteId": "dima.white-days.13.qalb.note",
+        "note": "وَٱذْكُر رَّبَّكَ فِى نَفْسِكَ تَضَرُّعًا وَخِيفَةً وَدُونَ ٱلْجَهْرِ مِنَ ٱلْقَوْلِ بِٱلْغُدُوِّ وَٱلْـَٔاصَالِ وَلَا تَكُن مِّنَ ٱلْغَـٰفِلِينَ",
+        "kind": "quran",
+        "src": "الأعراف: ٢٠٥",
+        "actionId": "dima.white-days.13.qalb.action",
+        "action": "ذكرتُ الله",
+        "verified": {
+          "surah": 7,
+          "ayah": 205
+        }
+      },
+      "jawarih": {
+        "id": "dima.white-days.13.jawarih",
+        "text": "اختر كلمة طيبة تقولها لمن حولك",
+        "textKind": "guidance",
+        "noteId": "dima.white-days.13.jawarih.note",
+        "note": "وَالكَلِمَةُ الطَّيِّبَةُ صَدَقَةٌ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.white-days.13.jawarih.action",
+        "action": "قلتُ خيرًا",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "4/56",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:1856:001",
+          "volume": 4,
+          "page": 56
+        }
+      },
+      "teaser": {
+        "id": "dima.white-days.13.teaser",
+        "text": "خير يسير يدوم"
+      },
+      "notification": {
+        "id": "dima.white-days.13.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.white-days.14",
+      "position": 14,
+      "lisanRef": "l02",
+      "qalb": {
+        "id": "dima.white-days.14.qalb",
+        "text": "ادع لشخص تحب له الخير",
+        "textKind": "guidance",
+        "noteId": "dima.white-days.14.qalb.note",
+        "note": "دَعْوَةُ الْمَرْءِ الْمُسْلِمِ لِأَخِيهِ بِظَهْرِ الْغَيْبِ مُسْتَجَابَةٌ، عِنْدَ رَأْسِهِ مَلَكٌ مُوَكَّلٌ كُلَّمَا دَعَا لِأَخِيهِ بِخَيْرٍ، قَالَ الْمَلَكُ الْمُوَكَّلُ بِهِ: آمِينَ وَلَكَ بِمِثْلٍ",
+        "kind": "hadith",
+        "src": "مسلم",
+        "actionId": "dima.white-days.14.qalb.action",
+        "action": "دعوتُ له",
+        "verified": {
+          "book": "صحيح مسلم",
+          "ref": "4/2094",
+          "subjectId": "FC-000648",
+          "atomId": "FC-000648:1246:002",
+          "volume": 4,
+          "page": 2094
+        }
+      },
+      "jawarih": {
+        "id": "dima.white-days.14.jawarih",
+        "text": "ساعد في أمر صغير تستطيع إنجازه",
+        "textKind": "guidance",
+        "noteId": "dima.white-days.14.jawarih.note",
+        "note": "وَاللهُ فِي عَوْنِ الْعَبْدِ مَا كَانَ الْعَبْدُ فِي عَوْنِ أَخِيهِ",
+        "kind": "hadith",
+        "src": "مسلم",
+        "actionId": "dima.white-days.14.jawarih.action",
+        "action": "ساعدتُ",
+        "verified": {
+          "book": "صحيح مسلم",
+          "ref": "4/2074",
+          "subjectId": "FC-000648",
+          "atomId": "FC-000648:1234:001",
+          "volume": 4,
+          "page": 2074
+        }
+      },
+      "teaser": {
+        "id": "dima.white-days.14.teaser",
+        "text": "خير يسير يدوم"
+      },
+      "notification": {
+        "id": "dima.white-days.14.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.white-days.15",
+      "position": 15,
+      "lisanRef": "l03",
+      "qalb": {
+        "id": "dima.white-days.15.qalb",
+        "text": "اختر خيرًا يسيرًا تحب الاستمرار فيه",
+        "textKind": "guidance",
+        "noteId": "dima.white-days.15.qalb.note",
+        "note": "أَحَبَّ الأَعْمَالِ إِلَى اللَّهِ أَدْوَمُهَا وَإِنْ قَلَّ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.white-days.15.qalb.action",
+        "action": "اخترتُ",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "8/98",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:3431:002",
+          "volume": 8,
+          "page": 98
+        }
+      },
+      "jawarih": {
+        "id": "dima.white-days.15.jawarih",
+        "text": "خفّف عن أهل بيتك بمساعدة قصيرة",
+        "textKind": "guidance",
+        "noteId": "dima.white-days.15.jawarih.note",
+        "note": "كَانَ يَكُونُ فِي مِهْنَةِ أَهْلِهِ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.white-days.15.jawarih.action",
+        "action": "ساعدتُ",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "1/136",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:0434:001",
+          "volume": 1,
+          "page": 136
+        }
+      },
+      "teaser": {
+        "id": "dima.white-days.15.teaser",
+        "text": "خير يسير يدوم"
+      },
+      "notification": {
+        "id": "dima.white-days.15.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    }
+  ]
+}
