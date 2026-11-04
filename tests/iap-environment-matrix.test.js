@@ -10,7 +10,7 @@ import { MemoryIapStore } from './iap-memory-store.js';
 
 const account = 'acct:v1:google:review-fixture';
 const other = 'acct:v1:apple:ordinary-fixture';
-const secret = 'local-webhook-fixture';
+const secret = 'test-only';
 function response() {
   return { statusCode: 0, status(n) { this.statusCode = n; return this; },
     setHeader() {}, json(b) { this.body = b; return this; } };
