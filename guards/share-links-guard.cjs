@@ -31,8 +31,8 @@
 //   badges for other app platforms appear in the layout, use the preferred black badge. Place the
 //   App Store badge first in the lineup of badges."
 //
-//   THE TWO LINKS AND THE TWO BADGE FILES ARE SEALED. The links are pinned character for
-//   character against about.html, which has carried them since the app was published. The badges
+//   THE TWO LINKS AND THE TWO BADGE FILES ARE SEALED. The links are pinned by their parsed URL targets
+//   against about.html, which has carried them since the app was published. The badges
 //   are pinned by SHA-256 over their bytes on disk, because the whole point of rule 6 of the
 //   order is that vendor artwork is used byte for byte and never redrawn, recoloured or resized:
 //   a hash is the only assertion that can tell a re-saved badge from the vendor's own file.
@@ -133,7 +133,7 @@ ok('0: both dictionary halves were LOCATED', AR.length > 5000 && EN.length > 500
   'ar ' + AR.length + ' en ' + EN.length);
 
 // ---------------------------------------------------------------------------------------------
-// A. THE TWO LINKS, CHARACTER FOR CHARACTER -- and they are about.html's own.
+// A. THE TWO LINKS: exact client literals and matching parsed about.html targets.
 // ---------------------------------------------------------------------------------------------
 const APP_URL = 'https://ezik.app';
 const APP_STORE = 'https://apps.apple.com/gb/app/%D8%B9%D8%B2%D9%83/id6797100518';
@@ -151,16 +151,32 @@ ok('A: the app\'s own link is declared exactly once',
 
 // about.html is the SOURCE OF TRUTH for both, and it predates this item. If the store listing
 // ever moves, these two assertions are what notices that the app and the public page disagree.
+// Parse HTML attributes to decode entities, then compare the complete URL target.
+// Only path percent-encoding and query spelling/order are normalized. Host, app
+// id, path, scheme, credentials, query values and fragment remain exact.
+function storeTarget(value) {
+  try {
+    const url = new URL(value);
+    return JSON.stringify([url.protocol, url.username, url.password, url.host,
+      decodeURIComponent(url.pathname), [...url.searchParams.entries()].sort(), url.hash]);
+  } catch (_) { return null; }
+}
+function carriesStoreTarget(html, target) {
+  const expected = storeTarget(target);
+  const { document } = require('linkedom').parseHTML(html);
+  return expected !== null && [...document.querySelectorAll('a[href]')]
+    .some((anchor) => storeTarget(anchor.getAttribute('href')) === expected);
+}
 const ABOUT = fs.readFileSync(path.join(ROOT, 'about.html'), 'utf8');
 const AYN = cp(0x0639, 0x0632, 0x0643);                       // the app's name in the App Store path
-ok('A: the App Store link, percent-decoded, is the href about.html carries',
-  ABOUT.indexOf('href="' + decodeURIComponent(APP_STORE) + '"') !== -1,
+ok('A: the parsed App Store target is the href about.html carries',
+  carriesStoreTarget(ABOUT, APP_STORE),
   'looking for the decoded path ending ' + esc(AYN) + '/id6797100518');
 ok('A: ...and re-encoding that path segment gives back the pinned literal',
   encodeURIComponent(AYN) === '%D8%B9%D8%B2%D9%83'
     && decodeURIComponent(APP_STORE).indexOf('/' + AYN + '/') !== -1);
 ok('A: the Google Play link, with &amp; decoded, is the href about.html carries',
-  ABOUT.indexOf('href="' + PLAY_STORE.replace(/&/g, '&amp;') + '"') !== -1);
+  carriesStoreTarget(ABOUT, PLAY_STORE));
 
 // ---------------------------------------------------------------------------------------------
 // B. THE TWO BADGE FILES, SEALED BY SHA-256 OVER THEIR BYTES.
@@ -645,8 +661,7 @@ eq('H4: the App Store address in download.html is the same again',
 eq('H4: the Google Play address in download.html is the same again, its & decoded',
   (DL_HTML.match(/href="(https:\/\/play\.google\.com[^"]*)"/) || [, ''])[1].replace(/&amp;/g, '&'), PLAY_STORE);
 ok('H4: ...and about.html, which has carried both since the app was published, agrees',
-  ABOUT.indexOf('href="' + decodeURIComponent(APP_STORE) + '"') !== -1
-    && ABOUT.indexOf('href="' + PLAY_HTML + '"') !== -1);
+  carriesStoreTarget(ABOUT, APP_STORE) && carriesStoreTarget(ABOUT, PLAY_STORE));
 eq('H4: download.js names exactly two addresses and no third',
   (DL_JS.match(/https?:\/\/[^'"\s]+/g) || []).sort(), [APP_STORE, PLAY_STORE].sort());
 
