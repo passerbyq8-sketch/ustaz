@@ -1104,3 +1104,5 @@ tests/auth-lua-fixture.cjs text eol=lf
 tests/auth-session-lifecycle.test.cjs text eol=lf
 tests/security-auth-harness.cjs text eol=lf
 guards/security-session-lifecycle-guard.cjs text eol=lf
+tests/article-input-security.test.cjs text eol=lf
+guards/security-article-input-guard.cjs text eol=lf

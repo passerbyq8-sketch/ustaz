@@ -99,6 +99,8 @@ function refuse(res, code) {
   return res.status(503).json({ ok: false, error: code });
 }
 
+export const MAX_ARTICLE_REQUEST_BYTES = 1024 * 1024;
+
 export default async function handler(req, res) {
   applyCorsOrigin(req, res);
   if (req.method === 'OPTIONS') {
@@ -111,6 +113,11 @@ export default async function handler(req, res) {
     return res.status(204).end();
   }
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'method-not-allowed' });
+
+  let requestBytes;
+  try { requestBytes = Buffer.byteLength(typeof req.body === 'string' ? req.body : JSON.stringify(req.body ?? {}), 'utf8'); }
+  catch { return res.status(400).json({ ok: false, error: 'articles-body' }); }
+  if (requestBytes > MAX_ARTICLE_REQUEST_BYTES) return res.status(413).json({ ok: false, error: 'articles-body-too-large' });
 
   // Fails CLOSED -- see lib/ratelimit.js AUTH_FAIL_OPEN. A write we cannot count is one we do not
   // make; and unlike a reader's question, a write that waits a minute has lost nothing.
