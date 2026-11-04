@@ -44,6 +44,7 @@ import { applyCorsOrigin, checkAuthLimit } from '../lib/ratelimit.js';
 import { clientAddress } from '../lib/attempts.js';
 import { nativeConfig, fetchJwks, verifyIdToken } from '../lib/auth/oidc.js';
 import { upsertAccount, indexVerifiedEmail, mintSession } from '../lib/auth/account.js';
+import { reserveNativeAssertion } from '../lib/auth/store.js';
 import { weldByVerifiedEmail } from '../lib/sync/service.js';
 
 /**
@@ -132,6 +133,17 @@ export default async function handler(req, res) {
   if (!verified.ok) return res.status(401).json({ ok: false, error: verified.code });
 
   const claims = verified.claims;
+
+  // Hash the verified signed bytes, not the signature's base64 spelling: equivalent encodings
+  // of one signature must consume the same assertion. Only a digest survives until token expiry.
+  // A later store failure keeps the reservation: retrying requires a fresh native sign-in,
+  // while every existing session stays untouched. No raw token or nonce is stored or logged.
+  const assertion = crypto.createHash('sha256')
+    .update(cfg.name + ':' + identityToken.split('.').slice(0, 2).join('.'), 'utf8').digest('hex');
+  const reservation = await reserveNativeAssertion(assertion, claims.expiresAt);
+  if (reservation.state === 'unknown') return res.status(503).json({ ok: false, error: 'auth-native-unavailable' });
+  if (reservation.state === 'expired') return res.status(401).json({ ok: false, error: 'auth-idtoken-expired' });
+  if (reservation.state !== 'reserved') return res.status(409).json({ ok: false, error: 'auth-native-replayed' });
 
   // THE SAME ACCOUNT WRITER, WITH THE SAME FOUR FIELDS. `sub` is the stable identifier and is
   // enough on its own: a reader who hid their address has an account keyed by subject like anyone

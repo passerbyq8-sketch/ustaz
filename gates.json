@@ -1110,5 +1110,10 @@
     "name": "iaplaunch",
     "script": "tools/iap-launch-tests.cjs",
     "args": ""
+  },
+  {
+    "name": "securitynativereplay",
+    "script": "guards/security-native-replay-guard.cjs",
+    "args": ""
   }
 ]
