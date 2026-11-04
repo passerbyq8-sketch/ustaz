@@ -349,11 +349,13 @@ every purpose and `capabilityEligible()` is false for every capability. **Regist
 
 ## K. Gates and tests
 
+C2 2026-11-04: appended `securityworkflow` (`tests/workflow-security.test.js`); branch roster 224. Unit red/green/mutation evidence and final suite results are in REPORT-C2-ORDER-2.md in the session archive.
+
 C2 2026-11-04: appended `securitybuilddeps` (`tests/build-dependency-security.test.js`); branch roster 223. Unit red/green/mutation evidence and final suite results are in REPORT-C2-ORDER-2.md in the session archive.
 
 C2 2026-11-04: appended `securitynativereplay` (`guards/security-native-replay-guard.cjs`); branch roster 222. Unit red/green/mutation evidence and final suite results are in REPORT-C2-ORDER-2.md in the session archive.
 
-All 223 gates run sequentially by the authorized gates-seq.cjs runner from gates.json. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
+All 224 gates run sequentially by the authorized gates-seq.cjs runner from gates.json. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -416,14 +418,14 @@ postship3identityframes 0
 postship3attributiontrigger 0
 postship3row7a 0
 postship3routelog 0
-TOTAL_GATES        223/223 PASS
-CURRENT_RECON PASS=316 WARN=0 FAIL=0
+TOTAL_GATES        224/224 PASS
+CURRENT_RECON PASS=317 WARN=0 FAIL=0
 PRE_REBASE_UPSTREAM_TOTAL_GATES 206/206 PASS
 PRE_REBASE_UPSTREAM_RECON PASS=299 WARN=0 FAIL=0
 PRE_REBASE_BRANCH_TOTAL_GATES 208/208 PASS
 PRE_REBASE_BRANCH_RECON PASS=301 WARN=0 FAIL=0
-MERGED_GATES 223 (calculated from gates.json)
-POST_REBUILD_FINAL_GATES 223/223 PASS
+MERGED_GATES 224 (calculated from gates.json)
+POST_REBUILD_FINAL_GATES 224/224 PASS
 DIFF_CHECK         PASS (exit 0)
 OLD_FIXTURES       9/9 drive clean (F1–F9); F6 rewritten per owner decision
 NEW_FIXTURES       rfcpolicy 125/125 · rfcruntime 96/96
