@@ -2366,6 +2366,12 @@ const EZ_I18N = {
     'dima.tab.jawarih': '\u0627\u0644\u062c\u0648\u0627\u0631\u062d',
     'dima.quran': '\u0627\u0644\u0642\u0631\u0622\u0646',
     'dima.todayPractices': '\u0642\u0637\u0631\u0627\u062a \u0627\u0644\u064a\u0648\u0645',
+    "dima.home.progress": "{n} من {total} قطرات",
+    "dima.home.complete": "اكتملت ديمتك اليوم · {n} من {total} قطرات",
+    "dima.home.tomorrow": "نلتقي غدًا بإذن الله",
+    "dima.slot.fajr30": "بعد صلاة الفجر بنصف ساعة",
+    "dima.slot.duha": "وقت الضحى",
+    "dima.slot.isha": "بعد صلاة العشاء",
     'tr4.showArabic': 'الأصل العربي',
     'tr4.machine': 'ترجمة آلية',
   },
@@ -3581,6 +3587,12 @@ const EZ_I18N = {
     'dima.tab.jawarih': 'Actions',
     'dima.quran': 'Quran',
     'dima.todayPractices': 'Today?s drops',
+    "dima.home.progress": "{n} of {total} drops",
+    "dima.home.complete": "Today's Dima is complete · {n} of {total} drops",
+    "dima.home.tomorrow": "See you tomorrow, God willing",
+    "dima.slot.fajr30": "Half an hour after Fajr prayer",
+    "dima.slot.duha": "At Duha time",
+    "dima.slot.isha": "After Isha prayer",
     'yahimmak.title': 'Essentials',
     'yahimmak.headline': 'What matters in your faith, lesson by lesson',
     'yahimmak.byline': 'By Shaykh Abdulaziz ibn Baz, explained by Shaykh Othman Al-Khamees',
@@ -11874,6 +11886,7 @@ let EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize
 // The menu is the first RTL control in the top row; the separate banner opener remains outside it.
 
 function DimaHomeCard({ onOpenDima, onOpenMenu, name }) {
+  useEzLang();
   const [todayKey, setTodayKey] = useState(() => dimaDateKey(new Date()));
   const [, setRefreshVersion] = useState(0);
   useEffect(() => {
@@ -11912,23 +11925,23 @@ function DimaHomeCard({ onOpenDima, onOpenMenu, name }) {
   const todayCount = plants[0].stage;
   const complete = !!(store.startDate && todayCount === 3);
   const dimaName = ezT('dima.title');
-  const completeLabel = '\u0627\u0643\u062a\u0645\u0644\u062a \u062f\u064a\u0645\u062a\u0643 \u0627\u0644\u064a\u0648\u0645 \u00b7 \u0663 \u0645\u0646 \u0663 \u0642\u0637\u0631\u0627\u062a';
-  const actionLabel = todayCount === 0 ? '\u0627\u0628\u062f\u0623' : '\u0623\u0643\u0645\u0644';
-  const progressLabel = toArabicDigits(String(todayCount)) + ' \u0645\u0646 \u0663 \u0642\u0637\u0631\u0627\u062a';
-  const ariaLabel = dimaName + ' — ' + (complete ? completeLabel : actionLabel + ' ' + progressLabel);
+  const completeLabel = ezT('dima.home.complete', { n: ezNum(3), total: ezNum(3) });
+  const actionLabel = ezT(todayCount === 0 ? 'x.599' : 'chat.qa.continue');
+  const progressLabel = ezT('dima.home.progress', { n: ezNum(todayCount), total: ezNum(3) });
+  const ariaLabel = dimaName + ' \u2014 ' + (complete ? completeLabel : actionLabel + ' ' + progressLabel);
   const slotLabel = {
-    fajr30: '\u0628\u0639\u062f \u0635\u0644\u0627\u0629 \u0627\u0644\u0641\u062c\u0631 \u0628\u0646\u0635\u0641 \u0633\u0627\u0639\u0629',
-    duha: '\u0648\u0642\u062a \u0627\u0644\u0636\u062d\u0649',
-    asr: '\u0628\u0639\u062f \u0635\u0644\u0627\u0629 \u0627\u0644\u0639\u0635\u0631',
-    isha: '\u0628\u0639\u062f \u0635\u0644\u0627\u0629 \u0627\u0644\u0639\u0634\u0627\u0621',
+    fajr30: ezT('dima.slot.fajr30'),
+    duha: ezT('dima.slot.duha'),
+    asr: ezT('reminders.anchor.asr'),
+    isha: ezT('dima.slot.isha'),
   };
-  const reminderGreeting = '\u0646\u0644\u062a\u0642\u064a \u063a\u062f\u064b\u0627 \u0628\u0625\u0630\u0646 \u0627\u0644\u0644\u0647';
+  const reminderGreeting = ezT('dima.home.tomorrow');
   const rain = [
     { top: 56, left: 40 }, { top: 56, left: 58 }, { top: 56, left: 76 },
     { top: 56, left: 94 }, { top: 76, left: 134 }, { top: 76, left: 156 },
   ];
   return (
-    <div className="dimaHomeBanner" dir="rtl">
+    <div className="dimaHomeBanner" dir={EZ_LANG_DIR[EZ_LANG] || 'ltr'}>
       <div className="dimaHomeTopRow">
         <button type="button" className="dimaHomeMenuButton ezhome-focus" onClick={onOpenMenu} aria-label={EZH_NAV_MENU}>
           {EZH_ICON_MENU}
@@ -11962,11 +11975,11 @@ function DimaHomeCard({ onOpenDima, onOpenMenu, name }) {
             <span className="dimaHomeProgressDrops" aria-hidden="true">{[0, 1, 2].map((drop) => <svg key={drop} width="14" height="14" viewBox="0 0 24 24" className={drop < todayCount ? 'dimaHomeProgressDrop is-filled' : 'dimaHomeProgressDrop'}><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" /></svg>)}</span>
             <span className="dimaHomeProgressLabel">{progressLabel}</span>
             </span>
-            <span className="dimaHomeAction is-pulse"><span>{actionLabel}</span><span aria-hidden="true">‹</span></span>
+            <span className="dimaHomeAction is-pulse"><span>{actionLabel}</span><span aria-hidden="true">{EZ_LANG_DIR[EZ_LANG] === 'rtl' ? '\u2039' : '\u203a'}</span></span>
           </span>
         </> : <>
           <span className="dimaHomeDoneBadge"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg><span>{completeLabel}</span></span>
-          <span className="dimaHomeMeet"><span className="dimaHomeMeetGreeting">{reminderGreeting}</span>{store.notify.on ? ' ' + (slotLabel[store.notify.slot] || slotLabel.fajr30) : ''}</span>
+          <span className="dimaHomeMeet"><span className="dimaHomeMeetGreeting">{reminderGreeting}</span>{store.notify.on ? ' \u00b7 ' + (slotLabel[store.notify.slot] || slotLabel.fajr30) : ''}</span>
         </>}
       </span>
     </div>
