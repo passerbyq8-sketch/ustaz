@@ -25,6 +25,13 @@
       "path": "/dima/pack-regular-002.json",
       "firstDay": 31,
       "lastDay": 60
+    },
+    {
+      "id": "dima-regular-003",
+      "version": 1,
+      "path": "/dima/pack-regular-003.json",
+      "firstDay": 61,
+      "lastDay": 90
     }
   ],
   "seasonal": [
