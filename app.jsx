@@ -31921,13 +31921,6 @@ function readPrayerPlaceFor(lat, lng) {
   if (rec.lat !== lat || rec.lng !== lng) return null;
   if (typeof rec.n !== 'string' || !rec.n || typeof rec.tz !== 'string' || !rec.tz) return null;
   if (!prayerZoneFmt(rec.tz)) return null;
-  // Item 3d: legacy chosen places have no GeoNames id. Match only Jahra's old
-  // Arabic name and its coordinates; the corrected value makes this a one-time write.
-  if (rec.a === '\u062c\u0647\u0631\u0627' && typeof rec.lat === 'number' && typeof rec.lng === 'number'
-      && Math.abs(rec.lat - 29.3375) <= 0.01 && Math.abs(rec.lng - 47.6581) <= 0.01) {
-    rec = { ...rec, a: '\u0627\u0644\u062c\u0647\u0631\u0627\u0621' };
-    try { localStorage.setItem(PRAYER_PLACE_KEY, JSON.stringify(rec)); } catch (e) {}
-  }
   return { n: rec.n, a: typeof rec.a === 'string' ? rec.a : '', cc: typeof rec.cc === 'string' ? rec.cc : '',
     tz: rec.tz, lat: lat, lng: lng };
 }
@@ -31947,6 +31940,20 @@ function writePrayerPlace(p) {
   }
   try { ezikWidgetDataChanged(); } catch (e) {}
   return readQiblaLoc();
+}
+// Item 3d: migrate the one legacy saved name at startup, before any view reads it.
+// Schedule and compass readers stay pure; a corrected stored name makes later boots no-ops.
+function migrateSavedJahraPlace() {
+  let rec;
+  try { rec = JSON.parse(localStorage.getItem(PRAYER_PLACE_KEY)); } catch (e) { return false; }
+  if (!rec || typeof rec !== 'object' || Array.isArray(rec)) return false;
+  if (rec.a !== 'جهرا' || typeof rec.lat !== 'number' || typeof rec.lng !== 'number'
+      || !(Math.abs(rec.lat - 29.3375) <= 0.01) || !(Math.abs(rec.lng - 47.6581) <= 0.01)) return false;
+  if (typeof rec.n !== 'string' || !rec.n || typeof rec.tz !== 'string' || !prayerZoneFmt(rec.tz)) return false;
+  try {
+    localStorage.setItem(PRAYER_PLACE_KEY, JSON.stringify({ ...rec, a: 'الجهراء' }));
+    return true;
+  } catch (e) { return false; }
 }
 // The offset the calculator is given for a civil day: the place's own zone when one is chosen, and the
 // device's clock at that day's noon (the line this replaces) when none is.
@@ -45683,6 +45690,8 @@ function ezDomApply() {
   } catch (e) {}
 }
 try { EZ_LANG_SUBS.add(() => { setTimeout(ezDomApply, 0); }); } catch (e) {}
+
+migrateSavedJahraPlace();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(React.createElement(ErrorBoundary, null, React.createElement(App), React.createElement(EzikPrecacheNotice)));
