@@ -31906,6 +31906,13 @@ function readPrayerPlaceFor(lat, lng) {
   if (rec.lat !== lat || rec.lng !== lng) return null;
   if (typeof rec.n !== 'string' || !rec.n || typeof rec.tz !== 'string' || !rec.tz) return null;
   if (!prayerZoneFmt(rec.tz)) return null;
+  // Item 3d: legacy chosen places have no GeoNames id. Match only Jahra's old
+  // Arabic name and its coordinates; the corrected value makes this a one-time write.
+  if (rec.a === '\u062c\u0647\u0631\u0627' && typeof rec.lat === 'number' && typeof rec.lng === 'number'
+      && Math.abs(rec.lat - 29.3375) <= 0.01 && Math.abs(rec.lng - 47.6581) <= 0.01) {
+    rec = { ...rec, a: '\u0627\u0644\u062c\u0647\u0631\u0627\u0621' };
+    try { localStorage.setItem(PRAYER_PLACE_KEY, JSON.stringify(rec)); } catch (e) {}
+  }
   return { n: rec.n, a: typeof rec.a === 'string' ? rec.a : '', cc: typeof rec.cc === 'string' ? rec.cc : '',
     tz: rec.tz, lat: lat, lng: lng };
 }

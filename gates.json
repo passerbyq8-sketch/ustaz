@@ -1110,5 +1110,10 @@
     "name": "iaplaunch",
     "script": "tools/iap-launch-tests.cjs",
     "args": ""
+  },
+  {
+    "name": "c1placename",
+    "script": "guards/c1-place-name-guard.cjs",
+    "args": ""
   }
 ]

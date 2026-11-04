@@ -2100,7 +2100,7 @@ const SEALED = {
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 58418 bytes).
   // 2026-11-03 IAP-LAUNCH-SIGNIN source commit e4754ef0: cache ezik-v135; app.js rebuilt at the same byte length; CORE unchanged. Digest measured from the committed sw.js blob at CR = 0.
   // 2026-11-04 QAF-GAP-N2: ezik-v136; rebuild and CORE measurement, then LF worker seal.
-  'sw.js': 'd96eaa9d8ef54b87829714194a19969499d73e90491e2bed2ba78b1be6899b54',
+  'sw.js': 'd1a74178929f74dddb026cbc3e21d47c8851576e55ac7a391c9fe70bb1667aca',
 };
 
 // ---------------------------------------------------------------------------
@@ -3289,7 +3289,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2580557, of: 'app.js' },
+      { n: 2581013, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
