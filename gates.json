@@ -1110,5 +1110,10 @@
     "name": "iaplaunch",
     "script": "tools/iap-launch-tests.cjs",
     "args": ""
+  },
+  {
+    "name": "aboutstorebadges",
+    "script": "guards/about-store-badges-guard.cjs",
+    "args": ""
   }
 ]

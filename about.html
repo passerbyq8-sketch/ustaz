@@ -57,12 +57,12 @@
   .lead{font-size:18.5px;font-weight:600;line-height:1.85}
   .mail{display:inline-block;margin-top:6px;background:var(--royal);color:#fff;text-decoration:none;font-weight:700;padding:12px 26px;border-radius:10px;direction:ltr}
   .mail:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
-  /* The two store buttons. Same shape as the mail button on support.html, so the page has one
-     button family and not two. They stack on a narrow screen rather than shrinking to a tap
-     target nobody can hit. */
+  /* Reuse the download page artwork, 40px high with 10px clear space. */
   .stores{display:flex;flex-wrap:wrap;gap:12px;margin:6px 0 14px;padding:0;list-style:none}
   .stores li{margin:0}
-  .store{display:inline-block;background:var(--royal);color:#fff;text-decoration:none;font-weight:700;padding:12px 24px;border-radius:10px}
+  .store{display:inline-block;padding:10px}
+  .store img{display:block;height:40px;width:auto;margin:0 auto}
+  .storecredit{color:var(--muted);font-size:13px;line-height:1.7;margin:0 0 14px}
   .store:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
   .storenote{color:var(--muted);font-size:14px;margin:0 0 14px}
   /* The English half, same shape as privacy.html, support.html and delete.html: one block,
@@ -134,9 +134,10 @@
 
 <h2>تحميلُ التطبيق</h2>
 <ul class="stores">
-  <li><a class="store" href="https://apps.apple.com/gb/app/عزك/id6797100518">App Store — آيفون وآيباد</a></li>
-  <li><a class="store" href="https://play.google.com/store/apps/details?id=app.almurabbi.tutor&amp;hl=ar">Google Play — أندرويد</a></li>
+  <li><a class="store" href="https://apps.apple.com/gb/app/%D8%B9%D8%B2%D9%83/id6797100518"><img src="/assets/store-badges/app-store-badge.svg" alt="App Store"></a></li>
+  <li><a class="store" href="https://play.google.com/store/apps/details?id=app.almurabbi.tutor&amp;hl=ar"><img src="/assets/store-badges/google-play-badge.svg" alt="Google Play"></a></li>
 </ul>
+<p class="storecredit" lang="en" dir="ltr">Apple and the Apple Logo are trademarks of Apple Inc., registered in the U.S. and other countries.</p>
 <p class="storenote">ومعرِّفُ الحزمةِ على أندرويد يحملُ اسمَ المشروعِ القديمَ، لأنّ معرِّفَ الحزمةِ لا يتغيّرُ بعدَ النشر.</p>
 
 <h2>الدعمُ والخصوصيّة</h2>
@@ -192,9 +193,10 @@
 
   <h2>Download the app</h2>
   <ul class="stores">
-    <li><a class="store" href="https://apps.apple.com/gb/app/عزك/id6797100518">App Store — iPhone and iPad</a></li>
-    <li><a class="store" href="https://play.google.com/store/apps/details?id=app.almurabbi.tutor&amp;hl=ar">Google Play — Android</a></li>
+    <li><a class="store" href="https://apps.apple.com/gb/app/%D8%B9%D8%B2%D9%83/id6797100518"><img src="/assets/store-badges/app-store-badge.svg" alt="App Store"></a></li>
+    <li><a class="store" href="https://play.google.com/store/apps/details?id=app.almurabbi.tutor&amp;hl=ar"><img src="/assets/store-badges/google-play-badge.svg" alt="Google Play"></a></li>
   </ul>
+<p class="storecredit" lang="en" dir="ltr">Apple and the Apple Logo are trademarks of Apple Inc., registered in the U.S. and other countries.</p>
   <p class="storenote">The Android package id carries the older name of the project, because a package id cannot change after publication.</p>
 
   <h2>Support and privacy</h2>
