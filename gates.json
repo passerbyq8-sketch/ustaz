@@ -1135,5 +1135,10 @@
     "name": "dimatranslations",
     "script": "guards/dima-translations-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "aboutstorebadges",
+    "script": "guards/about-store-badges-guard.cjs",
+    "args": ""
   }
 ]
