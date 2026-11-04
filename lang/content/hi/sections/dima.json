@@ -1,0 +1,5689 @@
+{
+  "schema": "ezik-tr4/1",
+  "lang": "hi",
+  "section": "dima",
+  "title": {
+    "ar": "ديمة",
+    "tr": "दीमा"
+  },
+  "agent": "C4",
+  "generated": "2026-11-04",
+  "source_files": [
+    "dima/dima-v1.json",
+    "app.jsx"
+  ],
+  "items": [
+    {
+      "id": "h:592e78c41de1",
+      "kind": "text",
+      "ar": "قليلٌ دائم، كالمطر الهادئ",
+      "tr": "थोड़ा मगर लगातार, जैसे शांत बारिश",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l01",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده، سبحان الله العظيم",
+      "tr": "अल्लाह पवित्र है और उसी की प्रशंसा है; महान अल्लाह पवित्र है।",
+      "translit": "सुब्हानल्लाहि व बिहम्दिहि, सुब्हानल्लाहिल-अज़ीम",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:46bf599f3e53",
+      "kind": "hadith",
+      "ar": "كَلِمَتَانِ خَفِيفَتَانِ عَلَى اللِّسَانِ، ثَقِيلَتَانِ فِي المِيزَانِ، حَبِيبَتَانِ إِلَى الرَّحْمَنِ",
+      "tr": "दो वचन जो ज़बान पर हल्के, तराज़ू में भारी और अत्यंत दयावान को प्रिय हैं।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3bd5b604195e",
+      "kind": "text",
+      "ar": "متفق عليه",
+      "tr": "बुख़ारी और मुस्लिम दोनों ने रिवायत की",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a70fe204e5f6",
+      "kind": "text",
+      "ar": "قلتُها",
+      "tr": "मैंने कह लिया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l02",
+      "kind": "dhikr",
+      "ar": "لا حول ولا قوة إلا بالله",
+      "tr": "अल्लाह की सहायता के बिना न कोई सामर्थ्य है, न शक्ति।",
+      "translit": "ला हौला व ला क़ुव्वता इल्ला बिल्लाह",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:060e76db5d17",
+      "kind": "hadith",
+      "ar": "أَلاَ أَدُلُّكَ عَلَى كَلِمَةٍ مِنْ كَنْزِ الجَنَّةِ \" قُلْتُ: بَلَى، قَالَ: «لاَ حَوْلَ وَلاَ قُوَّةَ إِلَّا بِاللَّهِ",
+      "tr": "क्या मैं तुम्हें जन्नत के ख़ज़ानों में से एक वचन न बताऊँ? मैंने कहा: ज़रूर। आपने कहा: अल्लाह की सहायता के बिना न कोई सामर्थ्य है, न शक्ति।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l03",
+      "kind": "dhikr",
+      "ar": "اللهم صلِّ وسلِّم على نبيّنا محمد",
+      "tr": "ऐ अल्लाह, हमारे नबी मुहम्मद पर रहमत और सलाम भेज।",
+      "translit": "अल्लाहुम्मा सल्लि व सल्लिम अला नबिय्यिना मुहम्मद",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "lf",
+      "kind": "dhikr",
+      "ar": "اللهم صلِّ وسلِّم على نبيّنا محمد",
+      "tr": "ऐ अल्लाह, हमारे नबी मुहम्मद पर रहमत और सलाम भेज।",
+      "translit": "अल्लाहुम्मा सल्लि व सल्लिम अला नबिय्यिना मुहम्मद",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b2a097607bf2",
+      "kind": "hadith",
+      "ar": "مَنْ صَلَّى عَلَيَّ وَاحِدَةً صَلَّى الله عَلَيْهِ عَشْرًا",
+      "tr": "जो मुझ पर एक बार दरूद भेजे, अल्लाह उस पर दस रहमतें भेजता है।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1f83b246bbe2",
+      "kind": "text",
+      "ar": "مسلم",
+      "tr": "मुस्लिम",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a6763adf156f",
+      "kind": "text",
+      "ar": "صلّيتُ عليه",
+      "tr": "मैंने दरूद पढ़ा",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l04",
+      "kind": "dhikr",
+      "ar": "أستغفر الله وأتوب إليه",
+      "tr": "मैं अल्लाह से क्षमा माँगता हूँ और उसी की ओर तौबा करता हूँ।",
+      "translit": "अस्तग़फ़िरुल्लाहा व अतूबु इलैह",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:16759e2c8a1f",
+      "kind": "hadith",
+      "ar": "يَا أَيُّهَا النَّاسُ تُوبُوا إِلَى اللهِ، فَإِنِّي أَتُوبُ، فِي الْيَوْمِ إِلَيْهِ مِائَةَ، مَرَّةٍ",
+      "tr": "लोगो, अल्लाह की ओर तौबा करो। मैं दिन में सौ बार उसकी ओर तौबा करता हूँ।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l05",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده",
+      "tr": "अल्लाह पवित्र है और उसी की प्रशंसा है।",
+      "translit": "सुब्हानल्लाहि व बिहम्दिहि",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98035c1c8607",
+      "kind": "hadith",
+      "ar": "مَنْ قَالَ: سُبْحَانَ اللَّهِ وَبِحَمْدِهِ، فِي يَوْمٍ مِائَةَ مَرَّةٍ، حُطَّتْ خَطَايَاهُ، وَإِنْ كَانَتْ مِثْلَ زَبَدِ البَحْرِ",
+      "tr": "जो एक दिन में सौ बार कहे, “अल्लाह पवित्र है और उसी की प्रशंसा है,” उसके पाप मिटा दिए जाते हैं, चाहे समुद्र के झाग जितने हों।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l06",
+      "kind": "dhikr",
+      "ar": "لا إله إلا الله وحده لا شريك له، له الملك وله الحمد، وهو على كل شيء قدير",
+      "tr": "अल्लाह के सिवा कोई सत्य उपास्य नहीं। वह अकेला है, उसका कोई साझी नहीं। उसी का राज्य है, उसी की प्रशंसा है, और वह हर चीज़ पर सामर्थ्य रखता है।",
+      "translit": "ला इलाहा इल्लल्लाहु वह्दहू ला शरीका लह, लहुल-मुल्कु व लहुल-हम्दु व हुवा अला कुल्लि शैइन क़दीर",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6f7c464022f9",
+      "kind": "hadith",
+      "ar": "مَنْ قَالَ: لاَ إِلَهَ إِلَّا اللَّهُ، وَحْدَهُ لاَ شَرِيكَ لَهُ، لَهُ المُلْكُ وَلَهُ الحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، فِي يَوْمٍ مِائَةَ مَرَّةٍ، كَانَتْ لَهُ عَدْلَ عَشْرِ رِقَابٍ",
+      "tr": "जो एक दिन में सौ बार कहे, “अल्लाह के सिवा कोई सत्य उपास्य नहीं। वह अकेला है, उसका कोई साझी नहीं। उसी का राज्य है, उसी की प्रशंसा है, और वह हर चीज़ पर सामर्थ्य रखता है,” उसे दस ग़ुलाम आज़ाद करने के बराबर प्रतिफल मिलता है।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l07",
+      "kind": "dhikr",
+      "ar": "الحمد لله",
+      "tr": "सारी प्रशंसा अल्लाह के लिए है।",
+      "translit": "अल्हम्दु लिल्लाह",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d3878266dc9e",
+      "kind": "hadith",
+      "ar": "وَالْحَمْدُ لِلَّهِ تَمْلَأُ الْمِيزَانَ",
+      "tr": "और “सारी प्रशंसा अल्लाह के लिए है” तराज़ू को भर देता है।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l08",
+      "kind": "dhikr",
+      "ar": "سبحان الله، والحمد لله، ولا إله إلا الله، والله أكبر",
+      "tr": "अल्लाह पवित्र है, सारी प्रशंसा अल्लाह के लिए है, अल्लाह के सिवा कोई सत्य उपास्य नहीं, और अल्लाह सबसे बड़ा है।",
+      "translit": "सुब्हानल्लाह, वल्हम्दु लिल्लाह, व ला इलाहा इल्लल्लाह, वल्लाहु अकबर",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:17c849f1f429",
+      "kind": "hadith",
+      "ar": "أَحَبُّ الْكَلَامِ إِلَى اللهِ أَرْبَعٌ: سُبْحَانَ اللهِ، وَالْحَمْدُ لِلَّهِ، وَلَا إِلَهَ إِلَّا اللهُ، وَاللهُ أَكْبَرُ",
+      "tr": "अल्लाह को सबसे प्रिय वचन चार हैं: “अल्लाह पवित्र है”, “सारी प्रशंसा अल्लाह के लिए है”, “अल्लाह के सिवा कोई सत्य उपास्य नहीं” और “अल्लाह सबसे बड़ा है”।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l09",
+      "kind": "dhikr",
+      "ar": "اللهم أعنّي على ذكرك وشكرك وحسن عبادتك",
+      "tr": "ऐ अल्लाह, अपने ज़िक्र, अपने शुक्र और अपनी अच्छी इबादत में मेरी सहायता कर।",
+      "translit": "अल्लाहुम्मा अइन्नी अला ज़िक्रिका व शुक्रिका व हुस्नि इबादतिक",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:07c644dd8a43",
+      "kind": "hadith",
+      "ar": "أُوصِيكَ يَا مُعَاذُ لَا تَدَعَنَّ فِي دُبُرِ كُلِّ صَلَاةٍ أَنْ تَقُولَ: اللهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ",
+      "tr": "ऐ मुआज़, मैं तुम्हें वसीयत करता हूँ: हर नमाज़ के अंत में यह कहना न छोड़ना, “ऐ अल्लाह, अपने ज़िक्र, अपने शुक्र और अपनी अच्छी इबादत में मेरी सहायता कर।”",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:27a277f0e101",
+      "kind": "text",
+      "ar": "النسائي",
+      "tr": "नसाई",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l10",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده عدد خلقه، ورضا نفسه، وزنة عرشه، ومداد كلماته",
+      "tr": "अल्लाह पवित्र है और उसी की प्रशंसा है, उसकी सृष्टि की संख्या के बराबर, उसकी अपनी प्रसन्नता के अनुसार, उसके अर्श के भार के बराबर और उसके वचनों की स्याही के बराबर।",
+      "translit": "सुब्हानल्लाहि व बिहम्दिहि अददा ख़ल्क़िहि व रिदा नफ़्सिहि व ज़िनता अर्शिहि व मिदादा कलिमातिह",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:14ecc6f7775a",
+      "kind": "hadith",
+      "ar": "لَقَدْ قُلْتُ بَعْدَكِ أَرْبَعَ كَلِمَاتٍ، ثَلَاثَ مَرَّاتٍ، لَوْ وُزِنَتْ بِمَا قُلْتِ مُنْذُ الْيَوْمِ لَوَزَنَتْهُنَّ",
+      "tr": "तुम्हारे बाद मैंने चार वचन तीन बार कहे हैं। यदि उन्हें आज से अब तक तुम्हारे कहे हुए वचनों के साथ तौला जाए, तो ये उनसे भारी होंगे।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l11",
+      "kind": "dhikr",
+      "ar": "لا إله إلا أنت سبحانك إني كنت من الظالمين",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (21:87):\nतथा मछली वाले[34] (की कहानी याद करो), जब वह ग़ुस्से से भरा हुआ चला गया[35] और उसने सोचा कि हम उसे तंगी में नहीं डालेंगे। अंततः उसने अंधेरों में पुकारा कि (ऐ अल्लाह!) तेरे सिवा कोई पूज्य नहीं, तू पवित्र है। निश्चय मैं ही अत्याचारियों में हो गया।[36]\n[34] इससे अभिप्रेत यूनुस अलैहिस्सलाम हैं। उनको ''ज़ुन्नून'' और \"साह़िबुल ह़ूत\" कहा गया है। अर्थात मछली वाला। क्योंकि उनको अल्लाह के आदेश से एक मछली ने निगल लिया था। इसका कुछ वर्णन सूरत यूनुस में आ चुका है। और कुछ सूरतुस-साफ़्फ़ात में आ रहा है।\n[35] अर्थात अपनी जाति से क्रोधित होकर अल्लाह के अनुमति के बिना अपनी बस्ती से चले गए। इसी पर उन्हें पकड़ लिया गया।\n[36] सह़ीह़ ह़दीस में आता है कि जो भी मुसलमान इस शब्द के साथ किसी विषय में दुआ करेगा तो अल्लाह उसकी दुआ को स्वीकार करेगा। (तिर्मिज़ी : 3505)",
+      "translit": "ला इलाहा इल्ला अन्ता सुब्हानका इन्नी कुन्तु मिनज़-ज़ालिमीन",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/21/87",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "21:87",
+        "refs": [
+          "21:87"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:0a3d2d813331",
+      "kind": "hadith",
+      "ar": "دَعْوَةُ ذِي النُّونِ إِذْ دَعَا وَهُوَ فِي بَطْنِ الحُوتِ: لاَ إِلَهَ إِلاَّ أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ، فَإِنَّهُ لَمْ يَدْعُ بِهَا رَجُلٌ مُسْلِمٌ فِي شَيْءٍ قَطُّ إِلاَّ اسْتَجَابَ اللَّهُ لَهُ",
+      "tr": "ज़ुन-नून की दुआ, जब उन्होंने मछली के पेट में दुआ की: لاَ إِلَهَ إِلاَّ أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ [संदर्भ के लिए पूरी आयत का अनुवाद (21:87):\nतथा मछली वाले[34] (की कहानी याद करो), जब वह ग़ुस्से से भरा हुआ चला गया[35] और उसने सोचा कि हम उसे तंगी में नहीं डालेंगे। अंततः उसने अंधेरों में पुकारा कि (ऐ अल्लाह!) तेरे सिवा कोई पूज्य नहीं, तू पवित्र है। निश्चय मैं ही अत्याचारियों में हो गया।[36]\n[34] इससे अभिप्रेत यूनुस अलैहिस्सलाम हैं। उनको ''ज़ुन्नून'' और \"साह़िबुल ह़ूत\" कहा गया है। अर्थात मछली वाला। क्योंकि उनको अल्लाह के आदेश से एक मछली ने निगल लिया था। इसका कुछ वर्णन सूरत यूनुस में आ चुका है। और कुछ सूरतुस-साफ़्फ़ात में आ रहा है।\n[35] अर्थात अपनी जाति से क्रोधित होकर अल्लाह के अनुमति के बिना अपनी बस्ती से चले गए। इसी पर उन्हें पकड़ लिया गया।\n[36] सह़ीह़ ह़दीस में आता है कि जो भी मुसलमान इस शब्द के साथ किसी विषय में दुआ करेगा तो अल्लाह उसकी दुआ को स्वीकार करेगा। (तिर्मिज़ी : 3505)]। किसी भी मुस्लिम ने किसी मामले में इसके द्वारा दुआ की, तो अल्लाह ने उसकी दुआ स्वीकार की।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": "",
+        "publishedQuotes": {
+          "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+          "url": "https://quranenc.com/en/browse/hindi_omari/21/87",
+          "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+          "date": "2026-11-04",
+          "snapshot": "2026-10-07",
+          "version": "1.1.5",
+          "translationKey": "hindi_omari",
+          "description": "Translated by Azizul Haq Al-Omari",
+          "lastUpdate": 1754421301,
+          "ref": "21:87",
+          "refs": [
+            "21:87"
+          ],
+          "context": "Full-verse context; published translation and footnotes preserved without alteration."
+        }
+      }
+    },
+    {
+      "id": "h:900c009b827b",
+      "kind": "text",
+      "ar": "الترمذي",
+      "tr": "तिर्मिज़ी",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l12",
+      "kind": "dhikr",
+      "ar": "رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ",
+      "tr": "मेरे पालनहार, मुझे क्षमा कर और मेरी तौबा स्वीकार कर। निश्चय ही तू बार-बार तौबा स्वीकार करने वाला, अत्यंत दयालु है।",
+      "translit": "रब्बिग़फ़िर ली व तुब अलय्या इन्नका अन्तत-तव्वाबुर-रहीम",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:99e5b6f32eaf",
+      "kind": "hadith",
+      "ar": "نْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+      "tr": "हम एक बैठक में अल्लाह के रसूल, उन पर अल्लाह की रहमत और सलाम हो, को सौ बार यह कहते गिनते थे: “मेरे पालनहार, मुझे क्षमा कर और मेरी तौबा स्वीकार कर। निश्चय ही तू बार-बार तौबा स्वीकार करने वाला, अत्यंत दयालु है।”",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:feb87fd43324",
+      "kind": "text",
+      "ar": "ابن ماجه",
+      "tr": "इब्न माजा",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:20eec0cbc850",
+      "kind": "quran",
+      "ar": "وَإِن تَعُدُّوا۟ نِعْمَةَ ٱللَّهِ لَا تُحْصُوهَآ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (16:18):\nऔर यदि तुम अल्लाह की नेमतों को गिनो, तो उन्हें गिन न सकोगे। निःसंदेह अल्लाह बड़ा क्षमाशील, अत्यंत दया करने वाला है।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/16/18",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "16:18",
+        "refs": [
+          "16:18"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:d2766f33f933",
+      "kind": "quran",
+      "ar": "وَإِن تَعُدُّوا۟ نِعْمَةَ ٱللَّهِ لَا تُحْصُوهَآ ۗ إِنَّ ٱللَّهَ لَغَفُورٌ رَّحِيمٌ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (16:18):\nऔर यदि तुम अल्लाह की नेमतों को गिनो, तो उन्हें गिन न सकोगे। निःसंदेह अल्लाह बड़ा क्षमाशील, अत्यंत दया करने वाला है।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/16/18",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "16:18",
+        "refs": [
+          "16:18"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:12b821c2544b",
+      "kind": "text",
+      "ar": "النحل: ١٨",
+      "tr": "अन-नह्ल: ١٨",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98163e27e637",
+      "kind": "text",
+      "ar": "حمدتُ الله",
+      "tr": "मैंने अल्लाह की प्रशंसा की",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3f41906e49ba",
+      "kind": "text",
+      "ar": "ابتسم في وجه أحدٍ اليوم",
+      "tr": "आज किसी को देखकर मुस्कुराएँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5612ff534dbb",
+      "kind": "hadith",
+      "ar": "تَبَسُّمُكَ فِي وَجْهِ أَخِيكَ لَكَ صَدَقَةٌ",
+      "tr": "अपने भाई के सामने तुम्हारा मुस्कुराना तुम्हारे लिए सदक़ा है।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8a0e25fe253d",
+      "kind": "text",
+      "ar": "ابتسمتُ",
+      "tr": "मैंने मुस्कुराकर देखा",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d6f945f8dd74",
+      "kind": "text",
+      "ar": "كنزٌ من كنوز الجنة",
+      "tr": "जन्नत के ख़ज़ानों में से एक ख़ज़ाना",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e8cd520b4557",
+      "kind": "text",
+      "ar": "تأمّل عافيتك ووقت فراغك، واشكر الله عليهما",
+      "tr": "अपनी सेहत और खाली समय पर विचार करें तथा दोनों के लिए अल्लाह का शुक्र अदा करें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:772ed349c6e3",
+      "kind": "hadith",
+      "ar": "نِعْمَتَانِ مَغْبُونٌ فِيهِمَا كَثِيرٌ مِنَ النَّاسِ: الصِّحَّةُ وَالفَرَاغُ",
+      "tr": "दो नेमतें ऐसी हैं जिनमें बहुत से लोग घाटे में रहते हैं: सेहत और खाली समय।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3025efe9a80e",
+      "kind": "text",
+      "ar": "البخاري",
+      "tr": "बुख़ारी",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:eb44ae40dd81",
+      "kind": "text",
+      "ar": "شكرتُ الله",
+      "tr": "मैंने अल्लाह का शुक्र अदा किया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:23077bf89451",
+      "kind": "text",
+      "ar": "أمِط أذًى عن الطريق إن رأيته",
+      "tr": "रास्ते में तकलीफ़ देने वाली चीज़ दिखे तो हटा दें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:50366d06e4d2",
+      "kind": "hadith",
+      "ar": "وَأَدْنَاهَا إِمَاطَةُ الْأَذَى عَنِ الطَّرِيقِ",
+      "tr": "और इसका सबसे निचला दर्जा रास्ते से तकलीफ़ देने वाली चीज़ हटाना है।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f402f03cae5a",
+      "kind": "text",
+      "ar": "أمطتُه",
+      "tr": "मैंने हटा दी",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2697a2786f3d",
+      "kind": "text",
+      "ar": "صلاةٌ تعود عليك عشرًا",
+      "tr": "एक दरूद जो दस गुना होकर लौटता है",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:250089f51a89",
+      "kind": "text",
+      "ar": "استحضر محبّة النبي ﷺ، وأنّها فوق كلّ محبّة",
+      "tr": "नबी, उन पर अल्लाह की रहमत और सलाम हो, की मुहब्बत दिल में ताज़ा करें, जो हर मुहब्बत से बढ़कर हो",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a561a5ebb178",
+      "kind": "hadith",
+      "ar": "لاَ يُؤْمِنُ أَحَدُكُمْ، حَتَّى أَكُونَ أَحَبَّ إِلَيْهِ مِنْ وَالِدِهِ وَوَلَدِهِ وَالنَّاسِ أَجْمَعِينَ",
+      "tr": "तुममें से कोई ईमान वाला नहीं हो सकता जब तक मैं उसे उसके पिता, संतान और सभी लोगों से अधिक प्रिय न हो जाऊँ।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f993a685cc28",
+      "kind": "text",
+      "ar": "استحضرتُها",
+      "tr": "मैंने दिल में ताज़ा किया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d853b265f971",
+      "kind": "text",
+      "ar": "اتصل بقريبٍ لك ولو دقيقة",
+      "tr": "किसी रिश्तेदार को फ़ोन करें, चाहे एक मिनट के लिए",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:00ac3fc63f2b",
+      "kind": "hadith",
+      "ar": "مَنْ أَحَبَّ أَنْ يُبْسَطَ لَهُ فِي رِزْقِهِ، وَيُنْسَأَ لَهُ فِي أَثَرِهِ، فَلْيَصِلْ رَحِمَهُ",
+      "tr": "जो चाहता है कि उसकी रोज़ी बढ़ाई जाए और उसकी आयु लंबी की जाए, वह रिश्तेदारी के संबंध जोड़े रखे।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:57ba5a72fc2f",
+      "kind": "text",
+      "ar": "اتصلتُ",
+      "tr": "मैंने फ़ोन किया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:91f75101f303",
+      "kind": "text",
+      "ar": "توبةٌ في كلّ يوم",
+      "tr": "हर दिन तौबा",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fa2ccac58aaa",
+      "kind": "quran",
+      "ar": "ذَكَرُوا۟ ٱللَّهَ فَٱسْتَغْفَرُوا۟ لِذُنُوبِهِمْ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (3:135):\nऔर वे ऐसे लोग हैं कि जब उनसे कोई जघन्य पाप हो जाता है या वे अपने ऊपर अत्याचार कर कर बैठते हैं, तो उन्हें अल्लाह याद आ जाता है। फिर वे अपने पापों के लिए क्षमा माँगते हैं, और अल्लाह के सिवा कौन है जो पापों का क्षमा करने वाला होॽ और वे अपने किए पर जान बूझकर अड़े नहीं रहते।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/3/135",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "3:135",
+        "refs": [
+          "3:135"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:d28d20ff1810",
+      "kind": "quran",
+      "ar": "وَٱلَّذِينَ إِذَا فَعَلُوا۟ فَـٰحِشَةً أَوْ ظَلَمُوٓا۟ أَنفُسَهُمْ ذَكَرُوا۟ ٱللَّهَ فَٱسْتَغْفَرُوا۟ لِذُنُوبِهِمْ وَمَن يَغْفِرُ ٱلذُّنُوبَ إِلَّا ٱللَّهُ وَلَمْ يُصِرُّوا۟ عَلَىٰ مَا فَعَلُوا۟ وَهُمْ يَعْلَمُونَ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (3:135):\nऔर वे ऐसे लोग हैं कि जब उनसे कोई जघन्य पाप हो जाता है या वे अपने ऊपर अत्याचार कर कर बैठते हैं, तो उन्हें अल्लाह याद आ जाता है। फिर वे अपने पापों के लिए क्षमा माँगते हैं, और अल्लाह के सिवा कौन है जो पापों का क्षमा करने वाला होॽ और वे अपने किए पर जान बूझकर अड़े नहीं रहते।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/3/135",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "3:135",
+        "refs": [
+          "3:135"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:48a66c090a5d",
+      "kind": "text",
+      "ar": "آل عمران: ١٣٥",
+      "tr": "आल इमरान: ١٣٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3ce64fe4a699",
+      "kind": "text",
+      "ar": "عزمتُ",
+      "tr": "मैंने संकल्प किया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ce4a31704233",
+      "kind": "text",
+      "ar": "تصدّق بشيءٍ ولو قليل",
+      "tr": "कुछ सदक़ा दें, भले ही थोड़ा हो",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4dacbcbb1982",
+      "kind": "hadith",
+      "ar": "اتَّقُوا النَّارَ وَلَوْ بِشِقِّ تَمْرَةٍ",
+      "tr": "आग से बचो, चाहे आधे खजूर के द्वारा ही हो।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a90a7e31e96c",
+      "kind": "text",
+      "ar": "تصدّقتُ",
+      "tr": "मैंने सदक़ा दिया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c1a5ce38896f",
+      "kind": "text",
+      "ar": "دعوةٌ يردّها عليك ملَك",
+      "tr": "एक दुआ जो फ़रिश्ता तुम्हें लौटाता है",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3262bf68b53f",
+      "kind": "text",
+      "ar": "ادعُ لأخٍ لك باسمه وهو لا يدري",
+      "tr": "किसी भाई का नाम लेकर उसके लिए दुआ करें, जबकि उसे पता न हो",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dec4db48f5d9",
+      "kind": "hadith",
+      "ar": "دَعْوَةُ الْمَرْءِ الْمُسْلِمِ لِأَخِيهِ بِظَهْرِ الْغَيْبِ مُسْتَجَابَةٌ، عِنْدَ رَأْسِهِ مَلَكٌ مُوَكَّلٌ كُلَّمَا دَعَا لِأَخِيهِ بِخَيْرٍ، قَالَ الْمَلَكُ الْمُوَكَّلُ بِهِ: آمِينَ وَلَكَ بِمِثْلٍ",
+      "tr": "मुस्लिम की अपने भाई के लिए उसकी अनुपस्थिति में की गई दुआ स्वीकार होती है। उसके सिर के पास एक नियुक्त फ़रिश्ता होता है। जब भी वह अपने भाई के लिए भलाई की दुआ करता है, फ़रिश्ता कहता है: आमीन, तुम्हें भी ऐसा ही मिले।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:167610e41522",
+      "kind": "text",
+      "ar": "دعوتُ له",
+      "tr": "मैंने उसके लिए दुआ की",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:290e634e843b",
+      "kind": "text",
+      "ar": "اسقِ أحدًا ماءً، ولو طيرًا أو حيوانًا",
+      "tr": "किसी को पानी पिलाएँ, चाहे पक्षी या जानवर हो",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3b0c2667a7e1",
+      "kind": "hadith",
+      "ar": "فِي كُلِّ كَبِدٍ رَطْبَةٍ أَجْرٌ",
+      "tr": "हर नम जिगर वाले जीव की सेवा में प्रतिफल है।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fd398c044a84",
+      "kind": "text",
+      "ar": "سقيتُ",
+      "tr": "मैंने पानी पिलाया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:64d0504d3bb2",
+      "kind": "text",
+      "ar": "آيةٌ تطمئنّ بها القلوب",
+      "tr": "दिलों को सुकून देने वाली एक आयत",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7e93df1a44f3",
+      "kind": "text",
+      "ar": "اقرأ الآية، ثم اسكن دقيقةً بلا جوال وردّدها في نفسك",
+      "tr": "आयत पढ़ें, फिर फ़ोन के बिना एक मिनट शांत बैठें और उसे मन में दोहराएँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b1726f3e1a29",
+      "kind": "quran",
+      "ar": "ٱلَّذِينَ ءَامَنُوا۟ وَتَطْمَئِنُّ قُلُوبُهُم بِذِكْرِ ٱللَّهِ ۗ أَلَا بِذِكْرِ ٱللَّهِ تَطْمَئِنُّ ٱلْقُلُوبُ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (13:28):\nवे जो ईमान लाए और उनके दिलों को अल्लाह की याद से संतुष्टि मिलती है। सुन लो! अल्लाह की याद ही से दिलों को संतुष्टि मिलती है।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/13/28",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "13:28",
+        "refs": [
+          "13:28"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:8f38fb1c304b",
+      "kind": "text",
+      "ar": "الرعد: ٢٨",
+      "tr": "अर-रअ्द: ٢٨",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f4389e5bd4aa",
+      "kind": "text",
+      "ar": "\n28 - هؤلاء الذين يهديهم الله هم الذين آمنوا، وتستأنس قلوبهم بذكر الله بتسبيحه وتحميده، وبتلاوة كتابه ألا بذكر الله وحده تستأنس القلوب، خَلِيق بها ذلك.\n[مِنْ فَوَائِدِ الآيَاتِ]\n• الترغيب في جملة من فضائل الأخلاق الموجبة للجنة، ومنها: حسن الصلة، وخشية الله تعالى، والوفاء بالعهود، والصبر والإنفاق، ومقابلة السيئة بالحسنة والتحذير من ضدها.\n• أن مقاليد الرزق بيد الله - سبحانه وتعالى -، وأن توسعة الله تعالى أو تضييقه في رزق عبد ما لا ينبغي أن يكون موجبًا لفرح أو حزن، فهو ليس دليلًا على رضا الله أو سخطه على ذلك العبد.\n• أن الهداية ليست بالضرورة مربوطة بإنزال الآيات والمعجزات التي اقترح المشركون إظهارها.\n• من آثار القرآن على العبد المؤمن أنه يورثه طمأنينة في القلب.",
+      "tr": "28 - जिन्हें अल्लाह मार्ग दिखाता है, वे ईमान लाने वाले हैं। उनके दिल अल्लाह की तस्बीह, उसकी प्रशंसा और उसकी किताब की तिलावत द्वारा उसके ज़िक्र से सुकून पाते हैं। सुन लो, केवल अल्लाह के ज़िक्र से दिलों को सुकून मिलता है; यही उनके योग्य है।\n[आयतों की शिक्षाओं में से]\n• जन्नत तक पहुँचाने वाले सदाचारों का प्रोत्साहन: अच्छे संबंध, अल्लाह तआला का भय, वचन निभाना, धैर्य, ख़र्च करना और बुराई का बदला भलाई से देना; तथा इनके विपरीत बातों से चेतावनी।\n• रोज़ी की चाबियाँ पवित्र और महान अल्लाह के हाथ में हैं। किसी बंदे की रोज़ी का बढ़ना या घटना अपने आप में खुशी या दुख का कारण नहीं होना चाहिए, क्योंकि यह उस बंदे से अल्लाह की प्रसन्नता या नाराज़गी का प्रमाण नहीं।\n• मार्गदर्शन आवश्यक रूप से उन निशानियों और चमत्कारों के उतरने से जुड़ा नहीं जिन्हें बहुदेववादियों ने दिखाने की माँग की थी।\n• मोमिन बंदे पर क़ुरआन के प्रभावों में से एक यह है कि वह दिल में सुकून पैदा करता है।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:45a07072c470",
+      "kind": "text",
+      "ar": "المختصر في التفسير",
+      "tr": "अल-मुख़्तसर फ़ित-तफ़सीर",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:39e7e4c6bec1",
+      "kind": "text",
+      "ar": "قرأتُها وسكنتُ",
+      "tr": "मैंने पढ़ा और शांत हुआ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1158653a1337",
+      "kind": "text",
+      "ar": "صلِّ ركعتي الضحى",
+      "tr": "दुहा यानी चाश्त की दो रकअत नमाज़ पढ़ें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:264421ee13f7",
+      "kind": "hadith",
+      "ar": "وَيُجْزِئُ مِنْ ذَلِكَ رَكْعَتَانِ يَرْكَعُهُمَا مِنَ الضُّحَى",
+      "tr": "दुहा की दो रकअत इन सबके लिए पर्याप्त हो जाती हैं।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:29f3ca5f8dac",
+      "kind": "text",
+      "ar": "صلّيتُهما",
+      "tr": "मैंने दोनों पढ़ लीं",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:01bd5e7a7898",
+      "kind": "text",
+      "ar": "سرّ اسم هذا القسم",
+      "tr": "इस भाग के नाम का रहस्य",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:71ae0c0be445",
+      "kind": "text",
+      "ar": "سَأَلْتُ أُمَّ المُؤْمِنِينَ عَائِشَةَ، قُلْتُ: يَا أُمَّ المُؤْمِنِينَ، كَيْفَ كَانَ عَمَلُ النَّبِيِّ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ، هَلْ كَانَ يَخُصُّ شَيْئًا مِنَ الأَيَّامِ؟ قَالَتْ: «لاَ، كَانَ عَمَلُهُ دِيمَةً",
+      "tr": "मैंने मोमिनों की माँ आइशा से पूछा: “ऐ मोमिनों की माँ, नबी, उन पर अल्लाह की रहमत और सलाम हो, का अमल कैसा था? क्या आप कुछ दिनों को ख़ास करते थे?” उन्होंने कहा: “नहीं, आपका अमल लगातार होता था।”",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b276f2717489",
+      "kind": "text",
+      "ar": "الدِّيمة: المطر الدائم في سكون، ومنه اسم هذا القسم",
+      "tr": "दीमा: शांत, लगातार बारिश; इसी से इस भाग का नाम लिया गया है",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7bae20b3a0d4",
+      "kind": "text",
+      "ar": "فهمتُ الاسم",
+      "tr": "मैंने नाम समझ लिया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:775c139fc71b",
+      "kind": "text",
+      "ar": "اعمل اليوم عملًا خفيًّا لا يعلمه أحد",
+      "tr": "आज कोई छिपा हुआ नेक काम करें जिसका किसी को पता न हो",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a2b5f40907ed",
+      "kind": "hadith",
+      "ar": "وَرَجُلٌ تَصَدَّقَ بِصَدَقَةٍ فَأَخْفَاهَا حَتَّى لاَ تَعْلَمَ شِمَالُهُ مَا تُنْفِقُ يَمِينُهُ",
+      "tr": "और वह व्यक्ति जिसने सदक़ा करके उसे इतना छिपाया कि उसके बाएँ हाथ को पता न हो कि दाएँ ने क्या ख़र्च किया।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ee4aeff06c85",
+      "kind": "text",
+      "ar": "فعلتُه",
+      "tr": "मैंने कर लिया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d35dfabb25f2",
+      "kind": "text",
+      "ar": "تأمّلٌ في السماء",
+      "tr": "आसमान पर विचार",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3091bff0f30c",
+      "kind": "quran",
+      "ar": "إِنَّ فِى خَلْقِ ٱلسَّمَـٰوَٰتِ وَٱلْأَرْضِ وَٱخْتِلَـٰفِ ٱلَّيْلِ وَٱلنَّهَارِ لَـَٔايَـٰتٍ لِّأُو۟لِى ٱلْأَلْبَـٰبِ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (3:190):\nनिःसंदेह आसमानों और ज़मीन की रचना तथा रात और दिन के आने-जाने में, बुद्धिमानों के लिए निशानियाँ हैं।[115]\n[115] अर्थात अल्लाह के राज्य, स्वामित्व तथा एकमात्र पूज्य होने की।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/3/190",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "3:190",
+        "refs": [
+          "3:190"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:a7fa47e20162",
+      "kind": "text",
+      "ar": "آل عمران: ١٩٠",
+      "tr": "आल इमरान: ١٩٠",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4c38aa57f637",
+      "kind": "text",
+      "ar": "تفكّرتُ",
+      "tr": "मैंने विचार किया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2da6b942f85b",
+      "kind": "text",
+      "ar": "سلّم على من تعرف ومن لا تعرف",
+      "tr": "जान-पहचान वालों और अनजान लोगों को सलाम करें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:02a2f24ecc5b",
+      "kind": "hadith",
+      "ar": "أَفْشُوا السَّلَامَ بَيْنَكُمْ",
+      "tr": "आपस में सलाम फैलाओ।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:54bda18381ab",
+      "kind": "text",
+      "ar": "سلّمتُ",
+      "tr": "मैंने सलाम किया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:90ac8e1ad8d9",
+      "kind": "text",
+      "ar": "معنى أن يراك الله",
+      "tr": "अल्लाह के तुम्हें देखने का अर्थ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:081d9bc2982a",
+      "kind": "quran",
+      "ar": "وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (57:4):\nउसी ने आकाशों तथा धरती को छह दिनों में पैदा किया, फिर वह अर्श पर बुलंद हुआ। वह जानता है जो कुछ धरती में प्रवेश करता है और जो कुछ उससे निकलता है और जो कुछ आकाश से उतरता है और जो कुछ उसमें चढ़ता है और वह तुम्हारे साथ[1] है, तुम जहाँ कहीं भी हो। और जो कुछ तुम करते हो, अल्लाह उसे ख़ूब देखने वाला है।\n[1] अर्थात अपने सामर्थ्य तथा ज्ञान द्वारा। आयत का भावार्थ यह है कि अल्लाह सदा से है और सदा रहेगा। प्रत्येक चीज़ का अस्तित्व उसके अस्तित्व के पश्चात् है। वही नित्य है, विश्व की प्रत्येक वस्तु उसके होने को बता रही है, फिर भी वह ऐसा गुप्त है कि दिखाई नहीं देता।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/57/4",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "57:4",
+        "refs": [
+          "57:4"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:d8dc1eff0491",
+      "kind": "quran",
+      "ar": "هُوَ ٱلَّذِى خَلَقَ ٱلسَّمَـٰوَٰتِ وَٱلْأَرْضَ فِى سِتَّةِ أَيَّامٍ ثُمَّ ٱسْتَوَىٰ عَلَى ٱلْعَرْشِ ۚ يَعْلَمُ مَا يَلِجُ فِى ٱلْأَرْضِ وَمَا يَخْرُجُ مِنْهَا وَمَا يَنزِلُ مِنَ ٱلسَّمَآءِ وَمَا يَعْرُجُ فِيهَا ۖ وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ ۚ وَٱللَّهُ بِمَا تَعْمَلُونَ بَصِيرٌ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (57:4):\nउसी ने आकाशों तथा धरती को छह दिनों में पैदा किया, फिर वह अर्श पर बुलंद हुआ। वह जानता है जो कुछ धरती में प्रवेश करता है और जो कुछ उससे निकलता है और जो कुछ आकाश से उतरता है और जो कुछ उसमें चढ़ता है और वह तुम्हारे साथ[1] है, तुम जहाँ कहीं भी हो। और जो कुछ तुम करते हो, अल्लाह उसे ख़ूब देखने वाला है।\n[1] अर्थात अपने सामर्थ्य तथा ज्ञान द्वारा। आयत का भावार्थ यह है कि अल्लाह सदा से है और सदा रहेगा। प्रत्येक चीज़ का अस्तित्व उसके अस्तित्व के पश्चात् है। वही नित्य है, विश्व की प्रत्येक वस्तु उसके होने को बता रही है, फिर भी वह ऐसा गुप्त है कि दिखाई नहीं देता।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/57/4",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "57:4",
+        "refs": [
+          "57:4"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:281bc3d50863",
+      "kind": "text",
+      "ar": "الحديد: ٤",
+      "tr": "अल-हदीद: ٤",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:163c681cb4d0",
+      "kind": "text",
+      "ar": "استحضرتُ",
+      "tr": "मैंने मन में रखा",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:958aee9120cc",
+      "kind": "quran",
+      "ar": "وَقُل لَّهُمَا قَوْلًا كَرِيمًا",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (17:23):\nऔर (ऐ बंदे) तेरे पालनहार ने आदेश दिया है कि उसके सिवा किसी की इबादत न करो, तथा माता-पिता के साथ अच्छा व्यवहार करो। यदि तेरे पास दोनों में से एक या दोनों वृद्धावस्था को पहुँच जाएँ, तो उन्हें 'उफ़' तक न कहो, और न उन्हें झिड़को, और उनसे नरमी से बात करो।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/17/23",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "17:23",
+        "refs": [
+          "17:23"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:37e30d264f90",
+      "kind": "quran",
+      "ar": "وَقَضَىٰ رَبُّكَ أَلَّا تَعْبُدُوٓا۟ إِلَّآ إِيَّاهُ وَبِٱلْوَٰلِدَيْنِ إِحْسَـٰنًا ۚ إِمَّا يَبْلُغَنَّ عِندَكَ ٱلْكِبَرَ أَحَدُهُمَآ أَوْ كِلَاهُمَا فَلَا تَقُل لَّهُمَآ أُفٍّ وَلَا تَنْهَرْهُمَا وَقُل لَّهُمَا قَوْلًا كَرِيمًا",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (17:23):\nऔर (ऐ बंदे) तेरे पालनहार ने आदेश दिया है कि उसके सिवा किसी की इबादत न करो, तथा माता-पिता के साथ अच्छा व्यवहार करो। यदि तेरे पास दोनों में से एक या दोनों वृद्धावस्था को पहुँच जाएँ, तो उन्हें 'उफ़' तक न कहो, और न उन्हें झिड़को, और उनसे नरमी से बात करो।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/17/23",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "17:23",
+        "refs": [
+          "17:23"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:9e9f8ed257ca",
+      "kind": "text",
+      "ar": "الإسراء: ٢٣",
+      "tr": "अल-इस्रा: ٢٣",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:497006ea9a84",
+      "kind": "text",
+      "ar": "فعلتُها",
+      "tr": "मैंने कर लिया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:02eb46d6b17f",
+      "kind": "text",
+      "ar": "زيارةٌ تُدخلك بساتين الجنة",
+      "tr": "एक मुलाक़ात जो जन्नत के बाग़ों में ले जाए",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5218f0630325",
+      "kind": "quran",
+      "ar": "كُلُّ نَفْسٍ ذَآئِقَةُ ٱلْمَوْتِ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (3:185):\nप्रत्येक प्राणी को मौत का स्वाद चखना है और तुम्हें क़ियामत के दिन तुम्हारे कर्मों का भरपूर प्रतिफल दिया जाएगा। (उस दिन) जो व्यक्ति जहन्नम से बचा लिया गया और जन्नत में प्रवेश पा गया[110], वह वास्तव में सफल हो गया। तथा दुनिया की ज़िंदगी धोखे की पूंजी के सिवा कुछ नहीं है।\n[110] अर्थात सत्य आस्था और सत्कर्मों के द्वारा इस्लाम के नियमों का पालन करके।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/3/185",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "3:185",
+        "refs": [
+          "3:185"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:f71106ec1dfa",
+      "kind": "quran",
+      "ar": "كُلُّ نَفْسٍ ذَآئِقَةُ ٱلْمَوْتِ ۗ وَإِنَّمَا تُوَفَّوْنَ أُجُورَكُمْ يَوْمَ ٱلْقِيَـٰمَةِ ۖ فَمَن زُحْزِحَ عَنِ ٱلنَّارِ وَأُدْخِلَ ٱلْجَنَّةَ فَقَدْ فَازَ ۗ وَمَا ٱلْحَيَوٰةُ ٱلدُّنْيَآ إِلَّا مَتَـٰعُ ٱلْغُرُورِ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (3:185):\nप्रत्येक प्राणी को मौत का स्वाद चखना है और तुम्हें क़ियामत के दिन तुम्हारे कर्मों का भरपूर प्रतिफल दिया जाएगा। (उस दिन) जो व्यक्ति जहन्नम से बचा लिया गया और जन्नत में प्रवेश पा गया[110], वह वास्तव में सफल हो गया। तथा दुनिया की ज़िंदगी धोखे की पूंजी के सिवा कुछ नहीं है।\n[110] अर्थात सत्य आस्था और सत्कर्मों के द्वारा इस्लाम के नियमों का पालन करके।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/3/185",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "3:185",
+        "refs": [
+          "3:185"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:ffbaa68ba877",
+      "kind": "text",
+      "ar": "آل عمران: ١٨٥",
+      "tr": "आल इमरान: ١٨٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:aa3484814ce9",
+      "kind": "text",
+      "ar": "تذكّرتُ",
+      "tr": "मैंने याद किया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:57b6e171fa35",
+      "kind": "text",
+      "ar": "زُر مريضًا أو اتصل به",
+      "tr": "किसी बीमार का हाल पूछने जाएँ या उसे फ़ोन करें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:aee8ae614a41",
+      "kind": "hadith",
+      "ar": "مَنْ عَادَ مَرِيضًا، لَمْ يَزَلْ فِي خُرْفَةِ الْجَنَّةِ",
+      "tr": "जो बीमार का हाल पूछने जाता है, वह जन्नत के फल चुनने में रहता है।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:09abc14df2a9",
+      "kind": "text",
+      "ar": "عُدتُه",
+      "tr": "मैंने बीमार का हाल पूछा",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ef55122e7311",
+      "kind": "text",
+      "ar": "حسنُ الظنّ بالله",
+      "tr": "अल्लाह से अच्छी उम्मीद",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0dbb48646cae",
+      "kind": "text",
+      "ar": "أحسن ظنّك بالله فيما تنتظره",
+      "tr": "जिस चीज़ की प्रतीक्षा है, उसमें अल्लाह से अच्छी उम्मीद रखें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f982a268d23c",
+      "kind": "hadith",
+      "ar": "أَنَا عِنْدَ ظَنِّ عَبْدِي بِي",
+      "tr": "मैं अपने बंदे के मेरे विषय में गुमान के अनुसार हूँ।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:50430be2cb6f",
+      "kind": "text",
+      "ar": "أحسنتُ ظنّي",
+      "tr": "मैंने अच्छी उम्मीद रखी",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:aa0f15bf7171",
+      "kind": "text",
+      "ar": "أعِن أحدًا في حاجةٍ صغيرة: حملٌ، أو بابٌ، أو كلمةُ إرشاد",
+      "tr": "किसी की छोटी आवश्यकता में मदद करें: सामान उठाना, दरवाज़ा खोलना या रास्ता बताना",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:484b458a6621",
+      "kind": "hadith",
+      "ar": "وَاللهُ فِي عَوْنِ الْعَبْدِ مَا كَانَ الْعَبْدُ فِي عَوْنِ أَخِيهِ",
+      "tr": "अल्लाह बंदे की मदद में रहता है जब तक बंदा अपने भाई की मदद में रहता है।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:78f9d8ff902c",
+      "kind": "text",
+      "ar": "أعنتُ",
+      "tr": "मैंने मदद की",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d709ae66b312",
+      "kind": "text",
+      "ar": "نعمةٌ لا توازيها نعمة",
+      "tr": "एक बेजोड़ नेमत",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6de7e3f2b5f5",
+      "kind": "quran",
+      "ar": "وَرَضِيتُ لَكُمُ ٱلْإِسْلَـٰمَ دِينًا",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (5:3):\nतुमपर ह़राम किया गया है मुर्दार,[5] (बहता हुआ) रक्त, सूअर का माँस और वह जिसपर (ज़बह करते समय) अल्लाह के अलावा का नाम पुकारा जाए, तथा गला घुटने वाला जानवर, और जिसे चोट लगी हो, तथा गिरने वाला और जिसे सींग लगा हो और जिसे दरिंदे ने खाया हो, परंतु जो तुम (इनमें से) ज़बह[6] कर लो। और जो थानों पर ज़बह किया गया हो और यह कि तुम तीरों के साथ भाग्य मालूम करो। यह सब (अल्लाह की) अवज्ञा है। आज वे लोग जिन्होंने कुफ़्र किया, तुम्हारे धर्म से निराश[7] हो गए। तो तुम उनसे न डरो, केवल मुझसे डरो। आज[8] मैंने तुम्हारे लिए तुम्हारा धर्म परिपूर्ण कर दिया, तथा तुमपर अपनी नेमत पूरी कर दी और तुम्हारे लिए इस्लाम को धर्म के तौर पर पसंद कर लिया। फिर जो व्यक्ति भूख की किसी सूरत में मजूबर कर दिया जाए, इस हाल में कि किसी पाप की ओर झुकाव रखने वाला न हो, तो निःसंदेह अल्लाह अति क्षमाशील, अत्यंत दयावान् है।\n[5] मुर्दार से अभिप्राय वह पशु है, जिसे धर्म के नियमानुसार ज़बह न किया गया हो।\n[6] अर्थात जीवित मिल जाए और उसे नियमानुसार ज़बह कर दो।\n[7] अर्थात इससे कि तुम फिर से मूर्तियों के पुजारी हो जाओगे।\n[8] सूरतुल-बक़रा आयत संख्या : 28 में कहा गया है कि इबराहीम अलैहिस्सलाम ने यह प्रार्थना की थी कि \"इन में से एक आज्ञाकारी समुदाय बना दे\"। फिर आयत : 150 में अल्लाह ने कहा कि \"अल्लाह चाहता है कि तुमपर अपना पुरस्कार पूरा कर दे।\" और यहाँ कहा कि आज अपना पुरस्कार पूरा कर दिया। यह आयत ह़ज्जतुल वदाअ में अरफ़ा के दिन अरफ़ात में उतरी। (सह़ीह बुखारी : 4606) जो नबी सल्लल्लाहु अलैहि व सल्लम का अंतिम ह़ज्ज था, जिसके लग-भग तीन महीने बाद आप संसार से चले गए।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/5/3",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "5:3",
+        "refs": [
+          "5:3"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:86c37ab91253",
+      "kind": "quran",
+      "ar": "حُرِّمَتْ عَلَيْكُمُ ٱلْمَيْتَةُ وَٱلدَّمُ وَلَحْمُ ٱلْخِنزِيرِ وَمَآ أُهِلَّ لِغَيْرِ ٱللَّهِ بِهِۦ وَٱلْمُنْخَنِقَةُ وَٱلْمَوْقُوذَةُ وَٱلْمُتَرَدِّيَةُ وَٱلنَّطِيحَةُ وَمَآ أَكَلَ ٱلسَّبُعُ إِلَّا مَا ذَكَّيْتُمْ وَمَا ذُبِحَ عَلَى ٱلنُّصُبِ وَأَن تَسْتَقْسِمُوا۟ بِٱلْأَزْلَـٰمِ ۚ ذَٰلِكُمْ فِسْقٌ ۗ ٱلْيَوْمَ يَئِسَ ٱلَّذِينَ كَفَرُوا۟ مِن دِينِكُمْ فَلَا تَخْشَوْهُمْ وَٱخْشَوْنِ ۚ ٱلْيَوْمَ أَكْمَلْتُ لَكُمْ دِينَكُمْ وَأَتْمَمْتُ عَلَيْكُمْ نِعْمَتِى وَرَضِيتُ لَكُمُ ٱلْإِسْلَـٰمَ دِينًا ۚ فَمَنِ ٱضْطُرَّ فِى مَخْمَصَةٍ غَيْرَ مُتَجَانِفٍ لِّإِثْمٍ ۙ فَإِنَّ ٱللَّهَ غَفُورٌ رَّحِيمٌ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (5:3):\nतुमपर ह़राम किया गया है मुर्दार,[5] (बहता हुआ) रक्त, सूअर का माँस और वह जिसपर (ज़बह करते समय) अल्लाह के अलावा का नाम पुकारा जाए, तथा गला घुटने वाला जानवर, और जिसे चोट लगी हो, तथा गिरने वाला और जिसे सींग लगा हो और जिसे दरिंदे ने खाया हो, परंतु जो तुम (इनमें से) ज़बह[6] कर लो। और जो थानों पर ज़बह किया गया हो और यह कि तुम तीरों के साथ भाग्य मालूम करो। यह सब (अल्लाह की) अवज्ञा है। आज वे लोग जिन्होंने कुफ़्र किया, तुम्हारे धर्म से निराश[7] हो गए। तो तुम उनसे न डरो, केवल मुझसे डरो। आज[8] मैंने तुम्हारे लिए तुम्हारा धर्म परिपूर्ण कर दिया, तथा तुमपर अपनी नेमत पूरी कर दी और तुम्हारे लिए इस्लाम को धर्म के तौर पर पसंद कर लिया। फिर जो व्यक्ति भूख की किसी सूरत में मजूबर कर दिया जाए, इस हाल में कि किसी पाप की ओर झुकाव रखने वाला न हो, तो निःसंदेह अल्लाह अति क्षमाशील, अत्यंत दयावान् है।\n[5] मुर्दार से अभिप्राय वह पशु है, जिसे धर्म के नियमानुसार ज़बह न किया गया हो।\n[6] अर्थात जीवित मिल जाए और उसे नियमानुसार ज़बह कर दो।\n[7] अर्थात इससे कि तुम फिर से मूर्तियों के पुजारी हो जाओगे।\n[8] सूरतुल-बक़रा आयत संख्या : 28 में कहा गया है कि इबराहीम अलैहिस्सलाम ने यह प्रार्थना की थी कि \"इन में से एक आज्ञाकारी समुदाय बना दे\"। फिर आयत : 150 में अल्लाह ने कहा कि \"अल्लाह चाहता है कि तुमपर अपना पुरस्कार पूरा कर दे।\" और यहाँ कहा कि आज अपना पुरस्कार पूरा कर दिया। यह आयत ह़ज्जतुल वदाअ में अरफ़ा के दिन अरफ़ात में उतरी। (सह़ीह बुखारी : 4606) जो नबी सल्लल्लाहु अलैहि व सल्लम का अंतिम ह़ज्ज था, जिसके लग-भग तीन महीने बाद आप संसार से चले गए।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/5/3",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "5:3",
+        "refs": [
+          "5:3"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:dc86c476328e",
+      "kind": "text",
+      "ar": "المائدة: ٣",
+      "tr": "अल-माइदा: ٣",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ff3171fadf31",
+      "kind": "text",
+      "ar": "اعفُ اليوم عن أحدٍ أساء إليك",
+      "tr": "आज किसी ऐसे व्यक्ति को क्षमा करें जिसने आपके साथ बुरा किया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:02231d7aed77",
+      "kind": "hadith",
+      "ar": "وَمَا زَادَ اللهُ عَبْدًا بِعَفْوٍ، إِلَّا عِزًّا",
+      "tr": "क्षमा करने से अल्लाह बंदे का सम्मान ही बढ़ाता है।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7f77a5bbf5f7",
+      "kind": "text",
+      "ar": "عفوتُ",
+      "tr": "मैंने क्षमा किया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a1734a751379",
+      "kind": "text",
+      "ar": "حوارٌ بينك وبين ربّك في الفاتحة",
+      "tr": "अल-फ़ातिहा में आपके और आपके पालनहार के बीच बातचीत",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d692abd5b90c",
+      "kind": "text",
+      "ar": "في صلاتك اليوم، تدبّر الفاتحة آيةً آية",
+      "tr": "आज नमाज़ में अल-फ़ातिहा पर आयत-दर-आयत विचार करें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5fee4c48e032",
+      "kind": "hadith",
+      "ar": "قَسَمْتُ الصَّلَاةَ بَيْنِي وَبَيْنَ عَبْدِي نِصْفَيْنِ",
+      "tr": "मैंने नमाज़ को अपने और अपने बंदे के बीच दो भागों में बाँटा है।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:02f573b7d7e0",
+      "kind": "text",
+      "ar": "تدبّرتُ",
+      "tr": "मैंने अर्थ पर विचार किया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:371e8baaa08d",
+      "kind": "text",
+      "ar": "اقرأ صفحةً واحدةً من القرآن بتأنٍّ",
+      "tr": "क़ुरआन का एक पृष्ठ ठहर-ठहरकर पढ़ें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:564401ee3639",
+      "kind": "hadith",
+      "ar": "مَنْ قَرَأَ حَرْفًا مِنْ كِتَابِ اللهِ فَلَهُ بِهِ حَسَنَةٌ، وَالحَسَنَةُ بِعَشْرِ أَمْثَالِهَا",
+      "tr": "जो अल्लाह की किताब का एक अक्षर पढ़े, उसे एक नेकी मिलती है, और एक नेकी अपने जैसी दस नेकियों के बराबर होती है।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:eddb7fb92cdd",
+      "kind": "text",
+      "ar": "قرأتُ",
+      "tr": "मैंने पढ़ लिया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:572a32ac3a9f",
+      "kind": "text",
+      "ar": "من أين جاء رزقك؟",
+      "tr": "आपकी रोज़ी कहाँ से आई?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:13168ae1cf1d",
+      "kind": "quran",
+      "ar": "وَمَا بِكُم مِّن نِّعْمَةٍ فَمِنَ ٱللَّهِ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (16:53):\nतुम्हारे पास जो भी नेमत है, वह अल्लाह ही की ओर से है। फिर जब तुम्हें दुःख पहुँचता है, तो उसी की ओर गिड़गिड़ाते हो।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/16/53",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "16:53",
+        "refs": [
+          "16:53"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:d5db725b1a65",
+      "kind": "quran",
+      "ar": "وَمَا بِكُم مِّن نِّعْمَةٍ فَمِنَ ٱللَّهِ ۖ ثُمَّ إِذَا مَسَّكُمُ ٱلضُّرُّ فَإِلَيْهِ تَجْـَٔرُونَ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (16:53):\nतुम्हारे पास जो भी नेमत है, वह अल्लाह ही की ओर से है। फिर जब तुम्हें दुःख पहुँचता है, तो उसी की ओर गिड़गिड़ाते हो।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/16/53",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "16:53",
+        "refs": [
+          "16:53"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:bc58638e5295",
+      "kind": "text",
+      "ar": "النحل: ٥٣",
+      "tr": "अन-नह्ल: ٥٣",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cdad75d8d0d2",
+      "kind": "text",
+      "ar": "تأمّلتُ",
+      "tr": "मैंने मनन किया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4f74626399c3",
+      "kind": "text",
+      "ar": "أطعم أحدًا: جارًا، أو عاملًا، أو محتاجًا",
+      "tr": "किसी पड़ोसी, कामगार या ज़रूरतमंद को खाना खिलाएँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:df3539720eaf",
+      "kind": "hadith",
+      "ar": "تُطْعِمُ الطَّعَامَ، وَتَقْرَأُ السَّلاَمَ عَلَى مَنْ عَرَفْتَ وَمَنْ لَمْ تَعْرِفْ",
+      "tr": "तुम खाना खिलाओ और जानने वाले तथा न जानने वाले को सलाम करो।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:923a101738fe",
+      "kind": "text",
+      "ar": "أطعمتُ",
+      "tr": "मैंने खाना खिलाया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:08d1fdd3fda9",
+      "kind": "text",
+      "ar": "نظّف قلبك من شيءٍ واحد",
+      "tr": "अपने दिल को एक बुराई से साफ़ करें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b0635da76858",
+      "kind": "text",
+      "ar": "فتّش قلبك من الحسد، واسأل الله أن ينزعه",
+      "tr": "अपने दिल में ईर्ष्या तलाशें और अल्लाह से उसे दूर करने की दुआ करें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:840ed35e7906",
+      "kind": "hadith",
+      "ar": "لَا تَحَاسَدُوا، وَلَا تَنَاجَشُوا، وَلَا تَبَاغَضُوا، وَلَا تَدَابَرُوا، وَلَا يَبِعْ بَعْضُكُمْ عَلَى بَيْعِ بَعْضٍ، وَكُونُوا عِبَادَ اللهِ إِخْوَانًا",
+      "tr": "आपस में ईर्ष्या न करो, धोखा देने के लिए बोली न बढ़ाओ, द्वेष न रखो, एक-दूसरे से मुँह न मोड़ो, एक-दूसरे के सौदे पर सौदा न करो; अल्लाह के बंदो, भाई-भाई बन जाओ।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:14f47068e221",
+      "kind": "text",
+      "ar": "فتّشتُ",
+      "tr": "मैंने दिल की जाँच की",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8d2a3b29580a",
+      "kind": "text",
+      "ar": "قل كلمةً طيبةً لأحدٍ اليوم",
+      "tr": "आज किसी से अच्छी बात कहें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d6b92a23bd7f",
+      "kind": "hadith",
+      "ar": "وَالكَلِمَةُ الطَّيِّبَةُ صَدَقَةٌ",
+      "tr": "अच्छी बात भी सदक़ा है।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b1adff1eaa94",
+      "kind": "text",
+      "ar": "حياتك كلّها عبادة",
+      "tr": "आपका पूरा जीवन इबादत है",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b5a58064f03c",
+      "kind": "quran",
+      "ar": "قُلْ إِنَّ صَلَاتِى وَنُسُكِى وَمَحْيَاىَ وَمَمَاتِى لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (6:162):\nआप कह दें कि निश्चय मेरी नमाज़, मेरी क़ुरबानी तथा मेरा जीवन-मरण सारे संसारों के पालनहार अल्लाह के लिए हैl",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/6/162",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "6:162",
+        "refs": [
+          "6:162"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:8871f9daaf61",
+      "kind": "text",
+      "ar": "الأنعام: ١٦٢",
+      "tr": "अल-अनआम: ١٦٢",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6127d6256dbb",
+      "kind": "text",
+      "ar": "صلِّ راتبةً كنتَ تفوّتها",
+      "tr": "वह नियमित सुन्नत नमाज़ पढ़ें जो आप छोड़ देते थे",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5735e5bb00d3",
+      "kind": "hadith",
+      "ar": "مَنْ صَلَّى اثْنَتَيْ عَشْرَةَ رَكْعَةً فِي يَوْمٍ وَلَيْلَةٍ، بُنِيَ لَهُ بِهِنَّ بَيْتٌ فِي الْجَنَّةِ",
+      "tr": "जो एक दिन-रात में बारह रकअत नमाज़ पढ़े, उनके कारण उसके लिए जन्नत में घर बनाया जाता है।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e166bf870e61",
+      "kind": "text",
+      "ar": "صلّيتُها",
+      "tr": "मैंने नमाज़ पढ़ी",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f82a52bb6504",
+      "kind": "text",
+      "ar": "لا تكن من الغافلين",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (7:205):\nऔर (ऐ नबी!) अपने पालनहार का स्मरण अपने दिल में विनयपूर्वक तथा डरते हुए और धीमे स्वर में प्रातः तथा संध्या करते रहो और ग़ाफ़िलों में से न हो जाओ।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/7/205",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "7:205",
+        "refs": [
+          "7:205"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:9c2f74da3418",
+      "kind": "quran",
+      "ar": "وَلَا تَكُن مِّنَ ٱلْغَـٰفِلِينَ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (7:205):\nऔर (ऐ नबी!) अपने पालनहार का स्मरण अपने दिल में विनयपूर्वक तथा डरते हुए और धीमे स्वर में प्रातः तथा संध्या करते रहो और ग़ाफ़िलों में से न हो जाओ।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/7/205",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "7:205",
+        "refs": [
+          "7:205"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:f2ebed900462",
+      "kind": "quran",
+      "ar": "وَٱذْكُر رَّبَّكَ فِى نَفْسِكَ تَضَرُّعًا وَخِيفَةً وَدُونَ ٱلْجَهْرِ مِنَ ٱلْقَوْلِ بِٱلْغُدُوِّ وَٱلْـَٔاصَالِ وَلَا تَكُن مِّنَ ٱلْغَـٰفِلِينَ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (7:205):\nऔर (ऐ नबी!) अपने पालनहार का स्मरण अपने दिल में विनयपूर्वक तथा डरते हुए और धीमे स्वर में प्रातः तथा संध्या करते रहो और ग़ाफ़िलों में से न हो जाओ।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/7/205",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "7:205",
+        "refs": [
+          "7:205"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:4daac594b84d",
+      "kind": "text",
+      "ar": "الأعراف: ٢٠٥",
+      "tr": "अल-अअराफ़: ٢٠٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dc409460041d",
+      "kind": "text",
+      "ar": "ذكرتُ الله",
+      "tr": "मैंने अल्लाह का ज़िक्र किया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a4bb28500a0c",
+      "kind": "text",
+      "ar": "اسقِ نبتةً أو أطعم طيرًا",
+      "tr": "किसी पौधे को पानी दें या पक्षी को दाना डालें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:97d454361971",
+      "kind": "hadith",
+      "ar": "مَا مِنْ مُسْلِمٍ يَغْرِسُ غَرْسًا إِلَّا كَانَ مَا أُكِلَ مِنْهُ لَهُ صَدَقَةً",
+      "tr": "जो मुस्लिम कोई पौधा लगाता है, उससे जो भी खाया जाता है वह उसके लिए सदक़ा होता है।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a790a0c1466c",
+      "kind": "text",
+      "ar": "أنت غريبٌ هنا",
+      "tr": "आप यहाँ अजनबी हैं",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b9ce6b7418f9",
+      "kind": "text",
+      "ar": "تذكّر أنّك في الدنيا عابرُ سبيل",
+      "tr": "याद रखें कि दुनिया में आप एक राहगीर हैं",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9b4ae925a015",
+      "kind": "hadith",
+      "ar": "كُنْ فِي الدُّنْيَا كَأَنَّكَ غَرِيبٌ أَوْ عَابِرُ سَبِيلٍ",
+      "tr": "दुनिया में ऐसे रहो जैसे अजनबी या राहगीर हो।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7851a85c4ab3",
+      "kind": "text",
+      "ar": "أعِن أهل بيتك في عملٍ من أعمال البيت",
+      "tr": "घर के किसी काम में अपने परिवार की मदद करें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f83d93310b8a",
+      "kind": "hadith",
+      "ar": "كَانَ يَكُونُ فِي مِهْنَةِ أَهْلِهِ",
+      "tr": "आप अपने परिवार की सेवा करते थे।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:91c2861b83f4",
+      "kind": "text",
+      "ar": "أعنتُهم",
+      "tr": "मैंने उनकी मदद की",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dc2bcb58708e",
+      "kind": "text",
+      "ar": "الصلاة في وقتها",
+      "tr": "नमाज़ अपने समय पर",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3f68d3829e53",
+      "kind": "quran",
+      "ar": "وَأَقِمِ ٱلصَّلَوٰةَ لِذِكْرِىٓ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (20:14):\nनिःसंदेह मैं ही अल्लाह हूँ, मेरे सिवा कोई पूज्य नहीं, तो मेरी ही इबादत कर तथा मेरे स्मरण (याद) के लिए नमाज़ स्थापित कर।[6]\n[6] इबादत में नमाज़ सम्मिलित है, फिर भी उसका महत्त्व दिखाने के लिए उसका विशेष आदेश दिया गया है।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/20/14",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "20:14",
+        "refs": [
+          "20:14"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:147b4de7980d",
+      "kind": "quran",
+      "ar": "إِنَّنِىٓ أَنَا ٱللَّهُ لَآ إِلَـٰهَ إِلَّآ أَنَا۠ فَٱعْبُدْنِى وَأَقِمِ ٱلصَّلَوٰةَ لِذِكْرِىٓ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (20:14):\nनिःसंदेह मैं ही अल्लाह हूँ, मेरे सिवा कोई पूज्य नहीं, तो मेरी ही इबादत कर तथा मेरे स्मरण (याद) के लिए नमाज़ स्थापित कर।[6]\n[6] इबादत में नमाज़ सम्मिलित है, फिर भी उसका महत्त्व दिखाने के लिए उसका विशेष आदेश दिया गया है।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/20/14",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "20:14",
+        "refs": [
+          "20:14"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:d5aafc7b6ab8",
+      "kind": "text",
+      "ar": "طه: ١٤",
+      "tr": "ता-हा: ١٤",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:60350f82d6af",
+      "kind": "text",
+      "ar": "صلِّ صلاةً واحدةً اليوم في أوّل وقتها",
+      "tr": "आज एक नमाज़ उसके समय की शुरुआत में पढ़ें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f21a9d2c6ac5",
+      "kind": "hadith",
+      "ar": "الصَّلاَةُ عَلَى وَقْتِهَا",
+      "tr": "नमाज़ अपने समय पर।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0095610f7183",
+      "kind": "text",
+      "ar": "صمتٌ يُثقل ميزانك",
+      "tr": "ख़ामोशी जो आपके तराज़ू को भारी करे",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:931ba661039c",
+      "kind": "text",
+      "ar": "احفظ لسانك اليوم من الغيبة، واستعذ بالله منها",
+      "tr": "आज ज़बान को ग़ीबत यानी पीठ पीछे बुराई करने से बचाएँ और उससे अल्लाह की शरण माँगें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:38d1c96ffca9",
+      "kind": "hadith",
+      "ar": "مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَاليَوْمِ الآخِرِ فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ",
+      "tr": "जो अल्लाह और आख़िरत के दिन पर ईमान रखता है, वह अच्छी बात कहे या चुप रहे।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a40acbe9bd30",
+      "kind": "text",
+      "ar": "حفظتُه",
+      "tr": "मैंने ज़बान की रक्षा की",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6fbc7ff52a2a",
+      "kind": "text",
+      "ar": "استر عيبًا رأيته في أخيك",
+      "tr": "अपने भाई का देखा हुआ दोष छिपाएँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ffc85f2fe070",
+      "kind": "hadith",
+      "ar": "وَمَنْ سَتَرَ مُسْلِمًا، سَتَرَهُ اللهُ فِي الدُّنْيَا وَالْآخِرَةِ",
+      "tr": "जो किसी मुस्लिम का दोष छिपाता है, अल्लाह दुनिया और आख़िरत में उसका दोष छिपाता है।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fc201fd979c6",
+      "kind": "text",
+      "ar": "سترتُ",
+      "tr": "मैंने दोष छिपाया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fae3796c0a69",
+      "kind": "text",
+      "ar": "أجرٌ بغير حساب",
+      "tr": "बेहिसाब प्रतिफल",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:937dfe0d45cb",
+      "kind": "quran",
+      "ar": "إِنَّمَا يُوَفَّى ٱلصَّـٰبِرُونَ أَجْرَهُم بِغَيْرِ حِسَابٍ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (39:10):\n(ऐ रसूल!) आप कह दें : ऐ मेरे बंदो, जो ईमान लाए हो! अपने पालनहार से डरो। उन लोगों के लिए जिन्होंने इस दुनिया में अच्छे कार्य किए, बड़ी भलाई है। तथा अल्लाह की धरती विस्तृत है। केवल सब्र करने वालों ही को उनका बदला बिना किसी हिसाब (शुमार) के दिया जाएगा।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/39/10",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "39:10",
+        "refs": [
+          "39:10"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:0eb0f02d51da",
+      "kind": "quran",
+      "ar": "قُلْ يَـٰعِبَادِ ٱلَّذِينَ ءَامَنُوا۟ ٱتَّقُوا۟ رَبَّكُمْ ۚ لِلَّذِينَ أَحْسَنُوا۟ فِى هَـٰذِهِ ٱلدُّنْيَا حَسَنَةٌ ۗ وَأَرْضُ ٱللَّهِ وَٰسِعَةٌ ۗ إِنَّمَا يُوَفَّى ٱلصَّـٰبِرُونَ أَجْرَهُم بِغَيْرِ حِسَابٍ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (39:10):\n(ऐ रसूल!) आप कह दें : ऐ मेरे बंदो, जो ईमान लाए हो! अपने पालनहार से डरो। उन लोगों के लिए जिन्होंने इस दुनिया में अच्छे कार्य किए, बड़ी भलाई है। तथा अल्लाह की धरती विस्तृत है। केवल सब्र करने वालों ही को उनका बदला बिना किसी हिसाब (शुमार) के दिया जाएगा।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/39/10",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "39:10",
+        "refs": [
+          "39:10"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:b0ed72c990f1",
+      "kind": "text",
+      "ar": "الزمر: ١٠",
+      "tr": "अज़-ज़ुमर: ١٠",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ec96a3d2f6f0",
+      "kind": "text",
+      "ar": "صبرتُ",
+      "tr": "मैंने सब्र किया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5ccf17674069",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ يَأْمُرُكُمْ أَن تُؤَدُّوا۟ ٱلْأَمَـٰنَـٰتِ إِلَىٰٓ أَهْلِهَا",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (4:58):\nअल्लाह[44] तुम्हें आदेश देता है कि अमानतों को उनके मालिकों के हवाले कर दो और जब तुम लोगों के बीच फैसला करो, तो न्याय के साथ फैसला करो। निश्चय अल्लाह तुम्हें कितनी अच्छी नसीहत करता है। निःसंदेह अल्लाह सब कुछ सुनने, सब कुछ देखने वाला है।\n[44] यहाँ से ईमान वालों को संबोधित किया जा रहा है कि सामाजिक जीवन की व्यवस्था के लिए मूल नियम यह है कि जिसका जो भी अधिकार हो, उसे स्वीकार किया जाए और दिया जाए। इसी प्रकार कोई भी निर्णय बिना पक्षपात के, न्याय के साथ किया जाए, किसी प्रकार कोई अन्याय नहीं होना चाहिए।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/4/58",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "4:58",
+        "refs": [
+          "4:58"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:5eac40643355",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ يَأْمُرُكُمْ أَن تُؤَدُّوا۟ ٱلْأَمَـٰنَـٰتِ إِلَىٰٓ أَهْلِهَا وَإِذَا حَكَمْتُم بَيْنَ ٱلنَّاسِ أَن تَحْكُمُوا۟ بِٱلْعَدْلِ ۚ إِنَّ ٱللَّهَ نِعِمَّا يَعِظُكُم بِهِۦٓ ۗ إِنَّ ٱللَّهَ كَانَ سَمِيعًۢا بَصِيرًا",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (4:58):\nअल्लाह[44] तुम्हें आदेश देता है कि अमानतों को उनके मालिकों के हवाले कर दो और जब तुम लोगों के बीच फैसला करो, तो न्याय के साथ फैसला करो। निश्चय अल्लाह तुम्हें कितनी अच्छी नसीहत करता है। निःसंदेह अल्लाह सब कुछ सुनने, सब कुछ देखने वाला है।\n[44] यहाँ से ईमान वालों को संबोधित किया जा रहा है कि सामाजिक जीवन की व्यवस्था के लिए मूल नियम यह है कि जिसका जो भी अधिकार हो, उसे स्वीकार किया जाए और दिया जाए। इसी प्रकार कोई भी निर्णय बिना पक्षपात के, न्याय के साथ किया जाए, किसी प्रकार कोई अन्याय नहीं होना चाहिए।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/4/58",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "4:58",
+        "refs": [
+          "4:58"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:1c79ac934a59",
+      "kind": "text",
+      "ar": "النساء: ٥٨",
+      "tr": "अन-निसा: ٥٨",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d59cdaf1e150",
+      "kind": "text",
+      "ar": "أدّيتُها",
+      "tr": "मैंने अदा कर दिया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4f6d4e2e0c9a",
+      "kind": "text",
+      "ar": "لمن تعمل؟",
+      "tr": "आप किसके लिए अमल करते हैं?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d58f51f63855",
+      "kind": "quran",
+      "ar": "وَمَآ أُمِرُوٓا۟ إِلَّا لِيَعْبُدُوا۟ ٱللَّهَ مُخْلِصِينَ لَهُ ٱلدِّينَ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (98:5):\nहालाँकि उन्हें केवल यही आदेश दिया गया था कि वे अल्लाह के लिए धर्म को विशुद्ध करते हुए, एकाग्र होकर, उसकी उपासना करें, तथा नमाज़ अदा करें और ज़कात दें और यही सीधा धर्म है।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/98/5",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "98:5",
+        "refs": [
+          "98:5"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:41d434fcdabb",
+      "kind": "quran",
+      "ar": "وَمَآ أُمِرُوٓا۟ إِلَّا لِيَعْبُدُوا۟ ٱللَّهَ مُخْلِصِينَ لَهُ ٱلدِّينَ حُنَفَآءَ وَيُقِيمُوا۟ ٱلصَّلَوٰةَ وَيُؤْتُوا۟ ٱلزَّكَوٰةَ ۚ وَذَٰلِكَ دِينُ ٱلْقَيِّمَةِ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (98:5):\nहालाँकि उन्हें केवल यही आदेश दिया गया था कि वे अल्लाह के लिए धर्म को विशुद्ध करते हुए, एकाग्र होकर, उसकी उपासना करें, तथा नमाज़ अदा करें और ज़कात दें और यही सीधा धर्म है।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/98/5",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "98:5",
+        "refs": [
+          "98:5"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:de87242e7d87",
+      "kind": "text",
+      "ar": "البينة: ٥",
+      "tr": "अल-बय्यिना: ٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f82b9d1cf2f0",
+      "kind": "text",
+      "ar": "سألتُ نفسي",
+      "tr": "मैंने अपने आप से पूछा",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4118fe8ac21f",
+      "kind": "text",
+      "ar": "سلّم على جارك أو اسأل عنه",
+      "tr": "पड़ोसी को सलाम करें या उसका हाल पूछें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0e995656aaeb",
+      "kind": "hadith",
+      "ar": "مَا زَالَ جِبْرِيلُ يُوصِينِي بِالْجَارِ",
+      "tr": "जिब्रील मुझे पड़ोसी के बारे में लगातार वसीयत करते रहे।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:305bac48ffb1",
+      "kind": "text",
+      "ar": "سألتُ عنه",
+      "tr": "मैंने हाल पूछा",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0859efd8b045",
+      "kind": "text",
+      "ar": "سمعك وبصرك",
+      "tr": "आपका सुनना और देखना",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:906d54cf0109",
+      "kind": "quran",
+      "ar": "وَجَعَلَ لَكُمُ ٱلسَّمْعَ وَٱلْأَبْصَـٰرَ وَٱلْأَفْـِٔدَةَ ۙ لَعَلَّكُمْ تَشْكُرُونَ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (16:78):\nऔर अल्लाह ने तुम्हें तुम्हारी माताओं के पेटों से इस हाल में निकाला कि तुम कुछ न जानते थे। और उसने तुम्हारे लिए कान और आँखें और दिल बनाए, ताकि तुम शुक्रिया अदा करो।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/16/78",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "16:78",
+        "refs": [
+          "16:78"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:99b6bca5bce5",
+      "kind": "quran",
+      "ar": "وَٱللَّهُ أَخْرَجَكُم مِّنۢ بُطُونِ أُمَّهَـٰتِكُمْ لَا تَعْلَمُونَ شَيْـًٔا وَجَعَلَ لَكُمُ ٱلسَّمْعَ وَٱلْأَبْصَـٰرَ وَٱلْأَفْـِٔدَةَ ۙ لَعَلَّكُمْ تَشْكُرُونَ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (16:78):\nऔर अल्लाह ने तुम्हें तुम्हारी माताओं के पेटों से इस हाल में निकाला कि तुम कुछ न जानते थे। और उसने तुम्हारे लिए कान और आँखें और दिल बनाए, ताकि तुम शुक्रिया अदा करो।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/16/78",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "16:78",
+        "refs": [
+          "16:78"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:44e933cefdf9",
+      "kind": "text",
+      "ar": "النحل: ٧٨",
+      "tr": "अन-नह्ल: ٧٨",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2c384f90b165",
+      "kind": "text",
+      "ar": "علّم أحدًا شيئًا من الخير ولو ذكرًا واحدًا",
+      "tr": "किसी को भलाई की कोई बात सिखाएँ, चाहे एक ज़िक्र ही हो",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:853006fbccd1",
+      "kind": "hadith",
+      "ar": "مَنْ دَلَّ عَلَى خَيْرٍ فَلَهُ مِثْلُ أَجْرِ فَاعِلِهِ",
+      "tr": "जो किसी भलाई की ओर मार्ग दिखाता है, उसे उस पर अमल करने वाले जैसा प्रतिफल मिलता है।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:18e03958fff6",
+      "kind": "text",
+      "ar": "علّمتُ",
+      "tr": "मैंने सिखाया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2723b3c295aa",
+      "kind": "text",
+      "ar": "مع العسر يسر",
+      "tr": "कठिनाई के साथ आसानी",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:22293f9ada98",
+      "kind": "quran",
+      "ar": "فَإِنَّ مَعَ ٱلْعُسْرِ يُسْرًا",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (94:5):\nनिःसंदेह हर कठिनाई के साथ एक आसानी है।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/94/5",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "94:5",
+        "refs": [
+          "94:5"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:cf29f64e343c",
+      "kind": "text",
+      "ar": "الشرح: ٥",
+      "tr": "अश-शर्ह: ٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c42b46a72504",
+      "kind": "text",
+      "ar": "وثقتُ",
+      "tr": "मैंने भरोसा किया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6fbfa307fe9f",
+      "kind": "text",
+      "ar": "أحسن إلى يتيمٍ بكلمةٍ أو عطيّة",
+      "tr": "किसी अनाथ से अच्छी बात या उपहार के द्वारा भलाई करें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2d9d70ce7def",
+      "kind": "hadith",
+      "ar": "أَنَا وَكَافِلُ اليَتِيمِ فِي الجَنَّةِ كَهَاتَيْنِ",
+      "tr": "मैं और अनाथ का पालन-पोषण करने वाला जन्नत में इन दो उँगलियों की तरह होंगे।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f0c82128c98b",
+      "kind": "text",
+      "ar": "أحسنتُ",
+      "tr": "मैंने भलाई की",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f8a9fddb0de8",
+      "kind": "text",
+      "ar": "الله يحبّ التوّابين",
+      "tr": "अल्लाह तौबा करने वालों से प्रेम करता है",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a283da1f5ea4",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ يُحِبُّ ٱلتَّوَّٰبِينَ وَيُحِبُّ ٱلْمُتَطَهِّرِينَ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (2:222):\nतथा वे आपसे मासिक धर्म के विषय में पूछते हैं। आप कह दें : वह एक तरह की गंदगी है। अतः मासिक धर्म की स्थिति में औरतों से अलग रहो और उनके पास न जाओ, यहाँ तक कि वे पाक हो जाएँ। फिर जब वे (स्नान करके) पाक-साफ़ हो जाएँ, तो उनके पास आओ, जहाँ से अल्लाह ने तुम्हें अनुमति दी है। निःसंदेह अल्लाह उनसे प्रेम करता है जो बहुत तौबा करने वाले हैं और उनसे प्रेम करता है जो बहुत पाक रहने वाले हैं।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/2/222",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "2:222",
+        "refs": [
+          "2:222"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:990592e5e39b",
+      "kind": "quran",
+      "ar": "وَيَسْـَٔلُونَكَ عَنِ ٱلْمَحِيضِ ۖ قُلْ هُوَ أَذًى فَٱعْتَزِلُوا۟ ٱلنِّسَآءَ فِى ٱلْمَحِيضِ ۖ وَلَا تَقْرَبُوهُنَّ حَتَّىٰ يَطْهُرْنَ ۖ فَإِذَا تَطَهَّرْنَ فَأْتُوهُنَّ مِنْ حَيْثُ أَمَرَكُمُ ٱللَّهُ ۚ إِنَّ ٱللَّهَ يُحِبُّ ٱلتَّوَّٰبِينَ وَيُحِبُّ ٱلْمُتَطَهِّرِينَ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (2:222):\nतथा वे आपसे मासिक धर्म के विषय में पूछते हैं। आप कह दें : वह एक तरह की गंदगी है। अतः मासिक धर्म की स्थिति में औरतों से अलग रहो और उनके पास न जाओ, यहाँ तक कि वे पाक हो जाएँ। फिर जब वे (स्नान करके) पाक-साफ़ हो जाएँ, तो उनके पास आओ, जहाँ से अल्लाह ने तुम्हें अनुमति दी है। निःसंदेह अल्लाह उनसे प्रेम करता है जो बहुत तौबा करने वाले हैं और उनसे प्रेम करता है जो बहुत पाक रहने वाले हैं।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/2/222",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "2:222",
+        "refs": [
+          "2:222"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:5ae41f66df9c",
+      "kind": "text",
+      "ar": "البقرة: ٢٢٢",
+      "tr": "अल-बक़रा: ٢٢٢",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:716d81e56142",
+      "kind": "text",
+      "ar": "بعد وضوئك اليوم قل: أشهد أن لا إله إلا الله وأنّ محمدًا عبد الله ورسوله",
+      "tr": "आज वुज़ू के बाद कहें: “मैं गवाही देता हूँ कि अल्लाह के सिवा कोई सत्य उपास्य नहीं, और मुहम्मद अल्लाह के बंदे और रसूल हैं।”",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:19d4a17e7aab",
+      "kind": "hadith",
+      "ar": "إِلَّا فُتِحَتْ لَهُ أَبْوَابُ الْجَنَّةِ الثَّمَانِيَةُ يَدْخُلُ مِنْ أَيِّهَا شَاءَ",
+      "tr": "उसके लिए जन्नत के आठों द्वार खोल दिए जाते हैं; वह जिससे चाहे प्रवेश करे।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ebf9afd37190",
+      "kind": "text",
+      "ar": "لا تمشِ في الأرض مرحًا",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (17:37):\nऔर धरती पर अकड़कर न चलो। निःसंदेह न तुम धरती को फाड़ सकोगे और न लंबाई में पर्वतों तक पहुँच सकोगे।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/17/37",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "17:37",
+        "refs": [
+          "17:37"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:ac2b63f659c0",
+      "kind": "quran",
+      "ar": "وَلَا تَمْشِ فِى ٱلْأَرْضِ مَرَحًا",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (17:37):\nऔर धरती पर अकड़कर न चलो। निःसंदेह न तुम धरती को फाड़ सकोगे और न लंबाई में पर्वतों तक पहुँच सकोगे।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/17/37",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "17:37",
+        "refs": [
+          "17:37"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:3ce3d55ee475",
+      "kind": "quran",
+      "ar": "وَلَا تَمْشِ فِى ٱلْأَرْضِ مَرَحًا ۖ إِنَّكَ لَن تَخْرِقَ ٱلْأَرْضَ وَلَن تَبْلُغَ ٱلْجِبَالَ طُولًا",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (17:37):\nऔर धरती पर अकड़कर न चलो। निःसंदेह न तुम धरती को फाड़ सकोगे और न लंबाई में पर्वतों तक पहुँच सकोगे।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/17/37",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "17:37",
+        "refs": [
+          "17:37"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:bd7c2ebc0336",
+      "kind": "text",
+      "ar": "الإسراء: ٣٧",
+      "tr": "अल-इस्रा: ٣٧",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ca9d51552e93",
+      "kind": "text",
+      "ar": "تواضعتُ",
+      "tr": "मैंने विनम्रता अपनाई",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bae9700b5112",
+      "kind": "text",
+      "ar": "قبل نومك: اجمع كفّيك، واقرأ فيهما الإخلاص والمعوّذتين، ثم امسح بهما جسدك",
+      "tr": "सोने से पहले दोनों हथेलियाँ मिलाएँ, उनमें अल-इख़्लास और दोनों शरण माँगने वाली सूरतें पढ़ें, फिर हथेलियाँ अपने शरीर पर फेरें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f5dfd0d2fded",
+      "kind": "hadith",
+      "ar": "كَانَ إِذَا أَوَى إِلَى فِرَاشِهِ كُلَّ لَيْلَةٍ جَمَعَ كَفَّيْهِ، ثُمَّ نَفَثَ فِيهِمَا فَقَرَأَ فِيهِمَا: قُلْ هُوَ اللَّهُ أَحَدٌ وَقُلْ أَعُوذُ بِرَبِّ الفَلَقِ وَقُلْ أَعُوذُ بِرَبِّ النَّاسِ",
+      "tr": "हर रात बिस्तर पर आते समय आप दोनों हथेलियाँ मिलाते, उनमें हल्का फूँकते और पढ़ते: قُلْ هُوَ اللَّهُ أَحَدٌ [संदर्भ के लिए पूरी आयत का अनुवाद (112:1):\n(ऐ रसूल!) आप कह दीजिए : वह अल्लाह एक है।[1]\n[1] आयत संख्या 1 में 'अह़द' शब्द का प्रयोग हुआ है जिसका अर्थ है, उसके अस्तित्व एवं गुणों में कोई साझी नहीं है। यहाँ 'अह़द' शब्द का प्रयोग यह बताने के लिए किया गया है कि वह अकेला है। वह वृक्ष के समान एक नहीं है जिसकी अनेक शाखाएँ होती हैं। आयत संख्या 2 में 'समद' शब्द का प्रयोग हुआ है, जिसका अर्थ है अब्रण होना। अर्थात जिसमें कोई छिद्र न हो जिससे कुछ निकले, या वह किसी से निकले। और आयत संख्या 3 इसी अर्थ की व्याख्या करती है कि न उसकी कोई संतान है और न वह किसी की संतान है।]; قُلْ أَعُوذُ بِرَبِّ الفَلَقِ [संदर्भ के लिए पूरी आयत का अनुवाद (113:1):\n(ऐ नबी!) कह दीजिए : मैं सुबह के पालनहार की शरण लेता हूँ।]; قُلْ أَعُوذُ بِرَبِّ النَّاسِ [संदर्भ के लिए पूरी आयत का अनुवाद (114:1):\n(ऐ नबी!) कह दीजिए : मैं शरण लेता हूँ लोगों के पालनहार की।]।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": "",
+        "publishedQuotes": {
+          "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+          "url": "https://quranenc.com/en/browse/hindi_omari/112/1",
+          "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+          "date": "2026-11-04",
+          "snapshot": "2026-10-07",
+          "version": "1.1.5",
+          "translationKey": "hindi_omari",
+          "description": "Translated by Azizul Haq Al-Omari",
+          "lastUpdate": 1754421301,
+          "ref": "112:1",
+          "refs": [
+            "112:1",
+            "113:1",
+            "114:1"
+          ],
+          "context": "Full-verse context; published translation and footnotes preserved without alteration."
+        }
+      }
+    },
+    {
+      "id": "h:943f6461cd46",
+      "kind": "text",
+      "ar": "بين الخوف والرجاء",
+      "tr": "भय और आशा के बीच",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b2193eb18fea",
+      "kind": "text",
+      "ar": "اجمع في قلبك اليوم خوفًا من الله ورجاءً فيه",
+      "tr": "आज दिल में अल्लाह का भय और उससे आशा दोनों रखें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c294cb3b4399",
+      "kind": "hadith",
+      "ar": "لَوْ يَعْلَمُ الْمُؤْمِنُ مَا عِنْدَ اللهِ مِنَ الْعُقُوبَةِ، مَا طَمِعَ بِجَنَّتِهِ أَحَدٌ، وَلَوْ يَعْلَمُ الْكَافِرُ مَا عِنْدَ اللهِ مِنَ الرَّحْمَةِ، مَا قَنَطَ مِنْ جَنَّتِهِ أَحَدٌ",
+      "tr": "यदि मोमिन जान ले कि अल्लाह के पास कैसा दंड है, तो कोई उसकी जन्नत की आशा न रखे। यदि काफ़िर जान ले कि अल्लाह के पास कैसी दया है, तो कोई उसकी जन्नत से निराश न हो।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:357ea48035ad",
+      "kind": "text",
+      "ar": "جمعتُهما",
+      "tr": "मैंने दोनों साथ रखे",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5392f791a548",
+      "kind": "text",
+      "ar": "إن أغضبك أحدٌ اليوم فاكظم غيظك واصمت",
+      "tr": "आज कोई क्रोध दिलाए तो क्रोध रोकें और चुप रहें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f42cd1ae1f4c",
+      "kind": "hadith",
+      "ar": "لَيْسَ الشَّدِيدُ بِالصُّرَعَةِ، إِنَّمَا الشَّدِيدُ الَّذِي يَمْلِكُ نَفْسَهُ عِنْدَ الغَضَبِ",
+      "tr": "बलवान वह नहीं जो कुश्ती में पछाड़ दे, बल्कि वह है जो क्रोध के समय स्वयं पर काबू रखे।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e1862935bbe4",
+      "kind": "text",
+      "ar": "كظمتُ",
+      "tr": "मैंने क्रोध रोका",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f1aa88fbb06f",
+      "kind": "text",
+      "ar": "لئن شكرتم",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (14:7):\nतथा (याद करो) जब तुम्हारे पालनहार ने साफ घोषणा कर दी कि निःसंदेह यदि तुम शुक्र करोगे, तो मैं अवश्य ही तुम्हें अधिक दूँगा तथा निःसंदेह यदि तुम नाशुक्री करोगे, तो निःसंदेह मेरी यातना निश्चय बहुत कड़ी है।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/14/7",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "14:7",
+        "refs": [
+          "14:7"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:4ffb0abcc4fa",
+      "kind": "quran",
+      "ar": "لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (14:7):\nतथा (याद करो) जब तुम्हारे पालनहार ने साफ घोषणा कर दी कि निःसंदेह यदि तुम शुक्र करोगे, तो मैं अवश्य ही तुम्हें अधिक दूँगा तथा निःसंदेह यदि तुम नाशुक्री करोगे, तो निःसंदेह मेरी यातना निश्चय बहुत कड़ी है।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/14/7",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "14:7",
+        "refs": [
+          "14:7"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:0c624c273d25",
+      "kind": "quran",
+      "ar": "وَإِذْ تَأَذَّنَ رَبُّكُمْ لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ ۖ وَلَئِن كَفَرْتُمْ إِنَّ عَذَابِى لَشَدِيدٌ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (14:7):\nतथा (याद करो) जब तुम्हारे पालनहार ने साफ घोषणा कर दी कि निःसंदेह यदि तुम शुक्र करोगे, तो मैं अवश्य ही तुम्हें अधिक दूँगा तथा निःसंदेह यदि तुम नाशुक्री करोगे, तो निःसंदेह मेरी यातना निश्चय बहुत कड़ी है।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/14/7",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "14:7",
+        "refs": [
+          "14:7"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:63a2898ebc6b",
+      "kind": "text",
+      "ar": "إبراهيم: ٧",
+      "tr": "इब्राहीम: ٧",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:407287bf045a",
+      "kind": "text",
+      "ar": "شكرتُ",
+      "tr": "मैंने शुक्र किया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1e742612f46f",
+      "kind": "text",
+      "ar": "انوِ الأجر في نفقتك اليوم على أهل بيتك",
+      "tr": "आज परिवार पर ख़र्च करते हुए प्रतिफल की नीयत करें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:890dec358736",
+      "kind": "hadith",
+      "ar": "إِنَّكَ لَنْ تُنْفِقَ نَفَقَةً تَبْتَغِي بِهَا وَجْهَ اللَّهِ إِلَّا أُجِرْتَ عَلَيْهَا، حَتَّى مَا تَجْعَلُ فِي فَمِ امْرَأَتِكَ",
+      "tr": "अल्लाह का मुख चाहकर तुम जो भी ख़र्च करोगे, उसका प्रतिफल पाओगे, यहाँ तक कि उस निवाले का भी जो अपनी पत्नी के मुँह में रखते हो।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6a6dbafde06f",
+      "kind": "text",
+      "ar": "نويتُ",
+      "tr": "मैंने नीयत की",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8988c9435811",
+      "kind": "text",
+      "ar": "ادعُني أستجب لكم",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (40:60):\nतथा तुम्हारे पालनहार ने कहा है : तुम मुझे पुकारो। मैं तुम्हारी प्रार्थना[18] स्वीकार करूँगा। निःसंदेह जो लोग मेरी इबादत से अहंकार करते हैं, वे शीघ्र ही अपमानित होकर जहन्नम में प्रवेश करेंगे।\n[18] ह़दीस में है कि प्रार्थना ही इबादत है। फिर आप (सल्लल्लाहु अलैहि व सल्लम) ने यही आयत पढ़ी। (तिर्मिज़ी : 2969) इस ह़दीस की सनद ह़सन है।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/40/60",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "40:60",
+        "refs": [
+          "40:60"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:dfe464e54c5e",
+      "kind": "quran",
+      "ar": "ٱدْعُونِىٓ أَسْتَجِبْ لَكُمْ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (40:60):\nतथा तुम्हारे पालनहार ने कहा है : तुम मुझे पुकारो। मैं तुम्हारी प्रार्थना[18] स्वीकार करूँगा। निःसंदेह जो लोग मेरी इबादत से अहंकार करते हैं, वे शीघ्र ही अपमानित होकर जहन्नम में प्रवेश करेंगे।\n[18] ह़दीस में है कि प्रार्थना ही इबादत है। फिर आप (सल्लल्लाहु अलैहि व सल्लम) ने यही आयत पढ़ी। (तिर्मिज़ी : 2969) इस ह़दीस की सनद ह़सन है।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/40/60",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "40:60",
+        "refs": [
+          "40:60"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:fc06715b7c78",
+      "kind": "quran",
+      "ar": "وَقَالَ رَبُّكُمُ ٱدْعُونِىٓ أَسْتَجِبْ لَكُمْ ۚ إِنَّ ٱلَّذِينَ يَسْتَكْبِرُونَ عَنْ عِبَادَتِى سَيَدْخُلُونَ جَهَنَّمَ دَاخِرِينَ",
+      "tr": "संदर्भ के लिए पूरी आयत का अनुवाद (40:60):\nतथा तुम्हारे पालनहार ने कहा है : तुम मुझे पुकारो। मैं तुम्हारी प्रार्थना[18] स्वीकार करूँगा। निःसंदेह जो लोग मेरी इबादत से अहंकार करते हैं, वे शीघ्र ही अपमानित होकर जहन्नम में प्रवेश करेंगे।\n[18] ह़दीस में है कि प्रार्थना ही इबादत है। फिर आप (सल्लल्लाहु अलैहि व सल्लम) ने यही आयत पढ़ी। (तिर्मिज़ी : 2969) इस ह़दीस की सनद ह़सन है।",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Hindi Translation - Azizul Haq Al-Omari; QuranEnc.com; v1.1.5",
+        "url": "https://quranenc.com/en/browse/hindi_omari/40/60",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.1.5",
+        "translationKey": "hindi_omari",
+        "description": "Translated by Azizul Haq Al-Omari",
+        "lastUpdate": 1754421301,
+        "ref": "40:60",
+        "refs": [
+          "40:60"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:bfe1f89557ef",
+      "kind": "text",
+      "ar": "غافر: ٦٠",
+      "tr": "ग़ाफ़िर: ٦٠",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f16f3d231836",
+      "kind": "text",
+      "ar": "دعوتُ",
+      "tr": "मैंने दुआ की",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e929b13ddecf",
+      "kind": "text",
+      "ar": "إن أخطأت اليوم فاتبعها بحسنةٍ فورًا",
+      "tr": "आज ग़लती हो जाए तो तुरंत उसके बाद नेकी करें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:94704df23c68",
+      "kind": "hadith",
+      "ar": "وَأَتْبِعِ السَّيِّئَةَ الْحَسَنَةَ تَمْحُهَا",
+      "tr": "बुराई के बाद नेकी करो, वह उसे मिटा देगी।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8886960b09e8",
+      "kind": "text",
+      "ar": "الدارمي",
+      "tr": "दारिमी",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9863af7db021",
+      "kind": "text",
+      "ar": "اتبعتُها",
+      "tr": "मैंने उसके बाद नेकी की",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:274cbaa2ddb1",
+      "kind": "text",
+      "ar": "ديمتك أنت",
+      "tr": "आपकी अपनी दीमा",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:35ded1b91e2f",
+      "kind": "text",
+      "ar": "راجع شهرك: أيّ قطرةٍ كانت أسهل عليك؟ اجعلها ديمتك الدائمة",
+      "tr": "अपने महीने को देखें: कौन-सी बूँद आपके लिए सबसे आसान थी? उसे अपनी स्थायी दीमा बनाएँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d50f2c6b9b41",
+      "kind": "hadith",
+      "ar": "أَحَبَّ الأَعْمَالِ إِلَى اللَّهِ أَدْوَمُهَا وَإِنْ قَلَّ",
+      "tr": "अल्लाह को सबसे प्रिय अमल वे हैं जो लगातार हों, चाहे थोड़े हों।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2a84d3773586",
+      "kind": "text",
+      "ar": "اخترتُها",
+      "tr": "मैंने उसे चुन लिया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:105d904ae4d4",
+      "kind": "text",
+      "ar": "اختر من الثلاثين عملًا واحدًا تلزمه كلّ يوم",
+      "tr": "तीस अमलों में से एक चुनें जिसे हर दिन जारी रखें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2edb6fca1b63",
+      "kind": "hadith",
+      "ar": "خُذُوا مِنَ العَمَلِ مَا تُطِيقُونَ، فَإِنَّ اللَّهَ لاَ يَمَلُّ حَتَّى تَمَلُّوا",
+      "tr": "उतना ही अमल अपनाओ जितना कर सको; अल्लाह नहीं ऊबता जब तक तुम ऊब न जाओ।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c484e1930a16",
+      "kind": "text",
+      "ar": "اخترتُ",
+      "tr": "मैंने चुन लिया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:556fdc2f2520",
+      "kind": "text",
+      "ar": "غدًا تبدأ دورةٌ جديدة",
+      "tr": "कल नया चक्र शुरू होगा",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1bb5541dd801",
+      "kind": "text",
+      "ar": "تأمّل فضل هذا اليوم الذي أنت فيه",
+      "tr": "उस दिन की विशेषता पर विचार करें जिसमें आप हैं",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf328bccc1ec",
+      "kind": "hadith",
+      "ar": "خَيْرُ يَوْمٍ طَلَعَتْ عَلَيْهِ الشَّمْسُ يَوْمُ الْجُمُعَةِ",
+      "tr": "सबसे अच्छा दिन जिस पर सूरज निकला, जुमे का दिन है।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:411231459be2",
+      "kind": "text",
+      "ar": "اغتنم آخر النهار اليوم بدعاءٍ تسأل الله فيه حاجتك",
+      "tr": "आज दिन के अंतिम भाग का लाभ लेकर अल्लाह से अपनी आवश्यकता की दुआ करें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:afb12d50c00c",
+      "kind": "hadith",
+      "ar": "فِيهِ سَاعَةٌ، لاَ يُوَافِقُهَا عَبْدٌ مُسْلِمٌ، وَهُوَ قَائِمٌ يُصَلِّي، يَسْأَلُ اللَّهَ تَعَالَى شَيْئًا، إِلَّا أَعْطَاهُ إِيَّاهُ",
+      "tr": "उसमें एक घड़ी है। उस समय कोई मुस्लिम बंदा खड़े होकर नमाज़ पढ़ते हुए अल्लाह तआला से कुछ माँगता है तो वह उसे दे देता है।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98827192e914",
+      "kind": "text",
+      "ar": "قطرةٌ جديدة بعد جمعتك",
+      "tr": "आपके जुमे के बाद नई बूँद",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1e3d6e18312e",
+      "kind": "text",
+      "ar": "ديمتك لليوم جاهزة، دقيقة واحدة تكفي",
+      "tr": "आज की दीमा तैयार है, एक मिनट पर्याप्त है",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1ba202784993",
+      "kind": "text",
+      "ar": "قطرةٌ جديدة تنتظرك في أرضك",
+      "tr": "आपकी ज़मीन में एक नई बूँद प्रतीक्षा कर रही है",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:41ca9a30513e",
+      "kind": "text",
+      "ar": "قليلٌ دائمٌ خيرٌ من كثيرٍ منقطع، ديمة اليوم جاهزة",
+      "tr": "थोड़ा मगर लगातार, बहुत मगर रुक-रुककर किए जाने से बेहतर है; आज की दीमा तैयार है",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:874722223daa",
+      "kind": "text",
+      "ar": "جمعة مباركة، ديمة الجمعة جاهزة",
+      "tr": "जुमा मुबारक, जुमे की दीमा तैयार है",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cd6e0869b954",
+      "kind": "text",
+      "ar": "تذكير ديمة: قطرة الجوارح تنتظرك",
+      "tr": "दीमा की याद दिलाहट: अंगों की बूँद आपकी प्रतीक्षा कर रही है",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:995bb15601b1",
+      "kind": "text",
+      "ar": "بعد الفجر بنصف ساعة",
+      "tr": "फ़ज्र के आधे घंटे बाद",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a65e23474be8",
+      "kind": "text",
+      "ar": "وقت الضحى",
+      "tr": "दुहा के समय",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:135e943b0801",
+      "kind": "text",
+      "ar": "بعد العصر",
+      "tr": "अस्र के बाद",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0df562a36ec6",
+      "kind": "text",
+      "ar": "بعد العشاء",
+      "tr": "इशा के बाद",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:91d929efa2fd",
+      "kind": "title",
+      "ar": "ديمتك تصلك كل يوم",
+      "tr": "आपकी दीमा हर दिन आप तक पहुँचे",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a8036d1e33f7",
+      "kind": "text",
+      "ar": "تنبيهٌ واحدٌ في اليوم، بالوقت الذي تختاره، ويمكنك إيقافه متى شئت.",
+      "tr": "दिन में एक याद दिलाहट, आपके चुने हुए समय पर। जब चाहें बंद कर सकते हैं।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1d2b22848624",
+      "kind": "text",
+      "ar": "فعّل التنبيه",
+      "tr": "याद दिलाहट चालू करें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:289acec23c22",
+      "kind": "text",
+      "ar": "ليس الآن",
+      "tr": "अभी नहीं",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b7e375461a32",
+      "kind": "text",
+      "ar": "عند التفعيل يطلب الجهاز إذنك مرّة واحدة فقط.",
+      "tr": "चालू करने पर डिवाइस केवल एक बार आपकी अनुमति माँगेगा।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5aa990b8cc5b",
+      "kind": "text",
+      "ar": "قطرة اللسان",
+      "tr": "ज़बान की बूँद",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4aed9b40406d",
+      "kind": "text",
+      "ar": "قطرة القلب",
+      "tr": "दिल की बूँद",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:768a154bb99f",
+      "kind": "text",
+      "ar": "قطرة الجوارح",
+      "tr": "अंगों की बूँद",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:524fe4800568",
+      "kind": "text",
+      "ar": "قُلها",
+      "tr": "इसे कहें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf57739c9691",
+      "kind": "text",
+      "ar": "تأمّلها",
+      "tr": "इस पर विचार करें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f3fb3f7cd932",
+      "kind": "text",
+      "ar": "افعلها",
+      "tr": "इसे करें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1c0b39a032b8",
+      "kind": "text",
+      "ar": "أرضك",
+      "tr": "आपकी ज़मीन",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:07242796bbcd",
+      "kind": "text",
+      "ar": "{n} من {total} قطرات اليوم",
+      "tr": "आज की {total} बूँदों में से {n}",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fbe03626ef7f",
+      "kind": "text",
+      "ar": "يومٌ مضى",
+      "tr": "बीता हुआ दिन",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6f043424b3ac",
+      "kind": "text",
+      "ar": "نزلت قطرةٌ في أرضك",
+      "tr": "आपकी ज़मीन पर एक बूँद उतरी",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98df46fbd83b",
+      "kind": "text",
+      "ar": "تراجع",
+      "tr": "वापस लें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:58f2a96a17bb",
+      "kind": "text",
+      "ar": "القطرة التالية",
+      "tr": "अगली बूँद",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a1bf10b61436",
+      "kind": "text",
+      "ar": "ختام اليوم",
+      "tr": "दिन का समापन",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:41cc3479d671",
+      "kind": "text",
+      "ar": "ذكّرني لاحقًا",
+      "tr": "बाद में याद दिलाएँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4c417f1a159c",
+      "kind": "text",
+      "ar": "سنذكّرك بعد العصر",
+      "tr": "हम अस्र के बाद याद दिलाएँगे",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:64f4fe2ecbd8",
+      "kind": "text",
+      "ar": "اضغط مع كل مرّة تقولها",
+      "tr": "हर बार कहते समय दबाएँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:155749b610a4",
+      "kind": "text",
+      "ar": "مقترح: {n}",
+      "tr": "सुझाव: {n}",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1e9283ae4577",
+      "kind": "text",
+      "ar": "اكتملت ديمة اليوم",
+      "tr": "आज की दीमा पूरी हुई",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:adc6e0e1137b",
+      "kind": "text",
+      "ar": "أتممتَ شهرك الأول",
+      "tr": "आपने अपना पहला महीना पूरा किया",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fc8633a1d1f4",
+      "kind": "text",
+      "ar": "ثلاث قطراتٍ نزلت في أرضك",
+      "tr": "आपकी ज़मीन पर तीन बूँदें उतरीं",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1106aa8631d8",
+      "kind": "text",
+      "ar": "تنبيهك القادم: بكرة {slot}",
+      "tr": "अगली याद दिलाहट: कल {slot}",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:448ccf482a83",
+      "kind": "text",
+      "ar": "بكرة",
+      "tr": "कल",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fb35a6c70521",
+      "kind": "text",
+      "ar": "تنبيه ديمة",
+      "tr": "दीमा की याद दिलाहट",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9c08e36a6898",
+      "kind": "text",
+      "ar": "التنبيه اليومي",
+      "tr": "रोज़ की याद दिलाहट",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d672210ef6a7",
+      "kind": "text",
+      "ar": "مفعَّلٌ تلقائيًّا مع التحديث، ويمكنك إيقافه",
+      "tr": "अपडेट के साथ अपने-आप चालू; आप इसे बंद कर सकते हैं",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:107866a9b3ff",
+      "kind": "text",
+      "ar": "موقوف، وديمتك تنتظرك داخل التطبيق",
+      "tr": "बंद है; आपकी दीमा ऐप में प्रतीक्षा कर रही है",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a9b9ce80ff8f",
+      "kind": "text",
+      "ar": "وقت التنبيه",
+      "tr": "याद दिलाने का समय",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4da801b1128b",
+      "kind": "text",
+      "ar": "أوقات الصلاة تُحسب من موقعك، كما في قسم الصلاة",
+      "tr": "नमाज़ के समय आपके स्थान के अनुसार निकाले जाते हैं, जैसे नमाज़ भाग में",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ef256a3c3b68",
+      "kind": "text",
+      "ar": "هكذا يصلك",
+      "tr": "यह आपको ऐसे दिखेगी",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2eedd6ae577f",
+      "kind": "text",
+      "ar": "رسالة هادئة تتغيّر كل يوم، بلا إلحاح",
+      "tr": "शांत संदेश जो रोज़ बदलता है, बिना ज़ोर डाले",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:507770131e72",
+      "kind": "text",
+      "ar": "وقت التذكير غير متاح.",
+      "tr": "याद दिलाने का समय उपलब्ध नहीं है।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f901ccb2564e",
+      "kind": "text",
+      "ar": "تعذّر تحميل ديمة.",
+      "tr": "दीमा लोड नहीं हो सकी।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1b388b1d5c9d",
+      "kind": "text",
+      "ar": "مفعّل",
+      "tr": "चालू",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bafc44588818",
+      "kind": "text",
+      "ar": "متوقف",
+      "tr": "बंद",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cd834082470d",
+      "kind": "text",
+      "ar": "الأيام الأخيرة",
+      "tr": "हाल के दिन",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ae0bbc700f31",
+      "kind": "text",
+      "ar": "، اليوم",
+      "tr": ", आज",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:881aeb7099b3",
+      "kind": "text",
+      "ar": "الأيام السبعة الماضية",
+      "tr": "पिछले सात दिन",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7e9c1b26dc01",
+      "kind": "text",
+      "ar": "علامات ممارسات الأيام السبعة الماضية",
+      "tr": "पिछले सात दिनों के अमलों के चिह्न",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf5148ef5b1e",
+      "kind": "text",
+      "ar": " مكتمل",
+      "tr": " पूरा",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3ca833b33415",
+      "kind": "text",
+      "ar": " غير مكتمل",
+      "tr": " अधूरा",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6d76cfa3f443",
+      "kind": "text",
+      "ar": "ممارسات اليوم",
+      "tr": "आज के अमल",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0618181d807f",
+      "kind": "text",
+      "ar": "القرآن ",
+      "tr": "क़ुरआन ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:871943736352",
+      "kind": "text",
+      "ar": "العدد المقترح: ",
+      "tr": "सुझाई गई संख्या: ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6af4196f3fa4",
+      "kind": "text",
+      "ar": "اقرأ التفسير الموثّق",
+      "tr": "संदर्भ वाली तफ़सीर पढ़ें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dfa98f40e8f1",
+      "kind": "text",
+      "ar": "المختصر في تفسير القرآن · ص 252 · FC-000142",
+      "tr": "अल-मुख़्तसर फ़ी तफ़सीर अल-क़ुरआन · पृ. 252 · FC-000142",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3b4c90d0223b",
+      "kind": "text",
+      "ar": "اضغط للعدّ، ",
+      "tr": "गिनने के लिए दबाएँ, ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:950edb07da8c",
+      "kind": "text",
+      "ar": "الأيام الماضية للقراءة فقط.",
+      "tr": "बीते दिन केवल पढ़े जा सकते हैं।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ada140502b2a",
+      "kind": "text",
+      "ar": "اضبط تذكيرًا",
+      "tr": "याद दिलाहट तय करें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f63f0957977f",
+      "kind": "text",
+      "ar": "غدًا: ",
+      "tr": "कल: ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f8e84b2074b3",
+      "kind": "text",
+      "ar": "فعّل التنبيهات من إعدادات الصلاة أولًا.",
+      "tr": "पहले नमाज़ की सेटिंग में याद दिलाहट चालू करें।",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dcb542c15808",
+      "kind": "text",
+      "ar": "لا تنسَ ديمتك اليوم",
+      "tr": "आज अपनी दीमा न भूलें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7e9051a2c063",
+      "kind": "text",
+      "ar": "اكتملت ديمتك اليوم",
+      "tr": "आज आपकी दीमा पूरी हो गई",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e7af6ad9e8bb",
+      "kind": "text",
+      "ar": "الأول",
+      "tr": "पहला",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:39321e817feb",
+      "kind": "text",
+      "ar": "الثاني",
+      "tr": "दूसरा",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c3e1b4edd4ac",
+      "kind": "text",
+      "ar": "الثالث",
+      "tr": "तीसरा",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:50ed00343085",
+      "kind": "text",
+      "ar": "الرابع",
+      "tr": "चौथा",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5fad8aa224ce",
+      "kind": "text",
+      "ar": "الخامس",
+      "tr": "पाँचवाँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:45d8094bf9b9",
+      "kind": "text",
+      "ar": "السادس",
+      "tr": "छठा",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ef114d4296bc",
+      "kind": "text",
+      "ar": "السابع",
+      "tr": "सातवाँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2db27d05d3a7",
+      "kind": "text",
+      "ar": "الثامن",
+      "tr": "आठवाँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3bcce3aeea5f",
+      "kind": "text",
+      "ar": "التاسع",
+      "tr": "नौवाँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:20024c546493",
+      "kind": "text",
+      "ar": "العاشر",
+      "tr": "दसवाँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a792050b141f",
+      "kind": "text",
+      "ar": "الحادي عشر",
+      "tr": "ग्यारहवाँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3d4fabeb9270",
+      "kind": "text",
+      "ar": "الثاني عشر",
+      "tr": "बारहवाँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:04fea95f2af7",
+      "kind": "text",
+      "ar": "الثالث عشر",
+      "tr": "तेरहवाँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4e2208a2c195",
+      "kind": "text",
+      "ar": "الرابع عشر",
+      "tr": "चौदहवाँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f39f78ef305e",
+      "kind": "text",
+      "ar": "الخامس عشر",
+      "tr": "पंद्रहवाँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c9d13c6b6622",
+      "kind": "text",
+      "ar": "السادس عشر",
+      "tr": "सोलहवाँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c2ccae600214",
+      "kind": "text",
+      "ar": "السابع عشر",
+      "tr": "सत्रहवाँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7350a028a419",
+      "kind": "text",
+      "ar": "الثامن عشر",
+      "tr": "अठारहवाँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d56656f461b5",
+      "kind": "text",
+      "ar": "التاسع عشر",
+      "tr": "उन्नीसवाँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c600e14ee149",
+      "kind": "text",
+      "ar": "العشرون",
+      "tr": "बीसवाँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3fcd86f89850",
+      "kind": "text",
+      "ar": "الحادي والعشرون",
+      "tr": "इक्कीसवाँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d128c1b3d520",
+      "kind": "text",
+      "ar": "الثاني والعشرون",
+      "tr": "बाईसवाँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:69753081d75f",
+      "kind": "text",
+      "ar": "الثالث والعشرون",
+      "tr": "तेईसवाँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ab577aaaa016",
+      "kind": "text",
+      "ar": "الرابع والعشرون",
+      "tr": "चौबीसवाँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:05d8e10f8f73",
+      "kind": "text",
+      "ar": "الخامس والعشرون",
+      "tr": "पच्चीसवाँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2f38a6804aa2",
+      "kind": "text",
+      "ar": "السادس والعشرون",
+      "tr": "छब्बीसवाँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:217372974e36",
+      "kind": "text",
+      "ar": "السابع والعشرون",
+      "tr": "सत्ताईसवाँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:97fbcd610785",
+      "kind": "text",
+      "ar": "الثامن والعشرون",
+      "tr": "अट्ठाईसवाँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1c0a5a0a9caa",
+      "kind": "text",
+      "ar": "التاسع والعشرون",
+      "tr": "उनतीसवाँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:91ccc8db263e",
+      "kind": "text",
+      "ar": "الثلاثون",
+      "tr": "तीसवाँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a9abf57dbb0d",
+      "kind": "text",
+      "ar": "لا تنسَ ديمتك غدًا",
+      "tr": "कल अपनी दीमा न भूलें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c6b29634bec7",
+      "kind": "text",
+      "ar": "سنذكّرك غدًا {slot}",
+      "tr": "हम कल {slot} याद दिलाएँगे",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8a698ae7a876",
+      "kind": "title",
+      "ar": "ديمة",
+      "tr": "दीमा",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bfdf8728538c",
+      "kind": "title",
+      "ar": "صحيح البخاري",
+      "tr": "सहीह अल-बुख़ारी",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5e7e59318d4f",
+      "kind": "title",
+      "ar": "صحيح مسلم",
+      "tr": "सहीह मुस्लिम",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:abff783fb429",
+      "kind": "title",
+      "ar": "السنن الكبرى للنسائي",
+      "tr": "नसाई की अस-सुनन अल-कुबरा",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7f08faee4cfe",
+      "kind": "title",
+      "ar": "سنن الترمذي ت بشار",
+      "tr": "सुनन अत-तिर्मिज़ी, बश्शार का संपादन",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fb4fbcd242e3",
+      "kind": "title",
+      "ar": "سنن ابن ماجه",
+      "tr": "सुनन इब्न माजा",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:96a8ce7b5570",
+      "kind": "title",
+      "ar": "سنن الدارمي",
+      "tr": "सुनन अद-दारिमी",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9c5644a677fa",
+      "kind": "title",
+      "ar": "اللسان",
+      "tr": "ज़बान",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:81bf3cfb3c54",
+      "kind": "title",
+      "ar": "القلب",
+      "tr": "दिल",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5a06c13ef9bd",
+      "kind": "title",
+      "ar": "الجوارح",
+      "tr": "अंग",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b76444a321b7",
+      "kind": "title",
+      "ar": "اليوم",
+      "tr": "आज",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e776b0209b50",
+      "kind": "title",
+      "ar": "إلغاء",
+      "tr": "रद्द करें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fc095a728402",
+      "kind": "title",
+      "ar": "إعدادات التنبيه",
+      "tr": "याद दिलाहट की सेटिंग",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5bf826c5e57c",
+      "kind": "title",
+      "ar": "إغلاق",
+      "tr": "बंद करें",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:608631450563",
+      "kind": "title",
+      "ar": "اضغط",
+      "tr": "दबाएँ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    }
+  ]
+}

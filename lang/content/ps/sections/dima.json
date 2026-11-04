@@ -1,0 +1,5689 @@
+{
+  "schema": "ezik-tr4/1",
+  "lang": "ps",
+  "section": "dima",
+  "title": {
+    "ar": "ديمة",
+    "tr": "دیمه"
+  },
+  "agent": "C4",
+  "generated": "2026-11-04",
+  "source_files": [
+    "dima/dima-v1.json",
+    "app.jsx"
+  ],
+  "items": [
+    {
+      "id": "h:592e78c41de1",
+      "kind": "text",
+      "ar": "قليلٌ دائم، كالمطر الهادئ",
+      "tr": "لږ، خو تلپاتې، د ارام باران په څېر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l01",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده، سبحان الله العظيم",
+      "tr": "الله پاک دی او ستاینه یې کوم؛ ستر الله پاک دی.",
+      "translit": "سُبحانَ اللهِ وَبِحَمدِه، سُبحانَ اللهِ العَظیم",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:46bf599f3e53",
+      "kind": "hadith",
+      "ar": "كَلِمَتَانِ خَفِيفَتَانِ عَلَى اللِّسَانِ، ثَقِيلَتَانِ فِي المِيزَانِ، حَبِيبَتَانِ إِلَى الرَّحْمَنِ",
+      "tr": "دوه کلمې چې پر ژبه سپکې، په تله کې درنې او رحمان ته محبوبې دي.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3bd5b604195e",
+      "kind": "text",
+      "ar": "متفق عليه",
+      "tr": "بخاري او مسلم دواړو روایت کړی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a70fe204e5f6",
+      "kind": "text",
+      "ar": "قلتُها",
+      "tr": "ومې ویل",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l02",
+      "kind": "dhikr",
+      "ar": "لا حول ولا قوة إلا بالله",
+      "tr": "د الله له مرستې پرته نه توان شته او نه ځواک.",
+      "translit": "لا حَولَ وَلا قُوَّةَ إِلّا بِالله",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:060e76db5d17",
+      "kind": "hadith",
+      "ar": "أَلاَ أَدُلُّكَ عَلَى كَلِمَةٍ مِنْ كَنْزِ الجَنَّةِ \" قُلْتُ: بَلَى، قَالَ: «لاَ حَوْلَ وَلاَ قُوَّةَ إِلَّا بِاللَّهِ",
+      "tr": "ایا تا ته د جنت له خزانو څخه یوه کلمه دروښیم؟ ما وویل: هو. ویې فرمایل: د الله له مرستې پرته نه توان شته او نه ځواک.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l03",
+      "kind": "dhikr",
+      "ar": "اللهم صلِّ وسلِّم على نبيّنا محمد",
+      "tr": "اې الله، زموږ پر نبي محمد درود او سلام ولېږه.",
+      "translit": "اللّهُمَّ صَلِّ وَسَلِّم عَلى نَبِیِّنا مُحَمَّد",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "lf",
+      "kind": "dhikr",
+      "ar": "اللهم صلِّ وسلِّم على نبيّنا محمد",
+      "tr": "اې الله، زموږ پر نبي محمد درود او سلام ولېږه.",
+      "translit": "اللّهُمَّ صَلِّ وَسَلِّم عَلى نَبِیِّنا مُحَمَّد",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b2a097607bf2",
+      "kind": "hadith",
+      "ar": "مَنْ صَلَّى عَلَيَّ وَاحِدَةً صَلَّى الله عَلَيْهِ عَشْرًا",
+      "tr": "چا چې پر ما یو ځل درود ووایه، الله به پر هغه لس رحمتونه نازل کړي.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1f83b246bbe2",
+      "kind": "text",
+      "ar": "مسلم",
+      "tr": "مسلم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a6763adf156f",
+      "kind": "text",
+      "ar": "صلّيتُ عليه",
+      "tr": "درود مې پرې ووایه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l04",
+      "kind": "dhikr",
+      "ar": "أستغفر الله وأتوب إليه",
+      "tr": "له الله څخه بښنه غواړم او هغه ته توبه باسم.",
+      "translit": "أَستَغفِرُ اللهَ وَأَتوبُ إِلَیه",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:16759e2c8a1f",
+      "kind": "hadith",
+      "ar": "يَا أَيُّهَا النَّاسُ تُوبُوا إِلَى اللهِ، فَإِنِّي أَتُوبُ، فِي الْيَوْمِ إِلَيْهِ مِائَةَ، مَرَّةٍ",
+      "tr": "اې خلکو، الله ته توبه وباسئ؛ زه هره ورځ سل ځله هغه ته توبه باسم.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l05",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده",
+      "tr": "الله پاک دی او ستاینه یې کوم.",
+      "translit": "سُبحانَ اللهِ وَبِحَمدِه",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98035c1c8607",
+      "kind": "hadith",
+      "ar": "مَنْ قَالَ: سُبْحَانَ اللَّهِ وَبِحَمْدِهِ، فِي يَوْمٍ مِائَةَ مَرَّةٍ، حُطَّتْ خَطَايَاهُ، وَإِنْ كَانَتْ مِثْلَ زَبَدِ البَحْرِ",
+      "tr": "څوک چې په ورځ کې سل ځله ووایي: «الله پاک دی او ستاینه یې کوم»، ګناهونه به یې ورژېږي، که څه هم د سمندر د ځګ په اندازه وي.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l06",
+      "kind": "dhikr",
+      "ar": "لا إله إلا الله وحده لا شريك له، له الملك وله الحمد، وهو على كل شيء قدير",
+      "tr": "له الله پرته بل د حق معبود نشته؛ هغه یوازینی دی، شریک نه لري. پاچاهي د هغه ده، ستاینه هغه لره ده، او هغه پر هر څه قادر دی.",
+      "translit": "لا إِلهَ إِلَّا اللهُ وَحدَهُ لا شَریكَ لَه، لَهُ المُلكُ وَلَهُ الحَمدُ وَهُوَ عَلى كُلِّ شَيءٍ قَدیر",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6f7c464022f9",
+      "kind": "hadith",
+      "ar": "مَنْ قَالَ: لاَ إِلَهَ إِلَّا اللَّهُ، وَحْدَهُ لاَ شَرِيكَ لَهُ، لَهُ المُلْكُ وَلَهُ الحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، فِي يَوْمٍ مِائَةَ مَرَّةٍ، كَانَتْ لَهُ عَدْلَ عَشْرِ رِقَابٍ",
+      "tr": "څوک چې په ورځ کې سل ځله ووایي: «له الله پرته بل د حق معبود نشته؛ هغه یوازینی دی، شریک نه لري. پاچاهي د هغه ده، ستاینه هغه لره ده، او هغه پر هر څه قادر دی»، هغه ته د لسو غلامانو د ازادولو په اندازه ثواب رسېږي.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l07",
+      "kind": "dhikr",
+      "ar": "الحمد لله",
+      "tr": "ټوله ستاینه الله لره ده.",
+      "translit": "اَلحَمدُ لِلّه",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d3878266dc9e",
+      "kind": "hadith",
+      "ar": "وَالْحَمْدُ لِلَّهِ تَمْلَأُ الْمِيزَانَ",
+      "tr": "او «ټوله ستاینه الله لره ده» تله ډکوي.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l08",
+      "kind": "dhikr",
+      "ar": "سبحان الله، والحمد لله، ولا إله إلا الله، والله أكبر",
+      "tr": "الله پاک دی، ټوله ستاینه الله لره ده، له الله پرته بل د حق معبود نشته، او الله تر ټولو لوی دی.",
+      "translit": "سُبحانَ الله، وَالحَمدُ لِلّه، وَلا إِلهَ إِلَّا الله، وَاللهُ أَكبَر",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:17c849f1f429",
+      "kind": "hadith",
+      "ar": "أَحَبُّ الْكَلَامِ إِلَى اللهِ أَرْبَعٌ: سُبْحَانَ اللهِ، وَالْحَمْدُ لِلَّهِ، وَلَا إِلَهَ إِلَّا اللهُ، وَاللهُ أَكْبَرُ",
+      "tr": "الله ته تر ټولو محبوبې خبرې څلور دي: «الله پاک دی»، «ټوله ستاینه الله لره ده»، «له الله پرته بل د حق معبود نشته» او «الله تر ټولو لوی دی».",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l09",
+      "kind": "dhikr",
+      "ar": "اللهم أعنّي على ذكرك وشكرك وحسن عبادتك",
+      "tr": "اې الله، ستا په یادولو، ستا په شکر ایستلو او ستا په ښه عبادت کې راسره مرسته وکړه.",
+      "translit": "اللّهُمَّ أَعِنّي عَلى ذِكرِكَ وَشُكرِكَ وَحُسنِ عِبادَتِك",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:07c644dd8a43",
+      "kind": "hadith",
+      "ar": "أُوصِيكَ يَا مُعَاذُ لَا تَدَعَنَّ فِي دُبُرِ كُلِّ صَلَاةٍ أَنْ تَقُولَ: اللهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ",
+      "tr": "اې معاذه، وصیت درته کوم چې د هر لمانځه په پای کې دا ویل مه پرېږده: «اې الله، ستا په یادولو، ستا په شکر ایستلو او ستا په ښه عبادت کې راسره مرسته وکړه».",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:27a277f0e101",
+      "kind": "text",
+      "ar": "النسائي",
+      "tr": "نسائي",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l10",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده عدد خلقه، ورضا نفسه، وزنة عرشه، ومداد كلماته",
+      "tr": "الله پاک دی او ستاینه یې کوم، د هغه د مخلوق د شمېر په اندازه، د هغه د رضا په اندازه، د هغه د عرش د وزن په اندازه او د هغه د کلمو د رنګ په اندازه.",
+      "translit": "سُبحانَ اللهِ وَبِحَمدِه، عَدَدَ خَلقِه، وَرِضا نَفسِه، وَزِنَةَ عَرشِه، وَمِدادَ كَلِماتِه",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:14ecc6f7775a",
+      "kind": "hadith",
+      "ar": "لَقَدْ قُلْتُ بَعْدَكِ أَرْبَعَ كَلِمَاتٍ، ثَلَاثَ مَرَّاتٍ، لَوْ وُزِنَتْ بِمَا قُلْتِ مُنْذُ الْيَوْمِ لَوَزَنَتْهُنَّ",
+      "tr": "له تا وروسته مې څلور کلمې درې ځله وویل؛ که له هغو خبرو سره وتلل شي چې تا نن تر اوسه ویلي، دا به ترې درنې شي.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l11",
+      "kind": "dhikr",
+      "ar": "لا إله إلا أنت سبحانك إني كنت من الظالمين",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (21:87):\nاو كب والا (درياد كړه) كله چې په غوسه ولاړ (له خپل قومه) نو ده ګومان كړى و چې موږ به څه تنګون نه پرې راولو، نو په تيارو كې يې نارې كړې چې: (له تا پرته بل معبود نشته، تا لره پاكي ده، زه په خپله له ظالمانو څخه وم).",
+      "translit": "لا إِلهَ إِلّا أَنتَ سُبحانَكَ إِنّي كُنتُ مِنَ الظّالِمین",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/21/87",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "21:87",
+        "refs": [
+          "21:87"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:0a3d2d813331",
+      "kind": "hadith",
+      "ar": "دَعْوَةُ ذِي النُّونِ إِذْ دَعَا وَهُوَ فِي بَطْنِ الحُوتِ: لاَ إِلَهَ إِلاَّ أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ، فَإِنَّهُ لَمْ يَدْعُ بِهَا رَجُلٌ مُسْلِمٌ فِي شَيْءٍ قَطُّ إِلاَّ اسْتَجَابَ اللَّهُ لَهُ",
+      "tr": "د ذوالنون دعا چې د کب په ګېډه کې یې وکړه: لاَ إِلَهَ إِلاَّ أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ [د سیاق لپاره د بشپړ آیت ژباړه (21:87):\nاو كب والا (درياد كړه) كله چې په غوسه ولاړ (له خپل قومه) نو ده ګومان كړى و چې موږ به څه تنګون نه پرې راولو، نو په تيارو كې يې نارې كړې چې: (له تا پرته بل معبود نشته، تا لره پاكي ده، زه په خپله له ظالمانو څخه وم).]. هر مسلمان چې د کوم کار لپاره په دې دعا غوښتنه کړې، الله یې دعا قبوله کړې ده.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": "",
+        "publishedQuotes": {
+          "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+          "url": "https://quranenc.com/en/browse/pashto_rwwad/21/87",
+          "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+          "date": "2026-11-04",
+          "snapshot": "2026-10-07",
+          "version": "1.0.1",
+          "translationKey": "pashto_rwwad",
+          "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+          "lastUpdate": 1707999381,
+          "ref": "21:87",
+          "refs": [
+            "21:87"
+          ],
+          "context": "Full-verse context; published translation and footnotes preserved without alteration."
+        }
+      }
+    },
+    {
+      "id": "h:900c009b827b",
+      "kind": "text",
+      "ar": "الترمذي",
+      "tr": "ترمذي",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l12",
+      "kind": "dhikr",
+      "ar": "رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ",
+      "tr": "زما ربه، ما وبښه او زما توبه قبوله کړه؛ بېشکه ته ډېر توبه قبلوونکی او مهربان یې.",
+      "translit": "رَبِّ اغفِر لي وَتُب عَلَيَّ إِنَّكَ أَنتَ التَّوّابُ الرَّحیم",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:99e5b6f32eaf",
+      "kind": "hadith",
+      "ar": "نْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+      "tr": "موږ به په یوه ناسته کې د رسول الله صلی الله علیه وسلم دا وینا سل ځله شمېرله: «زما ربه، ما وبښه او زما توبه قبوله کړه؛ بېشکه ته ډېر توبه قبلوونکی او مهربان یې».",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:feb87fd43324",
+      "kind": "text",
+      "ar": "ابن ماجه",
+      "tr": "ابن ماجه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:20eec0cbc850",
+      "kind": "quran",
+      "ar": "وَإِن تَعُدُّوا۟ نِعْمَةَ ٱللَّهِ لَا تُحْصُوهَآ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (16:18):\nاو كه تاسي د الله د نعمتونو شمېرل وغواړئ نه يې شئ شمېرلى، بې شکه هغه ډېر بخښونكى او مهربان دى.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/16/18",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "16:18",
+        "refs": [
+          "16:18"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:d2766f33f933",
+      "kind": "quran",
+      "ar": "وَإِن تَعُدُّوا۟ نِعْمَةَ ٱللَّهِ لَا تُحْصُوهَآ ۗ إِنَّ ٱللَّهَ لَغَفُورٌ رَّحِيمٌ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (16:18):\nاو كه تاسي د الله د نعمتونو شمېرل وغواړئ نه يې شئ شمېرلى، بې شکه هغه ډېر بخښونكى او مهربان دى.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/16/18",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "16:18",
+        "refs": [
+          "16:18"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:12b821c2544b",
+      "kind": "text",
+      "ar": "النحل: ١٨",
+      "tr": "النحل: ١٨",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98163e27e637",
+      "kind": "text",
+      "ar": "حمدتُ الله",
+      "tr": "د الله ستاینه مې وکړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3f41906e49ba",
+      "kind": "text",
+      "ar": "ابتسم في وجه أحدٍ اليوم",
+      "tr": "نن د چا پر وړاندې موسکی شه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5612ff534dbb",
+      "kind": "hadith",
+      "ar": "تَبَسُّمُكَ فِي وَجْهِ أَخِيكَ لَكَ صَدَقَةٌ",
+      "tr": "د خپل ورور پر وړاندې ستا موسکا ستا لپاره صدقه ده.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8a0e25fe253d",
+      "kind": "text",
+      "ar": "ابتسمتُ",
+      "tr": "موسکی شوم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d6f945f8dd74",
+      "kind": "text",
+      "ar": "كنزٌ من كنوز الجنة",
+      "tr": "د جنت له خزانو یوه خزانه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e8cd520b4557",
+      "kind": "text",
+      "ar": "تأمّل عافيتك ووقت فراغك، واشكر الله عليهما",
+      "tr": "د خپلې روغتیا او وزګار وخت په اړه فکر وکړه او د دواړو لپاره د الله شکر وباسه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:772ed349c6e3",
+      "kind": "hadith",
+      "ar": "نِعْمَتَانِ مَغْبُونٌ فِيهِمَا كَثِيرٌ مِنَ النَّاسِ: الصِّحَّةُ وَالفَرَاغُ",
+      "tr": "دوه نعمتونه دي چې ډېر خلک پکې تاوان کوي: روغتیا او وزګار وخت.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3025efe9a80e",
+      "kind": "text",
+      "ar": "البخاري",
+      "tr": "بخاري",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:eb44ae40dd81",
+      "kind": "text",
+      "ar": "شكرتُ الله",
+      "tr": "د الله شکر مې وایست",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:23077bf89451",
+      "kind": "text",
+      "ar": "أمِط أذًى عن الطريق إن رأيته",
+      "tr": "که په لاره کې زیان رسوونکی شی ووینې، لرې یې کړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:50366d06e4d2",
+      "kind": "hadith",
+      "ar": "وَأَدْنَاهَا إِمَاطَةُ الْأَذَى عَنِ الطَّرِيقِ",
+      "tr": "او تر ټولو ټیټه درجه یې له لارې د زیان رسوونکي شي لرې کول دي.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f402f03cae5a",
+      "kind": "text",
+      "ar": "أمطتُه",
+      "tr": "لرې مې کړ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2697a2786f3d",
+      "kind": "text",
+      "ar": "صلاةٌ تعود عليك عشرًا",
+      "tr": "یو درود چې لس برابره درګرځي",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:250089f51a89",
+      "kind": "text",
+      "ar": "استحضر محبّة النبي ﷺ، وأنّها فوق كلّ محبّة",
+      "tr": "د نبي صلی الله علیه وسلم مینه په زړه کې راژوندۍ کړه او دا چې تر هرې مینې لوړه وي",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a561a5ebb178",
+      "kind": "hadith",
+      "ar": "لاَ يُؤْمِنُ أَحَدُكُمْ، حَتَّى أَكُونَ أَحَبَّ إِلَيْهِ مِنْ وَالِدِهِ وَوَلَدِهِ وَالنَّاسِ أَجْمَعِينَ",
+      "tr": "له تاسو هېڅوک تر هغه مؤمن کېدای نه شي چې زه ورته له پلار، اولاد او ټولو خلکو ډېر محبوب نه شم.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f993a685cc28",
+      "kind": "text",
+      "ar": "استحضرتُها",
+      "tr": "په زړه کې مې راژوندۍ کړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d853b265f971",
+      "kind": "text",
+      "ar": "اتصل بقريبٍ لك ولو دقيقة",
+      "tr": "خپل یوه خپلوان ته زنګ ووهه، که څه هم د یوې دقیقې لپاره وي",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:00ac3fc63f2b",
+      "kind": "hadith",
+      "ar": "مَنْ أَحَبَّ أَنْ يُبْسَطَ لَهُ فِي رِزْقِهِ، وَيُنْسَأَ لَهُ فِي أَثَرِهِ، فَلْيَصِلْ رَحِمَهُ",
+      "tr": "څوک چې غواړي روزي یې پراخه او عمر یې اوږد شي، نو خپلوي دې وپالي.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:57ba5a72fc2f",
+      "kind": "text",
+      "ar": "اتصلتُ",
+      "tr": "زنګ مې وواهه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:91f75101f303",
+      "kind": "text",
+      "ar": "توبةٌ في كلّ يوم",
+      "tr": "هره ورځ توبه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fa2ccac58aaa",
+      "kind": "quran",
+      "ar": "ذَكَرُوا۟ ٱللَّهَ فَٱسْتَغْفَرُوا۟ لِذُنُوبِهِمْ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (3:135):\nاو هغوى چې كله څه لويه ګناه او يا پرځانو ظلم وكړي نو الله ياد كړي او د خپلو ګناهونو بخښنه وغواړي او الله نه پرته څوك دي چې ګناه بخښلى شي او په خپلو كړيو (ګناهونو) ټينګارهم نه كوي كله چې ښه پوهيږي.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/3/135",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "3:135",
+        "refs": [
+          "3:135"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:d28d20ff1810",
+      "kind": "quran",
+      "ar": "وَٱلَّذِينَ إِذَا فَعَلُوا۟ فَـٰحِشَةً أَوْ ظَلَمُوٓا۟ أَنفُسَهُمْ ذَكَرُوا۟ ٱللَّهَ فَٱسْتَغْفَرُوا۟ لِذُنُوبِهِمْ وَمَن يَغْفِرُ ٱلذُّنُوبَ إِلَّا ٱللَّهُ وَلَمْ يُصِرُّوا۟ عَلَىٰ مَا فَعَلُوا۟ وَهُمْ يَعْلَمُونَ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (3:135):\nاو هغوى چې كله څه لويه ګناه او يا پرځانو ظلم وكړي نو الله ياد كړي او د خپلو ګناهونو بخښنه وغواړي او الله نه پرته څوك دي چې ګناه بخښلى شي او په خپلو كړيو (ګناهونو) ټينګارهم نه كوي كله چې ښه پوهيږي.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/3/135",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "3:135",
+        "refs": [
+          "3:135"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:48a66c090a5d",
+      "kind": "text",
+      "ar": "آل عمران: ١٣٥",
+      "tr": "آل عمران: ١٣٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3ce64fe4a699",
+      "kind": "text",
+      "ar": "عزمتُ",
+      "tr": "هوډ مې وکړ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ce4a31704233",
+      "kind": "text",
+      "ar": "تصدّق بشيءٍ ولو قليل",
+      "tr": "یو څه صدقه ورکړه، که لږ هم وي",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4dacbcbb1982",
+      "kind": "hadith",
+      "ar": "اتَّقُوا النَّارَ وَلَوْ بِشِقِّ تَمْرَةٍ",
+      "tr": "له اوره ځان وساتئ، که د یوې خرما په نیمایي هم وي.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a90a7e31e96c",
+      "kind": "text",
+      "ar": "تصدّقتُ",
+      "tr": "صدقه مې ورکړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c1a5ce38896f",
+      "kind": "text",
+      "ar": "دعوةٌ يردّها عليك ملَك",
+      "tr": "دعا چې پرښته یې تا ته هم کوي",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3262bf68b53f",
+      "kind": "text",
+      "ar": "ادعُ لأخٍ لك باسمه وهو لا يدري",
+      "tr": "د خپل ورور نوم واخله او دعا ورته وکړه، په داسې حال کې چې هغه خبر نه وي",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dec4db48f5d9",
+      "kind": "hadith",
+      "ar": "دَعْوَةُ الْمَرْءِ الْمُسْلِمِ لِأَخِيهِ بِظَهْرِ الْغَيْبِ مُسْتَجَابَةٌ، عِنْدَ رَأْسِهِ مَلَكٌ مُوَكَّلٌ كُلَّمَا دَعَا لِأَخِيهِ بِخَيْرٍ، قَالَ الْمَلَكُ الْمُوَكَّلُ بِهِ: آمِينَ وَلَكَ بِمِثْلٍ",
+      "tr": "د مسلمان دعا د خپل ورور لپاره د هغه په نشتون کې قبلېږي. د دعا کوونکي سر ته یوه ټاکل شوې پرښته وي؛ هر کله چې خپل ورور ته د خیر دعا وکړي، هغه پرښته وایي: آمین، تا ته دې هم همداسې وي.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:167610e41522",
+      "kind": "text",
+      "ar": "دعوتُ له",
+      "tr": "دعا مې ورته وکړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:290e634e843b",
+      "kind": "text",
+      "ar": "اسقِ أحدًا ماءً، ولو طيرًا أو حيوانًا",
+      "tr": "چا ته اوبه ورکړه، که مرغۍ یا حیوان هم وي",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3b0c2667a7e1",
+      "kind": "hadith",
+      "ar": "فِي كُلِّ كَبِدٍ رَطْبَةٍ أَجْرٌ",
+      "tr": "د هر لامده ځیګر لرونکي ژوندي موجود په خدمت کې اجر شته.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fd398c044a84",
+      "kind": "text",
+      "ar": "سقيتُ",
+      "tr": "اوبه مې ورکړې",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:64d0504d3bb2",
+      "kind": "text",
+      "ar": "آيةٌ تطمئنّ بها القلوب",
+      "tr": "یو آیت چې زړونه پرې ډاډه کېږي",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7e93df1a44f3",
+      "kind": "text",
+      "ar": "اقرأ الآية، ثم اسكن دقيقةً بلا جوال وردّدها في نفسك",
+      "tr": "آیت ولوله، بیا یوه دقیقه له ټیلیفون پرته ارام کښېنه او په زړه کې یې تکرار کړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b1726f3e1a29",
+      "kind": "quran",
+      "ar": "ٱلَّذِينَ ءَامَنُوا۟ وَتَطْمَئِنُّ قُلُوبُهُم بِذِكْرِ ٱللَّهِ ۗ أَلَا بِذِكْرِ ٱللَّهِ تَطْمَئِنُّ ٱلْقُلُوبُ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (13:28):\nهغوى چې ايمان راوړى او د الله په يادولو يې زړونه ډاډه شوي خبردار اوسئ چې زړونه خو د الله په ياد ډاډه كيږي.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/13/28",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "13:28",
+        "refs": [
+          "13:28"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:8f38fb1c304b",
+      "kind": "text",
+      "ar": "الرعد: ٢٨",
+      "tr": "الرعد: ٢٨",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f4389e5bd4aa",
+      "kind": "text",
+      "ar": "\n28 - هؤلاء الذين يهديهم الله هم الذين آمنوا، وتستأنس قلوبهم بذكر الله بتسبيحه وتحميده، وبتلاوة كتابه ألا بذكر الله وحده تستأنس القلوب، خَلِيق بها ذلك.\n[مِنْ فَوَائِدِ الآيَاتِ]\n• الترغيب في جملة من فضائل الأخلاق الموجبة للجنة، ومنها: حسن الصلة، وخشية الله تعالى، والوفاء بالعهود، والصبر والإنفاق، ومقابلة السيئة بالحسنة والتحذير من ضدها.\n• أن مقاليد الرزق بيد الله - سبحانه وتعالى -، وأن توسعة الله تعالى أو تضييقه في رزق عبد ما لا ينبغي أن يكون موجبًا لفرح أو حزن، فهو ليس دليلًا على رضا الله أو سخطه على ذلك العبد.\n• أن الهداية ليست بالضرورة مربوطة بإنزال الآيات والمعجزات التي اقترح المشركون إظهارها.\n• من آثار القرآن على العبد المؤمن أنه يورثه طمأنينة في القلب.",
+      "tr": "28 - هغه کسان چې الله ورته هدایت کوي، ایمان راوړونکي دي. د الله په یادولو، د هغه په تسبیح او ستاینه او د هغه د کتاب په لوستلو یې زړونه ارامېږي. خبر اوسئ، یوازې د الله په یادولو زړونه ارامېږي، او همدا ورسره ښایي.\n[د آیتونو له ګټو څخه]\n• هغو غوره اخلاقو ته هڅونه چې د جنت سبب کېږي؛ لکه ښې اړیکې، له الله تعالی وېره، د ژمنو پوره کول، صبر، لګښت کول او د بدۍ په بدل کې نېکي کول، او له مخالفو خویونو څخه یې خبرداری.\n• د روزۍ کیلي د الله سبحانه وتعالی په لاس کې دي. د یوه بنده روزي پراخول یا تنګول باید په خپله د خوښۍ یا خپګان لامل نه وي؛ ځکه دا له هغه بنده څخه د الله د رضا یا غوسې دلیل نه دی.\n• هدایت اړین نه دی چې د هغو نښو او معجزو په نازلولو پورې تړلی وي چې مشرکانو یې د ښکاره کولو غوښتنه کړې وه.\n• پر مؤمن بنده د قرآن له اغېزو څخه دا ده چې په زړه کې یې ډاډ پیدا کوي.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:45a07072c470",
+      "kind": "text",
+      "ar": "المختصر في التفسير",
+      "tr": "المختصر في التفسیر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:39e7e4c6bec1",
+      "kind": "text",
+      "ar": "قرأتُها وسكنتُ",
+      "tr": "ومې لوست او ارام شوم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1158653a1337",
+      "kind": "text",
+      "ar": "صلِّ ركعتي الضحى",
+      "tr": "د څاښت دوه رکعته لمونځ وکړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:264421ee13f7",
+      "kind": "hadith",
+      "ar": "وَيُجْزِئُ مِنْ ذَلِكَ رَكْعَتَانِ يَرْكَعُهُمَا مِنَ الضُّحَى",
+      "tr": "او د دې ټولو پر ځای د څاښت دوه رکعته لمونځ بسنه کوي.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:29f3ca5f8dac",
+      "kind": "text",
+      "ar": "صلّيتُهما",
+      "tr": "دواړه مې وکړل",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:01bd5e7a7898",
+      "kind": "text",
+      "ar": "سرّ اسم هذا القسم",
+      "tr": "د دې برخې د نوم راز",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:71ae0c0be445",
+      "kind": "text",
+      "ar": "سَأَلْتُ أُمَّ المُؤْمِنِينَ عَائِشَةَ، قُلْتُ: يَا أُمَّ المُؤْمِنِينَ، كَيْفَ كَانَ عَمَلُ النَّبِيِّ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ، هَلْ كَانَ يَخُصُّ شَيْئًا مِنَ الأَيَّامِ؟ قَالَتْ: «لاَ، كَانَ عَمَلُهُ دِيمَةً",
+      "tr": "له ام المؤمنین عائشې مې وپوښتل: اې د مؤمنانو مورې، د نبي صلی الله علیه وسلم عمل څنګه و؟ ایا کومې ورځې یې ځانګړې کولې؟ ویې ویل: نه، د هغه عمل تلپاتې و.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b276f2717489",
+      "kind": "text",
+      "ar": "الدِّيمة: المطر الدائم في سكون، ومنه اسم هذا القسم",
+      "tr": "دیمه: ارام او پرله پسې باران؛ د دې برخې نوم هم ترې اخیستل شوی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7bae20b3a0d4",
+      "kind": "text",
+      "ar": "فهمتُ الاسم",
+      "tr": "پر نوم پوه شوم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:775c139fc71b",
+      "kind": "text",
+      "ar": "اعمل اليوم عملًا خفيًّا لا يعلمه أحد",
+      "tr": "نن داسې پټ نېک عمل وکړه چې هېڅوک پرې خبر نه وي",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a2b5f40907ed",
+      "kind": "hadith",
+      "ar": "وَرَجُلٌ تَصَدَّقَ بِصَدَقَةٍ فَأَخْفَاهَا حَتَّى لاَ تَعْلَمَ شِمَالُهُ مَا تُنْفِقُ يَمِينُهُ",
+      "tr": "او هغه سړی چې صدقه ورکړي او دومره یې پټه کړي چې چپ لاس یې خبر نه شي چې ښي لاس یې څه لګولي دي.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ee4aeff06c85",
+      "kind": "text",
+      "ar": "فعلتُه",
+      "tr": "ومې کړ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d35dfabb25f2",
+      "kind": "text",
+      "ar": "تأمّلٌ في السماء",
+      "tr": "د اسمان په اړه فکر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3091bff0f30c",
+      "kind": "quran",
+      "ar": "إِنَّ فِى خَلْقِ ٱلسَّمَـٰوَٰتِ وَٱلْأَرْضِ وَٱخْتِلَـٰفِ ٱلَّيْلِ وَٱلنَّهَارِ لَـَٔايَـٰتٍ لِّأُو۟لِى ٱلْأَلْبَـٰبِ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (3:190):\nد اّسمانو او ځمكې په پيدايښت او د شپى ورځې په اوښتون كې حتماً عقلمندو ته ډېرې نښې (د عبرت) دي.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/3/190",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "3:190",
+        "refs": [
+          "3:190"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:a7fa47e20162",
+      "kind": "text",
+      "ar": "آل عمران: ١٩٠",
+      "tr": "آل عمران: ١٩٠",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4c38aa57f637",
+      "kind": "text",
+      "ar": "تفكّرتُ",
+      "tr": "فکر مې وکړ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2da6b942f85b",
+      "kind": "text",
+      "ar": "سلّم على من تعرف ومن لا تعرف",
+      "tr": "اشنا او نااشنا دواړو ته سلام کوه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:02a2f24ecc5b",
+      "kind": "hadith",
+      "ar": "أَفْشُوا السَّلَامَ بَيْنَكُمْ",
+      "tr": "په خپلو منځونو کې سلام خپور کړئ.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:54bda18381ab",
+      "kind": "text",
+      "ar": "سلّمتُ",
+      "tr": "سلام مې وکړ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:90ac8e1ad8d9",
+      "kind": "text",
+      "ar": "معنى أن يراك الله",
+      "tr": "دا څه معنا لري چې الله تا ویني",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:081d9bc2982a",
+      "kind": "quran",
+      "ar": "وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (57:4):\nدى همغه دى چې آسمانونه او ځمكه يې په شپږو ورځو كې پيدا كړل بيا په عرش بره [د پاسه] شو، هغه ته معلوم دي څه چې په ځمكه كې ننوزي او څه چې ترې راوزي او څه چې له آسمانه راكوزيږي او څه چې پكې خيژي، او چېرته چې تاسې ياست هغه درسره وي [په اعتبار د علم او د قدرت نه په اعتبار د ذات] او الله په هغو كارونو چې تاسي يې كوئ ښه ليدونكى دى.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/57/4",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "57:4",
+        "refs": [
+          "57:4"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:d8dc1eff0491",
+      "kind": "quran",
+      "ar": "هُوَ ٱلَّذِى خَلَقَ ٱلسَّمَـٰوَٰتِ وَٱلْأَرْضَ فِى سِتَّةِ أَيَّامٍ ثُمَّ ٱسْتَوَىٰ عَلَى ٱلْعَرْشِ ۚ يَعْلَمُ مَا يَلِجُ فِى ٱلْأَرْضِ وَمَا يَخْرُجُ مِنْهَا وَمَا يَنزِلُ مِنَ ٱلسَّمَآءِ وَمَا يَعْرُجُ فِيهَا ۖ وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ ۚ وَٱللَّهُ بِمَا تَعْمَلُونَ بَصِيرٌ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (57:4):\nدى همغه دى چې آسمانونه او ځمكه يې په شپږو ورځو كې پيدا كړل بيا په عرش بره [د پاسه] شو، هغه ته معلوم دي څه چې په ځمكه كې ننوزي او څه چې ترې راوزي او څه چې له آسمانه راكوزيږي او څه چې پكې خيژي، او چېرته چې تاسې ياست هغه درسره وي [په اعتبار د علم او د قدرت نه په اعتبار د ذات] او الله په هغو كارونو چې تاسي يې كوئ ښه ليدونكى دى.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/57/4",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "57:4",
+        "refs": [
+          "57:4"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:281bc3d50863",
+      "kind": "text",
+      "ar": "الحديد: ٤",
+      "tr": "الحدید: ٤",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:163c681cb4d0",
+      "kind": "text",
+      "ar": "استحضرتُ",
+      "tr": "په زړه کې مې حاضر کړ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:958aee9120cc",
+      "kind": "quran",
+      "ar": "وَقُل لَّهُمَا قَوْلًا كَرِيمًا",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (17:23):\nاو ستا رب حكم كړى دى چې له هغه پرته بل څوک مه لمانځئ، او مور پلار سره ښېګڼه كوئ، كه تا سره يو له هغو يا دواړه يې زړښت ته ورسېږي نو هغوئ ته اُف قدرې هم مه وايه، رټه يې مه او هغوى سره په درناوى خبرې كوه.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/17/23",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "17:23",
+        "refs": [
+          "17:23"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:37e30d264f90",
+      "kind": "quran",
+      "ar": "وَقَضَىٰ رَبُّكَ أَلَّا تَعْبُدُوٓا۟ إِلَّآ إِيَّاهُ وَبِٱلْوَٰلِدَيْنِ إِحْسَـٰنًا ۚ إِمَّا يَبْلُغَنَّ عِندَكَ ٱلْكِبَرَ أَحَدُهُمَآ أَوْ كِلَاهُمَا فَلَا تَقُل لَّهُمَآ أُفٍّ وَلَا تَنْهَرْهُمَا وَقُل لَّهُمَا قَوْلًا كَرِيمًا",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (17:23):\nاو ستا رب حكم كړى دى چې له هغه پرته بل څوک مه لمانځئ، او مور پلار سره ښېګڼه كوئ، كه تا سره يو له هغو يا دواړه يې زړښت ته ورسېږي نو هغوئ ته اُف قدرې هم مه وايه، رټه يې مه او هغوى سره په درناوى خبرې كوه.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/17/23",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "17:23",
+        "refs": [
+          "17:23"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:9e9f8ed257ca",
+      "kind": "text",
+      "ar": "الإسراء: ٢٣",
+      "tr": "الإسراء: ٢٣",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:497006ea9a84",
+      "kind": "text",
+      "ar": "فعلتُها",
+      "tr": "ومې کړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:02eb46d6b17f",
+      "kind": "text",
+      "ar": "زيارةٌ تُدخلك بساتين الجنة",
+      "tr": "پوښتنه چې د جنت باغونو ته دې بیایي",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5218f0630325",
+      "kind": "quran",
+      "ar": "كُلُّ نَفْسٍ ذَآئِقَةُ ٱلْمَوْتِ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (3:185):\nهر ساكښ د مرګ څكونكى دى او پوره پوره بدلې به مو يوازي د قيامت په ورځ ترلاسه كوئ، نو څوك چې له اوره خلاص او جنت ته ورننوېستل شو نو بريالى شو او د دنيا ژوند خو له څه غولونكي سامان سودا نه پرته بل څه نه دى.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/3/185",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "3:185",
+        "refs": [
+          "3:185"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:f71106ec1dfa",
+      "kind": "quran",
+      "ar": "كُلُّ نَفْسٍ ذَآئِقَةُ ٱلْمَوْتِ ۗ وَإِنَّمَا تُوَفَّوْنَ أُجُورَكُمْ يَوْمَ ٱلْقِيَـٰمَةِ ۖ فَمَن زُحْزِحَ عَنِ ٱلنَّارِ وَأُدْخِلَ ٱلْجَنَّةَ فَقَدْ فَازَ ۗ وَمَا ٱلْحَيَوٰةُ ٱلدُّنْيَآ إِلَّا مَتَـٰعُ ٱلْغُرُورِ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (3:185):\nهر ساكښ د مرګ څكونكى دى او پوره پوره بدلې به مو يوازي د قيامت په ورځ ترلاسه كوئ، نو څوك چې له اوره خلاص او جنت ته ورننوېستل شو نو بريالى شو او د دنيا ژوند خو له څه غولونكي سامان سودا نه پرته بل څه نه دى.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/3/185",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "3:185",
+        "refs": [
+          "3:185"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:ffbaa68ba877",
+      "kind": "text",
+      "ar": "آل عمران: ١٨٥",
+      "tr": "آل عمران: ١٨٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:aa3484814ce9",
+      "kind": "text",
+      "ar": "تذكّرتُ",
+      "tr": "را په یاد مې کړ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:57b6e171fa35",
+      "kind": "text",
+      "ar": "زُر مريضًا أو اتصل به",
+      "tr": "د ناروغ پوښتنې ته ورشه یا زنګ ورته ووهه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:aee8ae614a41",
+      "kind": "hadith",
+      "ar": "مَنْ عَادَ مَرِيضًا، لَمْ يَزَلْ فِي خُرْفَةِ الْجَنَّةِ",
+      "tr": "څوک چې د ناروغ پوښتنې ته ځي، د جنت د مېوو په راټولولو کې وي.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:09abc14df2a9",
+      "kind": "text",
+      "ar": "عُدتُه",
+      "tr": "پوښتنې ته یې ورغلم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ef55122e7311",
+      "kind": "text",
+      "ar": "حسنُ الظنّ بالله",
+      "tr": "پر الله ښه ګومان",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0dbb48646cae",
+      "kind": "text",
+      "ar": "أحسن ظنّك بالله فيما تنتظره",
+      "tr": "په هغه څه کې چې انتظار یې کوې، پر الله ښه ګومان ولره",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f982a268d23c",
+      "kind": "hadith",
+      "ar": "أَنَا عِنْدَ ظَنِّ عَبْدِي بِي",
+      "tr": "زه له خپل بنده سره د هغه ګومان له مخې یم چې پر ما یې لري.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:50430be2cb6f",
+      "kind": "text",
+      "ar": "أحسنتُ ظنّي",
+      "tr": "ښه ګومان مې وکړ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:aa0f15bf7171",
+      "kind": "text",
+      "ar": "أعِن أحدًا في حاجةٍ صغيرة: حملٌ، أو بابٌ، أو كلمةُ إرشاد",
+      "tr": "له چا سره په یوه کوچني کار کې مرسته وکړه: د بار په وړلو، د دروازې په خلاصولو یا د لارې په ښودلو",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:484b458a6621",
+      "kind": "hadith",
+      "ar": "وَاللهُ فِي عَوْنِ الْعَبْدِ مَا كَانَ الْعَبْدُ فِي عَوْنِ أَخِيهِ",
+      "tr": "الله له بنده سره مرسته کوي، تر څو چې بنده له خپل ورور سره مرسته کوي.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:78f9d8ff902c",
+      "kind": "text",
+      "ar": "أعنتُ",
+      "tr": "مرسته مې وکړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d709ae66b312",
+      "kind": "text",
+      "ar": "نعمةٌ لا توازيها نعمة",
+      "tr": "داسې نعمت چې بل نعمت ورسره برابر نه دی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6de7e3f2b5f5",
+      "kind": "quran",
+      "ar": "وَرَضِيتُ لَكُمُ ٱلْإِسْلَـٰمَ دِينًا",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (5:3):\nپر تاسي حرامه شوه مرداره، وينه، د خنزير غوښه، هغه چې له الله پرته د بل چا په نامه حلال شوى وي، په ستوني خپه شوى، ويشتلى، غورځېدلى، په ښكر څېرې شوى، هغه چې ځناورو خوړلى وي خو پرته له هغه چې تاسو يې حلال كړئ، هغه چې د كوم ناروا ځاى يا څه بل شي په نامه حلال شوى وي او دا چې د فال په غشو خپلې تالې وګورئ، دا ټول فسق دى، نن كافران ستاسي د دين له خوا ناهيلي شوي نو له هغوى مه وېريږئ بلكى له ماووېرېږئ، نن مې ستاسو دين درته پوره كړى، خپل نعمت مې درباندې تمام كړى او همدغه اسلام مې ستاسو د دين په توګه درته غوره كړى دى، نو كه څوك په سخته لوږه كې (حرام خوراك ته) اړ شو خو چې د ګناه تكل يې نه وي نو بې شكه بيا الله مهربان بخښونكى دى.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/5/3",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "5:3",
+        "refs": [
+          "5:3"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:86c37ab91253",
+      "kind": "quran",
+      "ar": "حُرِّمَتْ عَلَيْكُمُ ٱلْمَيْتَةُ وَٱلدَّمُ وَلَحْمُ ٱلْخِنزِيرِ وَمَآ أُهِلَّ لِغَيْرِ ٱللَّهِ بِهِۦ وَٱلْمُنْخَنِقَةُ وَٱلْمَوْقُوذَةُ وَٱلْمُتَرَدِّيَةُ وَٱلنَّطِيحَةُ وَمَآ أَكَلَ ٱلسَّبُعُ إِلَّا مَا ذَكَّيْتُمْ وَمَا ذُبِحَ عَلَى ٱلنُّصُبِ وَأَن تَسْتَقْسِمُوا۟ بِٱلْأَزْلَـٰمِ ۚ ذَٰلِكُمْ فِسْقٌ ۗ ٱلْيَوْمَ يَئِسَ ٱلَّذِينَ كَفَرُوا۟ مِن دِينِكُمْ فَلَا تَخْشَوْهُمْ وَٱخْشَوْنِ ۚ ٱلْيَوْمَ أَكْمَلْتُ لَكُمْ دِينَكُمْ وَأَتْمَمْتُ عَلَيْكُمْ نِعْمَتِى وَرَضِيتُ لَكُمُ ٱلْإِسْلَـٰمَ دِينًا ۚ فَمَنِ ٱضْطُرَّ فِى مَخْمَصَةٍ غَيْرَ مُتَجَانِفٍ لِّإِثْمٍ ۙ فَإِنَّ ٱللَّهَ غَفُورٌ رَّحِيمٌ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (5:3):\nپر تاسي حرامه شوه مرداره، وينه، د خنزير غوښه، هغه چې له الله پرته د بل چا په نامه حلال شوى وي، په ستوني خپه شوى، ويشتلى، غورځېدلى، په ښكر څېرې شوى، هغه چې ځناورو خوړلى وي خو پرته له هغه چې تاسو يې حلال كړئ، هغه چې د كوم ناروا ځاى يا څه بل شي په نامه حلال شوى وي او دا چې د فال په غشو خپلې تالې وګورئ، دا ټول فسق دى، نن كافران ستاسي د دين له خوا ناهيلي شوي نو له هغوى مه وېريږئ بلكى له ماووېرېږئ، نن مې ستاسو دين درته پوره كړى، خپل نعمت مې درباندې تمام كړى او همدغه اسلام مې ستاسو د دين په توګه درته غوره كړى دى، نو كه څوك په سخته لوږه كې (حرام خوراك ته) اړ شو خو چې د ګناه تكل يې نه وي نو بې شكه بيا الله مهربان بخښونكى دى.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/5/3",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "5:3",
+        "refs": [
+          "5:3"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:dc86c476328e",
+      "kind": "text",
+      "ar": "المائدة: ٣",
+      "tr": "المائدة: ٣",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ff3171fadf31",
+      "kind": "text",
+      "ar": "اعفُ اليوم عن أحدٍ أساء إليك",
+      "tr": "نن هغه څوک وبښه چې بد یې درسره کړي",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:02231d7aed77",
+      "kind": "hadith",
+      "ar": "وَمَا زَادَ اللهُ عَبْدًا بِعَفْوٍ، إِلَّا عِزًّا",
+      "tr": "الله بنده ته د بښنې په سبب یوازې عزت ورزیاتوي.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7f77a5bbf5f7",
+      "kind": "text",
+      "ar": "عفوتُ",
+      "tr": "ومې باښه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a1734a751379",
+      "kind": "text",
+      "ar": "حوارٌ بينك وبين ربّك في الفاتحة",
+      "tr": "په فاتحه کې ستا او ستا د رب خبرې",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d692abd5b90c",
+      "kind": "text",
+      "ar": "في صلاتك اليوم، تدبّر الفاتحة آيةً آية",
+      "tr": "نن په لمانځه کې د فاتحې پر هر آیت فکر وکړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5fee4c48e032",
+      "kind": "hadith",
+      "ar": "قَسَمْتُ الصَّلَاةَ بَيْنِي وَبَيْنَ عَبْدِي نِصْفَيْنِ",
+      "tr": "لمونځ مې د خپل ځان او خپل بنده ترمنځ په دوو برخو وېشلی دی.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:02f573b7d7e0",
+      "kind": "text",
+      "ar": "تدبّرتُ",
+      "tr": "تدبر مې وکړ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:371e8baaa08d",
+      "kind": "text",
+      "ar": "اقرأ صفحةً واحدةً من القرآن بتأنٍّ",
+      "tr": "د قرآن یوازې یوه پاڼه په ارامۍ ولوله",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:564401ee3639",
+      "kind": "hadith",
+      "ar": "مَنْ قَرَأَ حَرْفًا مِنْ كِتَابِ اللهِ فَلَهُ بِهِ حَسَنَةٌ، وَالحَسَنَةُ بِعَشْرِ أَمْثَالِهَا",
+      "tr": "څوک چې د الله له کتابه یو حرف ولولي، یوه نېکي ورته لیکل کېږي، او هره نېکي لس برابره ده.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:eddb7fb92cdd",
+      "kind": "text",
+      "ar": "قرأتُ",
+      "tr": "ومې لوست",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:572a32ac3a9f",
+      "kind": "text",
+      "ar": "من أين جاء رزقك؟",
+      "tr": "ستا روزي له کومه راغله؟",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:13168ae1cf1d",
+      "kind": "quran",
+      "ar": "وَمَا بِكُم مِّن نِّعْمَةٍ فَمِنَ ٱللَّهِ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (16:53):\nاو په تاسي چې كومه لورينه (نعمت) ده هم د الله له لوري ده او بيا چې څه كړاو درته رسي هم هغه ته زارۍ كوئ.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/16/53",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "16:53",
+        "refs": [
+          "16:53"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:d5db725b1a65",
+      "kind": "quran",
+      "ar": "وَمَا بِكُم مِّن نِّعْمَةٍ فَمِنَ ٱللَّهِ ۖ ثُمَّ إِذَا مَسَّكُمُ ٱلضُّرُّ فَإِلَيْهِ تَجْـَٔرُونَ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (16:53):\nاو په تاسي چې كومه لورينه (نعمت) ده هم د الله له لوري ده او بيا چې څه كړاو درته رسي هم هغه ته زارۍ كوئ.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/16/53",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "16:53",
+        "refs": [
+          "16:53"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:bc58638e5295",
+      "kind": "text",
+      "ar": "النحل: ٥٣",
+      "tr": "النحل: ٥٣",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cdad75d8d0d2",
+      "kind": "text",
+      "ar": "تأمّلتُ",
+      "tr": "غور مې وکړ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4f74626399c3",
+      "kind": "text",
+      "ar": "أطعم أحدًا: جارًا، أو عاملًا، أو محتاجًا",
+      "tr": "چا ته خواړه ورکړه: ګاونډي، کارګر یا اړمن ته",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:df3539720eaf",
+      "kind": "hadith",
+      "ar": "تُطْعِمُ الطَّعَامَ، وَتَقْرَأُ السَّلاَمَ عَلَى مَنْ عَرَفْتَ وَمَنْ لَمْ تَعْرِفْ",
+      "tr": "خواړه ورکړه او اشنا او نااشنا دواړو ته سلام کوه.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:923a101738fe",
+      "kind": "text",
+      "ar": "أطعمتُ",
+      "tr": "خواړه مې ورکړل",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:08d1fdd3fda9",
+      "kind": "text",
+      "ar": "نظّف قلبك من شيءٍ واحد",
+      "tr": "خپل زړه له یوه شي پاک کړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b0635da76858",
+      "kind": "text",
+      "ar": "فتّش قلبك من الحسد، واسأل الله أن ينزعه",
+      "tr": "په خپل زړه کې حسد ولټوه او له الله وغواړه چې لرې یې کړي",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:840ed35e7906",
+      "kind": "hadith",
+      "ar": "لَا تَحَاسَدُوا، وَلَا تَنَاجَشُوا، وَلَا تَبَاغَضُوا، وَلَا تَدَابَرُوا، وَلَا يَبِعْ بَعْضُكُمْ عَلَى بَيْعِ بَعْضٍ، وَكُونُوا عِبَادَ اللهِ إِخْوَانًا",
+      "tr": "له یو بل سره حسد مه کوئ، د غولولو لپاره د سودا بیه مه لوړوئ، کینه مه کوئ، له یو بل مخ مه اړوئ، د یو بل پر سودا سودا مه کوئ، او اې د الله بندګانو، وروڼه شئ.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:14f47068e221",
+      "kind": "text",
+      "ar": "فتّشتُ",
+      "tr": "زړه مې وپلټه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8d2a3b29580a",
+      "kind": "text",
+      "ar": "قل كلمةً طيبةً لأحدٍ اليوم",
+      "tr": "نن چا ته ښه خبره وکړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d6b92a23bd7f",
+      "kind": "hadith",
+      "ar": "وَالكَلِمَةُ الطَّيِّبَةُ صَدَقَةٌ",
+      "tr": "او ښه خبره صدقه ده.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b1adff1eaa94",
+      "kind": "text",
+      "ar": "حياتك كلّها عبادة",
+      "tr": "ستا ټول ژوند عبادت دی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b5a58064f03c",
+      "kind": "quran",
+      "ar": "قُلْ إِنَّ صَلَاتِى وَنُسُكِى وَمَحْيَاىَ وَمَمَاتِى لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (6:162):\nورته وايه: بې شكه زما لمونځ، زما د عبادت ټول مراسم او زما ژوند او مرګ هر څه د مخلوقاتو رب الله لره دي.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/6/162",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "6:162",
+        "refs": [
+          "6:162"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:8871f9daaf61",
+      "kind": "text",
+      "ar": "الأنعام: ١٦٢",
+      "tr": "الأنعام: ١٦٢",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6127d6256dbb",
+      "kind": "text",
+      "ar": "صلِّ راتبةً كنتَ تفوّتها",
+      "tr": "هغه راتب سنت لمونځ وکړه چې درڅخه پاتې کېده",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5735e5bb00d3",
+      "kind": "hadith",
+      "ar": "مَنْ صَلَّى اثْنَتَيْ عَشْرَةَ رَكْعَةً فِي يَوْمٍ وَلَيْلَةٍ، بُنِيَ لَهُ بِهِنَّ بَيْتٌ فِي الْجَنَّةِ",
+      "tr": "څوک چې په یوه شپه او ورځ کې دولس رکعته لمونځ وکړي، د هغو له امله ورته په جنت کې کور جوړېږي.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e166bf870e61",
+      "kind": "text",
+      "ar": "صلّيتُها",
+      "tr": "لمونځ مې وکړ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f82a52bb6504",
+      "kind": "text",
+      "ar": "لا تكن من الغافلين",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (7:205):\nاو خپل رب دې په زړه كې له زارۍ او وېرې سره او په ژبه له ورو اواز سره سهاراو ماښامونو كې يادوه او له غافلانو څخه مه كېږه.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/7/205",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "7:205",
+        "refs": [
+          "7:205"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:9c2f74da3418",
+      "kind": "quran",
+      "ar": "وَلَا تَكُن مِّنَ ٱلْغَـٰفِلِينَ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (7:205):\nاو خپل رب دې په زړه كې له زارۍ او وېرې سره او په ژبه له ورو اواز سره سهاراو ماښامونو كې يادوه او له غافلانو څخه مه كېږه.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/7/205",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "7:205",
+        "refs": [
+          "7:205"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:f2ebed900462",
+      "kind": "quran",
+      "ar": "وَٱذْكُر رَّبَّكَ فِى نَفْسِكَ تَضَرُّعًا وَخِيفَةً وَدُونَ ٱلْجَهْرِ مِنَ ٱلْقَوْلِ بِٱلْغُدُوِّ وَٱلْـَٔاصَالِ وَلَا تَكُن مِّنَ ٱلْغَـٰفِلِينَ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (7:205):\nاو خپل رب دې په زړه كې له زارۍ او وېرې سره او په ژبه له ورو اواز سره سهاراو ماښامونو كې يادوه او له غافلانو څخه مه كېږه.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/7/205",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "7:205",
+        "refs": [
+          "7:205"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:4daac594b84d",
+      "kind": "text",
+      "ar": "الأعراف: ٢٠٥",
+      "tr": "الأعراف: ٢٠٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dc409460041d",
+      "kind": "text",
+      "ar": "ذكرتُ الله",
+      "tr": "الله مې یاد کړ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a4bb28500a0c",
+      "kind": "text",
+      "ar": "اسقِ نبتةً أو أطعم طيرًا",
+      "tr": "بوټي ته اوبه یا مرغۍ ته دانه ورکړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:97d454361971",
+      "kind": "hadith",
+      "ar": "مَا مِنْ مُسْلِمٍ يَغْرِسُ غَرْسًا إِلَّا كَانَ مَا أُكِلَ مِنْهُ لَهُ صَدَقَةً",
+      "tr": "هر مسلمان چې یو بوټی وکري، هر څه چې ترې وخوړل شي، د هغه لپاره صدقه ده.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a790a0c1466c",
+      "kind": "text",
+      "ar": "أنت غريبٌ هنا",
+      "tr": "ته دلته پردی یې",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b9ce6b7418f9",
+      "kind": "text",
+      "ar": "تذكّر أنّك في الدنيا عابرُ سبيل",
+      "tr": "په یاد ولره چې ته په دنیا کې لاروی یې",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9b4ae925a015",
+      "kind": "hadith",
+      "ar": "كُنْ فِي الدُّنْيَا كَأَنَّكَ غَرِيبٌ أَوْ عَابِرُ سَبِيلٍ",
+      "tr": "په دنیا کې داسې اوسه لکه پردی یا لاروی.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7851a85c4ab3",
+      "kind": "text",
+      "ar": "أعِن أهل بيتك في عملٍ من أعمال البيت",
+      "tr": "د کور په یوه کار کې له خپلې کورنۍ سره مرسته وکړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f83d93310b8a",
+      "kind": "hadith",
+      "ar": "كَانَ يَكُونُ فِي مِهْنَةِ أَهْلِهِ",
+      "tr": "هغه به د خپلې کورنۍ په خدمت کې و.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:91c2861b83f4",
+      "kind": "text",
+      "ar": "أعنتُهم",
+      "tr": "مرسته مې ورسره وکړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dc2bcb58708e",
+      "kind": "text",
+      "ar": "الصلاة في وقتها",
+      "tr": "لمونځ په خپل وخت",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3f68d3829e53",
+      "kind": "quran",
+      "ar": "وَأَقِمِ ٱلصَّلَوٰةَ لِذِكْرِىٓ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (20:14):\nبی شکه همدا زه الله یم چې نشته لائق د عبادت بل هېڅوک پرته له ما، پس یوازې ماته عبادت کوه، او لمونځ کوه زما د یادولو لپاره.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/20/14",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "20:14",
+        "refs": [
+          "20:14"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:147b4de7980d",
+      "kind": "quran",
+      "ar": "إِنَّنِىٓ أَنَا ٱللَّهُ لَآ إِلَـٰهَ إِلَّآ أَنَا۠ فَٱعْبُدْنِى وَأَقِمِ ٱلصَّلَوٰةَ لِذِكْرِىٓ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (20:14):\nبی شکه همدا زه الله یم چې نشته لائق د عبادت بل هېڅوک پرته له ما، پس یوازې ماته عبادت کوه، او لمونځ کوه زما د یادولو لپاره.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/20/14",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "20:14",
+        "refs": [
+          "20:14"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:d5aafc7b6ab8",
+      "kind": "text",
+      "ar": "طه: ١٤",
+      "tr": "طه: ١٤",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:60350f82d6af",
+      "kind": "text",
+      "ar": "صلِّ صلاةً واحدةً اليوم في أوّل وقتها",
+      "tr": "نن یو لمونځ د خپل وخت په پیل کې وکړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f21a9d2c6ac5",
+      "kind": "hadith",
+      "ar": "الصَّلاَةُ عَلَى وَقْتِهَا",
+      "tr": "لمونځ په خپل وخت.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0095610f7183",
+      "kind": "text",
+      "ar": "صمتٌ يُثقل ميزانك",
+      "tr": "چوپتیا چې ستا تله درنوي",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:931ba661039c",
+      "kind": "text",
+      "ar": "احفظ لسانك اليوم من الغيبة، واستعذ بالله منها",
+      "tr": "نن خپله ژبه له غیبته وساته او له هغه څخه الله ته پناه یوسه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:38d1c96ffca9",
+      "kind": "hadith",
+      "ar": "مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَاليَوْمِ الآخِرِ فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ",
+      "tr": "څوک چې پر الله او د آخرت پر ورځ ایمان لري، ښه خبره دې وکړي یا دې غلی وي.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a40acbe9bd30",
+      "kind": "text",
+      "ar": "حفظتُه",
+      "tr": "ژبه مې وساتله",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6fbc7ff52a2a",
+      "kind": "text",
+      "ar": "استر عيبًا رأيته في أخيك",
+      "tr": "د خپل ورور هغه عیب پټ کړه چې لیدلی دې دی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ffc85f2fe070",
+      "kind": "hadith",
+      "ar": "وَمَنْ سَتَرَ مُسْلِمًا، سَتَرَهُ اللهُ فِي الدُّنْيَا وَالْآخِرَةِ",
+      "tr": "څوک چې د مسلمان پرده وکړي، الله به په دنیا او آخرت کې د هغه پرده وکړي.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fc201fd979c6",
+      "kind": "text",
+      "ar": "سترتُ",
+      "tr": "پرده مې وکړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fae3796c0a69",
+      "kind": "text",
+      "ar": "أجرٌ بغير حساب",
+      "tr": "بې حسابه اجر",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:937dfe0d45cb",
+      "kind": "quran",
+      "ar": "إِنَّمَا يُوَفَّى ٱلصَّـٰبِرُونَ أَجْرَهُم بِغَيْرِ حِسَابٍ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (39:10):\nورته ووايه: اې زما هغه بندګانو چې ايمان يې راوړى، د خپل رب نه وېره وكړئ، د هغو كسانو لپاره چې په دې دنيا كې يې نيكي وكړه، ښه بدله ده او د الله ځمكه پراخه ده او يقيناً چې د صبر كونكو اجر به بې حسابه پوره پوره وركول كيږي.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/39/10",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "39:10",
+        "refs": [
+          "39:10"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:0eb0f02d51da",
+      "kind": "quran",
+      "ar": "قُلْ يَـٰعِبَادِ ٱلَّذِينَ ءَامَنُوا۟ ٱتَّقُوا۟ رَبَّكُمْ ۚ لِلَّذِينَ أَحْسَنُوا۟ فِى هَـٰذِهِ ٱلدُّنْيَا حَسَنَةٌ ۗ وَأَرْضُ ٱللَّهِ وَٰسِعَةٌ ۗ إِنَّمَا يُوَفَّى ٱلصَّـٰبِرُونَ أَجْرَهُم بِغَيْرِ حِسَابٍ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (39:10):\nورته ووايه: اې زما هغه بندګانو چې ايمان يې راوړى، د خپل رب نه وېره وكړئ، د هغو كسانو لپاره چې په دې دنيا كې يې نيكي وكړه، ښه بدله ده او د الله ځمكه پراخه ده او يقيناً چې د صبر كونكو اجر به بې حسابه پوره پوره وركول كيږي.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/39/10",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "39:10",
+        "refs": [
+          "39:10"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:b0ed72c990f1",
+      "kind": "text",
+      "ar": "الزمر: ١٠",
+      "tr": "الزمر: ١٠",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ec96a3d2f6f0",
+      "kind": "text",
+      "ar": "صبرتُ",
+      "tr": "صبر مې وکړ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5ccf17674069",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ يَأْمُرُكُمْ أَن تُؤَدُّوا۟ ٱلْأَمَـٰنَـٰتِ إِلَىٰٓ أَهْلِهَا",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (4:58):\nبې شكه الله تاسو ته امر كوي چې امانتونه خپل اهل ته وسپارئ او چې كله مو د خلكو ترمنځ فيصله كوله نو په عدل سره فيصله وكړئ، بې شكه الله تاسو ته د غوره څيز نصيحت كوي، يقيناً الله ليدونكى اورېدونكى دى.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/4/58",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "4:58",
+        "refs": [
+          "4:58"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:5eac40643355",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ يَأْمُرُكُمْ أَن تُؤَدُّوا۟ ٱلْأَمَـٰنَـٰتِ إِلَىٰٓ أَهْلِهَا وَإِذَا حَكَمْتُم بَيْنَ ٱلنَّاسِ أَن تَحْكُمُوا۟ بِٱلْعَدْلِ ۚ إِنَّ ٱللَّهَ نِعِمَّا يَعِظُكُم بِهِۦٓ ۗ إِنَّ ٱللَّهَ كَانَ سَمِيعًۢا بَصِيرًا",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (4:58):\nبې شكه الله تاسو ته امر كوي چې امانتونه خپل اهل ته وسپارئ او چې كله مو د خلكو ترمنځ فيصله كوله نو په عدل سره فيصله وكړئ، بې شكه الله تاسو ته د غوره څيز نصيحت كوي، يقيناً الله ليدونكى اورېدونكى دى.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/4/58",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "4:58",
+        "refs": [
+          "4:58"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:1c79ac934a59",
+      "kind": "text",
+      "ar": "النساء: ٥٨",
+      "tr": "النساء: ٥٨",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d59cdaf1e150",
+      "kind": "text",
+      "ar": "أدّيتُها",
+      "tr": "ومې سپارله",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4f6d4e2e0c9a",
+      "kind": "text",
+      "ar": "لمن تعمل؟",
+      "tr": "د چا لپاره عمل کوې؟",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d58f51f63855",
+      "kind": "quran",
+      "ar": "وَمَآ أُمِرُوٓا۟ إِلَّا لِيَعْبُدُوا۟ ٱللَّهَ مُخْلِصِينَ لَهُ ٱلدِّينَ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (98:5):\nاو هغوی ته (هم) بل څه امر نه و شوی، پرته له دې چې الله ولمانځي، په داسې حال کې چې هغه لره د خپل دين سوچه کوونکي حق پلوي اوسي، لمونځ دې ترسره کوي، زکات دې ورکوي او همدا سم سهي دين دی.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/98/5",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "98:5",
+        "refs": [
+          "98:5"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:41d434fcdabb",
+      "kind": "quran",
+      "ar": "وَمَآ أُمِرُوٓا۟ إِلَّا لِيَعْبُدُوا۟ ٱللَّهَ مُخْلِصِينَ لَهُ ٱلدِّينَ حُنَفَآءَ وَيُقِيمُوا۟ ٱلصَّلَوٰةَ وَيُؤْتُوا۟ ٱلزَّكَوٰةَ ۚ وَذَٰلِكَ دِينُ ٱلْقَيِّمَةِ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (98:5):\nاو هغوی ته (هم) بل څه امر نه و شوی، پرته له دې چې الله ولمانځي، په داسې حال کې چې هغه لره د خپل دين سوچه کوونکي حق پلوي اوسي، لمونځ دې ترسره کوي، زکات دې ورکوي او همدا سم سهي دين دی.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/98/5",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "98:5",
+        "refs": [
+          "98:5"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:de87242e7d87",
+      "kind": "text",
+      "ar": "البينة: ٥",
+      "tr": "البینة: ٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f82b9d1cf2f0",
+      "kind": "text",
+      "ar": "سألتُ نفسي",
+      "tr": "له ځانه مې وپوښتل",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4118fe8ac21f",
+      "kind": "text",
+      "ar": "سلّم على جارك أو اسأل عنه",
+      "tr": "ګاونډي ته سلام وکړه یا یې د حال پوښتنه وکړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0e995656aaeb",
+      "kind": "hadith",
+      "ar": "مَا زَالَ جِبْرِيلُ يُوصِينِي بِالْجَارِ",
+      "tr": "جبریل به تل د ګاونډي په اړه سپارښتنه راته کوله.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:305bac48ffb1",
+      "kind": "text",
+      "ar": "سألتُ عنه",
+      "tr": "د حال پوښتنه مې وکړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0859efd8b045",
+      "kind": "text",
+      "ar": "سمعك وبصرك",
+      "tr": "ستا اورېدل او لیدل",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:906d54cf0109",
+      "kind": "quran",
+      "ar": "وَجَعَلَ لَكُمُ ٱلسَّمْعَ وَٱلْأَبْصَـٰرَ وَٱلْأَفْـِٔدَةَ ۙ لَعَلَّكُمْ تَشْكُرُونَ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (16:78):\nاو الله تاسو د خپلو ميندو له ګېډو په داسې حال كې راووېستئ چې په هېڅ هم نه پوهېدئ او هغه تاسو ته غوږونه، سترګې او زړونه دركړل چې شكر وباسئ.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/16/78",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "16:78",
+        "refs": [
+          "16:78"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:99b6bca5bce5",
+      "kind": "quran",
+      "ar": "وَٱللَّهُ أَخْرَجَكُم مِّنۢ بُطُونِ أُمَّهَـٰتِكُمْ لَا تَعْلَمُونَ شَيْـًٔا وَجَعَلَ لَكُمُ ٱلسَّمْعَ وَٱلْأَبْصَـٰرَ وَٱلْأَفْـِٔدَةَ ۙ لَعَلَّكُمْ تَشْكُرُونَ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (16:78):\nاو الله تاسو د خپلو ميندو له ګېډو په داسې حال كې راووېستئ چې په هېڅ هم نه پوهېدئ او هغه تاسو ته غوږونه، سترګې او زړونه دركړل چې شكر وباسئ.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/16/78",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "16:78",
+        "refs": [
+          "16:78"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:44e933cefdf9",
+      "kind": "text",
+      "ar": "النحل: ٧٨",
+      "tr": "النحل: ٧٨",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2c384f90b165",
+      "kind": "text",
+      "ar": "علّم أحدًا شيئًا من الخير ولو ذكرًا واحدًا",
+      "tr": "چا ته د خیر یوه خبره ورزده کړه، که یو ذکر هم وي",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:853006fbccd1",
+      "kind": "hadith",
+      "ar": "مَنْ دَلَّ عَلَى خَيْرٍ فَلَهُ مِثْلُ أَجْرِ فَاعِلِهِ",
+      "tr": "څوک چې د نېکۍ لار وښيي، د عمل کوونکي په څېر اجر لري.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:18e03958fff6",
+      "kind": "text",
+      "ar": "علّمتُ",
+      "tr": "ورمې زده کړل",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2723b3c295aa",
+      "kind": "text",
+      "ar": "مع العسر يسر",
+      "tr": "له سختۍ سره اساني شته",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:22293f9ada98",
+      "kind": "quran",
+      "ar": "فَإِنَّ مَعَ ٱلْعُسْرِ يُسْرًا",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (94:5):\nنو بېشکه له سختۍ سره آسانتيا هم شته.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/94/5",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "94:5",
+        "refs": [
+          "94:5"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:cf29f64e343c",
+      "kind": "text",
+      "ar": "الشرح: ٥",
+      "tr": "الشرح: ٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c42b46a72504",
+      "kind": "text",
+      "ar": "وثقتُ",
+      "tr": "باور مې وکړ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6fbfa307fe9f",
+      "kind": "text",
+      "ar": "أحسن إلى يتيمٍ بكلمةٍ أو عطيّة",
+      "tr": "له یتیم سره په ښه خبره یا ډالۍ نېکي وکړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2d9d70ce7def",
+      "kind": "hadith",
+      "ar": "أَنَا وَكَافِلُ اليَتِيمِ فِي الجَنَّةِ كَهَاتَيْنِ",
+      "tr": "زه او د یتیم پالونکی به په جنت کې د دغو دوو ګوتو په څېر یو.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f0c82128c98b",
+      "kind": "text",
+      "ar": "أحسنتُ",
+      "tr": "نېکي مې وکړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f8a9fddb0de8",
+      "kind": "text",
+      "ar": "الله يحبّ التوّابين",
+      "tr": "الله توبه کوونکي خوښوي",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a283da1f5ea4",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ يُحِبُّ ٱلتَّوَّٰبِينَ وَيُحِبُّ ٱلْمُتَطَهِّرِينَ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (2:222):\nاو پوښتنه کوي دوی له تا نه -اې محمده!- د حیض (د احکامو) په اړه، ته ورته ووایه! دا یوه پلیتي ده نو په څنګ (جدا) شئ (له جماع د) ښځو (خپلو) په وخت د حیض کې. او مه نږدې کېږئ! (په جماع سره) دوی ته تر څو پورې چې (ښې) پاکې شي، نو هر کله چې ښې پاکې شوې، نو له هغو سره له هغې خوا يوځاى شئ (جماع وکړئ) چې الله درته امر كړيدى، بېشکه الله تعالی خوښوي توبه ایستونکی (له ګناهونو څخه) او خوښوي ځان ساتونکي له (پلیتیو څخه).",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/2/222",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "2:222",
+        "refs": [
+          "2:222"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:990592e5e39b",
+      "kind": "quran",
+      "ar": "وَيَسْـَٔلُونَكَ عَنِ ٱلْمَحِيضِ ۖ قُلْ هُوَ أَذًى فَٱعْتَزِلُوا۟ ٱلنِّسَآءَ فِى ٱلْمَحِيضِ ۖ وَلَا تَقْرَبُوهُنَّ حَتَّىٰ يَطْهُرْنَ ۖ فَإِذَا تَطَهَّرْنَ فَأْتُوهُنَّ مِنْ حَيْثُ أَمَرَكُمُ ٱللَّهُ ۚ إِنَّ ٱللَّهَ يُحِبُّ ٱلتَّوَّٰبِينَ وَيُحِبُّ ٱلْمُتَطَهِّرِينَ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (2:222):\nاو پوښتنه کوي دوی له تا نه -اې محمده!- د حیض (د احکامو) په اړه، ته ورته ووایه! دا یوه پلیتي ده نو په څنګ (جدا) شئ (له جماع د) ښځو (خپلو) په وخت د حیض کې. او مه نږدې کېږئ! (په جماع سره) دوی ته تر څو پورې چې (ښې) پاکې شي، نو هر کله چې ښې پاکې شوې، نو له هغو سره له هغې خوا يوځاى شئ (جماع وکړئ) چې الله درته امر كړيدى، بېشکه الله تعالی خوښوي توبه ایستونکی (له ګناهونو څخه) او خوښوي ځان ساتونکي له (پلیتیو څخه).",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/2/222",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "2:222",
+        "refs": [
+          "2:222"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:5ae41f66df9c",
+      "kind": "text",
+      "ar": "البقرة: ٢٢٢",
+      "tr": "البقرة: ٢٢٢",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:716d81e56142",
+      "kind": "text",
+      "ar": "بعد وضوئك اليوم قل: أشهد أن لا إله إلا الله وأنّ محمدًا عبد الله ورسوله",
+      "tr": "نن له اوداسه وروسته ووایه: شاهدي ورکوم چې له الله پرته بل د حق معبود نشته او محمد د الله بنده او رسول دی.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:19d4a17e7aab",
+      "kind": "hadith",
+      "ar": "إِلَّا فُتِحَتْ لَهُ أَبْوَابُ الْجَنَّةِ الثَّمَانِيَةُ يَدْخُلُ مِنْ أَيِّهَا شَاءَ",
+      "tr": "د جنت اته واړه دروازې به ورته پرانیستل شي؛ له هرې چې وغواړي، ننوځي.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ebf9afd37190",
+      "kind": "text",
+      "ar": "لا تمشِ في الأرض مرحًا",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (17:37):\nاو د لويي په نخرو په زمكه كې مه ګرځه، بې شكه ته نه زمكه څيرولى شې او نه په هسكوالي غرونو ته رسېدلى شې.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/17/37",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "17:37",
+        "refs": [
+          "17:37"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:ac2b63f659c0",
+      "kind": "quran",
+      "ar": "وَلَا تَمْشِ فِى ٱلْأَرْضِ مَرَحًا",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (17:37):\nاو د لويي په نخرو په زمكه كې مه ګرځه، بې شكه ته نه زمكه څيرولى شې او نه په هسكوالي غرونو ته رسېدلى شې.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/17/37",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "17:37",
+        "refs": [
+          "17:37"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:3ce3d55ee475",
+      "kind": "quran",
+      "ar": "وَلَا تَمْشِ فِى ٱلْأَرْضِ مَرَحًا ۖ إِنَّكَ لَن تَخْرِقَ ٱلْأَرْضَ وَلَن تَبْلُغَ ٱلْجِبَالَ طُولًا",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (17:37):\nاو د لويي په نخرو په زمكه كې مه ګرځه، بې شكه ته نه زمكه څيرولى شې او نه په هسكوالي غرونو ته رسېدلى شې.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/17/37",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "17:37",
+        "refs": [
+          "17:37"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:bd7c2ebc0336",
+      "kind": "text",
+      "ar": "الإسراء: ٣٧",
+      "tr": "الإسراء: ٣٧",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ca9d51552e93",
+      "kind": "text",
+      "ar": "تواضعتُ",
+      "tr": "تواضع مې وکړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bae9700b5112",
+      "kind": "text",
+      "ar": "قبل نومك: اجمع كفّيك، واقرأ فيهما الإخلاص والمعوّذتين، ثم امسح بهما جسدك",
+      "tr": "له خوبه مخکې دواړه ورغوي سره یوځای کړه، اخلاص او دواړه د پناه غوښتلو سورتونه پکې ولوله، بیا یې پر خپل بدن راکاږه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f5dfd0d2fded",
+      "kind": "hadith",
+      "ar": "كَانَ إِذَا أَوَى إِلَى فِرَاشِهِ كُلَّ لَيْلَةٍ جَمَعَ كَفَّيْهِ، ثُمَّ نَفَثَ فِيهِمَا فَقَرَأَ فِيهِمَا: قُلْ هُوَ اللَّهُ أَحَدٌ وَقُلْ أَعُوذُ بِرَبِّ الفَلَقِ وَقُلْ أَعُوذُ بِرَبِّ النَّاسِ",
+      "tr": "هغه به هره شپه چې بستر ته لاړ، دواړه ورغوي یې سره یوځای کړل، لږه پوکي یې پکې کړه او دا به یې پکې لوستل: قُلْ هُوَ اللَّهُ أَحَدٌ [د سیاق لپاره د بشپړ آیت ژباړه (112:1):\nووايه هغه الله يو دی.]؛ قُلْ أَعُوذُ بِرَبِّ الفَلَقِ [د سیاق لپاره د بشپړ آیت ژباړه (113:1):\nووايه د سباوون پر رب پناه غواړم.]؛ قُلْ أَعُوذُ بِرَبِّ النَّاسِ [د سیاق لپاره د بشپړ آیت ژباړه (114:1):\nووايه د (ټولو) خلکو پر پالونکي پناه غواړم.].",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": "",
+        "publishedQuotes": {
+          "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+          "url": "https://quranenc.com/en/browse/pashto_rwwad/112/1",
+          "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+          "date": "2026-11-04",
+          "snapshot": "2026-10-07",
+          "version": "1.0.1",
+          "translationKey": "pashto_rwwad",
+          "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+          "lastUpdate": 1707999381,
+          "ref": "112:1",
+          "refs": [
+            "112:1",
+            "113:1",
+            "114:1"
+          ],
+          "context": "Full-verse context; published translation and footnotes preserved without alteration."
+        }
+      }
+    },
+    {
+      "id": "h:943f6461cd46",
+      "kind": "text",
+      "ar": "بين الخوف والرجاء",
+      "tr": "د وېرې او هیلې ترمنځ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b2193eb18fea",
+      "kind": "text",
+      "ar": "اجمع في قلبك اليوم خوفًا من الله ورجاءً فيه",
+      "tr": "نن په خپل زړه کې له الله وېره او هغه ته هیله دواړه راټول کړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c294cb3b4399",
+      "kind": "hadith",
+      "ar": "لَوْ يَعْلَمُ الْمُؤْمِنُ مَا عِنْدَ اللهِ مِنَ الْعُقُوبَةِ، مَا طَمِعَ بِجَنَّتِهِ أَحَدٌ، وَلَوْ يَعْلَمُ الْكَافِرُ مَا عِنْدَ اللهِ مِنَ الرَّحْمَةِ، مَا قَنَطَ مِنْ جَنَّتِهِ أَحَدٌ",
+      "tr": "که مؤمن پوه شي چې له الله سره څومره عذاب دی، هېڅوک به یې د جنت هیله ونه کړي؛ او که کافر پوه شي چې له الله سره څومره رحمت دی، هېڅوک به یې له جنته ناهیلی نه شي.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:357ea48035ad",
+      "kind": "text",
+      "ar": "جمعتُهما",
+      "tr": "دواړه مې راټول کړل",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5392f791a548",
+      "kind": "text",
+      "ar": "إن أغضبك أحدٌ اليوم فاكظم غيظك واصمت",
+      "tr": "که نن څوک غوسه درولي، خپله غوسه وزغمه او غلی شه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f42cd1ae1f4c",
+      "kind": "hadith",
+      "ar": "لَيْسَ الشَّدِيدُ بِالصُّرَعَةِ، إِنَّمَا الشَّدِيدُ الَّذِي يَمْلِكُ نَفْسَهُ عِنْدَ الغَضَبِ",
+      "tr": "ځواکمن هغه نه دی چې په غېږ نیولو کې نور وغورځوي، بلکې هغه دی چې د غوسې پر مهال پر ځان واک ولري.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e1862935bbe4",
+      "kind": "text",
+      "ar": "كظمتُ",
+      "tr": "غوسه مې وزغمله",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f1aa88fbb06f",
+      "kind": "text",
+      "ar": "لئن شكرتم",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (14:7):\nاو كله چې خپل رب مو خبردار كړئ چې كه شكر مو ووېستو نو خامخا به (نعمتونه) در زيات كړم، او كه ناشكري مو وكړه نو بې شکه زما عذاب ډېر سخت دى.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/14/7",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "14:7",
+        "refs": [
+          "14:7"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:4ffb0abcc4fa",
+      "kind": "quran",
+      "ar": "لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (14:7):\nاو كله چې خپل رب مو خبردار كړئ چې كه شكر مو ووېستو نو خامخا به (نعمتونه) در زيات كړم، او كه ناشكري مو وكړه نو بې شکه زما عذاب ډېر سخت دى.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/14/7",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "14:7",
+        "refs": [
+          "14:7"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:0c624c273d25",
+      "kind": "quran",
+      "ar": "وَإِذْ تَأَذَّنَ رَبُّكُمْ لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ ۖ وَلَئِن كَفَرْتُمْ إِنَّ عَذَابِى لَشَدِيدٌ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (14:7):\nاو كله چې خپل رب مو خبردار كړئ چې كه شكر مو ووېستو نو خامخا به (نعمتونه) در زيات كړم، او كه ناشكري مو وكړه نو بې شکه زما عذاب ډېر سخت دى.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/14/7",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "14:7",
+        "refs": [
+          "14:7"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:63a2898ebc6b",
+      "kind": "text",
+      "ar": "إبراهيم: ٧",
+      "tr": "إبراهیم: ٧",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:407287bf045a",
+      "kind": "text",
+      "ar": "شكرتُ",
+      "tr": "شکر مې وایست",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1e742612f46f",
+      "kind": "text",
+      "ar": "انوِ الأجر في نفقتك اليوم على أهل بيتك",
+      "tr": "نن پر خپلې کورنۍ د لګښت پر مهال د اجر نیت وکړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:890dec358736",
+      "kind": "hadith",
+      "ar": "إِنَّكَ لَنْ تُنْفِقَ نَفَقَةً تَبْتَغِي بِهَا وَجْهَ اللَّهِ إِلَّا أُجِرْتَ عَلَيْهَا، حَتَّى مَا تَجْعَلُ فِي فَمِ امْرَأَتِكَ",
+      "tr": "هر څه چې د الله د رضا لپاره ولګوې، اجر به یې درکړل شي، آن هغه مړۍ چې د خپلې مېرمنې په خوله کې یې ږدې.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6a6dbafde06f",
+      "kind": "text",
+      "ar": "نويتُ",
+      "tr": "نیت مې وکړ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8988c9435811",
+      "kind": "text",
+      "ar": "ادعُني أستجب لكم",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (40:60):\nاو ستاسو پالونکي ويلي دي چې ما دروبولئ سوال به مو قبول كړم يقيناً هغه كسان چې زما له عبادته لويي كوي زر به په سپكاوي سره جهنم ته ننوځي.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/40/60",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "40:60",
+        "refs": [
+          "40:60"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:dfe464e54c5e",
+      "kind": "quran",
+      "ar": "ٱدْعُونِىٓ أَسْتَجِبْ لَكُمْ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (40:60):\nاو ستاسو پالونکي ويلي دي چې ما دروبولئ سوال به مو قبول كړم يقيناً هغه كسان چې زما له عبادته لويي كوي زر به په سپكاوي سره جهنم ته ننوځي.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/40/60",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "40:60",
+        "refs": [
+          "40:60"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:fc06715b7c78",
+      "kind": "quran",
+      "ar": "وَقَالَ رَبُّكُمُ ٱدْعُونِىٓ أَسْتَجِبْ لَكُمْ ۚ إِنَّ ٱلَّذِينَ يَسْتَكْبِرُونَ عَنْ عِبَادَتِى سَيَدْخُلُونَ جَهَنَّمَ دَاخِرِينَ",
+      "tr": "د سیاق لپاره د بشپړ آیت ژباړه (40:60):\nاو ستاسو پالونکي ويلي دي چې ما دروبولئ سوال به مو قبول كړم يقيناً هغه كسان چې زما له عبادته لويي كوي زر به په سپكاوي سره جهنم ته ننوځي.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Pashto Translation - Rowwad Translation Center; QuranEnc.com; v1.0.1",
+        "url": "https://quranenc.com/en/browse/pashto_rwwad/40/60",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.1",
+        "translationKey": "pashto_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1707999381,
+        "ref": "40:60",
+        "refs": [
+          "40:60"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:bfe1f89557ef",
+      "kind": "text",
+      "ar": "غافر: ٦٠",
+      "tr": "غافر: ٦٠",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f16f3d231836",
+      "kind": "text",
+      "ar": "دعوتُ",
+      "tr": "دعا مې وکړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e929b13ddecf",
+      "kind": "text",
+      "ar": "إن أخطأت اليوم فاتبعها بحسنةٍ فورًا",
+      "tr": "که نن تېروتنه درڅخه وشي، سمدستي ورپسې نېکي وکړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:94704df23c68",
+      "kind": "hadith",
+      "ar": "وَأَتْبِعِ السَّيِّئَةَ الْحَسَنَةَ تَمْحُهَا",
+      "tr": "له بدۍ وروسته نېکي وکړه، هغه به یې له منځه یوسي.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8886960b09e8",
+      "kind": "text",
+      "ar": "الدارمي",
+      "tr": "دارمي",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9863af7db021",
+      "kind": "text",
+      "ar": "اتبعتُها",
+      "tr": "ورپسې مې نېکي وکړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:274cbaa2ddb1",
+      "kind": "text",
+      "ar": "ديمتك أنت",
+      "tr": "ستا خپله دیمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:35ded1b91e2f",
+      "kind": "text",
+      "ar": "راجع شهرك: أيّ قطرةٍ كانت أسهل عليك؟ اجعلها ديمتك الدائمة",
+      "tr": "خپله میاشت وارزوه: کوم څاڅکی درته اسانه و؟ هماغه خپله تلپاتې دیمه وګرځوه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d50f2c6b9b41",
+      "kind": "hadith",
+      "ar": "أَحَبَّ الأَعْمَالِ إِلَى اللَّهِ أَدْوَمُهَا وَإِنْ قَلَّ",
+      "tr": "الله ته تر ټولو محبوب عمل هغه دی چې تلپاتې وي، که لږ هم وي.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2a84d3773586",
+      "kind": "text",
+      "ar": "اخترتُها",
+      "tr": "هغه مې غوره کړ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:105d904ae4d4",
+      "kind": "text",
+      "ar": "اختر من الثلاثين عملًا واحدًا تلزمه كلّ يوم",
+      "tr": "له دېرشو عملونو یو غوره کړه چې هره ورځ یې کوې",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2edb6fca1b63",
+      "kind": "hadith",
+      "ar": "خُذُوا مِنَ العَمَلِ مَا تُطِيقُونَ، فَإِنَّ اللَّهَ لاَ يَمَلُّ حَتَّى تَمَلُّوا",
+      "tr": "دومره عمل کوئ چې وس یې لرئ؛ الله نه ستړی کېږي تر څو چې تاسو ستړي نه شئ.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c484e1930a16",
+      "kind": "text",
+      "ar": "اخترتُ",
+      "tr": "غوره مې کړ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:556fdc2f2520",
+      "kind": "text",
+      "ar": "غدًا تبدأ دورةٌ جديدة",
+      "tr": "سبا نوی پړاو پیلېږي",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1bb5541dd801",
+      "kind": "text",
+      "ar": "تأمّل فضل هذا اليوم الذي أنت فيه",
+      "tr": "د دې ورځې په فضیلت فکر وکړه چې ته پکې یې",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf328bccc1ec",
+      "kind": "hadith",
+      "ar": "خَيْرُ يَوْمٍ طَلَعَتْ عَلَيْهِ الشَّمْسُ يَوْمُ الْجُمُعَةِ",
+      "tr": "تر ټولو غوره ورځ چې لمر پرې راختلی، د جمعې ورځ ده.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:411231459be2",
+      "kind": "text",
+      "ar": "اغتنم آخر النهار اليوم بدعاءٍ تسأل الله فيه حاجتك",
+      "tr": "نن د ورځې وروستۍ برخه غنیمت وګڼه او له الله څخه د خپلې اړتیا دعا وغواړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:afb12d50c00c",
+      "kind": "hadith",
+      "ar": "فِيهِ سَاعَةٌ، لاَ يُوَافِقُهَا عَبْدٌ مُسْلِمٌ، وَهُوَ قَائِمٌ يُصَلِّي، يَسْأَلُ اللَّهَ تَعَالَى شَيْئًا، إِلَّا أَعْطَاهُ إِيَّاهُ",
+      "tr": "په دې ورځ کې یو وخت دی چې مسلمان بنده پکې په لمانځه ولاړ له الله تعالی څه وغواړي، هغه به یې ورکړي.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98827192e914",
+      "kind": "text",
+      "ar": "قطرةٌ جديدة بعد جمعتك",
+      "tr": "ستا له جمعې وروسته نوی څاڅکی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1e3d6e18312e",
+      "kind": "text",
+      "ar": "ديمتك لليوم جاهزة، دقيقة واحدة تكفي",
+      "tr": "د نن دیمه چمتو ده، یوه دقیقه بس ده",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1ba202784993",
+      "kind": "text",
+      "ar": "قطرةٌ جديدة تنتظرك في أرضك",
+      "tr": "ستا په ځمکه کې نوی څاڅکی ستا په تمه دی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:41ca9a30513e",
+      "kind": "text",
+      "ar": "قليلٌ دائمٌ خيرٌ من كثيرٍ منقطع، ديمة اليوم جاهزة",
+      "tr": "لږ او تلپاتې تر ډېرو او پرې کېدونکو غوره دي؛ د نن دیمه چمتو ده",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:874722223daa",
+      "kind": "text",
+      "ar": "جمعة مباركة، ديمة الجمعة جاهزة",
+      "tr": "مبارکه جمعه، د جمعې دیمه چمتو ده",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cd6e0869b954",
+      "kind": "text",
+      "ar": "تذكير ديمة: قطرة الجوارح تنتظرك",
+      "tr": "د دیمې یادونه: د غړو څاڅکی ستا په تمه دی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:995bb15601b1",
+      "kind": "text",
+      "ar": "بعد الفجر بنصف ساعة",
+      "tr": "له سهار لمانځه نیم ساعت وروسته",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a65e23474be8",
+      "kind": "text",
+      "ar": "وقت الضحى",
+      "tr": "د څاښت پر مهال",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:135e943b0801",
+      "kind": "text",
+      "ar": "بعد العصر",
+      "tr": "له مازدیګر لمانځه وروسته",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0df562a36ec6",
+      "kind": "text",
+      "ar": "بعد العشاء",
+      "tr": "له ماخوستن لمانځه وروسته",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:91d929efa2fd",
+      "kind": "title",
+      "ar": "ديمتك تصلك كل يوم",
+      "tr": "ستا دیمه هره ورځ درورسېږي",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a8036d1e33f7",
+      "kind": "text",
+      "ar": "تنبيهٌ واحدٌ في اليوم، بالوقت الذي تختاره، ويمكنك إيقافه متى شئت.",
+      "tr": "په ورځ کې یوه یادونه، ستا په ټاکلي وخت؛ هر کله چې غواړې، بندولای یې شې.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1d2b22848624",
+      "kind": "text",
+      "ar": "فعّل التنبيه",
+      "tr": "یادونه فعاله کړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:289acec23c22",
+      "kind": "text",
+      "ar": "ليس الآن",
+      "tr": "اوس نه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b7e375461a32",
+      "kind": "text",
+      "ar": "عند التفعيل يطلب الجهاز إذنك مرّة واحدة فقط.",
+      "tr": "د فعالولو پر مهال به وسیله یوازې یو ځل ستا اجازه وغواړي.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5aa990b8cc5b",
+      "kind": "text",
+      "ar": "قطرة اللسان",
+      "tr": "د ژبې څاڅکی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4aed9b40406d",
+      "kind": "text",
+      "ar": "قطرة القلب",
+      "tr": "د زړه څاڅکی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:768a154bb99f",
+      "kind": "text",
+      "ar": "قطرة الجوارح",
+      "tr": "د غړو څاڅکی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:524fe4800568",
+      "kind": "text",
+      "ar": "قُلها",
+      "tr": "ویې وایه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf57739c9691",
+      "kind": "text",
+      "ar": "تأمّلها",
+      "tr": "فکر پرې وکړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f3fb3f7cd932",
+      "kind": "text",
+      "ar": "افعلها",
+      "tr": "ویې کړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1c0b39a032b8",
+      "kind": "text",
+      "ar": "أرضك",
+      "tr": "ستا ځمکه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:07242796bbcd",
+      "kind": "text",
+      "ar": "{n} من {total} قطرات اليوم",
+      "tr": "نن له {total} څاڅکو څخه {n}",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fbe03626ef7f",
+      "kind": "text",
+      "ar": "يومٌ مضى",
+      "tr": "تېره ورځ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6f043424b3ac",
+      "kind": "text",
+      "ar": "نزلت قطرةٌ في أرضك",
+      "tr": "ستا په ځمکه کې یو څاڅکی ولوېد",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98df46fbd83b",
+      "kind": "text",
+      "ar": "تراجع",
+      "tr": "بېرته واخله",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:58f2a96a17bb",
+      "kind": "text",
+      "ar": "القطرة التالية",
+      "tr": "بل څاڅکی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a1bf10b61436",
+      "kind": "text",
+      "ar": "ختام اليوم",
+      "tr": "د ورځې پای",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:41cc3479d671",
+      "kind": "text",
+      "ar": "ذكّرني لاحقًا",
+      "tr": "وروسته یې رایاد کړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4c417f1a159c",
+      "kind": "text",
+      "ar": "سنذكّرك بعد العصر",
+      "tr": "له مازدیګر لمانځه وروسته به یې در یاد کړو",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:64f4fe2ecbd8",
+      "kind": "text",
+      "ar": "اضغط مع كل مرّة تقولها",
+      "tr": "له هر ځل ویلو سره کېکاږه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:155749b610a4",
+      "kind": "text",
+      "ar": "مقترح: {n}",
+      "tr": "وړاندیز: {n}",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1e9283ae4577",
+      "kind": "text",
+      "ar": "اكتملت ديمة اليوم",
+      "tr": "د نن دیمه بشپړه شوه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:adc6e0e1137b",
+      "kind": "text",
+      "ar": "أتممتَ شهرك الأول",
+      "tr": "تا خپله لومړۍ میاشت بشپړه کړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fc8633a1d1f4",
+      "kind": "text",
+      "ar": "ثلاث قطراتٍ نزلت في أرضك",
+      "tr": "ستا په ځمکه کې درې څاڅکي ولوېدل",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1106aa8631d8",
+      "kind": "text",
+      "ar": "تنبيهك القادم: بكرة {slot}",
+      "tr": "بله یادونه: سبا {slot}",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:448ccf482a83",
+      "kind": "text",
+      "ar": "بكرة",
+      "tr": "سبا",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fb35a6c70521",
+      "kind": "text",
+      "ar": "تنبيه ديمة",
+      "tr": "د دیمې یادونه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9c08e36a6898",
+      "kind": "text",
+      "ar": "التنبيه اليومي",
+      "tr": "ورځنۍ یادونه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d672210ef6a7",
+      "kind": "text",
+      "ar": "مفعَّلٌ تلقائيًّا مع التحديث، ويمكنك إيقافه",
+      "tr": "له اوسمهالولو سره په خپله فعاله ده؛ بندولای یې شې",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:107866a9b3ff",
+      "kind": "text",
+      "ar": "موقوف، وديمتك تنتظرك داخل التطبيق",
+      "tr": "بنده ده، ستا دیمه په اپ کې ستا په تمه ده",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a9b9ce80ff8f",
+      "kind": "text",
+      "ar": "وقت التنبيه",
+      "tr": "د یادونې وخت",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4da801b1128b",
+      "kind": "text",
+      "ar": "أوقات الصلاة تُحسب من موقعك، كما في قسم الصلاة",
+      "tr": "د لمانځه وختونه ستا د ځای له مخې حسابېږي، لکه د لمانځه په برخه کې",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ef256a3c3b68",
+      "kind": "text",
+      "ar": "هكذا يصلك",
+      "tr": "دا به داسې درورسېږي",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2eedd6ae577f",
+      "kind": "text",
+      "ar": "رسالة هادئة تتغيّر كل يوم، بلا إلحاح",
+      "tr": "ارام پیغام چې هره ورځ بدلېږي، بې له ټینګاره",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:507770131e72",
+      "kind": "text",
+      "ar": "وقت التذكير غير متاح.",
+      "tr": "د یادونې وخت نه دی موندل شوی.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f901ccb2564e",
+      "kind": "text",
+      "ar": "تعذّر تحميل ديمة.",
+      "tr": "د دیمې په راوړلو کې ستونزه وشوه.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1b388b1d5c9d",
+      "kind": "text",
+      "ar": "مفعّل",
+      "tr": "فعاله",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bafc44588818",
+      "kind": "text",
+      "ar": "متوقف",
+      "tr": "بنده",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cd834082470d",
+      "kind": "text",
+      "ar": "الأيام الأخيرة",
+      "tr": "وروستۍ ورځې",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ae0bbc700f31",
+      "kind": "text",
+      "ar": "، اليوم",
+      "tr": "، نن",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:881aeb7099b3",
+      "kind": "text",
+      "ar": "الأيام السبعة الماضية",
+      "tr": "تېرې اووه ورځې",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7e9c1b26dc01",
+      "kind": "text",
+      "ar": "علامات ممارسات الأيام السبعة الماضية",
+      "tr": "د تېرو اوو ورځو د عملونو نښې",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf5148ef5b1e",
+      "kind": "text",
+      "ar": " مكتمل",
+      "tr": " بشپړ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3ca833b33415",
+      "kind": "text",
+      "ar": " غير مكتمل",
+      "tr": " نیمګړی",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6d76cfa3f443",
+      "kind": "text",
+      "ar": "ممارسات اليوم",
+      "tr": "د نن عملونه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0618181d807f",
+      "kind": "text",
+      "ar": "القرآن ",
+      "tr": "قرآن ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:871943736352",
+      "kind": "text",
+      "ar": "العدد المقترح: ",
+      "tr": "وړاندیز شوی شمېر: ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6af4196f3fa4",
+      "kind": "text",
+      "ar": "اقرأ التفسير الموثّق",
+      "tr": "له حوالې سره تفسیر ولوله",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dfa98f40e8f1",
+      "kind": "text",
+      "ar": "المختصر في تفسير القرآن · ص 252 · FC-000142",
+      "tr": "المختصر في تفسیر القرآن · مخ 252 · FC-000142",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3b4c90d0223b",
+      "kind": "text",
+      "ar": "اضغط للعدّ، ",
+      "tr": "د شمېرلو لپاره کېکاږه، ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:950edb07da8c",
+      "kind": "text",
+      "ar": "الأيام الماضية للقراءة فقط.",
+      "tr": "تېرې ورځې یوازې د لوستلو لپاره دي.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ada140502b2a",
+      "kind": "text",
+      "ar": "اضبط تذكيرًا",
+      "tr": "یادونه وټاکه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f63f0957977f",
+      "kind": "text",
+      "ar": "غدًا: ",
+      "tr": "سبا: ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f8e84b2074b3",
+      "kind": "text",
+      "ar": "فعّل التنبيهات من إعدادات الصلاة أولًا.",
+      "tr": "لومړی د لمانځه له امستنو یادونې فعالې کړه.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dcb542c15808",
+      "kind": "text",
+      "ar": "لا تنسَ ديمتك اليوم",
+      "tr": "نن خپله دیمه مه هېروه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7e9051a2c063",
+      "kind": "text",
+      "ar": "اكتملت ديمتك اليوم",
+      "tr": "ستا د نن دیمه بشپړه شوه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e7af6ad9e8bb",
+      "kind": "text",
+      "ar": "الأول",
+      "tr": "لومړۍ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:39321e817feb",
+      "kind": "text",
+      "ar": "الثاني",
+      "tr": "دویمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c3e1b4edd4ac",
+      "kind": "text",
+      "ar": "الثالث",
+      "tr": "درېیمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:50ed00343085",
+      "kind": "text",
+      "ar": "الرابع",
+      "tr": "څلورمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5fad8aa224ce",
+      "kind": "text",
+      "ar": "الخامس",
+      "tr": "پنځمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:45d8094bf9b9",
+      "kind": "text",
+      "ar": "السادس",
+      "tr": "شپږمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ef114d4296bc",
+      "kind": "text",
+      "ar": "السابع",
+      "tr": "اوومه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2db27d05d3a7",
+      "kind": "text",
+      "ar": "الثامن",
+      "tr": "اتمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3bcce3aeea5f",
+      "kind": "text",
+      "ar": "التاسع",
+      "tr": "نهمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:20024c546493",
+      "kind": "text",
+      "ar": "العاشر",
+      "tr": "لسمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a792050b141f",
+      "kind": "text",
+      "ar": "الحادي عشر",
+      "tr": "یوولسمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3d4fabeb9270",
+      "kind": "text",
+      "ar": "الثاني عشر",
+      "tr": "دولسمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:04fea95f2af7",
+      "kind": "text",
+      "ar": "الثالث عشر",
+      "tr": "دیارلسمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4e2208a2c195",
+      "kind": "text",
+      "ar": "الرابع عشر",
+      "tr": "څوارلسمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f39f78ef305e",
+      "kind": "text",
+      "ar": "الخامس عشر",
+      "tr": "پنځلسمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c9d13c6b6622",
+      "kind": "text",
+      "ar": "السادس عشر",
+      "tr": "شپاړسمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c2ccae600214",
+      "kind": "text",
+      "ar": "السابع عشر",
+      "tr": "اوولسمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7350a028a419",
+      "kind": "text",
+      "ar": "الثامن عشر",
+      "tr": "اتلسمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d56656f461b5",
+      "kind": "text",
+      "ar": "التاسع عشر",
+      "tr": "نولسمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c600e14ee149",
+      "kind": "text",
+      "ar": "العشرون",
+      "tr": "شلمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3fcd86f89850",
+      "kind": "text",
+      "ar": "الحادي والعشرون",
+      "tr": "یوویشتمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d128c1b3d520",
+      "kind": "text",
+      "ar": "الثاني والعشرون",
+      "tr": "دوه ویشتمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:69753081d75f",
+      "kind": "text",
+      "ar": "الثالث والعشرون",
+      "tr": "درویشتمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ab577aaaa016",
+      "kind": "text",
+      "ar": "الرابع والعشرون",
+      "tr": "څلورویشتمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:05d8e10f8f73",
+      "kind": "text",
+      "ar": "الخامس والعشرون",
+      "tr": "پنځه ویشتمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2f38a6804aa2",
+      "kind": "text",
+      "ar": "السادس والعشرون",
+      "tr": "شپږویشتمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:217372974e36",
+      "kind": "text",
+      "ar": "السابع والعشرون",
+      "tr": "اووه ویشتمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:97fbcd610785",
+      "kind": "text",
+      "ar": "الثامن والعشرون",
+      "tr": "اته ویشتمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1c0a5a0a9caa",
+      "kind": "text",
+      "ar": "التاسع والعشرون",
+      "tr": "نهه ویشتمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:91ccc8db263e",
+      "kind": "text",
+      "ar": "الثلاثون",
+      "tr": "دېرشمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a9abf57dbb0d",
+      "kind": "text",
+      "ar": "لا تنسَ ديمتك غدًا",
+      "tr": "سبا خپله دیمه مه هېروه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c6b29634bec7",
+      "kind": "text",
+      "ar": "سنذكّرك غدًا {slot}",
+      "tr": "سبا به یې په {slot} در یاد کړو",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8a698ae7a876",
+      "kind": "title",
+      "ar": "ديمة",
+      "tr": "دیمه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bfdf8728538c",
+      "kind": "title",
+      "ar": "صحيح البخاري",
+      "tr": "صحیح البخاري",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5e7e59318d4f",
+      "kind": "title",
+      "ar": "صحيح مسلم",
+      "tr": "صحیح مسلم",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:abff783fb429",
+      "kind": "title",
+      "ar": "السنن الكبرى للنسائي",
+      "tr": "السنن الکبری للنسائي",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7f08faee4cfe",
+      "kind": "title",
+      "ar": "سنن الترمذي ت بشار",
+      "tr": "سنن الترمذي، د بشار په تحقیق",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fb4fbcd242e3",
+      "kind": "title",
+      "ar": "سنن ابن ماجه",
+      "tr": "سنن ابن ماجه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:96a8ce7b5570",
+      "kind": "title",
+      "ar": "سنن الدارمي",
+      "tr": "سنن الدارمي",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9c5644a677fa",
+      "kind": "title",
+      "ar": "اللسان",
+      "tr": "ژبه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:81bf3cfb3c54",
+      "kind": "title",
+      "ar": "القلب",
+      "tr": "زړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5a06c13ef9bd",
+      "kind": "title",
+      "ar": "الجوارح",
+      "tr": "غړي",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b76444a321b7",
+      "kind": "title",
+      "ar": "اليوم",
+      "tr": "نن",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e776b0209b50",
+      "kind": "title",
+      "ar": "إلغاء",
+      "tr": "لغوه کړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fc095a728402",
+      "kind": "title",
+      "ar": "إعدادات التنبيه",
+      "tr": "د یادونې امستنې",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5bf826c5e57c",
+      "kind": "title",
+      "ar": "إغلاق",
+      "tr": "وتړه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:608631450563",
+      "kind": "title",
+      "ar": "اضغط",
+      "tr": "کېکاږه",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    }
+  ]
+}

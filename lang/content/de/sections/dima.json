@@ -1,0 +1,5689 @@
+{
+  "schema": "ezik-tr4/1",
+  "lang": "de",
+  "section": "dima",
+  "title": {
+    "ar": "ديمة",
+    "tr": "Dima"
+  },
+  "agent": "C4",
+  "generated": "2026-11-04",
+  "source_files": [
+    "dima/dima-v1.json",
+    "app.jsx"
+  ],
+  "items": [
+    {
+      "id": "h:592e78c41de1",
+      "kind": "text",
+      "ar": "قليلٌ دائم، كالمطر الهادئ",
+      "tr": "Wenig, aber beständig – wie sanfter Regen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l01",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده، سبحان الله العظيم",
+      "tr": "Gepriesen sei Allah und Ihm gebührt Lob; gepriesen sei Allah, der Gewaltige.",
+      "translit": "Subhānallāhi wa bihamdih, subhānallāhil-ʿazīm",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:46bf599f3e53",
+      "kind": "hadith",
+      "ar": "كَلِمَتَانِ خَفِيفَتَانِ عَلَى اللِّسَانِ، ثَقِيلَتَانِ فِي المِيزَانِ، حَبِيبَتَانِ إِلَى الرَّحْمَنِ",
+      "tr": "Zwei Worte, leicht auf der Zunge, schwer auf der Waage und dem Allerbarmer lieb.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3bd5b604195e",
+      "kind": "text",
+      "ar": "متفق عليه",
+      "tr": "Von Al-Buchari und Muslim überliefert",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a70fe204e5f6",
+      "kind": "text",
+      "ar": "قلتُها",
+      "tr": "Ich habe es gesagt",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l02",
+      "kind": "dhikr",
+      "ar": "لا حول ولا قوة إلا بالله",
+      "tr": "Es gibt keine Macht und keine Kraft außer durch Allah.",
+      "translit": "Lā haula wa lā quwwata illā billāh",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:060e76db5d17",
+      "kind": "hadith",
+      "ar": "أَلاَ أَدُلُّكَ عَلَى كَلِمَةٍ مِنْ كَنْزِ الجَنَّةِ \" قُلْتُ: بَلَى، قَالَ: «لاَ حَوْلَ وَلاَ قُوَّةَ إِلَّا بِاللَّهِ",
+      "tr": "Soll ich dir nicht ein Wort aus einem Schatz des Paradieses zeigen? Ich antwortete: „Doch.“ Er sagte: „Es gibt keine Macht und keine Kraft außer durch Allah.“",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l03",
+      "kind": "dhikr",
+      "ar": "اللهم صلِّ وسلِّم على نبيّنا محمد",
+      "tr": "O Allah, schenke unserem Propheten Muhammad Segen und Frieden.",
+      "translit": "Allāhumma salli wa sallim ʿalā nabiyyinā Muhammad",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "lf",
+      "kind": "dhikr",
+      "ar": "اللهم صلِّ وسلِّم على نبيّنا محمد",
+      "tr": "O Allah, schenke unserem Propheten Muhammad Segen und Frieden.",
+      "translit": "Allāhumma salli wa sallim ʿalā nabiyyinā Muhammad",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b2a097607bf2",
+      "kind": "hadith",
+      "ar": "مَنْ صَلَّى عَلَيَّ وَاحِدَةً صَلَّى الله عَلَيْهِ عَشْرًا",
+      "tr": "Wer einmal für mich um Segen bittet, dem schenkt Allah zehnmal Segen.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1f83b246bbe2",
+      "kind": "text",
+      "ar": "مسلم",
+      "tr": "Muslim",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a6763adf156f",
+      "kind": "text",
+      "ar": "صلّيتُ عليه",
+      "tr": "Ich habe für ihn um Segen gebeten",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l04",
+      "kind": "dhikr",
+      "ar": "أستغفر الله وأتوب إليه",
+      "tr": "Ich bitte Allah um Vergebung und wende mich Ihm reuig zu.",
+      "translit": "Astaghfirullāha wa atūbu ilaih",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:16759e2c8a1f",
+      "kind": "hadith",
+      "ar": "يَا أَيُّهَا النَّاسُ تُوبُوا إِلَى اللهِ، فَإِنِّي أَتُوبُ، فِي الْيَوْمِ إِلَيْهِ مِائَةَ، مَرَّةٍ",
+      "tr": "O Menschen, wendet euch Allah reuig zu. Ich wende mich Ihm am Tag hundertmal reuig zu.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l05",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده",
+      "tr": "Gepriesen sei Allah und Ihm gebührt Lob.",
+      "translit": "Subhānallāhi wa bihamdih",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98035c1c8607",
+      "kind": "hadith",
+      "ar": "مَنْ قَالَ: سُبْحَانَ اللَّهِ وَبِحَمْدِهِ، فِي يَوْمٍ مِائَةَ مَرَّةٍ، حُطَّتْ خَطَايَاهُ، وَإِنْ كَانَتْ مِثْلَ زَبَدِ البَحْرِ",
+      "tr": "Wer am Tag hundertmal sagt: „Gepriesen sei Allah und Ihm gebührt Lob“, dem werden seine Verfehlungen erlassen, selbst wenn sie wie der Schaum des Meeres sind.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l06",
+      "kind": "dhikr",
+      "ar": "لا إله إلا الله وحده لا شريك له، له الملك وله الحمد، وهو على كل شيء قدير",
+      "tr": "Es gibt keinen anbetungswürdigen Gott außer Allah allein, ohne Teilhaber. Ihm gehören die Herrschaft und das Lob, und Er hat zu allem die Macht.",
+      "translit": "Lā ilāha illallāhu wahdahu lā scharīka lah, lahul-mulku wa lahul-hamdu wa huwa ʿalā kulli schaiʾin qadīr",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6f7c464022f9",
+      "kind": "hadith",
+      "ar": "مَنْ قَالَ: لاَ إِلَهَ إِلَّا اللَّهُ، وَحْدَهُ لاَ شَرِيكَ لَهُ، لَهُ المُلْكُ وَلَهُ الحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، فِي يَوْمٍ مِائَةَ مَرَّةٍ، كَانَتْ لَهُ عَدْلَ عَشْرِ رِقَابٍ",
+      "tr": "Wer am Tag hundertmal sagt: „Es gibt keinen anbetungswürdigen Gott außer Allah allein, ohne Teilhaber. Ihm gehören die Herrschaft und das Lob, und Er hat zu allem die Macht“, erhält den Gegenwert der Freilassung von zehn Sklaven.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l07",
+      "kind": "dhikr",
+      "ar": "الحمد لله",
+      "tr": "Alles Lob gebührt Allah.",
+      "translit": "Alhamdu lillāh",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d3878266dc9e",
+      "kind": "hadith",
+      "ar": "وَالْحَمْدُ لِلَّهِ تَمْلَأُ الْمِيزَانَ",
+      "tr": "Und „Alles Lob gebührt Allah“ füllt die Waage.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l08",
+      "kind": "dhikr",
+      "ar": "سبحان الله، والحمد لله، ولا إله إلا الله، والله أكبر",
+      "tr": "Gepriesen sei Allah, alles Lob gebührt Allah, es gibt keinen anbetungswürdigen Gott außer Allah, und Allah ist größer.",
+      "translit": "Subhānallāh, walhamdu lillāh, wa lā ilāha illallāh, wallāhu akbar",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:17c849f1f429",
+      "kind": "hadith",
+      "ar": "أَحَبُّ الْكَلَامِ إِلَى اللهِ أَرْبَعٌ: سُبْحَانَ اللهِ، وَالْحَمْدُ لِلَّهِ، وَلَا إِلَهَ إِلَّا اللهُ، وَاللهُ أَكْبَرُ",
+      "tr": "Allah sind vier Worte am liebsten: „Gepriesen sei Allah“, „Alles Lob gebührt Allah“, „Es gibt keinen anbetungswürdigen Gott außer Allah“ und „Allah ist größer“.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l09",
+      "kind": "dhikr",
+      "ar": "اللهم أعنّي على ذكرك وشكرك وحسن عبادتك",
+      "tr": "O Allah, hilf mir, Deiner zu gedenken, Dir zu danken und Dir auf gute Weise zu dienen.",
+      "translit": "Allāhumma aʿinnī ʿalā dhikrika wa schukrika wa husni ʿibādatik",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:07c644dd8a43",
+      "kind": "hadith",
+      "ar": "أُوصِيكَ يَا مُعَاذُ لَا تَدَعَنَّ فِي دُبُرِ كُلِّ صَلَاةٍ أَنْ تَقُولَ: اللهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ",
+      "tr": "Ich rate dir, o Muʿadh: Unterlasse nach keinem Gebet die Worte: „O Allah, hilf mir, Deiner zu gedenken, Dir zu danken und Dir auf gute Weise zu dienen.“",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:27a277f0e101",
+      "kind": "text",
+      "ar": "النسائي",
+      "tr": "An-Nasa’i",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l10",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده عدد خلقه، ورضا نفسه، وزنة عرشه، ومداد كلماته",
+      "tr": "Gepriesen sei Allah und Ihm gebührt Lob: so viel wie die Zahl Seiner Geschöpfe, wie es Seinem Wohlgefallen entspricht, so schwer wie Sein Thron und so viel wie die Tinte Seiner Worte.",
+      "translit": "Subhānallāhi wa bihamdihi ʿadada khalqihi wa ridā nafsihi wa zinata ʿarschihi wa midāda kalimātih",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:14ecc6f7775a",
+      "kind": "hadith",
+      "ar": "لَقَدْ قُلْتُ بَعْدَكِ أَرْبَعَ كَلِمَاتٍ، ثَلَاثَ مَرَّاتٍ، لَوْ وُزِنَتْ بِمَا قُلْتِ مُنْذُ الْيَوْمِ لَوَزَنَتْهُنَّ",
+      "tr": "Nach dir habe ich vier Worte dreimal gesprochen. Würden sie gegen alles gewogen, was du seit heute Morgen gesprochen hast, würden sie es an Gewicht übertreffen.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l11",
+      "kind": "dhikr",
+      "ar": "لا إله إلا أنت سبحانك إني كنت من الظالمين",
+      "tr": "Zusammenhang des vollständigen Verses (21:87):\nUnd (gedenke auch) des Mannes mit dem Wal (arab. „Dhan-Nun“), als er wütend wegging und meinte, Wir würden ihn nicht einengen. Hierauf rief er in den Finsternissen: „Es gibt keinen Anbetungswürdigen außer Dir! Gepriesen seist Du! Wahrlich, ich gehörte zu den Ungerechten.“",
+      "translit": "Lā ilāha illā anta subhānaka innī kuntu minaz-zālimīn",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/21/87",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "21:87",
+        "refs": [
+          "21:87"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:0a3d2d813331",
+      "kind": "hadith",
+      "ar": "دَعْوَةُ ذِي النُّونِ إِذْ دَعَا وَهُوَ فِي بَطْنِ الحُوتِ: لاَ إِلَهَ إِلاَّ أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ، فَإِنَّهُ لَمْ يَدْعُ بِهَا رَجُلٌ مُسْلِمٌ فِي شَيْءٍ قَطُّ إِلاَّ اسْتَجَابَ اللَّهُ لَهُ",
+      "tr": "Das Bittgebet von Dhun-Nun, als er im Bauch des Fisches betete: لاَ إِلَهَ إِلاَّ أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ [Zusammenhang des vollständigen Verses (21:87):\nUnd (gedenke auch) des Mannes mit dem Wal (arab. „Dhan-Nun“), als er wütend wegging und meinte, Wir würden ihn nicht einengen. Hierauf rief er in den Finsternissen: „Es gibt keinen Anbetungswürdigen außer Dir! Gepriesen seist Du! Wahrlich, ich gehörte zu den Ungerechten.“]. Kein Muslim hat damit in irgendeiner Sache gebetet, ohne dass Allah ihn erhört hat.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": "",
+        "publishedQuotes": {
+          "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+          "url": "https://quranenc.com/en/browse/german_rwwad/21/87",
+          "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+          "date": "2026-11-04",
+          "snapshot": "2026-11-04",
+          "version": "1.0.16",
+          "translationKey": "german_rwwad",
+          "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+          "lastUpdate": 1793539555,
+          "ref": "21:87",
+          "refs": [
+            "21:87"
+          ],
+          "context": "Full-verse context; published translation and footnotes preserved without alteration."
+        }
+      }
+    },
+    {
+      "id": "h:900c009b827b",
+      "kind": "text",
+      "ar": "الترمذي",
+      "tr": "At-Tirmidhi",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l12",
+      "kind": "dhikr",
+      "ar": "رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ",
+      "tr": "Mein Herr, vergib mir und nimm meine Reue an. Du bist der Reue-Annehmende, der Barmherzige.",
+      "translit": "Rabbighfir lī wa tub ʿalayya innaka antat-tawwābur-rahīm",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:99e5b6f32eaf",
+      "kind": "hadith",
+      "ar": "نْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+      "tr": "Wir zählten, dass der Gesandte Allahs, Allahs Segen und Frieden auf ihm, während einer Zusammenkunft hundertmal sagte: „Mein Herr, vergib mir und nimm meine Reue an. Du bist der Reue-Annehmende, der Barmherzige.“",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:feb87fd43324",
+      "kind": "text",
+      "ar": "ابن ماجه",
+      "tr": "Ibn Madscha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:20eec0cbc850",
+      "kind": "quran",
+      "ar": "وَإِن تَعُدُّوا۟ نِعْمَةَ ٱللَّهِ لَا تُحْصُوهَآ",
+      "tr": "Zusammenhang des vollständigen Verses (16:18):\nUnd wenn ihr die Gunstgaben Allahs aufzählen wolltet, könntet ihr sie nicht erfassen. Wahrlich, Allah ist ja allvergebend und barmherzig.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/16/18",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "16:18",
+        "refs": [
+          "16:18"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:d2766f33f933",
+      "kind": "quran",
+      "ar": "وَإِن تَعُدُّوا۟ نِعْمَةَ ٱللَّهِ لَا تُحْصُوهَآ ۗ إِنَّ ٱللَّهَ لَغَفُورٌ رَّحِيمٌ",
+      "tr": "Zusammenhang des vollständigen Verses (16:18):\nUnd wenn ihr die Gunstgaben Allahs aufzählen wolltet, könntet ihr sie nicht erfassen. Wahrlich, Allah ist ja allvergebend und barmherzig.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/16/18",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "16:18",
+        "refs": [
+          "16:18"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:12b821c2544b",
+      "kind": "text",
+      "ar": "النحل: ١٨",
+      "tr": "An-Nahl: ١٨",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98163e27e637",
+      "kind": "text",
+      "ar": "حمدتُ الله",
+      "tr": "Ich habe Allah gelobt",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3f41906e49ba",
+      "kind": "text",
+      "ar": "ابتسم في وجه أحدٍ اليوم",
+      "tr": "Lächle heute jemanden an",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5612ff534dbb",
+      "kind": "hadith",
+      "ar": "تَبَسُّمُكَ فِي وَجْهِ أَخِيكَ لَكَ صَدَقَةٌ",
+      "tr": "Dein Lächeln gegenüber deinem Bruder ist eine Spende für dich.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8a0e25fe253d",
+      "kind": "text",
+      "ar": "ابتسمتُ",
+      "tr": "Ich habe gelächelt",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d6f945f8dd74",
+      "kind": "text",
+      "ar": "كنزٌ من كنوز الجنة",
+      "tr": "Ein Schatz aus den Schätzen des Paradieses",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e8cd520b4557",
+      "kind": "text",
+      "ar": "تأمّل عافيتك ووقت فراغك، واشكر الله عليهما",
+      "tr": "Denke über deine Gesundheit und deine freie Zeit nach und danke Allah für beides",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:772ed349c6e3",
+      "kind": "hadith",
+      "ar": "نِعْمَتَانِ مَغْبُونٌ فِيهِمَا كَثِيرٌ مِنَ النَّاسِ: الصِّحَّةُ وَالفَرَاغُ",
+      "tr": "Zwei Gaben, bei denen viele Menschen Verlust erleiden: Gesundheit und freie Zeit.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3025efe9a80e",
+      "kind": "text",
+      "ar": "البخاري",
+      "tr": "Al-Buchari",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:eb44ae40dd81",
+      "kind": "text",
+      "ar": "شكرتُ الله",
+      "tr": "Ich habe Allah gedankt",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:23077bf89451",
+      "kind": "text",
+      "ar": "أمِط أذًى عن الطريق إن رأيته",
+      "tr": "Entferne etwas Störendes vom Weg, wenn du es siehst",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:50366d06e4d2",
+      "kind": "hadith",
+      "ar": "وَأَدْنَاهَا إِمَاطَةُ الْأَذَى عَنِ الطَّرِيقِ",
+      "tr": "Und die niedrigste Stufe ist, etwas Schädliches vom Weg zu entfernen.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f402f03cae5a",
+      "kind": "text",
+      "ar": "أمطتُه",
+      "tr": "Ich habe es entfernt",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2697a2786f3d",
+      "kind": "text",
+      "ar": "صلاةٌ تعود عليك عشرًا",
+      "tr": "Ein Segenswunsch, der dir zehnfach zurückgegeben wird",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:250089f51a89",
+      "kind": "text",
+      "ar": "استحضر محبّة النبي ﷺ، وأنّها فوق كلّ محبّة",
+      "tr": "Vergegenwärtige dir die Liebe zum Propheten, Allahs Segen und Frieden auf ihm, über jeder anderen Liebe",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a561a5ebb178",
+      "kind": "hadith",
+      "ar": "لاَ يُؤْمِنُ أَحَدُكُمْ، حَتَّى أَكُونَ أَحَبَّ إِلَيْهِ مِنْ وَالِدِهِ وَوَلَدِهِ وَالنَّاسِ أَجْمَعِينَ",
+      "tr": "Keiner von euch glaubt, bis ich ihm lieber bin als sein Vater, sein Kind und alle Menschen.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f993a685cc28",
+      "kind": "text",
+      "ar": "استحضرتُها",
+      "tr": "Ich habe es mir vergegenwärtigt",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d853b265f971",
+      "kind": "text",
+      "ar": "اتصل بقريبٍ لك ولو دقيقة",
+      "tr": "Rufe einen Verwandten an, wenn auch nur für eine Minute",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:00ac3fc63f2b",
+      "kind": "hadith",
+      "ar": "مَنْ أَحَبَّ أَنْ يُبْسَطَ لَهُ فِي رِزْقِهِ، وَيُنْسَأَ لَهُ فِي أَثَرِهِ، فَلْيَصِلْ رَحِمَهُ",
+      "tr": "Wer möchte, dass seine Versorgung erweitert und seine Lebenszeit verlängert wird, soll seine Verwandtschaftsbande pflegen.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:57ba5a72fc2f",
+      "kind": "text",
+      "ar": "اتصلتُ",
+      "tr": "Ich habe angerufen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:91f75101f303",
+      "kind": "text",
+      "ar": "توبةٌ في كلّ يوم",
+      "tr": "Jeden Tag Reue",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fa2ccac58aaa",
+      "kind": "quran",
+      "ar": "ذَكَرُوا۟ ٱللَّهَ فَٱسْتَغْفَرُوا۟ لِذُنُوبِهِمْ",
+      "tr": "Zusammenhang des vollständigen Verses (3:135):\nUnd diejenigen, die, wenn sie eine Abscheulichkeit begangen oder sich selbst Unrecht zugefügt haben, Allahs gedenken und dann für ihre Sünden um Vergebung bitten. Und wer sollte die Sünden vergeben außer Allah? Und (die) nicht auf dem beharren, was sie getan haben, wo sie (es) doch wissen.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/3/135",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "3:135",
+        "refs": [
+          "3:135"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:d28d20ff1810",
+      "kind": "quran",
+      "ar": "وَٱلَّذِينَ إِذَا فَعَلُوا۟ فَـٰحِشَةً أَوْ ظَلَمُوٓا۟ أَنفُسَهُمْ ذَكَرُوا۟ ٱللَّهَ فَٱسْتَغْفَرُوا۟ لِذُنُوبِهِمْ وَمَن يَغْفِرُ ٱلذُّنُوبَ إِلَّا ٱللَّهُ وَلَمْ يُصِرُّوا۟ عَلَىٰ مَا فَعَلُوا۟ وَهُمْ يَعْلَمُونَ",
+      "tr": "Zusammenhang des vollständigen Verses (3:135):\nUnd diejenigen, die, wenn sie eine Abscheulichkeit begangen oder sich selbst Unrecht zugefügt haben, Allahs gedenken und dann für ihre Sünden um Vergebung bitten. Und wer sollte die Sünden vergeben außer Allah? Und (die) nicht auf dem beharren, was sie getan haben, wo sie (es) doch wissen.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/3/135",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "3:135",
+        "refs": [
+          "3:135"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:48a66c090a5d",
+      "kind": "text",
+      "ar": "آل عمران: ١٣٥",
+      "tr": "Al ʿImran: ١٣٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3ce64fe4a699",
+      "kind": "text",
+      "ar": "عزمتُ",
+      "tr": "Ich habe mich entschlossen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ce4a31704233",
+      "kind": "text",
+      "ar": "تصدّق بشيءٍ ولو قليل",
+      "tr": "Spende etwas, auch wenn es wenig ist",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4dacbcbb1982",
+      "kind": "hadith",
+      "ar": "اتَّقُوا النَّارَ وَلَوْ بِشِقِّ تَمْرَةٍ",
+      "tr": "Schützt euch vor dem Feuer, wenn auch nur mit einer halben Dattel.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a90a7e31e96c",
+      "kind": "text",
+      "ar": "تصدّقتُ",
+      "tr": "Ich habe gespendet",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c1a5ce38896f",
+      "kind": "text",
+      "ar": "دعوةٌ يردّها عليك ملَك",
+      "tr": "Ein Bittgebet, das ein Engel dir erwidert",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3262bf68b53f",
+      "kind": "text",
+      "ar": "ادعُ لأخٍ لك باسمه وهو لا يدري",
+      "tr": "Bete für einen Bruder und nenne ihn dabei, ohne dass er davon weiß",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dec4db48f5d9",
+      "kind": "hadith",
+      "ar": "دَعْوَةُ الْمَرْءِ الْمُسْلِمِ لِأَخِيهِ بِظَهْرِ الْغَيْبِ مُسْتَجَابَةٌ، عِنْدَ رَأْسِهِ مَلَكٌ مُوَكَّلٌ كُلَّمَا دَعَا لِأَخِيهِ بِخَيْرٍ، قَالَ الْمَلَكُ الْمُوَكَّلُ بِهِ: آمِينَ وَلَكَ بِمِثْلٍ",
+      "tr": "Das Bittgebet eines Muslims für seinen Bruder in dessen Abwesenheit wird erhört. Bei seinem Kopf ist ein beauftragter Engel. Jedes Mal, wenn er für seinen Bruder um Gutes bittet, sagt der Engel: „Amen, und für dich das Gleiche.“",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:167610e41522",
+      "kind": "text",
+      "ar": "دعوتُ له",
+      "tr": "Ich habe für ihn gebetet",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:290e634e843b",
+      "kind": "text",
+      "ar": "اسقِ أحدًا ماءً، ولو طيرًا أو حيوانًا",
+      "tr": "Gib jemandem Wasser, auch einem Vogel oder einem Tier",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3b0c2667a7e1",
+      "kind": "hadith",
+      "ar": "فِي كُلِّ كَبِدٍ رَطْبَةٍ أَجْرٌ",
+      "tr": "Für jedes Lebewesen mit feuchter Leber gibt es Lohn.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fd398c044a84",
+      "kind": "text",
+      "ar": "سقيتُ",
+      "tr": "Ich habe Wasser gegeben",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:64d0504d3bb2",
+      "kind": "text",
+      "ar": "آيةٌ تطمئنّ بها القلوب",
+      "tr": "Ein Vers, der Herzen beruhigt",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7e93df1a44f3",
+      "kind": "text",
+      "ar": "اقرأ الآية، ثم اسكن دقيقةً بلا جوال وردّدها في نفسك",
+      "tr": "Lies den Vers, werde dann eine Minute ohne Handy still und wiederhole ihn innerlich",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b1726f3e1a29",
+      "kind": "quran",
+      "ar": "ٱلَّذِينَ ءَامَنُوا۟ وَتَطْمَئِنُّ قُلُوبُهُم بِذِكْرِ ٱللَّهِ ۗ أَلَا بِذِكْرِ ٱللَّهِ تَطْمَئِنُّ ٱلْقُلُوبُ",
+      "tr": "Zusammenhang des vollständigen Verses (13:28):\nDiejenigen, die glauben und deren Herzen im Gedenken Allahs Ruhe finden. Sicherlich, im Gedenken Allahs finden die Herzen Ruhe!",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/13/28",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "13:28",
+        "refs": [
+          "13:28"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:8f38fb1c304b",
+      "kind": "text",
+      "ar": "الرعد: ٢٨",
+      "tr": "Ar-Raʿd: ٢٨",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f4389e5bd4aa",
+      "kind": "text",
+      "ar": "\n28 - هؤلاء الذين يهديهم الله هم الذين آمنوا، وتستأنس قلوبهم بذكر الله بتسبيحه وتحميده، وبتلاوة كتابه ألا بذكر الله وحده تستأنس القلوب، خَلِيق بها ذلك.\n[مِنْ فَوَائِدِ الآيَاتِ]\n• الترغيب في جملة من فضائل الأخلاق الموجبة للجنة، ومنها: حسن الصلة، وخشية الله تعالى، والوفاء بالعهود، والصبر والإنفاق، ومقابلة السيئة بالحسنة والتحذير من ضدها.\n• أن مقاليد الرزق بيد الله - سبحانه وتعالى -، وأن توسعة الله تعالى أو تضييقه في رزق عبد ما لا ينبغي أن يكون موجبًا لفرح أو حزن، فهو ليس دليلًا على رضا الله أو سخطه على ذلك العبد.\n• أن الهداية ليست بالضرورة مربوطة بإنزال الآيات والمعجزات التي اقترح المشركون إظهارها.\n• من آثار القرآن على العبد المؤمن أنه يورثه طمأنينة في القلب.",
+      "tr": "28 - Diejenigen, die Allah rechtleitet, sind die Gläubigen, deren Herzen durch das Gedenken Allahs, Seine Preisung, Sein Lob und das Lesen Seines Buches Ruhe finden. Allein im Gedenken Allahs finden die Herzen Ruhe; dies steht ihnen zu.\n[LEHREN AUS DEN VERSEN]\n• Ermutigung zu Tugenden, die ins Paradies führen: gute Beziehungen, Furcht vor Allah, das Einhalten von Verpflichtungen, Geduld, Ausgeben und das Beantworten von Schlechtem mit Gutem; sowie Warnung vor ihrem Gegenteil.\n• Die Schlüssel der Versorgung liegen in Allahs Hand, gepriesen und erhaben ist Er. Dass Allah die Versorgung eines Dieners erweitert oder einschränkt, soll nicht an sich Anlass für Freude oder Trauer sein; es beweist weder Allahs Wohlgefallen noch Seinen Zorn gegenüber diesem Diener.\n• Rechtleitung ist nicht unbedingt an das Herabsenden jener Zeichen und Wunder gebunden, deren Vorführung die Götzendiener verlangten.\n• Eine Wirkung des Korans auf den gläubigen Diener ist, dass er seinem Herzen Ruhe verleiht.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:45a07072c470",
+      "kind": "text",
+      "ar": "المختصر في التفسير",
+      "tr": "Al-Muchtasar fi at-Tafsir",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:39e7e4c6bec1",
+      "kind": "text",
+      "ar": "قرأتُها وسكنتُ",
+      "tr": "Ich habe gelesen und bin still geworden",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1158653a1337",
+      "kind": "text",
+      "ar": "صلِّ ركعتي الضحى",
+      "tr": "Bete zwei Gebetseinheiten des Duha-Gebets",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:264421ee13f7",
+      "kind": "hadith",
+      "ar": "وَيُجْزِئُ مِنْ ذَلِكَ رَكْعَتَانِ يَرْكَعُهُمَا مِنَ الضُّحَى",
+      "tr": "Zwei Gebetseinheiten, die er zur Duha-Zeit betet, genügen dafür.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:29f3ca5f8dac",
+      "kind": "text",
+      "ar": "صلّيتُهما",
+      "tr": "Ich habe sie gebetet",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:01bd5e7a7898",
+      "kind": "text",
+      "ar": "سرّ اسم هذا القسم",
+      "tr": "Die Bedeutung des Namens dieses Bereichs",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:71ae0c0be445",
+      "kind": "text",
+      "ar": "سَأَلْتُ أُمَّ المُؤْمِنِينَ عَائِشَةَ، قُلْتُ: يَا أُمَّ المُؤْمِنِينَ، كَيْفَ كَانَ عَمَلُ النَّبِيِّ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ، هَلْ كَانَ يَخُصُّ شَيْئًا مِنَ الأَيَّامِ؟ قَالَتْ: «لاَ، كَانَ عَمَلُهُ دِيمَةً",
+      "tr": "Ich fragte die Mutter der Gläubigen A’ischa: „O Mutter der Gläubigen, wie waren die Taten des Propheten, Allahs Segen und Frieden auf ihm? Zeichnete er bestimmte Tage aus?“ Sie antwortete: „Nein, sein Tun war beständig.“",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b276f2717489",
+      "kind": "text",
+      "ar": "الدِّيمة: المطر الدائم في سكون، ومنه اسم هذا القسم",
+      "tr": "Dima bedeutet ruhiger, anhaltender Regen; daher der Name dieses Bereichs",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7bae20b3a0d4",
+      "kind": "text",
+      "ar": "فهمتُ الاسم",
+      "tr": "Ich habe den Namen verstanden",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:775c139fc71b",
+      "kind": "text",
+      "ar": "اعمل اليوم عملًا خفيًّا لا يعلمه أحد",
+      "tr": "Verrichte heute eine verborgene gute Tat, von der niemand weiß",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a2b5f40907ed",
+      "kind": "hadith",
+      "ar": "وَرَجُلٌ تَصَدَّقَ بِصَدَقَةٍ فَأَخْفَاهَا حَتَّى لاَ تَعْلَمَ شِمَالُهُ مَا تُنْفِقُ يَمِينُهُ",
+      "tr": "Und ein Mann, der eine Spende gibt und sie so verbirgt, dass seine linke Hand nicht weiß, was seine rechte ausgibt.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ee4aeff06c85",
+      "kind": "text",
+      "ar": "فعلتُه",
+      "tr": "Ich habe es getan",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d35dfabb25f2",
+      "kind": "text",
+      "ar": "تأمّلٌ في السماء",
+      "tr": "Über den Himmel nachdenken",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3091bff0f30c",
+      "kind": "quran",
+      "ar": "إِنَّ فِى خَلْقِ ٱلسَّمَـٰوَٰتِ وَٱلْأَرْضِ وَٱخْتِلَـٰفِ ٱلَّيْلِ وَٱلنَّهَارِ لَـَٔايَـٰتٍ لِّأُو۟لِى ٱلْأَلْبَـٰبِ",
+      "tr": "Zusammenhang des vollständigen Verses (3:190):\nWahrlich, in der Schöpfung der Himmel und der Erde und in dem Unterschied von Nacht und Tag liegen fürwahr Zeichen für diejenigen, die Verstand besitzen.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/3/190",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "3:190",
+        "refs": [
+          "3:190"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:a7fa47e20162",
+      "kind": "text",
+      "ar": "آل عمران: ١٩٠",
+      "tr": "Al ʿImran: ١٩٠",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4c38aa57f637",
+      "kind": "text",
+      "ar": "تفكّرتُ",
+      "tr": "Ich habe nachgedacht",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2da6b942f85b",
+      "kind": "text",
+      "ar": "سلّم على من تعرف ومن لا تعرف",
+      "tr": "Grüße Menschen, die du kennst, und solche, die du nicht kennst",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:02a2f24ecc5b",
+      "kind": "hadith",
+      "ar": "أَفْشُوا السَّلَامَ بَيْنَكُمْ",
+      "tr": "Verbreitet den Friedensgruß unter euch.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:54bda18381ab",
+      "kind": "text",
+      "ar": "سلّمتُ",
+      "tr": "Ich habe gegrüßt",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:90ac8e1ad8d9",
+      "kind": "text",
+      "ar": "معنى أن يراك الله",
+      "tr": "Was es bedeutet, dass Allah dich sieht",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:081d9bc2982a",
+      "kind": "quran",
+      "ar": "وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ",
+      "tr": "Zusammenhang des vollständigen Verses (57:4):\nEr ist es, Der die Himmel und die Erde in sechs Tagen erschuf und Sich hierauf über den Thron erhob. Er weiß, was in die Erde eindringt und was aus ihr herauskommt, was vom Himmel herabkommt und was dorthin aufsteigt. Und Er ist mit euch, wo immer ihr auch seid, und Allah ist sehend über das, was ihr tut.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/57/4",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "57:4",
+        "refs": [
+          "57:4"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:d8dc1eff0491",
+      "kind": "quran",
+      "ar": "هُوَ ٱلَّذِى خَلَقَ ٱلسَّمَـٰوَٰتِ وَٱلْأَرْضَ فِى سِتَّةِ أَيَّامٍ ثُمَّ ٱسْتَوَىٰ عَلَى ٱلْعَرْشِ ۚ يَعْلَمُ مَا يَلِجُ فِى ٱلْأَرْضِ وَمَا يَخْرُجُ مِنْهَا وَمَا يَنزِلُ مِنَ ٱلسَّمَآءِ وَمَا يَعْرُجُ فِيهَا ۖ وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ ۚ وَٱللَّهُ بِمَا تَعْمَلُونَ بَصِيرٌ",
+      "tr": "Zusammenhang des vollständigen Verses (57:4):\nEr ist es, Der die Himmel und die Erde in sechs Tagen erschuf und Sich hierauf über den Thron erhob. Er weiß, was in die Erde eindringt und was aus ihr herauskommt, was vom Himmel herabkommt und was dorthin aufsteigt. Und Er ist mit euch, wo immer ihr auch seid, und Allah ist sehend über das, was ihr tut.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/57/4",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "57:4",
+        "refs": [
+          "57:4"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:281bc3d50863",
+      "kind": "text",
+      "ar": "الحديد: ٤",
+      "tr": "Al-Hadid: ٤",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:163c681cb4d0",
+      "kind": "text",
+      "ar": "استحضرتُ",
+      "tr": "Ich habe es mir vergegenwärtigt",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:958aee9120cc",
+      "kind": "quran",
+      "ar": "وَقُل لَّهُمَا قَوْلًا كَرِيمًا",
+      "tr": "Zusammenhang des vollständigen Verses (17:23):\nUnd dein Herr hat angeordnet, dass ihr nur Ihm dienen sollt und zu den Eltern gütig zu sein. Wenn nun einer von ihnen oder beide bei dir ein hohes Alter erreichen, so sag nicht zu ihnen: „Uff!“ und fahre sie nicht an, sondern sag zu ihnen würdevolle Worte.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/17/23",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "17:23",
+        "refs": [
+          "17:23"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:37e30d264f90",
+      "kind": "quran",
+      "ar": "وَقَضَىٰ رَبُّكَ أَلَّا تَعْبُدُوٓا۟ إِلَّآ إِيَّاهُ وَبِٱلْوَٰلِدَيْنِ إِحْسَـٰنًا ۚ إِمَّا يَبْلُغَنَّ عِندَكَ ٱلْكِبَرَ أَحَدُهُمَآ أَوْ كِلَاهُمَا فَلَا تَقُل لَّهُمَآ أُفٍّ وَلَا تَنْهَرْهُمَا وَقُل لَّهُمَا قَوْلًا كَرِيمًا",
+      "tr": "Zusammenhang des vollständigen Verses (17:23):\nUnd dein Herr hat angeordnet, dass ihr nur Ihm dienen sollt und zu den Eltern gütig zu sein. Wenn nun einer von ihnen oder beide bei dir ein hohes Alter erreichen, so sag nicht zu ihnen: „Uff!“ und fahre sie nicht an, sondern sag zu ihnen würdevolle Worte.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/17/23",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "17:23",
+        "refs": [
+          "17:23"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:9e9f8ed257ca",
+      "kind": "text",
+      "ar": "الإسراء: ٢٣",
+      "tr": "Al-Isra’: ٢٣",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:497006ea9a84",
+      "kind": "text",
+      "ar": "فعلتُها",
+      "tr": "Ich habe es getan",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:02eb46d6b17f",
+      "kind": "text",
+      "ar": "زيارةٌ تُدخلك بساتين الجنة",
+      "tr": "Ein Besuch in den Gärten des Paradieses",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5218f0630325",
+      "kind": "quran",
+      "ar": "كُلُّ نَفْسٍ ذَآئِقَةُ ٱلْمَوْتِ",
+      "tr": "Zusammenhang des vollständigen Verses (3:185):\nJede Seele wird den Tod kosten. Und erst am Tag der Auferstehung wird euch euer Lohn in vollem Maß zukommen. Wer dann dem (Höllen)feuer entrückt und in den (Paradies)garten eingelassen wird, der hat gewiss einen Erfolg erzielt. Und das diesseitige Leben ist ja nur ein trügerischer Genuss.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/3/185",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "3:185",
+        "refs": [
+          "3:185"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:f71106ec1dfa",
+      "kind": "quran",
+      "ar": "كُلُّ نَفْسٍ ذَآئِقَةُ ٱلْمَوْتِ ۗ وَإِنَّمَا تُوَفَّوْنَ أُجُورَكُمْ يَوْمَ ٱلْقِيَـٰمَةِ ۖ فَمَن زُحْزِحَ عَنِ ٱلنَّارِ وَأُدْخِلَ ٱلْجَنَّةَ فَقَدْ فَازَ ۗ وَمَا ٱلْحَيَوٰةُ ٱلدُّنْيَآ إِلَّا مَتَـٰعُ ٱلْغُرُورِ",
+      "tr": "Zusammenhang des vollständigen Verses (3:185):\nJede Seele wird den Tod kosten. Und erst am Tag der Auferstehung wird euch euer Lohn in vollem Maß zukommen. Wer dann dem (Höllen)feuer entrückt und in den (Paradies)garten eingelassen wird, der hat gewiss einen Erfolg erzielt. Und das diesseitige Leben ist ja nur ein trügerischer Genuss.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/3/185",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "3:185",
+        "refs": [
+          "3:185"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:ffbaa68ba877",
+      "kind": "text",
+      "ar": "آل عمران: ١٨٥",
+      "tr": "Al ʿImran: ١٨٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:aa3484814ce9",
+      "kind": "text",
+      "ar": "تذكّرتُ",
+      "tr": "Ich habe mich erinnert",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:57b6e171fa35",
+      "kind": "text",
+      "ar": "زُر مريضًا أو اتصل به",
+      "tr": "Besuche einen Kranken oder rufe ihn an",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:aee8ae614a41",
+      "kind": "hadith",
+      "ar": "مَنْ عَادَ مَرِيضًا، لَمْ يَزَلْ فِي خُرْفَةِ الْجَنَّةِ",
+      "tr": "Wer einen Kranken besucht, bleibt in der Obsternte des Paradieses.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:09abc14df2a9",
+      "kind": "text",
+      "ar": "عُدتُه",
+      "tr": "Ich habe ihn besucht",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ef55122e7311",
+      "kind": "text",
+      "ar": "حسنُ الظنّ بالله",
+      "tr": "Gutes von Allah erwarten",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0dbb48646cae",
+      "kind": "text",
+      "ar": "أحسن ظنّك بالله فيما تنتظره",
+      "tr": "Erwarte Gutes von Allah in dem, worauf du wartest",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f982a268d23c",
+      "kind": "hadith",
+      "ar": "أَنَا عِنْدَ ظَنِّ عَبْدِي بِي",
+      "tr": "Ich bin so, wie Mein Diener von Mir denkt.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:50430be2cb6f",
+      "kind": "text",
+      "ar": "أحسنتُ ظنّي",
+      "tr": "Ich habe Gutes erwartet",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:aa0f15bf7171",
+      "kind": "text",
+      "ar": "أعِن أحدًا في حاجةٍ صغيرة: حملٌ، أو بابٌ، أو كلمةُ إرشاد",
+      "tr": "Hilf jemandem bei einer Kleinigkeit: etwas tragen, eine Tür öffnen oder den Weg zeigen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:484b458a6621",
+      "kind": "hadith",
+      "ar": "وَاللهُ فِي عَوْنِ الْعَبْدِ مَا كَانَ الْعَبْدُ فِي عَوْنِ أَخِيهِ",
+      "tr": "Allah hilft dem Diener, solange der Diener seinem Bruder hilft.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:78f9d8ff902c",
+      "kind": "text",
+      "ar": "أعنتُ",
+      "tr": "Ich habe geholfen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d709ae66b312",
+      "kind": "text",
+      "ar": "نعمةٌ لا توازيها نعمة",
+      "tr": "Eine unvergleichliche Gabe",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6de7e3f2b5f5",
+      "kind": "quran",
+      "ar": "وَرَضِيتُ لَكُمُ ٱلْإِسْلَـٰمَ دِينًا",
+      "tr": "Zusammenhang des vollständigen Verses (5:3):\nVerboten ist euch (der Verzehr von) Verendetem, Blut, Schweinefleisch und dem, worüber ein anderer (Name) als Allah(s) angerufen worden ist, und (der Verzehr von) Ersticktem, Erschlagenem, zu Tode Gestürztem oder Gestoßenem, und was von einem wilden Tier gerissen worden ist - außer dem, was ihr schlachtet - und (ebenso verboten ist euch,) was auf einem Opferstein geschlachtet worden ist, und das Losen mit Lospfeilen. Dies ist Frevel. Heute haben diejenigen, die ungläubig sind, hinsichtlich eurer Religion die Hoffnung aufgegeben. So fürchtet nicht sie, sondern fürchtet Mich! Heute habe Ich euch eure Religion vervollkommnet und Meine Gunst an euch vollendet, und Ich bin mit dem Islam als Religion für euch zufrieden. Wer sich nun aus Hunger in einer Notlage befindet, ohne zu einer Sünde hinzuneigen, so ist Allah gewiss allvergebend und barmherzig.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/5/3",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "5:3",
+        "refs": [
+          "5:3"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:86c37ab91253",
+      "kind": "quran",
+      "ar": "حُرِّمَتْ عَلَيْكُمُ ٱلْمَيْتَةُ وَٱلدَّمُ وَلَحْمُ ٱلْخِنزِيرِ وَمَآ أُهِلَّ لِغَيْرِ ٱللَّهِ بِهِۦ وَٱلْمُنْخَنِقَةُ وَٱلْمَوْقُوذَةُ وَٱلْمُتَرَدِّيَةُ وَٱلنَّطِيحَةُ وَمَآ أَكَلَ ٱلسَّبُعُ إِلَّا مَا ذَكَّيْتُمْ وَمَا ذُبِحَ عَلَى ٱلنُّصُبِ وَأَن تَسْتَقْسِمُوا۟ بِٱلْأَزْلَـٰمِ ۚ ذَٰلِكُمْ فِسْقٌ ۗ ٱلْيَوْمَ يَئِسَ ٱلَّذِينَ كَفَرُوا۟ مِن دِينِكُمْ فَلَا تَخْشَوْهُمْ وَٱخْشَوْنِ ۚ ٱلْيَوْمَ أَكْمَلْتُ لَكُمْ دِينَكُمْ وَأَتْمَمْتُ عَلَيْكُمْ نِعْمَتِى وَرَضِيتُ لَكُمُ ٱلْإِسْلَـٰمَ دِينًا ۚ فَمَنِ ٱضْطُرَّ فِى مَخْمَصَةٍ غَيْرَ مُتَجَانِفٍ لِّإِثْمٍ ۙ فَإِنَّ ٱللَّهَ غَفُورٌ رَّحِيمٌ",
+      "tr": "Zusammenhang des vollständigen Verses (5:3):\nVerboten ist euch (der Verzehr von) Verendetem, Blut, Schweinefleisch und dem, worüber ein anderer (Name) als Allah(s) angerufen worden ist, und (der Verzehr von) Ersticktem, Erschlagenem, zu Tode Gestürztem oder Gestoßenem, und was von einem wilden Tier gerissen worden ist - außer dem, was ihr schlachtet - und (ebenso verboten ist euch,) was auf einem Opferstein geschlachtet worden ist, und das Losen mit Lospfeilen. Dies ist Frevel. Heute haben diejenigen, die ungläubig sind, hinsichtlich eurer Religion die Hoffnung aufgegeben. So fürchtet nicht sie, sondern fürchtet Mich! Heute habe Ich euch eure Religion vervollkommnet und Meine Gunst an euch vollendet, und Ich bin mit dem Islam als Religion für euch zufrieden. Wer sich nun aus Hunger in einer Notlage befindet, ohne zu einer Sünde hinzuneigen, so ist Allah gewiss allvergebend und barmherzig.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/5/3",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "5:3",
+        "refs": [
+          "5:3"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:dc86c476328e",
+      "kind": "text",
+      "ar": "المائدة: ٣",
+      "tr": "Al-Ma’ida: ٣",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ff3171fadf31",
+      "kind": "text",
+      "ar": "اعفُ اليوم عن أحدٍ أساء إليك",
+      "tr": "Vergib heute jemandem, der dir Unrecht getan hat",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:02231d7aed77",
+      "kind": "hadith",
+      "ar": "وَمَا زَادَ اللهُ عَبْدًا بِعَفْوٍ، إِلَّا عِزًّا",
+      "tr": "Allah mehrt einem Diener durch Vergebung nur seine Ehre.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7f77a5bbf5f7",
+      "kind": "text",
+      "ar": "عفوتُ",
+      "tr": "Ich habe vergeben",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a1734a751379",
+      "kind": "text",
+      "ar": "حوارٌ بينك وبين ربّك في الفاتحة",
+      "tr": "Ein Gespräch zwischen dir und deinem Herrn in Al-Fatiha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d692abd5b90c",
+      "kind": "text",
+      "ar": "في صلاتك اليوم، تدبّر الفاتحة آيةً آية",
+      "tr": "Denke heute im Gebet über Al-Fatiha nach, Vers für Vers",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5fee4c48e032",
+      "kind": "hadith",
+      "ar": "قَسَمْتُ الصَّلَاةَ بَيْنِي وَبَيْنَ عَبْدِي نِصْفَيْنِ",
+      "tr": "Ich habe das Gebet zwischen Mir und Meinem Diener in zwei Hälften geteilt.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:02f573b7d7e0",
+      "kind": "text",
+      "ar": "تدبّرتُ",
+      "tr": "Ich habe darüber nachgedacht",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:371e8baaa08d",
+      "kind": "text",
+      "ar": "اقرأ صفحةً واحدةً من القرآن بتأنٍّ",
+      "tr": "Lies aufmerksam eine einzige Seite des Korans",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:564401ee3639",
+      "kind": "hadith",
+      "ar": "مَنْ قَرَأَ حَرْفًا مِنْ كِتَابِ اللهِ فَلَهُ بِهِ حَسَنَةٌ، وَالحَسَنَةُ بِعَشْرِ أَمْثَالِهَا",
+      "tr": "Wer einen Buchstaben aus Allahs Buch liest, erhält dafür eine gute Tat, und eine gute Tat wird zehnfach vergolten.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:eddb7fb92cdd",
+      "kind": "text",
+      "ar": "قرأتُ",
+      "tr": "Ich habe gelesen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:572a32ac3a9f",
+      "kind": "text",
+      "ar": "من أين جاء رزقك؟",
+      "tr": "Woher kommt deine Versorgung?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:13168ae1cf1d",
+      "kind": "quran",
+      "ar": "وَمَا بِكُم مِّن نِّعْمَةٍ فَمِنَ ٱللَّهِ",
+      "tr": "Zusammenhang des vollständigen Verses (16:53):\nUnd was ihr an Gunstgabe erfahrt, so ist das von Allah. Wenn euch hierauf ein Schaden trifft, so fleht ihr Ihn laut um Hilfe an.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/16/53",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "16:53",
+        "refs": [
+          "16:53"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:d5db725b1a65",
+      "kind": "quran",
+      "ar": "وَمَا بِكُم مِّن نِّعْمَةٍ فَمِنَ ٱللَّهِ ۖ ثُمَّ إِذَا مَسَّكُمُ ٱلضُّرُّ فَإِلَيْهِ تَجْـَٔرُونَ",
+      "tr": "Zusammenhang des vollständigen Verses (16:53):\nUnd was ihr an Gunstgabe erfahrt, so ist das von Allah. Wenn euch hierauf ein Schaden trifft, so fleht ihr Ihn laut um Hilfe an.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/16/53",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "16:53",
+        "refs": [
+          "16:53"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:bc58638e5295",
+      "kind": "text",
+      "ar": "النحل: ٥٣",
+      "tr": "An-Nahl: ٥٣",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cdad75d8d0d2",
+      "kind": "text",
+      "ar": "تأمّلتُ",
+      "tr": "Ich habe nachgedacht",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4f74626399c3",
+      "kind": "text",
+      "ar": "أطعم أحدًا: جارًا، أو عاملًا، أو محتاجًا",
+      "tr": "Gib jemandem zu essen: einem Nachbarn, einem Arbeiter oder einem Bedürftigen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:df3539720eaf",
+      "kind": "hadith",
+      "ar": "تُطْعِمُ الطَّعَامَ، وَتَقْرَأُ السَّلاَمَ عَلَى مَنْ عَرَفْتَ وَمَنْ لَمْ تَعْرِفْ",
+      "tr": "Du gibst zu essen und grüßt diejenigen, die du kennst, und diejenigen, die du nicht kennst.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:923a101738fe",
+      "kind": "text",
+      "ar": "أطعمتُ",
+      "tr": "Ich habe zu essen gegeben",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:08d1fdd3fda9",
+      "kind": "text",
+      "ar": "نظّف قلبك من شيءٍ واحد",
+      "tr": "Reinige dein Herz von einer Sache",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b0635da76858",
+      "kind": "text",
+      "ar": "فتّش قلبك من الحسد، واسأل الله أن ينزعه",
+      "tr": "Prüfe dein Herz auf Neid und bitte Allah, ihn zu entfernen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:840ed35e7906",
+      "kind": "hadith",
+      "ar": "لَا تَحَاسَدُوا، وَلَا تَنَاجَشُوا، وَلَا تَبَاغَضُوا، وَلَا تَدَابَرُوا، وَلَا يَبِعْ بَعْضُكُمْ عَلَى بَيْعِ بَعْضٍ، وَكُونُوا عِبَادَ اللهِ إِخْوَانًا",
+      "tr": "Beneidet einander nicht, treibt Preise nicht betrügerisch hoch, hasst einander nicht, wendet euch nicht voneinander ab, verkauft nicht über den Verkauf des anderen hinweg, und seid Allahs Diener als Brüder.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:14f47068e221",
+      "kind": "text",
+      "ar": "فتّشتُ",
+      "tr": "Ich habe mein Herz geprüft",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8d2a3b29580a",
+      "kind": "text",
+      "ar": "قل كلمةً طيبةً لأحدٍ اليوم",
+      "tr": "Sage heute jemandem ein gutes Wort",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d6b92a23bd7f",
+      "kind": "hadith",
+      "ar": "وَالكَلِمَةُ الطَّيِّبَةُ صَدَقَةٌ",
+      "tr": "Und ein gutes Wort ist eine Spende.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b1adff1eaa94",
+      "kind": "text",
+      "ar": "حياتك كلّها عبادة",
+      "tr": "Dein ganzes Leben ist Gottesdienst",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b5a58064f03c",
+      "kind": "quran",
+      "ar": "قُلْ إِنَّ صَلَاتِى وَنُسُكِى وَمَحْيَاىَ وَمَمَاتِى لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ",
+      "tr": "Zusammenhang des vollständigen Verses (6:162):\nSag: „Wahrlich, mein Gebet und mein (Schlacht)opfer, mein Leben und mein Sterben gehören Allah, dem Herrn der Weltenbewohner.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/6/162",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "6:162",
+        "refs": [
+          "6:162"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:8871f9daaf61",
+      "kind": "text",
+      "ar": "الأنعام: ١٦٢",
+      "tr": "Al-Anʿam: ١٦٢",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6127d6256dbb",
+      "kind": "text",
+      "ar": "صلِّ راتبةً كنتَ تفوّتها",
+      "tr": "Bete ein regelmäßiges freiwilliges Gebet, das du sonst versäumst",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5735e5bb00d3",
+      "kind": "hadith",
+      "ar": "مَنْ صَلَّى اثْنَتَيْ عَشْرَةَ رَكْعَةً فِي يَوْمٍ وَلَيْلَةٍ، بُنِيَ لَهُ بِهِنَّ بَيْتٌ فِي الْجَنَّةِ",
+      "tr": "Wer an einem Tag und einer Nacht zwölf Gebetseinheiten betet, dem wird dafür ein Haus im Paradies gebaut.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e166bf870e61",
+      "kind": "text",
+      "ar": "صلّيتُها",
+      "tr": "Ich habe es gebetet",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f82a52bb6504",
+      "kind": "text",
+      "ar": "لا تكن من الغافلين",
+      "tr": "Zusammenhang des vollständigen Verses (7:205):\nUnd gedenke deines Herrn in deiner Seele in Unterwürfigkeit flehend und in Furcht und mit leiser Stimme, (dies) am Morgen und am Abend. Und gehöre nicht zu den Unachtsamen!",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/7/205",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "7:205",
+        "refs": [
+          "7:205"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:9c2f74da3418",
+      "kind": "quran",
+      "ar": "وَلَا تَكُن مِّنَ ٱلْغَـٰفِلِينَ",
+      "tr": "Zusammenhang des vollständigen Verses (7:205):\nUnd gedenke deines Herrn in deiner Seele in Unterwürfigkeit flehend und in Furcht und mit leiser Stimme, (dies) am Morgen und am Abend. Und gehöre nicht zu den Unachtsamen!",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/7/205",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "7:205",
+        "refs": [
+          "7:205"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:f2ebed900462",
+      "kind": "quran",
+      "ar": "وَٱذْكُر رَّبَّكَ فِى نَفْسِكَ تَضَرُّعًا وَخِيفَةً وَدُونَ ٱلْجَهْرِ مِنَ ٱلْقَوْلِ بِٱلْغُدُوِّ وَٱلْـَٔاصَالِ وَلَا تَكُن مِّنَ ٱلْغَـٰفِلِينَ",
+      "tr": "Zusammenhang des vollständigen Verses (7:205):\nUnd gedenke deines Herrn in deiner Seele in Unterwürfigkeit flehend und in Furcht und mit leiser Stimme, (dies) am Morgen und am Abend. Und gehöre nicht zu den Unachtsamen!",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/7/205",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "7:205",
+        "refs": [
+          "7:205"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:4daac594b84d",
+      "kind": "text",
+      "ar": "الأعراف: ٢٠٥",
+      "tr": "Al-Aʿraf: ٢٠٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dc409460041d",
+      "kind": "text",
+      "ar": "ذكرتُ الله",
+      "tr": "Ich habe Allahs gedacht",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a4bb28500a0c",
+      "kind": "text",
+      "ar": "اسقِ نبتةً أو أطعم طيرًا",
+      "tr": "Gieße eine Pflanze oder füttere einen Vogel",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:97d454361971",
+      "kind": "hadith",
+      "ar": "مَا مِنْ مُسْلِمٍ يَغْرِسُ غَرْسًا إِلَّا كَانَ مَا أُكِلَ مِنْهُ لَهُ صَدَقَةً",
+      "tr": "Kein Muslim pflanzt etwas, ohne dass ihm alles, was davon gegessen wird, als Spende angerechnet wird.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a790a0c1466c",
+      "kind": "text",
+      "ar": "أنت غريبٌ هنا",
+      "tr": "Du bist hier ein Fremder",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b9ce6b7418f9",
+      "kind": "text",
+      "ar": "تذكّر أنّك في الدنيا عابرُ سبيل",
+      "tr": "Denke daran, dass du in dieser Welt nur auf der Durchreise bist",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9b4ae925a015",
+      "kind": "hadith",
+      "ar": "كُنْ فِي الدُّنْيَا كَأَنَّكَ غَرِيبٌ أَوْ عَابِرُ سَبِيلٍ",
+      "tr": "Sei in dieser Welt wie ein Fremder oder ein Durchreisender.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7851a85c4ab3",
+      "kind": "text",
+      "ar": "أعِن أهل بيتك في عملٍ من أعمال البيت",
+      "tr": "Hilf deiner Familie bei einer Aufgabe im Haushalt",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f83d93310b8a",
+      "kind": "hadith",
+      "ar": "كَانَ يَكُونُ فِي مِهْنَةِ أَهْلِهِ",
+      "tr": "Er half seiner Familie bei ihrer Arbeit.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:91c2861b83f4",
+      "kind": "text",
+      "ar": "أعنتُهم",
+      "tr": "Ich habe ihnen geholfen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dc2bcb58708e",
+      "kind": "text",
+      "ar": "الصلاة في وقتها",
+      "tr": "Das Gebet zu seiner Zeit",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3f68d3829e53",
+      "kind": "quran",
+      "ar": "وَأَقِمِ ٱلصَّلَوٰةَ لِذِكْرِىٓ",
+      "tr": "Zusammenhang des vollständigen Verses (20:14):\nWahrlich, Ich bin Allah. Es gibt keinen Anbetungswürdigen, außer Mir. So diene Mir und verrichte das Gebet zu Meinem Gedenken.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/20/14",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "20:14",
+        "refs": [
+          "20:14"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:147b4de7980d",
+      "kind": "quran",
+      "ar": "إِنَّنِىٓ أَنَا ٱللَّهُ لَآ إِلَـٰهَ إِلَّآ أَنَا۠ فَٱعْبُدْنِى وَأَقِمِ ٱلصَّلَوٰةَ لِذِكْرِىٓ",
+      "tr": "Zusammenhang des vollständigen Verses (20:14):\nWahrlich, Ich bin Allah. Es gibt keinen Anbetungswürdigen, außer Mir. So diene Mir und verrichte das Gebet zu Meinem Gedenken.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/20/14",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "20:14",
+        "refs": [
+          "20:14"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:d5aafc7b6ab8",
+      "kind": "text",
+      "ar": "طه: ١٤",
+      "tr": "Ta-Ha: ١٤",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:60350f82d6af",
+      "kind": "text",
+      "ar": "صلِّ صلاةً واحدةً اليوم في أوّل وقتها",
+      "tr": "Bete heute eines der Gebete gleich zu Beginn seiner Zeit",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f21a9d2c6ac5",
+      "kind": "hadith",
+      "ar": "الصَّلاَةُ عَلَى وَقْتِهَا",
+      "tr": "Das Gebet zu seiner Zeit.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0095610f7183",
+      "kind": "text",
+      "ar": "صمتٌ يُثقل ميزانك",
+      "tr": "Schweigen, das deine Waage schwerer macht",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:931ba661039c",
+      "kind": "text",
+      "ar": "احفظ لسانك اليوم من الغيبة، واستعذ بالله منها",
+      "tr": "Bewahre heute deine Zunge vor übler Nachrede und suche bei Allah Schutz davor",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:38d1c96ffca9",
+      "kind": "hadith",
+      "ar": "مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَاليَوْمِ الآخِرِ فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ",
+      "tr": "Wer an Allah und den Jüngsten Tag glaubt, soll Gutes sprechen oder schweigen.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a40acbe9bd30",
+      "kind": "text",
+      "ar": "حفظتُه",
+      "tr": "Ich habe meine Zunge bewahrt",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6fbc7ff52a2a",
+      "kind": "text",
+      "ar": "استر عيبًا رأيته في أخيك",
+      "tr": "Verberge einen Fehler, den du bei deinem Bruder gesehen hast",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ffc85f2fe070",
+      "kind": "hadith",
+      "ar": "وَمَنْ سَتَرَ مُسْلِمًا، سَتَرَهُ اللهُ فِي الدُّنْيَا وَالْآخِرَةِ",
+      "tr": "Wer einen Muslim bedeckt, den bedeckt Allah im Diesseits und im Jenseits.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fc201fd979c6",
+      "kind": "text",
+      "ar": "سترتُ",
+      "tr": "Ich habe ihn verborgen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fae3796c0a69",
+      "kind": "text",
+      "ar": "أجرٌ بغير حساب",
+      "tr": "Lohn ohne Abrechnung",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:937dfe0d45cb",
+      "kind": "quran",
+      "ar": "إِنَّمَا يُوَفَّى ٱلصَّـٰبِرُونَ أَجْرَهُم بِغَيْرِ حِسَابٍ",
+      "tr": "Zusammenhang des vollständigen Verses (39:10):\nSag: O Meine Diener, die ihr gläubig seid: „Fürchtet euren Herrn.“ Für diejenigen, die Gutes tun, gibt es hier im Diesseits Gutes. Und Allahs Erde ist weit. Wahrlich, den Geduldigen wird ihr Lohn ohne Berechnung in vollem Maß zukommen.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/39/10",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "39:10",
+        "refs": [
+          "39:10"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:0eb0f02d51da",
+      "kind": "quran",
+      "ar": "قُلْ يَـٰعِبَادِ ٱلَّذِينَ ءَامَنُوا۟ ٱتَّقُوا۟ رَبَّكُمْ ۚ لِلَّذِينَ أَحْسَنُوا۟ فِى هَـٰذِهِ ٱلدُّنْيَا حَسَنَةٌ ۗ وَأَرْضُ ٱللَّهِ وَٰسِعَةٌ ۗ إِنَّمَا يُوَفَّى ٱلصَّـٰبِرُونَ أَجْرَهُم بِغَيْرِ حِسَابٍ",
+      "tr": "Zusammenhang des vollständigen Verses (39:10):\nSag: O Meine Diener, die ihr gläubig seid: „Fürchtet euren Herrn.“ Für diejenigen, die Gutes tun, gibt es hier im Diesseits Gutes. Und Allahs Erde ist weit. Wahrlich, den Geduldigen wird ihr Lohn ohne Berechnung in vollem Maß zukommen.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/39/10",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "39:10",
+        "refs": [
+          "39:10"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:b0ed72c990f1",
+      "kind": "text",
+      "ar": "الزمر: ١٠",
+      "tr": "Az-Zumar: ١٠",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ec96a3d2f6f0",
+      "kind": "text",
+      "ar": "صبرتُ",
+      "tr": "Ich war geduldig",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5ccf17674069",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ يَأْمُرُكُمْ أَن تُؤَدُّوا۟ ٱلْأَمَـٰنَـٰتِ إِلَىٰٓ أَهْلِهَا",
+      "tr": "Zusammenhang des vollständigen Verses (4:58):\nWahrlich, Allah befiehlt euch, die anvertrauten Güter ihren Eigentümern (wieder) auszuhändigen und wenn ihr zwischen den Menschen richtet, in Gerechtigkeit zu richten. Wie trefflich ist das, womit Allah euch ermahnt! Wahrlich, Allah ist allhörend und allsehend.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/4/58",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "4:58",
+        "refs": [
+          "4:58"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:5eac40643355",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ يَأْمُرُكُمْ أَن تُؤَدُّوا۟ ٱلْأَمَـٰنَـٰتِ إِلَىٰٓ أَهْلِهَا وَإِذَا حَكَمْتُم بَيْنَ ٱلنَّاسِ أَن تَحْكُمُوا۟ بِٱلْعَدْلِ ۚ إِنَّ ٱللَّهَ نِعِمَّا يَعِظُكُم بِهِۦٓ ۗ إِنَّ ٱللَّهَ كَانَ سَمِيعًۢا بَصِيرًا",
+      "tr": "Zusammenhang des vollständigen Verses (4:58):\nWahrlich, Allah befiehlt euch, die anvertrauten Güter ihren Eigentümern (wieder) auszuhändigen und wenn ihr zwischen den Menschen richtet, in Gerechtigkeit zu richten. Wie trefflich ist das, womit Allah euch ermahnt! Wahrlich, Allah ist allhörend und allsehend.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/4/58",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "4:58",
+        "refs": [
+          "4:58"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:1c79ac934a59",
+      "kind": "text",
+      "ar": "النساء: ٥٨",
+      "tr": "An-Nisa’: ٥٨",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d59cdaf1e150",
+      "kind": "text",
+      "ar": "أدّيتُها",
+      "tr": "Ich habe es zurückgegeben",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4f6d4e2e0c9a",
+      "kind": "text",
+      "ar": "لمن تعمل؟",
+      "tr": "Für wen handelst du?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d58f51f63855",
+      "kind": "quran",
+      "ar": "وَمَآ أُمِرُوٓا۟ إِلَّا لِيَعْبُدُوا۟ ٱللَّهَ مُخْلِصِينَ لَهُ ٱلدِّينَ",
+      "tr": "Zusammenhang des vollständigen Verses (98:5):\nUnd nichts anderes wurde ihnen befohlen, als nur Allah zu dienen und (dabei) Ihm gegenüber, als Anhänger des rechten Glaubens, aufrichtig in der Religion (zu sein) und das Gebet zu verrichten und die Pflichtabgabe zu entrichten; dies ist die Religion des rechten Verhaltens.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/98/5",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "98:5",
+        "refs": [
+          "98:5"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:41d434fcdabb",
+      "kind": "quran",
+      "ar": "وَمَآ أُمِرُوٓا۟ إِلَّا لِيَعْبُدُوا۟ ٱللَّهَ مُخْلِصِينَ لَهُ ٱلدِّينَ حُنَفَآءَ وَيُقِيمُوا۟ ٱلصَّلَوٰةَ وَيُؤْتُوا۟ ٱلزَّكَوٰةَ ۚ وَذَٰلِكَ دِينُ ٱلْقَيِّمَةِ",
+      "tr": "Zusammenhang des vollständigen Verses (98:5):\nUnd nichts anderes wurde ihnen befohlen, als nur Allah zu dienen und (dabei) Ihm gegenüber, als Anhänger des rechten Glaubens, aufrichtig in der Religion (zu sein) und das Gebet zu verrichten und die Pflichtabgabe zu entrichten; dies ist die Religion des rechten Verhaltens.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/98/5",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "98:5",
+        "refs": [
+          "98:5"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:de87242e7d87",
+      "kind": "text",
+      "ar": "البينة: ٥",
+      "tr": "Al-Bayyina: ٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f82b9d1cf2f0",
+      "kind": "text",
+      "ar": "سألتُ نفسي",
+      "tr": "Ich habe mich gefragt",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4118fe8ac21f",
+      "kind": "text",
+      "ar": "سلّم على جارك أو اسأل عنه",
+      "tr": "Grüße deinen Nachbarn oder erkundige dich nach ihm",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0e995656aaeb",
+      "kind": "hadith",
+      "ar": "مَا زَالَ جِبْرِيلُ يُوصِينِي بِالْجَارِ",
+      "tr": "Dschibril empfahl mir immer wieder, den Nachbarn gut zu behandeln.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:305bac48ffb1",
+      "kind": "text",
+      "ar": "سألتُ عنه",
+      "tr": "Ich habe mich nach ihm erkundigt",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0859efd8b045",
+      "kind": "text",
+      "ar": "سمعك وبصرك",
+      "tr": "Dein Gehör und dein Augenlicht",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:906d54cf0109",
+      "kind": "quran",
+      "ar": "وَجَعَلَ لَكُمُ ٱلسَّمْعَ وَٱلْأَبْصَـٰرَ وَٱلْأَفْـِٔدَةَ ۙ لَعَلَّكُمْ تَشْكُرُونَ",
+      "tr": "Zusammenhang des vollständigen Verses (16:78):\nUnd Allah hat euch aus den Leibern eurer Mütter hervorgebracht, während ihr nichts wusstet. Und Er hat euch Gehör, Augenlicht und Herzen gegeben, auf dass ihr dankbar sein möget.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/16/78",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "16:78",
+        "refs": [
+          "16:78"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:99b6bca5bce5",
+      "kind": "quran",
+      "ar": "وَٱللَّهُ أَخْرَجَكُم مِّنۢ بُطُونِ أُمَّهَـٰتِكُمْ لَا تَعْلَمُونَ شَيْـًٔا وَجَعَلَ لَكُمُ ٱلسَّمْعَ وَٱلْأَبْصَـٰرَ وَٱلْأَفْـِٔدَةَ ۙ لَعَلَّكُمْ تَشْكُرُونَ",
+      "tr": "Zusammenhang des vollständigen Verses (16:78):\nUnd Allah hat euch aus den Leibern eurer Mütter hervorgebracht, während ihr nichts wusstet. Und Er hat euch Gehör, Augenlicht und Herzen gegeben, auf dass ihr dankbar sein möget.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/16/78",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "16:78",
+        "refs": [
+          "16:78"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:44e933cefdf9",
+      "kind": "text",
+      "ar": "النحل: ٧٨",
+      "tr": "An-Nahl: ٧٨",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2c384f90b165",
+      "kind": "text",
+      "ar": "علّم أحدًا شيئًا من الخير ولو ذكرًا واحدًا",
+      "tr": "Lehre jemanden etwas Gutes, sei es nur eine Formel des Gedenkens",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:853006fbccd1",
+      "kind": "hadith",
+      "ar": "مَنْ دَلَّ عَلَى خَيْرٍ فَلَهُ مِثْلُ أَجْرِ فَاعِلِهِ",
+      "tr": "Wer auf etwas Gutes hinweist, erhält einen Lohn wie derjenige, der es tut.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:18e03958fff6",
+      "kind": "text",
+      "ar": "علّمتُ",
+      "tr": "Ich habe etwas gelehrt",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2723b3c295aa",
+      "kind": "text",
+      "ar": "مع العسر يسر",
+      "tr": "Mit der Schwierigkeit kommt Erleichterung",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:22293f9ada98",
+      "kind": "quran",
+      "ar": "فَإِنَّ مَعَ ٱلْعُسْرِ يُسْرًا",
+      "tr": "Zusammenhang des vollständigen Verses (94:5):\nNun, mit der Erschwernis folgt gewiss Erleichterung,",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/94/5",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "94:5",
+        "refs": [
+          "94:5"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:cf29f64e343c",
+      "kind": "text",
+      "ar": "الشرح: ٥",
+      "tr": "Asch-Scharh: ٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c42b46a72504",
+      "kind": "text",
+      "ar": "وثقتُ",
+      "tr": "Ich habe vertraut",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6fbfa307fe9f",
+      "kind": "text",
+      "ar": "أحسن إلى يتيمٍ بكلمةٍ أو عطيّة",
+      "tr": "Tue einem Waisenkind mit einem Wort oder einem Geschenk Gutes",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2d9d70ce7def",
+      "kind": "hadith",
+      "ar": "أَنَا وَكَافِلُ اليَتِيمِ فِي الجَنَّةِ كَهَاتَيْنِ",
+      "tr": "Ich und der Versorger eines Waisenkindes werden im Paradies wie diese beiden Finger sein.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f0c82128c98b",
+      "kind": "text",
+      "ar": "أحسنتُ",
+      "tr": "Ich habe Gutes getan",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f8a9fddb0de8",
+      "kind": "text",
+      "ar": "الله يحبّ التوّابين",
+      "tr": "Allah liebt diejenigen, die bereuen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a283da1f5ea4",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ يُحِبُّ ٱلتَّوَّٰبِينَ وَيُحِبُّ ٱلْمُتَطَهِّرِينَ",
+      "tr": "Zusammenhang des vollständigen Verses (2:222):\nUnd sie fragen dich nach der Menstruation. Sag: „Sie ist ein Leiden.“ So haltet euch von den Frauen während der Menstruation fern, und nähert euch ihnen nicht, bis sie (wieder) rein sind. Wenn sie sich dann gereinigt haben, so kommt zu ihnen, wie Allah es euch angeordnet hat. Wahrlich, Allah liebt die Reumütigen, und Er liebt die, die sich rein halten.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/2/222",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "2:222",
+        "refs": [
+          "2:222"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:990592e5e39b",
+      "kind": "quran",
+      "ar": "وَيَسْـَٔلُونَكَ عَنِ ٱلْمَحِيضِ ۖ قُلْ هُوَ أَذًى فَٱعْتَزِلُوا۟ ٱلنِّسَآءَ فِى ٱلْمَحِيضِ ۖ وَلَا تَقْرَبُوهُنَّ حَتَّىٰ يَطْهُرْنَ ۖ فَإِذَا تَطَهَّرْنَ فَأْتُوهُنَّ مِنْ حَيْثُ أَمَرَكُمُ ٱللَّهُ ۚ إِنَّ ٱللَّهَ يُحِبُّ ٱلتَّوَّٰبِينَ وَيُحِبُّ ٱلْمُتَطَهِّرِينَ",
+      "tr": "Zusammenhang des vollständigen Verses (2:222):\nUnd sie fragen dich nach der Menstruation. Sag: „Sie ist ein Leiden.“ So haltet euch von den Frauen während der Menstruation fern, und nähert euch ihnen nicht, bis sie (wieder) rein sind. Wenn sie sich dann gereinigt haben, so kommt zu ihnen, wie Allah es euch angeordnet hat. Wahrlich, Allah liebt die Reumütigen, und Er liebt die, die sich rein halten.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/2/222",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "2:222",
+        "refs": [
+          "2:222"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:5ae41f66df9c",
+      "kind": "text",
+      "ar": "البقرة: ٢٢٢",
+      "tr": "Al-Baqara: ٢٢٢",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:716d81e56142",
+      "kind": "text",
+      "ar": "بعد وضوئك اليوم قل: أشهد أن لا إله إلا الله وأنّ محمدًا عبد الله ورسوله",
+      "tr": "Sage heute nach deiner Gebetswaschung: „Ich bezeuge, dass es keinen anbetungswürdigen Gott außer Allah gibt und dass Muhammad Allahs Diener und Gesandter ist.“",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:19d4a17e7aab",
+      "kind": "hadith",
+      "ar": "إِلَّا فُتِحَتْ لَهُ أَبْوَابُ الْجَنَّةِ الثَّمَانِيَةُ يَدْخُلُ مِنْ أَيِّهَا شَاءَ",
+      "tr": "Ihm werden die acht Tore des Paradieses geöffnet, und er tritt durch dasjenige ein, das er möchte.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ebf9afd37190",
+      "kind": "text",
+      "ar": "لا تمشِ في الأرض مرحًا",
+      "tr": "Zusammenhang des vollständigen Verses (17:37):\nUnd gehe nicht übermütig auf der Erde einher. Du wirst ja die Erde nicht aufreißen noch die Berge an Höhe erreichen (können).",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/17/37",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "17:37",
+        "refs": [
+          "17:37"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:ac2b63f659c0",
+      "kind": "quran",
+      "ar": "وَلَا تَمْشِ فِى ٱلْأَرْضِ مَرَحًا",
+      "tr": "Zusammenhang des vollständigen Verses (17:37):\nUnd gehe nicht übermütig auf der Erde einher. Du wirst ja die Erde nicht aufreißen noch die Berge an Höhe erreichen (können).",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/17/37",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "17:37",
+        "refs": [
+          "17:37"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:3ce3d55ee475",
+      "kind": "quran",
+      "ar": "وَلَا تَمْشِ فِى ٱلْأَرْضِ مَرَحًا ۖ إِنَّكَ لَن تَخْرِقَ ٱلْأَرْضَ وَلَن تَبْلُغَ ٱلْجِبَالَ طُولًا",
+      "tr": "Zusammenhang des vollständigen Verses (17:37):\nUnd gehe nicht übermütig auf der Erde einher. Du wirst ja die Erde nicht aufreißen noch die Berge an Höhe erreichen (können).",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/17/37",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "17:37",
+        "refs": [
+          "17:37"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:bd7c2ebc0336",
+      "kind": "text",
+      "ar": "الإسراء: ٣٧",
+      "tr": "Al-Isra’: ٣٧",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ca9d51552e93",
+      "kind": "text",
+      "ar": "تواضعتُ",
+      "tr": "Ich war bescheiden",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bae9700b5112",
+      "kind": "text",
+      "ar": "قبل نومك: اجمع كفّيك، واقرأ فيهما الإخلاص والمعوّذتين، ثم امسح بهما جسدك",
+      "tr": "Vor dem Schlafen: Lege deine Handflächen zusammen, lies Al-Ichlas und die beiden Schutzsuren hinein und streiche damit über deinen Körper",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f5dfd0d2fded",
+      "kind": "hadith",
+      "ar": "كَانَ إِذَا أَوَى إِلَى فِرَاشِهِ كُلَّ لَيْلَةٍ جَمَعَ كَفَّيْهِ، ثُمَّ نَفَثَ فِيهِمَا فَقَرَأَ فِيهِمَا: قُلْ هُوَ اللَّهُ أَحَدٌ وَقُلْ أَعُوذُ بِرَبِّ الفَلَقِ وَقُلْ أَعُوذُ بِرَبِّ النَّاسِ",
+      "tr": "Wenn er sich nachts zu Bett legte, legte er seine Handflächen zusammen, hauchte leicht hinein und las darin: قُلْ هُوَ اللَّهُ أَحَدٌ [Zusammenhang des vollständigen Verses (112:1):\nSag: „Er ist Allah, ein Einer,]; قُلْ أَعُوذُ بِرَبِّ الفَلَقِ [Zusammenhang des vollständigen Verses (113:1):\nSag: „Ich nehme Zuflucht beim Herrn des Tagesanbruchs]; قُلْ أَعُوذُ بِرَبِّ النَّاسِ [Zusammenhang des vollständigen Verses (114:1):\nSag: „Ich nehme Zuflucht beim Herrn der Menschen,].",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": "",
+        "publishedQuotes": {
+          "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+          "url": "https://quranenc.com/en/browse/german_rwwad/112/1",
+          "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+          "date": "2026-11-04",
+          "snapshot": "2026-11-04",
+          "version": "1.0.16",
+          "translationKey": "german_rwwad",
+          "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+          "lastUpdate": 1793539555,
+          "ref": "112:1",
+          "refs": [
+            "112:1",
+            "113:1",
+            "114:1"
+          ],
+          "context": "Full-verse context; published translation and footnotes preserved without alteration."
+        }
+      }
+    },
+    {
+      "id": "h:943f6461cd46",
+      "kind": "text",
+      "ar": "بين الخوف والرجاء",
+      "tr": "Zwischen Furcht und Hoffnung",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b2193eb18fea",
+      "kind": "text",
+      "ar": "اجمع في قلبك اليوم خوفًا من الله ورجاءً فيه",
+      "tr": "Vereine heute in deinem Herzen die Furcht vor Allah und die Hoffnung auf Ihn",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c294cb3b4399",
+      "kind": "hadith",
+      "ar": "لَوْ يَعْلَمُ الْمُؤْمِنُ مَا عِنْدَ اللهِ مِنَ الْعُقُوبَةِ، مَا طَمِعَ بِجَنَّتِهِ أَحَدٌ، وَلَوْ يَعْلَمُ الْكَافِرُ مَا عِنْدَ اللهِ مِنَ الرَّحْمَةِ، مَا قَنَطَ مِنْ جَنَّتِهِ أَحَدٌ",
+      "tr": "Wüsste der Gläubige, welche Strafe bei Allah ist, würde niemand auf Sein Paradies hoffen. Wüsste der Ungläubige, welche Barmherzigkeit bei Allah ist, würde niemand an Seinem Paradies verzweifeln.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:357ea48035ad",
+      "kind": "text",
+      "ar": "جمعتُهما",
+      "tr": "Ich habe beides vereint",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5392f791a548",
+      "kind": "text",
+      "ar": "إن أغضبك أحدٌ اليوم فاكظم غيظك واصمت",
+      "tr": "Wenn dich heute jemand ärgert, halte deinen Zorn zurück und schweige",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f42cd1ae1f4c",
+      "kind": "hadith",
+      "ar": "لَيْسَ الشَّدِيدُ بِالصُّرَعَةِ، إِنَّمَا الشَّدِيدُ الَّذِي يَمْلِكُ نَفْسَهُ عِنْدَ الغَضَبِ",
+      "tr": "Stark ist nicht, wer andere niederringt, sondern wer sich im Zorn beherrscht.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e1862935bbe4",
+      "kind": "text",
+      "ar": "كظمتُ",
+      "tr": "Ich habe meinen Zorn zurückgehalten",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f1aa88fbb06f",
+      "kind": "text",
+      "ar": "لئن شكرتم",
+      "tr": "Zusammenhang des vollständigen Verses (14:7):\nUnd als euer Herr ankündigte: „Wenn ihr dankbar seid, werde Ich euch ganz gewiss noch mehr (Gunstgaben) erweisen. Wenn ihr jedoch undankbar seid, dann ist Meine Strafe gewiss streng.“",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/14/7",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "14:7",
+        "refs": [
+          "14:7"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:4ffb0abcc4fa",
+      "kind": "quran",
+      "ar": "لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ",
+      "tr": "Zusammenhang des vollständigen Verses (14:7):\nUnd als euer Herr ankündigte: „Wenn ihr dankbar seid, werde Ich euch ganz gewiss noch mehr (Gunstgaben) erweisen. Wenn ihr jedoch undankbar seid, dann ist Meine Strafe gewiss streng.“",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/14/7",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "14:7",
+        "refs": [
+          "14:7"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:0c624c273d25",
+      "kind": "quran",
+      "ar": "وَإِذْ تَأَذَّنَ رَبُّكُمْ لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ ۖ وَلَئِن كَفَرْتُمْ إِنَّ عَذَابِى لَشَدِيدٌ",
+      "tr": "Zusammenhang des vollständigen Verses (14:7):\nUnd als euer Herr ankündigte: „Wenn ihr dankbar seid, werde Ich euch ganz gewiss noch mehr (Gunstgaben) erweisen. Wenn ihr jedoch undankbar seid, dann ist Meine Strafe gewiss streng.“",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/14/7",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "14:7",
+        "refs": [
+          "14:7"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:63a2898ebc6b",
+      "kind": "text",
+      "ar": "إبراهيم: ٧",
+      "tr": "Ibrahim: ٧",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:407287bf045a",
+      "kind": "text",
+      "ar": "شكرتُ",
+      "tr": "Ich habe gedankt",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1e742612f46f",
+      "kind": "text",
+      "ar": "انوِ الأجر في نفقتك اليوم على أهل بيتك",
+      "tr": "Beabsichtige heute mit deinen Ausgaben für deine Familie den Lohn Allahs",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:890dec358736",
+      "kind": "hadith",
+      "ar": "إِنَّكَ لَنْ تُنْفِقَ نَفَقَةً تَبْتَغِي بِهَا وَجْهَ اللَّهِ إِلَّا أُجِرْتَ عَلَيْهَا، حَتَّى مَا تَجْعَلُ فِي فَمِ امْرَأَتِكَ",
+      "tr": "Du wirst für jede Ausgabe belohnt, mit der du Allahs Angesicht suchst, selbst für das, was du deiner Frau in den Mund legst.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6a6dbafde06f",
+      "kind": "text",
+      "ar": "نويتُ",
+      "tr": "Ich habe die Absicht gefasst",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8988c9435811",
+      "kind": "text",
+      "ar": "ادعُني أستجب لكم",
+      "tr": "Zusammenhang des vollständigen Verses (40:60):\nUnd euer Herr sagt: „Ruft Mich an, so erhöre Ich euch. Wahrlich, diejenigen, die sich aus Hochmut weigern, Mir zu dienen, werden in die Hölle gedemütigt eingehen.“",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/40/60",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "40:60",
+        "refs": [
+          "40:60"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:dfe464e54c5e",
+      "kind": "quran",
+      "ar": "ٱدْعُونِىٓ أَسْتَجِبْ لَكُمْ",
+      "tr": "Zusammenhang des vollständigen Verses (40:60):\nUnd euer Herr sagt: „Ruft Mich an, so erhöre Ich euch. Wahrlich, diejenigen, die sich aus Hochmut weigern, Mir zu dienen, werden in die Hölle gedemütigt eingehen.“",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/40/60",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "40:60",
+        "refs": [
+          "40:60"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:fc06715b7c78",
+      "kind": "quran",
+      "ar": "وَقَالَ رَبُّكُمُ ٱدْعُونِىٓ أَسْتَجِبْ لَكُمْ ۚ إِنَّ ٱلَّذِينَ يَسْتَكْبِرُونَ عَنْ عِبَادَتِى سَيَدْخُلُونَ جَهَنَّمَ دَاخِرِينَ",
+      "tr": "Zusammenhang des vollständigen Verses (40:60):\nUnd euer Herr sagt: „Ruft Mich an, so erhöre Ich euch. Wahrlich, diejenigen, die sich aus Hochmut weigern, Mir zu dienen, werden in die Hölle gedemütigt eingehen.“",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "German Translation - Rowwad Translation Center; QuranEnc.com; v1.0.16",
+        "url": "https://quranenc.com/en/browse/german_rwwad/40/60",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-11-04",
+        "version": "1.0.16",
+        "translationKey": "german_rwwad",
+        "description": "Translated by the team of the Rowwad Translation Center, in cooperation with the Rabwah Dawah Association, the Islamic Content Service Association in Languages, and the IslamHouse.com website.",
+        "lastUpdate": 1793539555,
+        "ref": "40:60",
+        "refs": [
+          "40:60"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:bfe1f89557ef",
+      "kind": "text",
+      "ar": "غافر: ٦٠",
+      "tr": "Ghafir: ٦٠",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f16f3d231836",
+      "kind": "text",
+      "ar": "دعوتُ",
+      "tr": "Ich habe gebetet",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e929b13ddecf",
+      "kind": "text",
+      "ar": "إن أخطأت اليوم فاتبعها بحسنةٍ فورًا",
+      "tr": "Wenn du heute etwas Falsches tust, lass ihm sofort eine gute Tat folgen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:94704df23c68",
+      "kind": "hadith",
+      "ar": "وَأَتْبِعِ السَّيِّئَةَ الْحَسَنَةَ تَمْحُهَا",
+      "tr": "Lass einer schlechten Tat eine gute folgen, die sie auslöscht.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8886960b09e8",
+      "kind": "text",
+      "ar": "الدارمي",
+      "tr": "Ad-Darimi",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9863af7db021",
+      "kind": "text",
+      "ar": "اتبعتُها",
+      "tr": "Ich habe Gutes folgen lassen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:274cbaa2ddb1",
+      "kind": "text",
+      "ar": "ديمتك أنت",
+      "tr": "Deine eigene Dima",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:35ded1b91e2f",
+      "kind": "text",
+      "ar": "راجع شهرك: أيّ قطرةٍ كانت أسهل عليك؟ اجعلها ديمتك الدائمة",
+      "tr": "Blicke auf deinen Monat zurück: Welcher Tropfen fiel dir am leichtesten? Mache ihn zu deiner beständigen Dima",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d50f2c6b9b41",
+      "kind": "hadith",
+      "ar": "أَحَبَّ الأَعْمَالِ إِلَى اللَّهِ أَدْوَمُهَا وَإِنْ قَلَّ",
+      "tr": "Allah sind die beständigsten Taten am liebsten, auch wenn es wenige sind.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2a84d3773586",
+      "kind": "text",
+      "ar": "اخترتُها",
+      "tr": "Ich habe ihn ausgewählt",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:105d904ae4d4",
+      "kind": "text",
+      "ar": "اختر من الثلاثين عملًا واحدًا تلزمه كلّ يوم",
+      "tr": "Wähle aus den dreißig Taten eine aus, die du täglich beibehältst",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2edb6fca1b63",
+      "kind": "hadith",
+      "ar": "خُذُوا مِنَ العَمَلِ مَا تُطِيقُونَ، فَإِنَّ اللَّهَ لاَ يَمَلُّ حَتَّى تَمَلُّوا",
+      "tr": "Übernehmt nur die Taten, die ihr leisten könnt. Allah wird nicht müde, bis ihr müde werdet.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c484e1930a16",
+      "kind": "text",
+      "ar": "اخترتُ",
+      "tr": "Ich habe gewählt",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:556fdc2f2520",
+      "kind": "text",
+      "ar": "غدًا تبدأ دورةٌ جديدة",
+      "tr": "Morgen beginnt ein neuer Durchgang",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1bb5541dd801",
+      "kind": "text",
+      "ar": "تأمّل فضل هذا اليوم الذي أنت فيه",
+      "tr": "Denke über den Vorzug dieses Tages nach",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf328bccc1ec",
+      "kind": "hadith",
+      "ar": "خَيْرُ يَوْمٍ طَلَعَتْ عَلَيْهِ الشَّمْسُ يَوْمُ الْجُمُعَةِ",
+      "tr": "Der beste Tag, an dem die Sonne aufgeht, ist der Freitag.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:411231459be2",
+      "kind": "text",
+      "ar": "اغتنم آخر النهار اليوم بدعاءٍ تسأل الله فيه حاجتك",
+      "tr": "Nutze heute das Ende des Tages, um Allah um das zu bitten, was du brauchst",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:afb12d50c00c",
+      "kind": "hadith",
+      "ar": "فِيهِ سَاعَةٌ، لاَ يُوَافِقُهَا عَبْدٌ مُسْلِمٌ، وَهُوَ قَائِمٌ يُصَلِّي، يَسْأَلُ اللَّهَ تَعَالَى شَيْئًا، إِلَّا أَعْطَاهُ إِيَّاهُ",
+      "tr": "An ihm gibt es eine Zeit, in der kein muslimischer Diener betend steht und Allah, den Erhabenen, um etwas bittet, ohne dass Er es ihm gibt.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98827192e914",
+      "kind": "text",
+      "ar": "قطرةٌ جديدة بعد جمعتك",
+      "tr": "Ein neuer Tropfen nach deinem Freitag",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1e3d6e18312e",
+      "kind": "text",
+      "ar": "ديمتك لليوم جاهزة، دقيقة واحدة تكفي",
+      "tr": "Deine Dima für heute ist bereit; eine Minute genügt",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1ba202784993",
+      "kind": "text",
+      "ar": "قطرةٌ جديدة تنتظرك في أرضك",
+      "tr": "Ein neuer Tropfen wartet in deinem Garten auf dich",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:41ca9a30513e",
+      "kind": "text",
+      "ar": "قليلٌ دائمٌ خيرٌ من كثيرٍ منقطع، ديمة اليوم جاهزة",
+      "tr": "Wenig und beständig ist besser als viel mit Unterbrechungen; die heutige Dima ist bereit",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:874722223daa",
+      "kind": "text",
+      "ar": "جمعة مباركة، ديمة الجمعة جاهزة",
+      "tr": "Ein gesegneter Freitag; die Freitags-Dima ist bereit",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cd6e0869b954",
+      "kind": "text",
+      "ar": "تذكير ديمة: قطرة الجوارح تنتظرك",
+      "tr": "Dima-Erinnerung: Dein Tropfen der Tat wartet auf dich",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:995bb15601b1",
+      "kind": "text",
+      "ar": "بعد الفجر بنصف ساعة",
+      "tr": "Eine halbe Stunde nach Fadschr",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a65e23474be8",
+      "kind": "text",
+      "ar": "وقت الضحى",
+      "tr": "Zur Duha-Zeit",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:135e943b0801",
+      "kind": "text",
+      "ar": "بعد العصر",
+      "tr": "Nach ʿAsr",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0df562a36ec6",
+      "kind": "text",
+      "ar": "بعد العشاء",
+      "tr": "Nach ʿIscha’",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:91d929efa2fd",
+      "kind": "title",
+      "ar": "ديمتك تصلك كل يوم",
+      "tr": "Deine Dima erreicht dich jeden Tag",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a8036d1e33f7",
+      "kind": "text",
+      "ar": "تنبيهٌ واحدٌ في اليوم، بالوقت الذي تختاره، ويمكنك إيقافه متى شئت.",
+      "tr": "Eine Erinnerung pro Tag zur gewählten Zeit. Du kannst sie jederzeit ausschalten.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1d2b22848624",
+      "kind": "text",
+      "ar": "فعّل التنبيه",
+      "tr": "Erinnerung einschalten",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:289acec23c22",
+      "kind": "text",
+      "ar": "ليس الآن",
+      "tr": "Nicht jetzt",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b7e375461a32",
+      "kind": "text",
+      "ar": "عند التفعيل يطلب الجهاز إذنك مرّة واحدة فقط.",
+      "tr": "Beim Einschalten bittet dein Gerät einmalig um Erlaubnis.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5aa990b8cc5b",
+      "kind": "text",
+      "ar": "قطرة اللسان",
+      "tr": "Tropfen der Zunge",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4aed9b40406d",
+      "kind": "text",
+      "ar": "قطرة القلب",
+      "tr": "Tropfen des Herzens",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:768a154bb99f",
+      "kind": "text",
+      "ar": "قطرة الجوارح",
+      "tr": "Tropfen der Glieder",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:524fe4800568",
+      "kind": "text",
+      "ar": "قُلها",
+      "tr": "Sprich es",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf57739c9691",
+      "kind": "text",
+      "ar": "تأمّلها",
+      "tr": "Denke darüber nach",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f3fb3f7cd932",
+      "kind": "text",
+      "ar": "افعلها",
+      "tr": "Tue es",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1c0b39a032b8",
+      "kind": "text",
+      "ar": "أرضك",
+      "tr": "Dein Garten",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:07242796bbcd",
+      "kind": "text",
+      "ar": "{n} من {total} قطرات اليوم",
+      "tr": "{n} von {total} Tropfen heute",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fbe03626ef7f",
+      "kind": "text",
+      "ar": "يومٌ مضى",
+      "tr": "Ein vergangener Tag",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6f043424b3ac",
+      "kind": "text",
+      "ar": "نزلت قطرةٌ في أرضك",
+      "tr": "Ein Tropfen ist in deinen Garten gefallen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98df46fbd83b",
+      "kind": "text",
+      "ar": "تراجع",
+      "tr": "Rückgängig",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:58f2a96a17bb",
+      "kind": "text",
+      "ar": "القطرة التالية",
+      "tr": "Nächster Tropfen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a1bf10b61436",
+      "kind": "text",
+      "ar": "ختام اليوم",
+      "tr": "Tagesabschluss",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:41cc3479d671",
+      "kind": "text",
+      "ar": "ذكّرني لاحقًا",
+      "tr": "Später erinnern",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4c417f1a159c",
+      "kind": "text",
+      "ar": "سنذكّرك بعد العصر",
+      "tr": "Wir erinnern dich nach ʿAsr",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:64f4fe2ecbd8",
+      "kind": "text",
+      "ar": "اضغط مع كل مرّة تقولها",
+      "tr": "Tippe jedes Mal, wenn du es sagst",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:155749b610a4",
+      "kind": "text",
+      "ar": "مقترح: {n}",
+      "tr": "Vorschlag: {n}",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1e9283ae4577",
+      "kind": "text",
+      "ar": "اكتملت ديمة اليوم",
+      "tr": "Die heutige Dima ist abgeschlossen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:adc6e0e1137b",
+      "kind": "text",
+      "ar": "أتممتَ شهرك الأول",
+      "tr": "Du hast deinen ersten Monat abgeschlossen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fc8633a1d1f4",
+      "kind": "text",
+      "ar": "ثلاث قطراتٍ نزلت في أرضك",
+      "tr": "Drei Tropfen sind in deinen Garten gefallen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1106aa8631d8",
+      "kind": "text",
+      "ar": "تنبيهك القادم: بكرة {slot}",
+      "tr": "Deine nächste Erinnerung: morgen {slot}",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:448ccf482a83",
+      "kind": "text",
+      "ar": "بكرة",
+      "tr": "Morgen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fb35a6c70521",
+      "kind": "text",
+      "ar": "تنبيه ديمة",
+      "tr": "Dima-Erinnerung",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9c08e36a6898",
+      "kind": "text",
+      "ar": "التنبيه اليومي",
+      "tr": "Tägliche Erinnerung",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d672210ef6a7",
+      "kind": "text",
+      "ar": "مفعَّلٌ تلقائيًّا مع التحديث، ويمكنك إيقافه",
+      "tr": "Mit der Aktualisierung automatisch eingeschaltet; du kannst sie ausschalten",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:107866a9b3ff",
+      "kind": "text",
+      "ar": "موقوف، وديمتك تنتظرك داخل التطبيق",
+      "tr": "Ausgeschaltet; deine Dima wartet in der App auf dich",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a9b9ce80ff8f",
+      "kind": "text",
+      "ar": "وقت التنبيه",
+      "tr": "Erinnerungszeit",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4da801b1128b",
+      "kind": "text",
+      "ar": "أوقات الصلاة تُحسب من موقعك، كما في قسم الصلاة",
+      "tr": "Die Gebetszeiten werden anhand deines Standorts berechnet, wie im Gebetsbereich",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ef256a3c3b68",
+      "kind": "text",
+      "ar": "هكذا يصلك",
+      "tr": "So sieht die Erinnerung aus",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2eedd6ae577f",
+      "kind": "text",
+      "ar": "رسالة هادئة تتغيّر كل يوم، بلا إلحاح",
+      "tr": "Eine ruhige, täglich wechselnde Nachricht ohne Drängen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:507770131e72",
+      "kind": "text",
+      "ar": "وقت التذكير غير متاح.",
+      "tr": "Die Erinnerungszeit ist nicht verfügbar.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f901ccb2564e",
+      "kind": "text",
+      "ar": "تعذّر تحميل ديمة.",
+      "tr": "Dima konnte nicht geladen werden.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1b388b1d5c9d",
+      "kind": "text",
+      "ar": "مفعّل",
+      "tr": "Eingeschaltet",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bafc44588818",
+      "kind": "text",
+      "ar": "متوقف",
+      "tr": "Ausgeschaltet",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cd834082470d",
+      "kind": "text",
+      "ar": "الأيام الأخيرة",
+      "tr": "Die letzten Tage",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ae0bbc700f31",
+      "kind": "text",
+      "ar": "، اليوم",
+      "tr": ", heute",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:881aeb7099b3",
+      "kind": "text",
+      "ar": "الأيام السبعة الماضية",
+      "tr": "Die vergangenen sieben Tage",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7e9c1b26dc01",
+      "kind": "text",
+      "ar": "علامات ممارسات الأيام السبعة الماضية",
+      "tr": "Markierungen der Übungen der vergangenen sieben Tage",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf5148ef5b1e",
+      "kind": "text",
+      "ar": " مكتمل",
+      "tr": " Abgeschlossen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3ca833b33415",
+      "kind": "text",
+      "ar": " غير مكتمل",
+      "tr": " Nicht abgeschlossen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6d76cfa3f443",
+      "kind": "text",
+      "ar": "ممارسات اليوم",
+      "tr": "Heutige Übungen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0618181d807f",
+      "kind": "text",
+      "ar": "القرآن ",
+      "tr": "Der Koran ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:871943736352",
+      "kind": "text",
+      "ar": "العدد المقترح: ",
+      "tr": "Vorgeschlagene Anzahl: ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6af4196f3fa4",
+      "kind": "text",
+      "ar": "اقرأ التفسير الموثّق",
+      "tr": "Die belegte Auslegung lesen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dfa98f40e8f1",
+      "kind": "text",
+      "ar": "المختصر في تفسير القرآن · ص 252 · FC-000142",
+      "tr": "Al-Muchtasar fi Tafsir al-Qur’an · S. 252 · FC-000142",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3b4c90d0223b",
+      "kind": "text",
+      "ar": "اضغط للعدّ، ",
+      "tr": "Zum Zählen tippen, ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:950edb07da8c",
+      "kind": "text",
+      "ar": "الأيام الماضية للقراءة فقط.",
+      "tr": "Vergangene Tage können nur gelesen werden.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ada140502b2a",
+      "kind": "text",
+      "ar": "اضبط تذكيرًا",
+      "tr": "Erinnerung einstellen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f63f0957977f",
+      "kind": "text",
+      "ar": "غدًا: ",
+      "tr": "Morgen: ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f8e84b2074b3",
+      "kind": "text",
+      "ar": "فعّل التنبيهات من إعدادات الصلاة أولًا.",
+      "tr": "Schalte zuerst die Erinnerungen in den Gebetseinstellungen ein.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dcb542c15808",
+      "kind": "text",
+      "ar": "لا تنسَ ديمتك اليوم",
+      "tr": "Vergiss heute deine Dima nicht",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7e9051a2c063",
+      "kind": "text",
+      "ar": "اكتملت ديمتك اليوم",
+      "tr": "Deine heutige Dima ist abgeschlossen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e7af6ad9e8bb",
+      "kind": "text",
+      "ar": "الأول",
+      "tr": "erster",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:39321e817feb",
+      "kind": "text",
+      "ar": "الثاني",
+      "tr": "zweiter",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c3e1b4edd4ac",
+      "kind": "text",
+      "ar": "الثالث",
+      "tr": "dritter",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:50ed00343085",
+      "kind": "text",
+      "ar": "الرابع",
+      "tr": "vierter",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5fad8aa224ce",
+      "kind": "text",
+      "ar": "الخامس",
+      "tr": "fünfter",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:45d8094bf9b9",
+      "kind": "text",
+      "ar": "السادس",
+      "tr": "sechster",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ef114d4296bc",
+      "kind": "text",
+      "ar": "السابع",
+      "tr": "siebter",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2db27d05d3a7",
+      "kind": "text",
+      "ar": "الثامن",
+      "tr": "achter",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3bcce3aeea5f",
+      "kind": "text",
+      "ar": "التاسع",
+      "tr": "neunter",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:20024c546493",
+      "kind": "text",
+      "ar": "العاشر",
+      "tr": "zehnter",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a792050b141f",
+      "kind": "text",
+      "ar": "الحادي عشر",
+      "tr": "elfter",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3d4fabeb9270",
+      "kind": "text",
+      "ar": "الثاني عشر",
+      "tr": "zwölfter",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:04fea95f2af7",
+      "kind": "text",
+      "ar": "الثالث عشر",
+      "tr": "dreizehnter",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4e2208a2c195",
+      "kind": "text",
+      "ar": "الرابع عشر",
+      "tr": "vierzehnter",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f39f78ef305e",
+      "kind": "text",
+      "ar": "الخامس عشر",
+      "tr": "fünfzehnter",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c9d13c6b6622",
+      "kind": "text",
+      "ar": "السادس عشر",
+      "tr": "sechzehnter",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c2ccae600214",
+      "kind": "text",
+      "ar": "السابع عشر",
+      "tr": "siebzehnter",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7350a028a419",
+      "kind": "text",
+      "ar": "الثامن عشر",
+      "tr": "achtzehnter",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d56656f461b5",
+      "kind": "text",
+      "ar": "التاسع عشر",
+      "tr": "neunzehnter",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c600e14ee149",
+      "kind": "text",
+      "ar": "العشرون",
+      "tr": "zwanzigster",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3fcd86f89850",
+      "kind": "text",
+      "ar": "الحادي والعشرون",
+      "tr": "einundzwanzigster",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d128c1b3d520",
+      "kind": "text",
+      "ar": "الثاني والعشرون",
+      "tr": "zweiundzwanzigster",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:69753081d75f",
+      "kind": "text",
+      "ar": "الثالث والعشرون",
+      "tr": "dreiundzwanzigster",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ab577aaaa016",
+      "kind": "text",
+      "ar": "الرابع والعشرون",
+      "tr": "vierundzwanzigster",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:05d8e10f8f73",
+      "kind": "text",
+      "ar": "الخامس والعشرون",
+      "tr": "fünfundzwanzigster",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2f38a6804aa2",
+      "kind": "text",
+      "ar": "السادس والعشرون",
+      "tr": "sechsundzwanzigster",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:217372974e36",
+      "kind": "text",
+      "ar": "السابع والعشرون",
+      "tr": "siebenundzwanzigster",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:97fbcd610785",
+      "kind": "text",
+      "ar": "الثامن والعشرون",
+      "tr": "achtundzwanzigster",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1c0a5a0a9caa",
+      "kind": "text",
+      "ar": "التاسع والعشرون",
+      "tr": "neunundzwanzigster",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:91ccc8db263e",
+      "kind": "text",
+      "ar": "الثلاثون",
+      "tr": "dreißigster",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a9abf57dbb0d",
+      "kind": "text",
+      "ar": "لا تنسَ ديمتك غدًا",
+      "tr": "Vergiss morgen deine Dima nicht",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c6b29634bec7",
+      "kind": "text",
+      "ar": "سنذكّرك غدًا {slot}",
+      "tr": "Wir erinnern dich morgen {slot}",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8a698ae7a876",
+      "kind": "title",
+      "ar": "ديمة",
+      "tr": "Dima",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bfdf8728538c",
+      "kind": "title",
+      "ar": "صحيح البخاري",
+      "tr": "Sahih Al-Buchari",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5e7e59318d4f",
+      "kind": "title",
+      "ar": "صحيح مسلم",
+      "tr": "Sahih Muslim",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:abff783fb429",
+      "kind": "title",
+      "ar": "السنن الكبرى للنسائي",
+      "tr": "As-Sunan al-Kubra von An-Nasa’i",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7f08faee4cfe",
+      "kind": "title",
+      "ar": "سنن الترمذي ت بشار",
+      "tr": "Sunan At-Tirmidhi, Ausgabe Baschar",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fb4fbcd242e3",
+      "kind": "title",
+      "ar": "سنن ابن ماجه",
+      "tr": "Sunan Ibn Madscha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:96a8ce7b5570",
+      "kind": "title",
+      "ar": "سنن الدارمي",
+      "tr": "Sunan Ad-Darimi",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9c5644a677fa",
+      "kind": "title",
+      "ar": "اللسان",
+      "tr": "Zunge",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:81bf3cfb3c54",
+      "kind": "title",
+      "ar": "القلب",
+      "tr": "Herz",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5a06c13ef9bd",
+      "kind": "title",
+      "ar": "الجوارح",
+      "tr": "Glieder",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b76444a321b7",
+      "kind": "title",
+      "ar": "اليوم",
+      "tr": "Heute",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e776b0209b50",
+      "kind": "title",
+      "ar": "إلغاء",
+      "tr": "Abbrechen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fc095a728402",
+      "kind": "title",
+      "ar": "إعدادات التنبيه",
+      "tr": "Erinnerungseinstellungen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5bf826c5e57c",
+      "kind": "title",
+      "ar": "إغلاق",
+      "tr": "Schließen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:608631450563",
+      "kind": "title",
+      "ar": "اضغط",
+      "tr": "Tippen",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    }
+  ]
+}
