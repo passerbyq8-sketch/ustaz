@@ -1,0 +1,5689 @@
+{
+  "schema": "ezik-tr4/1",
+  "lang": "zh",
+  "section": "dima",
+  "title": {
+    "ar": "ديمة",
+    "tr": "迪玛"
+  },
+  "agent": "C4",
+  "generated": "2026-11-04",
+  "source_files": [
+    "dima/dima-v1.json",
+    "app.jsx"
+  ],
+  "items": [
+    {
+      "id": "h:592e78c41de1",
+      "kind": "text",
+      "ar": "قليلٌ دائم، كالمطر الهادئ",
+      "tr": "少而持久，如宁静的细雨",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l01",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده، سبحان الله العظيم",
+      "tr": "赞颂安拉超绝万物，并赞美他；赞颂伟大的安拉超绝万物。",
+      "translit": "苏布哈纳拉希，瓦比哈姆迪希；苏布哈纳拉希勒阿兹姆",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:46bf599f3e53",
+      "kind": "hadith",
+      "ar": "كَلِمَتَانِ خَفِيفَتَانِ عَلَى اللِّسَانِ، ثَقِيلَتَانِ فِي المِيزَانِ، حَبِيبَتَانِ إِلَى الرَّحْمَنِ",
+      "tr": "两句话，口舌上轻便，天秤上沉重，至仁主喜爱。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3bd5b604195e",
+      "kind": "text",
+      "ar": "متفق عليه",
+      "tr": "布哈里和穆斯林共同辑录",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a70fe204e5f6",
+      "kind": "text",
+      "ar": "قلتُها",
+      "tr": "我已念诵",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l02",
+      "kind": "dhikr",
+      "ar": "لا حول ولا قوة إلا بالله",
+      "tr": "除凭安拉外，无能为力。",
+      "translit": "拉豪莱，瓦拉古瓦泰，伊拉宾拉",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:060e76db5d17",
+      "kind": "hadith",
+      "ar": "أَلاَ أَدُلُّكَ عَلَى كَلِمَةٍ مِنْ كَنْزِ الجَنَّةِ \" قُلْتُ: بَلَى، قَالَ: «لاَ حَوْلَ وَلاَ قُوَّةَ إِلَّا بِاللَّهِ",
+      "tr": "我告诉你一句属于乐园宝藏的话，好吗？我说：“好。”他说：“除凭安拉外，无能为力。”",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l03",
+      "kind": "dhikr",
+      "ar": "اللهم صلِّ وسلِّم على نبيّنا محمد",
+      "tr": "安拉啊，求你赐福并赐平安于我们的先知穆罕默德。",
+      "translit": "安拉胡麦，算利瓦赛利姆，阿拉奈宾伊纳穆罕默德",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "lf",
+      "kind": "dhikr",
+      "ar": "اللهم صلِّ وسلِّم على نبيّنا محمد",
+      "tr": "安拉啊，求你赐福并赐平安于我们的先知穆罕默德。",
+      "translit": "安拉胡麦，算利瓦赛利姆，阿拉奈宾伊纳穆罕默德",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b2a097607bf2",
+      "kind": "hadith",
+      "ar": "مَنْ صَلَّى عَلَيَّ وَاحِدَةً صَلَّى الله عَلَيْهِ عَشْرًا",
+      "tr": "谁为我祝福一次，安拉就为他祝福十次。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1f83b246bbe2",
+      "kind": "text",
+      "ar": "مسلم",
+      "tr": "穆斯林",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a6763adf156f",
+      "kind": "text",
+      "ar": "صلّيتُ عليه",
+      "tr": "我已为他祝福",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l04",
+      "kind": "dhikr",
+      "ar": "أستغفر الله وأتوب إليه",
+      "tr": "我祈求安拉饶恕，并向他忏悔。",
+      "translit": "艾斯泰格菲鲁拉哈，瓦艾图布伊莱希",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:16759e2c8a1f",
+      "kind": "hadith",
+      "ar": "يَا أَيُّهَا النَّاسُ تُوبُوا إِلَى اللهِ، فَإِنِّي أَتُوبُ، فِي الْيَوْمِ إِلَيْهِ مِائَةَ، مَرَّةٍ",
+      "tr": "人们啊，你们应向安拉忏悔。我每天向他忏悔一百次。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l05",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده",
+      "tr": "赞颂安拉超绝万物，并赞美他。",
+      "translit": "苏布哈纳拉希，瓦比哈姆迪希",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98035c1c8607",
+      "kind": "hadith",
+      "ar": "مَنْ قَالَ: سُبْحَانَ اللَّهِ وَبِحَمْدِهِ، فِي يَوْمٍ مِائَةَ مَرَّةٍ، حُطَّتْ خَطَايَاهُ، وَإِنْ كَانَتْ مِثْلَ زَبَدِ البَحْرِ",
+      "tr": "谁每天念“赞颂安拉超绝万物，并赞美他”一百次，他的过失就会被消除，即使多如海上的泡沫。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l06",
+      "kind": "dhikr",
+      "ar": "لا إله إلا الله وحده لا شريك له، له الملك وله الحمد، وهو على كل شيء قدير",
+      "tr": "除安拉外，绝无应受崇拜的；他独一无偶。权柄和赞颂都归他，他对于万事确是全能的。",
+      "translit": "拉伊拉哈，伊兰拉胡，瓦赫德胡，拉舍里凯莱胡；莱胡勒穆勒库，瓦莱胡勒哈姆杜，瓦胡瓦阿拉库利舍伊因盖迪尔",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6f7c464022f9",
+      "kind": "hadith",
+      "ar": "مَنْ قَالَ: لاَ إِلَهَ إِلَّا اللَّهُ، وَحْدَهُ لاَ شَرِيكَ لَهُ، لَهُ المُلْكُ وَلَهُ الحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، فِي يَوْمٍ مِائَةَ مَرَّةٍ، كَانَتْ لَهُ عَدْلَ عَشْرِ رِقَابٍ",
+      "tr": "谁每天念“除安拉外，绝无应受崇拜的；他独一无偶。权柄和赞颂都归他，他对于万事确是全能的”一百次，就获得相当于释放十名奴隶的报酬。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l07",
+      "kind": "dhikr",
+      "ar": "الحمد لله",
+      "tr": "一切赞颂，全归安拉。",
+      "translit": "艾勒哈姆杜林拉",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d3878266dc9e",
+      "kind": "hadith",
+      "ar": "وَالْحَمْدُ لِلَّهِ تَمْلَأُ الْمِيزَانَ",
+      "tr": "“一切赞颂，全归安拉”充满天秤。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l08",
+      "kind": "dhikr",
+      "ar": "سبحان الله، والحمد لله، ولا إله إلا الله، والله أكبر",
+      "tr": "赞颂安拉超绝万物，一切赞颂全归安拉，除安拉外绝无应受崇拜的，安拉至大。",
+      "translit": "苏布哈纳拉，瓦勒哈姆杜林拉，瓦拉伊拉哈伊兰拉，万拉胡艾克拜尔",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:17c849f1f429",
+      "kind": "hadith",
+      "ar": "أَحَبُّ الْكَلَامِ إِلَى اللهِ أَرْبَعٌ: سُبْحَانَ اللهِ، وَالْحَمْدُ لِلَّهِ، وَلَا إِلَهَ إِلَّا اللهُ، وَاللهُ أَكْبَرُ",
+      "tr": "安拉最喜爱的话有四句：“赞颂安拉超绝万物”“一切赞颂，全归安拉”“除安拉外，绝无应受崇拜的”“安拉至大”。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l09",
+      "kind": "dhikr",
+      "ar": "اللهم أعنّي على ذكرك وشكرك وحسن عبادتك",
+      "tr": "安拉啊，求你帮助我记念你、感谢你，并善美地崇拜你。",
+      "translit": "安拉胡麦，艾因尼，阿拉兹克里凯，瓦舒克里凯，瓦胡斯尼伊巴德提凯",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:07c644dd8a43",
+      "kind": "hadith",
+      "ar": "أُوصِيكَ يَا مُعَاذُ لَا تَدَعَنَّ فِي دُبُرِ كُلِّ صَلَاةٍ أَنْ تَقُولَ: اللهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ",
+      "tr": "穆阿兹啊，我嘱咐你：每次礼拜结束时，不要忘记念：“安拉啊，求你帮助我记念你、感谢你，并善美地崇拜你。”",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:27a277f0e101",
+      "kind": "text",
+      "ar": "النسائي",
+      "tr": "奈萨仪",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l10",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده عدد خلقه، ورضا نفسه، وزنة عرشه، ومداد كلماته",
+      "tr": "赞颂安拉超绝万物，并赞美他，其数如他的造物，其量合乎他的喜悦，其重如他的宝座，其多如记载他言辞的墨汁。",
+      "translit": "苏布哈纳拉希，瓦比哈姆迪希，阿代代赫勒给希，瓦里达奈夫西希，瓦兹奈泰阿尔什希，瓦米达代凯利马提希",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:14ecc6f7775a",
+      "kind": "hadith",
+      "ar": "لَقَدْ قُلْتُ بَعْدَكِ أَرْبَعَ كَلِمَاتٍ، ثَلَاثَ مَرَّاتٍ، لَوْ وُزِنَتْ بِمَا قُلْتِ مُنْذُ الْيَوْمِ لَوَزَنَتْهُنَّ",
+      "tr": "离开你之后，我把四句话念了三遍。若与今天以来你所念的一切一起称量，这些话会更重。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l11",
+      "kind": "dhikr",
+      "ar": "لا إله إلا أنت سبحانك إني كنت من الظالمين",
+      "tr": "完整经文语境 (21:87):\n〔你应当叙述〕左农，当时他曾愤愤不平地离去，他猜想我绝不约束他，他在重重黑暗中呼吁〔说〕：“除你之外，绝无应受崇拜者，我赞颂你超绝万物，我确是不义的。”",
+      "translit": "拉伊拉哈伊拉安泰，苏布哈纳凯，印尼昆图米奈扎利敏",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/21/87",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "21:87",
+        "refs": [
+          "21:87"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:0a3d2d813331",
+      "kind": "hadith",
+      "ar": "دَعْوَةُ ذِي النُّونِ إِذْ دَعَا وَهُوَ فِي بَطْنِ الحُوتِ: لاَ إِلَهَ إِلاَّ أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ، فَإِنَّهُ لَمْ يَدْعُ بِهَا رَجُلٌ مُسْلِمٌ فِي شَيْءٍ قَطُّ إِلاَّ اسْتَجَابَ اللَّهُ لَهُ",
+      "tr": "祖农在鱼腹中所作的祈祷：لاَ إِلَهَ إِلاَّ أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ [完整经文语境 (21:87):\n〔你应当叙述〕左农，当时他曾愤愤不平地离去，他猜想我绝不约束他，他在重重黑暗中呼吁〔说〕：“除你之外，绝无应受崇拜者，我赞颂你超绝万物，我确是不义的。”]。任何穆斯林用这个祈祷为某事祈求，安拉都会应答他。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": "",
+        "publishedQuotes": {
+          "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+          "url": "https://quranenc.com/en/browse/chinese_suliman/21/87",
+          "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+          "date": "2026-11-04",
+          "snapshot": "2026-10-07",
+          "version": "1.0.8",
+          "translationKey": "chinese_suliman",
+          "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+          "lastUpdate": 1760014298,
+          "ref": "21:87",
+          "refs": [
+            "21:87"
+          ],
+          "context": "Full-verse context; published translation and footnotes preserved without alteration."
+        }
+      }
+    },
+    {
+      "id": "h:900c009b827b",
+      "kind": "text",
+      "ar": "الترمذي",
+      "tr": "提尔密济",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l12",
+      "kind": "dhikr",
+      "ar": "رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ",
+      "tr": "我的主啊，求你饶恕我，接受我的忏悔。你确是至宥的，至慈的。",
+      "translit": "兰比格菲尔利，瓦图布阿莱耶，印奈凯安泰陶瓦布赖希姆",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:99e5b6f32eaf",
+      "kind": "hadith",
+      "ar": "نْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+      "tr": "我们曾计算安拉的使者——愿安拉赐他福安——在一次聚会中说了一百遍：“我的主啊，求你饶恕我，接受我的忏悔。你确是至宥的，至慈的。”",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:feb87fd43324",
+      "kind": "text",
+      "ar": "ابن ماجه",
+      "tr": "伊本·马哲",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:20eec0cbc850",
+      "kind": "quran",
+      "ar": "وَإِن تَعُدُّوا۟ نِعْمَةَ ٱللَّهِ لَا تُحْصُوهَآ",
+      "tr": "完整经文语境 (16:18):\n如果你们要计算安拉的恩惠，你们是无法统计的。安拉确是至赦的，确是至慈的。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/16/18",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "16:18",
+        "refs": [
+          "16:18"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:d2766f33f933",
+      "kind": "quran",
+      "ar": "وَإِن تَعُدُّوا۟ نِعْمَةَ ٱللَّهِ لَا تُحْصُوهَآ ۗ إِنَّ ٱللَّهَ لَغَفُورٌ رَّحِيمٌ",
+      "tr": "完整经文语境 (16:18):\n如果你们要计算安拉的恩惠，你们是无法统计的。安拉确是至赦的，确是至慈的。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/16/18",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "16:18",
+        "refs": [
+          "16:18"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:12b821c2544b",
+      "kind": "text",
+      "ar": "النحل: ١٨",
+      "tr": "奈哈勒：١٨",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98163e27e637",
+      "kind": "text",
+      "ar": "حمدتُ الله",
+      "tr": "我已赞颂安拉",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3f41906e49ba",
+      "kind": "text",
+      "ar": "ابتسم في وجه أحدٍ اليوم",
+      "tr": "今天向一个人微笑",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5612ff534dbb",
+      "kind": "hadith",
+      "ar": "تَبَسُّمُكَ فِي وَجْهِ أَخِيكَ لَكَ صَدَقَةٌ",
+      "tr": "你对弟兄的微笑，是你的一份施舍。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8a0e25fe253d",
+      "kind": "text",
+      "ar": "ابتسمتُ",
+      "tr": "我已微笑",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d6f945f8dd74",
+      "kind": "text",
+      "ar": "كنزٌ من كنوز الجنة",
+      "tr": "乐园宝藏之一",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e8cd520b4557",
+      "kind": "text",
+      "ar": "تأمّل عافيتك ووقت فراغك، واشكر الله عليهما",
+      "tr": "想想你的健康和闲暇，并为这两种恩典感谢安拉",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:772ed349c6e3",
+      "kind": "hadith",
+      "ar": "نِعْمَتَانِ مَغْبُونٌ فِيهِمَا كَثِيرٌ مِنَ النَّاسِ: الصِّحَّةُ وَالفَرَاغُ",
+      "tr": "许多人在两种恩典上蒙受亏损：健康和闲暇。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3025efe9a80e",
+      "kind": "text",
+      "ar": "البخاري",
+      "tr": "布哈里",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:eb44ae40dd81",
+      "kind": "text",
+      "ar": "شكرتُ الله",
+      "tr": "我已感谢安拉",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:23077bf89451",
+      "kind": "text",
+      "ar": "أمِط أذًى عن الطريق إن رأيته",
+      "tr": "若看见路上有妨碍他人的东西，就将它移开",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:50366d06e4d2",
+      "kind": "hadith",
+      "ar": "وَأَدْنَاهَا إِمَاطَةُ الْأَذَى عَنِ الطَّرِيقِ",
+      "tr": "其中最低的一等，是移除道路上的有害之物。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f402f03cae5a",
+      "kind": "text",
+      "ar": "أمطتُه",
+      "tr": "我已移除",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2697a2786f3d",
+      "kind": "text",
+      "ar": "صلاةٌ تعود عليك عشرًا",
+      "tr": "一次祝福，得到十次回赐",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:250089f51a89",
+      "kind": "text",
+      "ar": "استحضر محبّة النبي ﷺ، وأنّها فوق كلّ محبّة",
+      "tr": "在心中牢记对先知——愿安拉赐他福安——的爱，并使之高于其他一切爱",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a561a5ebb178",
+      "kind": "hadith",
+      "ar": "لاَ يُؤْمِنُ أَحَدُكُمْ، حَتَّى أَكُونَ أَحَبَّ إِلَيْهِ مِنْ وَالِدِهِ وَوَلَدِهِ وَالنَّاسِ أَجْمَعِينَ",
+      "tr": "你们中的任何人，只有爱我胜过他的父亲、孩子和所有人，才算信道。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f993a685cc28",
+      "kind": "text",
+      "ar": "استحضرتُها",
+      "tr": "我已铭记",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d853b265f971",
+      "kind": "text",
+      "ar": "اتصل بقريبٍ لك ولو دقيقة",
+      "tr": "给一位亲戚打电话，哪怕只有一分钟",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:00ac3fc63f2b",
+      "kind": "hadith",
+      "ar": "مَنْ أَحَبَّ أَنْ يُبْسَطَ لَهُ فِي رِزْقِهِ، وَيُنْسَأَ لَهُ فِي أَثَرِهِ، فَلْيَصِلْ رَحِمَهُ",
+      "tr": "谁希望给养宽裕、寿命延长，就应维系亲情。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:57ba5a72fc2f",
+      "kind": "text",
+      "ar": "اتصلتُ",
+      "tr": "我已打电话",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:91f75101f303",
+      "kind": "text",
+      "ar": "توبةٌ في كلّ يوم",
+      "tr": "每天忏悔",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fa2ccac58aaa",
+      "kind": "quran",
+      "ar": "ذَكَرُوا۟ ٱللَّهَ فَٱسْتَغْفَرُوا۟ لِذُنُوبِهِمْ",
+      "tr": "完整经文语境 (3:135):\n敬畏者，当他们做了丑事或自欺的时候，他们就会记起安拉，且为自己的罪恶而求饶——除安拉外，谁能赦宥罪恶呢？——他们没有明知故犯地怙恶不悛。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/3/135",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "3:135",
+        "refs": [
+          "3:135"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:d28d20ff1810",
+      "kind": "quran",
+      "ar": "وَٱلَّذِينَ إِذَا فَعَلُوا۟ فَـٰحِشَةً أَوْ ظَلَمُوٓا۟ أَنفُسَهُمْ ذَكَرُوا۟ ٱللَّهَ فَٱسْتَغْفَرُوا۟ لِذُنُوبِهِمْ وَمَن يَغْفِرُ ٱلذُّنُوبَ إِلَّا ٱللَّهُ وَلَمْ يُصِرُّوا۟ عَلَىٰ مَا فَعَلُوا۟ وَهُمْ يَعْلَمُونَ",
+      "tr": "完整经文语境 (3:135):\n敬畏者，当他们做了丑事或自欺的时候，他们就会记起安拉，且为自己的罪恶而求饶——除安拉外，谁能赦宥罪恶呢？——他们没有明知故犯地怙恶不悛。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/3/135",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "3:135",
+        "refs": [
+          "3:135"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:48a66c090a5d",
+      "kind": "text",
+      "ar": "آل عمران: ١٣٥",
+      "tr": "阿里·仪姆兰：١٣٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3ce64fe4a699",
+      "kind": "text",
+      "ar": "عزمتُ",
+      "tr": "我已下定决心",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ce4a31704233",
+      "kind": "text",
+      "ar": "تصدّق بشيءٍ ولو قليل",
+      "tr": "施舍一点东西，哪怕很少",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4dacbcbb1982",
+      "kind": "hadith",
+      "ar": "اتَّقُوا النَّارَ وَلَوْ بِشِقِّ تَمْرَةٍ",
+      "tr": "你们应防备火狱，即使只用半颗椰枣。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a90a7e31e96c",
+      "kind": "text",
+      "ar": "تصدّقتُ",
+      "tr": "我已施舍",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c1a5ce38896f",
+      "kind": "text",
+      "ar": "دعوةٌ يردّها عليك ملَك",
+      "tr": "天使为你回祈的祈祷",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3262bf68b53f",
+      "kind": "text",
+      "ar": "ادعُ لأخٍ لك باسمه وهو لا يدري",
+      "tr": "在弟兄不知情时，提着他的名字为他祈祷",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dec4db48f5d9",
+      "kind": "hadith",
+      "ar": "دَعْوَةُ الْمَرْءِ الْمُسْلِمِ لِأَخِيهِ بِظَهْرِ الْغَيْبِ مُسْتَجَابَةٌ، عِنْدَ رَأْسِهِ مَلَكٌ مُوَكَّلٌ كُلَّمَا دَعَا لِأَخِيهِ بِخَيْرٍ، قَالَ الْمَلَكُ الْمُوَكَّلُ بِهِ: آمِينَ وَلَكَ بِمِثْلٍ",
+      "tr": "穆斯林背地里为弟兄所作的祈祷会被接受。他的头旁有一位受命的天使，每当他为弟兄祈求好事，天使便说：“阿敏，你也获得同样的。”",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:167610e41522",
+      "kind": "text",
+      "ar": "دعوتُ له",
+      "tr": "我已为他祈祷",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:290e634e843b",
+      "kind": "text",
+      "ar": "اسقِ أحدًا ماءً، ولو طيرًا أو حيوانًا",
+      "tr": "给谁一点水喝，哪怕是鸟或其他动物",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3b0c2667a7e1",
+      "kind": "hadith",
+      "ar": "فِي كُلِّ كَبِدٍ رَطْبَةٍ أَجْرٌ",
+      "tr": "善待每一个肝脏湿润的生命，都有报酬。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fd398c044a84",
+      "kind": "text",
+      "ar": "سقيتُ",
+      "tr": "我已供水",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:64d0504d3bb2",
+      "kind": "text",
+      "ar": "آيةٌ تطمئنّ بها القلوب",
+      "tr": "使心灵安定的经文",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7e93df1a44f3",
+      "kind": "text",
+      "ar": "اقرأ الآية، ثم اسكن دقيقةً بلا جوال وردّدها في نفسك",
+      "tr": "读这节经文，然后放下手机，安静一分钟，在心中反复诵念",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b1726f3e1a29",
+      "kind": "quran",
+      "ar": "ٱلَّذِينَ ءَامَنُوا۟ وَتَطْمَئِنُّ قُلُوبُهُم بِذِكْرِ ٱللَّهِ ۗ أَلَا بِذِكْرِ ٱللَّهِ تَطْمَئِنُّ ٱلْقُلُوبُ",
+      "tr": "完整经文语境 (13:28):\n他们归信，他们的心境因记忆安拉而安静，真的，一切心境因记忆安拉而安静。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/13/28",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "13:28",
+        "refs": [
+          "13:28"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:8f38fb1c304b",
+      "kind": "text",
+      "ar": "الرعد: ٢٨",
+      "tr": "拉尔德：٢٨",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f4389e5bd4aa",
+      "kind": "text",
+      "ar": "\n28 - هؤلاء الذين يهديهم الله هم الذين آمنوا، وتستأنس قلوبهم بذكر الله بتسبيحه وتحميده، وبتلاوة كتابه ألا بذكر الله وحده تستأنس القلوب، خَلِيق بها ذلك.\n[مِنْ فَوَائِدِ الآيَاتِ]\n• الترغيب في جملة من فضائل الأخلاق الموجبة للجنة، ومنها: حسن الصلة، وخشية الله تعالى، والوفاء بالعهود، والصبر والإنفاق، ومقابلة السيئة بالحسنة والتحذير من ضدها.\n• أن مقاليد الرزق بيد الله - سبحانه وتعالى -، وأن توسعة الله تعالى أو تضييقه في رزق عبد ما لا ينبغي أن يكون موجبًا لفرح أو حزن، فهو ليس دليلًا على رضا الله أو سخطه على ذلك العبد.\n• أن الهداية ليست بالضرورة مربوطة بإنزال الآيات والمعجزات التي اقترح المشركون إظهارها.\n• من آثار القرآن على العبد المؤمن أنه يورثه طمأنينة في القلب.",
+      "tr": "28－安拉所引导的，是那些信道的人。他们的心因记念安拉、赞颂他超绝、赞美他和诵读他的经典而安定。唯有记念安拉，心灵才会安定；这是心灵应有的归宿。\n【经文的教益】\n• 鼓励使人进入乐园的美德，包括善待亲友、敬畏至高的安拉、履行约定、坚忍、施舍，以及以善报恶；并警戒与这些相反的行为。\n• 给养的钥匙掌握在超绝而至高的安拉手中。安拉使仆人的给养宽裕或窘迫，本身不应成为喜悦或悲伤的依据，因为这并不证明安拉喜悦或恼怒那位仆人。\n• 引导不一定以降示多神教徒所要求的迹象与奇迹为条件。\n• 《古兰经》对信士仆人的影响之一，是使他的内心获得安宁。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:45a07072c470",
+      "kind": "text",
+      "ar": "المختصر في التفسير",
+      "tr": "《穆赫塔萨尔·菲·泰夫西尔》",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:39e7e4c6bec1",
+      "kind": "text",
+      "ar": "قرأتُها وسكنتُ",
+      "tr": "我已阅读并静心",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1158653a1337",
+      "kind": "text",
+      "ar": "صلِّ ركعتي الضحى",
+      "tr": "礼两拜杜哈拜（上午的副功拜）",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:264421ee13f7",
+      "kind": "hadith",
+      "ar": "وَيُجْزِئُ مِنْ ذَلِكَ رَكْعَتَانِ يَرْكَعُهُمَا مِنَ الضُّحَى",
+      "tr": "他所礼的两拜杜哈拜可以抵足这些。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:29f3ca5f8dac",
+      "kind": "text",
+      "ar": "صلّيتُهما",
+      "tr": "我已礼完",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:01bd5e7a7898",
+      "kind": "text",
+      "ar": "سرّ اسم هذا القسم",
+      "tr": "这个栏目的名称含义",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:71ae0c0be445",
+      "kind": "text",
+      "ar": "سَأَلْتُ أُمَّ المُؤْمِنِينَ عَائِشَةَ، قُلْتُ: يَا أُمَّ المُؤْمِنِينَ، كَيْفَ كَانَ عَمَلُ النَّبِيِّ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ، هَلْ كَانَ يَخُصُّ شَيْئًا مِنَ الأَيَّامِ؟ قَالَتْ: «لاَ، كَانَ عَمَلُهُ دِيمَةً",
+      "tr": "我问信士之母阿伊莎：“信士之母啊，先知——愿安拉赐他福安——的功修是怎样的？他会特别选择某些日子吗？”她说：“不会，他的功修是持久的。”",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b276f2717489",
+      "kind": "text",
+      "ar": "الدِّيمة: المطر الدائم في سكون، ومنه اسم هذا القسم",
+      "tr": "迪玛：持续而宁静的雨，本栏目因此得名",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7bae20b3a0d4",
+      "kind": "text",
+      "ar": "فهمتُ الاسم",
+      "tr": "我已理解名称",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:775c139fc71b",
+      "kind": "text",
+      "ar": "اعمل اليوم عملًا خفيًّا لا يعلمه أحد",
+      "tr": "今天做一件无人知晓的隐秘善事",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a2b5f40907ed",
+      "kind": "hadith",
+      "ar": "وَرَجُلٌ تَصَدَّقَ بِصَدَقَةٍ فَأَخْفَاهَا حَتَّى لاَ تَعْلَمَ شِمَالُهُ مَا تُنْفِقُ يَمِينُهُ",
+      "tr": "还有一个人，他秘密施舍，隐秘到左手不知道右手所施舍的。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ee4aeff06c85",
+      "kind": "text",
+      "ar": "فعلتُه",
+      "tr": "我已完成",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d35dfabb25f2",
+      "kind": "text",
+      "ar": "تأمّلٌ في السماء",
+      "tr": "思考天空",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3091bff0f30c",
+      "kind": "quran",
+      "ar": "إِنَّ فِى خَلْقِ ٱلسَّمَـٰوَٰتِ وَٱلْأَرْضِ وَٱخْتِلَـٰفِ ٱلَّيْلِ وَٱلنَّهَارِ لَـَٔايَـٰتٍ لِّأُو۟لِى ٱلْأَلْبَـٰبِ",
+      "tr": "完整经文语境 (3:190):\n天地的创造，昼夜的轮流，在有理智的人看来，此中确有许多迹象。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/3/190",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "3:190",
+        "refs": [
+          "3:190"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:a7fa47e20162",
+      "kind": "text",
+      "ar": "آل عمران: ١٩٠",
+      "tr": "阿里·仪姆兰：١٩٠",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4c38aa57f637",
+      "kind": "text",
+      "ar": "تفكّرتُ",
+      "tr": "我已思考",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2da6b942f85b",
+      "kind": "text",
+      "ar": "سلّم على من تعرف ومن لا تعرف",
+      "tr": "向认识和不认识的人道赛俩目（祝愿平安）",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:02a2f24ecc5b",
+      "kind": "hadith",
+      "ar": "أَفْشُوا السَّلَامَ بَيْنَكُمْ",
+      "tr": "你们应在彼此间传播平安问候。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:54bda18381ab",
+      "kind": "text",
+      "ar": "سلّمتُ",
+      "tr": "我已问候",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:90ac8e1ad8d9",
+      "kind": "text",
+      "ar": "معنى أن يراك الله",
+      "tr": "安拉看见你的含义",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:081d9bc2982a",
+      "kind": "quran",
+      "ar": "وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ",
+      "tr": "完整经文语境 (57:4):\n他是在六日内创造天地，然后升上宝座的。他知道潜入地中的，和从地中生出的，与从天空降下的，和升上天空的。无论你们在哪里，他是与你们同在的，安拉是鉴察你们的行为的。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/57/4",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "57:4",
+        "refs": [
+          "57:4"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:d8dc1eff0491",
+      "kind": "quran",
+      "ar": "هُوَ ٱلَّذِى خَلَقَ ٱلسَّمَـٰوَٰتِ وَٱلْأَرْضَ فِى سِتَّةِ أَيَّامٍ ثُمَّ ٱسْتَوَىٰ عَلَى ٱلْعَرْشِ ۚ يَعْلَمُ مَا يَلِجُ فِى ٱلْأَرْضِ وَمَا يَخْرُجُ مِنْهَا وَمَا يَنزِلُ مِنَ ٱلسَّمَآءِ وَمَا يَعْرُجُ فِيهَا ۖ وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ ۚ وَٱللَّهُ بِمَا تَعْمَلُونَ بَصِيرٌ",
+      "tr": "完整经文语境 (57:4):\n他是在六日内创造天地，然后升上宝座的。他知道潜入地中的，和从地中生出的，与从天空降下的，和升上天空的。无论你们在哪里，他是与你们同在的，安拉是鉴察你们的行为的。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/57/4",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "57:4",
+        "refs": [
+          "57:4"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:281bc3d50863",
+      "kind": "text",
+      "ar": "الحديد: ٤",
+      "tr": "哈迪德：٤",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:163c681cb4d0",
+      "kind": "text",
+      "ar": "استحضرتُ",
+      "tr": "我已铭记在心",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:958aee9120cc",
+      "kind": "quran",
+      "ar": "وَقُل لَّهُمَا قَوْلًا كَرِيمًا",
+      "tr": "完整经文语境 (17:23):\n你的养主曾下令说：你们应当只崇拜他，应当孝敬父母。如果他俩中的一人或者俩人在你的堂上达到老迈，那么，你不要对他俩说：“呸！”不要喝斥他俩，你应当对他俩说有礼貌的话。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/17/23",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "17:23",
+        "refs": [
+          "17:23"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:37e30d264f90",
+      "kind": "quran",
+      "ar": "وَقَضَىٰ رَبُّكَ أَلَّا تَعْبُدُوٓا۟ إِلَّآ إِيَّاهُ وَبِٱلْوَٰلِدَيْنِ إِحْسَـٰنًا ۚ إِمَّا يَبْلُغَنَّ عِندَكَ ٱلْكِبَرَ أَحَدُهُمَآ أَوْ كِلَاهُمَا فَلَا تَقُل لَّهُمَآ أُفٍّ وَلَا تَنْهَرْهُمَا وَقُل لَّهُمَا قَوْلًا كَرِيمًا",
+      "tr": "完整经文语境 (17:23):\n你的养主曾下令说：你们应当只崇拜他，应当孝敬父母。如果他俩中的一人或者俩人在你的堂上达到老迈，那么，你不要对他俩说：“呸！”不要喝斥他俩，你应当对他俩说有礼貌的话。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/17/23",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "17:23",
+        "refs": [
+          "17:23"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:9e9f8ed257ca",
+      "kind": "text",
+      "ar": "الإسراء: ٢٣",
+      "tr": "伊斯拉：٢٣",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:497006ea9a84",
+      "kind": "text",
+      "ar": "فعلتُها",
+      "tr": "我已完成",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:02eb46d6b17f",
+      "kind": "text",
+      "ar": "زيارةٌ تُدخلك بساتين الجنة",
+      "tr": "使你进入乐园果园的探望",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5218f0630325",
+      "kind": "quran",
+      "ar": "كُلُّ نَفْسٍ ذَآئِقَةُ ٱلْمَوْتِ",
+      "tr": "完整经文语境 (3:185):\n每个生命都要尝死的滋味。在复活日，你们才得享受你们的完全的报酬。谁得远离火狱，而入乐园，谁已成功。今世的生活，只是虚幻的享受。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/3/185",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "3:185",
+        "refs": [
+          "3:185"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:f71106ec1dfa",
+      "kind": "quran",
+      "ar": "كُلُّ نَفْسٍ ذَآئِقَةُ ٱلْمَوْتِ ۗ وَإِنَّمَا تُوَفَّوْنَ أُجُورَكُمْ يَوْمَ ٱلْقِيَـٰمَةِ ۖ فَمَن زُحْزِحَ عَنِ ٱلنَّارِ وَأُدْخِلَ ٱلْجَنَّةَ فَقَدْ فَازَ ۗ وَمَا ٱلْحَيَوٰةُ ٱلدُّنْيَآ إِلَّا مَتَـٰعُ ٱلْغُرُورِ",
+      "tr": "完整经文语境 (3:185):\n每个生命都要尝死的滋味。在复活日，你们才得享受你们的完全的报酬。谁得远离火狱，而入乐园，谁已成功。今世的生活，只是虚幻的享受。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/3/185",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "3:185",
+        "refs": [
+          "3:185"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:ffbaa68ba877",
+      "kind": "text",
+      "ar": "آل عمران: ١٨٥",
+      "tr": "阿里·仪姆兰：١٨٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:aa3484814ce9",
+      "kind": "text",
+      "ar": "تذكّرتُ",
+      "tr": "我已记起",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:57b6e171fa35",
+      "kind": "text",
+      "ar": "زُر مريضًا أو اتصل به",
+      "tr": "探望一位病人，或给他打电话",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:aee8ae614a41",
+      "kind": "hadith",
+      "ar": "مَنْ عَادَ مَرِيضًا، لَمْ يَزَلْ فِي خُرْفَةِ الْجَنَّةِ",
+      "tr": "探望病人的人，始终处在乐园的果实采摘之中。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:09abc14df2a9",
+      "kind": "text",
+      "ar": "عُدتُه",
+      "tr": "我已探望",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ef55122e7311",
+      "kind": "text",
+      "ar": "حسنُ الظنّ بالله",
+      "tr": "对安拉怀善意的期待",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0dbb48646cae",
+      "kind": "text",
+      "ar": "أحسن ظنّك بالله فيما تنتظره",
+      "tr": "对于你正在等待的事，对安拉怀善意的期待",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f982a268d23c",
+      "kind": "hadith",
+      "ar": "أَنَا عِنْدَ ظَنِّ عَبْدِي بِي",
+      "tr": "我按照我的仆人对我的看待而待他。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:50430be2cb6f",
+      "kind": "text",
+      "ar": "أحسنتُ ظنّي",
+      "tr": "我已怀善意的期待",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:aa0f15bf7171",
+      "kind": "text",
+      "ar": "أعِن أحدًا في حاجةٍ صغيرة: حملٌ، أو بابٌ، أو كلمةُ إرشاد",
+      "tr": "帮人做一件小事：提东西、开门或指路",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:484b458a6621",
+      "kind": "hadith",
+      "ar": "وَاللهُ فِي عَوْنِ الْعَبْدِ مَا كَانَ الْعَبْدُ فِي عَوْنِ أَخِيهِ",
+      "tr": "只要仆人帮助他的弟兄，安拉就帮助那位仆人。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:78f9d8ff902c",
+      "kind": "text",
+      "ar": "أعنتُ",
+      "tr": "我已帮助",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d709ae66b312",
+      "kind": "text",
+      "ar": "نعمةٌ لا توازيها نعمة",
+      "tr": "无可比拟的恩典",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6de7e3f2b5f5",
+      "kind": "quran",
+      "ar": "وَرَضِيتُ لَكُمُ ٱلْإِسْلَـٰمَ دِينًا",
+      "tr": "完整经文语境 (5:3):\n禁止你们吃自死物、血液、猪肉，以及诵非安拉之名而宰杀的、勒死的、捶死的、跌死的、觝死的、野兽吃剩的动物，但宰后才死的，仍然可吃；禁止你们吃在神石上宰杀的；禁止你们求签，那是罪恶。今天，不归信的人，对于〔消灭〕你们的宗教已经绝望了，故你们不要畏惧他们，你们当畏惧我。今天，我已为你们成全你们的宗教，我已完成我所赐你们的恩典，我已选择伊斯兰做你们的宗教。凡为饥荒所迫，而无意犯罪的，〔虽吃禁物，毫无罪过，〕因为安拉确是至赦的，确是至慈的。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/5/3",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "5:3",
+        "refs": [
+          "5:3"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:86c37ab91253",
+      "kind": "quran",
+      "ar": "حُرِّمَتْ عَلَيْكُمُ ٱلْمَيْتَةُ وَٱلدَّمُ وَلَحْمُ ٱلْخِنزِيرِ وَمَآ أُهِلَّ لِغَيْرِ ٱللَّهِ بِهِۦ وَٱلْمُنْخَنِقَةُ وَٱلْمَوْقُوذَةُ وَٱلْمُتَرَدِّيَةُ وَٱلنَّطِيحَةُ وَمَآ أَكَلَ ٱلسَّبُعُ إِلَّا مَا ذَكَّيْتُمْ وَمَا ذُبِحَ عَلَى ٱلنُّصُبِ وَأَن تَسْتَقْسِمُوا۟ بِٱلْأَزْلَـٰمِ ۚ ذَٰلِكُمْ فِسْقٌ ۗ ٱلْيَوْمَ يَئِسَ ٱلَّذِينَ كَفَرُوا۟ مِن دِينِكُمْ فَلَا تَخْشَوْهُمْ وَٱخْشَوْنِ ۚ ٱلْيَوْمَ أَكْمَلْتُ لَكُمْ دِينَكُمْ وَأَتْمَمْتُ عَلَيْكُمْ نِعْمَتِى وَرَضِيتُ لَكُمُ ٱلْإِسْلَـٰمَ دِينًا ۚ فَمَنِ ٱضْطُرَّ فِى مَخْمَصَةٍ غَيْرَ مُتَجَانِفٍ لِّإِثْمٍ ۙ فَإِنَّ ٱللَّهَ غَفُورٌ رَّحِيمٌ",
+      "tr": "完整经文语境 (5:3):\n禁止你们吃自死物、血液、猪肉，以及诵非安拉之名而宰杀的、勒死的、捶死的、跌死的、觝死的、野兽吃剩的动物，但宰后才死的，仍然可吃；禁止你们吃在神石上宰杀的；禁止你们求签，那是罪恶。今天，不归信的人，对于〔消灭〕你们的宗教已经绝望了，故你们不要畏惧他们，你们当畏惧我。今天，我已为你们成全你们的宗教，我已完成我所赐你们的恩典，我已选择伊斯兰做你们的宗教。凡为饥荒所迫，而无意犯罪的，〔虽吃禁物，毫无罪过，〕因为安拉确是至赦的，确是至慈的。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/5/3",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "5:3",
+        "refs": [
+          "5:3"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:dc86c476328e",
+      "kind": "text",
+      "ar": "المائدة: ٣",
+      "tr": "马仪代：٣",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ff3171fadf31",
+      "kind": "text",
+      "ar": "اعفُ اليوم عن أحدٍ أساء إليك",
+      "tr": "今天原谅一个曾经伤害你的人",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:02231d7aed77",
+      "kind": "hadith",
+      "ar": "وَمَا زَادَ اللهُ عَبْدًا بِعَفْوٍ، إِلَّا عِزًّا",
+      "tr": "安拉只会因仆人的宽恕而增加他的尊荣。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7f77a5bbf5f7",
+      "kind": "text",
+      "ar": "عفوتُ",
+      "tr": "我已原谅",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a1734a751379",
+      "kind": "text",
+      "ar": "حوارٌ بينك وبين ربّك في الفاتحة",
+      "tr": "《法谛哈》中，你与养主的对话",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d692abd5b90c",
+      "kind": "text",
+      "ar": "في صلاتك اليوم، تدبّر الفاتحة آيةً آية",
+      "tr": "今天礼拜时，逐节思考《法谛哈》的经文",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5fee4c48e032",
+      "kind": "hadith",
+      "ar": "قَسَمْتُ الصَّلَاةَ بَيْنِي وَبَيْنَ عَبْدِي نِصْفَيْنِ",
+      "tr": "我将礼拜分为我与我的仆人之间的两半。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:02f573b7d7e0",
+      "kind": "text",
+      "ar": "تدبّرتُ",
+      "tr": "我已深思",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:371e8baaa08d",
+      "kind": "text",
+      "ar": "اقرأ صفحةً واحدةً من القرآن بتأنٍّ",
+      "tr": "静心读一页《古兰经》",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:564401ee3639",
+      "kind": "hadith",
+      "ar": "مَنْ قَرَأَ حَرْفًا مِنْ كِتَابِ اللهِ فَلَهُ بِهِ حَسَنَةٌ، وَالحَسَنَةُ بِعَشْرِ أَمْثَالِهَا",
+      "tr": "谁读安拉经典中的一个字母，就得到一件善功；一件善功会获得十倍报酬。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:eddb7fb92cdd",
+      "kind": "text",
+      "ar": "قرأتُ",
+      "tr": "我已阅读",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:572a32ac3a9f",
+      "kind": "text",
+      "ar": "من أين جاء رزقك؟",
+      "tr": "你的给养从哪里来？",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:13168ae1cf1d",
+      "kind": "quran",
+      "ar": "وَمَا بِكُم مِّن نِّعْمَةٍ فَمِنَ ٱللَّهِ",
+      "tr": "完整经文语境 (16:53):\n凡你们所享受的恩惠都是从安拉降下的。然后，当你们遭难的时候，你们只向他祈祷。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/16/53",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "16:53",
+        "refs": [
+          "16:53"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:d5db725b1a65",
+      "kind": "quran",
+      "ar": "وَمَا بِكُم مِّن نِّعْمَةٍ فَمِنَ ٱللَّهِ ۖ ثُمَّ إِذَا مَسَّكُمُ ٱلضُّرُّ فَإِلَيْهِ تَجْـَٔرُونَ",
+      "tr": "完整经文语境 (16:53):\n凡你们所享受的恩惠都是从安拉降下的。然后，当你们遭难的时候，你们只向他祈祷。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/16/53",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "16:53",
+        "refs": [
+          "16:53"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:bc58638e5295",
+      "kind": "text",
+      "ar": "النحل: ٥٣",
+      "tr": "奈哈勒：٥٣",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cdad75d8d0d2",
+      "kind": "text",
+      "ar": "تأمّلتُ",
+      "tr": "我已静思",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4f74626399c3",
+      "kind": "text",
+      "ar": "أطعم أحدًا: جارًا، أو عاملًا، أو محتاجًا",
+      "tr": "给一个人食物：邻居、工人或有需要的人",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:df3539720eaf",
+      "kind": "hadith",
+      "ar": "تُطْعِمُ الطَّعَامَ، وَتَقْرَأُ السَّلاَمَ عَلَى مَنْ عَرَفْتَ وَمَنْ لَمْ تَعْرِفْ",
+      "tr": "你供人饮食，并向认识和不认识的人问候平安。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:923a101738fe",
+      "kind": "text",
+      "ar": "أطعمتُ",
+      "tr": "我已供食",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:08d1fdd3fda9",
+      "kind": "text",
+      "ar": "نظّف قلبك من شيءٍ واحد",
+      "tr": "清除心中的一种污点",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b0635da76858",
+      "kind": "text",
+      "ar": "فتّش قلبك من الحسد، واسأل الله أن ينزعه",
+      "tr": "检视心中的嫉妒，求安拉将它除去",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:840ed35e7906",
+      "kind": "hadith",
+      "ar": "لَا تَحَاسَدُوا، وَلَا تَنَاجَشُوا، وَلَا تَبَاغَضُوا، وَلَا تَدَابَرُوا، وَلَا يَبِعْ بَعْضُكُمْ عَلَى بَيْعِ بَعْضٍ، وَكُونُوا عِبَادَ اللهِ إِخْوَانًا",
+      "tr": "你们不要互相嫉妒，不要为欺骗而抬价，不要互相仇恨，不要背弃彼此，不要抢夺彼此已成交的买卖；安拉的仆人们，你们要成为弟兄。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:14f47068e221",
+      "kind": "text",
+      "ar": "فتّشتُ",
+      "tr": "我已检视",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8d2a3b29580a",
+      "kind": "text",
+      "ar": "قل كلمةً طيبةً لأحدٍ اليوم",
+      "tr": "今天对一个人说一句好话",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d6b92a23bd7f",
+      "kind": "hadith",
+      "ar": "وَالكَلِمَةُ الطَّيِّبَةُ صَدَقَةٌ",
+      "tr": "一句好话也是施舍。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b1adff1eaa94",
+      "kind": "text",
+      "ar": "حياتك كلّها عبادة",
+      "tr": "你的整个生活都是功修",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b5a58064f03c",
+      "kind": "quran",
+      "ar": "قُلْ إِنَّ صَلَاتِى وَنُسُكِى وَمَحْيَاىَ وَمَمَاتِى لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ",
+      "tr": "完整经文语境 (6:162):\n你说：“我的礼拜，我的献牲，我的生，我的死，的确都是为安拉——众世界的养主。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/6/162",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "6:162",
+        "refs": [
+          "6:162"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:8871f9daaf61",
+      "kind": "text",
+      "ar": "الأنعام: ١٦٢",
+      "tr": "艾奈阿姆：١٦٢",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6127d6256dbb",
+      "kind": "text",
+      "ar": "صلِّ راتبةً كنتَ تفوّتها",
+      "tr": "礼一次你常常错过的固定圣行拜",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5735e5bb00d3",
+      "kind": "hadith",
+      "ar": "مَنْ صَلَّى اثْنَتَيْ عَشْرَةَ رَكْعَةً فِي يَوْمٍ وَلَيْلَةٍ، بُنِيَ لَهُ بِهِنَّ بَيْتٌ فِي الْجَنَّةِ",
+      "tr": "谁在一昼夜中礼十二拜，便因这些拜功在乐园为他建造一所房屋。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e166bf870e61",
+      "kind": "text",
+      "ar": "صلّيتُها",
+      "tr": "我已礼拜",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f82a52bb6504",
+      "kind": "text",
+      "ar": "لا تكن من الغافلين",
+      "tr": "完整经文语境 (7:205):\n你当朝夕恭敬而恐惧地记念你的养主，应当低声赞颂他，你不要疏忽。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/7/205",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "7:205",
+        "refs": [
+          "7:205"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:9c2f74da3418",
+      "kind": "quran",
+      "ar": "وَلَا تَكُن مِّنَ ٱلْغَـٰفِلِينَ",
+      "tr": "完整经文语境 (7:205):\n你当朝夕恭敬而恐惧地记念你的养主，应当低声赞颂他，你不要疏忽。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/7/205",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "7:205",
+        "refs": [
+          "7:205"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:f2ebed900462",
+      "kind": "quran",
+      "ar": "وَٱذْكُر رَّبَّكَ فِى نَفْسِكَ تَضَرُّعًا وَخِيفَةً وَدُونَ ٱلْجَهْرِ مِنَ ٱلْقَوْلِ بِٱلْغُدُوِّ وَٱلْـَٔاصَالِ وَلَا تَكُن مِّنَ ٱلْغَـٰفِلِينَ",
+      "tr": "完整经文语境 (7:205):\n你当朝夕恭敬而恐惧地记念你的养主，应当低声赞颂他，你不要疏忽。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/7/205",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "7:205",
+        "refs": [
+          "7:205"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:4daac594b84d",
+      "kind": "text",
+      "ar": "الأعراف: ٢٠٥",
+      "tr": "艾尔拉夫：٢٠٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dc409460041d",
+      "kind": "text",
+      "ar": "ذكرتُ الله",
+      "tr": "我已记念安拉",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a4bb28500a0c",
+      "kind": "text",
+      "ar": "اسقِ نبتةً أو أطعم طيرًا",
+      "tr": "给植物浇水，或喂一只鸟",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:97d454361971",
+      "kind": "hadith",
+      "ar": "مَا مِنْ مُسْلِمٍ يَغْرِسُ غَرْسًا إِلَّا كَانَ مَا أُكِلَ مِنْهُ لَهُ صَدَقَةً",
+      "tr": "穆斯林种植植物后，凡从中被吃掉的，都成为他的施舍。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a790a0c1466c",
+      "kind": "text",
+      "ar": "أنت غريبٌ هنا",
+      "tr": "你在这里是异乡人",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b9ce6b7418f9",
+      "kind": "text",
+      "ar": "تذكّر أنّك في الدنيا عابرُ سبيل",
+      "tr": "记住，你在今世只是过客",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9b4ae925a015",
+      "kind": "hadith",
+      "ar": "كُنْ فِي الدُّنْيَا كَأَنَّكَ غَرِيبٌ أَوْ عَابِرُ سَبِيلٍ",
+      "tr": "你在今世应如异乡人，或途经的旅人。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7851a85c4ab3",
+      "kind": "text",
+      "ar": "أعِن أهل بيتك في عملٍ من أعمال البيت",
+      "tr": "帮家人做一件家务",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f83d93310b8a",
+      "kind": "hadith",
+      "ar": "كَانَ يَكُونُ فِي مِهْنَةِ أَهْلِهِ",
+      "tr": "他常为家人做事。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:91c2861b83f4",
+      "kind": "text",
+      "ar": "أعنتُهم",
+      "tr": "我已帮助家人",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dc2bcb58708e",
+      "kind": "text",
+      "ar": "الصلاة في وقتها",
+      "tr": "按时礼拜",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3f68d3829e53",
+      "kind": "quran",
+      "ar": "وَأَقِمِ ٱلصَّلَوٰةَ لِذِكْرِىٓ",
+      "tr": "完整经文语境 (20:14):\n我确是安拉，除我外，绝无应受崇拜者。你应当崇拜我，当为记念我而谨守拜功。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/20/14",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "20:14",
+        "refs": [
+          "20:14"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:147b4de7980d",
+      "kind": "quran",
+      "ar": "إِنَّنِىٓ أَنَا ٱللَّهُ لَآ إِلَـٰهَ إِلَّآ أَنَا۠ فَٱعْبُدْنِى وَأَقِمِ ٱلصَّلَوٰةَ لِذِكْرِىٓ",
+      "tr": "完整经文语境 (20:14):\n我确是安拉，除我外，绝无应受崇拜者。你应当崇拜我，当为记念我而谨守拜功。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/20/14",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "20:14",
+        "refs": [
+          "20:14"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:d5aafc7b6ab8",
+      "kind": "text",
+      "ar": "طه: ١٤",
+      "tr": "塔哈：١٤",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:60350f82d6af",
+      "kind": "text",
+      "ar": "صلِّ صلاةً واحدةً اليوم في أوّل وقتها",
+      "tr": "今天挑一次礼拜，在拜时开始时就完成",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f21a9d2c6ac5",
+      "kind": "hadith",
+      "ar": "الصَّلاَةُ عَلَى وَقْتِهَا",
+      "tr": "按时礼拜。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0095610f7183",
+      "kind": "text",
+      "ar": "صمتٌ يُثقل ميزانك",
+      "tr": "使天秤更重的沉默",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:931ba661039c",
+      "kind": "text",
+      "ar": "احفظ لسانك اليوم من الغيبة، واستعذ بالله منها",
+      "tr": "今天守住口舌，不背谈他人，并求安拉庇护你远离它",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:38d1c96ffca9",
+      "kind": "hadith",
+      "ar": "مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَاليَوْمِ الآخِرِ فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ",
+      "tr": "谁信仰安拉和末日，就应说好话，或者保持沉默。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a40acbe9bd30",
+      "kind": "text",
+      "ar": "حفظتُه",
+      "tr": "我已守护口舌",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6fbc7ff52a2a",
+      "kind": "text",
+      "ar": "استر عيبًا رأيته في أخيك",
+      "tr": "遮掩你所见到的弟兄的缺点",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ffc85f2fe070",
+      "kind": "hadith",
+      "ar": "وَمَنْ سَتَرَ مُسْلِمًا، سَتَرَهُ اللهُ فِي الدُّنْيَا وَالْآخِرَةِ",
+      "tr": "谁遮掩一个穆斯林，安拉就在今世和后世遮掩他。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fc201fd979c6",
+      "kind": "text",
+      "ar": "سترتُ",
+      "tr": "我已遮掩",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fae3796c0a69",
+      "kind": "text",
+      "ar": "أجرٌ بغير حساب",
+      "tr": "无计量的报酬",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:937dfe0d45cb",
+      "kind": "quran",
+      "ar": "إِنَّمَا يُوَفَّى ٱلصَّـٰبِرُونَ أَجْرَهُم بِغَيْرِ حِسَابٍ",
+      "tr": "完整经文语境 (39:10):\n你说：“我的归信的众仆啊！你们当敬畏你们的养主。在今世行善者，得享美报。安拉的地面是宽广的，惟有坚忍的人，得享受完全的、无量的报酬。”",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/39/10",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "39:10",
+        "refs": [
+          "39:10"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:0eb0f02d51da",
+      "kind": "quran",
+      "ar": "قُلْ يَـٰعِبَادِ ٱلَّذِينَ ءَامَنُوا۟ ٱتَّقُوا۟ رَبَّكُمْ ۚ لِلَّذِينَ أَحْسَنُوا۟ فِى هَـٰذِهِ ٱلدُّنْيَا حَسَنَةٌ ۗ وَأَرْضُ ٱللَّهِ وَٰسِعَةٌ ۗ إِنَّمَا يُوَفَّى ٱلصَّـٰبِرُونَ أَجْرَهُم بِغَيْرِ حِسَابٍ",
+      "tr": "完整经文语境 (39:10):\n你说：“我的归信的众仆啊！你们当敬畏你们的养主。在今世行善者，得享美报。安拉的地面是宽广的，惟有坚忍的人，得享受完全的、无量的报酬。”",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/39/10",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "39:10",
+        "refs": [
+          "39:10"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:b0ed72c990f1",
+      "kind": "text",
+      "ar": "الزمر: ١٠",
+      "tr": "祖迈尔：١٠",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ec96a3d2f6f0",
+      "kind": "text",
+      "ar": "صبرتُ",
+      "tr": "我已坚忍",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5ccf17674069",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ يَأْمُرُكُمْ أَن تُؤَدُّوا۟ ٱلْأَمَـٰنَـٰتِ إِلَىٰٓ أَهْلِهَا",
+      "tr": "完整经文语境 (4:58):\n安拉的确命令你们把一切受信托的事物交给应受的人，安拉又命令你们替众人判决的时候要秉公判决。安拉用来劝诫你们的事物真优美！安拉确是全聪的，确是全明的。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/4/58",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "4:58",
+        "refs": [
+          "4:58"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:5eac40643355",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ يَأْمُرُكُمْ أَن تُؤَدُّوا۟ ٱلْأَمَـٰنَـٰتِ إِلَىٰٓ أَهْلِهَا وَإِذَا حَكَمْتُم بَيْنَ ٱلنَّاسِ أَن تَحْكُمُوا۟ بِٱلْعَدْلِ ۚ إِنَّ ٱللَّهَ نِعِمَّا يَعِظُكُم بِهِۦٓ ۗ إِنَّ ٱللَّهَ كَانَ سَمِيعًۢا بَصِيرًا",
+      "tr": "完整经文语境 (4:58):\n安拉的确命令你们把一切受信托的事物交给应受的人，安拉又命令你们替众人判决的时候要秉公判决。安拉用来劝诫你们的事物真优美！安拉确是全聪的，确是全明的。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/4/58",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "4:58",
+        "refs": [
+          "4:58"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:1c79ac934a59",
+      "kind": "text",
+      "ar": "النساء: ٥٨",
+      "tr": "尼萨：٥٨",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d59cdaf1e150",
+      "kind": "text",
+      "ar": "أدّيتُها",
+      "tr": "我已履行",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4f6d4e2e0c9a",
+      "kind": "text",
+      "ar": "لمن تعمل؟",
+      "tr": "你为谁行善？",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d58f51f63855",
+      "kind": "quran",
+      "ar": "وَمَآ أُمِرُوٓا۟ إِلَّا لِيَعْبُدُوا۟ ٱللَّهَ مُخْلِصِينَ لَهُ ٱلدِّينَ",
+      "tr": "完整经文语境 (98:5):\n他们只奉命崇拜安拉，虔诚敬意，恪遵正教，谨守拜功，完纳天课，这是正教。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/98/5",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "98:5",
+        "refs": [
+          "98:5"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:41d434fcdabb",
+      "kind": "quran",
+      "ar": "وَمَآ أُمِرُوٓا۟ إِلَّا لِيَعْبُدُوا۟ ٱللَّهَ مُخْلِصِينَ لَهُ ٱلدِّينَ حُنَفَآءَ وَيُقِيمُوا۟ ٱلصَّلَوٰةَ وَيُؤْتُوا۟ ٱلزَّكَوٰةَ ۚ وَذَٰلِكَ دِينُ ٱلْقَيِّمَةِ",
+      "tr": "完整经文语境 (98:5):\n他们只奉命崇拜安拉，虔诚敬意，恪遵正教，谨守拜功，完纳天课，这是正教。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/98/5",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "98:5",
+        "refs": [
+          "98:5"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:de87242e7d87",
+      "kind": "text",
+      "ar": "البينة: ٥",
+      "tr": "拜伊奈：٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f82b9d1cf2f0",
+      "kind": "text",
+      "ar": "سألتُ نفسي",
+      "tr": "我已自问",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4118fe8ac21f",
+      "kind": "text",
+      "ar": "سلّم على جارك أو اسأل عنه",
+      "tr": "向邻居问候，或询问他的近况",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0e995656aaeb",
+      "kind": "hadith",
+      "ar": "مَا زَالَ جِبْرِيلُ يُوصِينِي بِالْجَارِ",
+      "tr": "吉卜利勒不断嘱咐我要善待邻居。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:305bac48ffb1",
+      "kind": "text",
+      "ar": "سألتُ عنه",
+      "tr": "我已询问近况",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0859efd8b045",
+      "kind": "text",
+      "ar": "سمعك وبصرك",
+      "tr": "你的听觉和视觉",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:906d54cf0109",
+      "kind": "quran",
+      "ar": "وَجَعَلَ لَكُمُ ٱلسَّمْعَ وَٱلْأَبْصَـٰرَ وَٱلْأَفْـِٔدَةَ ۙ لَعَلَّكُمْ تَشْكُرُونَ",
+      "tr": "完整经文语境 (16:78):\n安拉使你们从母腹出生，你们什么也不知道，他为你们创造耳目和心灵，以便你们感谢。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/16/78",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "16:78",
+        "refs": [
+          "16:78"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:99b6bca5bce5",
+      "kind": "quran",
+      "ar": "وَٱللَّهُ أَخْرَجَكُم مِّنۢ بُطُونِ أُمَّهَـٰتِكُمْ لَا تَعْلَمُونَ شَيْـًٔا وَجَعَلَ لَكُمُ ٱلسَّمْعَ وَٱلْأَبْصَـٰرَ وَٱلْأَفْـِٔدَةَ ۙ لَعَلَّكُمْ تَشْكُرُونَ",
+      "tr": "完整经文语境 (16:78):\n安拉使你们从母腹出生，你们什么也不知道，他为你们创造耳目和心灵，以便你们感谢。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/16/78",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "16:78",
+        "refs": [
+          "16:78"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:44e933cefdf9",
+      "kind": "text",
+      "ar": "النحل: ٧٨",
+      "tr": "奈哈勒：٧٨",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2c384f90b165",
+      "kind": "text",
+      "ar": "علّم أحدًا شيئًا من الخير ولو ذكرًا واحدًا",
+      "tr": "教人一件善事，哪怕只是一句记念词",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:853006fbccd1",
+      "kind": "hadith",
+      "ar": "مَنْ دَلَّ عَلَى خَيْرٍ فَلَهُ مِثْلُ أَجْرِ فَاعِلِهِ",
+      "tr": "指引人行善的人，获得与行善者同样的报酬。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:18e03958fff6",
+      "kind": "text",
+      "ar": "علّمتُ",
+      "tr": "我已传授",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2723b3c295aa",
+      "kind": "text",
+      "ar": "مع العسر يسر",
+      "tr": "艰难伴随着容易",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:22293f9ada98",
+      "kind": "quran",
+      "ar": "فَإِنَّ مَعَ ٱلْعُسْرِ يُسْرًا",
+      "tr": "完整经文语境 (94:5):\n与艰难相伴的，确是容易，",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/94/5",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "94:5",
+        "refs": [
+          "94:5"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:cf29f64e343c",
+      "kind": "text",
+      "ar": "الشرح: ٥",
+      "tr": "舍尔哈：٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c42b46a72504",
+      "kind": "text",
+      "ar": "وثقتُ",
+      "tr": "我已信赖",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6fbfa307fe9f",
+      "kind": "text",
+      "ar": "أحسن إلى يتيمٍ بكلمةٍ أو عطيّة",
+      "tr": "用一句话或一份礼物善待孤儿",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2d9d70ce7def",
+      "kind": "hadith",
+      "ar": "أَنَا وَكَافِلُ اليَتِيمِ فِي الجَنَّةِ كَهَاتَيْنِ",
+      "tr": "我与抚养孤儿的人，在乐园里如这两根手指。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f0c82128c98b",
+      "kind": "text",
+      "ar": "أحسنتُ",
+      "tr": "我已行善",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f8a9fddb0de8",
+      "kind": "text",
+      "ar": "الله يحبّ التوّابين",
+      "tr": "安拉喜爱忏悔的人",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a283da1f5ea4",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ يُحِبُّ ٱلتَّوَّٰبِينَ وَيُحِبُّ ٱلْمُتَطَهِّرِينَ",
+      "tr": "完整经文语境 (2:222):\n他们问你月经的〔律例〕，你说：“月经是有害的，故在经期中你们应当离开妻子，不要与她们交接，直到她们清洁。当她们洗净的时候，你们可以在安拉所命你们的部位与她们交接。”安拉的确喜爱悔罪的人，的确喜爱洁净的人。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/2/222",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "2:222",
+        "refs": [
+          "2:222"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:990592e5e39b",
+      "kind": "quran",
+      "ar": "وَيَسْـَٔلُونَكَ عَنِ ٱلْمَحِيضِ ۖ قُلْ هُوَ أَذًى فَٱعْتَزِلُوا۟ ٱلنِّسَآءَ فِى ٱلْمَحِيضِ ۖ وَلَا تَقْرَبُوهُنَّ حَتَّىٰ يَطْهُرْنَ ۖ فَإِذَا تَطَهَّرْنَ فَأْتُوهُنَّ مِنْ حَيْثُ أَمَرَكُمُ ٱللَّهُ ۚ إِنَّ ٱللَّهَ يُحِبُّ ٱلتَّوَّٰبِينَ وَيُحِبُّ ٱلْمُتَطَهِّرِينَ",
+      "tr": "完整经文语境 (2:222):\n他们问你月经的〔律例〕，你说：“月经是有害的，故在经期中你们应当离开妻子，不要与她们交接，直到她们清洁。当她们洗净的时候，你们可以在安拉所命你们的部位与她们交接。”安拉的确喜爱悔罪的人，的确喜爱洁净的人。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/2/222",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "2:222",
+        "refs": [
+          "2:222"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:5ae41f66df9c",
+      "kind": "text",
+      "ar": "البقرة: ٢٢٢",
+      "tr": "巴格勒：٢٢٢",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:716d81e56142",
+      "kind": "text",
+      "ar": "بعد وضوئك اليوم قل: أشهد أن لا إله إلا الله وأنّ محمدًا عبد الله ورسوله",
+      "tr": "今天做完小净后念：“我作证，除安拉外绝无应受崇拜的；我作证，穆罕默德是安拉的仆人和使者。”",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:19d4a17e7aab",
+      "kind": "hadith",
+      "ar": "إِلَّا فُتِحَتْ لَهُ أَبْوَابُ الْجَنَّةِ الثَّمَانِيَةُ يَدْخُلُ مِنْ أَيِّهَا شَاءَ",
+      "tr": "乐园的八道门将为他敞开，他可从任意一道门进入。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ebf9afd37190",
+      "kind": "text",
+      "ar": "لا تمشِ في الأرض مرحًا",
+      "tr": "完整经文语境 (17:37):\n你不要骄傲自满地在大地上行走，你绝不能把大地踏穿，绝不能与山比高。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/17/37",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "17:37",
+        "refs": [
+          "17:37"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:ac2b63f659c0",
+      "kind": "quran",
+      "ar": "وَلَا تَمْشِ فِى ٱلْأَرْضِ مَرَحًا",
+      "tr": "完整经文语境 (17:37):\n你不要骄傲自满地在大地上行走，你绝不能把大地踏穿，绝不能与山比高。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/17/37",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "17:37",
+        "refs": [
+          "17:37"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:3ce3d55ee475",
+      "kind": "quran",
+      "ar": "وَلَا تَمْشِ فِى ٱلْأَرْضِ مَرَحًا ۖ إِنَّكَ لَن تَخْرِقَ ٱلْأَرْضَ وَلَن تَبْلُغَ ٱلْجِبَالَ طُولًا",
+      "tr": "完整经文语境 (17:37):\n你不要骄傲自满地在大地上行走，你绝不能把大地踏穿，绝不能与山比高。",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/17/37",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "17:37",
+        "refs": [
+          "17:37"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:bd7c2ebc0336",
+      "kind": "text",
+      "ar": "الإسراء: ٣٧",
+      "tr": "伊斯拉：٣٧",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ca9d51552e93",
+      "kind": "text",
+      "ar": "تواضعتُ",
+      "tr": "我已谦逊",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bae9700b5112",
+      "kind": "text",
+      "ar": "قبل نومك: اجمع كفّيك، واقرأ فيهما الإخلاص والمعوّذتين، ثم امسح بهما جسدك",
+      "tr": "睡前合拢双掌，向掌中诵读《伊赫拉斯》和两篇求护章，然后用双掌擦抹身体",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f5dfd0d2fded",
+      "kind": "hadith",
+      "ar": "كَانَ إِذَا أَوَى إِلَى فِرَاشِهِ كُلَّ لَيْلَةٍ جَمَعَ كَفَّيْهِ، ثُمَّ نَفَثَ فِيهِمَا فَقَرَأَ فِيهِمَا: قُلْ هُوَ اللَّهُ أَحَدٌ وَقُلْ أَعُوذُ بِرَبِّ الفَلَقِ وَقُلْ أَعُوذُ بِرَبِّ النَّاسِ",
+      "tr": "每天晚上上床时，他都会合拢双掌，向其中轻吹，并诵读：قُلْ هُوَ اللَّهُ أَحَدٌ [完整经文语境 (112:1):\n你说：他是安拉，是独一的；]；قُلْ أَعُوذُ بِرَبِّ الفَلَقِ [完整经文语境 (113:1):\n你说:我求庇于曙光的主宰，]；قُلْ أَعُوذُ بِرَبِّ النَّاسِ [完整经文语境 (114:1):\n你说:我求庇于世人的主宰，]。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": "",
+        "publishedQuotes": {
+          "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+          "url": "https://quranenc.com/en/browse/chinese_suliman/112/1",
+          "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+          "date": "2026-11-04",
+          "snapshot": "2026-10-07",
+          "version": "1.0.8",
+          "translationKey": "chinese_suliman",
+          "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+          "lastUpdate": 1760014298,
+          "ref": "112:1",
+          "refs": [
+            "112:1",
+            "113:1",
+            "114:1"
+          ],
+          "context": "Full-verse context; published translation and footnotes preserved without alteration."
+        }
+      }
+    },
+    {
+      "id": "h:943f6461cd46",
+      "kind": "text",
+      "ar": "بين الخوف والرجاء",
+      "tr": "在畏惧与希望之间",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b2193eb18fea",
+      "kind": "text",
+      "ar": "اجمع في قلبك اليوم خوفًا من الله ورجاءً فيه",
+      "tr": "今天在心中兼顾对安拉的畏惧和对他的希望",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c294cb3b4399",
+      "kind": "hadith",
+      "ar": "لَوْ يَعْلَمُ الْمُؤْمِنُ مَا عِنْدَ اللهِ مِنَ الْعُقُوبَةِ، مَا طَمِعَ بِجَنَّتِهِ أَحَدٌ، وَلَوْ يَعْلَمُ الْكَافِرُ مَا عِنْدَ اللهِ مِنَ الرَّحْمَةِ، مَا قَنَطَ مِنْ جَنَّتِهِ أَحَدٌ",
+      "tr": "如果信士知道安拉的惩罚，无人会指望他的乐园；如果不信道者知道安拉的慈悯，无人会对他的乐园绝望。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:357ea48035ad",
+      "kind": "text",
+      "ar": "جمعتُهما",
+      "tr": "我已兼顾两者",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5392f791a548",
+      "kind": "text",
+      "ar": "إن أغضبك أحدٌ اليوم فاكظم غيظك واصمت",
+      "tr": "今天若有人激怒你，克制怒气并保持沉默",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f42cd1ae1f4c",
+      "kind": "hadith",
+      "ar": "لَيْسَ الشَّدِيدُ بِالصُّرَعَةِ، إِنَّمَا الشَّدِيدُ الَّذِي يَمْلِكُ نَفْسَهُ عِنْدَ الغَضَبِ",
+      "tr": "强者不是摔跤取胜的人，而是愤怒时能够控制自己的人。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e1862935bbe4",
+      "kind": "text",
+      "ar": "كظمتُ",
+      "tr": "我已克制怒气",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f1aa88fbb06f",
+      "kind": "text",
+      "ar": "لئن شكرتم",
+      "tr": "完整经文语境 (14:7):\n当时，你们的养主曾宣布说：“如果你们感谢，我誓必对你们恩上加恩；如果你们忘恩负义，那么，我的刑罚确是严厉的。”",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/14/7",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "14:7",
+        "refs": [
+          "14:7"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:4ffb0abcc4fa",
+      "kind": "quran",
+      "ar": "لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ",
+      "tr": "完整经文语境 (14:7):\n当时，你们的养主曾宣布说：“如果你们感谢，我誓必对你们恩上加恩；如果你们忘恩负义，那么，我的刑罚确是严厉的。”",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/14/7",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "14:7",
+        "refs": [
+          "14:7"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:0c624c273d25",
+      "kind": "quran",
+      "ar": "وَإِذْ تَأَذَّنَ رَبُّكُمْ لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ ۖ وَلَئِن كَفَرْتُمْ إِنَّ عَذَابِى لَشَدِيدٌ",
+      "tr": "完整经文语境 (14:7):\n当时，你们的养主曾宣布说：“如果你们感谢，我誓必对你们恩上加恩；如果你们忘恩负义，那么，我的刑罚确是严厉的。”",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/14/7",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "14:7",
+        "refs": [
+          "14:7"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:63a2898ebc6b",
+      "kind": "text",
+      "ar": "إبراهيم: ٧",
+      "tr": "易卜拉欣：٧",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:407287bf045a",
+      "kind": "text",
+      "ar": "شكرتُ",
+      "tr": "我已感谢",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1e742612f46f",
+      "kind": "text",
+      "ar": "انوِ الأجر في نفقتك اليوم على أهل بيتك",
+      "tr": "今天为家人花费时，举意求安拉的报酬",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:890dec358736",
+      "kind": "hadith",
+      "ar": "إِنَّكَ لَنْ تُنْفِقَ نَفَقَةً تَبْتَغِي بِهَا وَجْهَ اللَّهِ إِلَّا أُجِرْتَ عَلَيْهَا، حَتَّى مَا تَجْعَلُ فِي فَمِ امْرَأَتِكَ",
+      "tr": "凡你为寻求安拉的面容而花费的，都将获得报酬，甚至你放进妻子口中的食物也不例外。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6a6dbafde06f",
+      "kind": "text",
+      "ar": "نويتُ",
+      "tr": "我已举意",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8988c9435811",
+      "kind": "text",
+      "ar": "ادعُني أستجب لكم",
+      "tr": "完整经文语境 (40:60):\n你们的养主说：“你们要祈祷我，我就应答你们。不肯崇拜我的骄傲者，他们将卑贱地入火狱。”",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/40/60",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "40:60",
+        "refs": [
+          "40:60"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:dfe464e54c5e",
+      "kind": "quran",
+      "ar": "ٱدْعُونِىٓ أَسْتَجِبْ لَكُمْ",
+      "tr": "完整经文语境 (40:60):\n你们的养主说：“你们要祈祷我，我就应答你们。不肯崇拜我的骄傲者，他们将卑贱地入火狱。”",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/40/60",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "40:60",
+        "refs": [
+          "40:60"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:fc06715b7c78",
+      "kind": "quran",
+      "ar": "وَقَالَ رَبُّكُمُ ٱدْعُونِىٓ أَسْتَجِبْ لَكُمْ ۚ إِنَّ ٱلَّذِينَ يَسْتَكْبِرُونَ عَنْ عِبَادَتِى سَيَدْخُلُونَ جَهَنَّمَ دَاخِرِينَ",
+      "tr": "完整经文语境 (40:60):\n你们的养主说：“你们要祈祷我，我就应答你们。不肯崇拜我的骄傲者，他们将卑贱地入火狱。”",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Chinese Translation - Muhammad Suleiman; QuranEnc.com; v1.0.8",
+        "url": "https://quranenc.com/en/browse/chinese_suliman/40/60",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.8",
+        "translationKey": "chinese_suliman",
+        "description": "Translated by Muhammad Makeen. Reviewed by Muhammad Sulaiman and other language experts",
+        "lastUpdate": 1760014298,
+        "ref": "40:60",
+        "refs": [
+          "40:60"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:bfe1f89557ef",
+      "kind": "text",
+      "ar": "غافر: ٦٠",
+      "tr": "加菲尔：٦٠",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f16f3d231836",
+      "kind": "text",
+      "ar": "دعوتُ",
+      "tr": "我已祈祷",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e929b13ddecf",
+      "kind": "text",
+      "ar": "إن أخطأت اليوم فاتبعها بحسنةٍ فورًا",
+      "tr": "今天若犯错，立即接着做一件善事",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:94704df23c68",
+      "kind": "hadith",
+      "ar": "وَأَتْبِعِ السَّيِّئَةَ الْحَسَنَةَ تَمْحُهَا",
+      "tr": "在恶行之后行一件善事，它会将恶行消除。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8886960b09e8",
+      "kind": "text",
+      "ar": "الدارمي",
+      "tr": "达里米",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9863af7db021",
+      "kind": "text",
+      "ar": "اتبعتُها",
+      "tr": "我已接着行善",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:274cbaa2ddb1",
+      "kind": "text",
+      "ar": "ديمتك أنت",
+      "tr": "属于你的迪玛",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:35ded1b91e2f",
+      "kind": "text",
+      "ar": "راجع شهرك: أيّ قطرةٍ كانت أسهل عليك؟ اجعلها ديمتك الدائمة",
+      "tr": "回顾这个月：哪一滴对你最容易？让它成为你持久的迪玛",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d50f2c6b9b41",
+      "kind": "hadith",
+      "ar": "أَحَبَّ الأَعْمَالِ إِلَى اللَّهِ أَدْوَمُهَا وَإِنْ قَلَّ",
+      "tr": "安拉最喜爱的功修，是最持久的，即使很少。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2a84d3773586",
+      "kind": "text",
+      "ar": "اخترتُها",
+      "tr": "我已选定",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:105d904ae4d4",
+      "kind": "text",
+      "ar": "اختر من الثلاثين عملًا واحدًا تلزمه كلّ يوم",
+      "tr": "从这三十件功修中选一件，每天坚持",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2edb6fca1b63",
+      "kind": "hadith",
+      "ar": "خُذُوا مِنَ العَمَلِ مَا تُطِيقُونَ، فَإِنَّ اللَّهَ لاَ يَمَلُّ حَتَّى تَمَلُّوا",
+      "tr": "你们应选择力所能及的功修；在你们厌倦之前，安拉不会厌倦。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c484e1930a16",
+      "kind": "text",
+      "ar": "اخترتُ",
+      "tr": "我已选择",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:556fdc2f2520",
+      "kind": "text",
+      "ar": "غدًا تبدأ دورةٌ جديدة",
+      "tr": "明天开始新的循环",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1bb5541dd801",
+      "kind": "text",
+      "ar": "تأمّل فضل هذا اليوم الذي أنت فيه",
+      "tr": "思考今天这个日子的优越",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf328bccc1ec",
+      "kind": "hadith",
+      "ar": "خَيْرُ يَوْمٍ طَلَعَتْ عَلَيْهِ الشَّمْسُ يَوْمُ الْجُمُعَةِ",
+      "tr": "太阳升起的日子中，最好的是主麻日。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:411231459be2",
+      "kind": "text",
+      "ar": "اغتنم آخر النهار اليوم بدعاءٍ تسأل الله فيه حاجتك",
+      "tr": "把握今天将尽时的时间，向安拉祈求你的需要",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:afb12d50c00c",
+      "kind": "hadith",
+      "ar": "فِيهِ سَاعَةٌ، لاَ يُوَافِقُهَا عَبْدٌ مُسْلِمٌ، وَهُوَ قَائِمٌ يُصَلِّي، يَسْأَلُ اللَّهَ تَعَالَى شَيْئًا، إِلَّا أَعْطَاهُ إِيَّاهُ",
+      "tr": "其中有一个时刻，穆斯林仆人在那个时刻站立礼拜，向至高的安拉祈求任何事物，他都会赐给他。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98827192e914",
+      "kind": "text",
+      "ar": "قطرةٌ جديدة بعد جمعتك",
+      "tr": "主麻日之后的新一滴",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1e3d6e18312e",
+      "kind": "text",
+      "ar": "ديمتك لليوم جاهزة، دقيقة واحدة تكفي",
+      "tr": "今天的迪玛已准备好，一分钟就够",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1ba202784993",
+      "kind": "text",
+      "ar": "قطرةٌ جديدة تنتظرك في أرضك",
+      "tr": "新的一滴在你的园地等你",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:41ca9a30513e",
+      "kind": "text",
+      "ar": "قليلٌ دائمٌ خيرٌ من كثيرٍ منقطع، ديمة اليوم جاهزة",
+      "tr": "少而持久，胜过多而中断；今天的迪玛已准备好",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:874722223daa",
+      "kind": "text",
+      "ar": "جمعة مباركة، ديمة الجمعة جاهزة",
+      "tr": "祝主麻吉庆，主麻迪玛已准备好",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cd6e0869b954",
+      "kind": "text",
+      "ar": "تذكير ديمة: قطرة الجوارح تنتظرك",
+      "tr": "迪玛提醒：行动的一滴正在等你",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:995bb15601b1",
+      "kind": "text",
+      "ar": "بعد الفجر بنصف ساعة",
+      "tr": "晨礼后半小时",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a65e23474be8",
+      "kind": "text",
+      "ar": "وقت الضحى",
+      "tr": "杜哈时段",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:135e943b0801",
+      "kind": "text",
+      "ar": "بعد العصر",
+      "tr": "晡礼之后",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0df562a36ec6",
+      "kind": "text",
+      "ar": "بعد العشاء",
+      "tr": "宵礼之后",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:91d929efa2fd",
+      "kind": "title",
+      "ar": "ديمتك تصلك كل يوم",
+      "tr": "每天送达你的迪玛",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a8036d1e33f7",
+      "kind": "text",
+      "ar": "تنبيهٌ واحدٌ في اليوم، بالوقت الذي تختاره، ويمكنك إيقافه متى شئت.",
+      "tr": "每天一次提醒，时间由你选择，随时可以关闭。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1d2b22848624",
+      "kind": "text",
+      "ar": "فعّل التنبيه",
+      "tr": "开启提醒",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:289acec23c22",
+      "kind": "text",
+      "ar": "ليس الآن",
+      "tr": "暂时不用",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b7e375461a32",
+      "kind": "text",
+      "ar": "عند التفعيل يطلب الجهاز إذنك مرّة واحدة فقط.",
+      "tr": "开启时，设备只会请求一次许可。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5aa990b8cc5b",
+      "kind": "text",
+      "ar": "قطرة اللسان",
+      "tr": "口舌的一滴",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4aed9b40406d",
+      "kind": "text",
+      "ar": "قطرة القلب",
+      "tr": "心灵的一滴",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:768a154bb99f",
+      "kind": "text",
+      "ar": "قطرة الجوارح",
+      "tr": "肢体的一滴",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:524fe4800568",
+      "kind": "text",
+      "ar": "قُلها",
+      "tr": "念出来",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf57739c9691",
+      "kind": "text",
+      "ar": "تأمّلها",
+      "tr": "想一想",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f3fb3f7cd932",
+      "kind": "text",
+      "ar": "افعلها",
+      "tr": "去做到",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1c0b39a032b8",
+      "kind": "text",
+      "ar": "أرضك",
+      "tr": "你的园地",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:07242796bbcd",
+      "kind": "text",
+      "ar": "{n} من {total} قطرات اليوم",
+      "tr": "今天已完成 {n} 滴，共 {total} 滴",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fbe03626ef7f",
+      "kind": "text",
+      "ar": "يومٌ مضى",
+      "tr": "过去的一天",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6f043424b3ac",
+      "kind": "text",
+      "ar": "نزلت قطرةٌ في أرضك",
+      "tr": "一滴落进了你的园地",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98df46fbd83b",
+      "kind": "text",
+      "ar": "تراجع",
+      "tr": "撤销",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:58f2a96a17bb",
+      "kind": "text",
+      "ar": "القطرة التالية",
+      "tr": "下一滴",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a1bf10b61436",
+      "kind": "text",
+      "ar": "ختام اليوم",
+      "tr": "一天的收尾",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:41cc3479d671",
+      "kind": "text",
+      "ar": "ذكّرني لاحقًا",
+      "tr": "稍后提醒我",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4c417f1a159c",
+      "kind": "text",
+      "ar": "سنذكّرك بعد العصر",
+      "tr": "我们会在晡礼后提醒你",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:64f4fe2ecbd8",
+      "kind": "text",
+      "ar": "اضغط مع كل مرّة تقولها",
+      "tr": "每念一次，就点一下",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:155749b610a4",
+      "kind": "text",
+      "ar": "مقترح: {n}",
+      "tr": "建议：{n}",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1e9283ae4577",
+      "kind": "text",
+      "ar": "اكتملت ديمة اليوم",
+      "tr": "今天的迪玛已完成",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:adc6e0e1137b",
+      "kind": "text",
+      "ar": "أتممتَ شهرك الأول",
+      "tr": "你已完成第一个月",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fc8633a1d1f4",
+      "kind": "text",
+      "ar": "ثلاث قطراتٍ نزلت في أرضك",
+      "tr": "三滴落进了你的园地",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1106aa8631d8",
+      "kind": "text",
+      "ar": "تنبيهك القادم: بكرة {slot}",
+      "tr": "下次提醒：明天 {slot}",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:448ccf482a83",
+      "kind": "text",
+      "ar": "بكرة",
+      "tr": "明天",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fb35a6c70521",
+      "kind": "text",
+      "ar": "تنبيه ديمة",
+      "tr": "迪玛提醒",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9c08e36a6898",
+      "kind": "text",
+      "ar": "التنبيه اليومي",
+      "tr": "每日提醒",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d672210ef6a7",
+      "kind": "text",
+      "ar": "مفعَّلٌ تلقائيًّا مع التحديث، ويمكنك إيقافه",
+      "tr": "更新后自动开启，你可以将其关闭",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:107866a9b3ff",
+      "kind": "text",
+      "ar": "موقوف، وديمتك تنتظرك داخل التطبيق",
+      "tr": "已关闭，你的迪玛仍在应用中等你",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a9b9ce80ff8f",
+      "kind": "text",
+      "ar": "وقت التنبيه",
+      "tr": "提醒时间",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4da801b1128b",
+      "kind": "text",
+      "ar": "أوقات الصلاة تُحسب من موقعك، كما في قسم الصلاة",
+      "tr": "礼拜时间根据你的位置计算，与礼拜栏目相同",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ef256a3c3b68",
+      "kind": "text",
+      "ar": "هكذا يصلك",
+      "tr": "提醒预览",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2eedd6ae577f",
+      "kind": "text",
+      "ar": "رسالة هادئة تتغيّر كل يوم، بلا إلحاح",
+      "tr": "每天变化的宁静消息，不催促",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:507770131e72",
+      "kind": "text",
+      "ar": "وقت التذكير غير متاح.",
+      "tr": "提醒时间不可用。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f901ccb2564e",
+      "kind": "text",
+      "ar": "تعذّر تحميل ديمة.",
+      "tr": "无法加载迪玛。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1b388b1d5c9d",
+      "kind": "text",
+      "ar": "مفعّل",
+      "tr": "已开启",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bafc44588818",
+      "kind": "text",
+      "ar": "متوقف",
+      "tr": "已关闭",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cd834082470d",
+      "kind": "text",
+      "ar": "الأيام الأخيرة",
+      "tr": "最近几天",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ae0bbc700f31",
+      "kind": "text",
+      "ar": "، اليوم",
+      "tr": "，今天",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:881aeb7099b3",
+      "kind": "text",
+      "ar": "الأيام السبعة الماضية",
+      "tr": "过去七天",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7e9c1b26dc01",
+      "kind": "text",
+      "ar": "علامات ممارسات الأيام السبعة الماضية",
+      "tr": "过去七天的功修标记",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf5148ef5b1e",
+      "kind": "text",
+      "ar": " مكتمل",
+      "tr": " 已完成",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3ca833b33415",
+      "kind": "text",
+      "ar": " غير مكتمل",
+      "tr": " 未完成",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6d76cfa3f443",
+      "kind": "text",
+      "ar": "ممارسات اليوم",
+      "tr": "今天的功修",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0618181d807f",
+      "kind": "text",
+      "ar": "القرآن ",
+      "tr": "古兰经 ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:871943736352",
+      "kind": "text",
+      "ar": "العدد المقترح: ",
+      "tr": "建议次数：",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6af4196f3fa4",
+      "kind": "text",
+      "ar": "اقرأ التفسير الموثّق",
+      "tr": "阅读有据可查的经注",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dfa98f40e8f1",
+      "kind": "text",
+      "ar": "المختصر في تفسير القرآن · ص 252 · FC-000142",
+      "tr": "《穆赫塔萨尔·菲·泰夫西尔·古兰》· 第252页 · FC-000142",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3b4c90d0223b",
+      "kind": "text",
+      "ar": "اضغط للعدّ، ",
+      "tr": "点击计数，",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:950edb07da8c",
+      "kind": "text",
+      "ar": "الأيام الماضية للقراءة فقط.",
+      "tr": "过去的日期只供阅读。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ada140502b2a",
+      "kind": "text",
+      "ar": "اضبط تذكيرًا",
+      "tr": "设置提醒",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f63f0957977f",
+      "kind": "text",
+      "ar": "غدًا: ",
+      "tr": "明天：",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f8e84b2074b3",
+      "kind": "text",
+      "ar": "فعّل التنبيهات من إعدادات الصلاة أولًا.",
+      "tr": "请先在礼拜设置中开启提醒。",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dcb542c15808",
+      "kind": "text",
+      "ar": "لا تنسَ ديمتك اليوم",
+      "tr": "别忘了今天的迪玛",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7e9051a2c063",
+      "kind": "text",
+      "ar": "اكتملت ديمتك اليوم",
+      "tr": "你今天的迪玛已完成",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e7af6ad9e8bb",
+      "kind": "text",
+      "ar": "الأول",
+      "tr": "第一",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:39321e817feb",
+      "kind": "text",
+      "ar": "الثاني",
+      "tr": "第二",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c3e1b4edd4ac",
+      "kind": "text",
+      "ar": "الثالث",
+      "tr": "第三",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:50ed00343085",
+      "kind": "text",
+      "ar": "الرابع",
+      "tr": "第四",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5fad8aa224ce",
+      "kind": "text",
+      "ar": "الخامس",
+      "tr": "第五",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:45d8094bf9b9",
+      "kind": "text",
+      "ar": "السادس",
+      "tr": "第六",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ef114d4296bc",
+      "kind": "text",
+      "ar": "السابع",
+      "tr": "第七",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2db27d05d3a7",
+      "kind": "text",
+      "ar": "الثامن",
+      "tr": "第八",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3bcce3aeea5f",
+      "kind": "text",
+      "ar": "التاسع",
+      "tr": "第九",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:20024c546493",
+      "kind": "text",
+      "ar": "العاشر",
+      "tr": "第十",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a792050b141f",
+      "kind": "text",
+      "ar": "الحادي عشر",
+      "tr": "第十一",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3d4fabeb9270",
+      "kind": "text",
+      "ar": "الثاني عشر",
+      "tr": "第十二",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:04fea95f2af7",
+      "kind": "text",
+      "ar": "الثالث عشر",
+      "tr": "第十三",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4e2208a2c195",
+      "kind": "text",
+      "ar": "الرابع عشر",
+      "tr": "第十四",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f39f78ef305e",
+      "kind": "text",
+      "ar": "الخامس عشر",
+      "tr": "第十五",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c9d13c6b6622",
+      "kind": "text",
+      "ar": "السادس عشر",
+      "tr": "第十六",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c2ccae600214",
+      "kind": "text",
+      "ar": "السابع عشر",
+      "tr": "第十七",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7350a028a419",
+      "kind": "text",
+      "ar": "الثامن عشر",
+      "tr": "第十八",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d56656f461b5",
+      "kind": "text",
+      "ar": "التاسع عشر",
+      "tr": "第十九",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c600e14ee149",
+      "kind": "text",
+      "ar": "العشرون",
+      "tr": "第二十",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3fcd86f89850",
+      "kind": "text",
+      "ar": "الحادي والعشرون",
+      "tr": "第二十一",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d128c1b3d520",
+      "kind": "text",
+      "ar": "الثاني والعشرون",
+      "tr": "第二十二",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:69753081d75f",
+      "kind": "text",
+      "ar": "الثالث والعشرون",
+      "tr": "第二十三",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ab577aaaa016",
+      "kind": "text",
+      "ar": "الرابع والعشرون",
+      "tr": "第二十四",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:05d8e10f8f73",
+      "kind": "text",
+      "ar": "الخامس والعشرون",
+      "tr": "第二十五",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2f38a6804aa2",
+      "kind": "text",
+      "ar": "السادس والعشرون",
+      "tr": "第二十六",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:217372974e36",
+      "kind": "text",
+      "ar": "السابع والعشرون",
+      "tr": "第二十七",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:97fbcd610785",
+      "kind": "text",
+      "ar": "الثامن والعشرون",
+      "tr": "第二十八",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1c0a5a0a9caa",
+      "kind": "text",
+      "ar": "التاسع والعشرون",
+      "tr": "第二十九",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:91ccc8db263e",
+      "kind": "text",
+      "ar": "الثلاثون",
+      "tr": "第三十",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a9abf57dbb0d",
+      "kind": "text",
+      "ar": "لا تنسَ ديمتك غدًا",
+      "tr": "别忘了明天的迪玛",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c6b29634bec7",
+      "kind": "text",
+      "ar": "سنذكّرك غدًا {slot}",
+      "tr": "我们会在明天 {slot} 提醒你",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8a698ae7a876",
+      "kind": "title",
+      "ar": "ديمة",
+      "tr": "迪玛",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bfdf8728538c",
+      "kind": "title",
+      "ar": "صحيح البخاري",
+      "tr": "《萨希赫·布哈里》",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5e7e59318d4f",
+      "kind": "title",
+      "ar": "صحيح مسلم",
+      "tr": "《萨希赫·穆斯林》",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:abff783fb429",
+      "kind": "title",
+      "ar": "السنن الكبرى للنسائي",
+      "tr": "《苏南·库布拉·奈萨仪》",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7f08faee4cfe",
+      "kind": "title",
+      "ar": "سنن الترمذي ت بشار",
+      "tr": "《苏南·提尔密济》，巴沙尔校订版",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fb4fbcd242e3",
+      "kind": "title",
+      "ar": "سنن ابن ماجه",
+      "tr": "《苏南·伊本·马哲》",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:96a8ce7b5570",
+      "kind": "title",
+      "ar": "سنن الدارمي",
+      "tr": "《苏南·达里米》",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9c5644a677fa",
+      "kind": "title",
+      "ar": "اللسان",
+      "tr": "口舌",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:81bf3cfb3c54",
+      "kind": "title",
+      "ar": "القلب",
+      "tr": "心灵",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5a06c13ef9bd",
+      "kind": "title",
+      "ar": "الجوارح",
+      "tr": "肢体",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b76444a321b7",
+      "kind": "title",
+      "ar": "اليوم",
+      "tr": "今天",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e776b0209b50",
+      "kind": "title",
+      "ar": "إلغاء",
+      "tr": "取消",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fc095a728402",
+      "kind": "title",
+      "ar": "إعدادات التنبيه",
+      "tr": "提醒设置",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5bf826c5e57c",
+      "kind": "title",
+      "ar": "إغلاق",
+      "tr": "关闭",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:608631450563",
+      "kind": "title",
+      "ar": "اضغط",
+      "tr": "点击",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    }
+  ]
+}

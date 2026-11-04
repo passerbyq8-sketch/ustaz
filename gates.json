@@ -1125,5 +1125,15 @@
     "name": "c1dimahome",
     "script": "guards/c1-dima-home-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "dimapacks",
+    "script": "guards/dima-packs-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "dimatranslations",
+    "script": "guards/dima-translations-guard.cjs",
+    "args": ""
   }
 ]

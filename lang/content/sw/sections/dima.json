@@ -1,0 +1,5689 @@
+{
+  "schema": "ezik-tr4/1",
+  "lang": "sw",
+  "section": "dima",
+  "title": {
+    "ar": "ديمة",
+    "tr": "Dima"
+  },
+  "agent": "C4",
+  "generated": "2026-11-04",
+  "source_files": [
+    "dima/dima-v1.json",
+    "app.jsx"
+  ],
+  "items": [
+    {
+      "id": "h:592e78c41de1",
+      "kind": "text",
+      "ar": "قليلٌ دائم، كالمطر الهادئ",
+      "tr": "Kidogo kinachoendelea, kama mvua tulivu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l01",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده، سبحان الله العظيم",
+      "tr": "Ametakasika Allah na sifa njema ni Zake; ametakasika Allah Aliye Mkuu.",
+      "translit": "Subhaanallaahi wa bihamdih, subhaanallaahil-adhiim",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:46bf599f3e53",
+      "kind": "hadith",
+      "ar": "كَلِمَتَانِ خَفِيفَتَانِ عَلَى اللِّسَانِ، ثَقِيلَتَانِ فِي المِيزَانِ، حَبِيبَتَانِ إِلَى الرَّحْمَنِ",
+      "tr": "Maneno mawili mepesi ulimini, mazito kwenye mizani, yanayopendwa na Mwingi wa rehema.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3bd5b604195e",
+      "kind": "text",
+      "ar": "متفق عليه",
+      "tr": "Imepokewa na Al-Bukhari na Muslim",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a70fe204e5f6",
+      "kind": "text",
+      "ar": "قلتُها",
+      "tr": "Nimesema",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l02",
+      "kind": "dhikr",
+      "ar": "لا حول ولا قوة إلا بالله",
+      "tr": "Hakuna uwezo wala nguvu isipokuwa kwa Allah.",
+      "translit": "Laa hawla wa laa quwwata illaa billaah",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:060e76db5d17",
+      "kind": "hadith",
+      "ar": "أَلاَ أَدُلُّكَ عَلَى كَلِمَةٍ مِنْ كَنْزِ الجَنَّةِ \" قُلْتُ: بَلَى، قَالَ: «لاَ حَوْلَ وَلاَ قُوَّةَ إِلَّا بِاللَّهِ",
+      "tr": "Je, nikuelekeze kwenye neno lililo katika hazina za Peponi? Nikasema: “Ndiyo.” Akasema: “Hakuna uwezo wala nguvu isipokuwa kwa Allah.”",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l03",
+      "kind": "dhikr",
+      "ar": "اللهم صلِّ وسلِّم على نبيّنا محمد",
+      "tr": "Ewe Allah, mteremshie rehema na amani Nabii wetu Muhammad.",
+      "translit": "Allaahumma swalli wa sallim alaa nabiyyinaa Muhammad",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "lf",
+      "kind": "dhikr",
+      "ar": "اللهم صلِّ وسلِّم على نبيّنا محمد",
+      "tr": "Ewe Allah, mteremshie rehema na amani Nabii wetu Muhammad.",
+      "translit": "Allaahumma swalli wa sallim alaa nabiyyinaa Muhammad",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b2a097607bf2",
+      "kind": "hadith",
+      "ar": "مَنْ صَلَّى عَلَيَّ وَاحِدَةً صَلَّى الله عَلَيْهِ عَشْرًا",
+      "tr": "Atakayenitakia rehema mara moja, Allah atamrehemu mara kumi.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1f83b246bbe2",
+      "kind": "text",
+      "ar": "مسلم",
+      "tr": "Muslim",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a6763adf156f",
+      "kind": "text",
+      "ar": "صلّيتُ عليه",
+      "tr": "Nimemtakia rehema",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l04",
+      "kind": "dhikr",
+      "ar": "أستغفر الله وأتوب إليه",
+      "tr": "Ninamuomba Allah msamaha na ninatubu Kwake.",
+      "translit": "Astaghfirullaaha wa atuubu ilayh",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:16759e2c8a1f",
+      "kind": "hadith",
+      "ar": "يَا أَيُّهَا النَّاسُ تُوبُوا إِلَى اللهِ، فَإِنِّي أَتُوبُ، فِي الْيَوْمِ إِلَيْهِ مِائَةَ، مَرَّةٍ",
+      "tr": "Enyi watu, tubuni kwa Allah; hakika mimi ninatubu Kwake mara mia moja kwa siku.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l05",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده",
+      "tr": "Ametakasika Allah na sifa njema ni Zake.",
+      "translit": "Subhaanallaahi wa bihamdih",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98035c1c8607",
+      "kind": "hadith",
+      "ar": "مَنْ قَالَ: سُبْحَانَ اللَّهِ وَبِحَمْدِهِ، فِي يَوْمٍ مِائَةَ مَرَّةٍ، حُطَّتْ خَطَايَاهُ، وَإِنْ كَانَتْ مِثْلَ زَبَدِ البَحْرِ",
+      "tr": "Atakayesema “Ametakasika Allah na sifa njema ni Zake” mara mia moja kwa siku, makosa yake yataondolewa hata yakiwa kama povu la bahari.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l06",
+      "kind": "dhikr",
+      "ar": "لا إله إلا الله وحده لا شريك له، له الملك وله الحمد، وهو على كل شيء قدير",
+      "tr": "Hakuna anayestahiki kuabudiwa isipokuwa Allah peke Yake, hana mshirika. Ufalme ni Wake na sifa njema ni Zake, naye ana uwezo juu ya kila kitu.",
+      "translit": "Laa ilaaha illallaahu wahdahu laa shariika lah, lahul-mulku wa lahul-hamdu wa huwa alaa kulli shay-in qadiir",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6f7c464022f9",
+      "kind": "hadith",
+      "ar": "مَنْ قَالَ: لاَ إِلَهَ إِلَّا اللَّهُ، وَحْدَهُ لاَ شَرِيكَ لَهُ، لَهُ المُلْكُ وَلَهُ الحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، فِي يَوْمٍ مِائَةَ مَرَّةٍ، كَانَتْ لَهُ عَدْلَ عَشْرِ رِقَابٍ",
+      "tr": "Atakayesema “Hakuna anayestahiki kuabudiwa isipokuwa Allah peke Yake, hana mshirika. Ufalme ni Wake na sifa njema ni Zake, naye ana uwezo juu ya kila kitu” mara mia moja kwa siku, atapata sawa na kuwakomboa watumwa kumi.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l07",
+      "kind": "dhikr",
+      "ar": "الحمد لله",
+      "tr": "Sifa njema zote ni za Allah.",
+      "translit": "Alhamdu lillaah",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d3878266dc9e",
+      "kind": "hadith",
+      "ar": "وَالْحَمْدُ لِلَّهِ تَمْلَأُ الْمِيزَانَ",
+      "tr": "Na kusema “Sifa njema zote ni za Allah” huijaza mizani.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l08",
+      "kind": "dhikr",
+      "ar": "سبحان الله، والحمد لله، ولا إله إلا الله، والله أكبر",
+      "tr": "Ametakasika Allah, sifa njema zote ni za Allah, hakuna anayestahiki kuabudiwa isipokuwa Allah, na Allah ni Mkubwa zaidi.",
+      "translit": "Subhaanallaah, walhamdu lillaah, wa laa ilaaha illallaah, wallaahu akbar",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:17c849f1f429",
+      "kind": "hadith",
+      "ar": "أَحَبُّ الْكَلَامِ إِلَى اللهِ أَرْبَعٌ: سُبْحَانَ اللهِ، وَالْحَمْدُ لِلَّهِ، وَلَا إِلَهَ إِلَّا اللهُ، وَاللهُ أَكْبَرُ",
+      "tr": "Maneno yanayopendwa zaidi na Allah ni manne: “Ametakasika Allah”, “Sifa njema zote ni za Allah”, “Hakuna anayestahiki kuabudiwa isipokuwa Allah”, na “Allah ni Mkubwa zaidi”.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l09",
+      "kind": "dhikr",
+      "ar": "اللهم أعنّي على ذكرك وشكرك وحسن عبادتك",
+      "tr": "Ewe Allah, nisaidie kukukumbuka, kukushukuru na kukuabudu vizuri.",
+      "translit": "Allaahumma a-innii alaa dhikrika wa shukrika wa husni ibaadatik",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:07c644dd8a43",
+      "kind": "hadith",
+      "ar": "أُوصِيكَ يَا مُعَاذُ لَا تَدَعَنَّ فِي دُبُرِ كُلِّ صَلَاةٍ أَنْ تَقُولَ: اللهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ",
+      "tr": "Ninakusia, ewe Muadh, usiache kusema mwishoni mwa kila swala: “Ewe Allah, nisaidie kukukumbuka, kukushukuru na kukuabudu vizuri.”",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:27a277f0e101",
+      "kind": "text",
+      "ar": "النسائي",
+      "tr": "An-Nasa’i",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l10",
+      "kind": "dhikr",
+      "ar": "سبحان الله وبحمده عدد خلقه، ورضا نفسه، وزنة عرشه، ومداد كلماته",
+      "tr": "Ametakasika Allah na sifa njema ni Zake, kwa idadi ya viumbe Vyake, kwa radhi ya nafsi Yake, kwa uzito wa Arshi Yake, na kwa wingi wa wino wa maneno Yake.",
+      "translit": "Subhaanallaahi wa bihamdihi adada khalqihi wa ridhaa nafsihi wa zinata arshihi wa midaada kalimaatih",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:14ecc6f7775a",
+      "kind": "hadith",
+      "ar": "لَقَدْ قُلْتُ بَعْدَكِ أَرْبَعَ كَلِمَاتٍ، ثَلَاثَ مَرَّاتٍ، لَوْ وُزِنَتْ بِمَا قُلْتِ مُنْذُ الْيَوْمِ لَوَزَنَتْهُنَّ",
+      "tr": "Baada yako nimesema maneno manne mara tatu. Yakipimwa pamoja na uliyosema tangu mwanzo wa siku, yatayazidi kwa uzito.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l11",
+      "kind": "dhikr",
+      "ar": "لا إله إلا أنت سبحانك إني كنت من الظالمين",
+      "tr": "Muktadha wa aya kamili (21:87):\nNa Dhun-Nun alipoondoka hali ameghadhabika, na akadhani ya kwamba hatutamtia dhikini. Basi aliita katika giza: Hakuna mungu isipokuwa Wewe Subhanaka (Uliyetakasika). Hakika mimi nilikuwa miongoni mwa wenye kudhulumu.",
+      "translit": "Laa ilaaha illaa anta subhaanaka innii kuntu minadh-dhaalimiin",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/21/87",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "21:87",
+        "refs": [
+          "21:87"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:0a3d2d813331",
+      "kind": "hadith",
+      "ar": "دَعْوَةُ ذِي النُّونِ إِذْ دَعَا وَهُوَ فِي بَطْنِ الحُوتِ: لاَ إِلَهَ إِلاَّ أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ، فَإِنَّهُ لَمْ يَدْعُ بِهَا رَجُلٌ مُسْلِمٌ فِي شَيْءٍ قَطُّ إِلاَّ اسْتَجَابَ اللَّهُ لَهُ",
+      "tr": "Dua ya Dhun-Nun alipoomba akiwa tumboni mwa samaki: لاَ إِلَهَ إِلاَّ أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ [Muktadha wa aya kamili (21:87):\nNa Dhun-Nun alipoondoka hali ameghadhabika, na akadhani ya kwamba hatutamtia dhikini. Basi aliita katika giza: Hakuna mungu isipokuwa Wewe Subhanaka (Uliyetakasika). Hakika mimi nilikuwa miongoni mwa wenye kudhulumu.]. Hakuna Mwislamu aliyeomba kwa dua hiyo kuhusu jambo lolote isipokuwa Allah alimjibu.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": "",
+        "publishedQuotes": {
+          "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+          "url": "https://quranenc.com/en/browse/swahili_rwwad/21/87",
+          "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+          "date": "2026-11-04",
+          "snapshot": "2026-10-07",
+          "version": "1.0.5",
+          "translationKey": "swahili_rwwad",
+          "description": "Issued by the Islamic Content Service Association in Languages",
+          "lastUpdate": 1765978543,
+          "ref": "21:87",
+          "refs": [
+            "21:87"
+          ],
+          "context": "Full-verse context; published translation and footnotes preserved without alteration."
+        }
+      }
+    },
+    {
+      "id": "h:900c009b827b",
+      "kind": "text",
+      "ar": "الترمذي",
+      "tr": "At-Tirmidhi",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "l12",
+      "kind": "dhikr",
+      "ar": "رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ",
+      "tr": "Mola wangu, nisamehe na ukubali toba yangu. Hakika Wewe ndiye Mwenye kupokea toba, Mwenye kurehemu.",
+      "translit": "Rabbighfir lii wa tub alayya innaka antat-tawwaabur-rahiim",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:99e5b6f32eaf",
+      "kind": "hadith",
+      "ar": "نْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+      "tr": "Tulikuwa tukimhesabia Mtume wa Allah, rehema na amani ziwe juu yake, akisema katika kikao kimoja mara mia moja: “Mola wangu, nisamehe na ukubali toba yangu. Hakika Wewe ndiye Mwenye kupokea toba, Mwenye kurehemu.”",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:feb87fd43324",
+      "kind": "text",
+      "ar": "ابن ماجه",
+      "tr": "Ibn Majah",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:20eec0cbc850",
+      "kind": "quran",
+      "ar": "وَإِن تَعُدُّوا۟ نِعْمَةَ ٱللَّهِ لَا تُحْصُوهَآ",
+      "tr": "Muktadha wa aya kamili (16:18):\nNa mkizihesabu neema za Mwenyezi Mungu, hamwezi kuzidhibiti. Hakika Mwenyezi Mungu ni Mwenye maghfira mno, Mwingi wa kurehemu.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/16/18",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "16:18",
+        "refs": [
+          "16:18"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:d2766f33f933",
+      "kind": "quran",
+      "ar": "وَإِن تَعُدُّوا۟ نِعْمَةَ ٱللَّهِ لَا تُحْصُوهَآ ۗ إِنَّ ٱللَّهَ لَغَفُورٌ رَّحِيمٌ",
+      "tr": "Muktadha wa aya kamili (16:18):\nNa mkizihesabu neema za Mwenyezi Mungu, hamwezi kuzidhibiti. Hakika Mwenyezi Mungu ni Mwenye maghfira mno, Mwingi wa kurehemu.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/16/18",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "16:18",
+        "refs": [
+          "16:18"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:12b821c2544b",
+      "kind": "text",
+      "ar": "النحل: ١٨",
+      "tr": "An-Nahl: ١٨",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98163e27e637",
+      "kind": "text",
+      "ar": "حمدتُ الله",
+      "tr": "Nimemhimidi Allah",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3f41906e49ba",
+      "kind": "text",
+      "ar": "ابتسم في وجه أحدٍ اليوم",
+      "tr": "Mtabasamie mtu leo",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5612ff534dbb",
+      "kind": "hadith",
+      "ar": "تَبَسُّمُكَ فِي وَجْهِ أَخِيكَ لَكَ صَدَقَةٌ",
+      "tr": "Tabasamu lako usoni pa ndugu yako ni sadaka kwako.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8a0e25fe253d",
+      "kind": "text",
+      "ar": "ابتسمتُ",
+      "tr": "Nimetabasamu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d6f945f8dd74",
+      "kind": "text",
+      "ar": "كنزٌ من كنوز الجنة",
+      "tr": "Hazina miongoni mwa hazina za Peponi",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e8cd520b4557",
+      "kind": "text",
+      "ar": "تأمّل عافيتك ووقت فراغك، واشكر الله عليهما",
+      "tr": "Tafakari afya yako na muda wako wa nafasi, na umshukuru Allah kwa vyote viwili",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:772ed349c6e3",
+      "kind": "hadith",
+      "ar": "نِعْمَتَانِ مَغْبُونٌ فِيهِمَا كَثِيرٌ مِنَ النَّاسِ: الصِّحَّةُ وَالفَرَاغُ",
+      "tr": "Neema mbili ambazo watu wengi hupata hasara ndani yake: afya na muda wa nafasi.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3025efe9a80e",
+      "kind": "text",
+      "ar": "البخاري",
+      "tr": "Al-Bukhari",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:eb44ae40dd81",
+      "kind": "text",
+      "ar": "شكرتُ الله",
+      "tr": "Nimemshukuru Allah",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:23077bf89451",
+      "kind": "text",
+      "ar": "أمِط أذًى عن الطريق إن رأيته",
+      "tr": "Ondoa kitu chenye kuudhi njiani ukikiona",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:50366d06e4d2",
+      "kind": "hadith",
+      "ar": "وَأَدْنَاهَا إِمَاطَةُ الْأَذَى عَنِ الطَّرِيقِ",
+      "tr": "Na daraja la chini zaidi ni kuondoa kinachoudhi njiani.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f402f03cae5a",
+      "kind": "text",
+      "ar": "أمطتُه",
+      "tr": "Nimekiondoa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2697a2786f3d",
+      "kind": "text",
+      "ar": "صلاةٌ تعود عليك عشرًا",
+      "tr": "Rehema moja inayokurudia mara kumi",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:250089f51a89",
+      "kind": "text",
+      "ar": "استحضر محبّة النبي ﷺ، وأنّها فوق كلّ محبّة",
+      "tr": "Kumbuka kumpenda Nabii, rehema na amani ziwe juu yake, juu ya mapenzi mengine yote",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a561a5ebb178",
+      "kind": "hadith",
+      "ar": "لاَ يُؤْمِنُ أَحَدُكُمْ، حَتَّى أَكُونَ أَحَبَّ إِلَيْهِ مِنْ وَالِدِهِ وَوَلَدِهِ وَالنَّاسِ أَجْمَعِينَ",
+      "tr": "Haamini mmoja wenu mpaka anipende zaidi kuliko mzazi wake, mtoto wake na watu wote.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f993a685cc28",
+      "kind": "text",
+      "ar": "استحضرتُها",
+      "tr": "Nimekumbuka",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d853b265f971",
+      "kind": "text",
+      "ar": "اتصل بقريبٍ لك ولو دقيقة",
+      "tr": "Mpigie simu ndugu wa ukoo, hata kwa dakika moja",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:00ac3fc63f2b",
+      "kind": "hadith",
+      "ar": "مَنْ أَحَبَّ أَنْ يُبْسَطَ لَهُ فِي رِزْقِهِ، وَيُنْسَأَ لَهُ فِي أَثَرِهِ، فَلْيَصِلْ رَحِمَهُ",
+      "tr": "Anayetaka akunjuliwe riziki na aongezewe muda wa maisha, basi aunganishe undugu wake.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:57ba5a72fc2f",
+      "kind": "text",
+      "ar": "اتصلتُ",
+      "tr": "Nimepiga simu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:91f75101f303",
+      "kind": "text",
+      "ar": "توبةٌ في كلّ يوم",
+      "tr": "Toba kila siku",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fa2ccac58aaa",
+      "kind": "quran",
+      "ar": "ذَكَرُوا۟ ٱللَّهَ فَٱسْتَغْفَرُوا۟ لِذُنُوبِهِمْ",
+      "tr": "Muktadha wa aya kamili (3:135):\nNa wale ambao wanapofanya uchafu au wakazidhulumu nafsi zao, humtaja Mwenyezi Mungu; na hapo wanamwomba kufutiwa dhambi zao. Na ni nani anayefuta dhambi isipokuwa Mwenyezi Mungu? Na wala hawaendelei na waliyoyafanya hali ya kuwa wanajua.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/3/135",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "3:135",
+        "refs": [
+          "3:135"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:d28d20ff1810",
+      "kind": "quran",
+      "ar": "وَٱلَّذِينَ إِذَا فَعَلُوا۟ فَـٰحِشَةً أَوْ ظَلَمُوٓا۟ أَنفُسَهُمْ ذَكَرُوا۟ ٱللَّهَ فَٱسْتَغْفَرُوا۟ لِذُنُوبِهِمْ وَمَن يَغْفِرُ ٱلذُّنُوبَ إِلَّا ٱللَّهُ وَلَمْ يُصِرُّوا۟ عَلَىٰ مَا فَعَلُوا۟ وَهُمْ يَعْلَمُونَ",
+      "tr": "Muktadha wa aya kamili (3:135):\nNa wale ambao wanapofanya uchafu au wakazidhulumu nafsi zao, humtaja Mwenyezi Mungu; na hapo wanamwomba kufutiwa dhambi zao. Na ni nani anayefuta dhambi isipokuwa Mwenyezi Mungu? Na wala hawaendelei na waliyoyafanya hali ya kuwa wanajua.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/3/135",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "3:135",
+        "refs": [
+          "3:135"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:48a66c090a5d",
+      "kind": "text",
+      "ar": "آل عمران: ١٣٥",
+      "tr": "Aal Imran: ١٣٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3ce64fe4a699",
+      "kind": "text",
+      "ar": "عزمتُ",
+      "tr": "Nimeazimia",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ce4a31704233",
+      "kind": "text",
+      "ar": "تصدّق بشيءٍ ولو قليل",
+      "tr": "Toa sadaka ya kitu, hata kidogo",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4dacbcbb1982",
+      "kind": "hadith",
+      "ar": "اتَّقُوا النَّارَ وَلَوْ بِشِقِّ تَمْرَةٍ",
+      "tr": "Jikingieni na Moto, hata kwa nusu ya tende.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a90a7e31e96c",
+      "kind": "text",
+      "ar": "تصدّقتُ",
+      "tr": "Nimetoa sadaka",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c1a5ce38896f",
+      "kind": "text",
+      "ar": "دعوةٌ يردّها عليك ملَك",
+      "tr": "Dua ambayo malaika anakurudishia",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3262bf68b53f",
+      "kind": "text",
+      "ar": "ادعُ لأخٍ لك باسمه وهو لا يدري",
+      "tr": "Muombee ndugu yako kwa jina bila yeye kujua",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dec4db48f5d9",
+      "kind": "hadith",
+      "ar": "دَعْوَةُ الْمَرْءِ الْمُسْلِمِ لِأَخِيهِ بِظَهْرِ الْغَيْبِ مُسْتَجَابَةٌ، عِنْدَ رَأْسِهِ مَلَكٌ مُوَكَّلٌ كُلَّمَا دَعَا لِأَخِيهِ بِخَيْرٍ، قَالَ الْمَلَكُ الْمُوَكَّلُ بِهِ: آمِينَ وَلَكَ بِمِثْلٍ",
+      "tr": "Dua ya Mwislamu kwa ndugu yake bila yeye kujua hukubaliwa. Karibu na kichwa chake kuna malaika aliyepewa jukumu; kila anapomuombea ndugu yake kheri, malaika husema: “Amin, na wewe upate mfano wake.”",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:167610e41522",
+      "kind": "text",
+      "ar": "دعوتُ له",
+      "tr": "Nimemuombea",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:290e634e843b",
+      "kind": "text",
+      "ar": "اسقِ أحدًا ماءً، ولو طيرًا أو حيوانًا",
+      "tr": "Mnyweshe mtu maji, hata ndege au mnyama",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3b0c2667a7e1",
+      "kind": "hadith",
+      "ar": "فِي كُلِّ كَبِدٍ رَطْبَةٍ أَجْرٌ",
+      "tr": "Katika kila kiumbe chenye ini lenye unyevunyevu kuna malipo.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fd398c044a84",
+      "kind": "text",
+      "ar": "سقيتُ",
+      "tr": "Nimenywesha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:64d0504d3bb2",
+      "kind": "text",
+      "ar": "آيةٌ تطمئنّ بها القلوب",
+      "tr": "Aya inayotuliza nyoyo",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7e93df1a44f3",
+      "kind": "text",
+      "ar": "اقرأ الآية، ثم اسكن دقيقةً بلا جوال وردّدها في نفسك",
+      "tr": "Soma aya, kisha tulia dakika moja bila simu na uirudie moyoni",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b1726f3e1a29",
+      "kind": "quran",
+      "ar": "ٱلَّذِينَ ءَامَنُوا۟ وَتَطْمَئِنُّ قُلُوبُهُم بِذِكْرِ ٱللَّهِ ۗ أَلَا بِذِكْرِ ٱللَّهِ تَطْمَئِنُّ ٱلْقُلُوبُ",
+      "tr": "Muktadha wa aya kamili (13:28):\nWale walioamini na zikatua nyoyo zao kwa kumtaja Mwenyezi Mungu. Sikilizeni! Kwa kumtaja Mwenyezi Mungu ndiyo nyoyo hutua!",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/13/28",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "13:28",
+        "refs": [
+          "13:28"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:8f38fb1c304b",
+      "kind": "text",
+      "ar": "الرعد: ٢٨",
+      "tr": "Ar-Ra’d: ٢٨",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f4389e5bd4aa",
+      "kind": "text",
+      "ar": "\n28 - هؤلاء الذين يهديهم الله هم الذين آمنوا، وتستأنس قلوبهم بذكر الله بتسبيحه وتحميده، وبتلاوة كتابه ألا بذكر الله وحده تستأنس القلوب، خَلِيق بها ذلك.\n[مِنْ فَوَائِدِ الآيَاتِ]\n• الترغيب في جملة من فضائل الأخلاق الموجبة للجنة، ومنها: حسن الصلة، وخشية الله تعالى، والوفاء بالعهود، والصبر والإنفاق، ومقابلة السيئة بالحسنة والتحذير من ضدها.\n• أن مقاليد الرزق بيد الله - سبحانه وتعالى -، وأن توسعة الله تعالى أو تضييقه في رزق عبد ما لا ينبغي أن يكون موجبًا لفرح أو حزن، فهو ليس دليلًا على رضا الله أو سخطه على ذلك العبد.\n• أن الهداية ليست بالضرورة مربوطة بإنزال الآيات والمعجزات التي اقترح المشركون إظهارها.\n• من آثار القرآن على العبد المؤمن أنه يورثه طمأنينة في القلب.",
+      "tr": "28 - Hao ambao Allah anawaongoza ni walioamini, na nyoyo zao zinapata utulivu kwa kumkumbuka Allah, kumtakasa, kumhimidi na kusoma Kitabu Chake. Kwa kumkumbuka Allah peke Yake nyoyo hutulia; hilo linazifaa.\n[MIONGONI MWA MAFUNZO YA AYA]\n• Kuhimiza tabia njema zinazopeleka Peponi: kuunganisha mahusiano vizuri, kumcha Allah Aliyetukuka, kutimiza ahadi, kusubiri, kutoa, na kulipa ubaya kwa wema; na kuonya dhidi ya kinyume chake.\n• Funguo za riziki ziko mikononi mwa Allah Aliyetakasika na Kutukuka. Allah kumkunjulia au kumfinyia mja riziki hakupaswi peke yake kusababisha furaha au huzuni, kwa kuwa si dalili ya radhi Zake au ghadhabu Yake kwa mja huyo.\n• Uongofu hauhusiani lazima na kuteremshwa kwa ishara na miujiza ambayo washirikina walipendekeza ionyeshwe.\n• Miongoni mwa athari za Qur’ani kwa mja muumini ni kumpa utulivu moyoni.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:45a07072c470",
+      "kind": "text",
+      "ar": "المختصر في التفسير",
+      "tr": "Al-Mukhtasar fi At-Tafsir",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:39e7e4c6bec1",
+      "kind": "text",
+      "ar": "قرأتُها وسكنتُ",
+      "tr": "Nimesoma na kutulia",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1158653a1337",
+      "kind": "text",
+      "ar": "صلِّ ركعتي الضحى",
+      "tr": "Swali rakaa mbili za Duha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:264421ee13f7",
+      "kind": "hadith",
+      "ar": "وَيُجْزِئُ مِنْ ذَلِكَ رَكْعَتَانِ يَرْكَعُهُمَا مِنَ الضُّحَى",
+      "tr": "Rakaa mbili anazoziswali wakati wa Duha zinatosha kwa hayo.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:29f3ca5f8dac",
+      "kind": "text",
+      "ar": "صلّيتُهما",
+      "tr": "Nimeziswali",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:01bd5e7a7898",
+      "kind": "text",
+      "ar": "سرّ اسم هذا القسم",
+      "tr": "Maana iliyofichika katika jina la sehemu hii",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:71ae0c0be445",
+      "kind": "text",
+      "ar": "سَأَلْتُ أُمَّ المُؤْمِنِينَ عَائِشَةَ، قُلْتُ: يَا أُمَّ المُؤْمِنِينَ، كَيْفَ كَانَ عَمَلُ النَّبِيِّ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ، هَلْ كَانَ يَخُصُّ شَيْئًا مِنَ الأَيَّامِ؟ قَالَتْ: «لاَ، كَانَ عَمَلُهُ دِيمَةً",
+      "tr": "Nilimuuliza Mama wa Waumini Aisha: “Ewe Mama wa Waumini, amali ya Nabii, rehema na amani ziwe juu yake, ilikuwaje? Je, alikuwa akizitenga baadhi ya siku?” Akasema: “Hapana, amali yake ilikuwa ya kudumu.”",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b276f2717489",
+      "kind": "text",
+      "ar": "الدِّيمة: المطر الدائم في سكون، ومنه اسم هذا القسم",
+      "tr": "Dima ni mvua inayodumu kwa utulivu; ndipo jina la sehemu hii lilipotoka",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7bae20b3a0d4",
+      "kind": "text",
+      "ar": "فهمتُ الاسم",
+      "tr": "Nimelielewa jina",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:775c139fc71b",
+      "kind": "text",
+      "ar": "اعمل اليوم عملًا خفيًّا لا يعلمه أحد",
+      "tr": "Fanya leo amali ya siri asiyoijua mtu yeyote",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a2b5f40907ed",
+      "kind": "hadith",
+      "ar": "وَرَجُلٌ تَصَدَّقَ بِصَدَقَةٍ فَأَخْفَاهَا حَتَّى لاَ تَعْلَمَ شِمَالُهُ مَا تُنْفِقُ يَمِينُهُ",
+      "tr": "Na mtu aliyetoa sadaka akaificha mpaka mkono wake wa kushoto haujui kilichotolewa na mkono wake wa kulia.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ee4aeff06c85",
+      "kind": "text",
+      "ar": "فعلتُه",
+      "tr": "Nimefanya",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d35dfabb25f2",
+      "kind": "text",
+      "ar": "تأمّلٌ في السماء",
+      "tr": "Kutafakari anga",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3091bff0f30c",
+      "kind": "quran",
+      "ar": "إِنَّ فِى خَلْقِ ٱلسَّمَـٰوَٰتِ وَٱلْأَرْضِ وَٱخْتِلَـٰفِ ٱلَّيْلِ وَٱلنَّهَارِ لَـَٔايَـٰتٍ لِّأُو۟لِى ٱلْأَلْبَـٰبِ",
+      "tr": "Muktadha wa aya kamili (3:190):\nHakika, katika kuumbwa mbingu na ardhi na kuhitilafiana usiku na mchana ziko Ishara kwa wenye akili ya hali ya juu.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/3/190",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "3:190",
+        "refs": [
+          "3:190"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:a7fa47e20162",
+      "kind": "text",
+      "ar": "آل عمران: ١٩٠",
+      "tr": "Aal Imran: ١٩٠",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4c38aa57f637",
+      "kind": "text",
+      "ar": "تفكّرتُ",
+      "tr": "Nimetafakari",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2da6b942f85b",
+      "kind": "text",
+      "ar": "سلّم على من تعرف ومن لا تعرف",
+      "tr": "Mpe salamu unayemjua na usiyemjua",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:02a2f24ecc5b",
+      "kind": "hadith",
+      "ar": "أَفْشُوا السَّلَامَ بَيْنَكُمْ",
+      "tr": "Sambazeni salamu baina yenu.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:54bda18381ab",
+      "kind": "text",
+      "ar": "سلّمتُ",
+      "tr": "Nimesalimu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:90ac8e1ad8d9",
+      "kind": "text",
+      "ar": "معنى أن يراك الله",
+      "tr": "Maana ya kwamba Allah anakuona",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:081d9bc2982a",
+      "kind": "quran",
+      "ar": "وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ",
+      "tr": "Muktadha wa aya kamili (57:4):\nYeye ndiye aliyeziumba mbingu na ardhi katika siku sita; kisha akainuka akawa juu ya Kitu cha Enzi. Anayajua yanayoingia katika ardhi na yanayotoka humo, na yanayoteremka kutoka mbinguni, na yanayopanda humo. Naye yu pamoja nanyi popote mlipo. Na Mwenyezi Mungu ni Mwenye kuyaona mno mnayoyatenda.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/57/4",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "57:4",
+        "refs": [
+          "57:4"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:d8dc1eff0491",
+      "kind": "quran",
+      "ar": "هُوَ ٱلَّذِى خَلَقَ ٱلسَّمَـٰوَٰتِ وَٱلْأَرْضَ فِى سِتَّةِ أَيَّامٍ ثُمَّ ٱسْتَوَىٰ عَلَى ٱلْعَرْشِ ۚ يَعْلَمُ مَا يَلِجُ فِى ٱلْأَرْضِ وَمَا يَخْرُجُ مِنْهَا وَمَا يَنزِلُ مِنَ ٱلسَّمَآءِ وَمَا يَعْرُجُ فِيهَا ۖ وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ ۚ وَٱللَّهُ بِمَا تَعْمَلُونَ بَصِيرٌ",
+      "tr": "Muktadha wa aya kamili (57:4):\nYeye ndiye aliyeziumba mbingu na ardhi katika siku sita; kisha akainuka akawa juu ya Kitu cha Enzi. Anayajua yanayoingia katika ardhi na yanayotoka humo, na yanayoteremka kutoka mbinguni, na yanayopanda humo. Naye yu pamoja nanyi popote mlipo. Na Mwenyezi Mungu ni Mwenye kuyaona mno mnayoyatenda.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/57/4",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "57:4",
+        "refs": [
+          "57:4"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:281bc3d50863",
+      "kind": "text",
+      "ar": "الحديد: ٤",
+      "tr": "Al-Hadid: ٤",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:163c681cb4d0",
+      "kind": "text",
+      "ar": "استحضرتُ",
+      "tr": "Nimeweka moyoni",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:958aee9120cc",
+      "kind": "quran",
+      "ar": "وَقُل لَّهُمَا قَوْلًا كَرِيمًا",
+      "tr": "Muktadha wa aya kamili (17:23):\nNa Mola wako Mlezi ameamrisha kuwa msimuabudu yeyote ila Yeye tu, na wazazi wawili muwatendee wema. Mmoja wao akifikia uzee, naye yuko pamoja nawe, au wote wawili, basi usiwaambie hata, \"Ah!\" Wala usiwakemee. Na uwaambie maneno ya heshima.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/17/23",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "17:23",
+        "refs": [
+          "17:23"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:37e30d264f90",
+      "kind": "quran",
+      "ar": "وَقَضَىٰ رَبُّكَ أَلَّا تَعْبُدُوٓا۟ إِلَّآ إِيَّاهُ وَبِٱلْوَٰلِدَيْنِ إِحْسَـٰنًا ۚ إِمَّا يَبْلُغَنَّ عِندَكَ ٱلْكِبَرَ أَحَدُهُمَآ أَوْ كِلَاهُمَا فَلَا تَقُل لَّهُمَآ أُفٍّ وَلَا تَنْهَرْهُمَا وَقُل لَّهُمَا قَوْلًا كَرِيمًا",
+      "tr": "Muktadha wa aya kamili (17:23):\nNa Mola wako Mlezi ameamrisha kuwa msimuabudu yeyote ila Yeye tu, na wazazi wawili muwatendee wema. Mmoja wao akifikia uzee, naye yuko pamoja nawe, au wote wawili, basi usiwaambie hata, \"Ah!\" Wala usiwakemee. Na uwaambie maneno ya heshima.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/17/23",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "17:23",
+        "refs": [
+          "17:23"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:9e9f8ed257ca",
+      "kind": "text",
+      "ar": "الإسراء: ٢٣",
+      "tr": "Al-Isra’: ٢٣",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:497006ea9a84",
+      "kind": "text",
+      "ar": "فعلتُها",
+      "tr": "Nimefanya",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:02eb46d6b17f",
+      "kind": "text",
+      "ar": "زيارةٌ تُدخلك بساتين الجنة",
+      "tr": "Ziara inayokuingiza katika bustani za Peponi",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5218f0630325",
+      "kind": "quran",
+      "ar": "كُلُّ نَفْسٍ ذَآئِقَةُ ٱلْمَوْتِ",
+      "tr": "Muktadha wa aya kamili (3:185):\nKila nafsi itaonja mauti. Na bila ya shaka mtapewa ujira wenu kamili Siku ya Kiyama. Na atakayeepushwa na Moto, na akaingizwa Bustanini, basi huyo hakika amefuzu. Na maisha ya dunia si kitu isipokuwa starehe ya udanganyifu.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/3/185",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "3:185",
+        "refs": [
+          "3:185"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:f71106ec1dfa",
+      "kind": "quran",
+      "ar": "كُلُّ نَفْسٍ ذَآئِقَةُ ٱلْمَوْتِ ۗ وَإِنَّمَا تُوَفَّوْنَ أُجُورَكُمْ يَوْمَ ٱلْقِيَـٰمَةِ ۖ فَمَن زُحْزِحَ عَنِ ٱلنَّارِ وَأُدْخِلَ ٱلْجَنَّةَ فَقَدْ فَازَ ۗ وَمَا ٱلْحَيَوٰةُ ٱلدُّنْيَآ إِلَّا مَتَـٰعُ ٱلْغُرُورِ",
+      "tr": "Muktadha wa aya kamili (3:185):\nKila nafsi itaonja mauti. Na bila ya shaka mtapewa ujira wenu kamili Siku ya Kiyama. Na atakayeepushwa na Moto, na akaingizwa Bustanini, basi huyo hakika amefuzu. Na maisha ya dunia si kitu isipokuwa starehe ya udanganyifu.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/3/185",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "3:185",
+        "refs": [
+          "3:185"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:ffbaa68ba877",
+      "kind": "text",
+      "ar": "آل عمران: ١٨٥",
+      "tr": "Aal Imran: ١٨٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:aa3484814ce9",
+      "kind": "text",
+      "ar": "تذكّرتُ",
+      "tr": "Nimekumbuka",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:57b6e171fa35",
+      "kind": "text",
+      "ar": "زُر مريضًا أو اتصل به",
+      "tr": "Mtembelee mgonjwa au mpigie simu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:aee8ae614a41",
+      "kind": "hadith",
+      "ar": "مَنْ عَادَ مَرِيضًا، لَمْ يَزَلْ فِي خُرْفَةِ الْجَنَّةِ",
+      "tr": "Anayemtembelea mgonjwa huendelea kuwa katika kuchuma matunda ya Peponi.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:09abc14df2a9",
+      "kind": "text",
+      "ar": "عُدتُه",
+      "tr": "Nimemtembelea",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ef55122e7311",
+      "kind": "text",
+      "ar": "حسنُ الظنّ بالله",
+      "tr": "Kumdhani Allah mema",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0dbb48646cae",
+      "kind": "text",
+      "ar": "أحسن ظنّك بالله فيما تنتظره",
+      "tr": "Mdhani Allah mema katika unachosubiri",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f982a268d23c",
+      "kind": "hadith",
+      "ar": "أَنَا عِنْدَ ظَنِّ عَبْدِي بِي",
+      "tr": "Mimi niko kulingana na anavyonidhani mja Wangu.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:50430be2cb6f",
+      "kind": "text",
+      "ar": "أحسنتُ ظنّي",
+      "tr": "Nimedhani mema",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:aa0f15bf7171",
+      "kind": "text",
+      "ar": "أعِن أحدًا في حاجةٍ صغيرة: حملٌ، أو بابٌ، أو كلمةُ إرشاد",
+      "tr": "Msaidie mtu katika hitaji dogo: kubeba kitu, kufungua mlango, au kuelekeza njia",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:484b458a6621",
+      "kind": "hadith",
+      "ar": "وَاللهُ فِي عَوْنِ الْعَبْدِ مَا كَانَ الْعَبْدُ فِي عَوْنِ أَخِيهِ",
+      "tr": "Allah humsaidia mja maadamu mja anamsaidia ndugu yake.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:78f9d8ff902c",
+      "kind": "text",
+      "ar": "أعنتُ",
+      "tr": "Nimesaidia",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d709ae66b312",
+      "kind": "text",
+      "ar": "نعمةٌ لا توازيها نعمة",
+      "tr": "Neema isiyolinganishwa na nyingine",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6de7e3f2b5f5",
+      "kind": "quran",
+      "ar": "وَرَضِيتُ لَكُمُ ٱلْإِسْلَـٰمَ دِينًا",
+      "tr": "Muktadha wa aya kamili (5:3):\nMmeharimishiwa nyamafu, na damu, na nyama ya nguruwe, na kile kilichochinjwa kwa ajili ya asiyekuwa Mwenyezi Mungu, na yule aliyekufa kwa kunyongeka koo. Na yule aliyekufa kwa kupigwa, na yule aliyekufa kwa kuanguka, na yule aliyekufa kwa kupigwa pembe, na yule aliyeliwa na mnyama, isipokuwa mkimdiriki kumchinja, na yule aliyechinjiwa masanamu, na ni haramu kupiga ramli. Hayo yote ni kupita mipaka. Leo wale waliokufuru wamekata tamaa na Dini yenu; basi msiwaogope, bali niogopeni Mimi. Leo nimewakamilishia Dini yenu, na nimewatimizia neema yangu, na nimeridhia Uislamu uwe ndiyo Dini yenu. Na mwenye kulazimishwa na njaa, bila ya kupendelea dhambi, basi hakika Mwenyezi Mungu ni Mwenye kufuta dhambi, Mwenye kurehemu.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/5/3",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "5:3",
+        "refs": [
+          "5:3"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:86c37ab91253",
+      "kind": "quran",
+      "ar": "حُرِّمَتْ عَلَيْكُمُ ٱلْمَيْتَةُ وَٱلدَّمُ وَلَحْمُ ٱلْخِنزِيرِ وَمَآ أُهِلَّ لِغَيْرِ ٱللَّهِ بِهِۦ وَٱلْمُنْخَنِقَةُ وَٱلْمَوْقُوذَةُ وَٱلْمُتَرَدِّيَةُ وَٱلنَّطِيحَةُ وَمَآ أَكَلَ ٱلسَّبُعُ إِلَّا مَا ذَكَّيْتُمْ وَمَا ذُبِحَ عَلَى ٱلنُّصُبِ وَأَن تَسْتَقْسِمُوا۟ بِٱلْأَزْلَـٰمِ ۚ ذَٰلِكُمْ فِسْقٌ ۗ ٱلْيَوْمَ يَئِسَ ٱلَّذِينَ كَفَرُوا۟ مِن دِينِكُمْ فَلَا تَخْشَوْهُمْ وَٱخْشَوْنِ ۚ ٱلْيَوْمَ أَكْمَلْتُ لَكُمْ دِينَكُمْ وَأَتْمَمْتُ عَلَيْكُمْ نِعْمَتِى وَرَضِيتُ لَكُمُ ٱلْإِسْلَـٰمَ دِينًا ۚ فَمَنِ ٱضْطُرَّ فِى مَخْمَصَةٍ غَيْرَ مُتَجَانِفٍ لِّإِثْمٍ ۙ فَإِنَّ ٱللَّهَ غَفُورٌ رَّحِيمٌ",
+      "tr": "Muktadha wa aya kamili (5:3):\nMmeharimishiwa nyamafu, na damu, na nyama ya nguruwe, na kile kilichochinjwa kwa ajili ya asiyekuwa Mwenyezi Mungu, na yule aliyekufa kwa kunyongeka koo. Na yule aliyekufa kwa kupigwa, na yule aliyekufa kwa kuanguka, na yule aliyekufa kwa kupigwa pembe, na yule aliyeliwa na mnyama, isipokuwa mkimdiriki kumchinja, na yule aliyechinjiwa masanamu, na ni haramu kupiga ramli. Hayo yote ni kupita mipaka. Leo wale waliokufuru wamekata tamaa na Dini yenu; basi msiwaogope, bali niogopeni Mimi. Leo nimewakamilishia Dini yenu, na nimewatimizia neema yangu, na nimeridhia Uislamu uwe ndiyo Dini yenu. Na mwenye kulazimishwa na njaa, bila ya kupendelea dhambi, basi hakika Mwenyezi Mungu ni Mwenye kufuta dhambi, Mwenye kurehemu.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/5/3",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "5:3",
+        "refs": [
+          "5:3"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:dc86c476328e",
+      "kind": "text",
+      "ar": "المائدة: ٣",
+      "tr": "Al-Ma’idah: ٣",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ff3171fadf31",
+      "kind": "text",
+      "ar": "اعفُ اليوم عن أحدٍ أساء إليك",
+      "tr": "Msamehe leo mtu aliyekukosea",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:02231d7aed77",
+      "kind": "hadith",
+      "ar": "وَمَا زَادَ اللهُ عَبْدًا بِعَفْوٍ، إِلَّا عِزًّا",
+      "tr": "Allah hamzidishii mja kwa kusamehe isipokuwa heshima.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7f77a5bbf5f7",
+      "kind": "text",
+      "ar": "عفوتُ",
+      "tr": "Nimesamehe",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a1734a751379",
+      "kind": "text",
+      "ar": "حوارٌ بينك وبين ربّك في الفاتحة",
+      "tr": "Mazungumzo kati yako na Mola wako katika Al-Fatihah",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d692abd5b90c",
+      "kind": "text",
+      "ar": "في صلاتك اليوم، تدبّر الفاتحة آيةً آية",
+      "tr": "Katika swala yako leo, tafakari Al-Fatihah aya kwa aya",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5fee4c48e032",
+      "kind": "hadith",
+      "ar": "قَسَمْتُ الصَّلَاةَ بَيْنِي وَبَيْنَ عَبْدِي نِصْفَيْنِ",
+      "tr": "Nimeigawa swala kati Yangu na mja Wangu kwa nusu mbili.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:02f573b7d7e0",
+      "kind": "text",
+      "ar": "تدبّرتُ",
+      "tr": "Nimetafakari maana",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:371e8baaa08d",
+      "kind": "text",
+      "ar": "اقرأ صفحةً واحدةً من القرآن بتأنٍّ",
+      "tr": "Soma ukurasa mmoja wa Qur’ani kwa utulivu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:564401ee3639",
+      "kind": "hadith",
+      "ar": "مَنْ قَرَأَ حَرْفًا مِنْ كِتَابِ اللهِ فَلَهُ بِهِ حَسَنَةٌ، وَالحَسَنَةُ بِعَشْرِ أَمْثَالِهَا",
+      "tr": "Anayesoma herufi moja katika Kitabu cha Allah ana jema moja kwa hiyo, na jema moja hulipwa mara kumi.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:eddb7fb92cdd",
+      "kind": "text",
+      "ar": "قرأتُ",
+      "tr": "Nimesoma",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:572a32ac3a9f",
+      "kind": "text",
+      "ar": "من أين جاء رزقك؟",
+      "tr": "Riziki yako imetoka wapi?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:13168ae1cf1d",
+      "kind": "quran",
+      "ar": "وَمَا بِكُم مِّن نِّعْمَةٍ فَمِنَ ٱللَّهِ",
+      "tr": "Muktadha wa aya kamili (16:53):\nNa neema yoyote mliyo nayo inatoka kwa Mwenyezi Mungu. Kisha yakiwagusa madhara, mnamyayatikia Yeye.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/16/53",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "16:53",
+        "refs": [
+          "16:53"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:d5db725b1a65",
+      "kind": "quran",
+      "ar": "وَمَا بِكُم مِّن نِّعْمَةٍ فَمِنَ ٱللَّهِ ۖ ثُمَّ إِذَا مَسَّكُمُ ٱلضُّرُّ فَإِلَيْهِ تَجْـَٔرُونَ",
+      "tr": "Muktadha wa aya kamili (16:53):\nNa neema yoyote mliyo nayo inatoka kwa Mwenyezi Mungu. Kisha yakiwagusa madhara, mnamyayatikia Yeye.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/16/53",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "16:53",
+        "refs": [
+          "16:53"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:bc58638e5295",
+      "kind": "text",
+      "ar": "النحل: ٥٣",
+      "tr": "An-Nahl: ٥٣",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cdad75d8d0d2",
+      "kind": "text",
+      "ar": "تأمّلتُ",
+      "tr": "Nimetafakari",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4f74626399c3",
+      "kind": "text",
+      "ar": "أطعم أحدًا: جارًا، أو عاملًا، أو محتاجًا",
+      "tr": "Mlishe mtu: jirani, mfanyakazi au mwenye kuhitaji",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:df3539720eaf",
+      "kind": "hadith",
+      "ar": "تُطْعِمُ الطَّعَامَ، وَتَقْرَأُ السَّلاَمَ عَلَى مَنْ عَرَفْتَ وَمَنْ لَمْ تَعْرِفْ",
+      "tr": "Ulishe chakula na utoe salamu kwa unayemjua na usiyemjua.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:923a101738fe",
+      "kind": "text",
+      "ar": "أطعمتُ",
+      "tr": "Nimelisha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:08d1fdd3fda9",
+      "kind": "text",
+      "ar": "نظّف قلبك من شيءٍ واحد",
+      "tr": "Safisha moyo wako kutokana na jambo moja",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b0635da76858",
+      "kind": "text",
+      "ar": "فتّش قلبك من الحسد، واسأل الله أن ينزعه",
+      "tr": "Chunguza moyo wako kama una husuda, na muombe Allah aiondoe",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:840ed35e7906",
+      "kind": "hadith",
+      "ar": "لَا تَحَاسَدُوا، وَلَا تَنَاجَشُوا، وَلَا تَبَاغَضُوا، وَلَا تَدَابَرُوا، وَلَا يَبِعْ بَعْضُكُمْ عَلَى بَيْعِ بَعْضٍ، وَكُونُوا عِبَادَ اللهِ إِخْوَانًا",
+      "tr": "Msihusudiane, msipandishe bei kwa udanganyifu, msichukiane, msipeane migongo, wala mmoja wenu asiingilie mauzo ya mwingine; na kuweni ndugu, enyi waja wa Allah.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:14f47068e221",
+      "kind": "text",
+      "ar": "فتّشتُ",
+      "tr": "Nimechunguza moyo",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8d2a3b29580a",
+      "kind": "text",
+      "ar": "قل كلمةً طيبةً لأحدٍ اليوم",
+      "tr": "Mwambie mtu neno zuri leo",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d6b92a23bd7f",
+      "kind": "hadith",
+      "ar": "وَالكَلِمَةُ الطَّيِّبَةُ صَدَقَةٌ",
+      "tr": "Na neno zuri ni sadaka.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b1adff1eaa94",
+      "kind": "text",
+      "ar": "حياتك كلّها عبادة",
+      "tr": "Maisha yako yote ni ibada",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b5a58064f03c",
+      "kind": "quran",
+      "ar": "قُلْ إِنَّ صَلَاتِى وَنُسُكِى وَمَحْيَاىَ وَمَمَاتِى لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ",
+      "tr": "Muktadha wa aya kamili (6:162):\nSema: \"Hakika Swala yangu, na kuchinja kwangu , na uhai wangu, na kufa kwangu, ni kwa ajili ya Mwenyezi Mungu, Mola Mlezi wa walimwengu.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/6/162",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "6:162",
+        "refs": [
+          "6:162"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:8871f9daaf61",
+      "kind": "text",
+      "ar": "الأنعام: ١٦٢",
+      "tr": "Al-An’am: ١٦٢",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6127d6256dbb",
+      "kind": "text",
+      "ar": "صلِّ راتبةً كنتَ تفوّتها",
+      "tr": "Swali swala ya sunna ya ratiba ambayo ulikuwa ukiiacha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5735e5bb00d3",
+      "kind": "hadith",
+      "ar": "مَنْ صَلَّى اثْنَتَيْ عَشْرَةَ رَكْعَةً فِي يَوْمٍ وَلَيْلَةٍ، بُنِيَ لَهُ بِهِنَّ بَيْتٌ فِي الْجَنَّةِ",
+      "tr": "Anayeswali rakaa kumi na mbili katika mchana na usiku atajengewa kwa hizo nyumba Peponi.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e166bf870e61",
+      "kind": "text",
+      "ar": "صلّيتُها",
+      "tr": "Nimeiswali",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f82a52bb6504",
+      "kind": "text",
+      "ar": "لا تكن من الغافلين",
+      "tr": "Muktadha wa aya kamili (7:205):\nNa mkumbuke Mola wako Mlezi katika nafsi yako kwa unyenyekevu na hofu, na bila ya kuinua sauti juu kwa kauli, asubuhi na jioni, wala usiwe miongoni wa walioghafilika.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/7/205",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "7:205",
+        "refs": [
+          "7:205"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:9c2f74da3418",
+      "kind": "quran",
+      "ar": "وَلَا تَكُن مِّنَ ٱلْغَـٰفِلِينَ",
+      "tr": "Muktadha wa aya kamili (7:205):\nNa mkumbuke Mola wako Mlezi katika nafsi yako kwa unyenyekevu na hofu, na bila ya kuinua sauti juu kwa kauli, asubuhi na jioni, wala usiwe miongoni wa walioghafilika.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/7/205",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "7:205",
+        "refs": [
+          "7:205"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:f2ebed900462",
+      "kind": "quran",
+      "ar": "وَٱذْكُر رَّبَّكَ فِى نَفْسِكَ تَضَرُّعًا وَخِيفَةً وَدُونَ ٱلْجَهْرِ مِنَ ٱلْقَوْلِ بِٱلْغُدُوِّ وَٱلْـَٔاصَالِ وَلَا تَكُن مِّنَ ٱلْغَـٰفِلِينَ",
+      "tr": "Muktadha wa aya kamili (7:205):\nNa mkumbuke Mola wako Mlezi katika nafsi yako kwa unyenyekevu na hofu, na bila ya kuinua sauti juu kwa kauli, asubuhi na jioni, wala usiwe miongoni wa walioghafilika.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/7/205",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "7:205",
+        "refs": [
+          "7:205"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:4daac594b84d",
+      "kind": "text",
+      "ar": "الأعراف: ٢٠٥",
+      "tr": "Al-A’raf: ٢٠٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dc409460041d",
+      "kind": "text",
+      "ar": "ذكرتُ الله",
+      "tr": "Nimemkumbuka Allah",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a4bb28500a0c",
+      "kind": "text",
+      "ar": "اسقِ نبتةً أو أطعم طيرًا",
+      "tr": "Mwagilia mmea au mlishe ndege",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:97d454361971",
+      "kind": "hadith",
+      "ar": "مَا مِنْ مُسْلِمٍ يَغْرِسُ غَرْسًا إِلَّا كَانَ مَا أُكِلَ مِنْهُ لَهُ صَدَقَةً",
+      "tr": "Hakuna Mwislamu anayepanda mmea isipokuwa kinacholiwa kutoka kwake huwa sadaka kwake.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a790a0c1466c",
+      "kind": "text",
+      "ar": "أنت غريبٌ هنا",
+      "tr": "Wewe ni mgeni hapa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b9ce6b7418f9",
+      "kind": "text",
+      "ar": "تذكّر أنّك في الدنيا عابرُ سبيل",
+      "tr": "Kumbuka kwamba duniani wewe ni msafiri anayepita",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9b4ae925a015",
+      "kind": "hadith",
+      "ar": "كُنْ فِي الدُّنْيَا كَأَنَّكَ غَرِيبٌ أَوْ عَابِرُ سَبِيلٍ",
+      "tr": "Kuwa duniani kama mgeni au msafiri anayepita.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7851a85c4ab3",
+      "kind": "text",
+      "ar": "أعِن أهل بيتك في عملٍ من أعمال البيت",
+      "tr": "Wasaidie watu wa nyumbani katika kazi ya nyumba",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f83d93310b8a",
+      "kind": "hadith",
+      "ar": "كَانَ يَكُونُ فِي مِهْنَةِ أَهْلِهِ",
+      "tr": "Alikuwa akiwahudumia watu wa nyumbani kwake.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:91c2861b83f4",
+      "kind": "text",
+      "ar": "أعنتُهم",
+      "tr": "Nimewasaidia",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dc2bcb58708e",
+      "kind": "text",
+      "ar": "الصلاة في وقتها",
+      "tr": "Swala kwa wakati wake",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3f68d3829e53",
+      "kind": "quran",
+      "ar": "وَأَقِمِ ٱلصَّلَوٰةَ لِذِكْرِىٓ",
+      "tr": "Muktadha wa aya kamili (20:14):\nHakika Mimi ndiye Mwenyezi Mungu. Hakuna mungu isipokuwa Mimi tu. Basi niabudu Mimi, na udumishe Swala kwa ajili ya kunikumbuka Mimi.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/20/14",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "20:14",
+        "refs": [
+          "20:14"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:147b4de7980d",
+      "kind": "quran",
+      "ar": "إِنَّنِىٓ أَنَا ٱللَّهُ لَآ إِلَـٰهَ إِلَّآ أَنَا۠ فَٱعْبُدْنِى وَأَقِمِ ٱلصَّلَوٰةَ لِذِكْرِىٓ",
+      "tr": "Muktadha wa aya kamili (20:14):\nHakika Mimi ndiye Mwenyezi Mungu. Hakuna mungu isipokuwa Mimi tu. Basi niabudu Mimi, na udumishe Swala kwa ajili ya kunikumbuka Mimi.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/20/14",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "20:14",
+        "refs": [
+          "20:14"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:d5aafc7b6ab8",
+      "kind": "text",
+      "ar": "طه: ١٤",
+      "tr": "Taha: ١٤",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:60350f82d6af",
+      "kind": "text",
+      "ar": "صلِّ صلاةً واحدةً اليوم في أوّل وقتها",
+      "tr": "Swali swala moja leo mwanzoni mwa wakati wake",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f21a9d2c6ac5",
+      "kind": "hadith",
+      "ar": "الصَّلاَةُ عَلَى وَقْتِهَا",
+      "tr": "Swala kwa wakati wake.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0095610f7183",
+      "kind": "text",
+      "ar": "صمتٌ يُثقل ميزانك",
+      "tr": "Ukimya unaoongeza uzito wa mizani yako",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:931ba661039c",
+      "kind": "text",
+      "ar": "احفظ لسانك اليوم من الغيبة، واستعذ بالله منها",
+      "tr": "Linda ulimi wako leo dhidi ya kusengenya, na uombe kinga ya Allah kutokana nako",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:38d1c96ffca9",
+      "kind": "hadith",
+      "ar": "مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَاليَوْمِ الآخِرِ فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ",
+      "tr": "Anayemwamini Allah na Siku ya Mwisho, aseme mema au anyamaze.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a40acbe9bd30",
+      "kind": "text",
+      "ar": "حفظتُه",
+      "tr": "Nimeulinda",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6fbc7ff52a2a",
+      "kind": "text",
+      "ar": "استر عيبًا رأيته في أخيك",
+      "tr": "Sitiri kasoro uliyoiona kwa ndugu yako",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ffc85f2fe070",
+      "kind": "hadith",
+      "ar": "وَمَنْ سَتَرَ مُسْلِمًا، سَتَرَهُ اللهُ فِي الدُّنْيَا وَالْآخِرَةِ",
+      "tr": "Anayemsitiri Mwislamu, Allah humsitiri duniani na Akhera.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fc201fd979c6",
+      "kind": "text",
+      "ar": "سترتُ",
+      "tr": "Nimesitiri",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fae3796c0a69",
+      "kind": "text",
+      "ar": "أجرٌ بغير حساب",
+      "tr": "Malipo bila hesabu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:937dfe0d45cb",
+      "kind": "quran",
+      "ar": "إِنَّمَا يُوَفَّى ٱلصَّـٰبِرُونَ أَجْرَهُم بِغَيْرِ حِسَابٍ",
+      "tr": "Muktadha wa aya kamili (39:10):\nSema: Enyi waja wangu mlioamini! Mcheni Mola wenu Mlezi. Wale wafanyao wema katika dunia hii watapata wema. Na ardhi ya Mwenyezi Mungu ni kunjufu. Hakika wenye subira watapewa ujira wao bila ya hisabu.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/39/10",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "39:10",
+        "refs": [
+          "39:10"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:0eb0f02d51da",
+      "kind": "quran",
+      "ar": "قُلْ يَـٰعِبَادِ ٱلَّذِينَ ءَامَنُوا۟ ٱتَّقُوا۟ رَبَّكُمْ ۚ لِلَّذِينَ أَحْسَنُوا۟ فِى هَـٰذِهِ ٱلدُّنْيَا حَسَنَةٌ ۗ وَأَرْضُ ٱللَّهِ وَٰسِعَةٌ ۗ إِنَّمَا يُوَفَّى ٱلصَّـٰبِرُونَ أَجْرَهُم بِغَيْرِ حِسَابٍ",
+      "tr": "Muktadha wa aya kamili (39:10):\nSema: Enyi waja wangu mlioamini! Mcheni Mola wenu Mlezi. Wale wafanyao wema katika dunia hii watapata wema. Na ardhi ya Mwenyezi Mungu ni kunjufu. Hakika wenye subira watapewa ujira wao bila ya hisabu.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/39/10",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "39:10",
+        "refs": [
+          "39:10"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:b0ed72c990f1",
+      "kind": "text",
+      "ar": "الزمر: ١٠",
+      "tr": "Az-Zumar: ١٠",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ec96a3d2f6f0",
+      "kind": "text",
+      "ar": "صبرتُ",
+      "tr": "Nimesubiri",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5ccf17674069",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ يَأْمُرُكُمْ أَن تُؤَدُّوا۟ ٱلْأَمَـٰنَـٰتِ إِلَىٰٓ أَهْلِهَا",
+      "tr": "Muktadha wa aya kamili (4:58):\nHakika Mwenyezi Mungu anawaamrisha kwamba mzirudishe amana kwa wenyewe. Na mnapohukumu baina ya watu mhukumu kwa uadilifu. Hakika haya anayowawaidhi kwayo Mwenyezi Mungu ndiyo mazuri sana. Hakika Mwenyezi Mungu ndiye Mwenye kusikia, Mwenye kuona.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/4/58",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "4:58",
+        "refs": [
+          "4:58"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:5eac40643355",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ يَأْمُرُكُمْ أَن تُؤَدُّوا۟ ٱلْأَمَـٰنَـٰتِ إِلَىٰٓ أَهْلِهَا وَإِذَا حَكَمْتُم بَيْنَ ٱلنَّاسِ أَن تَحْكُمُوا۟ بِٱلْعَدْلِ ۚ إِنَّ ٱللَّهَ نِعِمَّا يَعِظُكُم بِهِۦٓ ۗ إِنَّ ٱللَّهَ كَانَ سَمِيعًۢا بَصِيرًا",
+      "tr": "Muktadha wa aya kamili (4:58):\nHakika Mwenyezi Mungu anawaamrisha kwamba mzirudishe amana kwa wenyewe. Na mnapohukumu baina ya watu mhukumu kwa uadilifu. Hakika haya anayowawaidhi kwayo Mwenyezi Mungu ndiyo mazuri sana. Hakika Mwenyezi Mungu ndiye Mwenye kusikia, Mwenye kuona.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/4/58",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "4:58",
+        "refs": [
+          "4:58"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:1c79ac934a59",
+      "kind": "text",
+      "ar": "النساء: ٥٨",
+      "tr": "An-Nisa’: ٥٨",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d59cdaf1e150",
+      "kind": "text",
+      "ar": "أدّيتُها",
+      "tr": "Nimetekeleza",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4f6d4e2e0c9a",
+      "kind": "text",
+      "ar": "لمن تعمل؟",
+      "tr": "Unamfanyia nani amali?",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d58f51f63855",
+      "kind": "quran",
+      "ar": "وَمَآ أُمِرُوٓا۟ إِلَّا لِيَعْبُدُوا۟ ٱللَّهَ مُخْلِصِينَ لَهُ ٱلدِّينَ",
+      "tr": "Muktadha wa aya kamili (98:5):\nNao hawakuamrishwa kitu ila wamuabudu Mwenyezi Mungu kwa kumtakasia Dini, wawe waongofu, na washike Sala, na watoe Zaka. Na hiyo ndiyo Dini madhubuti.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/98/5",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "98:5",
+        "refs": [
+          "98:5"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:41d434fcdabb",
+      "kind": "quran",
+      "ar": "وَمَآ أُمِرُوٓا۟ إِلَّا لِيَعْبُدُوا۟ ٱللَّهَ مُخْلِصِينَ لَهُ ٱلدِّينَ حُنَفَآءَ وَيُقِيمُوا۟ ٱلصَّلَوٰةَ وَيُؤْتُوا۟ ٱلزَّكَوٰةَ ۚ وَذَٰلِكَ دِينُ ٱلْقَيِّمَةِ",
+      "tr": "Muktadha wa aya kamili (98:5):\nNao hawakuamrishwa kitu ila wamuabudu Mwenyezi Mungu kwa kumtakasia Dini, wawe waongofu, na washike Sala, na watoe Zaka. Na hiyo ndiyo Dini madhubuti.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/98/5",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "98:5",
+        "refs": [
+          "98:5"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:de87242e7d87",
+      "kind": "text",
+      "ar": "البينة: ٥",
+      "tr": "Al-Bayyinah: ٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f82b9d1cf2f0",
+      "kind": "text",
+      "ar": "سألتُ نفسي",
+      "tr": "Nimejiuliza",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4118fe8ac21f",
+      "kind": "text",
+      "ar": "سلّم على جارك أو اسأل عنه",
+      "tr": "Msalimie jirani yako au ulizia hali yake",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0e995656aaeb",
+      "kind": "hadith",
+      "ar": "مَا زَالَ جِبْرِيلُ يُوصِينِي بِالْجَارِ",
+      "tr": "Jibril aliendelea kuniusia kuhusu jirani.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:305bac48ffb1",
+      "kind": "text",
+      "ar": "سألتُ عنه",
+      "tr": "Nimeulizia hali yake",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0859efd8b045",
+      "kind": "text",
+      "ar": "سمعك وبصرك",
+      "tr": "Masikio yako na macho yako",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:906d54cf0109",
+      "kind": "quran",
+      "ar": "وَجَعَلَ لَكُمُ ٱلسَّمْعَ وَٱلْأَبْصَـٰرَ وَٱلْأَفْـِٔدَةَ ۙ لَعَلَّكُمْ تَشْكُرُونَ",
+      "tr": "Muktadha wa aya kamili (16:78):\nNa Mwenyezi Mungu aliwatoa matumboni mwa mama zenu hali ya kuwa hamjui kitu, na akawajaalia kusikia na kuona na ufahamu wa nyoyo ili mpate kushukuru.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/16/78",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "16:78",
+        "refs": [
+          "16:78"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:99b6bca5bce5",
+      "kind": "quran",
+      "ar": "وَٱللَّهُ أَخْرَجَكُم مِّنۢ بُطُونِ أُمَّهَـٰتِكُمْ لَا تَعْلَمُونَ شَيْـًٔا وَجَعَلَ لَكُمُ ٱلسَّمْعَ وَٱلْأَبْصَـٰرَ وَٱلْأَفْـِٔدَةَ ۙ لَعَلَّكُمْ تَشْكُرُونَ",
+      "tr": "Muktadha wa aya kamili (16:78):\nNa Mwenyezi Mungu aliwatoa matumboni mwa mama zenu hali ya kuwa hamjui kitu, na akawajaalia kusikia na kuona na ufahamu wa nyoyo ili mpate kushukuru.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/16/78",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "16:78",
+        "refs": [
+          "16:78"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:44e933cefdf9",
+      "kind": "text",
+      "ar": "النحل: ٧٨",
+      "tr": "An-Nahl: ٧٨",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2c384f90b165",
+      "kind": "text",
+      "ar": "علّم أحدًا شيئًا من الخير ولو ذكرًا واحدًا",
+      "tr": "Mfundishe mtu jambo la kheri, hata dhikri moja",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:853006fbccd1",
+      "kind": "hadith",
+      "ar": "مَنْ دَلَّ عَلَى خَيْرٍ فَلَهُ مِثْلُ أَجْرِ فَاعِلِهِ",
+      "tr": "Anayeelekeza kwenye kheri ana malipo mfano wa anayefanya kheri hiyo.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:18e03958fff6",
+      "kind": "text",
+      "ar": "علّمتُ",
+      "tr": "Nimefundisha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2723b3c295aa",
+      "kind": "text",
+      "ar": "مع العسر يسر",
+      "tr": "Pamoja na uzito kuna wepesi",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:22293f9ada98",
+      "kind": "quran",
+      "ar": "فَإِنَّ مَعَ ٱلْعُسْرِ يُسْرًا",
+      "tr": "Muktadha wa aya kamili (94:5):\nBasi kwa hakika pamoja na uzito upo wepesi.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/94/5",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "94:5",
+        "refs": [
+          "94:5"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:cf29f64e343c",
+      "kind": "text",
+      "ar": "الشرح: ٥",
+      "tr": "Ash-Sharh: ٥",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c42b46a72504",
+      "kind": "text",
+      "ar": "وثقتُ",
+      "tr": "Nimeamini",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6fbfa307fe9f",
+      "kind": "text",
+      "ar": "أحسن إلى يتيمٍ بكلمةٍ أو عطيّة",
+      "tr": "Mfanyie yatima wema kwa neno au zawadi",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2d9d70ce7def",
+      "kind": "hadith",
+      "ar": "أَنَا وَكَافِلُ اليَتِيمِ فِي الجَنَّةِ كَهَاتَيْنِ",
+      "tr": "Mimi na mlezi wa yatima tutakuwa Peponi kama vidole hivi viwili.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f0c82128c98b",
+      "kind": "text",
+      "ar": "أحسنتُ",
+      "tr": "Nimefanya wema",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f8a9fddb0de8",
+      "kind": "text",
+      "ar": "الله يحبّ التوّابين",
+      "tr": "Allah anawapenda wenye kutubu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a283da1f5ea4",
+      "kind": "quran",
+      "ar": "إِنَّ ٱللَّهَ يُحِبُّ ٱلتَّوَّٰبِينَ وَيُحِبُّ ٱلْمُتَطَهِّرِينَ",
+      "tr": "Muktadha wa aya kamili (2:222):\nNa wanakuuliza juu ya hedhi. Waambie: hayo ni madhara. Basi jitengeni mbali na wanawake wakati wa hedhi, wala msiwakaribie mpaka wawe safi. Na wakishajisafisha, basi waendeeni namna alivyokuamrisheni Mwenyezi Mungu. Hakika, Mwenyezi Mungu huwapenda wanaotubu, na huwapenda wanaojisafisha.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/2/222",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "2:222",
+        "refs": [
+          "2:222"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:990592e5e39b",
+      "kind": "quran",
+      "ar": "وَيَسْـَٔلُونَكَ عَنِ ٱلْمَحِيضِ ۖ قُلْ هُوَ أَذًى فَٱعْتَزِلُوا۟ ٱلنِّسَآءَ فِى ٱلْمَحِيضِ ۖ وَلَا تَقْرَبُوهُنَّ حَتَّىٰ يَطْهُرْنَ ۖ فَإِذَا تَطَهَّرْنَ فَأْتُوهُنَّ مِنْ حَيْثُ أَمَرَكُمُ ٱللَّهُ ۚ إِنَّ ٱللَّهَ يُحِبُّ ٱلتَّوَّٰبِينَ وَيُحِبُّ ٱلْمُتَطَهِّرِينَ",
+      "tr": "Muktadha wa aya kamili (2:222):\nNa wanakuuliza juu ya hedhi. Waambie: hayo ni madhara. Basi jitengeni mbali na wanawake wakati wa hedhi, wala msiwakaribie mpaka wawe safi. Na wakishajisafisha, basi waendeeni namna alivyokuamrisheni Mwenyezi Mungu. Hakika, Mwenyezi Mungu huwapenda wanaotubu, na huwapenda wanaojisafisha.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/2/222",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "2:222",
+        "refs": [
+          "2:222"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:5ae41f66df9c",
+      "kind": "text",
+      "ar": "البقرة: ٢٢٢",
+      "tr": "Al-Baqarah: ٢٢٢",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:716d81e56142",
+      "kind": "text",
+      "ar": "بعد وضوئك اليوم قل: أشهد أن لا إله إلا الله وأنّ محمدًا عبد الله ورسوله",
+      "tr": "Baada ya kutawadha leo sema: “Nashuhudia kwamba hakuna anayestahiki kuabudiwa isipokuwa Allah, na kwamba Muhammad ni mja wa Allah na Mtume Wake.”",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:19d4a17e7aab",
+      "kind": "hadith",
+      "ar": "إِلَّا فُتِحَتْ لَهُ أَبْوَابُ الْجَنَّةِ الثَّمَانِيَةُ يَدْخُلُ مِنْ أَيِّهَا شَاءَ",
+      "tr": "Atafunguliwa milango minane ya Peponi, aingie katika anaoutaka.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ebf9afd37190",
+      "kind": "text",
+      "ar": "لا تمشِ في الأرض مرحًا",
+      "tr": "Muktadha wa aya kamili (17:37):\nWala usitembee katika ardhi kwa kiburi. Hakika wewe huwezi kuipasua ardhi na kamwe huwezi kufikia urefu wa milima.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/17/37",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "17:37",
+        "refs": [
+          "17:37"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:ac2b63f659c0",
+      "kind": "quran",
+      "ar": "وَلَا تَمْشِ فِى ٱلْأَرْضِ مَرَحًا",
+      "tr": "Muktadha wa aya kamili (17:37):\nWala usitembee katika ardhi kwa kiburi. Hakika wewe huwezi kuipasua ardhi na kamwe huwezi kufikia urefu wa milima.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/17/37",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "17:37",
+        "refs": [
+          "17:37"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:3ce3d55ee475",
+      "kind": "quran",
+      "ar": "وَلَا تَمْشِ فِى ٱلْأَرْضِ مَرَحًا ۖ إِنَّكَ لَن تَخْرِقَ ٱلْأَرْضَ وَلَن تَبْلُغَ ٱلْجِبَالَ طُولًا",
+      "tr": "Muktadha wa aya kamili (17:37):\nWala usitembee katika ardhi kwa kiburi. Hakika wewe huwezi kuipasua ardhi na kamwe huwezi kufikia urefu wa milima.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/17/37",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "17:37",
+        "refs": [
+          "17:37"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:bd7c2ebc0336",
+      "kind": "text",
+      "ar": "الإسراء: ٣٧",
+      "tr": "Al-Isra’: ٣٧",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ca9d51552e93",
+      "kind": "text",
+      "ar": "تواضعتُ",
+      "tr": "Nimekuwa mnyenyekevu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bae9700b5112",
+      "kind": "text",
+      "ar": "قبل نومك: اجمع كفّيك، واقرأ فيهما الإخلاص والمعوّذتين، ثم امسح بهما جسدك",
+      "tr": "Kabla ya kulala, unganisha viganja, soma ndani yake Al-Ikhlas na sura mbili za kujikinga, kisha uvipitishe mwilini",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f5dfd0d2fded",
+      "kind": "hadith",
+      "ar": "كَانَ إِذَا أَوَى إِلَى فِرَاشِهِ كُلَّ لَيْلَةٍ جَمَعَ كَفَّيْهِ، ثُمَّ نَفَثَ فِيهِمَا فَقَرَأَ فِيهِمَا: قُلْ هُوَ اللَّهُ أَحَدٌ وَقُلْ أَعُوذُ بِرَبِّ الفَلَقِ وَقُلْ أَعُوذُ بِرَبِّ النَّاسِ",
+      "tr": "Kila usiku alipokwenda kitandani, aliviunganisha viganja vyake, akapuliza kidogo ndani yake na kusoma: قُلْ هُوَ اللَّهُ أَحَدٌ [Muktadha wa aya kamili (112:1):\nSema: Yeye Mwenyezi Mungu ni wa Pekee.]; قُلْ أَعُوذُ بِرَبِّ الفَلَقِ [Muktadha wa aya kamili (113:1):\nSema: Ninajikinga kwa Mola Mlezi wa mapambazuko.]; قُلْ أَعُوذُ بِرَبِّ النَّاسِ [Muktadha wa aya kamili (114:1):\nSema: Ninajikinga kwa Mola Mlezi wa watu.].",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": "",
+        "publishedQuotes": {
+          "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+          "url": "https://quranenc.com/en/browse/swahili_rwwad/112/1",
+          "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+          "date": "2026-11-04",
+          "snapshot": "2026-10-07",
+          "version": "1.0.5",
+          "translationKey": "swahili_rwwad",
+          "description": "Issued by the Islamic Content Service Association in Languages",
+          "lastUpdate": 1765978543,
+          "ref": "112:1",
+          "refs": [
+            "112:1",
+            "113:1",
+            "114:1"
+          ],
+          "context": "Full-verse context; published translation and footnotes preserved without alteration."
+        }
+      }
+    },
+    {
+      "id": "h:943f6461cd46",
+      "kind": "text",
+      "ar": "بين الخوف والرجاء",
+      "tr": "Kati ya hofu na matumaini",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b2193eb18fea",
+      "kind": "text",
+      "ar": "اجمع في قلبك اليوم خوفًا من الله ورجاءً فيه",
+      "tr": "Kusanya moyoni leo hofu ya Allah na matumaini Kwake",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c294cb3b4399",
+      "kind": "hadith",
+      "ar": "لَوْ يَعْلَمُ الْمُؤْمِنُ مَا عِنْدَ اللهِ مِنَ الْعُقُوبَةِ، مَا طَمِعَ بِجَنَّتِهِ أَحَدٌ، وَلَوْ يَعْلَمُ الْكَافِرُ مَا عِنْدَ اللهِ مِنَ الرَّحْمَةِ، مَا قَنَطَ مِنْ جَنَّتِهِ أَحَدٌ",
+      "tr": "Muumini angejua adhabu iliyoko kwa Allah, hakuna ambaye angetamani Pepo Yake; na kafiri angejua rehema iliyoko kwa Allah, hakuna ambaye angekata tamaa na Pepo Yake.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:357ea48035ad",
+      "kind": "text",
+      "ar": "جمعتُهما",
+      "tr": "Nimeyakusanya yote mawili",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5392f791a548",
+      "kind": "text",
+      "ar": "إن أغضبك أحدٌ اليوم فاكظم غيظك واصمت",
+      "tr": "Mtu akikukasirisha leo, zuia hasira yako na unyamaze",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f42cd1ae1f4c",
+      "kind": "hadith",
+      "ar": "لَيْسَ الشَّدِيدُ بِالصُّرَعَةِ، إِنَّمَا الشَّدِيدُ الَّذِي يَمْلِكُ نَفْسَهُ عِنْدَ الغَضَبِ",
+      "tr": "Mwenye nguvu si mshindi wa mieleka; mwenye nguvu ni anayejidhibiti wakati wa hasira.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e1862935bbe4",
+      "kind": "text",
+      "ar": "كظمتُ",
+      "tr": "Nimezuia hasira",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f1aa88fbb06f",
+      "kind": "text",
+      "ar": "لئن شكرتم",
+      "tr": "Muktadha wa aya kamili (14:7):\nNa alipotangaza Mola wenu Mlezi: Mkishukuru, hakika nitawazidishia. Na mkikufuru, basi adhabu yangu ni kali.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/14/7",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "14:7",
+        "refs": [
+          "14:7"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:4ffb0abcc4fa",
+      "kind": "quran",
+      "ar": "لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ",
+      "tr": "Muktadha wa aya kamili (14:7):\nNa alipotangaza Mola wenu Mlezi: Mkishukuru, hakika nitawazidishia. Na mkikufuru, basi adhabu yangu ni kali.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/14/7",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "14:7",
+        "refs": [
+          "14:7"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:0c624c273d25",
+      "kind": "quran",
+      "ar": "وَإِذْ تَأَذَّنَ رَبُّكُمْ لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ ۖ وَلَئِن كَفَرْتُمْ إِنَّ عَذَابِى لَشَدِيدٌ",
+      "tr": "Muktadha wa aya kamili (14:7):\nNa alipotangaza Mola wenu Mlezi: Mkishukuru, hakika nitawazidishia. Na mkikufuru, basi adhabu yangu ni kali.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/14/7",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "14:7",
+        "refs": [
+          "14:7"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:63a2898ebc6b",
+      "kind": "text",
+      "ar": "إبراهيم: ٧",
+      "tr": "Ibrahim: ٧",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:407287bf045a",
+      "kind": "text",
+      "ar": "شكرتُ",
+      "tr": "Nimeshukuru",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1e742612f46f",
+      "kind": "text",
+      "ar": "انوِ الأجر في نفقتك اليوم على أهل بيتك",
+      "tr": "Nia kupata malipo kwa unachotumia leo kwa watu wa nyumbani",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:890dec358736",
+      "kind": "hadith",
+      "ar": "إِنَّكَ لَنْ تُنْفِقَ نَفَقَةً تَبْتَغِي بِهَا وَجْهَ اللَّهِ إِلَّا أُجِرْتَ عَلَيْهَا، حَتَّى مَا تَجْعَلُ فِي فَمِ امْرَأَتِكَ",
+      "tr": "Hutatumia matumizi yoyote ukitafuta uso wa Allah isipokuwa utalipwa, hata unachoweka mdomoni mwa mke wako.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6a6dbafde06f",
+      "kind": "text",
+      "ar": "نويتُ",
+      "tr": "Nimetia nia",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8988c9435811",
+      "kind": "text",
+      "ar": "ادعُني أستجب لكم",
+      "tr": "Muktadha wa aya kamili (40:60):\nNa Mola wenu Mlezi anasema: Niombeni nitakuitikieni. Kwa hakika wale ambao wanajivuna wakaacha kuniabudu Mimi wataingia Jahanamu wadhalilike.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/40/60",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "40:60",
+        "refs": [
+          "40:60"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:dfe464e54c5e",
+      "kind": "quran",
+      "ar": "ٱدْعُونِىٓ أَسْتَجِبْ لَكُمْ",
+      "tr": "Muktadha wa aya kamili (40:60):\nNa Mola wenu Mlezi anasema: Niombeni nitakuitikieni. Kwa hakika wale ambao wanajivuna wakaacha kuniabudu Mimi wataingia Jahanamu wadhalilike.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/40/60",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "40:60",
+        "refs": [
+          "40:60"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:fc06715b7c78",
+      "kind": "quran",
+      "ar": "وَقَالَ رَبُّكُمُ ٱدْعُونِىٓ أَسْتَجِبْ لَكُمْ ۚ إِنَّ ٱلَّذِينَ يَسْتَكْبِرُونَ عَنْ عِبَادَتِى سَيَدْخُلُونَ جَهَنَّمَ دَاخِرِينَ",
+      "tr": "Muktadha wa aya kamili (40:60):\nNa Mola wenu Mlezi anasema: Niombeni nitakuitikieni. Kwa hakika wale ambao wanajivuna wakaacha kuniabudu Mimi wataingia Jahanamu wadhalilike.",
+      "translit": "",
+      "tag": "published",
+      "src": {
+        "name": "Swahili Translation - Rowad Translation Center; QuranEnc.com; v1.0.5",
+        "url": "https://quranenc.com/en/browse/swahili_rwwad/40/60",
+        "rights": "Attributed reuse permitted under https://quranenc.com/en/home/api/ . Preserve the translation and footnotes unchanged, publisher, source, version and transcript information; check updates and the remaining published conditions.",
+        "date": "2026-11-04",
+        "snapshot": "2026-10-07",
+        "version": "1.0.5",
+        "translationKey": "swahili_rwwad",
+        "description": "Issued by the Islamic Content Service Association in Languages",
+        "lastUpdate": 1765978543,
+        "ref": "40:60",
+        "refs": [
+          "40:60"
+        ],
+        "context": "Full-verse context; published translation and footnotes preserved without alteration."
+      }
+    },
+    {
+      "id": "h:bfe1f89557ef",
+      "kind": "text",
+      "ar": "غافر: ٦٠",
+      "tr": "Ghafir: ٦٠",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f16f3d231836",
+      "kind": "text",
+      "ar": "دعوتُ",
+      "tr": "Nimeomba dua",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e929b13ddecf",
+      "kind": "text",
+      "ar": "إن أخطأت اليوم فاتبعها بحسنةٍ فورًا",
+      "tr": "Ukikosea leo, fuatisha kosa hilo kwa jema mara moja",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:94704df23c68",
+      "kind": "hadith",
+      "ar": "وَأَتْبِعِ السَّيِّئَةَ الْحَسَنَةَ تَمْحُهَا",
+      "tr": "Lifuatishie baya jema ambalo litalifuta.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8886960b09e8",
+      "kind": "text",
+      "ar": "الدارمي",
+      "tr": "Ad-Darimi",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9863af7db021",
+      "kind": "text",
+      "ar": "اتبعتُها",
+      "tr": "Nimefuatisha jema",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:274cbaa2ddb1",
+      "kind": "text",
+      "ar": "ديمتك أنت",
+      "tr": "Dima yako mwenyewe",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:35ded1b91e2f",
+      "kind": "text",
+      "ar": "راجع شهرك: أيّ قطرةٍ كانت أسهل عليك؟ اجعلها ديمتك الدائمة",
+      "tr": "Pitia mwezi wako: ni tone gani lilikuwa rahisi zaidi kwako? Lifanye Dima yako ya kudumu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d50f2c6b9b41",
+      "kind": "hadith",
+      "ar": "أَحَبَّ الأَعْمَالِ إِلَى اللَّهِ أَدْوَمُهَا وَإِنْ قَلَّ",
+      "tr": "Amali zinazopendwa zaidi na Allah ni zile zinazodumu, hata zikiwa chache.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2a84d3773586",
+      "kind": "text",
+      "ar": "اخترتُها",
+      "tr": "Nimelichagua",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:105d904ae4d4",
+      "kind": "text",
+      "ar": "اختر من الثلاثين عملًا واحدًا تلزمه كلّ يوم",
+      "tr": "Chagua amali moja kati ya thelathini uendelee nayo kila siku",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2edb6fca1b63",
+      "kind": "hadith",
+      "ar": "خُذُوا مِنَ العَمَلِ مَا تُطِيقُونَ، فَإِنَّ اللَّهَ لاَ يَمَلُّ حَتَّى تَمَلُّوا",
+      "tr": "Fanyeni katika amali mnazoweza, kwani Allah hachoki mpaka nyinyi mchoke.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c484e1930a16",
+      "kind": "text",
+      "ar": "اخترتُ",
+      "tr": "Nimechagua",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:556fdc2f2520",
+      "kind": "text",
+      "ar": "غدًا تبدأ دورةٌ جديدة",
+      "tr": "Kesho mzunguko mpya unaanza",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1bb5541dd801",
+      "kind": "text",
+      "ar": "تأمّل فضل هذا اليوم الذي أنت فيه",
+      "tr": "Tafakari ubora wa siku hii uliyomo",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf328bccc1ec",
+      "kind": "hadith",
+      "ar": "خَيْرُ يَوْمٍ طَلَعَتْ عَلَيْهِ الشَّمْسُ يَوْمُ الْجُمُعَةِ",
+      "tr": "Siku bora ambayo jua limechomoza ndani yake ni Ijumaa.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:411231459be2",
+      "kind": "text",
+      "ar": "اغتنم آخر النهار اليوم بدعاءٍ تسأل الله فيه حاجتك",
+      "tr": "Tumia mwisho wa siku hii kwa dua ya kumuomba Allah unachohitaji",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:afb12d50c00c",
+      "kind": "hadith",
+      "ar": "فِيهِ سَاعَةٌ، لاَ يُوَافِقُهَا عَبْدٌ مُسْلِمٌ، وَهُوَ قَائِمٌ يُصَلِّي، يَسْأَلُ اللَّهَ تَعَالَى شَيْئًا، إِلَّا أَعْطَاهُ إِيَّاهُ",
+      "tr": "Ndani yake kuna muda ambao mja Mwislamu akiukuta akiwa amesimama akiswali, akimuomba Allah Aliyetukuka kitu, atampa kitu hicho.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98827192e914",
+      "kind": "text",
+      "ar": "قطرةٌ جديدة بعد جمعتك",
+      "tr": "Tone jipya baada ya Ijumaa yako",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1e3d6e18312e",
+      "kind": "text",
+      "ar": "ديمتك لليوم جاهزة، دقيقة واحدة تكفي",
+      "tr": "Dima yako ya leo iko tayari; dakika moja inatosha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1ba202784993",
+      "kind": "text",
+      "ar": "قطرةٌ جديدة تنتظرك في أرضك",
+      "tr": "Tone jipya linakusubiri katika bustani yako",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:41ca9a30513e",
+      "kind": "text",
+      "ar": "قليلٌ دائمٌ خيرٌ من كثيرٍ منقطع، ديمة اليوم جاهزة",
+      "tr": "Kidogo kinachoendelea ni bora kuliko kingi kinachokatika; Dima ya leo iko tayari",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:874722223daa",
+      "kind": "text",
+      "ar": "جمعة مباركة، ديمة الجمعة جاهزة",
+      "tr": "Ijumaa yenye baraka; Dima ya Ijumaa iko tayari",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cd6e0869b954",
+      "kind": "text",
+      "ar": "تذكير ديمة: قطرة الجوارح تنتظرك",
+      "tr": "Kikumbusho cha Dima: tone la matendo linakusubiri",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:995bb15601b1",
+      "kind": "text",
+      "ar": "بعد الفجر بنصف ساعة",
+      "tr": "Nusu saa baada ya Alfajiri",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a65e23474be8",
+      "kind": "text",
+      "ar": "وقت الضحى",
+      "tr": "Wakati wa Duha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:135e943b0801",
+      "kind": "text",
+      "ar": "بعد العصر",
+      "tr": "Baada ya Alasiri",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0df562a36ec6",
+      "kind": "text",
+      "ar": "بعد العشاء",
+      "tr": "Baada ya Isha",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:91d929efa2fd",
+      "kind": "title",
+      "ar": "ديمتك تصلك كل يوم",
+      "tr": "Dima yako inakufikia kila siku",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a8036d1e33f7",
+      "kind": "text",
+      "ar": "تنبيهٌ واحدٌ في اليوم، بالوقت الذي تختاره، ويمكنك إيقافه متى شئت.",
+      "tr": "Kikumbusho kimoja kwa siku, katika wakati unaochagua; unaweza kukizima wakati wowote.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1d2b22848624",
+      "kind": "text",
+      "ar": "فعّل التنبيه",
+      "tr": "Washa kikumbusho",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:289acec23c22",
+      "kind": "text",
+      "ar": "ليس الآن",
+      "tr": "Si sasa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b7e375461a32",
+      "kind": "text",
+      "ar": "عند التفعيل يطلب الجهاز إذنك مرّة واحدة فقط.",
+      "tr": "Ukiwasha, kifaa kitakuomba ruhusa mara moja tu.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5aa990b8cc5b",
+      "kind": "text",
+      "ar": "قطرة اللسان",
+      "tr": "Tone la ulimi",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4aed9b40406d",
+      "kind": "text",
+      "ar": "قطرة القلب",
+      "tr": "Tone la moyo",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:768a154bb99f",
+      "kind": "text",
+      "ar": "قطرة الجوارح",
+      "tr": "Tone la viungo",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:524fe4800568",
+      "kind": "text",
+      "ar": "قُلها",
+      "tr": "Liseme",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf57739c9691",
+      "kind": "text",
+      "ar": "تأمّلها",
+      "tr": "Litafakari",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f3fb3f7cd932",
+      "kind": "text",
+      "ar": "افعلها",
+      "tr": "Lifanye",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1c0b39a032b8",
+      "kind": "text",
+      "ar": "أرضك",
+      "tr": "Bustani yako",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:07242796bbcd",
+      "kind": "text",
+      "ar": "{n} من {total} قطرات اليوم",
+      "tr": "Matone {n} kati ya {total} leo",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fbe03626ef7f",
+      "kind": "text",
+      "ar": "يومٌ مضى",
+      "tr": "Siku iliyopita",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6f043424b3ac",
+      "kind": "text",
+      "ar": "نزلت قطرةٌ في أرضك",
+      "tr": "Tone limedondoka katika bustani yako",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:98df46fbd83b",
+      "kind": "text",
+      "ar": "تراجع",
+      "tr": "Tengua",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:58f2a96a17bb",
+      "kind": "text",
+      "ar": "القطرة التالية",
+      "tr": "Tone linalofuata",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a1bf10b61436",
+      "kind": "text",
+      "ar": "ختام اليوم",
+      "tr": "Hitimisho la siku",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:41cc3479d671",
+      "kind": "text",
+      "ar": "ذكّرني لاحقًا",
+      "tr": "Nikumbushe baadaye",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4c417f1a159c",
+      "kind": "text",
+      "ar": "سنذكّرك بعد العصر",
+      "tr": "Tutakukumbusha baada ya Alasiri",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:64f4fe2ecbd8",
+      "kind": "text",
+      "ar": "اضغط مع كل مرّة تقولها",
+      "tr": "Bonyeza kila unapolitamka",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:155749b610a4",
+      "kind": "text",
+      "ar": "مقترح: {n}",
+      "tr": "Pendekezo: {n}",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1e9283ae4577",
+      "kind": "text",
+      "ar": "اكتملت ديمة اليوم",
+      "tr": "Dima ya leo imekamilika",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:adc6e0e1137b",
+      "kind": "text",
+      "ar": "أتممتَ شهرك الأول",
+      "tr": "Umekamilisha mwezi wako wa kwanza",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fc8633a1d1f4",
+      "kind": "text",
+      "ar": "ثلاث قطراتٍ نزلت في أرضك",
+      "tr": "Matone matatu yamedondoka katika bustani yako",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1106aa8631d8",
+      "kind": "text",
+      "ar": "تنبيهك القادم: بكرة {slot}",
+      "tr": "Kikumbusho kijacho: kesho {slot}",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:448ccf482a83",
+      "kind": "text",
+      "ar": "بكرة",
+      "tr": "Kesho",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fb35a6c70521",
+      "kind": "text",
+      "ar": "تنبيه ديمة",
+      "tr": "Kikumbusho cha Dima",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9c08e36a6898",
+      "kind": "text",
+      "ar": "التنبيه اليومي",
+      "tr": "Kikumbusho cha kila siku",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d672210ef6a7",
+      "kind": "text",
+      "ar": "مفعَّلٌ تلقائيًّا مع التحديث، ويمكنك إيقافه",
+      "tr": "Kimewashwa moja kwa moja na sasisho; unaweza kukizima",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:107866a9b3ff",
+      "kind": "text",
+      "ar": "موقوف، وديمتك تنتظرك داخل التطبيق",
+      "tr": "Kimezimwa; Dima yako inakusubiri ndani ya programu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a9b9ce80ff8f",
+      "kind": "text",
+      "ar": "وقت التنبيه",
+      "tr": "Wakati wa kikumbusho",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4da801b1128b",
+      "kind": "text",
+      "ar": "أوقات الصلاة تُحسب من موقعك، كما في قسم الصلاة",
+      "tr": "Nyakati za swala zinahesabiwa kwa eneo lako, kama katika sehemu ya Swala",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ef256a3c3b68",
+      "kind": "text",
+      "ar": "هكذا يصلك",
+      "tr": "Hivi ndivyo utakavyokipokea",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2eedd6ae577f",
+      "kind": "text",
+      "ar": "رسالة هادئة تتغيّر كل يوم، بلا إلحاح",
+      "tr": "Ujumbe tulivu unaobadilika kila siku, bila kusisitiza",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:507770131e72",
+      "kind": "text",
+      "ar": "وقت التذكير غير متاح.",
+      "tr": "Wakati wa kikumbusho haupatikani.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f901ccb2564e",
+      "kind": "text",
+      "ar": "تعذّر تحميل ديمة.",
+      "tr": "Dima haikuweza kupakiwa.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1b388b1d5c9d",
+      "kind": "text",
+      "ar": "مفعّل",
+      "tr": "Kimewashwa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bafc44588818",
+      "kind": "text",
+      "ar": "متوقف",
+      "tr": "Kimezimwa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:cd834082470d",
+      "kind": "text",
+      "ar": "الأيام الأخيرة",
+      "tr": "Siku za karibuni",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ae0bbc700f31",
+      "kind": "text",
+      "ar": "، اليوم",
+      "tr": ", leo",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:881aeb7099b3",
+      "kind": "text",
+      "ar": "الأيام السبعة الماضية",
+      "tr": "Siku saba zilizopita",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7e9c1b26dc01",
+      "kind": "text",
+      "ar": "علامات ممارسات الأيام السبعة الماضية",
+      "tr": "Alama za matendo ya siku saba zilizopita",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bf5148ef5b1e",
+      "kind": "text",
+      "ar": " مكتمل",
+      "tr": " Imekamilika",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3ca833b33415",
+      "kind": "text",
+      "ar": " غير مكتمل",
+      "tr": " Haijakamilika",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6d76cfa3f443",
+      "kind": "text",
+      "ar": "ممارسات اليوم",
+      "tr": "Matendo ya leo",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:0618181d807f",
+      "kind": "text",
+      "ar": "القرآن ",
+      "tr": "Qur’ani ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:871943736352",
+      "kind": "text",
+      "ar": "العدد المقترح: ",
+      "tr": "Idadi iliyopendekezwa: ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:6af4196f3fa4",
+      "kind": "text",
+      "ar": "اقرأ التفسير الموثّق",
+      "tr": "Soma tafsiri yenye chanzo",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dfa98f40e8f1",
+      "kind": "text",
+      "ar": "المختصر في تفسير القرآن · ص 252 · FC-000142",
+      "tr": "Al-Mukhtasar fi Tafsir Al-Qur’an · uk. 252 · FC-000142",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3b4c90d0223b",
+      "kind": "text",
+      "ar": "اضغط للعدّ، ",
+      "tr": "Bonyeza kuhesabu, ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:950edb07da8c",
+      "kind": "text",
+      "ar": "الأيام الماضية للقراءة فقط.",
+      "tr": "Siku zilizopita ni za kusoma tu.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ada140502b2a",
+      "kind": "text",
+      "ar": "اضبط تذكيرًا",
+      "tr": "Weka kikumbusho",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f63f0957977f",
+      "kind": "text",
+      "ar": "غدًا: ",
+      "tr": "Kesho: ",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f8e84b2074b3",
+      "kind": "text",
+      "ar": "فعّل التنبيهات من إعدادات الصلاة أولًا.",
+      "tr": "Washa kwanza vikumbusho katika mipangilio ya Swala.",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:dcb542c15808",
+      "kind": "text",
+      "ar": "لا تنسَ ديمتك اليوم",
+      "tr": "Usisahau Dima yako leo",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7e9051a2c063",
+      "kind": "text",
+      "ar": "اكتملت ديمتك اليوم",
+      "tr": "Dima yako ya leo imekamilika",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e7af6ad9e8bb",
+      "kind": "text",
+      "ar": "الأول",
+      "tr": "ya kwanza",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:39321e817feb",
+      "kind": "text",
+      "ar": "الثاني",
+      "tr": "ya pili",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c3e1b4edd4ac",
+      "kind": "text",
+      "ar": "الثالث",
+      "tr": "ya tatu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:50ed00343085",
+      "kind": "text",
+      "ar": "الرابع",
+      "tr": "ya nne",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5fad8aa224ce",
+      "kind": "text",
+      "ar": "الخامس",
+      "tr": "ya tano",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:45d8094bf9b9",
+      "kind": "text",
+      "ar": "السادس",
+      "tr": "ya sita",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ef114d4296bc",
+      "kind": "text",
+      "ar": "السابع",
+      "tr": "ya saba",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2db27d05d3a7",
+      "kind": "text",
+      "ar": "الثامن",
+      "tr": "ya nane",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3bcce3aeea5f",
+      "kind": "text",
+      "ar": "التاسع",
+      "tr": "ya tisa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:20024c546493",
+      "kind": "text",
+      "ar": "العاشر",
+      "tr": "ya kumi",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a792050b141f",
+      "kind": "text",
+      "ar": "الحادي عشر",
+      "tr": "ya kumi na moja",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3d4fabeb9270",
+      "kind": "text",
+      "ar": "الثاني عشر",
+      "tr": "ya kumi na mbili",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:04fea95f2af7",
+      "kind": "text",
+      "ar": "الثالث عشر",
+      "tr": "ya kumi na tatu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:4e2208a2c195",
+      "kind": "text",
+      "ar": "الرابع عشر",
+      "tr": "ya kumi na nne",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:f39f78ef305e",
+      "kind": "text",
+      "ar": "الخامس عشر",
+      "tr": "ya kumi na tano",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c9d13c6b6622",
+      "kind": "text",
+      "ar": "السادس عشر",
+      "tr": "ya kumi na sita",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c2ccae600214",
+      "kind": "text",
+      "ar": "السابع عشر",
+      "tr": "ya kumi na saba",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7350a028a419",
+      "kind": "text",
+      "ar": "الثامن عشر",
+      "tr": "ya kumi na nane",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d56656f461b5",
+      "kind": "text",
+      "ar": "التاسع عشر",
+      "tr": "ya kumi na tisa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c600e14ee149",
+      "kind": "text",
+      "ar": "العشرون",
+      "tr": "ya ishirini",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:3fcd86f89850",
+      "kind": "text",
+      "ar": "الحادي والعشرون",
+      "tr": "ya ishirini na moja",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:d128c1b3d520",
+      "kind": "text",
+      "ar": "الثاني والعشرون",
+      "tr": "ya ishirini na mbili",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:69753081d75f",
+      "kind": "text",
+      "ar": "الثالث والعشرون",
+      "tr": "ya ishirini na tatu",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:ab577aaaa016",
+      "kind": "text",
+      "ar": "الرابع والعشرون",
+      "tr": "ya ishirini na nne",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:05d8e10f8f73",
+      "kind": "text",
+      "ar": "الخامس والعشرون",
+      "tr": "ya ishirini na tano",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:2f38a6804aa2",
+      "kind": "text",
+      "ar": "السادس والعشرون",
+      "tr": "ya ishirini na sita",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:217372974e36",
+      "kind": "text",
+      "ar": "السابع والعشرون",
+      "tr": "ya ishirini na saba",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:97fbcd610785",
+      "kind": "text",
+      "ar": "الثامن والعشرون",
+      "tr": "ya ishirini na nane",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:1c0a5a0a9caa",
+      "kind": "text",
+      "ar": "التاسع والعشرون",
+      "tr": "ya ishirini na tisa",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:91ccc8db263e",
+      "kind": "text",
+      "ar": "الثلاثون",
+      "tr": "ya thelathini",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:a9abf57dbb0d",
+      "kind": "text",
+      "ar": "لا تنسَ ديمتك غدًا",
+      "tr": "Usisahau Dima yako kesho",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:c6b29634bec7",
+      "kind": "text",
+      "ar": "سنذكّرك غدًا {slot}",
+      "tr": "Tutakukumbusha kesho {slot}",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:8a698ae7a876",
+      "kind": "title",
+      "ar": "ديمة",
+      "tr": "Dima",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:bfdf8728538c",
+      "kind": "title",
+      "ar": "صحيح البخاري",
+      "tr": "Sahih Al-Bukhari",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5e7e59318d4f",
+      "kind": "title",
+      "ar": "صحيح مسلم",
+      "tr": "Sahih Muslim",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:abff783fb429",
+      "kind": "title",
+      "ar": "السنن الكبرى للنسائي",
+      "tr": "As-Sunan Al-Kubra ya An-Nasa’i",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:7f08faee4cfe",
+      "kind": "title",
+      "ar": "سنن الترمذي ت بشار",
+      "tr": "Sunan At-Tirmidhi, toleo la Bashshar",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fb4fbcd242e3",
+      "kind": "title",
+      "ar": "سنن ابن ماجه",
+      "tr": "Sunan Ibn Majah",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:96a8ce7b5570",
+      "kind": "title",
+      "ar": "سنن الدارمي",
+      "tr": "Sunan Ad-Darimi",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:9c5644a677fa",
+      "kind": "title",
+      "ar": "اللسان",
+      "tr": "Ulimi",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:81bf3cfb3c54",
+      "kind": "title",
+      "ar": "القلب",
+      "tr": "Moyo",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5a06c13ef9bd",
+      "kind": "title",
+      "ar": "الجوارح",
+      "tr": "Viungo",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:b76444a321b7",
+      "kind": "title",
+      "ar": "اليوم",
+      "tr": "Leo",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:e776b0209b50",
+      "kind": "title",
+      "ar": "إلغاء",
+      "tr": "Ghairi",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:fc095a728402",
+      "kind": "title",
+      "ar": "إعدادات التنبيه",
+      "tr": "Mipangilio ya kikumbusho",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:5bf826c5e57c",
+      "kind": "title",
+      "ar": "إغلاق",
+      "tr": "Funga",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    },
+    {
+      "id": "h:608631450563",
+      "kind": "title",
+      "ar": "اضغط",
+      "tr": "Bonyeza",
+      "translit": "",
+      "tag": "machine",
+      "src": {
+        "name": "machine",
+        "url": "",
+        "rights": "",
+        "date": ""
+      }
+    }
+  ]
+}

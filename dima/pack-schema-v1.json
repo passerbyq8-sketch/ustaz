@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ezik.app/dima/pack-schema-v1.json",
+  "title": "Dima pack v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "version", "language", "audience", "sourceBase", "editorialPolicy", "kind", "days"],
+  "properties": {
+    "schema": {"const": "ezik-dima-pack/1"},
+    "id": {"type": "string", "pattern": "^dima-[a-z-]+-[0-9]{3}$"},
+    "version": {"type": "integer", "minimum": 1},
+    "language": {"const": "ar"},
+    "audience": {"const": "all-ages"},
+    "sourceBase": {
+      "type": "object", "additionalProperties": false, "required": ["path", "sha256"],
+      "properties": {"path": {"const": "dima/dima-v1.json"}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}
+    },
+    "editorialPolicy": {"type": "string", "minLength": 1},
+    "kind": {"enum": ["regular", "seasonal"]},
+    "startDay": {"type": "integer", "minimum": 1},
+    "season": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "hijriMonth", "firstDay", "lastDay", "priority"],
+      "properties": {
+        "id": {"enum": ["ramadan", "dhul-hijjah", "white-days"]},
+        "hijriMonth": {"type": ["integer", "null"], "minimum": 1, "maximum": 12},
+        "firstDay": {"type": "integer", "minimum": 1, "maximum": 30},
+        "lastDay": {"type": "integer", "minimum": 1, "maximum": 30},
+        "priority": {"type": "integer", "minimum": 1}
+      }
+    },
+    "days": {"type": "array", "minItems": 1, "maxItems": 30, "items": {"$ref": "#/$defs/day"}}
+  },
+  "allOf": [{"if": {"properties": {"kind": {"const": "regular"}}}, "then": {"required": ["startDay"], "not": {"required": ["season"]}}, "else": {"required": ["season"], "not": {"required": ["startDay"]}}}],
+  "$defs": {
+    "label": {
+      "type": "object", "additionalProperties": false, "required": ["id", "text"],
+      "properties": {"id": {"type": "string", "minLength": 1}, "text": {"type": "string", "minLength": 1}}
+    },
+    "drop": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "text", "textKind", "noteId", "note", "kind", "src", "actionId", "action", "verified"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1}, "text": {"type": "string", "minLength": 1},
+        "textKind": {"const": "guidance"}, "noteId": {"type": "string", "minLength": 1},
+        "note": {"type": "string", "minLength": 1}, "kind": {"enum": ["quran", "hadith"]},
+        "src": {"type": "string", "minLength": 1}, "actionId": {"type": "string", "minLength": 1},
+        "action": {"type": "string", "minLength": 1},
+        "verified": {"oneOf": [
+          {"type": "object", "additionalProperties": false, "required": ["surah", "ayah"], "properties": {"surah": {"type": "integer", "minimum": 1, "maximum": 114}, "ayah": {"type": "integer", "minimum": 1}}},
+          {"type": "object", "additionalProperties": false, "required": ["book", "ref", "subjectId", "atomId", "volume", "page"], "properties": {"book": {"type": "string", "minLength": 1}, "ref": {"type": "string", "minLength": 1}, "subjectId": {"type": "string", "pattern": "^FC-[0-9]{6}$"}, "atomId": {"type": "string", "minLength": 1}, "volume": {"type": "integer", "minimum": 1}, "page": {"type": "integer", "minimum": 1}}}
+        ]}
+      }
+    },
+    "day": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "position", "lisanRef", "qalb", "jawarih", "teaser", "notification"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^dima\\.(regular|ramadan|dhul-hijjah|white-days)\\.[0-9]{2,3}$"},
+        "position": {"type": "integer", "minimum": 1}, "lisanRef": {"type": "string", "pattern": "^l(0[1-9]|1[0-2])$"},
+        "qalb": {"$ref": "#/$defs/drop"}, "jawarih": {"$ref": "#/$defs/drop"},
+        "teaser": {"$ref": "#/$defs/label"}, "notification": {"$ref": "#/$defs/label"}
+      }
+    }
+  }
+}

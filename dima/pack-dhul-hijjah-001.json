@@ -1,0 +1,500 @@
+{
+  "schema": "ezik-dima-pack/1",
+  "version": 1,
+  "language": "ar",
+  "audience": "all-ages",
+  "sourceBase": {
+    "path": "dima/dima-v1.json",
+    "sha256": "09554894aeef74616a9e030f74f4542b83dc4a1aadf6220d427167c064dae15c"
+  },
+  "editorialPolicy": "Daily assignments are educational selections, not claims of a prescribed act or reward for a particular date. Quoted sources support the general practice. No grades added.",
+  "id": "dima-dhul-hijjah-001",
+  "kind": "seasonal",
+  "season": {
+    "id": "dhul-hijjah",
+    "hijriMonth": 12,
+    "firstDay": 1,
+    "lastDay": 10,
+    "priority": 300
+  },
+  "days": [
+    {
+      "id": "dima.dhul-hijjah.01",
+      "position": 1,
+      "lisanRef": "l01",
+      "qalb": {
+        "id": "dima.dhul-hijjah.01.qalb",
+        "text": "ابدأ هذه الأيام بنية طيبة في عمل تستطيع فعله",
+        "textKind": "guidance",
+        "noteId": "dima.dhul-hijjah.01.qalb.note",
+        "note": "وَمَآ أُمِرُوٓا۟ إِلَّا لِيَعْبُدُوا۟ ٱللَّهَ مُخْلِصِينَ لَهُ ٱلدِّينَ حُنَفَآءَ وَيُقِيمُوا۟ ٱلصَّلَوٰةَ وَيُؤْتُوا۟ ٱلزَّكَوٰةَ ۚ وَذَٰلِكَ دِينُ ٱلْقَيِّمَةِ",
+        "kind": "quran",
+        "src": "البينة: ٥",
+        "actionId": "dima.dhul-hijjah.01.qalb.action",
+        "action": "جدّدتُ نيتي",
+        "verified": {
+          "surah": 98,
+          "ayah": 5
+        }
+      },
+      "jawarih": {
+        "id": "dima.dhul-hijjah.01.jawarih",
+        "text": "ساعد أهلك في عمل صغير اليوم",
+        "textKind": "guidance",
+        "noteId": "dima.dhul-hijjah.01.jawarih.note",
+        "note": "كَانَ يَكُونُ فِي مِهْنَةِ أَهْلِهِ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.dhul-hijjah.01.jawarih.action",
+        "action": "ساعدتُ",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "1/136",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:0434:001",
+          "volume": 1,
+          "page": 136
+        }
+      },
+      "teaser": {
+        "id": "dima.dhul-hijjah.01.teaser",
+        "text": "خير يسير في هذه الأيام"
+      },
+      "notification": {
+        "id": "dima.dhul-hijjah.01.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.dhul-hijjah.02",
+      "position": 2,
+      "lisanRef": "l02",
+      "qalb": {
+        "id": "dima.dhul-hijjah.02.qalb",
+        "text": "اجعل لك لحظة هادئة لذكر الله",
+        "textKind": "guidance",
+        "noteId": "dima.dhul-hijjah.02.qalb.note",
+        "note": "وَٱذْكُر رَّبَّكَ فِى نَفْسِكَ تَضَرُّعًا وَخِيفَةً وَدُونَ ٱلْجَهْرِ مِنَ ٱلْقَوْلِ بِٱلْغُدُوِّ وَٱلْـَٔاصَالِ وَلَا تَكُن مِّنَ ٱلْغَـٰفِلِينَ",
+        "kind": "quran",
+        "src": "الأعراف: ٢٠٥",
+        "actionId": "dima.dhul-hijjah.02.qalb.action",
+        "action": "ذكرتُ الله",
+        "verified": {
+          "surah": 7,
+          "ayah": 205
+        }
+      },
+      "jawarih": {
+        "id": "dima.dhul-hijjah.02.jawarih",
+        "text": "قل كلمة طيبة لمن حولك",
+        "textKind": "guidance",
+        "noteId": "dima.dhul-hijjah.02.jawarih.note",
+        "note": "وَالكَلِمَةُ الطَّيِّبَةُ صَدَقَةٌ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.dhul-hijjah.02.jawarih.action",
+        "action": "قلتُ خيرًا",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "4/56",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:1856:001",
+          "volume": 4,
+          "page": 56
+        }
+      },
+      "teaser": {
+        "id": "dima.dhul-hijjah.02.teaser",
+        "text": "خير يسير في هذه الأيام"
+      },
+      "notification": {
+        "id": "dima.dhul-hijjah.02.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.dhul-hijjah.03",
+      "position": 3,
+      "lisanRef": "l03",
+      "qalb": {
+        "id": "dima.dhul-hijjah.03.qalb",
+        "text": "تذكّر نعمة من نعم الله عليك واشكره",
+        "textKind": "guidance",
+        "noteId": "dima.dhul-hijjah.03.qalb.note",
+        "note": "وَإِن تَعُدُّوا۟ نِعْمَةَ ٱللَّهِ لَا تُحْصُوهَآ ۗ إِنَّ ٱللَّهَ لَغَفُورٌ رَّحِيمٌ",
+        "kind": "quran",
+        "src": "النحل: ١٨",
+        "actionId": "dima.dhul-hijjah.03.qalb.action",
+        "action": "شكرتُ الله",
+        "verified": {
+          "surah": 16,
+          "ayah": 18
+        }
+      },
+      "jawarih": {
+        "id": "dima.dhul-hijjah.03.jawarih",
+        "text": "شارك بشيء يسير تملكه إن استطعت",
+        "textKind": "guidance",
+        "noteId": "dima.dhul-hijjah.03.jawarih.note",
+        "note": "اتَّقُوا النَّارَ وَلَوْ بِشِقِّ تَمْرَةٍ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.dhul-hijjah.03.jawarih.action",
+        "action": "شاركتُ",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "2/109",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:0885:001",
+          "volume": 2,
+          "page": 109
+        }
+      },
+      "teaser": {
+        "id": "dima.dhul-hijjah.03.teaser",
+        "text": "خير يسير في هذه الأيام"
+      },
+      "notification": {
+        "id": "dima.dhul-hijjah.03.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.dhul-hijjah.04",
+      "position": 4,
+      "lisanRef": "l04",
+      "qalb": {
+        "id": "dima.dhul-hijjah.04.qalb",
+        "text": "ادع لأهلك ولمن تحب له الخير",
+        "textKind": "guidance",
+        "noteId": "dima.dhul-hijjah.04.qalb.note",
+        "note": "دَعْوَةُ الْمَرْءِ الْمُسْلِمِ لِأَخِيهِ بِظَهْرِ الْغَيْبِ مُسْتَجَابَةٌ، عِنْدَ رَأْسِهِ مَلَكٌ مُوَكَّلٌ كُلَّمَا دَعَا لِأَخِيهِ بِخَيْرٍ، قَالَ الْمَلَكُ الْمُوَكَّلُ بِهِ: آمِينَ وَلَكَ بِمِثْلٍ",
+        "kind": "hadith",
+        "src": "مسلم",
+        "actionId": "dima.dhul-hijjah.04.qalb.action",
+        "action": "دعوتُ",
+        "verified": {
+          "book": "صحيح مسلم",
+          "ref": "4/2094",
+          "subjectId": "FC-000648",
+          "atomId": "FC-000648:1246:002",
+          "volume": 4,
+          "page": 2094
+        }
+      },
+      "jawarih": {
+        "id": "dima.dhul-hijjah.04.jawarih",
+        "text": "اسأل قريبًا عن حاله بلطف",
+        "textKind": "guidance",
+        "noteId": "dima.dhul-hijjah.04.jawarih.note",
+        "note": "مَنْ أَحَبَّ أَنْ يُبْسَطَ لَهُ فِي رِزْقِهِ، وَيُنْسَأَ لَهُ فِي أَثَرِهِ، فَلْيَصِلْ رَحِمَهُ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.dhul-hijjah.04.jawarih.action",
+        "action": "وصلتُ رحمي",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "8/5",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:3175:001",
+          "volume": 8,
+          "page": 5
+        }
+      },
+      "teaser": {
+        "id": "dima.dhul-hijjah.04.teaser",
+        "text": "خير يسير في هذه الأيام"
+      },
+      "notification": {
+        "id": "dima.dhul-hijjah.04.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.dhul-hijjah.05",
+      "position": 5,
+      "lisanRef": "l05",
+      "qalb": {
+        "id": "dima.dhul-hijjah.05.qalb",
+        "text": "تأنّ في الحديث واختر الكلام النافع",
+        "textKind": "guidance",
+        "noteId": "dima.dhul-hijjah.05.qalb.note",
+        "note": "مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَاليَوْمِ الآخِرِ فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.dhul-hijjah.05.qalb.action",
+        "action": "تأنّيتُ",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "8/11",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:3194:001",
+          "volume": 8,
+          "page": 11
+        }
+      },
+      "jawarih": {
+        "id": "dima.dhul-hijjah.05.jawarih",
+        "text": "ابدأ من تلقاه بالسلام",
+        "textKind": "guidance",
+        "noteId": "dima.dhul-hijjah.05.jawarih.note",
+        "note": "أَفْشُوا السَّلَامَ بَيْنَكُمْ",
+        "kind": "hadith",
+        "src": "مسلم",
+        "actionId": "dima.dhul-hijjah.05.jawarih.action",
+        "action": "سلّمتُ",
+        "verified": {
+          "book": "صحيح مسلم",
+          "ref": "1/74",
+          "subjectId": "FC-000648",
+          "atomId": "FC-000648:0033:001",
+          "volume": 1,
+          "page": 74
+        }
+      },
+      "teaser": {
+        "id": "dima.dhul-hijjah.05.teaser",
+        "text": "خير يسير في هذه الأيام"
+      },
+      "notification": {
+        "id": "dima.dhul-hijjah.05.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.dhul-hijjah.06",
+      "position": 6,
+      "lisanRef": "l06",
+      "qalb": {
+        "id": "dima.dhul-hijjah.06.qalb",
+        "text": "تأمّل كيف تصبر في موقف صغير اليوم",
+        "textKind": "guidance",
+        "noteId": "dima.dhul-hijjah.06.qalb.note",
+        "note": "قُلْ يَـٰعِبَادِ ٱلَّذِينَ ءَامَنُوا۟ ٱتَّقُوا۟ رَبَّكُمْ ۚ لِلَّذِينَ أَحْسَنُوا۟ فِى هَـٰذِهِ ٱلدُّنْيَا حَسَنَةٌ ۗ وَأَرْضُ ٱللَّهِ وَٰسِعَةٌ ۗ إِنَّمَا يُوَفَّى ٱلصَّـٰبِرُونَ أَجْرَهُم بِغَيْرِ حِسَابٍ",
+        "kind": "quran",
+        "src": "الزمر: ١٠",
+        "actionId": "dima.dhul-hijjah.06.qalb.action",
+        "action": "تأمّلتُ",
+        "verified": {
+          "surah": 39,
+          "ayah": 10
+        }
+      },
+      "jawarih": {
+        "id": "dima.dhul-hijjah.06.jawarih",
+        "text": "إذا غضبت فتمهّل قبل الرد",
+        "textKind": "guidance",
+        "noteId": "dima.dhul-hijjah.06.jawarih.note",
+        "note": "لَيْسَ الشَّدِيدُ بِالصُّرَعَةِ، إِنَّمَا الشَّدِيدُ الَّذِي يَمْلِكُ نَفْسَهُ عِنْدَ الغَضَبِ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.dhul-hijjah.06.jawarih.action",
+        "action": "تمهّلتُ",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "8/28",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:3239:001",
+          "volume": 8,
+          "page": 28
+        }
+      },
+      "teaser": {
+        "id": "dima.dhul-hijjah.06.teaser",
+        "text": "خير يسير في هذه الأيام"
+      },
+      "notification": {
+        "id": "dima.dhul-hijjah.06.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.dhul-hijjah.07",
+      "position": 7,
+      "lisanRef": "l07",
+      "qalb": {
+        "id": "dima.dhul-hijjah.07.qalb",
+        "text": "احمد الله على نعمة التعلم",
+        "textKind": "guidance",
+        "noteId": "dima.dhul-hijjah.07.qalb.note",
+        "note": "وَٱللَّهُ أَخْرَجَكُم مِّنۢ بُطُونِ أُمَّهَـٰتِكُمْ لَا تَعْلَمُونَ شَيْـًٔا وَجَعَلَ لَكُمُ ٱلسَّمْعَ وَٱلْأَبْصَـٰرَ وَٱلْأَفْـِٔدَةَ ۙ لَعَلَّكُمْ تَشْكُرُونَ",
+        "kind": "quran",
+        "src": "النحل: ٧٨",
+        "actionId": "dima.dhul-hijjah.07.qalb.action",
+        "action": "حمدتُ الله",
+        "verified": {
+          "surah": 16,
+          "ayah": 78
+        }
+      },
+      "jawarih": {
+        "id": "dima.dhul-hijjah.07.jawarih",
+        "text": "علّم من يرغب شيئًا نافعًا تعرفه",
+        "textKind": "guidance",
+        "noteId": "dima.dhul-hijjah.07.jawarih.note",
+        "note": "مَنْ دَلَّ عَلَى خَيْرٍ فَلَهُ مِثْلُ أَجْرِ فَاعِلِهِ",
+        "kind": "hadith",
+        "src": "مسلم",
+        "actionId": "dima.dhul-hijjah.07.jawarih.action",
+        "action": "علّمتُ",
+        "verified": {
+          "book": "صحيح مسلم",
+          "ref": "3/1506",
+          "subjectId": "FC-000648",
+          "atomId": "FC-000648:0877:001",
+          "volume": 3,
+          "page": 1506
+        }
+      },
+      "teaser": {
+        "id": "dima.dhul-hijjah.07.teaser",
+        "text": "خير يسير في هذه الأيام"
+      },
+      "notification": {
+        "id": "dima.dhul-hijjah.07.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.dhul-hijjah.08",
+      "position": 8,
+      "lisanRef": "l08",
+      "qalb": {
+        "id": "dima.dhul-hijjah.08.qalb",
+        "text": "جدّد نيتك في خدمة من حولك",
+        "textKind": "guidance",
+        "noteId": "dima.dhul-hijjah.08.qalb.note",
+        "note": "وَمَآ أُمِرُوٓا۟ إِلَّا لِيَعْبُدُوا۟ ٱللَّهَ مُخْلِصِينَ لَهُ ٱلدِّينَ حُنَفَآءَ وَيُقِيمُوا۟ ٱلصَّلَوٰةَ وَيُؤْتُوا۟ ٱلزَّكَوٰةَ ۚ وَذَٰلِكَ دِينُ ٱلْقَيِّمَةِ",
+        "kind": "quran",
+        "src": "البينة: ٥",
+        "actionId": "dima.dhul-hijjah.08.qalb.action",
+        "action": "جدّدتُ نيتي",
+        "verified": {
+          "surah": 98,
+          "ayah": 5
+        }
+      },
+      "jawarih": {
+        "id": "dima.dhul-hijjah.08.jawarih",
+        "text": "اعرض مساعدة مناسبة لقدرتك",
+        "textKind": "guidance",
+        "noteId": "dima.dhul-hijjah.08.jawarih.note",
+        "note": "وَاللهُ فِي عَوْنِ الْعَبْدِ مَا كَانَ الْعَبْدُ فِي عَوْنِ أَخِيهِ",
+        "kind": "hadith",
+        "src": "مسلم",
+        "actionId": "dima.dhul-hijjah.08.jawarih.action",
+        "action": "ساعدتُ",
+        "verified": {
+          "book": "صحيح مسلم",
+          "ref": "4/2074",
+          "subjectId": "FC-000648",
+          "atomId": "FC-000648:1234:001",
+          "volume": 4,
+          "page": 2074
+        }
+      },
+      "teaser": {
+        "id": "dima.dhul-hijjah.08.teaser",
+        "text": "خير يسير في هذه الأيام"
+      },
+      "notification": {
+        "id": "dima.dhul-hijjah.08.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.dhul-hijjah.09",
+      "position": 9,
+      "lisanRef": "l09",
+      "qalb": {
+        "id": "dima.dhul-hijjah.09.qalb",
+        "text": "اسأل الله الخير لك ولأهلك بكلام تفهمه",
+        "textKind": "guidance",
+        "noteId": "dima.dhul-hijjah.09.qalb.note",
+        "note": "وَقَالَ رَبُّكُمُ ٱدْعُونِىٓ أَسْتَجِبْ لَكُمْ ۚ إِنَّ ٱلَّذِينَ يَسْتَكْبِرُونَ عَنْ عِبَادَتِى سَيَدْخُلُونَ جَهَنَّمَ دَاخِرِينَ",
+        "kind": "quran",
+        "src": "غافر: ٦٠",
+        "actionId": "dima.dhul-hijjah.09.qalb.action",
+        "action": "دعوتُ",
+        "verified": {
+          "surah": 40,
+          "ayah": 60
+        }
+      },
+      "jawarih": {
+        "id": "dima.dhul-hijjah.09.jawarih",
+        "text": "أدخل السرور بكلمة طيبة",
+        "textKind": "guidance",
+        "noteId": "dima.dhul-hijjah.09.jawarih.note",
+        "note": "وَالكَلِمَةُ الطَّيِّبَةُ صَدَقَةٌ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.dhul-hijjah.09.jawarih.action",
+        "action": "قلتُ خيرًا",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "4/56",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:1856:001",
+          "volume": 4,
+          "page": 56
+        }
+      },
+      "teaser": {
+        "id": "dima.dhul-hijjah.09.teaser",
+        "text": "خير يسير في هذه الأيام"
+      },
+      "notification": {
+        "id": "dima.dhul-hijjah.09.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.dhul-hijjah.10",
+      "position": 10,
+      "lisanRef": "l10",
+      "qalb": {
+        "id": "dima.dhul-hijjah.10.qalb",
+        "text": "احمد الله على نعمه في يوم العيد",
+        "textKind": "guidance",
+        "noteId": "dima.dhul-hijjah.10.qalb.note",
+        "note": "وَإِذْ تَأَذَّنَ رَبُّكُمْ لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ ۖ وَلَئِن كَفَرْتُمْ إِنَّ عَذَابِى لَشَدِيدٌ",
+        "kind": "quran",
+        "src": "إبراهيم: ٧",
+        "actionId": "dima.dhul-hijjah.10.qalb.action",
+        "action": "حمدتُ الله",
+        "verified": {
+          "surah": 14,
+          "ayah": 7
+        }
+      },
+      "jawarih": {
+        "id": "dima.dhul-hijjah.10.jawarih",
+        "text": "شارك أهلك فرحة العيد وساعد في تقديم الطعام",
+        "textKind": "guidance",
+        "noteId": "dima.dhul-hijjah.10.jawarih.note",
+        "note": "تُطْعِمُ الطَّعَامَ، وَتَقْرَأُ السَّلاَمَ عَلَى مَنْ عَرَفْتَ وَمَنْ لَمْ تَعْرِفْ",
+        "kind": "hadith",
+        "src": "البخاري",
+        "actionId": "dima.dhul-hijjah.10.jawarih.action",
+        "action": "شاركتُ",
+        "verified": {
+          "book": "صحيح البخاري",
+          "ref": "1/12",
+          "subjectId": "FC-000645",
+          "atomId": "FC-000645:0009:001",
+          "volume": 1,
+          "page": 12
+        }
+      },
+      "teaser": {
+        "id": "dima.dhul-hijjah.10.teaser",
+        "text": "فرحة العيد"
+      },
+      "notification": {
+        "id": "dima.dhul-hijjah.10.notification",
+        "text": "ديمة اليوم جاهزة، خذ منها ما تستطيع"
+      }
+    }
+  ]
+}
