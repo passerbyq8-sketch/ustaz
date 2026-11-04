@@ -2100,7 +2100,8 @@ const SEALED = {
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 58418 bytes).
   // 2026-11-03 IAP-LAUNCH-SIGNIN source commit e4754ef0: cache ezik-v135; app.js rebuilt at the same byte length; CORE unchanged. Digest measured from the committed sw.js blob at CR = 0.
   // 2026-11-04 QAF-GAP-N2: ezik-v136; rebuild and CORE measurement, then LF worker seal.
-  'sw.js': '1dba1811de307a13256b313c476496ff71bcfbd73d8f70036c10736b8c78b4ce',
+  // 2026-11-04 INTEG1 preview: reserved ezik-v137; rebuilt app.js, measured CORE, LF worker seal.
+  'sw.js': '4167f56234188e364cc2dc1af857519379e012e59082f6cd7e6e79e1e5ac748e',
 };
 
 // ---------------------------------------------------------------------------
