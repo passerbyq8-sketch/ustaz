@@ -16,6 +16,18 @@ const { spawn } = require('child_process');
 
 const REPO = path.join(__dirname, '..');
 const SRC = fs.readFileSync(path.join(REPO, 'app.jsx'), 'utf8');
+const REAL_DATE = Date;
+const PRAYER_CLOCKS = {
+  daytime: { utc: '2026-11-04T12:00:00.000Z', afterIsha: false }, // Kuwait 15:00
+  'after-isha': { utc: '2026-11-04T18:00:00.000Z', afterIsha: true } // Kuwait 21:00
+};
+const PRAYER_FIXTURE_DAY = { y: 2026, m: 11, d: 4 };
+function sceneClock() {
+  const name = process.argv[3] || 'daytime';
+  if (!Object.hasOwn(PRAYER_CLOCKS, name)) throw new Error('unknown prayer clock ' + name);
+  say('CLOCK ' + name + ' ' + PRAYER_CLOCKS[name].utc + ' Asia/Kuwait');
+  return PRAYER_CLOCKS[name];
+}
 const NODE_TICK = setTimeout;
 const tick = (ms = 40) => new Promise((resolve) => NODE_TICK(resolve, ms));
 const ascii = (s) => String(s).replace(/[^\x00-\x7f]/g, (c) => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
@@ -209,6 +221,11 @@ function boot(opts) {
   const { parseHTML } = require(path.join(REPO, 'node_modules', 'linkedom'));
   const { window } = parseHTML('<!DOCTYPE html><html lang="ar" dir="rtl"><body><div id="root"></div></body></html>');
   window.self = window; window.window = window; window.globalThis = window;
+  // Only the day/card scenes use this frozen application clock; harness timeouts remain real.
+  if (opts.clock) window.Date = class extends REAL_DATE {
+    constructor(...args) { super(...(args.length ? args : [REAL_DATE.parse(opts.clock.utc)])); }
+    static now() { return REAL_DATE.parse(opts.clock.utc); }
+  };
   window.matchMedia = (q) => ({ matches: false, media: String(q), addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} });
   window.scrollTo = () => {};
   window.alert = () => {}; window.confirm = () => true; window.prompt = () => null;
@@ -258,7 +275,7 @@ function boot(opts) {
   const open = (route) => vm.runInContext('window.dispatchEvent(new CustomEvent("ezik-scheduler",{detail:{channel:"ezik-scheduler",v:1,op:"open",route:' + JSON.stringify(route) + ',type:null,id:null}}))', ctx);
   const q = (sel) => root.querySelector(sel);
   const qa = (sel) => Array.from(root.querySelectorAll(sel));
-  const waitFor = async (fn, cap = 6000) => { const end = Date.now() + cap; let v = fn(); while (!v && Date.now() < end) { await tick(30); v = fn(); } await tick(60); return fn(); };
+  const waitFor = async (fn, cap = 6000) => { const end = REAL_DATE.now() + cap; let v = fn(); while (!v && REAL_DATE.now() < end) { await tick(30); v = fn(); } await tick(60); return fn(); };
   const click = async (el) => { if (!el) throw new Error('missing control'); const p = props(el); if (p && p.onClick) p.onClick({ preventDefault() {}, stopPropagation() {}, currentTarget: el, target: el }); await tick(80); };
   const type = async (el, value) => { const p = props(el); p.onChange({ target: { value }, currentTarget: { value } }); await tick(80); };
   const store = window.localStorage;
@@ -278,6 +295,28 @@ async function openPrayer(c) {
   c.open('prayer');
   if (bLitP(c) && R4A_GEAR_SCENES.has(process.argv[2])) { await c.waitFor(() => c.q('[data-ez110-prayerset]')); await openPrayerGearB(c, process.argv[2]); return; }
   await c.waitFor(() => c.q('[data-ezik-place="toggle"]'));
+}
+// Independent raw-table oracle: never ask the display/status code which Fajr to expect.
+function rawPrayerTimes(c, day) {
+  return c.read('(function(){const l=readQiblaLoc(),p=readPrayerPrefs();return prayerTimesFor(' +
+    [day.y, day.m, day.d].join(',') + ',l.lat,l.lng,prayerTzOn(' +
+    [day.y, day.m, day.d].join(',') + ',prayerZoneOf(l)),p.method,p.asr,p.off);})()');
+}
+function expectedPrayerTimes(c, keys, day, clock) {
+  const row = rawPrayerTimes(c, day);
+  if (clock.afterIsha && day.y === 2026 && day.m === 11 && day.d === 4) {
+    row.fajr = rawPrayerTimes(c, { y: 2026, m: 11, d: 5 }).fajr;
+  }
+  return keys.map((k) => c.read('prayerClockUi(' + JSON.stringify(row[k]) + ')'));
+}
+function checkPrayerClock(c, clock) {
+  t('the application clock is the explicit UTC fixture', c.read('[new Date().toISOString(), Date.now()]'), [clock.utc, REAL_DATE.parse(clock.utc)]);
+  t('the fixture keeps the default Kuwait place and zone', c.read('(function(){const l=readQiblaLoc();return [l.lat,l.lng,prayerZoneOf(l).tz];})()'), [29.3759, 47.9774, 'Asia/Kuwait']);
+  const today = c.read('prayerTodayParts(new Date(), prayerZoneOf(readQiblaLoc()))');
+  t('the fixture keeps the same civil date', [today.y, today.m, today.d], [2026, 11, 4]);
+  const row = rawPrayerTimes(c, PRAYER_FIXTURE_DAY);
+  t('the fixed clock is on its intended side of Isha', today.mins >= row.isha, clock.afterIsha);
+  ok('the two dates have different Fajr times, so the boundary assertion is discriminating', row.fajr !== rawPrayerTimes(c, { y: 2026, m: 11, d: 5 }).fajr);
 }
 const SCENES = {};
 SCENES.place = async () => {
@@ -323,23 +362,25 @@ SCENES.place = async () => {
 };
 SCENES.day = async () => {
   say('S3  stepping to another day, picking a date, coming back');
-  const c = boot({});
+  const clock = sceneClock();
+  const c = boot({ clock });
+  checkPrayerClock(c, clock);
   await openPrayer(c);
   const KEYS = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
   const shown = () => KEYS.map((k) => c.q('[data-ezik-prayer="' + k + '"]').querySelectorAll('span')[1].textContent);
-  const expect = (y, m, d) => KEYS.map((k) => c.read('prayerClockUi(prayerTimesFor(' + [y, m, d].join(',') + ', QIBLA_DEFAULT_LAT, QIBLA_DEFAULT_LNG, prayerTzOn(' + [y, m, d].join(',') + ', null), "kuwait", "standard", null)["' + k + '"])'));
-  const today = c.read('prayerTodayParts(new Date(), null)');
+  const expect = (y, m, d) => expectedPrayerTimes(c, KEYS, { y, m, d }, clock);
+  const today = c.read('prayerTodayParts(new Date(), prayerZoneOf(readQiblaLoc()))');
   t('the sheet opens on today\'s times', shown(), expect(today.y, today.m, today.d));
   t('there is no "back to today" button on today', c.q('[data-ezik-day="today"]'), null);
   const headToday = c.q('[data-ezik-day="head"]').textContent;
   await c.click(c.q('[data-ezik-day="next"]'));
-  const tom = c.read('prayerShiftDay(prayerTodayParts(new Date(), null), 1)');
+  const tom = c.read('prayerShiftDay(prayerTodayParts(new Date(), prayerZoneOf(readQiblaLoc())), 1)');
   t('"next day" shows tomorrow\'s times', shown(), expect(tom.y, tom.m, tom.d));
   ok('the date line changes', c.q('[data-ezik-day="head"]').textContent !== headToday);
   ok('"back to today" appears', !!c.q('[data-ezik-day="today"]'));
   await c.click(c.q('[data-ezik-day="prev"]'));
   await c.click(c.q('[data-ezik-day="prev"]'));
-  const yest = c.read('prayerShiftDay(prayerTodayParts(new Date(), null), -1)');
+  const yest = c.read('prayerShiftDay(prayerTodayParts(new Date(), prayerZoneOf(readQiblaLoc())), -1)');
   t('"previous day" twice from tomorrow shows yesterday', shown(), expect(yest.y, yest.m, yest.d));
   await c.type(c.q('[data-ezik-day="pick"]'), '2027-03-01');
   t('picking a date shows that day', shown(), expect(2027, 3, 1));
@@ -349,7 +390,7 @@ SCENES.day = async () => {
   await c.click(c.q('[data-ezik-day="today"]'));
   t('"back to today" restores today', shown(), expect(today.y, today.m, today.d));
   t('...and the button is gone again', c.q('[data-ezik-day="today"]'), null);
-  await c.type(c.q('[data-ezik-day="pick"]'), c.read('prayerDayIso(prayerTodayParts(new Date(), null))'));
+  await c.type(c.q('[data-ezik-day="pick"]'), c.read('prayerDayIso(prayerTodayParts(new Date(), prayerZoneOf(readQiblaLoc())))'));
   t('picking today\'s own date is the same as being on today', c.q('[data-ezik-day="today"]'), null);
   t('nothing threw', c.caught(), null);
 };
@@ -737,12 +778,14 @@ SCENES.card = async () => {
 // countdown, the Hijri and the Gregorian day are checked for the digit system. (The owner's examples 4:39 / ٤:٣٩ / 17:05
 // are shapes: the real values are today's times at the default place.)
 SCENES['card-digits'] = async () => {
+  const clock = sceneClock();
   say('S17 the menu\'s prayer card: its digits and its clock follow the display setting, as the section\'s do (PRAYER-FIX2)');
   const KEYS = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
   const ARAB = /[\u0660-\u0669]/, LATN = /[0-9]/, H24 = /^[0-9]{2}:[0-9]{2}$/;
   const txt = (el) => (el ? el.textContent : '');
   const run = async (name, extra, check) => {
-    const c = boot({ seed: { ezik_prayer_prefs_v1: prefsWith(extra) } });
+    const c = boot({ clock, seed: { ezik_prayer_prefs_v1: prefsWith(extra) } });
+    checkPrayerClock(c, clock);
     await c.waitFor(() => c.q('.ezc-rail') || c.q('[data-ezik-home-module]') || c.q('.ez110-home'));
     c.open('home');
     await c.waitFor(() => c.q('[data-ez110-prayer-card] .ez110-prayer-ctime'));
@@ -752,7 +795,7 @@ SCENES['card-digits'] = async () => {
     const left = txt(card.querySelector('.ez110-prayer-left bdi'));
     const hijri = txt(card.querySelector('.ez110-prayer-hijri'));
     const greg = txt(c.q('[data-ezik-card="greg"]'));
-    const want = c.read('(function(){const l=readQiblaLoc();const p=readPrayerPrefs();const n=new Date();const v=prayerTodayParts(n, prayerZoneOf(l));const t=prayerTimesFor(v.y,v.m,v.d,l.lat,l.lng,prayerTzNow(n,l),p.method,p.asr,p.off);return ' + JSON.stringify(KEYS) + '.map((k)=>prayerClockUi(t[k]));})()');
+    const want = expectedPrayerTimes(c, KEYS, PRAYER_FIXTURE_DAY, clock);
     t(name + ': the card\'s five times are what the section\'s own function prayerClockUi writes', five, want);
     ok(name + ': the card names a next prayer with its time', next.length >= 4, next);
     c.open('prayer');
@@ -808,9 +851,11 @@ async function main() {
   sectionConv();
   sectionScreen();
   let sceneFail = 0;
-  for (const name of Object.keys(SCENES)) {
+  const sceneRuns = Object.keys(SCENES).flatMap((name) =>
+    name === 'day' || name === 'card-digits' ? Object.keys(PRAYER_CLOCKS).map((clock) => [name, clock]) : [[name]]);
+  for (const args of sceneRuns) {
     const code = await new Promise((resolve) => {
-      const ch = spawn(process.execPath, [__filename, name], { cwd: REPO, stdio: ['ignore', 'pipe', 'pipe'] });
+      const ch = spawn(process.execPath, [__filename, ...args], { cwd: REPO, stdio: ['ignore', 'pipe', 'pipe'] });
       let out = '';
       ch.stdout.on('data', (d) => { out += d; process.stdout.write(d); });
       ch.stderr.on('data', (d) => { out += d; process.stdout.write(d); });
@@ -818,7 +863,7 @@ async function main() {
     });
     if (code !== 0) sceneFail++;
   }
-  say('\n' + (failed || sceneFail ? 'FAIL' : 'PASS') + '  ' + passed + ' function checks passed, ' + failed + ' failed; ' + (Object.keys(SCENES).length - sceneFail) + '/' + Object.keys(SCENES).length + ' scenes passed.');
+  say('\n' + (failed || sceneFail ? 'FAIL' : 'PASS') + '  ' + passed + ' function checks passed, ' + failed + ' failed; ' + (sceneRuns.length - sceneFail) + '/' + sceneRuns.length + ' scenes passed.');
   process.exit(failed || sceneFail ? 1 : 0);
 }
 main().catch((e) => { say('CRASH ' + (e && e.stack || e)); process.exit(2); });
