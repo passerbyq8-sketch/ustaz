@@ -1140,5 +1140,10 @@
     "name": "aboutstorebadges",
     "script": "guards/about-store-badges-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "securityheaders",
+    "script": "tests/security-headers.test.js",
+    "args": ""
   }
 ]
