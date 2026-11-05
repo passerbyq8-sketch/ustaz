@@ -1190,5 +1190,10 @@
     "name": "c1portugueseusage",
     "script": "guards/c1-portuguese-usage-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1birthyeardirection",
+    "script": "guards/c1-birth-year-direction-guard.cjs",
+    "args": ""
   }
 ]

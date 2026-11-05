@@ -38234,7 +38234,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
           <div style={s.a11ySwitchHint}>{ezT(ez.id ? 'ez110.set.womenRule' : 'settings.womenCornerRule')}</div>
           <input value={pfYear} onChange={(e) => { setPfYear(e.target.value); setPfMsg(''); }}
             placeholder={ezT('onboarding.birthYear')} aria-label={ezT('onboarding.birthYear')}
-            type="text" inputMode="numeric" pattern="[0-9]*" maxLength={4} style={s.welcomeInput} />
+            type="text" inputMode="numeric" pattern="[0-9]*" maxLength={4} style={EZ_LANG_DIR[EZ_LANG] === 'ltr' ? { ...s.welcomeInput, direction: 'ltr' } : s.welcomeInput} />
           {pfYear.trim() && !pfYearOk && <div className="ezgate-err">{ezT('onboarding.yearError')}</div>}
           <button type="button" onClick={savePf} disabled={!pfYearOk}
             style={{ ...s.welcomePrimaryBtn, opacity: pfYearOk ? 1 : 0.4 }}>{ezT('settings.profileSave')}</button>
