@@ -400,6 +400,9 @@ function useEzLang() {
 // here and no translated string is ever handed to innerHTML. ---------------------------
 const EZ_I18N = {
   ar: {
+    "countdown.hour": "ساعات",
+    "countdown.minute": "دقائق",
+    "countdown.second": "ثوان",
     "mushaf.waqfatTitle": "وقفات",
     'common.close': 'إغلاق',
     'answer.translation': 'ترجمة',
@@ -2377,6 +2380,9 @@ const EZ_I18N = {
     'tr4.machine': 'ترجمة آلية',
   },
   en: {
+    "countdown.hour": "hours",
+    "countdown.minute": "minutes",
+    "countdown.second": "seconds",
     "mushaf.waqfatTitle": "Reflections",
     'common.close': 'Close',
     'answer.translation': 'Translation',
@@ -10959,7 +10965,7 @@ function Ez110PrayerCard({ onOpen, hijri, onQibla }) {
             <span className="ez110-prayer-name">{ezT('widget.prayer.' + next)}</span>
             <span className="ez110-prayer-time">{prayerClockUi(nextTime)}</span>
             {status.remainingMs != null ? (
-              <span className="ez110-prayer-left">{ezT('panel.in')} <bdi dir="ltr">{prayerDigits(ez110Countdown(status.remainingMs))}</bdi></span>
+              <span className="ez110-prayer-left">{ezT('panel.in')} <span role="timer" aria-label={prayerCountdownDescription(status.remainingMs, true)}><bdi dir="ltr" aria-hidden="true">{prayerDigits(ez110Countdown(status.remainingMs))}</bdi><small dir="ltr" aria-hidden="true" style={{ display: 'block', fontSize: '0.72em', lineHeight: 1.4 }}>{prayerCountdownUnits(status.remainingMs, true)}</small></span></span>
             ) : null}
           </span>
         ) : null}
@@ -31464,6 +31470,19 @@ function prayerDegUi(b) {
   try { arab = readPrayerPrefs().digits === 'arab'; } catch (e) { arab = false; }
   return arab ? qiblaDegreeText(b) : b.toFixed(1);
 }
+// D33: the visible legend names every numeric field; the accessible name reads its value.
+function prayerCountdownFields(ms, compact) {
+  const sec = Math.max(0, Math.floor((typeof ms === 'number' && isFinite(ms) ? ms : 0) / 1000));
+  const values = [Math.floor(sec / 3600), Math.floor(sec % 3600 / 60), sec % 60];
+  const start = compact ? (values[0] ? 0 : values[1] ? 1 : 2) : 0;
+  return values.map((value, i) => ({ value, unit: ['hour', 'minute', 'second'][i] })).slice(start);
+}
+function prayerCountdownUnits(ms, compact) {
+  return prayerCountdownFields(ms, compact).map(p => ezT('countdown.' + p.unit)).join(' : ');
+}
+function prayerCountdownDescription(ms, compact) {
+  return prayerCountdownFields(ms, compact).map(p => prayerDigits(String(p.value)) + ' ' + ezT('countdown.' + p.unit)).join(', ');
+}
 function prayerCountdownUi(ms) { return prayerDigits(prayerCountdownText(ms)); }
 // The Gregorian line of the date strip, in the interface language; the Hijri line is hijriLabel's.
 function prayerGregLabel(v) {
@@ -31585,7 +31604,7 @@ function PrayerTimesPanel({ loc, day, onDay, part, onLoc, onCity }) {
             </div>
             <div className="ez110-pcard-left">
               <span className="ez110-pcard-label">{ezT('panel.remaining')}</span>
-              <bdi dir="ltr" className="ez110-pcard-count" data-ezik-next="count">{prayerCountdownUi(status.remainingMs)}</bdi>
+              <span role="timer" aria-label={prayerCountdownDescription(status.remainingMs, false)}><bdi dir="ltr" aria-hidden="true" className="ez110-pcard-count" data-ezik-next="count">{prayerCountdownUi(status.remainingMs)}</bdi><small dir="ltr" aria-hidden="true" style={{ display: 'block', fontSize: 11, lineHeight: 1.4 }}>{prayerCountdownUnits(status.remainingMs, false)}</small></span>
             </div>
           </div>
         ) : null}

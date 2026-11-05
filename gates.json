@@ -1255,5 +1255,10 @@
     "name": "c1questiondisplay",
     "script": "guards/c1-question-display-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1countdownunits",
+    "script": "guards/c1-countdown-units-guard.cjs",
+    "args": ""
   }
 ]
