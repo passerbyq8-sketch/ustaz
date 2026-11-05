@@ -1847,7 +1847,7 @@ mutant('م٣ the version crosses as the NUMBER 1',
   });
 
 mutant('م٤ the client-state comparison is dropped',
-  "      if (!p || p.getAll('state').length !== 1 || p.get('state') !== cs) { done({ ok: false, code: 'callback-mismatch' }); return; }",
+  "      if (p.getAll('state').length !== 1 || p.get('state') !== cs) { done({ ok: false, code: 'callback-mismatch' }); return; }",
   "      if (false) { done({ ok: false, code: 'callback-mismatch' }); return; }",
   async (f) => {
     const p = (await press({}, f));

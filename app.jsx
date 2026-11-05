@@ -33670,17 +33670,18 @@ function ezikAuthProofLegacy(provider, native, registerStop) {
     const old = new URL(ezikAuthStartUrl(cs, getDeviceId(), provider));
     const url = new URL(old.pathname + old.search, window.location.origin);
     if (!bridge) {
-      if (!writeWebAuthState(cs)) { done({ ok: false, code: 'auth-storage' }); return; }
+      if (!writeWebAuthState(cs)) { done({ ok: false, code: 'legacy-browser-storage' }); return; }
       url.searchParams.set('web', '1');
       try { window.location.assign(url.toString()); } catch (e) { takeWebAuthState(); done({ ok: false, code: 'auth-unavailable' }); }
       return;
     }
     stop = ezikAuthAsk(bridge, url.toString(), async d => {
-      if (!d || d.ok !== true) { done({ ok: false, code: d && d.reason === 'dismissed' ? 'canceled' : 'auth-unavailable' }); return; }
+      if (!d || d.ok !== true) { done({ ok: false, code: d && d.reason === 'dismissed' ? 'canceled' : 'legacy-reason:' + (d && d.reason || '') }); return; }
       const p = ezikAuthReturnParams(d.url);
-      if (!p || p.getAll('state').length !== 1 || p.get('state') !== cs) { done({ ok: false, code: 'callback-mismatch' }); return; }
+      if (!p) { done({ ok: false, code: 'legacy-bad-return' }); return; }
+      if (p.getAll('state').length !== 1 || p.get('state') !== cs) { done({ ok: false, code: 'callback-mismatch' }); return; }
       if (p.get('error')) { done({ ok: false, code: 'auth-provider-denied' }); return; }
-      if (!p.get('ticket')) { done({ ok: false, code: 'callback-mismatch' }); return; }
+      if (!p.get('ticket')) { done({ ok: false, code: 'legacy-bad-return' }); return; }
       const got = await ezikAuthExchange(p.get('ticket'), window.location.origin);
       if (settled) return;
       if (!got) { done({ ok: false, code: 'auth-unavailable' }); return; }
@@ -33690,6 +33691,9 @@ function ezikAuthProofLegacy(provider, native, registerStop) {
 }
 function ezikAuthProofLine(out) {
   if (!out || out.ok || out.navigating || out.code === 'canceled' || out.code === 'dismissed') return '';
+  if (out.code && out.code.startsWith('legacy-reason:')) return ezikAuthLine(out.code.slice(14));
+  if (out.code === 'legacy-bad-return') return ezT('auth.badReturn');
+  if (out.code === 'legacy-browser-storage') return ezT('auth.browserFailed');
   if (out.code === 'callback-mismatch') return ezT('auth.stateMismatch');
   if (out.code === 'unsupported' || out.code === 'auth-policy-changed') return ezT('auth.unsupported');
   if (out.code === 'auth-outcome-unknown') return ezT('auth.grantUnknown');
