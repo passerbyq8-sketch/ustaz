@@ -382,8 +382,85 @@ function note(u, e, reason) {
       + ((e && e.message) || e) + ' (' + precacheFailures.length + ' failed so far)');
   }
 }
+function dimaObject(value) { return !!value && typeof value === 'object' && !Array.isArray(value); }
+function dimaPackValid(pack, entry, seasonal) {
+  const text = value => typeof value === 'string' && value.trim().length > 0;
+  if (!dimaObject(pack) || pack.schema !== 'ezik-dima-pack/1' || pack.language !== 'ar' || pack.audience !== 'all-ages' ||
+      pack.id !== (seasonal ? entry.packId : entry.id) || !Number.isInteger(pack.version) || pack.version < 1 || pack.version !== entry.version ||
+      pack.kind !== (seasonal ? 'seasonal' : 'regular') || !dimaObject(pack.sourceBase) || pack.sourceBase.path !== 'dima/dima-v1.json' ||
+      pack.sourceBase.sha256 !== '09554894aeef74616a9e030f74f4542b83dc4a1aadf6220d427167c064dae15c' ||
+      !Array.isArray(pack.days) || pack.days.length !== entry.lastDay - entry.firstDay + 1) return false;
+  if (seasonal) {
+    if (!pack.season || pack.season.id !== entry.id || pack.season.hijriMonth !== entry.hijriMonth ||
+        pack.season.firstDay !== entry.firstDay || pack.season.lastDay !== entry.lastDay) return false;
+  } else if (pack.startDay !== entry.firstDay || pack.days.length !== 30) return false;
+  const ids = new Set(), unique = id => { if (!text(id) || ids.has(id)) return false; ids.add(id); return true; };
+  return pack.days.every((day, i) => {
+    const position = entry.firstDay + i, prefix = 'dima.' + (seasonal ? entry.id : 'regular') + '.' + String(position).padStart(seasonal ? 2 : 3, '0');
+    if (!day || day.position !== position || day.id !== prefix || !unique(day.id) || !/^l(0[1-9]|1[0-2])$/.test(day.lisanRef)) return false;
+    for (const key of ['qalb', 'jawarih']) {
+      const drop = day[key], id = prefix + '.' + key;
+      if (!drop || drop.id !== id || !unique(drop.id) || drop.textKind !== 'guidance' || !text(drop.text) || !text(drop.note) ||
+          !text(drop.src) || !text(drop.action) || !dimaObject(drop.verified) || !['quran', 'hadith', 'dhikr', 'dua', 'story', 'text', 'athar'].includes(drop.kind) ||
+          drop.noteId !== id + '.note' || drop.actionId !== id + '.action' || !unique(drop.noteId) || !unique(drop.actionId)) return false;
+    }
+    return ['teaser', 'notification'].every(k => day[k] && day[k].id === prefix + '.' + k && unique(day[k].id) && text(day[k].text));
+  });
+}
+// B10: only complete Dima revisions may replace a reader's offline copy.
+function swDimaPath(path) { return /^\/dima\/pack-[a-z0-9-]+\.json$/.test(path); }
+function swDimaValid(path, value) {
+  if (!dimaObject(value)) return false;
+  const version = entry => entry && Number.isInteger(entry.version) && entry.version > 0;
+  const seasons = { ramadan: [9, 1, 30], 'dhul-hijjah': [12, 1, 10], 'white-days': [null, 13, 15] };
+  if (path === '/dima/pack-manifest-v1.json') {
+    const m = value, first = m.regular && m.regular[0];
+    if (m.schema !== 'ezik-dima-manifest/1' || m.id !== 'dima-packs' || m.language !== 'ar' || !version(m) ||
+        !m.legacy || m.legacy.path !== '/dima/dima-v1.json' || m.legacy.sha256 !== '09554894aeef74616a9e030f74f4542b83dc4a1aadf6220d427167c064dae15c' ||
+        m.legacy.packId !== 'dima-regular-001' || m.legacy.firstDay !== 1 || m.legacy.lastDay !== 30 ||
+        !Array.isArray(m.regular) || !first || first.id !== 'dima-regular-001' || first.legacy !== true ||
+        !Array.isArray(m.seasonal) || m.seasonal.length !== 3 || m.afterLast !== 'repeat-all-available') return false;
+    if (!m.regular.every((entry, i) => version(entry) && entry.id === 'dima-regular-' + String(i + 1).padStart(3, '0') &&
+        entry.firstDay === i * 30 + 1 && entry.lastDay === (i + 1) * 30 &&
+        (i === 0 || entry.path === '/dima/pack-regular-' + String(i + 1).padStart(3, '0') + '.json'))) return false;
+    if (!Object.entries(seasons).every(([id, range]) => {
+      const e = m.seasonal.find(entry => entry && entry.id === id);
+      return version(e) && e.hijriMonth === range[0] && e.firstDay === range[1] && e.lastDay === range[2] &&
+        e.count === range[2] - range[1] + 1 && new RegExp('^dima-' + id + '-\\d{3}$').test(e.packId) &&
+        e.path === '/dima/pack-' + e.packId.slice(5) + '.json';
+    })) return false;
+    const texts = [[m.notifications, 'repeat', 'dima.repeat.notification'], [m.notifications, 'later', 'dima.later.notification'],
+      [m.labels, 'repeat', 'dima.repeat.label'], [m.labels, 'repeatHelp', 'dima.repeat.help'], [m.labels, 'season', 'dima.season.label']];
+    return texts.every(([group, key, id]) => group && group[key] && group[key].id === id &&
+      typeof group[key].text === 'string' && group[key].text.trim().length > 0) &&
+      JSON.stringify(m.precedence) === JSON.stringify(['ramadan', 'dhul-hijjah', 'white-days', 'friday', 'regular']);
+  }
+  const regular = /^\/dima\/pack-regular-(\d{3})\.json$/.exec(path);
+  if (regular) {
+    const n = Number(regular[1]);
+    return n >= 2 && dimaPackValid(value, { id: 'dima-regular-' + regular[1], version: value.version,
+      firstDay: (n - 1) * 30 + 1, lastDay: n * 30 }, false);
+  }
+  const seasonal = /^\/dima\/pack-(ramadan|dhul-hijjah|white-days)-(\d{3})\.json$/.exec(path);
+  if (!seasonal) return false;
+  const id = seasonal[1], range = seasons[id];
+  return dimaPackValid(value, { id, packId: 'dima-' + id + '-' + seasonal[2], version: value.version,
+    hijriMonth: range[0], firstDay: range[1], lastDay: range[2] }, true);
+}
+async function swDimaResponseValid(path, response) {
+  if (!response || response.status !== 200) return false;
+  try { return swDimaValid(path, JSON.parse(await response.clone().text())); } catch (_) { return false; }
+}
+function swDimaAdd(cache, path) {
+  return fetch(path).then(async response => {
+    if (!await swDimaResponseValid(path, response)) throw new Error('Incomplete Dima pack: ' + path);
+    return cache.put(path, response);
+  });
+}
+
 function addOrNote(cache, u) {
-  return cache.add(u).catch((e) => {
+  const add = () => { return swDimaPath(u) ? swDimaAdd(cache, u) : cache.add(u); };
+  return add().catch((e) => {
     // ONLY a full disk is worth making room for. A dead network is recorded and left alone:
     // deleting a reader's old store cannot conjure the bytes, it only costs them what they had.
     const why = failureReason(e);
@@ -392,7 +469,7 @@ function addOrNote(cache, u) {
       storageState.retried++;
       // ONCE. A retry loop against a disk that is genuinely full is an install that never
       // settles, which strands the reader on the previous worker -- item 93's worst outcome.
-      return cache.add(u).catch((e2) => note(u, e2, failureReason(e2)));
+      return add().catch((e2) => note(u, e2, failureReason(e2)));
     });
   });
 }
@@ -405,7 +482,7 @@ let warming = null;
 function warmIdle() {
   if (warming) return warming;
   warming = caches.open(CACHE).then((cache) => Promise.all(
-    IDLE.map((u) => cache.match(u).then((hit) => (hit ? null : addOrNote(cache, u))))
+    IDLE.map((u) => cache.match(u).then(async (hit) => (hit && (!swDimaPath(u) || await swDimaResponseValid(u, hit)) ? null : addOrNote(cache, u))))
   )).catch(() => {});
   return warming;
 }
@@ -833,6 +910,22 @@ self.addEventListener('fetch', (event) => {
   // worship-display.json (18132) change without ceremony, and manifest.json is 533 bytes.
   // quest-bank-integrity-guard.cjs B11 asserts BOTH halves -- one background fetch for these
   // three, zero for the two below -- so the exclusion cannot quietly widen to swallow adhkar.
+  // Dima validates both cached and incoming bodies before serving or promoting them.
+  if (sameOrigin && swDimaPath(url.pathname)) {
+    event.respondWith(caches.open(CACHE).then(async cache => {
+      const hit = await cache.match(req);
+      const validHit = await swDimaResponseValid(url.pathname, hit);
+      const refresh = fetch(req).then(async response => {
+        if (!await swDimaResponseValid(url.pathname, response)) return Response.error();
+        try { await cache.put(req, response.clone()); } catch (_) {}
+        return response;
+      }).catch(() => Response.error());
+      event.waitUntil(refresh);
+      return validHit ? hit : refresh;
+    }));
+    return;
+  }
+
   const sealedMushaf = url.pathname === '/quran-uthmani.json' || url.pathname === '/mushaf-layout.json';
   if (sameOrigin && url.pathname.endsWith('.json') && !sealedMushaf) {
     // ITEM 4 OF THE REGISTER (OFFLINE). The new reader's per-page geometry takes one more stop:
