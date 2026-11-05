@@ -1160,5 +1160,10 @@
     "name": "securityreauth",
     "script": "guards/security-reauth-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "security-iap-worker",
+    "script": "guards/security-iap-worker-guard.cjs",
+    "args": ""
   }
 ]
