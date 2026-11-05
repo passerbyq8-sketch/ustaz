@@ -1285,5 +1285,10 @@
     "name": "c1nativehaptic",
     "script": "guards/c1-native-haptic-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1dimaresolver",
+    "script": "guards/c1-dima-resolver-guard.cjs",
+    "args": ""
   }
 ]

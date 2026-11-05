@@ -16869,17 +16869,199 @@ function loadDima() {
   }
   return __dimaPromise;
 }
+// B10 / D5-D7: complete pack revisions, date-based progress and frozen presentations.
+const DIMA_V2_KEY = 'ezik_dima_v2';
+const DIMA_MANIFEST_URL = '/dima/pack-manifest-v1.json';
+let __dimaCatalog = null, __dimaCatalogPromise = null, __dimaSessionStore = null, __dimaStoreError = '';
+function dimaClone(value) { return JSON.parse(JSON.stringify(value)); }
+function dimaObject(value) { return !!value && typeof value === 'object' && !Array.isArray(value); }
+function dimaCivilDate(now = new Date()) {
+  const p = prayerTodayParts(now, prayerZoneOf(readQiblaLoc()));
+  return new Date(p.y, p.m - 1, p.d, 12, 0, 0, 0);
+}
+function dimaValidDayKey(key) {
+  if (typeof key !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(key)) return false;
+  const date = dimaDateFromKey(key);
+  return !!date && dimaDateKey(date) === key;
+}
+function dimaLegacyCatalog(data) {
+  if (!data || !Array.isArray(data.days) || data.days.length !== 30 || !Array.isArray(data.lisan) || data.lisan.length !== 12) throw new Error('dima-legacy');
+  return { legacy: data, regular: data.days.map((day, i) => ({ packId: 'dima-regular-001', version: 1,
+    dayId: 'dima.regular.' + String(i + 1).padStart(3, '0'), position: i + 1, lisanRef: 'l' + String(i % 12 + 1).padStart(2, '0'), legacy: true, day })),
+    seasonal: {}, revision: 'dima-regular-001:1', manifest: null };
+}
+function dimaPackValid(pack, entry, seasonal) {
+  const text = value => typeof value === 'string' && value.trim().length > 0;
+  if (!dimaObject(pack) || pack.schema !== 'ezik-dima-pack/1' || pack.language !== 'ar' || pack.audience !== 'all-ages' ||
+      pack.id !== (seasonal ? entry.packId : entry.id) || !Number.isInteger(pack.version) || pack.version < 1 || pack.version !== entry.version ||
+      pack.kind !== (seasonal ? 'seasonal' : 'regular') || !dimaObject(pack.sourceBase) || pack.sourceBase.path !== 'dima/dima-v1.json' ||
+      pack.sourceBase.sha256 !== '09554894aeef74616a9e030f74f4542b83dc4a1aadf6220d427167c064dae15c' ||
+      !Array.isArray(pack.days) || pack.days.length !== entry.lastDay - entry.firstDay + 1) return false;
+  if (seasonal) {
+    if (!pack.season || pack.season.id !== entry.id || pack.season.hijriMonth !== entry.hijriMonth ||
+        pack.season.firstDay !== entry.firstDay || pack.season.lastDay !== entry.lastDay) return false;
+  } else if (pack.startDay !== entry.firstDay || pack.days.length !== 30) return false;
+  const ids = new Set(), unique = id => { if (!text(id) || ids.has(id)) return false; ids.add(id); return true; };
+  return pack.days.every((day, i) => {
+    const position = entry.firstDay + i, prefix = 'dima.' + (seasonal ? entry.id : 'regular') + '.' + String(position).padStart(seasonal ? 2 : 3, '0');
+    if (!day || day.position !== position || day.id !== prefix || !unique(day.id) || !/^l(0[1-9]|1[0-2])$/.test(day.lisanRef)) return false;
+    for (const key of ['qalb', 'jawarih']) {
+      const drop = day[key], id = prefix + '.' + key;
+      if (!drop || drop.id !== id || !unique(drop.id) || drop.textKind !== 'guidance' || !text(drop.text) || !text(drop.note) ||
+          !text(drop.src) || !text(drop.action) || !dimaObject(drop.verified) || !['quran', 'hadith', 'dhikr', 'dua', 'story', 'text', 'athar'].includes(drop.kind) ||
+          drop.noteId !== id + '.note' || drop.actionId !== id + '.action' || !unique(drop.noteId) || !unique(drop.actionId)) return false;
+    }
+    return ['teaser', 'notification'].every(k => day[k] && day[k].id === prefix + '.' + k && unique(day[k].id) && text(day[k].text));
+  });
+}
+function dimaManifestValid(manifest) {
+  return manifest && manifest.schema === 'ezik-dima-manifest/1' && Number.isInteger(manifest.version) && manifest.version > 0 &&
+    manifest.legacy?.path === DIMA_URL && manifest.legacy.sha256 === '09554894aeef74616a9e030f74f4542b83dc4a1aadf6220d427167c064dae15c' &&
+    Array.isArray(manifest.regular) && manifest.regular[0]?.id === 'dima-regular-001' && manifest.regular[0].legacy === true &&
+    manifest.regular[0].firstDay === 1 && manifest.regular[0].lastDay === 30 && Array.isArray(manifest.seasonal);
+}
+async function dimaBuildCatalog(data, manifest, getPack) {
+  const catalog = dimaLegacyCatalog(data);
+  if (!dimaManifestValid(manifest)) return catalog;
+  catalog.manifest = dimaClone(manifest);
+  const pathOk = path => typeof path === 'string' && /^\/dima\/pack-[a-z0-9-]+\.json$/.test(path);
+  for (let i = 1; i < manifest.regular.length; i++) {
+    const entry = manifest.regular[i];
+    if (!entry || entry.firstDay !== catalog.regular.length + 1 || entry.lastDay !== entry.firstDay + 29 ||
+        !/^dima-regular-\d{3}$/.test(entry.id) || !pathOk(entry.path)) break;
+    let pack; try { pack = await getPack(entry.path); } catch (e) { break; }
+    if (!dimaPackValid(pack, entry, false)) break;
+    catalog.regular.push(...dimaClone(pack.days).map(day => ({ packId: pack.id, version: pack.version, dayId: day.id,
+      position: day.position, lisanRef: day.lisanRef, legacy: false, day })));
+    catalog.revision += '|' + pack.id + ':' + pack.version;
+  }
+  for (const id of ['ramadan', 'dhul-hijjah', 'white-days']) {
+    const entry = manifest.seasonal.find(x => x && x.id === id);
+    const expected = id === 'ramadan' ? [9, 1, 30] : id === 'dhul-hijjah' ? [12, 1, 10] : [null, 13, 15];
+    if (!entry || !pathOk(entry.path) || entry.hijriMonth !== expected[0] || entry.firstDay !== expected[1] || entry.lastDay !== expected[2]) continue;
+    let pack; try { pack = await getPack(entry.path); } catch (e) { continue; }
+    if (!dimaPackValid(pack, entry, true)) continue;
+    catalog.seasonal[id] = { ...entry, days: dimaClone(pack.days) };
+    catalog.revision += '|' + pack.id + ':' + pack.version;
+  }
+  return catalog;
+}
+async function loadDimaPacks(refresh = false) {
+  if (__dimaCatalogPromise) return __dimaCatalogPromise;
+  if (__dimaCatalog && !refresh) return __dimaCatalog;
+  __dimaCatalogPromise = (async () => {
+    const data = await loadDima();
+    const get = async path => { const response = await fetch(path); if (!response.ok) throw new Error('dima-pack'); return response.json(); };
+    let manifest = null; try { manifest = await get(DIMA_MANIFEST_URL); } catch (e) {}
+    let catalog = await dimaBuildCatalog(data, manifest, get);
+    // A transient offline refresh cannot discard already validated content in this session.
+    if (__dimaCatalog && catalog.regular.length < __dimaCatalog.regular.length) catalog = __dimaCatalog;
+    // Publish one complete validated prefix/revision, never partially appended days.
+    __dimaCatalog = catalog;
+    dimaReadStore();
+    try { window.dispatchEvent(new CustomEvent('ezik:dima:data')); } catch (e) {}
+    return catalog;
+  })();
+  try { return await __dimaCatalogPromise; } finally { __dimaCatalogPromise = null; }
+}
+function dimaMakeRecord(store, date, catalog, legacyOnly = false) {
+  const civilDate = dimaDateKey(date), rawIndex = dimaIndexForDate(store.startDate, date), index = Math.max(1, rawIndex || 1);
+  const legacy = catalog.legacy, available = legacyOnly ? 30 : catalog.regular.length;
+  const slot = legacyOnly ? Math.min(30, index) - 1 : (index - 1) % available;
+  let selected = catalog.regular[slot], season = null, hijri = null;
+  if (!legacyOnly) {
+    hijri = hijriForCivilDay(date.getFullYear(), date.getMonth() + 1, date.getDate(), readHijriOffset());
+    for (const id of ['ramadan', 'dhul-hijjah', 'white-days']) {
+      const pack = catalog.seasonal[id];
+      if (!pack || !hijri || (pack.hijriMonth !== null && pack.hijriMonth !== hijri.m) || hijri.d < pack.firstDay || hijri.d > pack.lastDay) continue;
+      const day = pack.days[hijri.d - pack.firstDay];
+      selected = { packId: pack.packId, version: pack.version, dayId: day.id, lisanRef: day.lisanRef, legacy: false, day }; season = id; break;
+    }
+  }
+  if (!season && date.getDay() === 5 && legacy.overrides?.friday) {
+    selected = { packId: 'dima-friday-001', version: 1, dayId: 'dima.friday.01', lisanRef: 'lf', legacy: true, day: legacy.overrides.friday };
+  }
+  const day = selected.day, lisan = day.lisan || legacy.lisan.find(x => x.id === selected.lisanRef) || legacy.lisan[slot % 12];
+  const cycle = legacyOnly ? 0 : Math.floor((index - 1) / available);
+  const repeat = !legacyOnly && (season ? Object.entries(store.presented || {}).some(([key, rec]) => key < civilDate && rec.dayId === selected.dayId) : cycle > 0);
+  const daily = legacy.notifications.daily;
+  const notification = repeat ? (catalog.manifest?.notifications?.repeat || { id: 'dima.repeat.notification',
+    text: '\u062f\u064a\u0645\u0629 \u0627\u0644\u064a\u0648\u0645 \u0645\u0646 \u0627\u0644\u0623\u064a\u0627\u0645 \u0627\u0644\u0645\u062a\u0627\u062d\u0629\u060c \u0648\u062e\u064a\u0631\u0643 \u0645\u062d\u0641\u0648\u0638' }) : selected.legacy ? {
+    id: selected.packId === 'dima-friday-001' ? 'dima.legacy.friday.notification' : 'dima.legacy.daily.' + slot % daily.length,
+    text: selected.packId === 'dima-friday-001' ? legacy.notifications.friday : daily[slot % daily.length]
+  } : day.notification;
+  return { civilDate, index: legacyOnly ? Math.min(30, index) : index, packId: selected.packId, version: selected.version,
+    dayId: selected.dayId, lisanRef: selected.lisanRef, cycle, repeat, season, hijri: hijri ? dimaClone(hijri) : null,
+    legacy: selected.legacy, snapshot: dimaClone({ lisan, qalb: day.qalb, jawarih: day.jawarih,
+      notification: notification || { id: 'dima.repeat.notification', text: '' }, teaser: day.teaser || null }) };
+}
+function dimaResolveForDate(store, date, catalog = __dimaCatalog) {
+  const key = dimaDateKey(date), frozen = store.presented?.[key];
+  if (dimaPresentationValid(frozen, key)) return frozen;
+  const available = catalog || (__dimaData ? dimaLegacyCatalog(__dimaData) : null);
+  return available ? dimaMakeRecord(store, date, available) : null;
+}
+function dimaPresentationValid(record, key) {
+  return dimaObject(record) && record.civilDate === key && Number.isInteger(record.index) && record.index >= 1 &&
+    typeof record.packId === 'string' && typeof record.dayId === 'string' && Number.isInteger(record.version) && record.version >= 1 &&
+    dimaObject(record.snapshot) && ['lisan', 'qalb', 'jawarih'].every(k => dimaObject(record.snapshot[k]) && typeof record.snapshot[k].text === 'string');
+}
+function dimaV2Valid(store) {
+  return dimaObject(store) && store.schema === 2 && (store.startDate === null || dimaValidDayKey(store.startDate)) &&
+    dimaObject(store.log) && dimaObject(store.notify) && typeof store.notify.on === 'boolean' && DIMA_SLOTS.includes(store.notify.slot) &&
+    typeof store.notifySeen === 'boolean' && dimaObject(store.presented) && Object.entries(store.presented).every(([key, value]) => dimaValidDayKey(key) && dimaPresentationValid(value, key));
+}
+function dimaUpgradeStore(store) {
+  if (dimaV2Valid(store)) return dimaClone(store);
+  const next = { ...dimaClone(store), schema: 2, migratedFrom: DIMA_KEY, presented: {} };
+  if (!__dimaData) return next;
+  const catalog = dimaLegacyCatalog(__dimaData);
+  for (const key of Object.keys(next.log || {})) if (dimaValidDayKey(key)) next.presented[key] = dimaMakeRecord(next, dimaDateFromKey(key), catalog, true);
+  return next;
+}
+function dimaSaveV2(next, rollback = true) {
+  __dimaSessionStore = dimaClone(next);
+  const encoded = JSON.stringify(next);
+  try {
+    localStorage.setItem(DIMA_V2_KEY, encoded);
+    if (localStorage.getItem(DIMA_V2_KEY) !== encoded) throw new Error('dima-write-check');
+    if (rollback) localStorage.setItem(DIMA_KEY, JSON.stringify({ startDate: next.startDate, log: next.log, notify: next.notify, notifySeen: next.notifySeen }));
+    if (__dimaStoreError !== 'corrupt') __dimaStoreError = '';
+  } catch (e) { __dimaStoreError = 'storage'; }
+  return __dimaSessionStore;
+}
+function dimaReadStore() {
+  if (__dimaSessionStore?.schema === 2) return __dimaSessionStore;
+  let raw = null;
+  try { raw = localStorage.getItem(DIMA_V2_KEY); } catch (e) { __dimaStoreError = 'storage'; }
+  if (raw) {
+    try { const got = JSON.parse(raw); if (dimaV2Valid(got)) { __dimaSessionStore = got; return got; } } catch (e) {}
+    __dimaStoreError = 'corrupt';
+  }
+  const legacy = __dimaSessionStore || dimaReadLegacyStore();
+  if (!__dimaData) { __dimaSessionStore = legacy; return legacy; }
+  // Migration freezes old logged dates only after the unchanged legacy file is available.
+  return dimaSaveV2(dimaUpgradeStore(legacy), false);
+}
+function dimaFreezePresented(store, record) {
+  if (!record || !store.startDate || record.civilDate < store.startDate || store.presented?.[record.civilDate]) return store;
+  const next = dimaUpgradeStore(store);
+  next.presented[record.civilDate] = dimaClone(record);
+  return dimaWriteStore(next);
+}
+function dimaResetSession() { __dimaSessionStore = null; __dimaStoreError = ''; }
+
 function dimaDefaultStore() {
   return { startDate: null, log: {}, notify: { on: true, slot: 'fajr30' }, notifySeen: false };
 }
-function dimaReadStore() {
+function dimaReadLegacyStore() {
   let raw = null;
   try { raw = localStorage.getItem(DIMA_KEY); } catch (e) { return dimaDefaultStore(); }
   if (typeof raw !== 'string' || !raw) return dimaDefaultStore();
   let got = null;
   try { got = JSON.parse(raw); } catch (e) { return dimaDefaultStore(); }
   if (!got || typeof got !== 'object' || Array.isArray(got)) return dimaDefaultStore();
-  const startDate = typeof got.startDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(got.startDate) ? got.startDate : null;
+  const startDate = dimaValidDayKey(got.startDate) ? got.startDate : null;
   const log = got.log && typeof got.log === 'object' && !Array.isArray(got.log) ? got.log : {};
   const notify = got.notify && typeof got.notify === 'object' && !Array.isArray(got.notify) ? got.notify : {};
   return {
@@ -16890,8 +17072,9 @@ function dimaReadStore() {
   };
 }
 function dimaWriteStore(next) {
-  try { localStorage.setItem(DIMA_KEY, JSON.stringify(next)); } catch (e) {}
-  return next;
+  const saved = dimaSaveV2(dimaUpgradeStore(next));
+  try { window.dispatchEvent(new CustomEvent('ezik:dima:state')); } catch (e) {}
+  return saved;
 }
 function dimaDateKey(date) {
   return String(date.getFullYear()).padStart(4, '0') + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
@@ -16913,7 +17096,7 @@ function dimaIndexForDate(startDate, date) {
 }
 function dimaLogFor(store, key) {
   const old = store && store.log && store.log[key] && typeof store.log[key] === 'object' ? store.log[key] : {};
-  return { l: old.l === 1 ? 1 : 0, q: old.q === 1 ? 1 : 0, j: old.j === 1 ? 1 : 0,
+  return { ...old, l: old.l === 1 ? 1 : 0, q: old.q === 1 ? 1 : 0, j: old.j === 1 ? 1 : 0,
     taps: Number.isInteger(old.taps) && old.taps >= 0 ? old.taps : 0,
     laterAt: Number.isFinite(old.laterAt) && old.laterAt > 0 ? old.laterAt : 0 };
 }
