@@ -18,8 +18,11 @@ const REPO = path.join(__dirname, '..');
 const SRC = fs.readFileSync(path.join(REPO, 'app.jsx'), 'utf8');
 const REAL_DATE = Date;
 const PRAYER_CLOCKS = {
-  daytime: { utc: '2026-11-04T12:00:00.000Z', afterIsha: false }, // Kuwait 15:00
-  'after-isha': { utc: '2026-11-04T18:00:00.000Z', afterIsha: true } // Kuwait 21:00
+  'before-fajr': { utc:'2026-11-04T01:00:00.000Z', afterIsha:false, current:'isha', logCurrent:null, touchable:0 },
+  'fajr-window': { utc:'2026-11-04T02:00:00.000Z', afterIsha:false, current:'fajr', logCurrent:'fajr', touchable:1 },
+  'sunrise-gap': { utc:'2026-11-04T06:00:00.000Z', afterIsha:false, current:null, logCurrent:null, touchable:1 },
+  daytime: { utc:'2026-11-04T12:00:00.000Z', afterIsha:false, current:'asr', logCurrent:'asr', touchable:3 },
+  'after-isha': { utc:'2026-11-04T18:00:00.000Z', afterIsha:true, current:'isha', logCurrent:'isha', touchable:5 }
 };
 const PRAYER_FIXTURE_DAY = { y: 2026, m: 11, d: 4 };
 function sceneClock() {
@@ -221,10 +224,13 @@ function boot(opts) {
   const { parseHTML } = require(path.join(REPO, 'node_modules', 'linkedom'));
   const { window } = parseHTML('<!DOCTYPE html><html lang="ar" dir="rtl"><body><div id="root"></div></body></html>');
   window.self = window; window.window = window; window.globalThis = window;
-  // Only the day/card scenes use this frozen application clock; harness timeouts remain real.
-  if (opts.clock) window.Date = class extends REAL_DATE {
-    constructor(...args) { super(...(args.length ? args : [REAL_DATE.parse(opts.clock.utc)])); }
-    static now() { return REAL_DATE.parse(opts.clock.utc); }
+  // All app scenes start at a fixed clock. Only the countdown scene advances;
+  // harness deadlines use the real clock independently.
+  const clock=opts.clock || PRAYER_CLOCKS.daytime, started=REAL_DATE.now();
+  const instant=()=>REAL_DATE.parse(clock.utc)+(clock.ticking?REAL_DATE.now()-started:0);
+  window.Date = class extends REAL_DATE {
+    constructor(...args) { super(...(args.length ? args : [instant()])); }
+    static now() { return instant(); }
   };
   window.matchMedia = (q) => ({ matches: false, media: String(q), addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} });
   window.scrollTo = () => {};
@@ -624,8 +630,10 @@ const countdownSecs = (txt) => {
 };
 SCENES.next = async () => {
   say('S11 the screen in Arabic: city, next prayer, a live countdown, the current prayer marked');
-  const c = boot({});
+  const clock=sceneClock();
+  const c = boot({clock:{...clock,ticking:true}});
   await openPrayer(c);
+  ok('the scene uses its fixed-clock start', Math.abs(c.read('Date.now()')-REAL_DATE.parse(clock.utc))<10000);
   const st = c.read('prayerStatus(new Date(), readQiblaLoc(), readPrayerPrefs())');
   t('the city line names the default city', c.q('[data-ezik-city="name"]').textContent.indexOf(c.read("ezT('place.default')")) >= 0, true);
   t('the next prayer is named', c.q('[data-ezik-next="name"]').textContent, c.read("ezT('widget.prayer.' + '" + st.next.key + "')"));
@@ -633,7 +641,7 @@ SCENES.next = async () => {
   // PRAYER REBUILD (29 October 2026): the section writes Western digits by default (panel 6), Arabic-Indic by choice
   ok('the countdown is hh:mm:ss in the section\'s digits (Western by default)', first !== null && /^\d\d:\d\d:\d\d$/.test(c.q('[data-ezik-next="count"]').textContent));
   const marked = c.qa('[data-ezik-current="1"]');
-  t('exactly the current prayer is marked', marked.map((e) => e.getAttribute('data-ezik-prayer')), st.current ? [st.current] : []);
+  t('exactly the current prayer is marked', marked.map((e) => e.getAttribute('data-ezik-prayer')), clock.current ? [clock.current] : []);
   ok('...and it says so in words and for assistive tech', marked.length === 0 || (marked[0].getAttribute('aria-current') === 'true' && marked[0].textContent.indexOf(c.read("ezT('panel.now')")) >= 0));
   await tick(2300);
   const later = countdownSecs(c.q('[data-ezik-next="count"]').textContent);
@@ -754,7 +762,7 @@ SCENES.month = async () => {
 };
 SCENES.card = async () => {
   say('S16 the menu\'s prayer card (panel 8): the city, the Gregorian day under the Hijri, today\'s log on the dots, the qibla door');
-  const today = (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); })();
+  const today = '2026-11-04';
   const log = {}; log[today] = { fajr: 'on', dhuhr: 'late', asr: null, maghrib: null, isha: null };
   const c = boot({ seed: { ezik_prayer_log_v1: JSON.stringify(log) } });
   await c.waitFor(() => c.q('.ezc-rail') || c.q('[data-ezik-home-module]') || c.q('.ez110-home'));
@@ -852,7 +860,8 @@ async function main() {
   sectionScreen();
   let sceneFail = 0;
   const sceneRuns = Object.keys(SCENES).flatMap((name) =>
-    name === 'day' || name === 'card-digits' ? Object.keys(PRAYER_CLOCKS).map((clock) => [name, clock]) : [[name]]);
+    name === 'next' ? Object.keys(PRAYER_CLOCKS).map(clock=>[name,clock]) :
+    name === 'day' || name === 'card-digits' ? ['daytime','after-isha'].map((clock) => [name, clock]) : [[name]]);
   for (const args of sceneRuns) {
     const code = await new Promise((resolve) => {
       const ch = spawn(process.execPath, [__filename, ...args], { cwd: REPO, stdio: ['ignore', 'pipe', 'pipe'] });

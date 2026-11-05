@@ -21,6 +21,16 @@ const { spawn } = require('child_process');
 const REPO = path.join(__dirname, '..');
 const APP_JS = process.env.LOG_APP ? path.resolve(process.env.LOG_APP) : path.join(REPO, 'app.js');
 const SRC = fs.readFileSync(path.join(REPO, 'app.jsx'), 'utf8');
+const PRAYER_CLOCKS = {
+  'before-fajr': { utc:'2026-11-04T01:00:00.000Z', afterIsha:false, current:'isha', logCurrent:null, touchable:0 },
+  'fajr-window': { utc:'2026-11-04T02:00:00.000Z', afterIsha:false, current:'fajr', logCurrent:'fajr', touchable:1 },
+  'sunrise-gap': { utc:'2026-11-04T06:00:00.000Z', afterIsha:false, current:null, logCurrent:null, touchable:1 },
+  daytime: { utc:'2026-11-04T12:00:00.000Z', afterIsha:false, current:'asr', logCurrent:'asr', touchable:3 },
+  'after-isha': { utc:'2026-11-04T18:00:00.000Z', afterIsha:true, current:'isha', logCurrent:'isha', touchable:5 }
+};
+const REAL_DATE=Date;
+const CLOCK=PRAYER_CLOCKS[process.argv[3] || 'daytime'];
+if(!CLOCK) throw Error('unknown prayer clock');
 const NODE_TICK = setTimeout;
 const tick = (ms = 40) => new Promise((resolve) => NODE_TICK(resolve, ms));
 const ascii = (s) => String(s).replace(/[^\x00-\x7f]/g, (c) => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
@@ -53,7 +63,7 @@ const ALL = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 const dayKey = (d) => [d.getUTCFullYear(), String(d.getUTCMonth() + 1).padStart(2, '0'), String(d.getUTCDate()).padStart(2, '0')].join('-');
 const KUWAIT_TODAY = (() => {
   const p = Object.fromEntries(new Intl.DateTimeFormat('en', { timeZone: 'Asia/Kuwait', year: 'numeric', month: '2-digit', day: '2-digit' })
-    .formatToParts(new Date()).map((x) => [x.type, x.value]));
+    .formatToParts(new Date(CLOCK.utc)).map((x) => [x.type, x.value]));
   return Date.UTC(Number(p.year), Number(p.month) - 1, Number(p.day));
 })();
 const daysAgo = (n) => dayKey(new Date(KUWAIT_TODAY - n * 86400000));
@@ -63,6 +73,7 @@ function boot(opts) {
   const { parseHTML } = require(path.join(REPO, 'node_modules', 'linkedom'));
   const { window } = parseHTML('<!DOCTYPE html><html lang="ar" dir="rtl"><body><div id="root"></div></body></html>');
   window.self = window; window.window = window; window.globalThis = window;
+  window.Date=class extends REAL_DATE {constructor(...args){super(...(args.length?args:[REAL_DATE.parse(CLOCK.utc)]));}static now(){return REAL_DATE.parse(CLOCK.utc);}};
   window.matchMedia = (q) => ({ matches: false, media: String(q), addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} });
   window.scrollTo = () => {};
   window.alert = () => {}; window.confirm = () => true; window.prompt = () => null;
@@ -123,12 +134,16 @@ SCENES.touch = async () => {
   t('five circles, one per prayer, in order', c.qa('[data-ezik-log="dot"]').map((e) => e.getAttribute('data-ezik-log-k')), ALL);
   const can = c.qa('[data-ezik-log="dot"][data-ezik-log-can="1"]');
   const cur = c.q('.ez110-plog-dot.is-cur');
+  say('CLOCK '+CLOCK.utc+' Asia/Kuwait');
+  t('the app uses the fixed clock',c.read('new Date().toISOString()'),CLOCK.utc);
+  t('touchable prayers at this clock',can.length,CLOCK.touchable);
+  t('only an active prayer window is dashed',cur?cur.getAttribute('data-ezik-log-k'):null,CLOCK.logCurrent);
   if (can.length === 0) {
     say('  (before fajr: no prayer of today has come, nothing can be touched -- the shape is proved by the record functions below)');
     t('before fajr no circle can be touched and none is dashed', [can.length, cur], [0, null]);
   } else {
     const k = can[0].getAttribute('data-ezik-log-k');
-    ok('the current prayer is the dashed one and the last touchable', cur && cur.getAttribute('data-ezik-log-k') === can[can.length - 1].getAttribute('data-ezik-log-k'));
+    ok('an active current prayer is the last touchable; the sunrise gap has no current prayer', CLOCK.logCurrent === null ? cur === null : cur && cur.getAttribute('data-ezik-log-k') === can[can.length - 1].getAttribute('data-ezik-log-k'));
     await c.click(can[0]);
     let rec = JSON.parse(c.store.getItem('ezik_prayer_log_v1'));
     t('the first touch writes "on" under today, the other four null', rec[today], Object.assign(full(null), { [k]: 'on' }));
@@ -198,16 +213,17 @@ async function main() {
   }
   say('prayer-log-guard: your prayers today (' + path.relative(REPO, APP_JS) + ')');
   let sceneFail = 0;
-  for (const name of Object.keys(SCENES)) {
+  const sceneRuns=Object.keys(SCENES).flatMap(name=>name==='touch'?Object.keys(PRAYER_CLOCKS).map(clock=>[name,clock]):[[name]]);
+  for (const args of sceneRuns) {
     const code = await new Promise((resolve) => {
-      const ch = spawn(process.execPath, [__filename, name], { cwd: REPO, stdio: ['ignore', 'pipe', 'pipe'], env: process.env });
+      const ch = spawn(process.execPath, [__filename, ...args], { cwd: REPO, stdio: ['ignore', 'pipe', 'pipe'], env: process.env });
       ch.stdout.on('data', (d) => { process.stdout.write(d); });
       ch.stderr.on('data', (d) => { process.stdout.write(d); });
       ch.on('close', (c) => resolve(c));
     });
     if (code !== 0) sceneFail++;
   }
-  say('\n' + (sceneFail ? 'FAIL' : 'PASS') + '  ' + (Object.keys(SCENES).length - sceneFail) + '/' + Object.keys(SCENES).length + ' scenes passed.');
+  say('\n' + (sceneFail ? 'FAIL' : 'PASS') + '  ' + (sceneRuns.length - sceneFail) + '/' + sceneRuns.length + ' scenes passed.');
   process.exit(sceneFail ? 1 : 0);
 }
 main().catch((e) => { say('CRASH ' + (e && e.stack || e)); process.exit(2); });
