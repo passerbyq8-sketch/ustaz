@@ -17,6 +17,53 @@ function EzPanelUnavailable({ policy, onBack }) {
     <section data-panel-unavailable="1" role="status"><p dir="auto">{policy.reason || ezT('panel.unavailable')}</p><button type="button" onClick={onBack}>{ezT('common.back')}</button></section>
   </EzShell>;
 }
+function EzPanelCampaign({ profile, document }) {
+  const [shown, setShown] = useState(null), dialog = useRef(null);
+  const eligible = !!(window.EzikPanelPolicy && window.EzikPanelPolicy.campaignEligible(document, profile?.age, Date.now()));
+  const active = !!(shown && eligible && shown.id === document.campaign?.id);
+  useEzikBackLayer(active, () => setShown(null));
+  useEffect(() => {
+    let alive = true;
+    const attempt = () => {
+      if (!window.EzikPanel || !window.EzikPanel.claimCampaign) return;
+      window.EzikPanel.claimCampaign(profile?.age, () => alive && !window.document.querySelector('[role="dialog"], [role="alertdialog"], dialog[open], .ezc-drawer-ov, [data-tour-active]'))
+        .then(campaign => { if (alive && campaign) setShown(campaign); });
+      setShown(value => value && window.EzikPanelPolicy.campaignEligible(document, profile?.age, Date.now()) ? value : null);
+    };
+    if (!document.campaign || !document.campaign.enabled || !Number.isInteger(Number(profile?.age)) || Number(profile?.age) < 13) return;
+    attempt(); const timer = setInterval(attempt, 10000);
+    const expiry = setTimeout(() => setShown(null), Math.max(1, Math.min(document.campaign.end - Date.now(), 2147483647)));
+    return () => { alive = false; clearInterval(timer); clearTimeout(expiry); };
+  }, [document.revision, profile?.age]);
+  useEffect(() => {
+    if (!active || !dialog.current) return;
+    const previous = window.document.activeElement;
+    try { dialog.current.showModal(); } catch (_) { dialog.current.setAttribute('open', ''); }
+    return () => { try { if (previous && previous.focus) previous.focus(); } catch (_) {} };
+  }, [active]);
+  if (!active) return null;
+  return <dialog ref={dialog} data-panel-campaign={shown.id} aria-labelledby="ez-panel-message-title" onCancel={() => setShown(null)}
+    style={{ maxWidth: 'min(90vw, 480px)', padding: 24, borderRadius: 18, background: 'var(--surface)', color: 'var(--ink)' }}>
+    <h2 id="ez-panel-message-title">{ezT('panel.campaign')}</h2><p dir="auto" style={{ whiteSpace: 'pre-wrap' }}>{shown.text}</p>
+    <button type="button" autoFocus onClick={() => setShown(null)}>{ezT('common.close')}</button>
+  </dialog>;
+}
+function EzPanelCampaignEditor({ document, onChange, busy }) {
+  const c = document.campaign;
+  const change = (field, value) => onChange({ ...document, campaign: { ...c, [field]: value } });
+  const local = value => { const date = new Date(value); return Number.isFinite(value) ? new Date(value - date.getTimezoneOffset() * 60000).toISOString().slice(0,16) : ''; };
+  return <fieldset disabled={busy} data-panel-campaign-editor="1"><legend>{ezT('panel.campaign')}</legend>
+    <button type="button" className="ezcp-act" onClick={() => onChange({ ...document, campaign: { id: Date.now().toString(36) + '_' + Math.random().toString(36).slice(2), enabled: false, text: '', start: Date.now(), end: Date.now() + 86400000 } })}>{ezT('panel.campaignNew')}</button>
+    {c ? <div><label><input type="checkbox" checked={c.enabled} onChange={e => change('enabled', e.target.checked)} />{ezT('prayer.notify.on')}</label>
+      <label>{ezT('panel.campaign')}<textarea maxLength={2000} value={c.text} onChange={e => change('text', e.target.value)} /></label>
+      <label>{ezT('panel.campaignStart')}<input type="datetime-local" value={local(c.start)} onChange={e => change('start', new Date(e.target.value).getTime())} /></label>
+      <label>{ezT('panel.campaignEnd')}<input type="datetime-local" value={local(c.end)} onChange={e => change('end', new Date(e.target.value).getTime())} /></label>
+      <details><summary>{ezT('articles.preview')}</summary><p dir="auto" style={{ whiteSpace: 'pre-wrap' }}>{c.text}</p></details>
+      <button type="button" className="ezcp-act" onClick={() => onChange({ ...document, campaign: null })}>{ezT('inbox.delete')}</button>
+    </div> : null}
+  </fieldset>;
+}
+
 function EzPanelControls() {
   const [opened, setOpened] = useState(false), [doc, setDoc] = useState(null), [busy, setBusy] = useState(false), [error, setError] = useState('');
   const request = async (action, document) => {
@@ -38,7 +85,7 @@ function EzPanelControls() {
       <legend>{labels[id]}</legend><label>{ezT('settings.title')}<select value={ezPanelAvailability(doc,id).state} onChange={e => edit(id,'state',e.target.value)}>
         {[['visible', ezT('panel.state.visible')], ['hidden', ezT('panel.state.hidden')], ['locked', ezT('panel.state.locked')]].map(([state, label]) => <option key={state} value={state}>{label}</option>)}
       </select></label><label>{ezT('inbox.reportNote')}<input maxLength={160} value={ezPanelAvailability(doc,id).reason} onChange={e => edit(id,'reason',e.target.value)} /></label>
-    </fieldset>)}<button type="button" className="ezcp-act" disabled={busy} onClick={save}>{ezT('common.save')}</button><button type="button" className="ezcp-act" disabled={busy} onClick={load}>{ezT('panel.refresh')}</button></div> : null}
+    </fieldset>)}<EzPanelCampaignEditor document={doc} onChange={setDoc} busy={busy} /><button type="button" className="ezcp-act" disabled={busy} onClick={save}>{ezT('common.save')}</button><button type="button" className="ezcp-act" disabled={busy} onClick={load}>{ezT('panel.refresh')}</button></div> : null}
   </section>;
 }
 
@@ -439,11 +486,15 @@ function useEzLang() {
 // here and no translated string is ever handed to innerHTML. ---------------------------
 const EZ_I18N = {
   ar: {
-    "panel.state.visible": "متاح",
-    "panel.state.hidden": "مخفي",
-    "panel.state.locked": "مقفل",
-    "panel.unavailable": "القسم غير متاح",
-    "panel.settingsError": "تعذر حفظ الإعدادات. حدّث الصفحة ثم حاول مجددًا.",
+    'panel.campaign': "رسالة من الإدارة",
+    'panel.campaignStart': "البداية (بالتوقيت المحلي)",
+    'panel.campaignEnd': "النهاية (بالتوقيت المحلي)",
+    'panel.campaignNew': "رسالة جديدة",
+    'panel.state.visible': "متاح",
+    'panel.state.hidden': "مخفي",
+    'panel.state.locked': "مقفل",
+    'panel.unavailable': "القسم غير متاح",
+    'panel.settingsError': "تعذر حفظ الإعدادات. حدّث الصفحة ثم حاول مجددًا.",
     'dima.repeatLabel': "\u0625\u0639\u0627\u062f\u0629 \u0645\u0646 \u0627\u0644\u0623\u064a\u0627\u0645 \u0627\u0644\u0645\u062a\u0627\u062d\u0629",
     'dima.repeatHelp': "\u0646\u0643\u0631\u0631 \u0627\u0644\u0623\u064a\u0627\u0645 \u0627\u0644\u0645\u062a\u0627\u062d\u0629 \u0645\u0639 \u062d\u0641\u0638 \u062a\u0642\u062f\u0645\u0643",
     'dima.seasonLabel': "\u0628\u0637\u0627\u0642\u0629 \u0645\u0648\u0633\u0645\u064a\u0629",
@@ -2436,11 +2487,15 @@ const EZ_I18N = {
     'tr4.machine': 'ترجمة آلية',
   },
   en: {
-    "panel.state.visible": "Visible",
-    "panel.state.hidden": "Hidden",
-    "panel.state.locked": "Locked",
-    "panel.unavailable": "Section unavailable",
-    "panel.settingsError": "Could not save settings. Refresh and try again.",
+    'panel.campaign': "Announcement",
+    'panel.campaignStart': "Starts (local time)",
+    'panel.campaignEnd': "Ends (local time)",
+    'panel.campaignNew': "New message",
+    'panel.state.visible': "Visible",
+    'panel.state.hidden': "Hidden",
+    'panel.state.locked': "Locked",
+    'panel.unavailable': "Section unavailable",
+    'panel.settingsError': "Could not save settings. Refresh and try again.",
     'dima.repeatLabel': "Repeating an available day",
     'dima.repeatHelp': "Available days repeat; your progress is kept.",
     'dima.seasonLabel': "Seasonal card",
@@ -14674,8 +14729,8 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
       />
     );
   }
-  if (ez110.id) return <Ez110Home {...home} />;
-  return <EzikIstanaHome {...home} />;
+  if (ez110.id) return <><Ez110Home {...home} /><EzPanelCampaign profile={profile} document={panel} /></>;
+  return <><EzikIstanaHome {...home} /><EzPanelCampaign profile={profile} document={panel} /></>;
 }
 
 // ============================================================

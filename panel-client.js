@@ -21,7 +21,22 @@
       .then(function (r) { if (!r.ok) throw Error('settings unavailable'); return r.json(); })
       .then(function (v) { accept(v); }).catch(function () {}).finally(function () { busy = false; if (timer) root.clearTimeout(timer); });
   }
-  root.EzikPanel = Object.freeze({ read: function () { return current; }, accept: accept, refresh: refresh });
+  async function claimCampaign(age, canShow) {
+    // Without serialized durable receipts, omit an optional announcement rather
+    // than repeat it across tabs or after a failed storage write.
+    if (!root.navigator || !root.navigator.locks || !root.navigator.locks.request) return null;
+    return root.navigator.locks.request('ezik-panel-campaign', function () {
+      try {
+        if (!canShow() || !P.campaignEligible(current, age, Date.now())) return null;
+        var seenKey = 'ezik_panel_seen_v1:' + current.campaign.id;
+        if (root.localStorage.getItem(seenKey)) return null;
+        root.localStorage.setItem(seenKey, '1');
+        if (root.localStorage.getItem(seenKey) !== '1') return null;
+        return current.campaign;
+      } catch (_) { return null; }
+    }).catch(function () { return null; });
+  }
+  root.EzikPanel = Object.freeze({ read: function () { return current; }, accept: accept, refresh: refresh, claimCampaign: claimCampaign });
   // The shared bundle already loads on standalone pages. This is a presentation
   // policy; existing server authorization and spend checks remain authoritative.
   var hidden = new Map(), overlay = null;

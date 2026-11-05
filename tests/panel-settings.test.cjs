@@ -63,6 +63,6 @@ test('34.1 owner-only writes, revision conflict, public projection and store fai
  const call=await api();assert.equal((await call('GET')).body.revision,0);
  const body={action:'save',document:{...locked,revision:0}};
  const results=await Promise.all([call('POST',body),call('POST',body)]);assert.deepEqual(results.map(r=>r.code).sort(),[200,409]);
- const publicRead=await call('GET');assert.deepEqual(publicRead.body,locked);assert(!JSON.stringify(publicRead.body).includes('session'));
+ const publicRead=await call('GET');assert.deepEqual(publicRead.body,P.validate(locked));assert(!JSON.stringify(publicRead.body).includes('session'));
  const failed=await api('owner',true);assert.equal((await failed('GET')).code,503);
 });
