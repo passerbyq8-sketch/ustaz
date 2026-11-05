@@ -1330,5 +1330,10 @@
     "name": "c1questdelivery",
     "script": "guards/c1-quest-delivery-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1libraryentry",
+    "script": "guards/c1-library-entry-guard.cjs",
+    "args": ""
   }
 ]
