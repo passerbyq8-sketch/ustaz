@@ -1235,5 +1235,10 @@
     "name": "c1crystalretirement",
     "script": "guards/c1-crystal-retirement-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1signoutprofile",
+    "script": "guards/c1-signout-profile-guard.cjs",
+    "args": ""
   }
 ]

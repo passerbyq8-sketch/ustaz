@@ -21370,6 +21370,20 @@ function App() {
   const shouldListenRef = useRef(false); // desired mic state; true between start-tap and stop-tap (survives auto-restarts)
   const audioRef = useRef(null);          // عنصر الصوت الوحيد النشِط (TTS أو تلاوة)
   const profileRef = useRef(null);        // synchronous mirror of profile for the audio path — avoids the stale-closure male voice on the greeting
+  // D16 LIVE PROFILE START
+  useEffect(() => {
+    const clearSignedOutProfile = () => {
+      const p = profileRef.current;
+      if (!p) return;
+      const next = { ...p, name: '', gender: null };
+      profileRef.current = next;
+      voiceProfileRef.current = next;
+      setProfile(next);
+    };
+    window.addEventListener('ezik:profile:signedout', clearSignedOutProfile);
+    return () => window.removeEventListener('ezik:profile:signedout', clearSignedOutProfile);
+  }, []);
+  // D16 PROFILE END
   const audioUnlockedRef = useRef(false); // true after the one-time first-gesture audio unlock (mobile autoplay)
   const sequenceIdRef = useRef(0);        // رمز إلغاء تسلسل الصوت الجاري
   const audioElRef = useRef(null);     // single gesture-unlocked element, REUSED for TTS (iOS autoplay)
@@ -33461,9 +33475,17 @@ function ezikSyncChatRoom(changes, local) {
 }
 
 // SIGNING OUT: what is synced leaves this device (it stays in the account); what belongs to the
-// device stays. Only for an account the switch is open for -- for everybody else signing out is
-// exactly what it was.
+// device stays. The synced-data wipe needs an open switch; name/gender clearing applies to every sign-out.
 function ezikSyncSignOutWipe() {
+  // D16: name and gender belong to the signed-out person, even with sync closed.
+  // Keep the birth year, age, profile id and every other field exactly as stored.
+  try {
+    const p = ezikSyncJson(localStorage.getItem('child_profile'));
+    if (p && typeof p === 'object' && !Array.isArray(p)) {
+      localStorage.setItem('child_profile', JSON.stringify({ ...p, name: '', gender: null }));
+    }
+  } catch (e) {}
+  try { window.dispatchEvent(new CustomEvent('ezik:profile:signedout')); } catch (e) {}
   if (!ezikSyncIsOpen()) return false;
   const rm = (k) => { try { localStorage.removeItem(k); } catch (e) {} };
   ezikSyncKv().forEach(rm);
@@ -33480,10 +33502,6 @@ function ezikSyncSignOutWipe() {
   if (prefs && typeof prefs === 'object') {
     for (const f of EZIK_SYNC_PRAYER_FIELDS) delete prefs[f];
     try { localStorage.setItem(PRAYER_PREFS_KEY, JSON.stringify(prefs)); } catch (e) {}
-  }
-  const p = ezikSyncJson(localStorage.getItem('child_profile'));
-  if (p && typeof p === 'object') {
-    try { localStorage.setItem('child_profile', JSON.stringify(Object.assign({}, p, { name: '', gender: null }))); } catch (e) {}
   }
   ezikSyncLibWipe();
   rm(EZIK_SYNC_STATE_KEY);
@@ -38081,6 +38099,13 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   const [pfGender, setPfGender] = useState(() => (profile && profile.gender) || null);
   const [pfYear, setPfYear] = useState(() => (profile && profile.birthYear != null ? String(profile.birthYear) : ''));
   const [pfMsg, setPfMsg] = useState('');
+  // D16 SETTINGS PROFILE START
+  useEffect(() => {
+    const clearSignedOutFields = () => { setPfName(''); setPfGender(null); setPfMsg(''); };
+    window.addEventListener('ezik:profile:signedout', clearSignedOutFields);
+    return () => window.removeEventListener('ezik:profile:signedout', clearSignedOutFields);
+  }, []);
+  // D16 PROFILE END
   const pfYearNum = parseInt(ezikLatinDigits(pfYear).trim(), 10);
   const pfDerived = new Date().getFullYear() - pfYearNum;
   const pfYearOk = !(pfYear.trim() && !(Number.isInteger(pfYearNum) && pfDerived >= 4 && pfDerived <= 99));
