@@ -1200,5 +1200,10 @@
     "name": "c1chattitledirection",
     "script": "guards/c1-chat-title-direction-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1prosedirection",
+    "script": "guards/c1-prose-direction-guard.cjs",
+    "args": ""
   }
 ]
