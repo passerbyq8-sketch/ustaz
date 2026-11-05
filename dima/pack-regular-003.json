@@ -1,0 +1,1306 @@
+{
+  "schema": "ezik-dima-pack/1",
+  "version": 1,
+  "language": "ar",
+  "audience": "all-ages",
+  "sourceBase": {
+    "path": "dima/dima-v1.json",
+    "sha256": "09554894aeef74616a9e030f74f4542b83dc4a1aadf6220d427167c064dae15c"
+  },
+  "editorialPolicy": "Daily assignments are educational selections, not claims of a prescribed act or reward for a particular date. Quoted sources support the general practice. No grades added.",
+  "id": "dima-regular-003",
+  "kind": "regular",
+  "startDay": 61,
+  "days": [
+    {
+      "id": "dima.regular.061",
+      "position": 61,
+      "lisanRef": "l01",
+      "qalb": {
+        "id": "dima.regular.061.qalb",
+        "text": "قبل أن تبدأ مهمة، استحضر حاجتك إلى عون الله فيها",
+        "textKind": "guidance",
+        "noteId": "dima.regular.061.qalb.note",
+        "note": "يَـٰٓأَيُّهَا ٱلنَّاسُ أَنتُمُ ٱلْفُقَرَآءُ إِلَى ٱللَّهِ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 35، الآية 15",
+        "actionId": "dima.regular.061.qalb.action",
+        "action": "استحضرتُ حاجتي",
+        "verified": {
+          "surah": 35,
+          "ayah": 15
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.061.jawarih",
+        "text": "إن كان عندك شيء ائتمنك عليه أحد، ضعه في مكان يحفظه",
+        "textKind": "guidance",
+        "noteId": "dima.regular.061.jawarih.note",
+        "note": "وَٱلَّذِينَ هُمْ لِأَمَـٰنَـٰتِهِمْ وَعَهْدِهِمْ رَٰعُونَ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 23، الآية 8",
+        "actionId": "dima.regular.061.jawarih.action",
+        "action": "حفظتُ الأمانة",
+        "verified": {
+          "surah": 23,
+          "ayah": 8
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.061.teaser",
+        "text": "عناية بالأمانة"
+      },
+      "notification": {
+        "id": "dima.regular.061.notification",
+        "text": "ديمة اليوم: عناية بالأمانة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.062",
+      "position": 62,
+      "lisanRef": "l02",
+      "qalb": {
+        "id": "dima.regular.062.qalb",
+        "text": "اقرأ الدعاء في الآية، واسأل الله ثبات قلبك على الخير",
+        "textKind": "guidance",
+        "noteId": "dima.regular.062.qalb.note",
+        "note": "رَبَّنَا لَا تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا وَهَبْ لَنَا مِن لَّدُنكَ رَحْمَةً ۚ إِنَّكَ أَنتَ ٱلْوَهَّابُ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 3، الآية 8",
+        "actionId": "dima.regular.062.qalb.action",
+        "action": "سألتُ الثبات",
+        "verified": {
+          "surah": 3,
+          "ayah": 8
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.062.jawarih",
+        "text": "اخفض صوتك عند الحديث قرب شخص يستريح أو يقرأ",
+        "textKind": "guidance",
+        "noteId": "dima.regular.062.jawarih.note",
+        "note": "وَٱقْصِدْ فِى مَشْيِكَ وَٱغْضُضْ مِن صَوْتِكَ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 31، الآية 19",
+        "actionId": "dima.regular.062.jawarih.action",
+        "action": "خفضتُ صوتي",
+        "verified": {
+          "surah": 31,
+          "ayah": 19
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.062.teaser",
+        "text": "صوت يراعي غيرك"
+      },
+      "notification": {
+        "id": "dima.regular.062.notification",
+        "text": "ديمة اليوم: صوت يراعي غيرك، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.063",
+      "position": 63,
+      "lisanRef": "l03",
+      "qalb": {
+        "id": "dima.regular.063.qalb",
+        "text": "تذكّر وعدًا صغيرًا قطعته، واجعل الوفاء به حاضرًا في قلبك",
+        "textKind": "guidance",
+        "noteId": "dima.regular.063.qalb.note",
+        "note": "بَلَىٰ مَنْ أَوْفَىٰ بِعَهْدِهِۦ وَٱتَّقَىٰ فَإِنَّ ٱللَّهَ يُحِبُّ ٱلْمُتَّقِينَ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 3، الآية 76",
+        "actionId": "dima.regular.063.qalb.action",
+        "action": "تذكّرتُ وعدي",
+        "verified": {
+          "surah": 3,
+          "ayah": 76
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.063.jawarih",
+        "text": "إن وعدت أحدًا بأمر تقدر عليه اليوم، فأنجزه في موعده",
+        "textKind": "guidance",
+        "noteId": "dima.regular.063.jawarih.note",
+        "note": "وَأَوْفُوا۟ بِٱلْعَهْدِ ۖ إِنَّ ٱلْعَهْدَ كَانَ مَسْـُٔولًا",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 17، الآية 34",
+        "actionId": "dima.regular.063.jawarih.action",
+        "action": "وفيتُ بوعدي",
+        "verified": {
+          "surah": 17,
+          "ayah": 34
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.063.teaser",
+        "text": "الوعد له موعد"
+      },
+      "notification": {
+        "id": "dima.regular.063.notification",
+        "text": "ديمة اليوم: الوعد له موعد، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.064",
+      "position": 64,
+      "lisanRef": "l04",
+      "qalb": {
+        "id": "dima.regular.064.qalb",
+        "text": "تذكّر أن اختلاف الناس في اللون أو الأصل ليس سببًا للتعالي عليهم",
+        "textKind": "guidance",
+        "noteId": "dima.regular.064.qalb.note",
+        "note": "يَـٰٓأَيُّهَا ٱلنَّاسُ إِنَّا خَلَقْنَـٰكُم مِّن ذَكَرٍ وَأُنثَىٰ وَجَعَلْنَـٰكُمْ شُعُوبًا وَقَبَآئِلَ لِتَعَارَفُوٓا۟ ۚ إِنَّ أَكْرَمَكُمْ عِندَ ٱللَّهِ أَتْقَىٰكُمْ ۚ إِنَّ ٱللَّهَ عَلِيمٌ خَبِيرٌ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 49، الآية 13",
+        "actionId": "dima.regular.064.qalb.action",
+        "action": "راجعتُ نظرتي",
+        "verified": {
+          "surah": 49,
+          "ayah": 13
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.064.jawarih",
+        "text": "أنصت باحترام لمن تختلف لهجته عن لهجتك، ولا تقلّدها للسخرية",
+        "textKind": "guidance",
+        "noteId": "dima.regular.064.jawarih.note",
+        "note": "وَمِنْ ءَايَـٰتِهِۦ خَلْقُ ٱلسَّمَـٰوَٰتِ وَٱلْأَرْضِ وَٱخْتِلَـٰفُ أَلْسِنَتِكُمْ وَأَلْوَٰنِكُمْ ۚ إِنَّ فِى ذَٰلِكَ لَـَٔايَـٰتٍ لِّلْعَـٰلِمِينَ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 30، الآية 22",
+        "actionId": "dima.regular.064.jawarih.action",
+        "action": "أنصتُّ باحترام",
+        "verified": {
+          "surah": 30,
+          "ayah": 22
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.064.teaser",
+        "text": "احترام اختلافنا"
+      },
+      "notification": {
+        "id": "dima.regular.064.notification",
+        "text": "ديمة اليوم: احترام اختلافنا، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.065",
+      "position": 65,
+      "lisanRef": "l05",
+      "qalb": {
+        "id": "dima.regular.065.qalb",
+        "text": "راجع شعورًا أخفيته في قلبك، واسأل الله أن يصلحه",
+        "textKind": "guidance",
+        "noteId": "dima.regular.065.qalb.note",
+        "note": "يَعْلَمُ خَآئِنَةَ ٱلْأَعْيُنِ وَمَا تُخْفِى ٱلصُّدُورُ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 40، الآية 19",
+        "actionId": "dima.regular.065.qalb.action",
+        "action": "راجعتُ قلبي",
+        "verified": {
+          "surah": 40,
+          "ayah": 19
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.065.jawarih",
+        "text": "نادِ صاحبك بالاسم الذي يحبه، واترك لقبًا يضايقه",
+        "textKind": "guidance",
+        "noteId": "dima.regular.065.jawarih.note",
+        "note": "وَلَا تَلْمِزُوٓا۟ أَنفُسَكُمْ وَلَا تَنَابَزُوا۟ بِٱلْأَلْقَـٰبِ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 49، الآية 11",
+        "actionId": "dima.regular.065.jawarih.action",
+        "action": "اخترتُ اسمًا يحبه",
+        "verified": {
+          "surah": 49,
+          "ayah": 11
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.065.teaser",
+        "text": "اسم بلا أذى"
+      },
+      "notification": {
+        "id": "dima.regular.065.notification",
+        "text": "ديمة اليوم: اسم بلا أذى، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.066",
+      "position": 66,
+      "lisanRef": "l06",
+      "qalb": {
+        "id": "dima.regular.066.qalb",
+        "text": "قبل أن تحكي خبرًا، تذكّر مسؤوليتك عن الكلام الذي تقوله",
+        "textKind": "guidance",
+        "noteId": "dima.regular.066.qalb.note",
+        "note": "مَّا يَلْفِظُ مِن قَوْلٍ إِلَّا لَدَيْهِ رَقِيبٌ عَتِيدٌ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 50، الآية 18",
+        "actionId": "dima.regular.066.qalb.action",
+        "action": "تذكّرتُ المسؤولية",
+        "verified": {
+          "surah": 50,
+          "ayah": 18
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.066.jawarih",
+        "text": "إذا سمعت خبرًا يسيء إلى شخص، فلا تنقله قبل التحقق منه",
+        "textKind": "guidance",
+        "noteId": "dima.regular.066.jawarih.note",
+        "note": "يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوٓا۟ إِن جَآءَكُمْ فَاسِقٌۢ بِنَبَإٍ فَتَبَيَّنُوٓا۟ أَن تُصِيبُوا۟ قَوْمًۢا بِجَهَـٰلَةٍ فَتُصْبِحُوا۟ عَلَىٰ مَا فَعَلْتُمْ نَـٰدِمِينَ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 49، الآية 6",
+        "actionId": "dima.regular.066.jawarih.action",
+        "action": "توقّفتُ عن النقل",
+        "verified": {
+          "surah": 49,
+          "ayah": 6
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.066.teaser",
+        "text": "خبر يحتاج تثبّتًا"
+      },
+      "notification": {
+        "id": "dima.regular.066.notification",
+        "text": "ديمة اليوم: خبر يحتاج تثبّتًا، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.067",
+      "position": 67,
+      "lisanRef": "l07",
+      "qalb": {
+        "id": "dima.regular.067.qalb",
+        "text": "تذكّر أمرًا يشغلك، وفوّض نتيجته إلى الله مع فعل ما تقدر عليه",
+        "textKind": "guidance",
+        "noteId": "dima.regular.067.qalb.note",
+        "note": "وَمَن يَتَوَكَّلْ عَلَى ٱللَّهِ فَهُوَ حَسْبُهُۥٓ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 65، الآية 3",
+        "actionId": "dima.regular.067.qalb.action",
+        "action": "فوّضتُ أمري",
+        "verified": {
+          "surah": 65,
+          "ayah": 3
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.067.jawarih",
+        "text": "احفظ خصوصية غيرك؛ لا تفتح رسالة أو درجًا يخصه دون إذنه",
+        "textKind": "guidance",
+        "noteId": "dima.regular.067.jawarih.note",
+        "note": "وَلَا تَجَسَّسُوا۟ وَلَا يَغْتَب بَّعْضُكُم بَعْضًا",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 49، الآية 12",
+        "actionId": "dima.regular.067.jawarih.action",
+        "action": "احترمتُ الخصوصية",
+        "verified": {
+          "surah": 49,
+          "ayah": 12
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.067.teaser",
+        "text": "خصوصية محفوظة"
+      },
+      "notification": {
+        "id": "dima.regular.067.notification",
+        "text": "ديمة اليوم: خصوصية محفوظة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.068",
+      "position": 68,
+      "lisanRef": "l08",
+      "qalb": {
+        "id": "dima.regular.068.qalb",
+        "text": "اقرأ وصف الله في الآية، واستقبل الدعاء بقلب يرجو رحمته",
+        "textKind": "guidance",
+        "noteId": "dima.regular.068.qalb.note",
+        "note": "إِنَّ رَبِّى رَحِيمٌ وَدُودٌ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 11، الآية 90",
+        "actionId": "dima.regular.068.qalb.action",
+        "action": "رجوتُ رحمته",
+        "verified": {
+          "surah": 11,
+          "ayah": 90
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.068.jawarih",
+        "text": "عند زيارة بيت، استأذن وانتظر الإذن قبل الدخول",
+        "textKind": "guidance",
+        "noteId": "dima.regular.068.jawarih.note",
+        "note": "يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ لَا تَدْخُلُوا۟ بُيُوتًا غَيْرَ بُيُوتِكُمْ حَتَّىٰ تَسْتَأْنِسُوا۟ وَتُسَلِّمُوا۟ عَلَىٰٓ أَهْلِهَا ۚ ذَٰلِكُمْ خَيْرٌ لَّكُمْ لَعَلَّكُمْ تَذَكَّرُونَ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 24، الآية 27",
+        "actionId": "dima.regular.068.jawarih.action",
+        "action": "استأذنتُ",
+        "verified": {
+          "surah": 24,
+          "ayah": 27
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.068.teaser",
+        "text": "دخول بإذن"
+      },
+      "notification": {
+        "id": "dima.regular.068.notification",
+        "text": "ديمة اليوم: دخول بإذن، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.069",
+      "position": 69,
+      "lisanRef": "l09",
+      "qalb": {
+        "id": "dima.regular.069.qalb",
+        "text": "تذكّر خلافًا يسيرًا، واسأل الله قلبًا يجمع الصبر والعفو",
+        "textKind": "guidance",
+        "noteId": "dima.regular.069.qalb.note",
+        "note": "وَلَمَن صَبَرَ وَغَفَرَ إِنَّ ذَٰلِكَ لَمِنْ عَزْمِ ٱلْأُمُورِ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 42، الآية 43",
+        "actionId": "dima.regular.069.qalb.action",
+        "action": "سألتُ قلبًا صبورًا",
+        "verified": {
+          "surah": 42,
+          "ayah": 43
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.069.jawarih",
+        "text": "إذا حيّاك أحد، فردّ تحيته بلطف واهتمام",
+        "textKind": "guidance",
+        "noteId": "dima.regular.069.jawarih.note",
+        "note": "وَإِذَا حُيِّيتُم بِتَحِيَّةٍ فَحَيُّوا۟ بِأَحْسَنَ مِنْهَآ أَوْ رُدُّوهَآ ۗ إِنَّ ٱللَّهَ كَانَ عَلَىٰ كُلِّ شَىْءٍ حَسِيبًا",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 4، الآية 86",
+        "actionId": "dima.regular.069.jawarih.action",
+        "action": "رددتُ التحية",
+        "verified": {
+          "surah": 4,
+          "ayah": 86
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.069.teaser",
+        "text": "للتحية جواب"
+      },
+      "notification": {
+        "id": "dima.regular.069.notification",
+        "text": "ديمة اليوم: للتحية جواب، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.070",
+      "position": 70,
+      "lisanRef": "l10",
+      "qalb": {
+        "id": "dima.regular.070.qalb",
+        "text": "فكّر في الفرق بين حاجتك إلى الشيء والرغبة في كثرة امتلاكه",
+        "textKind": "guidance",
+        "noteId": "dima.regular.070.qalb.note",
+        "note": "وَٱلَّذِينَ إِذَآ أَنفَقُوا۟ لَمْ يُسْرِفُوا۟ وَلَمْ يَقْتُرُوا۟ وَكَانَ بَيْنَ ذَٰلِكَ قَوَامًا",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 25، الآية 67",
+        "actionId": "dima.regular.070.qalb.action",
+        "action": "راجعتُ حاجتي",
+        "verified": {
+          "surah": 25,
+          "ayah": 67
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.070.jawarih",
+        "text": "عند الطعام، خذ قدر حاجتك أولًا، ويمكنك أن تزيد إن احتجت",
+        "textKind": "guidance",
+        "noteId": "dima.regular.070.jawarih.note",
+        "note": "وَكُلُوا۟ وَٱشْرَبُوا۟ وَلَا تُسْرِفُوٓا۟ ۚ إِنَّهُۥ لَا يُحِبُّ ٱلْمُسْرِفِينَ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 7، الآية 31",
+        "actionId": "dima.regular.070.jawarih.action",
+        "action": "أخذتُ قدر حاجتي",
+        "verified": {
+          "surah": 7,
+          "ayah": 31
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.070.teaser",
+        "text": "قدر يكفيك"
+      },
+      "notification": {
+        "id": "dima.regular.070.notification",
+        "text": "ديمة اليوم: قدر يكفيك، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.071",
+      "position": 71,
+      "lisanRef": "l11",
+      "qalb": {
+        "id": "dima.regular.071.qalb",
+        "text": "حين يصعب عليك أمر، استحضر الاستعانة بالله والصبر والصلاة",
+        "textKind": "guidance",
+        "noteId": "dima.regular.071.qalb.note",
+        "note": "يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ ٱسْتَعِينُوا۟ بِٱلصَّبْرِ وَٱلصَّلَوٰةِ ۚ إِنَّ ٱللَّهَ مَعَ ٱلصَّـٰبِرِينَ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 2، الآية 153",
+        "actionId": "dima.regular.071.qalb.action",
+        "action": "استحضرتُ العون",
+        "verified": {
+          "surah": 2,
+          "ayah": 153
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.071.jawarih",
+        "text": "في لعبة أو عمل مشترك، أعطِ غيرك دوره ولو لم يكن أقرب أصحابك",
+        "textKind": "guidance",
+        "noteId": "dima.regular.071.jawarih.note",
+        "note": "وَلَا يَجْرِمَنَّكُمْ شَنَـَٔانُ قَوْمٍ عَلَىٰٓ أَلَّا تَعْدِلُوا۟ ۚ ٱعْدِلُوا۟ هُوَ أَقْرَبُ لِلتَّقْوَىٰ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 5، الآية 8",
+        "actionId": "dima.regular.071.jawarih.action",
+        "action": "أنصفتُ في الدور",
+        "verified": {
+          "surah": 5,
+          "ayah": 8
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.071.teaser",
+        "text": "الدور للجميع"
+      },
+      "notification": {
+        "id": "dima.regular.071.notification",
+        "text": "ديمة اليوم: الدور للجميع، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.072",
+      "position": 72,
+      "lisanRef": "l01",
+      "qalb": {
+        "id": "dima.regular.072.qalb",
+        "text": "تذكّر أن إحسانك لا يحتاج إلى مديح الناس حتى ترغب فيه",
+        "textKind": "guidance",
+        "noteId": "dima.regular.072.qalb.note",
+        "note": "إِنَّمَا نُطْعِمُكُمْ لِوَجْهِ ٱللَّهِ لَا نُرِيدُ مِنكُمْ جَزَآءً وَلَا شُكُورًا",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 76، الآية 9",
+        "actionId": "dima.regular.072.qalb.action",
+        "action": "راجعتُ قصدي",
+        "verified": {
+          "surah": 76,
+          "ayah": 9
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.072.jawarih",
+        "text": "عندما تحكي موقفًا، اذكره كما وقع دون زيادة لتبدو أفضل",
+        "textKind": "guidance",
+        "noteId": "dima.regular.072.jawarih.note",
+        "note": "يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ ٱتَّقُوا۟ ٱللَّهَ وَكُونُوا۟ مَعَ ٱلصَّـٰدِقِينَ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 9، الآية 119",
+        "actionId": "dima.regular.072.jawarih.action",
+        "action": "حكيتُ بصدق",
+        "verified": {
+          "surah": 9,
+          "ayah": 119
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.072.teaser",
+        "text": "حكاية بلا مبالغة"
+      },
+      "notification": {
+        "id": "dima.regular.072.notification",
+        "text": "ديمة اليوم: حكاية بلا مبالغة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.073",
+      "position": 73,
+      "lisanRef": "l02",
+      "qalb": {
+        "id": "dima.regular.073.qalb",
+        "text": "اقرأ الآية بهدوء، ثم توجّه إلى الله بما تحتاجه اليوم",
+        "textKind": "guidance",
+        "noteId": "dima.regular.073.qalb.note",
+        "note": "ٱللَّهُ ٱلصَّمَدُ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 112، الآية 2",
+        "actionId": "dima.regular.073.qalb.action",
+        "action": "توجّهتُ إلى الله",
+        "verified": {
+          "surah": 112,
+          "ayah": 2
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.073.jawarih",
+        "text": "إن سُئلت عما لا تعلمه، قل إنك لا تعلم بدل أن تخمّن",
+        "textKind": "guidance",
+        "noteId": "dima.regular.073.jawarih.note",
+        "note": "وَلَا تَقْفُ مَا لَيْسَ لَكَ بِهِۦ عِلْمٌ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 17، الآية 36",
+        "actionId": "dima.regular.073.jawarih.action",
+        "action": "قلتُ لا أعلم",
+        "verified": {
+          "surah": 17,
+          "ayah": 36
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.073.teaser",
+        "text": "صدق فيما نعلم"
+      },
+      "notification": {
+        "id": "dima.regular.073.notification",
+        "text": "ديمة اليوم: صدق فيما نعلم، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.074",
+      "position": 74,
+      "lisanRef": "l03",
+      "qalb": {
+        "id": "dima.regular.074.qalb",
+        "text": "قارن في قلبك بين فرحة امتلاك شيء وفرحة عمل صالح يبقى أثره",
+        "textKind": "guidance",
+        "noteId": "dima.regular.074.qalb.note",
+        "note": "ٱلْمَالُ وَٱلْبَنُونَ زِينَةُ ٱلْحَيَوٰةِ ٱلدُّنْيَا ۖ وَٱلْبَـٰقِيَـٰتُ ٱلصَّـٰلِحَـٰتُ خَيْرٌ عِندَ رَبِّكَ ثَوَابًا وَخَيْرٌ أَمَلًا",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 18، الآية 46",
+        "actionId": "dima.regular.074.qalb.action",
+        "action": "تأمّلتُ الباقي",
+        "verified": {
+          "surah": 18,
+          "ayah": 46
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.074.jawarih",
+        "text": "قبل اختيار نشاط مشترك، اسأل المشاركين عن رأيهم",
+        "textKind": "guidance",
+        "noteId": "dima.regular.074.jawarih.note",
+        "note": "وَأَمْرُهُمْ شُورَىٰ بَيْنَهُمْ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 42، الآية 38",
+        "actionId": "dima.regular.074.jawarih.action",
+        "action": "سألتُ عن رأيهم",
+        "verified": {
+          "surah": 42,
+          "ayah": 38
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.074.teaser",
+        "text": "رأي يسمعه الجميع"
+      },
+      "notification": {
+        "id": "dima.regular.074.notification",
+        "text": "ديمة اليوم: رأي يسمعه الجميع، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.075",
+      "position": 75,
+      "lisanRef": "l04",
+      "qalb": {
+        "id": "dima.regular.075.qalb",
+        "text": "تذكّر معروفًا صغيرًا لم يلتفت إليه أحد، واطمئن إلى علم الله به",
+        "textKind": "guidance",
+        "noteId": "dima.regular.075.qalb.note",
+        "note": "وَمَا تَفْعَلُوا۟ مِنْ خَيْرٍ فَإِنَّ ٱللَّهَ بِهِۦ عَلِيمٌ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 2، الآية 215",
+        "actionId": "dima.regular.075.qalb.action",
+        "action": "اطمأننتُ",
+        "verified": {
+          "surah": 2,
+          "ayah": 215
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.075.jawarih",
+        "text": "إذا أعطيت أحدًا شيئًا، فلا تذكّره بعطائك لتؤذيه أو تحرجه",
+        "textKind": "guidance",
+        "noteId": "dima.regular.075.jawarih.note",
+        "note": "قَوْلٌ مَّعْرُوفٌ وَمَغْفِرَةٌ خَيْرٌ مِّن صَدَقَةٍ يَتْبَعُهَآ أَذًى",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 2، الآية 263",
+        "actionId": "dima.regular.075.jawarih.action",
+        "action": "حفظتُ كرامته",
+        "verified": {
+          "surah": 2,
+          "ayah": 263
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.075.teaser",
+        "text": "عطاء يحفظ الكرامة"
+      },
+      "notification": {
+        "id": "dima.regular.075.notification",
+        "text": "ديمة اليوم: عطاء يحفظ الكرامة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.076",
+      "position": 76,
+      "lisanRef": "l05",
+      "qalb": {
+        "id": "dima.regular.076.qalb",
+        "text": "إن وجدت في تعلم الخير صعوبة، جدّد رغبتك في المحاولة",
+        "textKind": "guidance",
+        "noteId": "dima.regular.076.qalb.note",
+        "note": "وَٱلَّذِينَ جَـٰهَدُوا۟ فِينَا لَنَهْدِيَنَّهُمْ سُبُلَنَا ۚ وَإِنَّ ٱللَّهَ لَمَعَ ٱلْمُحْسِنِينَ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 29، الآية 69",
+        "actionId": "dima.regular.076.qalb.action",
+        "action": "جدّدتُ المحاولة",
+        "verified": {
+          "surah": 29,
+          "ayah": 69
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.076.jawarih",
+        "text": "إذا طال حديث لا ينفع، انتقل منه بلطف إلى أمر مفيد",
+        "textKind": "guidance",
+        "noteId": "dima.regular.076.jawarih.note",
+        "note": "وَٱلَّذِينَ هُمْ عَنِ ٱللَّغْوِ مُعْرِضُونَ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 23، الآية 3",
+        "actionId": "dima.regular.076.jawarih.action",
+        "action": "تركتُ اللغو",
+        "verified": {
+          "surah": 23,
+          "ayah": 3
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.076.teaser",
+        "text": "وقت لشيء نافع"
+      },
+      "notification": {
+        "id": "dima.regular.076.notification",
+        "text": "ديمة اليوم: وقت لشيء نافع، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.077",
+      "position": 77,
+      "lisanRef": "l06",
+      "qalb": {
+        "id": "dima.regular.077.qalb",
+        "text": "اقرأ الدعاء المقتبس، واسأل الله أن يعينك على شكر نعمته",
+        "textKind": "guidance",
+        "noteId": "dima.regular.077.qalb.note",
+        "note": "رَبِّ أَوْزِعْنِىٓ أَنْ أَشْكُرَ نِعْمَتَكَ ٱلَّتِىٓ أَنْعَمْتَ عَلَىَّ وَعَلَىٰ وَٰلِدَىَّ وَأَنْ أَعْمَلَ صَـٰلِحًا تَرْضَىٰهُ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 27، الآية 19",
+        "actionId": "dima.regular.077.qalb.action",
+        "action": "دعوتُ للشكر",
+        "verified": {
+          "surah": 27,
+          "ayah": 19
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.077.jawarih",
+        "text": "إذا سألك أحد سؤالًا بسيطًا، فأجبه دون تضجّر أو نهر",
+        "textKind": "guidance",
+        "noteId": "dima.regular.077.jawarih.note",
+        "note": "وَأَمَّا ٱلسَّآئِلَ فَلَا تَنْهَرْ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 93، الآية 10",
+        "actionId": "dima.regular.077.jawarih.action",
+        "action": "أجبتُ برفق",
+        "verified": {
+          "surah": 93,
+          "ayah": 10
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.077.teaser",
+        "text": "سؤال يستحق الرفق"
+      },
+      "notification": {
+        "id": "dima.regular.077.notification",
+        "text": "ديمة اليوم: سؤال يستحق الرفق، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.078",
+      "position": 78,
+      "lisanRef": "l07",
+      "qalb": {
+        "id": "dima.regular.078.qalb",
+        "text": "اختر في قلبك خيرًا يناسب قدرتك اليوم، دون مقارنة نفسك بغيرك",
+        "textKind": "guidance",
+        "noteId": "dima.regular.078.qalb.note",
+        "note": "فَٱتَّقُوا۟ ٱللَّهَ مَا ٱسْتَطَعْتُمْ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 64، الآية 16",
+        "actionId": "dima.regular.078.qalb.action",
+        "action": "راعيتُ قدرتي",
+        "verified": {
+          "surah": 64,
+          "ayah": 16
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.078.jawarih",
+        "text": "إن احتاج أحد أداة بسيطة تملكها، فأعره إياها إن استطعت",
+        "textKind": "guidance",
+        "noteId": "dima.regular.078.jawarih.note",
+        "note": "وَيَمْنَعُونَ ٱلْمَاعُونَ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 107، الآية 7",
+        "actionId": "dima.regular.078.jawarih.action",
+        "action": "أعرتُ أداة",
+        "verified": {
+          "surah": 107,
+          "ayah": 7
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.078.teaser",
+        "text": "أداة تنفع غيرك"
+      },
+      "notification": {
+        "id": "dima.regular.078.notification",
+        "text": "ديمة اليوم: أداة تنفع غيرك، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.079",
+      "position": 79,
+      "lisanRef": "l08",
+      "qalb": {
+        "id": "dima.regular.079.qalb",
+        "text": "تأمّل صورة الكلمة الطيبة في الآية، وتذكّر أثر كلمة سمعتها",
+        "textKind": "guidance",
+        "noteId": "dima.regular.079.qalb.note",
+        "note": "أَلَمْ تَرَ كَيْفَ ضَرَبَ ٱللَّهُ مَثَلًا كَلِمَةً طَيِّبَةً كَشَجَرَةٍ طَيِّبَةٍ أَصْلُهَا ثَابِتٌ وَفَرْعُهَا فِى ٱلسَّمَآءِ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 14، الآية 24",
+        "actionId": "dima.regular.079.qalb.action",
+        "action": "تأمّلتُ أثر الكلمة",
+        "verified": {
+          "surah": 14,
+          "ayah": 24
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.079.jawarih",
+        "text": "حين تختلف مع شخص، اختر عبارة واضحة تخلو من التجريح",
+        "textKind": "guidance",
+        "noteId": "dima.regular.079.jawarih.note",
+        "note": "وَقُل لِّعِبَادِى يَقُولُوا۟ ٱلَّتِى هِىَ أَحْسَنُ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 17، الآية 53",
+        "actionId": "dima.regular.079.jawarih.action",
+        "action": "اختلفتُ بأدب",
+        "verified": {
+          "surah": 17,
+          "ayah": 53
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.079.teaser",
+        "text": "اختلاف بكلام حسن"
+      },
+      "notification": {
+        "id": "dima.regular.079.notification",
+        "text": "ديمة اليوم: اختلاف بكلام حسن، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.080",
+      "position": 80,
+      "lisanRef": "l09",
+      "qalb": {
+        "id": "dima.regular.080.qalb",
+        "text": "بعد اختيار خطوة نافعة، اعزم عليها وتوكّل على الله",
+        "textKind": "guidance",
+        "noteId": "dima.regular.080.qalb.note",
+        "note": "فَإِذَا عَزَمْتَ فَتَوَكَّلْ عَلَى ٱللَّهِ ۚ إِنَّ ٱللَّهَ يُحِبُّ ٱلْمُتَوَكِّلِينَ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 3، الآية 159",
+        "actionId": "dima.regular.080.qalb.action",
+        "action": "عزمتُ وتوكّلتُ",
+        "verified": {
+          "surah": 3,
+          "ayah": 159
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.080.jawarih",
+        "text": "أكمل جزءًا صغيرًا من عملك بعناية، وراجع موضعًا قد يحتاج إصلاحًا",
+        "textKind": "guidance",
+        "noteId": "dima.regular.080.jawarih.note",
+        "note": "ٱلَّذِى خَلَقَ ٱلْمَوْتَ وَٱلْحَيَوٰةَ لِيَبْلُوَكُمْ أَيُّكُمْ أَحْسَنُ عَمَلًا ۚ وَهُوَ ٱلْعَزِيزُ ٱلْغَفُورُ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 67، الآية 2",
+        "actionId": "dima.regular.080.jawarih.action",
+        "action": "راجعتُ عملي",
+        "verified": {
+          "surah": 67,
+          "ayah": 2
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.080.teaser",
+        "text": "عناية بخطوة صغيرة"
+      },
+      "notification": {
+        "id": "dima.regular.080.notification",
+        "text": "ديمة اليوم: عناية بخطوة صغيرة، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.081",
+      "position": 81,
+      "lisanRef": "l10",
+      "qalb": {
+        "id": "dima.regular.081.qalb",
+        "text": "تذكّر أن شكر الله يعود بالخير عليك، وجدّد رغبتك فيه",
+        "textKind": "guidance",
+        "noteId": "dima.regular.081.qalb.note",
+        "note": "وَلَقَدْ ءَاتَيْنَا لُقْمَـٰنَ ٱلْحِكْمَةَ أَنِ ٱشْكُرْ لِلَّهِ ۚ وَمَن يَشْكُرْ فَإِنَّمَا يَشْكُرُ لِنَفْسِهِۦ ۖ وَمَن كَفَرَ فَإِنَّ ٱللَّهَ غَنِىٌّ حَمِيدٌ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 31، الآية 12",
+        "actionId": "dima.regular.081.qalb.action",
+        "action": "جدّدتُ رغبتي في الشكر",
+        "verified": {
+          "surah": 31,
+          "ayah": 12
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.081.jawarih",
+        "text": "إن كانت لديك أداتان وتكفيك واحدة، فدع غيرك يستعمل الأخرى",
+        "textKind": "guidance",
+        "noteId": "dima.regular.081.jawarih.note",
+        "note": "وَيُؤْثِرُونَ عَلَىٰٓ أَنفُسِهِمْ وَلَوْ كَانَ بِهِمْ خَصَاصَةٌ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 59، الآية 9",
+        "actionId": "dima.regular.081.jawarih.action",
+        "action": "أتحتُ ما يزيد",
+        "verified": {
+          "surah": 59,
+          "ayah": 9
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.081.teaser",
+        "text": "مساحة لغيرك"
+      },
+      "notification": {
+        "id": "dima.regular.081.notification",
+        "text": "ديمة اليوم: مساحة لغيرك، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.082",
+      "position": 82,
+      "lisanRef": "l11",
+      "qalb": {
+        "id": "dima.regular.082.qalb",
+        "text": "اقرأ دعاء موسى في الآية، واسأل الله سعة الصدر عند التعلم",
+        "textKind": "guidance",
+        "noteId": "dima.regular.082.qalb.note",
+        "note": "قَالَ رَبِّ ٱشْرَحْ لِى صَدْرِى",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 20، الآية 25",
+        "actionId": "dima.regular.082.qalb.action",
+        "action": "سألتُ سعة الصدر",
+        "verified": {
+          "surah": 20,
+          "ayah": 25
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.082.jawarih",
+        "text": "اختر كلمة لا تفهمها في درسك، واسأل من يعلّمك عن معناها",
+        "textKind": "guidance",
+        "noteId": "dima.regular.082.jawarih.note",
+        "note": "وَقُل رَّبِّ زِدْنِى عِلْمًا",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 20، الآية 114",
+        "actionId": "dima.regular.082.jawarih.action",
+        "action": "سألتُ لأتعلّم",
+        "verified": {
+          "surah": 20,
+          "ayah": 114
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.082.teaser",
+        "text": "كلمة نفهمها"
+      },
+      "notification": {
+        "id": "dima.regular.082.notification",
+        "text": "ديمة اليوم: كلمة نفهمها، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.083",
+      "position": 83,
+      "lisanRef": "l01",
+      "qalb": {
+        "id": "dima.regular.083.qalb",
+        "text": "إذا تأخر أثر عمل نافع، تذكّر أن الله لا يضيع أجر المحسنين",
+        "textKind": "guidance",
+        "noteId": "dima.regular.083.qalb.note",
+        "note": "وَٱصْبِرْ فَإِنَّ ٱللَّهَ لَا يُضِيعُ أَجْرَ ٱلْمُحْسِنِينَ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 11، الآية 115",
+        "actionId": "dima.regular.083.qalb.action",
+        "action": "تذكّرتُ الأجر",
+        "verified": {
+          "surah": 11,
+          "ayah": 115
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.083.jawarih",
+        "text": "عند تقسيم شيء بالعدد أو المقدار، راجع نصيب كل شخص بأمانة",
+        "textKind": "guidance",
+        "noteId": "dima.regular.083.jawarih.note",
+        "note": "وَأَوْفُوا۟ ٱلْكَيْلَ إِذَا كِلْتُمْ وَزِنُوا۟ بِٱلْقِسْطَاسِ ٱلْمُسْتَقِيمِ ۚ ذَٰلِكَ خَيْرٌ وَأَحْسَنُ تَأْوِيلًا",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 17، الآية 35",
+        "actionId": "dima.regular.083.jawarih.action",
+        "action": "راجعتُ المقدار",
+        "verified": {
+          "surah": 17,
+          "ayah": 35
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.083.teaser",
+        "text": "مقدار منصف"
+      },
+      "notification": {
+        "id": "dima.regular.083.notification",
+        "text": "ديمة اليوم: مقدار منصف، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.084",
+      "position": 84,
+      "lisanRef": "l02",
+      "qalb": {
+        "id": "dima.regular.084.qalb",
+        "text": "إن شعرت بمرض، اسأل الله الشفاء وخذ بما يتاح لك من رعاية",
+        "textKind": "guidance",
+        "noteId": "dima.regular.084.qalb.note",
+        "note": "وَإِذَا مَرِضْتُ فَهُوَ يَشْفِينِ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 26، الآية 80",
+        "actionId": "dima.regular.084.qalb.action",
+        "action": "سألتُ الشفاء",
+        "verified": {
+          "surah": 26,
+          "ayah": 80
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.084.jawarih",
+        "text": "إذا صعب على أحد تعلّم شيء، شجّعه على المحاولة دون استعجاله",
+        "textKind": "guidance",
+        "noteId": "dima.regular.084.jawarih.note",
+        "note": "ثُمَّ كَانَ مِنَ ٱلَّذِينَ ءَامَنُوا۟ وَتَوَاصَوْا۟ بِٱلصَّبْرِ وَتَوَاصَوْا۟ بِٱلْمَرْحَمَةِ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 90، الآية 17",
+        "actionId": "dima.regular.084.jawarih.action",
+        "action": "شجّعتُ على الصبر",
+        "verified": {
+          "surah": 90,
+          "ayah": 17
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.084.teaser",
+        "text": "تشجيع بلا استعجال"
+      },
+      "notification": {
+        "id": "dima.regular.084.notification",
+        "text": "ديمة اليوم: تشجيع بلا استعجال، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.085",
+      "position": 85,
+      "lisanRef": "l03",
+      "qalb": {
+        "id": "dima.regular.085.qalb",
+        "text": "تذكّر إحسان الله إليك، واجعل ذلك باعثًا للإحسان إلى غيرك",
+        "textKind": "guidance",
+        "noteId": "dima.regular.085.qalb.note",
+        "note": "وَأَحْسِن كَمَآ أَحْسَنَ ٱللَّهُ إِلَيْكَ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 28، الآية 77",
+        "actionId": "dima.regular.085.qalb.action",
+        "action": "تذكّرتُ الإحسان",
+        "verified": {
+          "surah": 28,
+          "ayah": 77
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.085.jawarih",
+        "text": "عندما يحدثك أحد، أقبل عليه ولا تُشعره بأنك أعلى منه",
+        "textKind": "guidance",
+        "noteId": "dima.regular.085.jawarih.note",
+        "note": "وَلَا تُصَعِّرْ خَدَّكَ لِلنَّاسِ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 31، الآية 18",
+        "actionId": "dima.regular.085.jawarih.action",
+        "action": "أقبلتُ على محدّثي",
+        "verified": {
+          "surah": 31,
+          "ayah": 18
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.085.teaser",
+        "text": "إقبال بلا تعالٍ"
+      },
+      "notification": {
+        "id": "dima.regular.085.notification",
+        "text": "ديمة اليوم: إقبال بلا تعالٍ، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.086",
+      "position": 86,
+      "lisanRef": "l04",
+      "qalb": {
+        "id": "dima.regular.086.qalb",
+        "text": "تذكّر أن باب العمل الصالح مفتوح للرجال والنساء، وانْوِ خيرًا تستطيع فعله",
+        "textKind": "guidance",
+        "noteId": "dima.regular.086.qalb.note",
+        "note": "مَنْ عَمِلَ صَـٰلِحًا مِّن ذَكَرٍ أَوْ أُنثَىٰ وَهُوَ مُؤْمِنٌ فَلَنُحْيِيَنَّهُۥ حَيَوٰةً طَيِّبَةً ۖ وَلَنَجْزِيَنَّهُمْ أَجْرَهُم بِأَحْسَنِ مَا كَانُوا۟ يَعْمَلُونَ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 16، الآية 97",
+        "actionId": "dima.regular.086.qalb.action",
+        "action": "نويتُ عملًا صالحًا",
+        "verified": {
+          "surah": 16,
+          "ayah": 97
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.086.jawarih",
+        "text": "استعمل من الورق أو الأدوات قدر حاجتك، واحفظ الباقي للاستعمال",
+        "textKind": "guidance",
+        "noteId": "dima.regular.086.jawarih.note",
+        "note": "وَلَا تُبَذِّرْ تَبْذِيرًا",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 17، الآية 26",
+        "actionId": "dima.regular.086.jawarih.action",
+        "action": "حفظتُ ما بقي",
+        "verified": {
+          "surah": 17,
+          "ayah": 26
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.086.teaser",
+        "text": "انتفاع بلا تبذير"
+      },
+      "notification": {
+        "id": "dima.regular.086.notification",
+        "text": "ديمة اليوم: انتفاع بلا تبذير، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.087",
+      "position": 87,
+      "lisanRef": "l05",
+      "qalb": {
+        "id": "dima.regular.087.qalb",
+        "text": "راجع اختيارًا واحدًا فعلته اليوم، وفكّر كيف تجعله أصلح غدًا",
+        "textKind": "guidance",
+        "noteId": "dima.regular.087.qalb.note",
+        "note": "وَلْتَنظُرْ نَفْسٌ مَّا قَدَّمَتْ لِغَدٍ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 59، الآية 18",
+        "actionId": "dima.regular.087.qalb.action",
+        "action": "راجعتُ اختياري",
+        "verified": {
+          "surah": 59,
+          "ayah": 18
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.087.jawarih",
+        "text": "إذا وصفت خلافًا بين شخصين، فاذكر الحق ولو كان أحدهما قريبًا منك",
+        "textKind": "guidance",
+        "noteId": "dima.regular.087.jawarih.note",
+        "note": "وَإِذَا قُلْتُمْ فَٱعْدِلُوا۟ وَلَوْ كَانَ ذَا قُرْبَىٰ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 6، الآية 152",
+        "actionId": "dima.regular.087.jawarih.action",
+        "action": "وصفتُ بإنصاف",
+        "verified": {
+          "surah": 6,
+          "ayah": 152
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.087.teaser",
+        "text": "إنصاف في الوصف"
+      },
+      "notification": {
+        "id": "dima.regular.087.notification",
+        "text": "ديمة اليوم: إنصاف في الوصف، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.088",
+      "position": 88,
+      "lisanRef": "l06",
+      "qalb": {
+        "id": "dima.regular.088.qalb",
+        "text": "اجعل رجاءك في الله حاضرًا وأنت تخطّط لما بعد يومك",
+        "textKind": "guidance",
+        "noteId": "dima.regular.088.qalb.note",
+        "note": "وَإِلَىٰ رَبِّكَ فَٱرْغَب",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 94، الآية 8",
+        "actionId": "dima.regular.088.qalb.action",
+        "action": "وجّهتُ رجائي",
+        "verified": {
+          "surah": 94,
+          "ayah": 8
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.088.jawarih",
+        "text": "اتفق مع من حولك على توزيع مهمة نافعة بدل أن يحملها شخص واحد",
+        "textKind": "guidance",
+        "noteId": "dima.regular.088.jawarih.note",
+        "note": "وَتَعَاوَنُوا۟ عَلَى ٱلْبِرِّ وَٱلتَّقْوَىٰ ۖ وَلَا تَعَاوَنُوا۟ عَلَى ٱلْإِثْمِ وَٱلْعُدْوَٰنِ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 5، الآية 2",
+        "actionId": "dima.regular.088.jawarih.action",
+        "action": "تعاونتُ في المهمة",
+        "verified": {
+          "surah": 5,
+          "ayah": 2
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.088.teaser",
+        "text": "مهمة نتقاسمها"
+      },
+      "notification": {
+        "id": "dima.regular.088.notification",
+        "text": "ديمة اليوم: مهمة نتقاسمها، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.089",
+      "position": 89,
+      "lisanRef": "l07",
+      "qalb": {
+        "id": "dima.regular.089.qalb",
+        "text": "اقرأ وعد الرحمة في المقطع، وجدّد رغبتك في الإحسان",
+        "textKind": "guidance",
+        "noteId": "dima.regular.089.qalb.note",
+        "note": "إِنَّ رَحْمَتَ ٱللَّهِ قَرِيبٌ مِّنَ ٱلْمُحْسِنِينَ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 7، الآية 56",
+        "actionId": "dima.regular.089.qalb.action",
+        "action": "رجوتُ الرحمة",
+        "verified": {
+          "surah": 7,
+          "ayah": 56
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.089.jawarih",
+        "text": "في خلاف بسيط، اقترح بهدوء حلًا يرضي الطرفين إن استطعت",
+        "textKind": "guidance",
+        "noteId": "dima.regular.089.jawarih.note",
+        "note": "إِنَّمَا ٱلْمُؤْمِنُونَ إِخْوَةٌ فَأَصْلِحُوا۟ بَيْنَ أَخَوَيْكُمْ ۚ وَٱتَّقُوا۟ ٱللَّهَ لَعَلَّكُمْ تُرْحَمُونَ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 49، الآية 10",
+        "actionId": "dima.regular.089.jawarih.action",
+        "action": "اقترحتُ صلحًا",
+        "verified": {
+          "surah": 49,
+          "ayah": 10
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.089.teaser",
+        "text": "اقتراح يجمع القلوب"
+      },
+      "notification": {
+        "id": "dima.regular.089.notification",
+        "text": "ديمة اليوم: اقتراح يجمع القلوب، خذ منها ما تستطيع"
+      }
+    },
+    {
+      "id": "dima.regular.090",
+      "position": 90,
+      "lisanRef": "l08",
+      "qalb": {
+        "id": "dima.regular.090.qalb",
+        "text": "قبل ختام يومك، اسأل الله أن يجعلك ممن يحسنون في أعمالهم",
+        "textKind": "guidance",
+        "noteId": "dima.regular.090.qalb.note",
+        "note": "وَأَحْسِنُوٓا۟ ۛ إِنَّ ٱللَّهَ يُحِبُّ ٱلْمُحْسِنِينَ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 2، الآية 195",
+        "actionId": "dima.regular.090.qalb.action",
+        "action": "سألتُ الإحسان",
+        "verified": {
+          "surah": 2,
+          "ayah": 195
+        }
+      },
+      "jawarih": {
+        "id": "dima.regular.090.jawarih",
+        "text": "في عمل جماعي، انسب جهد كل شخص إليه ولا تنسبه كله إلى نفسك",
+        "textKind": "guidance",
+        "noteId": "dima.regular.090.jawarih.note",
+        "note": "إِنَّ ٱللَّهَ يَأْمُرُ بِٱلْعَدْلِ وَٱلْإِحْسَـٰنِ وَإِيتَآئِ ذِى ٱلْقُرْبَىٰ",
+        "kind": "quran",
+        "src": "القرآن الكريم، السورة 16، الآية 90",
+        "actionId": "dima.regular.090.jawarih.action",
+        "action": "نسبتُ الجهد لأهله",
+        "verified": {
+          "surah": 16,
+          "ayah": 90
+        }
+      },
+      "teaser": {
+        "id": "dima.regular.090.teaser",
+        "text": "لكل جهد صاحبه"
+      },
+      "notification": {
+        "id": "dima.regular.090.notification",
+        "text": "ديمة اليوم: لكل جهد صاحبه، خذ منها ما تستطيع"
+      }
+    }
+  ]
+}
