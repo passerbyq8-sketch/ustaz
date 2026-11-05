@@ -1245,5 +1245,10 @@
     "name": "c1dictationowner",
     "script": "guards/c1-dictation-owner-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1waqfattitle",
+    "script": "guards/c1-waqfat-title-guard.cjs",
+    "args": ""
   }
 ]

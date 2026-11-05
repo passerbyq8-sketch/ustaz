@@ -400,6 +400,7 @@ function useEzLang() {
 // here and no translated string is ever handed to innerHTML. ---------------------------
 const EZ_I18N = {
   ar: {
+    "mushaf.waqfatTitle": "وقفات",
     'common.close': 'إغلاق',
     'answer.translation': 'ترجمة',
     'answer.translationOfText': 'ترجمة النصّ أعلاه',
@@ -2376,6 +2377,7 @@ const EZ_I18N = {
     'tr4.machine': 'ترجمة آلية',
   },
   en: {
+    "mushaf.waqfatTitle": "Reflections",
     'common.close': 'Close',
     'answer.translation': 'Translation',
     'answer.translationOfText': 'Translation of the text above',
