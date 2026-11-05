@@ -340,8 +340,86 @@
   }
   const linkFor = (key) => location.href.split('#')[0] + '#a=' + key;
   async function copyKeys(keys) { toast((await writeClip(citeRange(keys))) ? (keys.length > 1 ? 'نُسخت الآيات' : 'نُسخت الآية') : 'تعذّر النسخ على هذا الجهاز'); }
+  // B9 / S3: capability discovery happens before gestures. Results do not prove delivery.
+  function createEzikNativeShareAdapter(win = window) {
+    let sequence = 0, capabilities = null, busy = false, lastGesture = -Infinity, disposed = false;
+    const prefix = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+    const pending = new Map();
+    function onResult(event) {
+      const d = event.detail;
+      if (!d || d.type !== 'ezik:share:result' || d.v !== '1' || typeof d.id !== 'string') return;
+      const entry = pending.get(d.id);
+      if (!entry) return;
+      if (entry.op === 'capabilities') {
+        if (d.status !== 'capabilities' || d.ok !== true || !d.capabilities ||
+            !['text', 'link', 'file', 'htmlToPdf'].every(k => typeof d.capabilities[k] === 'boolean') ||
+            !Number.isInteger(d.capabilities.maxTextLength) || d.capabilities.maxTextLength < 1 ||
+            !Number.isInteger(d.capabilities.maxFileBytes) || d.capabilities.maxFileBytes < 1) return;
+      } else if (!(['shared', 'presented', 'dismissed'].includes(d.status) && d.ok === true) &&
+          !(d.status === 'error' && d.ok === false && typeof d.reason === 'string')) return;
+      pending.delete(d.id); clearTimeout(entry.timer); entry.resolve(d);
+    }
+    win.addEventListener('ezik:share:result', onResult);
+    function send(fields, timeout) {
+      if (disposed) return Promise.resolve({ status: 'error', reason: 'inactive' });
+      if (typeof win.ReactNativeWebView?.postMessage !== 'function') return Promise.resolve({ status: 'unavailable' });
+      const id = 'share-' + prefix + '-' + ++sequence;
+      return new Promise(resolve => {
+        const timer = setTimeout(() => { pending.delete(id); resolve({ status: 'unknown' }); }, timeout);
+        pending.set(id, { resolve, timer, op: fields.op });
+        try { win.ReactNativeWebView.postMessage(JSON.stringify({ ...fields, type: 'ezik:share', v: '1', id })); }
+        catch (e) { clearTimeout(timer); pending.delete(id); resolve({ status: 'unknown' }); }
+      });
+    }
+    const ready = send({ op: 'capabilities' }, 1000).then(result => {
+      if (!disposed && result.status === 'capabilities' && result.ok === true) capabilities = { ...result.capabilities };
+      return capabilities;
+    });
+    return {
+      ready,
+      getCapabilities: () => capabilities,
+      canShare: kind => !disposed && capabilities?.[kind] === true,
+      async share(fields) {
+        if (disposed || win.document?.visibilityState === 'hidden') return { status: 'error', reason: 'inactive' };
+        if (capabilities?.[fields.kind] !== true) return { status: 'unavailable' };
+        if (busy || Date.now() - lastGesture < 750) return { status: 'error', reason: 'busy' };
+        busy = true; lastGesture = Date.now();
+        try { return await send({ ...fields, op: 'share' }, 120000); }
+        finally { busy = false; }
+      },
+      dispose() {
+        disposed = true; capabilities = null;
+        win.removeEventListener('ezik:share:result', onResult);
+        for (const entry of pending.values()) { clearTimeout(entry.timer); entry.resolve({ status: 'error', reason: 'inactive' }); }
+        pending.clear();
+      }
+    };
+  }
+  const ezikNativeShare = typeof window === 'undefined' ? null : createEzikNativeShareAdapter(window);
+  if (ezikNativeShare) {
+    ezikNativeShare.ready.then(caps => { if (caps) window.dispatchEvent(new CustomEvent('ezik:share:capability')); });
+    window.addEventListener('pagehide', () => ezikNativeShare.dispose(), { once: true });
+  }
+  // Synchronous capability branch preserves navigator.share's activation on the legacy path.
+  function ezikNativeShareAttempt(fields, copy, fail) {
+    if (!ezikNativeShare || !ezikNativeShare.canShare(fields.kind)) return false;
+    ezikNativeShare.share(fields).then(result => {
+      if (result.status === 'unavailable' || result.reason === 'share-unavailable') return copy();
+      if (['shared', 'presented', 'dismissed'].includes(result.status) || ['busy', 'inactive'].includes(result.reason)) return;
+      fail();
+    }).catch(fail);
+    return true;
+  }
+  
   async function shareKeys(keys) {
     const text = citeRange(keys) + '\n' + linkFor(keys[0]);
+    const copied = async () => { toast((await writeClip(text)) ? 'المشاركة غير متاحة هنا، فنُسخ النصّ مع الرابط' : 'تعذّرت المشاركة'); };
+    const failed = () => toast('تعذّرت المشاركة');
+    if (ezikNativeShareAttempt({ kind: 'text', text }, copied, failed)) return;
+    try { if (window.parent !== window && window.parent.location.origin === location.origin &&
+        typeof window.parent.ezikNativeShareAttempt === 'function' &&
+        window.parent.ezikNativeShareAttempt({ kind: 'text', text }, copied, failed)) return; } catch (e) {}
+
     if (navigator.share) { try { await navigator.share({ text }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
     toast((await writeClip(text)) ? 'المشاركة غير متاحة هنا، فنُسخ النصّ مع الرابط' : 'تعذّرت المشاركة');
   }
@@ -417,7 +495,7 @@
     } else if (tab === 'waqfat') {
       const src = (META.tafsirs || []).find((t) => t.kind === 'waqfat');
       const mine = reflections().filter((r) => r.k === key);
-      body.innerHTML = (src ? '<div class="tafsir"><div class="src">' + esc(src.name) + '</div><div id="tf_w"><p class="note">يُحمَّل…</p></div><div class="row"><button type="button" class="chip" data-act="favW" aria-pressed="' + isFav('w', key) + '">' + (isFav('w', key) ? 'وقفاتُ الآيةِ في المفضّلة' : 'حفظُ هذه الوقفاتِ في المفضّلة') + '</button></div></div>' : '') +
+      body.innerHTML = (src ? '<div class="tafsir"><h3 data-ezik-waqfat-title dir="auto">' + esc(typeof window.ezikLabWaqfatTitle === 'function' ? window.ezikLabWaqfatTitle() : 'وقفات') + '</h3><div class="src">' + esc(src.name) + '</div><div id="tf_w"><p class="note">يُحمَّل…</p></div><div class="row"><button type="button" class="chip" data-act="favW" aria-pressed="' + isFav('w', key) + '">' + (isFav('w', key) ? 'وقفاتُ الآيةِ في المفضّلة' : 'حفظُ هذه الوقفاتِ في المفضّلة') + '</button></div></div>' : '') +
         '<h3>وقفاتي على هذه الآية</h3>' + (mine.length ? '<ul class="list">' + mine.map((r) => '<li><div class="ref"><span>' + esc(r.type) + '</span><span>' + new Date(r.at).toLocaleDateString('ar') + '</span></div><div class="plain">' + esc(r.text) + '</div><div class="row"><button type="button" class="chip" data-act="favR" data-id="' + r.id + '" aria-pressed="' + isFav('r', r.id) + '">مفضّلة</button><button type="button" class="chip" data-act="delR" data-id="' + r.id + '">حذف</button></div></li>').join('') + '</ul>' : '<p class="empty">لم تكتبْ وقفةً على هذه الآيةِ بعد.</p>') +
         '<div class="field"><label for="rType">نوعُ الوقفة</label><select id="rType"><option>تدبّر</option><option>تساؤل</option><option>وقفة</option><option>فائدة</option></select></div>' +
         '<textarea id="rText" placeholder="اكتبْ وقفتَك. تُحفَظ على هذا الجهاز."></textarea><div class="row" style="margin-top:8px"><button type="button" class="chip" data-act="addR">حفظ الوقفة</button></div>';

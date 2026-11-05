@@ -1185,5 +1185,120 @@
     "name": "securityarticleinput",
     "script": "guards/security-article-input-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1portugueseusage",
+    "script": "guards/c1-portuguese-usage-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1birthyeardirection",
+    "script": "guards/c1-birth-year-direction-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1chattitledirection",
+    "script": "guards/c1-chat-title-direction-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1prosedirection",
+    "script": "guards/c1-prose-direction-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1prayernumerals",
+    "script": "guards/c1-prayer-numerals-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1emptywird",
+    "script": "guards/c1-empty-wird-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1deferredgender",
+    "script": "guards/c1-deferred-gender-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1adhanlater",
+    "script": "guards/c1-adhan-later-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1diagnosticsurface",
+    "script": "guards/c1-diagnostic-surface-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1crystalretirement",
+    "script": "guards/c1-crystal-retirement-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1signoutprofile",
+    "script": "guards/c1-signout-profile-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1dictationowner",
+    "script": "guards/c1-dictation-owner-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1waqfattitle",
+    "script": "guards/c1-waqfat-title-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1questiondisplay",
+    "script": "guards/c1-question-display-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1countdownunits",
+    "script": "guards/c1-countdown-units-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1widgetnumerals",
+    "script": "guards/c1-widget-numerals-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1nativeshare",
+    "script": "guards/c1-native-share-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1nativelocation",
+    "script": "guards/c1-native-location-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1nativeheading",
+    "script": "guards/c1-native-heading-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1nativehaptic",
+    "script": "guards/c1-native-haptic-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1dimaresolver",
+    "script": "guards/c1-dima-resolver-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1dimawiring",
+    "script": "guards/c1-dima-wiring-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1solidbars",
+    "script": "guards/c1-solid-bars-guard.cjs",
+    "args": ""
   }
 ]

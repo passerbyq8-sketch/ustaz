@@ -375,7 +375,7 @@ function ezTr4Load() {
 function useTr4Section(name) {
   const lang = useEzLang();
   useEffect(() => {
-    if (!name || ['am', 'om', 'en', 'fa'].indexOf(lang) < 0) return undefined;
+    if (!name || (!['am', 'om', 'en', 'fa'].includes(lang) && !(name === 'dima' && DIMA_CONTENT_LANGS.includes(lang)))) return undefined;
     let off = null, gone = false;
     ezTr4Load().then((layer) => {
       if (!layer || gone) return;
@@ -400,6 +400,15 @@ function useEzLang() {
 // here and no translated string is ever handed to innerHTML. ---------------------------
 const EZ_I18N = {
   ar: {
+    "dima.repeatLabel": "\u0625\u0639\u0627\u062f\u0629 \u0645\u0646 \u0627\u0644\u0623\u064a\u0627\u0645 \u0627\u0644\u0645\u062a\u0627\u062d\u0629",
+    "dima.repeatHelp": "\u0646\u0643\u0631\u0631 \u0627\u0644\u0623\u064a\u0627\u0645 \u0627\u0644\u0645\u062a\u0627\u062d\u0629 \u0645\u0639 \u062d\u0641\u0638 \u062a\u0642\u062f\u0645\u0643",
+    "dima.seasonLabel": "\u0628\u0637\u0627\u0642\u0629 \u0645\u0648\u0633\u0645\u064a\u0629",
+    "dima.saveWarning": "\u062a\u0639\u0630\u0631 \u062a\u0623\u0643\u064a\u062f \u062d\u0641\u0638 \u062a\u0642\u062f\u0645\u0643. \u0627\u062d\u062a\u0641\u0638\u0646\u0627 \u0628\u0647 \u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u062c\u0644\u0633\u0629.",
+    "countdown.hour": "ساعات",
+    "countdown.minute": "دقائق",
+    "countdown.second": "ثوان",
+    "place.deviceZone": "التوقيت من الجهاز: {tz}. اختر مدينة لتأكيد توقيت الموقع.",
+    "mushaf.waqfatTitle": "وقفات",
     'common.close': 'إغلاق',
     'answer.translation': 'ترجمة',
     'answer.translationOfText': 'ترجمة النصّ أعلاه',
@@ -2376,6 +2385,15 @@ const EZ_I18N = {
     'tr4.machine': 'ترجمة آلية',
   },
   en: {
+    "dima.repeatLabel": "Repeating an available day",
+    "dima.repeatHelp": "Available days repeat; your progress is kept.",
+    "dima.seasonLabel": "Seasonal card",
+    "dima.saveWarning": "Saving could not be confirmed. Your progress is kept in this session.",
+    "countdown.hour": "hours",
+    "countdown.minute": "minutes",
+    "countdown.second": "seconds",
+    "place.deviceZone": "Using the device time zone: {tz}. Choose a city to confirm the location time zone.",
+    "mushaf.waqfatTitle": "Reflections",
     'common.close': 'Close',
     'answer.translation': 'Translation',
     'answer.translationOfText': 'Translation of the text above',
@@ -6574,6 +6592,7 @@ const ezNewRecognition = () => {
 // Returns true only if the engine actually began listening.
 const ezStartRecognition = (rec) => {
   if (!rec) return false;
+  if (rec.ezikFounderOnly && !hasFounderToken()) { ezKillRecognizer(rec); return false; }
   if (!hasValidAIConsent()) { ezKillRecognizer(rec); return false; }
   try { rec.start(); return true; } catch (e) { return false; }
 };
@@ -7294,12 +7313,97 @@ const CopyReplyButton = ({ text, getText }) => {
 // refused in some WebViews. A button that vanished there would be a button the reader cannot
 // learn, so the control is always present and the fallback is the file's ONE clipboard path.
 // A share the reader CANCELS is not a failure: AbortError leaves the label alone.
+// B9 / S3: capability discovery happens before gestures. Results do not prove delivery.
+function createEzikNativeShareAdapter(win = window) {
+  let sequence = 0, capabilities = null, busy = false, lastGesture = -Infinity, disposed = false;
+  const prefix = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+  const pending = new Map();
+  function onResult(event) {
+    const d = event.detail;
+    if (!d || d.type !== 'ezik:share:result' || d.v !== '1' || typeof d.id !== 'string') return;
+    const entry = pending.get(d.id);
+    if (!entry) return;
+    if (entry.op === 'capabilities') {
+      if (d.status !== 'capabilities' || d.ok !== true || !d.capabilities ||
+          !['text', 'link', 'file', 'htmlToPdf'].every(k => typeof d.capabilities[k] === 'boolean') ||
+          !Number.isInteger(d.capabilities.maxTextLength) || d.capabilities.maxTextLength < 1 ||
+          !Number.isInteger(d.capabilities.maxFileBytes) || d.capabilities.maxFileBytes < 1) return;
+    } else if (!(['shared', 'presented', 'dismissed'].includes(d.status) && d.ok === true) &&
+        !(d.status === 'error' && d.ok === false && typeof d.reason === 'string')) return;
+    pending.delete(d.id); clearTimeout(entry.timer); entry.resolve(d);
+  }
+  win.addEventListener('ezik:share:result', onResult);
+  function send(fields, timeout) {
+    if (disposed) return Promise.resolve({ status: 'error', reason: 'inactive' });
+    if (typeof win.ReactNativeWebView?.postMessage !== 'function') return Promise.resolve({ status: 'unavailable' });
+    const id = 'share-' + prefix + '-' + ++sequence;
+    return new Promise(resolve => {
+      const timer = setTimeout(() => { pending.delete(id); resolve({ status: 'unknown' }); }, timeout);
+      pending.set(id, { resolve, timer, op: fields.op });
+      try { win.ReactNativeWebView.postMessage(JSON.stringify({ ...fields, type: 'ezik:share', v: '1', id })); }
+      catch (e) { clearTimeout(timer); pending.delete(id); resolve({ status: 'unknown' }); }
+    });
+  }
+  const ready = send({ op: 'capabilities' }, 1000).then(result => {
+    if (!disposed && result.status === 'capabilities' && result.ok === true) capabilities = { ...result.capabilities };
+    return capabilities;
+  });
+  return {
+    ready,
+    getCapabilities: () => capabilities,
+    canShare: kind => !disposed && capabilities?.[kind] === true,
+    async share(fields) {
+      if (disposed || win.document?.visibilityState === 'hidden') return { status: 'error', reason: 'inactive' };
+      if (capabilities?.[fields.kind] !== true) return { status: 'unavailable' };
+      if (busy || Date.now() - lastGesture < 750) return { status: 'error', reason: 'busy' };
+      busy = true; lastGesture = Date.now();
+      try { return await send({ ...fields, op: 'share' }, 120000); }
+      finally { busy = false; }
+    },
+    dispose() {
+      disposed = true; capabilities = null;
+      win.removeEventListener('ezik:share:result', onResult);
+      for (const entry of pending.values()) { clearTimeout(entry.timer); entry.resolve({ status: 'error', reason: 'inactive' }); }
+      pending.clear();
+    }
+  };
+}
+const ezikNativeShare = typeof window === 'undefined' ? null : createEzikNativeShareAdapter(window);
+if (ezikNativeShare) {
+  ezikNativeShare.ready.then(caps => { if (caps) window.dispatchEvent(new CustomEvent('ezik:share:capability')); });
+  window.addEventListener('pagehide', () => ezikNativeShare.dispose(), { once: true });
+}
+// Synchronous capability branch preserves navigator.share's activation on the legacy path.
+function ezikNativeShareAttempt(fields, copy, fail) {
+  if (!ezikNativeShare || !ezikNativeShare.canShare(fields.kind)) return false;
+  ezikNativeShare.share(fields).then(result => {
+    if (result.status === 'unavailable' || result.reason === 'share-unavailable') return copy();
+    if (['shared', 'presented', 'dismissed'].includes(result.status) || ['busy', 'inactive'].includes(result.reason)) return;
+    fail();
+  }).catch(fail);
+  return true;
+}
+function ezikNativePdfAllowed() {
+  const caps = ezikNativeShare && ezikNativeShare.getCapabilities();
+  return !(caps && ez110AndroidShell() && caps.htmlToPdf !== true);
+}
+function useEzikNativeShareCaps() {
+  const [, update] = useState(0);
+  useEffect(() => {
+    const refresh = () => update(n => n + 1);
+    window.addEventListener('ezik:share:capability', refresh);
+    return () => window.removeEventListener('ezik:share:capability', refresh);
+  }, []);
+}
+
 const ShareReplyButton = ({ getText }) => {
   const [flash, setFlash] = useState('');            // '' | 'copied' | 'fail'
   const say = (v) => { setFlash(v); setTimeout(() => setFlash(''), 1500); };
   const doShare = async () => {
     const payload = ezikFixPlainHeads((typeof getText === 'function') ? getText() : '');
     if (!payload) { say('fail'); return; }
+    const copy = async () => say(await ezikWriteClipboard(payload) ? 'copied' : 'fail');
+    if (typeof ezikNativeShareAttempt === 'function' && ezikNativeShareAttempt({ kind: 'text', text: payload }, copy, () => say('fail'))) return;
     try {
       if (navigator.share) {
         await navigator.share({ text: payload });
@@ -7309,7 +7413,7 @@ const ShareReplyButton = ({ getText }) => {
       if (e && e.name === 'AbortError') return;      // the reader changed their mind
       // anything else -- refused, unsupported scheme -- falls through to the clipboard
     }
-    say(await ezikWriteClipboard(payload) ? 'copied' : 'fail');
+    await copy();
   };
   return (
     <button type="button" onClick={doShare} aria-label={EZIK_SHARE_ARIA} className="ezik-focus" style={miniBtnStyle}>
@@ -7389,6 +7493,7 @@ const EZIK_ICON_SHARE_DRAWER = (
 // WebViews, and a control that vanished there would be a control the reader cannot learn. A share
 // the reader CANCELS is not a failure -- AbortError returns without saying anything.
 const ezikShareLinks = async (payload, say) => {
+  if (typeof ezikNativeShareAttempt === 'function' && ezikNativeShareAttempt({ ...payload, kind: payload.url ? 'link' : 'text' }, async () => say(await ezikWriteClipboard(payload.url || payload.text || '') ? 'copied' : 'fail'), () => say('fail'))) return;
   try {
     if (navigator.share) {
       await navigator.share(payload);
@@ -7826,12 +7931,14 @@ let EZIK_PDF_FAIL = ezT('c.EZIK_PDF_FAIL');
 const EZIK_PDF_TITLE = 'ردُّ عزك';
 
 const ExportPdfReplyButton = ({ getText }) => {
+  useEzikNativeShareCaps();
   const [flash, setFlash] = useState('');
   // ONE PRESS, ONE FILE. State alone could not promise it: two taps dispatched inside one task
   // both read the value from before React committed the first. The ref flips synchronously.
   const busyRef = useRef(false);
   const doExport = async () => {
     if (busyRef.current) return;
+    if (!ezikNativePdfAllowed()) { setFlash('fail'); return; }
     const payload = (typeof getText === 'function') ? getText() : '';
     if (!payload) { setFlash('fail'); setTimeout(() => setFlash(''), 1500); return; }
     busyRef.current = true;
@@ -7845,6 +7952,7 @@ const ExportPdfReplyButton = ({ getText }) => {
     }
     busyRef.current = false;
   };
+  if (!ezikNativePdfAllowed()) return null;
   return (
     <button type="button" onClick={doExport} aria-label={EZIK_PDF_ARIA} className="ezik-focus" style={miniBtnStyle}>
       {flash === 'wait' ? EZIK_PDF_WAIT : flash === 'fail' ? EZIK_PDF_FAIL : EZIK_PDF_LABEL}
@@ -10423,7 +10531,7 @@ function useEzikVisualTheme() {
 // The owner is recognised by a code, never by an e-mail and never by a request: the device keeps
 // the code it was given, and this file keeps only its SHA-256 (EZ110_UNLOCK_SHA).
 // DESIGN-SYSTEM.md (item 110 session folder) governs every value the lit parts draw.
-const EZ110_PARTS = { safe: 'public', b: 'public', c: 'public', d: 'public', e: 'owner', fix: 'public' };
+const EZ110_PARTS = { safe: 'public', b: 'public', c: 'public', d: 'public', e: 'off', fix: 'public' };
 const EZ110_IDS = ['b', 'c', 'd', 'e'];
 const EZ110_UNLOCK_KEY = 'ezik_110_unlock_v1';
 const EZ110_IDENTITY_KEY = 'ezik_110_identity_v1';
@@ -10956,7 +11064,7 @@ function Ez110PrayerCard({ onOpen, hijri, onQibla }) {
             <span className="ez110-prayer-name">{ezT('widget.prayer.' + next)}</span>
             <span className="ez110-prayer-time">{prayerClockUi(nextTime)}</span>
             {status.remainingMs != null ? (
-              <span className="ez110-prayer-left">{ezT('panel.in')} <bdi dir="ltr">{prayerDigits(ez110Countdown(status.remainingMs))}</bdi></span>
+              <span className="ez110-prayer-left">{ezT('panel.in')} <span role="timer" aria-label={prayerCountdownDescription(status.remainingMs, true)}><bdi dir="ltr" aria-hidden="true">{prayerDigits(ez110Countdown(status.remainingMs))}</bdi><small dir="ltr" aria-hidden="true" style={{ display: 'block', fontSize: '0.72em', lineHeight: 1.4 }}>{prayerCountdownUnits(status.remainingMs, true)}</small></span></span>
             ) : null}
           </span>
         ) : null}
@@ -11887,26 +11995,30 @@ let EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize
 
 function DimaHomeCard({ onOpenDima, onOpenMenu, name }) {
   useEzLang();
-  const [todayKey, setTodayKey] = useState(() => dimaDateKey(new Date()));
+  const [todayKey, setTodayKey] = useState(() => dimaDateKey(dimaCivilDate()));
   const [, setRefreshVersion] = useState(0);
   useEffect(() => {
     let timer = 0;
     const refresh = () => {
-      setTodayKey(dimaDateKey(new Date()));
+      setTodayKey(dimaDateKey(dimaCivilDate()));
       setRefreshVersion((version) => version + 1);
     };
     const scheduleMidnight = () => {
       const now = new Date();
-      const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 1, 0);
+      const next = new Date(now.getTime() + 30000);
       timer = window.setTimeout(() => { refresh(); scheduleMidnight(); }, Math.max(1000, next.getTime() - now.getTime()));
     };
     scheduleMidnight();
     window.addEventListener('focus', refresh);
+    window.addEventListener('ezik:dima:state', refresh);
+    window.addEventListener('ezik-widget-data-change', refresh);
     window.addEventListener('storage', refresh);
     document.addEventListener('visibilitychange', refresh);
     return () => {
       if (timer) window.clearTimeout(timer);
       window.removeEventListener('focus', refresh);
+      window.removeEventListener('ezik:dima:state', refresh);
+      window.removeEventListener('ezik-widget-data-change', refresh);
       window.removeEventListener('storage', refresh);
       document.removeEventListener('visibilitychange', refresh);
     };
@@ -11918,7 +12030,7 @@ function DimaHomeCard({ onOpenDima, onOpenMenu, name }) {
     const dayIndex = store.startDate ? dimaIndexForDate(store.startDate, date) : 0;
     const dayLog = dimaLogFor(store, dimaDateKey(date));
     const stage = index === 0
-      ? (store.startDate ? dayLog.l + dayLog.q + dayLog.j : 0)
+      ? (dayIndex > 0 ? dayLog.l + dayLog.q + dayLog.j : 0)
       : (dayIndex > 0 ? dayLog.l + dayLog.q + dayLog.j : 0);
     return { key: dimaDateKey(date), stage: stage, today: index === 0 };
   });
@@ -12622,7 +12734,52 @@ function markTasbihDay() {
 // ONE SHORT PULSE, ASKED FOR AND NEVER ASSUMED. iOS Safari has no navigator.vibrate at all, and
 // the browsers that do have it refuse it outside a user gesture and throw on some arguments. So
 // the existence check is here, at the ONE call site, inside a try.
+// S4 haptic v1: discovery never vibrates; native pulses require a current user activation.
+function createEzikNativeHapticAdapter(win = window) {
+  let supported = false, disposed = false, sequence = 0, last = -Infinity;
+  const prefix = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2), pending = new Set();
+  const probeId = 'haptic-' + prefix + '-cap';
+  let probeOpen = true;
+  const timer = setTimeout(() => { probeOpen = false; }, 1000);
+  const onResult = event => {
+    const d = event && event.detail;
+    if (disposed || !d || d.type !== 'ezik:haptic:result' || d.v !== '1' || typeof d.id !== 'string') return;
+    if (d.id === probeId && probeOpen && d.ok === true && d.status === 'capabilities') {
+      probeOpen = false; clearTimeout(timer);
+      supported = d.capabilities?.shortPulse === true && d.capabilities.durationMs === 10;
+    } else if (pending.has(d.id)) pending.delete(d.id);
+  };
+  const clear = () => { pending.clear(); };
+  const onVisibility = () => { if (win.document?.visibilityState === 'hidden') clear(); };
+  const dispose = () => {
+    disposed = true; supported = false; probeOpen = false; clearTimeout(timer); clear();
+    win.removeEventListener('ezik:haptic:result', onResult); win.removeEventListener('pagehide', dispose);
+    win.document?.removeEventListener('visibilitychange', onVisibility);
+  };
+  win.addEventListener('ezik:haptic:result', onResult); win.addEventListener('pagehide', dispose);
+  win.document?.addEventListener('visibilitychange', onVisibility);
+  try { win.ReactNativeWebView?.postMessage(JSON.stringify({ type: 'ezik:haptic', v: '1', id: probeId, op: 'capabilities' })); } catch (e) { probeOpen = false; }
+  return { canPulse: () => supported && !disposed,
+    pulse(enabled, userInitiated) {
+      if (!supported || disposed || enabled !== true || userInitiated !== true || win.document?.visibilityState === 'hidden' || Date.now() - last < 100) return false;
+      last = Date.now(); const id = 'haptic-' + prefix + '-' + ++sequence;
+      pending.add(id); if (pending.size > 32) pending.delete(pending.values().next().value);
+      try { win.ReactNativeWebView.postMessage(JSON.stringify({ type: 'ezik:haptic', v: '1', id, op: 'pulse', enabled: true, userInitiated: true })); return true; }
+      catch (e) { pending.delete(id); return false; }
+    }, dispose };
+}
+const ezikNativeHaptic = typeof window === 'undefined' || !ezikShellBridge() ? null : createEzikNativeHapticAdapter(window);
+function ezikHapticGestureActive() {
+  try { return navigator.userActivation?.isActive === true; } catch (e) { return false; }
+}
+function ezikShortPulse(enabled, duration, userInitiated) {
+  if (enabled !== true || (typeof document !== 'undefined' && document.visibilityState === 'hidden')) return false;
+  try { if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function' && navigator.vibrate(duration) !== false) return true; } catch (e) {}
+  return !!(ezikNativeHaptic && ezikNativeHaptic.pulse(enabled, userInitiated));
+}
+
 function tasbihBuzz() {
+  if (typeof ezikNativeHaptic !== 'undefined' && ezikNativeHaptic?.canPulse()) return ezikShortPulse(true, TASBIH_VIBRATE_MS, ezikHapticGestureActive());
   try {
     if (typeof navigator === 'undefined' || !navigator) return false;
     if (typeof navigator.vibrate !== 'function') return false;
@@ -16724,17 +16881,263 @@ function loadDima() {
   }
   return __dimaPromise;
 }
+// B10 / D5-D7: complete pack revisions, date-based progress and frozen presentations.
+const DIMA_V2_KEY = 'ezik_dima_v2';
+const DIMA_MANIFEST_URL = '/dima/pack-manifest-v1.json';
+let __dimaCatalog = null, __dimaCatalogPromise = null, __dimaSessionStore = null, __dimaStoreError = '';
+function dimaClone(value) { return JSON.parse(JSON.stringify(value)); }
+function dimaObject(value) { return !!value && typeof value === 'object' && !Array.isArray(value); }
+function dimaCivilDate(now = new Date()) {
+  const p = prayerTodayParts(now, prayerZoneOf(readQiblaLoc()));
+  return new Date(p.y, p.m - 1, p.d, 12, 0, 0, 0);
+}
+function dimaValidDayKey(key) {
+  if (typeof key !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(key)) return false;
+  const date = dimaDateFromKey(key);
+  return !!date && dimaDateKey(date) === key;
+}
+function dimaLegacyCatalog(data) {
+  if (!data || !Array.isArray(data.days) || data.days.length !== 30 || !Array.isArray(data.lisan) || data.lisan.length !== 12) throw new Error('dima-legacy');
+  return { legacy: data, regular: data.days.map((day, i) => ({ packId: 'dima-regular-001', version: 1,
+    dayId: 'dima.regular.' + String(i + 1).padStart(3, '0'), position: i + 1, lisanRef: 'l' + String(i % 12 + 1).padStart(2, '0'), legacy: true, day })),
+    seasonal: {}, revision: 'dima-regular-001:1', manifest: null };
+}
+function dimaPackValid(pack, entry, seasonal) {
+  const text = value => typeof value === 'string' && value.trim().length > 0;
+  if (!dimaObject(pack) || pack.schema !== 'ezik-dima-pack/1' || pack.language !== 'ar' || pack.audience !== 'all-ages' ||
+      pack.id !== (seasonal ? entry.packId : entry.id) || !Number.isInteger(pack.version) || pack.version < 1 || pack.version !== entry.version ||
+      pack.kind !== (seasonal ? 'seasonal' : 'regular') || !dimaObject(pack.sourceBase) || pack.sourceBase.path !== 'dima/dima-v1.json' ||
+      pack.sourceBase.sha256 !== '09554894aeef74616a9e030f74f4542b83dc4a1aadf6220d427167c064dae15c' ||
+      !Array.isArray(pack.days) || pack.days.length !== entry.lastDay - entry.firstDay + 1) return false;
+  if (seasonal) {
+    if (!pack.season || pack.season.id !== entry.id || pack.season.hijriMonth !== entry.hijriMonth ||
+        pack.season.firstDay !== entry.firstDay || pack.season.lastDay !== entry.lastDay) return false;
+  } else if (pack.startDay !== entry.firstDay || pack.days.length !== 30) return false;
+  const ids = new Set(), unique = id => { if (!text(id) || ids.has(id)) return false; ids.add(id); return true; };
+  return pack.days.every((day, i) => {
+    const position = entry.firstDay + i, prefix = 'dima.' + (seasonal ? entry.id : 'regular') + '.' + String(position).padStart(seasonal ? 2 : 3, '0');
+    if (!day || day.position !== position || day.id !== prefix || !unique(day.id) || !/^l(0[1-9]|1[0-2])$/.test(day.lisanRef)) return false;
+    for (const key of ['qalb', 'jawarih']) {
+      const drop = day[key], id = prefix + '.' + key;
+      if (!drop || drop.id !== id || !unique(drop.id) || drop.textKind !== 'guidance' || !text(drop.text) || !text(drop.note) ||
+          !text(drop.src) || !text(drop.action) || !dimaObject(drop.verified) || !['quran', 'hadith', 'dhikr', 'dua', 'story', 'text', 'athar'].includes(drop.kind) ||
+          drop.noteId !== id + '.note' || drop.actionId !== id + '.action' || !unique(drop.noteId) || !unique(drop.actionId)) return false;
+    }
+    return ['teaser', 'notification'].every(k => day[k] && day[k].id === prefix + '.' + k && unique(day[k].id) && text(day[k].text));
+  });
+}
+function dimaManifestValid(manifest) {
+  return manifest && manifest.schema === 'ezik-dima-manifest/1' && Number.isInteger(manifest.version) && manifest.version > 0 &&
+    manifest.legacy?.path === DIMA_URL && manifest.legacy.sha256 === '09554894aeef74616a9e030f74f4542b83dc4a1aadf6220d427167c064dae15c' &&
+    Array.isArray(manifest.regular) && manifest.regular[0]?.id === 'dima-regular-001' && manifest.regular[0].legacy === true &&
+    manifest.regular[0].firstDay === 1 && manifest.regular[0].lastDay === 30 && Array.isArray(manifest.seasonal);
+}
+async function dimaBuildCatalog(data, manifest, getPack) {
+  const catalog = dimaLegacyCatalog(data);
+  if (!dimaManifestValid(manifest)) return catalog;
+  catalog.manifest = dimaClone(manifest);
+  const pathOk = path => typeof path === 'string' && /^\/dima\/pack-[a-z0-9-]+\.json$/.test(path);
+  for (let i = 1; i < manifest.regular.length; i++) {
+    const entry = manifest.regular[i];
+    if (!entry || entry.firstDay !== catalog.regular.length + 1 || entry.lastDay !== entry.firstDay + 29 ||
+        !/^dima-regular-\d{3}$/.test(entry.id) || !pathOk(entry.path)) break;
+    let pack; try { pack = await getPack(entry.path); } catch (e) { break; }
+    if (!dimaPackValid(pack, entry, false)) break;
+    catalog.regular.push(...dimaClone(pack.days).map(day => ({ packId: pack.id, version: pack.version, dayId: day.id,
+      position: day.position, lisanRef: day.lisanRef, legacy: false, day })));
+    catalog.revision += '|' + pack.id + ':' + pack.version;
+  }
+  for (const id of ['ramadan', 'dhul-hijjah', 'white-days']) {
+    const entry = manifest.seasonal.find(x => x && x.id === id);
+    const expected = id === 'ramadan' ? [9, 1, 30] : id === 'dhul-hijjah' ? [12, 1, 10] : [null, 13, 15];
+    if (!entry || !pathOk(entry.path) || entry.hijriMonth !== expected[0] || entry.firstDay !== expected[1] || entry.lastDay !== expected[2]) continue;
+    let pack; try { pack = await getPack(entry.path); } catch (e) { continue; }
+    if (!dimaPackValid(pack, entry, true)) continue;
+    catalog.seasonal[id] = { ...entry, days: dimaClone(pack.days) };
+    catalog.revision += '|' + pack.id + ':' + pack.version;
+  }
+  return catalog;
+}
+async function loadDimaPacks(refresh = false) {
+  if (__dimaCatalogPromise) return __dimaCatalogPromise;
+  if (__dimaCatalog && !refresh) return __dimaCatalog;
+  __dimaCatalogPromise = (async () => {
+    const data = await loadDima();
+    const get = async path => { const response = await fetch(path); if (!response.ok) throw new Error('dima-pack'); return response.json(); };
+    let manifest = null; try { manifest = await get(DIMA_MANIFEST_URL); } catch (e) {}
+    let catalog = await dimaBuildCatalog(data, manifest, get);
+    // A transient offline refresh cannot discard already validated content in this session.
+    if (__dimaCatalog && catalog.regular.length < __dimaCatalog.regular.length) catalog = __dimaCatalog;
+    // Publish one complete validated prefix/revision, never partially appended days.
+    __dimaCatalog = catalog;
+    dimaReadStore();
+    try { window.dispatchEvent(new CustomEvent('ezik:dima:data')); } catch (e) {}
+    return catalog;
+  })();
+  try { return await __dimaCatalogPromise; } finally { __dimaCatalogPromise = null; }
+}
+function dimaMakeRecord(store, date, catalog, legacyOnly = false) {
+  const civilDate = dimaDateKey(date), rawIndex = dimaIndexForDate(store.startDate, date), index = Math.max(1, rawIndex || 1);
+  const legacy = catalog.legacy, available = legacyOnly ? 30 : catalog.regular.length;
+  const slot = legacyOnly ? Math.min(30, index) - 1 : (index - 1) % available;
+  let selected = catalog.regular[slot], season = null, hijri = null;
+  if (!legacyOnly) {
+    hijri = hijriForCivilDay(date.getFullYear(), date.getMonth() + 1, date.getDate(), readHijriOffset());
+    for (const id of ['ramadan', 'dhul-hijjah', 'white-days']) {
+      const pack = catalog.seasonal[id];
+      if (!pack || !hijri || (pack.hijriMonth !== null && pack.hijriMonth !== hijri.m) || hijri.d < pack.firstDay || hijri.d > pack.lastDay) continue;
+      const day = pack.days[hijri.d - pack.firstDay];
+      selected = { packId: pack.packId, version: pack.version, dayId: day.id, lisanRef: day.lisanRef, legacy: false, day }; season = id; break;
+    }
+  }
+  if (!season && date.getDay() === 5 && legacy.overrides?.friday) {
+    selected = { packId: 'dima-friday-001', version: 1, dayId: 'dima.friday.01', lisanRef: 'lf', legacy: true, day: legacy.overrides.friday };
+  }
+  const day = selected.day, lisan = day.lisan || legacy.lisan.find(x => x.id === selected.lisanRef) || legacy.lisan[slot % 12];
+  const cycle = legacyOnly ? 0 : Math.floor((index - 1) / available);
+  const repeat = !legacyOnly && (season ? Object.entries(store.presented || {}).some(([key, rec]) => key < civilDate && rec.dayId === selected.dayId) : cycle > 0);
+  const daily = legacy.notifications.daily;
+  const notification = repeat ? (catalog.manifest?.notifications?.repeat || { id: 'dima.repeat.notification',
+    text: '\u062f\u064a\u0645\u0629 \u0627\u0644\u064a\u0648\u0645 \u0645\u0646 \u0627\u0644\u0623\u064a\u0627\u0645 \u0627\u0644\u0645\u062a\u0627\u062d\u0629\u060c \u0648\u062e\u064a\u0631\u0643 \u0645\u062d\u0641\u0648\u0638' }) : selected.legacy ? {
+    id: selected.packId === 'dima-friday-001' ? 'dima.legacy.friday.notification' : 'dima.legacy.daily.' + slot % daily.length,
+    text: selected.packId === 'dima-friday-001' ? legacy.notifications.friday : daily[slot % daily.length]
+  } : day.notification;
+  return { civilDate, index: legacyOnly ? Math.min(30, index) : index, packId: selected.packId, version: selected.version,
+    dayId: selected.dayId, lisanRef: selected.lisanRef, cycle, repeat, season, hijri: hijri ? dimaClone(hijri) : null,
+    legacy: selected.legacy, snapshot: dimaClone({ lisan, qalb: day.qalb, jawarih: day.jawarih,
+      notification: notification || { id: 'dima.repeat.notification', text: '' }, teaser: day.teaser || null }) };
+}
+function dimaResolveForDate(store, date, catalog = __dimaCatalog) {
+  const key = dimaDateKey(date), frozen = store.presented?.[key];
+  if (dimaPresentationValid(frozen, key)) return frozen;
+  const available = catalog || (__dimaData ? dimaLegacyCatalog(__dimaData) : null);
+  return available ? dimaMakeRecord(store, date, available) : null;
+}
+function dimaPresentationValid(record, key) {
+  return dimaObject(record) && record.civilDate === key && Number.isInteger(record.index) && record.index >= 1 &&
+    typeof record.packId === 'string' && typeof record.dayId === 'string' && Number.isInteger(record.version) && record.version >= 1 &&
+    dimaObject(record.snapshot) && ['lisan', 'qalb', 'jawarih'].every(k => dimaObject(record.snapshot[k]) && typeof record.snapshot[k].text === 'string');
+}
+function dimaV2Valid(store) {
+  return dimaObject(store) && store.schema === 2 && (store.startDate === null || dimaValidDayKey(store.startDate)) &&
+    dimaObject(store.log) && dimaObject(store.notify) && typeof store.notify.on === 'boolean' && DIMA_SLOTS.includes(store.notify.slot) &&
+    typeof store.notifySeen === 'boolean' && dimaObject(store.presented) && Object.entries(store.presented).every(([key, value]) => dimaValidDayKey(key) && dimaPresentationValid(value, key));
+}
+function dimaUpgradeStore(store) {
+  if (dimaV2Valid(store)) return dimaClone(store);
+  const next = { ...dimaClone(store), schema: 2, migratedFrom: DIMA_KEY, presented: {} };
+  if (!__dimaData) return next;
+  const catalog = dimaLegacyCatalog(__dimaData);
+  for (const key of Object.keys(next.log || {})) if (dimaValidDayKey(key)) next.presented[key] = dimaMakeRecord(next, dimaDateFromKey(key), catalog, true);
+  return next;
+}
+function dimaSaveV2(next, rollback = true) {
+  __dimaSessionStore = dimaClone(next);
+  const encoded = JSON.stringify(next);
+  try {
+    localStorage.setItem(DIMA_V2_KEY, encoded);
+    if (localStorage.getItem(DIMA_V2_KEY) !== encoded) throw new Error('dima-write-check');
+    if (rollback) localStorage.setItem(DIMA_KEY, JSON.stringify({ startDate: next.startDate, log: next.log, notify: next.notify, notifySeen: next.notifySeen }));
+    if (__dimaStoreError !== 'corrupt') __dimaStoreError = '';
+  } catch (e) { __dimaStoreError = 'storage'; }
+  return __dimaSessionStore;
+}
+function dimaReadStore() {
+  if (__dimaSessionStore?.schema === 2) return __dimaSessionStore;
+  let raw = null;
+  try { raw = localStorage.getItem(DIMA_V2_KEY); } catch (e) { __dimaStoreError = 'storage'; }
+  if (raw) {
+    try { const got = JSON.parse(raw); if (dimaV2Valid(got)) { __dimaSessionStore = got; return got; } } catch (e) {}
+    __dimaStoreError = 'corrupt';
+  }
+  const legacy = __dimaSessionStore || dimaReadLegacyStore();
+  if (!__dimaData) { __dimaSessionStore = legacy; return legacy; }
+  // Migration freezes old logged dates only after the unchanged legacy file is available.
+  return dimaSaveV2(dimaUpgradeStore(legacy), false);
+}
+function dimaFreezePresented(store, record) {
+  if (!record || !store.startDate || record.civilDate < store.startDate || store.presented?.[record.civilDate]) return store;
+  const next = dimaUpgradeStore(store);
+  next.presented[record.civilDate] = dimaClone(record);
+  return dimaWriteStore(next);
+}
+function dimaResetSession() { __dimaSessionStore = null; __dimaStoreError = ''; }
+
+const DIMA_CONTENT_LANGS = ['am', 'om', 'en', 'fa', 'fr', 'ur', 'id', 'ha', 'sw', 'zh', 'de', 'hi', 'ps', 'uz'];
+const __dimaTranslationReady = new Set(), __dimaTranslationPending = new Map();
+function dimaPrepareTranslations(lang = EZ_LANG) {
+  if (!DIMA_CONTENT_LANGS.includes(lang) || __dimaTranslationReady.has(lang)) return Promise.resolve();
+  if (__dimaTranslationPending.has(lang)) return __dimaTranslationPending.get(lang);
+  const work = ezTr4Load().then(layer => layer?.preloadDima ? layer.preloadDima(lang) : null)
+    .catch(() => null).then(() => { __dimaTranslationReady.add(lang); __dimaTranslationPending.delete(lang); });
+  __dimaTranslationPending.set(lang, work);
+  return work;
+}
+function dimaTranslatedText(item, legacy = true) {
+  if (!item) return '';
+  if (item.id === 'dima.repeat.notification') return ezT('dima.repeatHelp');
+  const text = typeof item === 'string' ? item : item.text;
+  return legacy && window.TR4?.dimaText ? window.TR4.dimaText(EZ_LANG, item.id || '', text) : text;
+}
+function dimaRefreshFromStorage(event) {
+  if (!event || !event.key || event.key === DIMA_KEY || event.key === DIMA_V2_KEY) dimaResetSession();
+}
+function useDimaRevision() {
+  const [version, setVersion] = useState(0);
+  useEffect(() => {
+    const refresh = () => setVersion(value => value + 1);
+    const storage = event => { dimaRefreshFromStorage(event); refresh(); };
+    const timer = setInterval(refresh, 30000);
+    if (timer && typeof timer.unref === 'function') timer.unref();
+    const names = ['focus', 'ezik:dima:data', 'ezik:dima:state', 'ezik-widget-data-change'];
+    names.forEach(name => window.addEventListener(name, refresh));
+    window.addEventListener('storage', storage);
+    document.addEventListener('visibilitychange', refresh);
+    return () => { clearInterval(timer); names.forEach(name => window.removeEventListener(name, refresh));
+      window.removeEventListener('storage', storage); document.removeEventListener('visibilitychange', refresh); };
+  }, []);
+  return version;
+}
+function useDimaSchedule() {
+  useEffect(() => {
+    let alive = true, signature = '', busy = false, pending = false;
+    const wake = async (event) => {
+      if (event?.type === 'storage') dimaRefreshFromStorage(event);
+      if (busy) { pending = true; return; }
+      if (!dimaReadStore().startDate) return;
+      const refresh = event && ['online', 'focus'].includes(event.type);
+      const next = [dimaDateKey(dimaCivilDate()), EZ_LANG, readHijriOffset(), JSON.stringify(readQiblaLoc()),
+        __dimaCatalog?.revision, JSON.stringify(dimaReadStore().notify), JSON.stringify(dimaReadStore().log)].join('|');
+      if (!refresh && next === signature) return;
+      busy = true;
+      try {
+        await loadDimaPacks(!!refresh);
+        if (refresh) __dimaTranslationReady.delete(EZ_LANG);
+        await dimaPrepareTranslations();
+        if (alive) { signature = next; ezikSchedArm(); }
+      } catch (e) {} finally { busy = false; if (alive && pending) { pending = false; wake(); } }
+    };
+    const names = ['focus', 'online', 'storage', 'ezik:dima:state', 'ezik:dima:data', 'ezik-widget-data-change'];
+    names.forEach(name => window.addEventListener(name, wake));
+    EZ_LANG_SUBS.add(wake);
+    const timer = setInterval(wake, 30000);
+    if (timer && typeof timer.unref === 'function') timer.unref();
+    wake();
+    return () => { alive = false; clearInterval(timer); names.forEach(name => window.removeEventListener(name, wake)); EZ_LANG_SUBS.delete(wake); };
+  }, []);
+}
+
 function dimaDefaultStore() {
   return { startDate: null, log: {}, notify: { on: true, slot: 'fajr30' }, notifySeen: false };
 }
-function dimaReadStore() {
+function dimaReadLegacyStore() {
   let raw = null;
   try { raw = localStorage.getItem(DIMA_KEY); } catch (e) { return dimaDefaultStore(); }
   if (typeof raw !== 'string' || !raw) return dimaDefaultStore();
   let got = null;
   try { got = JSON.parse(raw); } catch (e) { return dimaDefaultStore(); }
   if (!got || typeof got !== 'object' || Array.isArray(got)) return dimaDefaultStore();
-  const startDate = typeof got.startDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(got.startDate) ? got.startDate : null;
+  const startDate = dimaValidDayKey(got.startDate) ? got.startDate : null;
   const log = got.log && typeof got.log === 'object' && !Array.isArray(got.log) ? got.log : {};
   const notify = got.notify && typeof got.notify === 'object' && !Array.isArray(got.notify) ? got.notify : {};
   return {
@@ -16745,8 +17148,9 @@ function dimaReadStore() {
   };
 }
 function dimaWriteStore(next) {
-  try { localStorage.setItem(DIMA_KEY, JSON.stringify(next)); } catch (e) {}
-  return next;
+  const saved = dimaSaveV2(dimaUpgradeStore(next));
+  try { window.dispatchEvent(new CustomEvent('ezik:dima:state')); } catch (e) {}
+  return saved;
 }
 function dimaDateKey(date) {
   return String(date.getFullYear()).padStart(4, '0') + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
@@ -16768,7 +17172,7 @@ function dimaIndexForDate(startDate, date) {
 }
 function dimaLogFor(store, key) {
   const old = store && store.log && store.log[key] && typeof store.log[key] === 'object' ? store.log[key] : {};
-  return { l: old.l === 1 ? 1 : 0, q: old.q === 1 ? 1 : 0, j: old.j === 1 ? 1 : 0,
+  return { ...old, l: old.l === 1 ? 1 : 0, q: old.q === 1 ? 1 : 0, j: old.j === 1 ? 1 : 0,
     taps: Number.isInteger(old.taps) && old.taps >= 0 ? old.taps : 0,
     laterAt: Number.isFinite(old.laterAt) && old.laterAt > 0 ? old.laterAt : 0 };
 }
@@ -16789,7 +17193,8 @@ function dimaPrayerAt(date, slot) {
 }
 function ezikDimaAlertItems(now) {
   const items = [];
-  if (!(now instanceof Date) || !isFinite(now.getTime()) || !__dimaData) return items;
+  if (!(now instanceof Date) || !isFinite(now.getTime()) || !__dimaCatalog ||
+      (DIMA_CONTENT_LANGS.includes(EZ_LANG) && !__dimaTranslationReady.has(EZ_LANG))) return items;
   const store = dimaReadStore();
   if (!store.startDate) return items;
   const prefs = store.notify || { on: true, slot: 'fajr30' };
@@ -16804,14 +17209,14 @@ function ezikDimaAlertItems(now) {
     const log = dimaLogFor(store, key);
     if (log.laterAt > now.getTime()) {
       items.push({ id: 'daily:dima-later:' + key, type: 'daily', at: log.laterAt,
-        title: ezT('dima.title'), body: __dimaData.notifications.later, route: 'dima' });
+        title: ezT('dima.title'), body: dimaTranslatedText({ id: 'dima.later.notification', text: __dimaData.notifications.later }), route: 'dima' });
     }
     if (prefs.on !== true || DIMA_SLOTS.indexOf(prefs.slot) < 0) continue;
     const at = dimaPrayerAt(dt, prefs.slot);
     if (!isFinite(at) || at <= now.getTime()) continue;
-    const friday = dt.getDay() === 5;
-    const daily = __dimaData.notifications.daily;
-    const body = friday ? __dimaData.notifications.friday : daily[(dayIndex - 1) % daily.length];
+    const resolved = dimaResolveForDate(store, dt);
+    if (!resolved) continue;
+    const body = dimaTranslatedText(resolved.snapshot.notification, resolved.legacy);
     items.push({ id: 'daily:dima:' + key, type: 'daily', at: at,
       title: ezT('dima.title'), body: body, route: 'dima' });
   }
@@ -16866,11 +17271,13 @@ function DimaScene({ plants, todayCount, instant, data }) {
 }
 function dimaDayTitle(index, english, data) {
   const ordinal = data && data.ui && Array.isArray(data.ui.dayOrdinals) ? data.ui.dayOrdinals[index - 1] : '';
-  return english ? ezT('dima.day') + ' ' + index : ezT('dima.day') + ' ' + ordinal;
+  return ezT('dima.day') + ' ' + (EZ_LANG === 'ar' && ordinal ? ordinal : ezNum(index));
 }
 function EzikDimaSection({ onBack }) {
+  const lang = useEzLang();
+  const revision = useDimaRevision();
   const [store, setStore] = useState(dimaReadStore);
-  const [data, setData] = useState(__dimaData);
+  const [data, setData] = useState(__dimaCatalog ? __dimaData : null);
   const [loadFailed, setLoadFailed] = useState(false);
   const [tab, setTab] = useState(0);
   const [step, setStep] = useState('main');
@@ -16881,15 +17288,17 @@ function EzikDimaSection({ onBack }) {
   const aliveRef = useRef(true);
   useEffect(() => () => { aliveRef.current = false; if (moveTimer.current) clearTimeout(moveTimer.current); }, []);
   useEffect(() => {
-    loadDima().then((next) => { if (aliveRef.current) { setData(next); setLoadFailed(false); ezikSchedArm(); } })
+    loadDimaPacks().then(() => dimaPrepareTranslations()).then(() => { if (aliveRef.current) { setData(__dimaData); setStore(dimaReadStore()); setLoadFailed(false); ezikSchedArm(); } })
       .catch(() => { if (aliveRef.current) setLoadFailed(true); });
   }, []);
+  useEffect(() => { setStore(dimaReadStore()); }, [revision]);
+  useEffect(() => { dimaPrepareTranslations(lang).then(() => { if (aliveRef.current) ezikSchedArm(); }); }, [lang]);
   useEzikBackLayer(step !== 'main', () => { setStep('main'); setNotice(''); });
   const persist = (next) => { const saved = dimaWriteStore(next); setStore(saved); ezikSchedArm(); return saved; };
-  const today = new Date();
+  const today = dimaCivilDate();
   const todayKey = dimaDateKey(today);
   const rawIndex = store.startDate ? dimaIndexForDate(store.startDate, today) : 1;
-  const todayIndex = Math.max(1, Math.min(30, rawIndex || 1));
+  const todayIndex = Math.max(1, rawIndex || 1);
   const currentLog = dimaLogFor(store, todayKey);
   const dropCount = currentLog.l + currentLog.q + currentLog.j;
   const plants = Array.from({ length: 7 }, (_, i) => {
@@ -16898,15 +17307,17 @@ function EzikDimaSection({ onBack }) {
     const log = dimaLogFor(store, key);
     return { key: key, stage: store.startDate && key >= store.startDate ? log.l + log.q + log.j : 0 };
   });
-  const baseDay = data ? data.days[(todayIndex - 1) % data.days.length] : null;
-  const isFriday = today.getDay() === 5;
-  const contentDay = data && isFriday ? data.overrides.friday : baseDay;
-  const lisan = data ? data.lisan[(todayIndex - 1) % data.lisan.length] : null;
-  const entry = !data ? null : tab === 0 ? (contentDay.lisan || lisan) : contentDay[tab === 1 ? 'qalb' : 'jawarih'];
+  const resolved = data ? dimaResolveForDate(store, today) : null;
+  const contentDay = resolved?.snapshot;
+  const entry = !contentDay ? null : contentDay[tab === 0 ? 'lisan' : tab === 1 ? 'qalb' : 'jawarih'];
+  useEffect(() => {
+    if (!resolved || step !== 'main' || !store.startDate || rawIndex < 1 || store.presented?.[todayKey]) return;
+    setStore(dimaFreezePresented(store, resolved));
+  }, [data, store, todayKey, step]);
   const done = !!(currentLog.l && currentLog.q && currentLog.j);
   const showDone = done;
   const english = typeof document !== 'undefined' && document.documentElement.lang === 'en';
-  const dayNum = (n) => english ? String(n) : toArabicDigits(String(n));
+  const dayNum = (n) => ezNum(n);
   const rootTitle = step === 'main' ? ezT('dima.title') : ezT('dima.notifications');
   const openNotify = () => { setNotice(''); setStep(store.notifySeen ? 'settings' : 'intro'); };
   const close = () => {
@@ -16914,7 +17325,9 @@ function EzikDimaSection({ onBack }) {
     onBack();
   };
   const updateLog = (patch) => {
-    const next = { ...store, log: { ...(store.log || {}), [todayKey]: { ...currentLog, ...patch } } };
+    if (!store.startDate || rawIndex < 1) return;
+    const frozen = dimaFreezePresented(store, resolved);
+    const next = { ...frozen, log: { ...(frozen.log || {}), [todayKey]: { ...currentLog, ...patch } } };
     persist(next);
   };
   const begin = () => {
@@ -16923,7 +17336,7 @@ function EzikDimaSection({ onBack }) {
     setTab(0);
   };
   const mark = () => {
-    if (!entry || showDone) return;
+    if (!entry || showDone || rawIndex < 1) return;
     setInstantPlant(false);
     if (tab === 0) updateLog({ l: 1, taps: currentLog.taps + 1 });
     else updateLog(tab === 1 ? { q: 1 } : { j: 1 });
@@ -16984,16 +17397,16 @@ function EzikDimaSection({ onBack }) {
     {step === 'main' ? <button type="button" className="dimaIconButton" onClick={openNotify} aria-label={ezT('dima.openNotifications')}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg></button> : <span className="dimaHeaderSpacer" />}
   </header>;
   const ui = data && data.ui ? (english && data.ui.en ? data.ui.en : data.ui) : null;
-  if (!data && !loadFailed) return <div className="dimaRoot">{header}<main className="dimaPage"><p role="status">{ezT('dima.loading')}</p></main></div>;
-  if (!data && loadFailed) return <div className="dimaRoot">{header}<main className="dimaPage"><p role="alert">{ezT('dima.loadError')}</p><button type="button" className="dimaAction" onClick={() => { setLoadFailed(false); loadDima().then(setData).catch(() => setLoadFailed(true)); }}>{ezT('dima.retry')}</button></main></div>;
-  if (step === 'intro') return <div className="dimaRoot">{header}<main className="dimaPage dimaNotifyIntro">
+  if (!data && !loadFailed) return <div className="dimaRoot" dir={EZ_LANG_DIR[lang] || 'ltr'}>{header}<main className="dimaPage"><p role="status">{ezT('dima.loading')}</p></main></div>;
+  if (!data && loadFailed) return <div className="dimaRoot" dir={EZ_LANG_DIR[lang] || 'ltr'}>{header}<main className="dimaPage"><p role="alert">{ezT('dima.loadError')}</p><button type="button" className="dimaAction" onClick={() => { setLoadFailed(false); loadDimaPacks(true).then(() => { setData(__dimaData); setStore(dimaReadStore()); }).catch(() => setLoadFailed(true)); }}>{ezT('dima.retry')}</button></main></div>;
+  if (step === 'intro') return <div className="dimaRoot" dir={EZ_LANG_DIR[lang] || 'ltr'}>{header}<main className="dimaPage dimaNotifyIntro">
     <DimaScene plants={plants} todayCount={dropCount} instant={instantPlant} data={data} />
     <h1>{data.ui.intro.title}</h1><p>{data.ui.intro.body}</p><small>{data.ui.intro.footnote}</small>
     {notice ? <p className="dimaNotice" role="status">{notice}</p> : null}
     <button type="button" className="dimaAction" onClick={requestNotify}>{data.ui.intro.enable}</button>
     <button type="button" className="dimaSecondary" onClick={() => { persist({ ...store, notify: { ...store.notify, on: false }, notifySeen: true }); setStep('settings'); }}>{data.ui.intro.later}</button>
   </main></div>;
-  if (step === 'settings') return <div className="dimaRoot">{header}<main className="dimaPage dimaNotifySettings">
+  if (step === 'settings') return <div className="dimaRoot" dir={EZ_LANG_DIR[lang] || 'ltr'}>{header}<main className="dimaPage dimaNotifySettings">
     <DimaScene plants={plants} todayCount={dropCount} instant={instantPlant} data={data} />
     <h1>{data.ui.notifyTitle}</h1><p>{data.ui.notifyDaily}</p>
     <div className="dimaNotifyRow"><div><strong>{store.notify.on ? data.ui.notifyOn : data.ui.notifyOff}</strong><small>{data.ui.notifyTimeNote}</small></div>
@@ -17004,44 +17417,48 @@ function EzikDimaSection({ onBack }) {
     </div>
     <p className="dimaFinePrint">{data.ui.notifyTimeNote}</p>
     <h2>{data.ui.notifyPreview}</h2>
-    <div className={'dimaPreview' + (store.notify.on ? '' : ' is-off')}><span><b>{ezT('dima.title')}</b><small>{data.notifications.slots[store.notify.slot]}</small></span><p>{data.notifications.daily[0]}</p></div>
-    <div className={'dimaPreview dimaPreviewFriday' + (store.notify.on ? '' : ' is-off')}><span><b>{ezT('dima.title')}</b><small>{data.notifications.slots[store.notify.slot]}</small></span><p>{data.notifications.friday}</p></div>
+    <div className={'dimaPreview' + (store.notify.on ? '' : ' is-off')}><span><b>{ezT('dima.title')}</b><small>{data.notifications.slots[store.notify.slot]}</small></span><p>{dimaTranslatedText(resolved?.snapshot.notification, resolved?.legacy)}</p></div>
+    <div className={'dimaPreview dimaPreviewFriday' + (store.notify.on ? '' : ' is-off')}><span><b>{ezT('dima.title')}</b><small>{data.notifications.slots[store.notify.slot]}</small></span><p>{dimaTranslatedText({ text: data.notifications.friday })}</p></div>
     <p className="dimaFinePrint">{data.ui.notifyPreviewNote}</p>
     {notice ? <p className="dimaNotice" role="status">{notice}</p> : null}
     <button type="button" className="dimaSecondary" onClick={() => setStep('main')}>{data.ui.cancel}</button>
   </main></div>;
-  if (!store.startDate) return <div className="dimaRoot">{header}<main className="dimaPage dimaIntro">
+  if (!store.startDate) return <div className="dimaRoot" dir={EZ_LANG_DIR[lang] || 'ltr'}>{header}<main className="dimaPage dimaIntro">
     <DimaScene plants={plants} todayCount={dropCount} instant={instantPlant} data={data} />
     <h1>{data.name}</h1><p>{data.tagline}</p>
-    <div className="dimaIntroInfo"><span>{ezT('dima.programLength')}</span><strong>{ezT('dima.oneMinute')}</strong></div>
+    <div className="dimaIntroInfo"><span>{ezT('dima.todayPractices')}</span><strong>{ezT('dima.oneMinute')}</strong></div>
     <button type="button" className="dimaAction" onClick={begin}>{ezT('dima.begin')}</button>
   </main></div>;
   const currentFlag = tab === 0 ? currentLog.l : tab === 1 ? currentLog.q : currentLog.j;
   const slotLabel = data.notifications.slots[store.notify.slot] || data.notifications.slots.fajr30;
-  return <div className="dimaRoot" dir="rtl">
+  return <div className="dimaRoot" dir={EZ_LANG_DIR[lang] || 'ltr'}>
     {header}
     <main className="dimaPage dimaMainPage">
     <DimaScene plants={plants} todayCount={dropCount} instant={instantPlant} data={data} />
-      <section className="dimaCard" aria-label={ezT('dima.todayPractices')}>
+      <section className="dimaCard" data-dima-day={resolved.dayId} data-dima-index={todayIndex} data-dima-pack={resolved.packId} data-dima-version={resolved.version} aria-label={ezT('dima.todayPractices')}>
         <div className="dimaCardHead"><strong>{dimaDayTitle(todayIndex, english, data)}</strong><span className={'dimaStatus' + (done ? ' is-done' : '')}>{done ? ui.completeBadge : ui.todayBadge}</span></div>
+        {resolved.repeat ? <p className="dimaRepeat" data-tr4-owned="" role="status">{ezT('dima.repeatLabel')} — {ezT('dima.repeatHelp')}</p> : null}
+        {resolved.season ? <p className="dimaSeason" data-tr4-owned="">{ezT('dima.seasonLabel')}</p> : null}
+        {__dimaStoreError ? <p className="dimaNotice" data-tr4-owned="" role="status">{ezT('dima.saveWarning')}</p> : null}
         <div className="dimaTabs" role="group" aria-label={ezT('dima.todayPractices')}>
           {data.ui.pills.map((label, i) => <button type="button" key={i} disabled={done} aria-pressed={tab === i ? 'true' : 'false'} className={'dimaTab' + (tab === i ? ' is-selected' : '') + ((i === 0 ? currentLog.l : i === 1 ? currentLog.q : currentLog.j) ? ' is-done' : '')} onClick={() => { setTab(i); setShowTafsir(false); }}>{english ? [ezT('dima.tab.lisan'), ezT('dima.tab.qalb'), ezT('dima.tab.jawarih')][i] : label}</button>)}
         </div>
         {showDone ? <div className="dimaDone">
           <DimaDropMark className="dimaDoneDropIcon" size={38} />
-          <h2>{todayIndex === 30 ? data.ui.doneMonth : data.ui.doneTitle}</h2>
+          <h2>{data.ui.doneTitle}</h2>
           <p>{data.ui.doneBody}</p>
           <blockquote>{data.closing.text}<small>{data.closing.src}</small></blockquote>
-          <p className="dimaNextNotice">{ui.tomorrowNotice}</p>
-          {store.notify.on ? <p className="dimaTomorrowNotify">{ui.tomorrowNotification.replace('{slot}', slotLabel)}</p> : null}
+          <p className="dimaNextNotice">{ezT('dima.repeatHelp')}</p>
+          {store.notify.on ? <p className="dimaTomorrowNotify">{slotLabel}</p> : null}
         </div> : <>
           <div className="dimaDropKicker"><span>{data.ui.kickers[tab]}</span><span>{data.ui.hints[tab]}</span></div>
-          <div className={'dimaVerse ' + (entry.kind === 'quran' || entry.kind === 'ayah' ? 'is-quran' : '')} dir="rtl">{entry.text}</div>
-          {entry.note || entry.fadl ? <div className="dimaNote">{entry.note || entry.fadl}</div> : null}
-          {sourceLabel(entry) ? <small className="dimaSource">{sourceLabel(entry)}</small> : null}
+          <div key={resolved.dayId + ':' + tab} data-tr4-owned={resolved.legacy ? undefined : ''} dir="rtl">
+          <div data-tr4-id={entry.id} data-tr4-preserve-ar={entry.kind === 'story' ? '' : undefined} className={'dimaVerse ' + (entry.textKind !== 'guidance' && (entry.kind === 'quran' || entry.kind === 'ayah') ? 'is-quran' : '')} dir="rtl">{entry.text}</div>
+          {entry.note || entry.fadl ? <div className="dimaNote" data-tr4-id={entry.noteId} data-tr4-preserve-ar="" dir="rtl">{entry.note || entry.fadl}</div> : null}
+          {sourceLabel(entry) ? <small className="dimaSource" data-tr4-owned="" dir="rtl">{sourceLabel(entry)}</small> : null}
           {entry.tafsir ? <div className="dimaTafsir"><button type="button" className="dimaTextButton" aria-expanded={showTafsir ? 'true' : 'false'} onClick={() => setShowTafsir(!showTafsir)}>{data.ui.misc.readTafsir}</button>{showTafsir ? <p>{entry.tafsir}</p> : null}</div> : null}
           <div className="dimaActions">
-            {!currentFlag ? <button type="button" className={tab === 0 ? 'dimaCounter' : 'dimaAction'} onClick={mark} aria-label={tab === 0 ? entry.action + ' ' + dayNum(currentLog.taps) : entry.action}>
+            {!currentFlag ? <button type="button" disabled={rawIndex < 1} data-tr4-id={entry.actionId} className={tab === 0 ? 'dimaCounter' : 'dimaAction'} onClick={mark} aria-label={tab === 0 ? entry.action + ' ' + dayNum(currentLog.taps) : entry.action}>
               {tab === 0 ? <><span>{entry.action}</span><b>{dayNum(currentLog.taps)}</b></> : entry.action}
             </button> : <div className="dimaDoneControls"><span>{data.ui.dropLanded}</span><button type="button" className="dimaSecondary" onClick={undo}>{data.ui.undo}</button>{tab < 2 ? <button type="button" className="dimaAction" onClick={() => setTab(tab + 1)}>{data.ui.nextDrop}</button> : null}</div>}
             {tab === 2 && entry.later === true && !currentFlag ? (currentLog.laterAt > Date.now()
@@ -17049,6 +17466,7 @@ function EzikDimaSection({ onBack }) {
               : <button type="button" className="dimaTextButton" onClick={queueLater}>{data.ui.remindLater}</button>) : null}
           </div>
           {notice ? <p className="dimaNotice" role="status">{notice}</p> : null}
+          </div>
         </>}
       </section>
     </main>
@@ -20087,6 +20505,7 @@ function AdhkarCategoryV2({ cat, startAt, onBack }) {
     const text = (cur && typeof cur.text === 'string') ? cur.text : '';
     if (!text) return;
     const fail = (e) => { if (e && e.name === 'AbortError') { setNote(''); return; } setNote(A2_SHARE_FAIL); };
+    if (ezikNativeShareAttempt({ kind: 'text', text }, async () => setNote(await ezikWriteClipboard(text) ? A2_COPY_OK : A2_SHARE_FAIL), () => setNote(A2_SHARE_FAIL))) return;
     try {
       if (navigator.share) { navigator.share({ text: text }).then(() => setNote(A2_SHARE_OK)).catch(fail); return; }
       if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(() => setNote(A2_COPY_OK)).catch(fail); return; }
@@ -21082,6 +21501,7 @@ function App() {
   // 67 / 43-b / 47-b: the schedule pipe, armed at the root. It owns no screen state and renders
   // nothing; a reader who never opens the prayer sheet still has a day that needs arming.
   useEzikSchedRoot();
+  useDimaSchedule();
   useEzikUsageNotif();
   // PRAYER REBUILD (29 October 2026): the app's door asks for the position -- the shell through its bridge, a browser
   // only where the permission is already granted -- so the times move within seconds of opening (owner, 29 October).
@@ -21141,7 +21561,7 @@ function App() {
   const [dimaOpen, setDimaOpen] = useState(() => ezikReadResume() === 'dima');
   useEffect(() => {
     if (!dimaReadStore().startDate) return;
-    loadDima().then(() => ezikSchedArm()).catch(() => {});
+    loadDimaPacks().then(() => dimaPrepareTranslations()).then(() => ezikSchedArm()).catch(() => {});
   }, []);
   const [inboxUnread, setInboxUnread] = useState(null);
   // DECISION ج١٣'s other half -- the sender's dot. A count of answers this reader has been
@@ -21370,6 +21790,20 @@ function App() {
   const shouldListenRef = useRef(false); // desired mic state; true between start-tap and stop-tap (survives auto-restarts)
   const audioRef = useRef(null);          // عنصر الصوت الوحيد النشِط (TTS أو تلاوة)
   const profileRef = useRef(null);        // synchronous mirror of profile for the audio path — avoids the stale-closure male voice on the greeting
+  // D16 LIVE PROFILE START
+  useEffect(() => {
+    const clearSignedOutProfile = () => {
+      const p = profileRef.current;
+      if (!p) return;
+      const next = { ...p, name: '', gender: null };
+      profileRef.current = next;
+      voiceProfileRef.current = next;
+      setProfile(next);
+    };
+    window.addEventListener('ezik:profile:signedout', clearSignedOutProfile);
+    return () => window.removeEventListener('ezik:profile:signedout', clearSignedOutProfile);
+  }, []);
+  // D16 PROFILE END
   const audioUnlockedRef = useRef(false); // true after the one-time first-gesture audio unlock (mobile autoplay)
   const sequenceIdRef = useRef(0);        // رمز إلغاء تسلسل الصوت الجاري
   const audioElRef = useRef(null);     // single gesture-unlocked element, REUSED for TTS (iOS autoplay)
@@ -22417,6 +22851,7 @@ function App() {
   useEffect(() => {
     const recognition = ezNewRecognition();
     if (!recognition) { recognitionRef.current = null; return; }
+    recognition.ezikFounderOnly = true; // D27: recheck owner at every start, including automatic restarts
     recognition.lang = 'ar-SA';
     recognition.continuous = true;       // keep listening across pauses until the user taps the mic off
     recognition.interimResults = true;
@@ -23657,11 +24092,13 @@ function App() {
     dictStreamRef.current = null;
   };
   const startCloudDictation = async () => {
+    if (!hasFounderToken()) return;
     // The cloud dictation recorder, on the same terms as everything else: no consent, no
     // getUserMedia. startListening already refuses above this, so this is the second barrier.
     if (!hasValidAIConsent()) { setIsListening(false); setVoiceError(EZ_SPEECH_NO_CONSENT); setTimeout(() => setVoiceError(''), 6000); return; }
     try {
       dictStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
+      if (!hasFounderToken() || !hasValidAIConsent()) { stopDictAll(); setIsListening(false); return; }
       dictChunksRef.current = [];
       const mr = new MediaRecorder(dictStreamRef.current, pickRecMime());
       mr.ondataavailable = (e) => { if (e.data && e.data.size) dictChunksRef.current.push(e.data); };
@@ -23676,6 +24113,7 @@ function App() {
     }
   };
   const stopCloudDictation = async () => {
+    if (!hasFounderToken()) { stopDictAll(); setIsListening(false); return; }
     const mr = dictRecRef.current;
     setIsListening(false);
     if (!mr) { stopDictAll(); setVoiceError('DBG A no-recorder'); setTimeout(() => setVoiceError(''), 8000); return; }
@@ -23686,6 +24124,7 @@ function App() {
     stopDictAll();
     if (!blob || blob.size < 1500) { setVoiceError('DBG B bytes=' + (blob ? blob.size : -1)); setTimeout(() => setVoiceError(''), 8000); return; }
     const b64 = await blobToBase64(blob);
+    if (!hasFounderToken()) return;
     let text = '';
     try {
       const band = (() => { try { return deriveCaps(profileRef.current?.age).band; } catch (e) { return 'young'; } })();
@@ -23706,6 +24145,7 @@ function App() {
     // بلا موافقة: لا يُفتح الميكروفونُ إطلاقاً — لا تسجيلٌ يُرسَل إلى ElevenLabs ولا جلسةُ
     // تعرُّفٍ يفتحها المتصفّح. فشلٌ آمنٌ صامتٌ إلى الوضعِ المحلّيّ.
     if (!hasValidAIConsent()) { setAiConsent(aiConsentStatus()); return; }
+    if (!hasFounderToken()) return;
     if (DICTATE_CLOUD) {
       if (isSpeaking) stopSpeaking();
       baseTextRef.current = input && !/\s$/.test(input) ? input + ' ' : input;
@@ -23732,6 +24172,7 @@ function App() {
       setTimeout(() => setVoiceError(''), 6000);
       return;
     }
+    if (!hasFounderToken()) { shouldListenRef.current = false; setIsListening(false); return; }
     if (isSpeaking) stopSpeaking();
     // Snapshot the current box (typed or previously dictated, incl. hand-edits) as the base.
     // New speech is appended AFTER it — nothing already there is erased or replaced.
@@ -25022,6 +25463,8 @@ function App() {
       // WIRD_LIST_KEY is already swept a few lines below.
       localStorage.removeItem(WIRD_ALERTS_KEY);
       try { localStorage.removeItem(DIMA_KEY); } catch (e) {}
+      try { localStorage.removeItem('ezik_dima_v2'); } catch (e) {}
+      if (typeof dimaResetSession === 'function') dimaResetSession();
       // Session 86 -- and the APPLICATION UI STYLE with them, the one key that now governs the
       // home screen and the adhkar screens together. Removing it is enough: the reader is total,
       // so an absent key IS 'journey', and the event tells every mounted screen -- the home, the
@@ -25250,7 +25693,7 @@ function App() {
                 {chatResults.map((r) => (
                   <div key={r.id} className={r.id === chatId ? 'ezc-row is-on' : 'ezc-row'} style={s.drawerResultRow}>
                     <button onClick={() => closeDrawerWith(() => openSavedChat(r.id))} style={s.drawerResultBtn} title={r.title} className="ezik-focus">
-                      <span style={s.drawerResultTitle}>{r.title}</span>
+                      <span dir="auto" style={{ ...s.drawerResultTitle, unicodeBidi: 'isolate' }}>{r.title}</span>
                       {r.snippet && <span style={s.drawerSnippet}>{r.snippet}</span>}
                       {r.at ? <span style={s.drawerResultDate}>{ezikShortDate(r.at)}</span> : null}
                     </button>
@@ -25279,7 +25722,7 @@ function App() {
                               <path d="M12 17v5" /><path d="M9 10.8V5h6v5.8l2.5 3.2h-11L9 10.8z" />
                             </svg>
                           )}
-                          <span style={s.drawerChatTitle}>{c.title}</span>
+                          <span dir="auto" style={{ ...s.drawerChatTitle, unicodeBidi: 'isolate' }}>{c.title}</span>
                         </button>
                         <button onClick={() => pinSavedChat(c.id)} style={s.drawerChatIcon} aria-label={c.pinned ? '\u0625\u0644\u063a\u0627\u0621 \u0627\u0644\u062a\u062b\u0628\u064a\u062a' : '\u062a\u062b\u0628\u064a\u062a'}>
                           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={c.pinned ? 'var(--red)' : 'var(--muted)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -25682,7 +26125,7 @@ function App() {
           </button>
           <span className="ezc-brand">
             <span className="ezc-brand-arch" aria-hidden="true" />
-            {ezcTitle ? <span className="ezc-brand-text">{ezcTitle}</span> : null}
+            {ezcTitle ? <span className="ezc-brand-text" dir="auto" style={{ unicodeBidi: 'isolate' }}>{ezcTitle}</span> : null}
           </span>
           {/* ITEM 05-B -- THE WAY BACK TO THE SHELF, AT THE VISUAL TOP-LEFT.
               LAST IN SOURCE ON PURPOSE, and for two measured reasons, not for taste:
@@ -25990,7 +26433,7 @@ function App() {
           </button>
           <button
             onClick={isListening ? stopListening : startListening}
-            disabled={isLoading}
+            disabled={isLoading || !hasFounderToken()}
             aria-label={'\u0625\u0645\u0644\u0627\u0621 \u0635\u0648\u062a\u064a'}
             {...(uiLang === 'ar' ? null : { 'aria-label': ezT('chat.dictate') })}
             className="ez-anim"
@@ -25998,7 +26441,7 @@ function App() {
               ...s.micBtn,
               background: isListening ? 'var(--red-deep)' : 'var(--tint)',
               animation: isListening ? 'pulse 1.2s ease-in-out infinite' : 'none',
-              opacity: isLoading ? 0.4 : 1,
+              opacity: isLoading || !hasFounderToken() ? 0.4 : 1,
             }}
           >
             {isListening ? <MicOffIcon size={20} color="var(--on-accent)" /> : <MicIcon size={20} color="var(--red)" />}
@@ -28088,6 +28531,7 @@ function BoardCard({ content }) {
 }
 
 function DocumentCard({ title, content, age }) {
+  useEzikNativeShareCaps();
   // THE SHELL'S ANSWER, in the reader's own words, on the same terms as the reply card's: it
   // stays until the next press, and in a browser it is never anything but ''.
   const [said, setSaid] = useState('');
@@ -28111,7 +28555,10 @@ function DocumentCard({ title, content, age }) {
     }
     downloadAsWord(name, name, content);
   };
-  const exportPdf = () => printAsPdf(title || 'مستند', docToHtml(content));
+  const exportPdf = () => {
+    if (!ezikNativePdfAllowed()) { setSaid(EZIK_PDF_FAIL); return; }
+    return printAsPdf(title || 'مستند', docToHtml(content)).catch(() => setSaid(EZIK_PDF_FAIL));
+  };
   const canExport = deriveCaps(age).export;
   return (
     <div style={{ border: '1px solid var(--line)', borderRadius: 12, padding: '14px 16px', background: 'var(--white)', width: '100%' }}>
@@ -28122,10 +28569,10 @@ function DocumentCard({ title, content, age }) {
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--on-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9 15h6"/></svg>
         صدِّر كملف Word
       </button>
-      <button onClick={exportPdf} style={{ marginTop: 12, marginRight: 8, background: 'transparent', color: 'var(--red)', border: '1px solid var(--red)', borderRadius: 10, padding: '9px 16px', fontSize: 15, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+      {ezikNativePdfAllowed() && <button onClick={exportPdf} style={{ marginTop: 12, marginRight: 8, background: 'transparent', color: 'var(--red)', border: '1px solid var(--red)', borderRadius: 10, padding: '9px 16px', fontSize: 15, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--red)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-4"/></svg>
         PDF
-      </button>
+      </button>}
       {said ? <div style={s.qiblaNote}>{said}</div> : null}
       </>)}
     </div>
@@ -29443,7 +29890,7 @@ position:relative;display:flex;flex-direction:column;height:100dvh;overflow:hidd
 .ezcp-act:disabled,.ezcp-gold:disabled{opacity:.5;cursor:default}
 .ezcp-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .ezcp-wrap{box-sizing:border-box;max-width:600px;margin:0 auto;padding:6px 16px calc(env(safe-area-inset-bottom,0px) + 104px);display:flex;flex-direction:column;gap:14px}
-.ezcp-nav{position:absolute;inset-inline:0;bottom:0;z-index:3;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:6px 6px calc(env(safe-area-inset-bottom,0px) + 6px);background:rgba(12,24,27,.9);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid #234047}
+.ezcp-nav{position:absolute;inset-inline:0;bottom:0;z-index:3;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:6px 6px calc(env(safe-area-inset-bottom,0px) + 6px);background:#0c181b;-webkit-backdrop-filter:none;backdrop-filter:none;border-top:1px solid #234047}
 .ezcp-nav button{all:unset;box-sizing:border-box;position:relative;min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-radius:15px;color:#9FB1AE;font-size:11.5px;font-weight:700;text-align:center;cursor:pointer}
 .ezcp-nav button[aria-current="page"]{color:#D6B25E;background:rgba(214,178,94,.1)}
 .ezcp-nav svg{stroke:currentColor}
@@ -31440,6 +31887,19 @@ function prayerDegUi(b) {
   try { arab = readPrayerPrefs().digits === 'arab'; } catch (e) { arab = false; }
   return arab ? qiblaDegreeText(b) : b.toFixed(1);
 }
+// D33: the visible legend names every numeric field; the accessible name reads its value.
+function prayerCountdownFields(ms, compact) {
+  const sec = Math.max(0, Math.floor((typeof ms === 'number' && isFinite(ms) ? ms : 0) / 1000));
+  const values = [Math.floor(sec / 3600), Math.floor(sec % 3600 / 60), sec % 60];
+  const start = compact ? (values[0] ? 0 : values[1] ? 1 : 2) : 0;
+  return values.map((value, i) => ({ value, unit: ['hour', 'minute', 'second'][i] })).slice(start);
+}
+function prayerCountdownUnits(ms, compact) {
+  return prayerCountdownFields(ms, compact).map(p => ezT('countdown.' + p.unit)).join(' : ');
+}
+function prayerCountdownDescription(ms, compact) {
+  return prayerCountdownFields(ms, compact).map(p => prayerDigits(String(p.value)) + ' ' + ezT('countdown.' + p.unit)).join(', ');
+}
 function prayerCountdownUi(ms) { return prayerDigits(prayerCountdownText(ms)); }
 // The Gregorian line of the date strip, in the interface language; the Hijri line is hijriLabel's.
 function prayerGregLabel(v) {
@@ -31476,14 +31936,16 @@ function PrayerTimesPanel({ loc, day, onDay, part, onLoc, onCity }) {
   // -- and the way back to the automatic source over a manual city. The press is the only caller besides the doors.
   const [fix, setFix] = useState({ state: '', at: 0, error: '' });
   const fixStopRef = useRef(null);
+  useEffect(() => () => { if (fixStopRef.current) fixStopRef.current(); }, []);
   const showMain = !part || part === 'main';
   const showRest = !part || part === 'rest';
   const showNotify = !part || part === 'rest' || part === 'notify';
   const refresh = () => {
     if (fixStopRef.current) fixStopRef.current();
     setFix({ state: 'asking', at: Date.now(), error: '' });
-    fixStopRef.current = prayerLocateAndApply({ fresh: true, force: true }, (r, next) => {
+    fixStopRef.current = prayerLocateAndApply({ fresh: true, force: true, userInitiated: true }, (r, next) => {
       fixStopRef.current = null;
+      if (r.error === 'cancelled') { setFix({ state: '', at: 0, error: '' }); return; }
       if (!r.ok) { setFix({ state: 'failed', at: Date.now(), error: r.error }); return; }
       if (onLoc) onLoc(next);
       setFix({ state: 'done', at: Date.now(), error: '' });
@@ -31544,6 +32006,8 @@ function PrayerTimesPanel({ loc, day, onDay, part, onLoc, onCity }) {
         {fix.state === 'failed' && fix.error === 'permission-denied' ? (
           <button type="button" onClick={refresh} data-ezik-city="allow" className="ezik-focus ez110-pcard-pill">{ezT('qibla.allowLoc')}</button>
         ) : null}
+        <EzikLocationSettings />
+        <EzikLocationZoneNote loc={loc} />
         {loc.by === 'place' ? (
           <button type="button" onClick={toAuto} data-ezik-city="auto" className="ezik-focus ez110-pcard-pill">{ezT('place.auto.short')}</button>
         ) : null}
@@ -31561,7 +32025,7 @@ function PrayerTimesPanel({ loc, day, onDay, part, onLoc, onCity }) {
             </div>
             <div className="ez110-pcard-left">
               <span className="ez110-pcard-label">{ezT('panel.remaining')}</span>
-              <bdi dir="ltr" className="ez110-pcard-count" data-ezik-next="count">{prayerCountdownUi(status.remainingMs)}</bdi>
+              <span role="timer" aria-label={prayerCountdownDescription(status.remainingMs, false)}><bdi dir="ltr" aria-hidden="true" className="ez110-pcard-count" data-ezik-next="count">{prayerCountdownUi(status.remainingMs)}</bdi><small dir="ltr" aria-hidden="true" style={{ display: 'block', fontSize: 11, lineHeight: 1.4 }}>{prayerCountdownUnits(status.remainingMs, false)}</small></span>
             </div>
           </div>
         ) : null}
@@ -31831,23 +32295,26 @@ function readQiblaLoc() {
       && rec.lat >= -90 && rec.lat <= 90 && rec.lng >= -180 && rec.lng <= 180) {
       const pl = readPrayerPlaceFor(rec.lat, rec.lng);
       if (pl) return { lat: rec.lat, lng: rec.lng, by: 'place', place: pl };
-      return { lat: rec.lat, lng: rec.lng, by: 'device' };
+      const meta = typeof prayerNativeMetadata === 'function' ? prayerNativeMetadata(rec.meta) : null;
+      return { lat: rec.lat, lng: rec.lng, by: 'device', ...(meta ? { meta } : {}) };
     }
   }
   return { lat: QIBLA_DEFAULT_LAT, lng: QIBLA_DEFAULT_LNG, by: 'default' };
 }
-function writeQiblaLoc(lat, lng) {
+function writeQiblaLoc(lat, lng, metadata) {
+  const meta = typeof prayerNativeMetadata === 'function' ? prayerNativeMetadata(metadata) : null;
   if (typeof lat !== 'number' || typeof lng !== 'number') return readQiblaLoc();
   if (!isFinite(lat) || !isFinite(lng)) return readQiblaLoc();
   if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return readQiblaLoc();
   // A device fix replaces any place the reader chose by name.
   try { localStorage.removeItem(PRAYER_PLACE_KEY); } catch (e) {}
-  try { localStorage.setItem(QIBLA_LOC_KEY, JSON.stringify({ lat: lat, lng: lng })); }
+  try { localStorage.setItem(QIBLA_LOC_KEY, JSON.stringify({ lat: lat, lng: lng, ...(meta ? { meta } : {}) })); }
   catch (e) { return readQiblaLoc(); }
   try { ezikWidgetDataChanged(); } catch (e) {}
-  return { lat: lat, lng: lng, by: 'device' };
+  return { lat: lat, lng: lng, by: 'device', ...(meta ? { meta } : {}) };
 }
 function clearQiblaLoc() {
+  if (typeof ezikLocationChoiceChanged === 'function') ezikLocationChoiceChanged();
   try { localStorage.removeItem(PRAYER_PLACE_KEY); } catch (e) {}
   try { localStorage.removeItem(QIBLA_LOC_KEY); ezikWidgetDataChanged(); } catch (e) {}
   return readQiblaLoc();
@@ -31930,6 +32397,7 @@ function writePrayerPlace(p) {
   if (typeof p.lat !== 'number' || typeof p.lng !== 'number' || !isFinite(p.lat) || !isFinite(p.lng)) return readQiblaLoc();
   if (p.lat < -90 || p.lat > 90 || p.lng < -180 || p.lng > 180) return readQiblaLoc();
   if (typeof p.n !== 'string' || !p.n || typeof p.tz !== 'string' || !prayerZoneFmt(p.tz)) return readQiblaLoc();
+  if (typeof ezikLocationChoiceChanged === 'function') ezikLocationChoiceChanged();
   try {
     localStorage.setItem(QIBLA_LOC_KEY, JSON.stringify({ lat: p.lat, lng: p.lng }));
     localStorage.setItem(PRAYER_PLACE_KEY, JSON.stringify({ n: p.n, a: typeof p.a === 'string' ? p.a : '',
@@ -32129,6 +32597,113 @@ const SHELL_LOC_RESULT = 'ezik:location:result';
 // to getCurrentPosition, because the reader is waiting on one button either way.
 const SHELL_LOC_TIMEOUT_MS = 10000;
 
+// B9 / S4. A distinct capability message is safe even on shells with the old locator.
+function createEzikNativeLocationAdapter(win = window) {
+  let sequence = 0, caps = null, permission = null, disposed = false, settingsId = null;
+  const prefix = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+  const pending = new Map();
+  const permissionOf = p => p && ['granted', 'denied', 'undetermined', 'restricted', 'unknown'].includes(p.state) &&
+    typeof p.canAskAgain === 'boolean' ? { state: p.state, canAskAgain: p.canAskAgain, accuracy: typeof p.accuracy === 'string' ? p.accuracy : null } : null;
+  const publish = p => { const value = permissionOf(p); if (!value) return; permission = value;
+    try { win.dispatchEvent(new win.CustomEvent('ezik:location:permission', { detail: value })); } catch (e) {} };
+  function onResult(event) {
+    const d = event && event.detail;
+    if (disposed || !d || d.type !== 'ezik:location:result' || d.v !== '2' || typeof d.id !== 'string') return;
+    if (d.id === settingsId && d.op === 'status' && d.reason === 'settings-return') {
+      if (permissionOf(d.permission)) { settingsId = null; publish(d.permission); } return;
+    }
+    const p = pending.get(d.id);
+    if (!p || d.op !== p.op || typeof d.ok !== 'boolean') return;
+    if (p.op === 'capabilities' && (!d.ok || !d.capabilities || d.capabilities.coarse !== true ||
+        d.capabilities.metadata !== true || d.capabilities.fresh !== true || typeof d.capabilities.precise !== 'boolean')) return;
+    pending.delete(d.id); clearTimeout(p.timer);
+    if (p.op === 'open-settings' && d.ok && d.status === 'settings-opened') settingsId = d.id;
+    publish(d.permission); p.done(d);
+  }
+  function request(op, fields, done, timeout = 10000) {
+    if (disposed || typeof win.ReactNativeWebView?.postMessage !== 'function') { done({ ok: false, error: 'unsupported' }); return () => {}; }
+    if (op !== 'capabilities' && !caps) { done({ ok: false, error: 'unsupported' }); return () => {}; }
+    if (op === 'get' && (fields.userInitiated !== true || win.document?.visibilityState === 'hidden')) { done({ ok: false, error: 'inactive' }); return () => {}; }
+    if (op === 'get') cancelFixes();
+    if (op === 'open-settings' && (!caps.settings || fields.userInitiated !== true || permission?.state !== 'denied' || permission.canAskAgain !== false)) { done({ ok: false, error: 'settings-not-needed' }); return () => {}; }
+    const id = 'loc-' + prefix + '-' + ++sequence;
+    const cancel = () => { const p = pending.get(id); if (!p) return; clearTimeout(p.timer); pending.delete(id); };
+    const timer = setTimeout(() => { cancel(); done({ ok: false, error: 'timeout' }); }, timeout);
+    pending.set(id, { op, timer, done });
+    try { win.ReactNativeWebView.postMessage(JSON.stringify({ ...fields, type: 'ezik:location', v: '2', id, op })); }
+    catch (e) { cancel(); done({ ok: false, error: 'location-error' }); }
+    return cancel;
+  }
+  function cancelFixes() {
+    for (const [id,p] of pending) if (p.op === 'get') { clearTimeout(p.timer); pending.delete(id); p.done({ ok: false, error: 'inactive' }); }
+  }
+  const onVisibility = () => { if (win.document?.visibilityState === 'hidden') cancelFixes(); };
+  const dispose = () => {
+    disposed = true; cancelFixes();
+    for (const p of pending.values()) { clearTimeout(p.timer); p.done({ ok: false, error: 'inactive' }); } pending.clear();
+    win.removeEventListener('ezik:location:result', onResult); win.removeEventListener('ezik:location:choice', cancelFixes);
+    win.removeEventListener('pagehide', dispose); win.removeEventListener('popstate', cancelFixes);
+    win.document?.removeEventListener('visibilitychange', onVisibility);
+  };
+  win.addEventListener('ezik:location:result', onResult); win.addEventListener('ezik:location:choice', cancelFixes);
+  win.addEventListener('pagehide', dispose); win.addEventListener('popstate', cancelFixes);
+  win.document?.addEventListener('visibilitychange', onVisibility);
+  const ready = new Promise(resolve => request('capabilities', {}, d => { if (d.ok && d.capabilities) caps = { ...d.capabilities }; resolve(caps); }, 1000));
+  return { ready, request, getCapabilities: () => caps, getPermission: () => permission, dispose };
+}
+const ezikNativeLocation = typeof window === 'undefined' || !ezikShellBridge() ? null : createEzikNativeLocationAdapter(window);
+let ezikLocationChoiceVersion = 0;
+function ezikLocationChoiceChanged() {
+  ezikLocationChoiceVersion += 1;
+  try { window.dispatchEvent(new CustomEvent('ezik:location:choice')); } catch (e) {}
+}
+// Optional metadata belongs to these exact coordinates; it never borrows a nearest city's zone.
+function prayerNativeMetadata(value) {
+  if (!value || value.precision !== 'coarse' || value.coordinateResolutionDegrees !== 0.01 ||
+      !['last-known', 'fresh'].includes(value.source) || !Number.isFinite(value.timestamp) ||
+      !Number.isFinite(value.accuracyMeters) || value.accuracyMeters < 0 || !Number.isFinite(value.ageMs) || value.ageMs < 0) return null;
+  const text = k => typeof value[k] === 'string' && value[k].length <= 200 ? value[k] : null;
+  let timezone = text('timezone');
+  if (timezone && (value.timezoneSource !== 'native-geocoder' || !prayerZoneFmt(timezone))) timezone = null;
+  return { precision: 'coarse', coordinateResolutionDegrees: 0.01, source: value.source,
+    timestamp: value.timestamp, ageMs: value.ageMs, accuracyMeters: value.accuracyMeters,
+    region: text('region'), city: text('city'), district: text('district'), countryCode: text('countryCode'),
+    localitySource: text('localitySource'), timezone, timezoneSource: timezone ? 'native-geocoder' : null,
+    permission: value.permission && typeof value.permission === 'object' ? { state: value.permission.state,
+      canAskAgain: value.permission.canAskAgain, accuracy: value.permission.accuracy } : null };
+}
+function prayerNativeFix(detail) {
+  if (!detail || detail.ok !== true) return { ok: false, error: detail?.error || 'no-position', permission: detail?.permission || null };
+  const meta = prayerNativeMetadata(detail), coords = shellLocResultCoords(detail);
+  if (!meta || !coords || Math.abs(coords.lat) > 90 || Math.abs(coords.lng) > 180 ||
+      detail.timestamp > Date.now() + 5000 || Date.now() - detail.timestamp > 120000 || detail.ageMs > 120000) return { ok: false, error: 'no-position' };
+  return { ok: true, lat: coords.lat, lng: coords.lng, source: 'shell-v2', meta, permission: meta.permission };
+}
+function EzikLocationSettings() {
+  const [permission, setPermission] = useState(() => ezikNativeLocation?.getPermission());
+  const [failed, setFailed] = useState(false);
+  const stop = useRef(null);
+  useEffect(() => {
+    const update = ev => { setPermission(ev.detail); setFailed(false); };
+    window.addEventListener('ezik:location:permission', update);
+    return () => { window.removeEventListener('ezik:location:permission', update); if (stop.current) stop.current(); };
+  }, []);
+  if (!ezikNativeLocation?.getCapabilities()?.settings || permission?.state !== 'denied' || permission.canAskAgain !== false) return null;
+  return <div className="ez110-pcard-state">
+    <button type="button" className="ezik-focus ez110-pcard-pill" onClick={() => {
+      if (stop.current) stop.current(); setFailed(false);
+      stop.current = ezikNativeLocation.request('open-settings', { userInitiated: true }, r => setFailed(!r.ok));
+    }}>{ezT('settings.title')}</button>
+    {failed ? <span role="status">{ezT('place.fail.nopos')}</span> : null}
+  </div>;
+}
+function EzikLocationZoneNote({ loc }) {
+  if (!loc?.meta || loc.meta.timezone) return null;
+  let zone = ''; try { zone = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
+  return <div className="ez110-pcard-state" data-ezik-zone-source="device">{ezT('place.deviceZone', { tz: zone })}</div>;
+}
+
+
 // THE ONE PLACE lon BECOMES lng, AND THERE IS NO SECOND ONE. The shell says `lon` and every other
 // line in this file says `lng`; the rename happens here so the shell's object is never handed to
 // writeQiblaLoc raw and no caller has to remember which vocabulary it is holding.
@@ -32178,6 +32753,7 @@ let PRAYER_LOCATE_LAST_AT = 0;
 function prayerZoneOf(loc) {
   if (loc && loc.by === 'place') return loc.place;
   if (loc && loc.by === 'default') return PRAYER_DEFAULT_ZONE;
+  if (loc && loc.meta && loc.meta.timezoneSource === 'native-geocoder' && prayerZoneFmt(loc.meta.timezone)) return { tz: loc.meta.timezone };
   return null;
 }
 // Great-circle distance in kilometres (haversine), for the three-kilometre and forty-kilometre rules.
@@ -32193,6 +32769,26 @@ function prayerDistanceKm(lat1, lng1, lat2, lng2) {
 // Errors are five named words: permission-denied, no-position, timeout, unsupported, error.
 function prayerLocate(opts, onDone) {
   const o = opts || {};
+  if (typeof ezikNativeLocation !== 'undefined' && ezikNativeLocation) {
+    let live = true, stop = null;
+    const choice = ezikLocationChoiceVersion;
+    ezikNativeLocation.ready.then(caps => {
+      if (!live) return;
+      if (!caps) { stop = legacy(); return; }
+      if (o.userInitiated !== true) {
+        stop = ezikNativeLocation.request('status', {}, r => { if (live) onDone({ ok: false, error: 'inactive', permission: r.permission || null }); });
+        return;
+      }
+      stop = ezikNativeLocation.request('get', { userInitiated: true, precision: 'coarse', fresh: o.fresh === true, metadata: true }, r => {
+        if (!live) return;
+        if (choice !== ezikLocationChoiceVersion) { onDone({ ok: false, error: 'cancelled' }); return; }
+        onDone(prayerNativeFix(r));
+      }, SHELL_LOC_TIMEOUT_MS + (o.slowMs > 0 ? o.slowMs : 0));
+    });
+    return () => { live = false; if (stop) stop(); };
+  }
+
+  function legacy() {
   let over = false;
   const done = (r) => { if (over) return; over = true; try { onDone(r); } catch (e) {} };
   const bridge = ezikShellBridge();
@@ -32235,6 +32831,8 @@ function prayerLocate(opts, onDone) {
     }, o.fresh ? PRAYER_LOCATE_FRESH : PRAYER_LOCATE_QUICK);
   } catch (e) { done({ ok: false, error: 'error' }); }
   return () => { over = true; };
+  }
+  return legacy();
 }
 // THE NAME OF A FIX: the nearest city of places.json within PRAYER_PLACE_NAME_KM, else none. Asynchronous (the list
 // is fetched once, when first needed) and silent: a failed download leaves the fix nameless, never unused.
@@ -32260,9 +32858,21 @@ function prayerNameFix(lat, lng, onName) {
 function prayerLocateApply(fix, force) {
   const cur = readQiblaLoc();
   if (cur.by === 'place' && !force) return cur;
-  if (cur.by === 'device' && prayerDistanceKm(cur.lat, cur.lng, fix.lat, fix.lng) < PRAYER_LOCATE_MOVE_KM) return cur;
-  const next = writeQiblaLoc(fix.lat, fix.lng);
+  if (!fix.meta && cur.by === 'device' && prayerDistanceKm(cur.lat, cur.lng, fix.lat, fix.lng) < PRAYER_LOCATE_MOVE_KM) return cur;
+  const next = writeQiblaLoc(fix.lat, fix.lng, fix.meta);
   if (next.by !== 'device') return next;
+
+  if (fix.meta) {
+    const m = fix.meta, name = m.district || m.city || m.region || '';
+    writePrayerPrefs({ dev: { n: name, a: name, cc: m.countryCode || '', tz: m.timezone || '', lat: fix.lat, lng: fix.lng } });
+    if (!name) prayerNameFix(fix.lat, fix.lng, value => {
+      const now = readQiblaLoc();
+      if (now.by !== 'device' || now.lat !== fix.lat || now.lng !== fix.lng || now.meta?.timestamp !== m.timestamp) return;
+      writePrayerPrefs({ dev: { n: value?.n || '', a: value?.a || '', cc: value?.cc || '', tz: m.timezone || '', lat: fix.lat, lng: fix.lng } });
+    });
+    try { ezikSchedArm(); } catch (e) {}
+    return next;
+  }
   const dev = { n: '', a: '', cc: '', tz: '', lat: fix.lat, lng: fix.lng };
   writePrayerPrefs({ dev: dev });
   prayerNameFix(fix.lat, fix.lng, (name) => {
@@ -32362,7 +32972,30 @@ const SHELL_HEADING_NUDGE_MS = [250, 700, 1500];
 // Qibla bearing is clockwise from TRUE north (qiblaBearing above). Expo may publish -1 for an
 // unavailable trueHeading, so a valid true heading wins and the magnetic heading is the named
 // fallback. No accuracy threshold appears here: calibration remains the shell's judgment.
+// S4 v2 identifies the reference explicitly. Legacy events keep the old-shell path.
+let ezikHeadingStartedAt = 0, ezikHeadingActive = false;
+function shellHeadingV2Enabled() {
+  return typeof ezikNativeLocation !== 'undefined' && !!ezikNativeLocation?.getCapabilities()?.headingReference;
+}
+function shellHeadingCurrent(detail) {
+  if (!shellHeadingV2Enabled() || detail?.v !== '2') return true;
+  return ezikHeadingActive && Number.isFinite(detail.timestamp) && detail.timestamp >= ezikHeadingStartedAt &&
+    detail.timestamp <= Date.now() + 5000 && (typeof document === 'undefined' || document.visibilityState !== 'hidden');
+}
+function shellTrueNorth(detail, loc, date) {
+  const valid = n => typeof n === 'number' && Number.isFinite(n) && n >= 0 && n <= 360;
+  const norm = n => (n % 360 + 360) % 360;
+  if (!detail || !['ready', 'calibration-needed'].includes(detail.status) || !Number.isInteger(detail.accuracy) || detail.accuracy < 0 || detail.accuracy > 3) return null;
+  const reference = valid(detail.trueHeading) ? 'true' : valid(detail.magHeading) ? 'magnetic' : null;
+  const raw = reference === 'true' ? detail.trueHeading : detail.magHeading;
+  if (!reference || detail.reference !== reference || !valid(detail.headingDegrees) || Math.abs(norm(detail.headingDegrees) - norm(raw)) > 0.000001) return null;
+  if (reference === 'true') return norm(raw);
+  if (!loc || !Number.isFinite(loc.lat) || !Number.isFinite(loc.lng) || Math.abs(loc.lat) > 90 || Math.abs(loc.lng) > 180) return null;
+  const declination = wmmDeclination(loc.lat, loc.lng, wmmYearOf(date));
+  return Number.isFinite(declination) ? norm(raw + declination) : null;
+}
 function shellHeadingOf(detail) {
+  if (detail?.v === '2' && typeof shellHeadingV2Enabled === 'function' && shellHeadingV2Enabled()) return shellTrueNorth(detail, readQiblaLoc(), new Date());
   if (!detail || typeof detail !== 'object' || detail.type !== SHELL_HEADING_RESULT) return null;
   const trueHeading = detail.trueHeading;
   if (typeof trueHeading === 'number' && isFinite(trueHeading) && trueHeading >= 0 && trueHeading <= 360) {
@@ -32377,6 +33010,10 @@ function shellHeadingOf(detail) {
 
 function sendShellHeadingCommand(bridge, type) {
   if (!bridge || (type !== SHELL_HEADING_START && type !== SHELL_HEADING_STOP)) return false;
+  if (typeof shellHeadingV2Enabled === 'function' && shellHeadingV2Enabled()) {
+    ezikHeadingActive = type === SHELL_HEADING_START;
+    if (ezikHeadingActive) ezikHeadingStartedAt = Date.now();
+  }
   try { bridge.postMessage(JSON.stringify({ type: type })); return true; }
   catch (e) { return false; }
 }
@@ -33461,9 +34098,17 @@ function ezikSyncChatRoom(changes, local) {
 }
 
 // SIGNING OUT: what is synced leaves this device (it stays in the account); what belongs to the
-// device stays. Only for an account the switch is open for -- for everybody else signing out is
-// exactly what it was.
+// device stays. The synced-data wipe needs an open switch; name/gender clearing applies to every sign-out.
 function ezikSyncSignOutWipe() {
+  // D16: name and gender belong to the signed-out person, even with sync closed.
+  // Keep the birth year, age, profile id and every other field exactly as stored.
+  try {
+    const p = ezikSyncJson(localStorage.getItem('child_profile'));
+    if (p && typeof p === 'object' && !Array.isArray(p)) {
+      localStorage.setItem('child_profile', JSON.stringify({ ...p, name: '', gender: null }));
+    }
+  } catch (e) {}
+  try { window.dispatchEvent(new CustomEvent('ezik:profile:signedout')); } catch (e) {}
   if (!ezikSyncIsOpen()) return false;
   const rm = (k) => { try { localStorage.removeItem(k); } catch (e) {} };
   ezikSyncKv().forEach(rm);
@@ -33480,10 +34125,6 @@ function ezikSyncSignOutWipe() {
   if (prefs && typeof prefs === 'object') {
     for (const f of EZIK_SYNC_PRAYER_FIELDS) delete prefs[f];
     try { localStorage.setItem(PRAYER_PREFS_KEY, JSON.stringify(prefs)); } catch (e) {}
-  }
-  const p = ezikSyncJson(localStorage.getItem('child_profile'));
-  if (p && typeof p === 'object') {
-    try { localStorage.setItem('child_profile', JSON.stringify(Object.assign({}, p, { name: '', gender: null }))); } catch (e) {}
   }
   ezikSyncLibWipe();
   rm(EZIK_SYNC_STATE_KEY);
@@ -35206,6 +35847,13 @@ function ezikWidgetDhikr(id, item) {
     count: item ? adhkarTarget(item) : null };
 }
 
+// O3-R1: optional v1 extension; old shell normalizers ignore it and retain their default.
+function ezikWidgetNumeralSet() {
+  try {
+    const digits = readPrayerPrefs().digits;
+    return digits === 'latn' ? 'western' : digits === 'arab' ? 'arabic-indic' : null;
+  } catch (e) { return null; }
+}
 async function ezikWidgetData(now) {
   // The root checks the shell before reaching this builder. Every text comes from these
   // existing loaders, including the morning/evening wording overrides, never a second copy.
@@ -35227,7 +35875,7 @@ async function ezikWidgetData(now) {
   return {
     version: 1,
     generatedAt: at.toISOString(),
-    prayer: { days: ezikWidgetPrayerDays(at) },
+    prayer: { days: ezikWidgetPrayerDays(at), ...(ezikWidgetNumeralSet() ? { numeralSet: ezikWidgetNumeralSet() } : {}) },
     adhkar: { favorites: favorites, sabah: door('adhkar_sabah'), masaa: door('adhkar_masaa') },
     arbaeen: book && Array.isArray(book.hadith)
       ? book.hadith.map((h) => ({ n: h.n, title: h.title, text: h.text })) : null,
@@ -35627,7 +36275,7 @@ function QiblaPanel({ loc, onLoc, full }) {
   const bearing = qiblaBearing(loc.lat, loc.lng);
   bearingRef.current = bearing;
   // F6: the browser reads magnetic north, so its readings get the local declination; the shell's trueHeading does not.
-  declRef.current = headingBridgeRef.current ? 0 : (wmmDeclination(loc.lat, loc.lng, wmmYearOf(new Date())) || 0);
+  declRef.current = wmmDeclination(loc.lat, loc.lng, wmmYearOf(new Date())) || 0; // Browser intake only; v2 shell intake corrects its explicit reference once.
 
   // ---- THE FRAME: the one place the DOM is turned -------------------------------------------------------------
   const paint = (snap) => {
@@ -35656,7 +36304,12 @@ function QiblaPanel({ loc, onLoc, full }) {
     alignedRef.current = on;
     setAligned(on);
     // once, on entering the band, where the device offers it
-    if (on) { try { if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') navigator.vibrate(30); } catch (e) {} }
+    if (on) {
+      if (typeof ezikNativeHaptic !== 'undefined' && ezikNativeHaptic?.canPulse()) {
+        // Alignment is a sensor event: only a fresh user activation permits its native fallback.
+        if (readsRef.current.n > 1) ezikShortPulse(true, 30, ezikHapticGestureActive());
+      } else { try { if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') navigator.vibrate(30); } catch (e) {} }
+    }
   };
   const frame = () => {
     rafRef.current = null;
@@ -35696,6 +36349,7 @@ function QiblaPanel({ loc, onLoc, full }) {
       const onHeadingResult = (ev) => {
         const detail = ev && ev.detail;
         if (!detail || typeof detail !== 'object' || detail.type !== SHELL_HEADING_RESULT) return;
+        if (typeof shellHeadingCurrent === 'function' && !shellHeadingCurrent(detail)) return;
         const status = detail.status;
         if (SHELL_HEADING_STATUSES.indexOf(status) === -1) return;
         if (status === 'ready' || status === 'calibration-needed') {
@@ -35728,9 +36382,18 @@ function QiblaPanel({ loc, onLoc, full }) {
       startCompass(QIBLA_GESTURE, false);
       QIBLA_GESTURE = null;
     }
+    const onNativeBackground = () => {
+      if (typeof shellHeadingV2Enabled !== 'function' || !shellHeadingV2Enabled() || !bridge || document.visibilityState !== 'hidden') return;
+      stopHeadingWait();
+      if (stopRef.current) { stopRef.current(); stopRef.current = null; }
+      if (rafRef.current !== null && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(rafRef.current);
+      rafRef.current = null; setCompass('heading-error');
+    };
+    document.addEventListener('visibilitychange', onNativeBackground);
     // THE SHELL ARM ABOVE IS UNTOUCHED. A native shell starts its own heading stream at mount, because that path
     // raises no web permission prompt and needs no gesture -- and the browser's sensor is never started beside it.
     return () => {
+      document.removeEventListener('visibilitychange', onNativeBackground);
       stopHeadingWait();
       if (stopRef.current) { stopRef.current(); stopRef.current = null; }
       if (locStopRef.current) { locStopRef.current(); locStopRef.current = null; }
@@ -35754,10 +36417,11 @@ function QiblaPanel({ loc, onLoc, full }) {
     if (locStopRef.current) { locStopRef.current(); locStopRef.current = null; }
     setLocState('asking');
     const lit = typeof EZIK_FIX_LIT !== 'undefined' && EZIK_FIX_LIT === true;
-    locStopRef.current = prayerLocateAndApply({ force: true, slowMs: lit ? 50000 : 0, onSlow: () => setLocState('slow'), onImproved: (l) => setLoc(l) }, (r, next) => {
+    locStopRef.current = prayerLocateAndApply({ force: true, userInitiated: true, slowMs: lit ? 50000 : 0, onSlow: () => setLocState('slow'), onImproved: (l) => setLoc(l) }, (r, next) => {
       locStopRef.current = null;
       // ok:false IS A LAWFUL ANSWER, NOT A FAULT. A refusal ends exactly where the browser's own refusal ends: one
       // line of prose, the position standing as it was. No error screen, no silence, nothing thrown.
+      if (r.error === 'cancelled') { setLocState(''); return; }
       if (!r.ok) { setLocState(lit && r.error !== 'permission-denied' && r.error !== 'unsupported' ? 'nopos' : 'denied'); return; }
       setLoc(next);
       setLocState('');
@@ -35984,6 +36648,7 @@ function QiblaPanel({ loc, onLoc, full }) {
         {QIBLA_PLACE_LABEL} {placeName}{loc.by !== 'default' ? '' : ' (' + QIBLA_PLACE_DEFAULT_NOTE + ')'}
       </div>
       )}
+      {!bare ? <><EzikLocationSettings /><EzikLocationZoneNote loc={loc} /></> : null}
       {!bare && locState === 'asking' ? <div style={s.qiblaNote}>{QIBLA_LOC_ASKING}</div> : null}
       {!bare && locState === 'denied' ? <div style={s.qiblaNote}>{QIBLA_LOC_DENIED}</div> : null}
       {!bare && locState === 'slow' ? <div style={s.qiblaNote} role="status">{ezT('fix.loc.slow')}</div> : null}
@@ -36118,6 +36783,7 @@ function PrayerCalendarSheet({ onClose, loc, onShowDay, onOpenConverter }) {
   };
   const save = () => {
     const text = monthText();
+    if (ezikNativeShareAttempt({ kind: 'text', title: monthTitle, text }, async () => setSaid(await ezikWriteClipboard(text) ? 'copied' : 'fail'), () => setSaid('fail'))) return;
     try {
       if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') { navigator.share({ title: monthTitle, text: text }).then(() => setSaid('shared'), () => {}); return; }
       if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(() => setSaid('copied'), () => setSaid('')); return; }
@@ -36180,6 +36846,7 @@ function PrayerCalendarSheet({ onClose, loc, onShowDay, onOpenConverter }) {
           <button type="button" onClick={onOpenConverter} data-ezik-cal="conv" className="ezik-focus ez110-pcard-pill is-ink">{ezT('conv.title')}</button>
           <button type="button" onClick={save} data-ezik-cal="save" className="ezik-focus ez110-pcard-pill is-ink">{ezT('cal.save')}</button>
         </div>
+        {said === 'fail' ? <div className="ez110-cal-note" role="status">{EZIK_SHARE_FAIL}</div> : null}
         {said === 'copied' ? <div className="ez110-cal-note" role="status" data-ezik-cal="saved">{ezT('cal.saved')}</div> : null}
         {said === 'shared' ? <div className="ez110-cal-note" role="status" data-ezik-cal="saved">{ezT('cal.shared')}</div> : null}
       </div>
@@ -36231,6 +36898,7 @@ function PrayerMonthSheet({ onClose, loc }) {
   };
   const share = () => {
     const body = text();
+    if (ezikNativeShareAttempt({ kind: 'text', title: ezT('panel.openMonth'), text: body }, copy, () => setSaid('fail'))) return;
     try { if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') { navigator.share({ title: ezT('panel.openMonth'), text: body }).then(() => setSaid('shared'), () => {}); return; } } catch (e) {}
     copy();
   };
@@ -36268,6 +36936,7 @@ function PrayerMonthSheet({ onClose, loc }) {
           <button type="button" onClick={share} data-ezik-month="share" className="ezik-focus ez110-pcard-pill is-ink">{ezT('month.share')}</button>
           <button type="button" onClick={copy} data-ezik-month="copy" className="ezik-focus ez110-pcard-pill is-ink">{ezT('month.copy')}</button>
         </div>
+        {said === 'fail' ? <div className="ez110-cal-note" role="status">{EZIK_SHARE_FAIL}</div> : null}
         {said === 'copied' ? <div className="ez110-cal-note" role="status" data-ezik-month="said">{ezT('month.copied')}</div> : null}
         {said === 'shared' ? <div className="ez110-cal-note" role="status" data-ezik-month="said">{ezT('month.shared')}</div> : null}
         <div className="ez110-cal-note">{ezT('cal.umm')}</div>
@@ -38081,6 +38750,13 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   const [pfGender, setPfGender] = useState(() => (profile && profile.gender) || null);
   const [pfYear, setPfYear] = useState(() => (profile && profile.birthYear != null ? String(profile.birthYear) : ''));
   const [pfMsg, setPfMsg] = useState('');
+  // D16 SETTINGS PROFILE START
+  useEffect(() => {
+    const clearSignedOutFields = () => { setPfName(''); setPfGender(null); setPfMsg(''); };
+    window.addEventListener('ezik:profile:signedout', clearSignedOutFields);
+    return () => window.removeEventListener('ezik:profile:signedout', clearSignedOutFields);
+  }, []);
+  // D16 PROFILE END
   const pfYearNum = parseInt(ezikLatinDigits(pfYear).trim(), 10);
   const pfDerived = new Date().getFullYear() - pfYearNum;
   const pfYearOk = !(pfYear.trim() && !(Number.isInteger(pfYearNum) && pfDerived >= 4 && pfDerived <= 99));
@@ -38234,7 +38910,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
           <div style={s.a11ySwitchHint}>{ezT(ez.id ? 'ez110.set.womenRule' : 'settings.womenCornerRule')}</div>
           <input value={pfYear} onChange={(e) => { setPfYear(e.target.value); setPfMsg(''); }}
             placeholder={ezT('onboarding.birthYear')} aria-label={ezT('onboarding.birthYear')}
-            type="text" inputMode="numeric" pattern="[0-9]*" maxLength={4} style={s.welcomeInput} />
+            type="text" inputMode="numeric" pattern="[0-9]*" maxLength={4} style={EZ_LANG_DIR[EZ_LANG] === 'ltr' ? { ...s.welcomeInput, direction: 'ltr' } : s.welcomeInput} />
           {pfYear.trim() && !pfYearOk && <div className="ezgate-err">{ezT('onboarding.yearError')}</div>}
           <button type="button" onClick={savePf} disabled={!pfYearOk}
             style={{ ...s.welcomePrimaryBtn, opacity: pfYearOk ? 1 : 0.4 }}>{ezT('settings.profileSave')}</button>
@@ -42850,7 +43526,7 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
                 <span style={s.wirdTrack}><span style={{ ...s.wirdFill, width: wirdPct + '%' }} /></span>
               </React.Fragment>
             ) : (
-              <span style={s.wirdText}>اليوم {toArabicDigits(wirdDone)} · حدّد وردك</span>
+              <span style={s.wirdText}>{ezT('x.643').replace(/^[\s\u00b7]+/, '')}</span>
             )}
           </button>
           {/* THE ONE EXPLICIT ACT, on the reader's own row. It is a press and nothing else:

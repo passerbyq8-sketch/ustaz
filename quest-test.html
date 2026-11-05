@@ -341,6 +341,31 @@ function stamp(e){if(e&&e.timeStamp)P.ts=e.timeStamp}
 function tooSoon(e){return !!(e&&e.timeStamp)&&e.timeStamp-P.ts<SETTLE_MS}
 
 function ar(n){if(document.documentElement.getAttribute("lang")==="en")return String(n);return String(n).replace(/[0-9]/g,function(d){return "٠١٢٣٤٥٦٧٨٩"[+d]})}
+  // D3 QUESTION DISPLAY START: the app's declared numerals; bank text and scores are untouched.
+  var KZ_QUESTION_NUMERALS = {"ar":"arab","en":"latn","fa":"arabext","fr":"latn","id":"latn","ur":"latn","bn":"beng","tr":"latn","ha":"latn","ms":"latn","sw":"latn","ru":"latn","zh":"latn","es":"latn","pt":"latn","de":"latn","hi":"latn","so":"latn","ps":"arabext","ku":"arab","uz":"latn","am":"latn","ta":"latn","om":"latn"};
+  function kzQuestionLanguage() {
+    var lang = 'ar';
+    try { lang = localStorage.getItem(['ezik', 'ui', 'lang', 'v1'].join('_')) || document.documentElement.getAttribute('lang') || 'ar'; } catch (_) {}
+    return Object.prototype.hasOwnProperty.call(KZ_QUESTION_NUMERALS, lang) ? lang : 'ar';
+  }
+  function kzQuestionDigits(value) {
+    var set = KZ_QUESTION_NUMERALS[kzQuestionLanguage()];
+    var base = set === 'arab' ? 0x660 : set === 'arabext' ? 0x6f0 : set === 'beng' ? 0x9e6 : 0x30;
+    return String(value).replace(/[0-9٠-٩۰-۹০-৯]/g, function (c) {
+      var cp = c.charCodeAt(0), n = cp >= 0x9e6 ? cp - 0x9e6 : cp >= 0x6f0 ? cp - 0x6f0 : cp >= 0x660 ? cp - 0x660 : cp - 0x30;
+      return String.fromCharCode(base + n);
+    });
+  }
+  function kzQuestionCount(current, total) {
+    var text = 'السؤال ' + current + ' من ' + total;
+    if (typeof window.KunuzUIText === 'function') text = window.KunuzUIText(text);
+    return kzQuestionDigits(text);
+  }
+  function kzChoiceLetter(index) {
+    var lang = kzQuestionLanguage();
+    return lang === 'ar' || lang === 'fa' ? ['أ', 'ب', 'ج', 'د', 'هـ', 'و'][index] : String.fromCharCode(65 + index);
+  }
+  // D3 QUESTION DISPLAY END
 function $(i){return document.getElementById(i)}
 function el(t,cls,txt){var e=document.createElement(t);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e}
 var SCREENS=["cfg","play","end"];
@@ -674,7 +699,7 @@ function startT(){
     paintTimer()},200);
 }
 function paintTop(){
-  $("prog").textContent="السؤال "+ar(Math.min(G.asked+1,G.total))+" من "+ar(G.total);
+  $("prog").setAttribute("translate","no"); $("prog").textContent=kzQuestionCount(Math.min(G.asked+1,G.total),G.total);
   var t=TE.team(G),bar=$("turnBar"),sc=$("scores");
   bar.classList.toggle("hidden",G.solo);
   if(!G.solo){bar.textContent="";var bs=el("span","","دور ");bs.appendChild(el("bdi","",t.n));bar.appendChild(bs);bar.style.background=t.c}
@@ -730,6 +755,10 @@ function paintQ(){
   if(P.revealed){
     q[4].forEach(function(t,j){
       var r=el("div","orow"),b=el("button","opt",t);b.type="button";b.dataset.k=j;if(typeof KZV!=="undefined")KZV.choice(b,q,j);
+      // The legacy Arabic/Persian buttons had no letter badge; retain them exactly.
+      if(kzQuestionLanguage()!=="ar"&&kzQuestionLanguage()!=="fa"){
+        var letter=el("span","kz-choice-letter",kzChoiceLetter(j)+" ");letter.setAttribute("translate","no");letter.style.marginInlineEnd=".5em";letter.style.fontWeight="700";b.insertBefore(letter,b.firstChild);
+      }
       b.setAttribute("aria-pressed",P.picked===j?"true":"false");
       if(P.picked===j)b.classList.add("pick");
       b.onclick=function(){if(P.locked)return;P.picked=j;paintQ();try{$("confBtn").focus()}catch(e){}};
@@ -783,7 +812,7 @@ function lock(right,late){
   if(typeof KZV!=="undefined")KZV.reveal(q);
   if(q[6]){if(!(typeof KZV!=="undefined"&&KZV.explain($("why"),q)))$("why").innerHTML=q[6]+(q[7]?"<span class='src'>"+q[7]+"</span>":"");$("why").classList.remove("hidden")}
   TE.settle(G,right);paintTimer();paintTop();
-  $("prog").textContent="السؤال "+ar(G.asked)+" من "+ar(G.total);
+  $("prog").setAttribute("translate","no"); $("prog").textContent=kzQuestionCount(G.asked,G.total);
   var last=TE.over(G)||!TE.catsLeft(G,seenHas).length;
   $("nextBtn").textContent=last?"النتيجة":"التالي";$("nextBtn").disabled=false;
   try{$("nextBtn").focus()}catch(e){}

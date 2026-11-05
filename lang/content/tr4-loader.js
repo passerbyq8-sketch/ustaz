@@ -1,9 +1,11 @@
 /* TRANSLATE4 display layer. Reads static files under /lang/content/ and never talks to a server.
-   Arabic and the other nineteen languages never load this file. A failed fetch keeps Arabic.
+   Dima additionally supports its ten prepared languages. A failed fetch keeps Arabic.
    Verses, hadith, du'a and dhikr stay on screen in Arabic with their translation below them. */
 (function (global) {
   'use strict';
   var CONTENT_LANGS = { am: 1, om: 1, en: 1, fa: 1 };
+  var DIMA_LANGS = { am: 1, om: 1, en: 1, fa: 1, fr: 1, ur: 1, id: 1, ha: 1, sw: 1, zh: 1, de: 1, hi: 1, ps: 1, uz: 1 };
+  var dimaIndexes = Object.create(null);
   var SACRED = { quran: 1, hadith: 1, dua: 1, dhikr: 1 };
   var ARABIC_FORMATS = { 'missing-letter': 1, scramble: 1 };
   /* Owner rule t11: these core categories test the Arabic language itself, so solo play hides them. Rooms are unchanged. */
@@ -11,7 +13,7 @@
   function cc(n) { return String.fromCharCode(n); }
   var LETTERS = '[' + cc(0x621) + '-' + cc(0x64a) + cc(0x640) + cc(0x64b) + '-' + cc(0x652) + cc(0x670) + ']+';
   var CHUNK = new RegExp(LETTERS + '(?:\\s+' + LETTERS + ')*', 'g'), NUMBER = '([0-9' + cc(0x660) + '-' + cc(0x669) + cc(0x6f0) + '-' + cc(0x6f9) + ']+)';
-  var options = { base: '/lang/content/', direction: function (lang) { return lang === 'fa' ? 'rtl' : 'ltr'; }, text: function () { return ''; } };
+  var options = { base: '/lang/content/', direction: function (lang) { return /^(fa|ur|ps)$/.test(lang) ? 'rtl' : 'ltr'; }, text: function () { return ''; } };
   var cache = Object.create(null), hashes = new Map(), warned = false;
   function norm(s) {
     return s.normalize('NFC')
@@ -126,9 +128,39 @@
     });
     return changed && !failed ? out : '';
   }
-  function credit(item) {
-    if (item.tag !== 'published' || !item.src || !item.src.name) return '';
-    return item.src.name + (item.src.version && item.src.name.indexOf(item.src.version) < 0 ? ' · ' + item.src.version : '');
+  function sourceInfo(item) {
+    return item && item.src && (item.src.publishedQuotes || (item.tag === 'published' ? item.src : null));
+  }
+  function credit(item, full) {
+    var src = full ? sourceInfo(item) : item.tag === 'published' && item.src;
+    if (!src || !src.name) return '';
+    var title = src.name + (src.version && src.name.indexOf(src.version) < 0 ? ' \u00b7 ' + src.version : '');
+    if (!full) return title;
+    return [title, src.description, (src.refs || []).join(', ') || src.ref, src.context,
+      src.snapshot ? 'Snapshot: ' + src.snapshot : '', src.url, src.rights].filter(Boolean).join('\n');
+  }
+  function itemIndex(items) {
+    var index = Object.create(null);
+    (Array.isArray(items) ? items : []).forEach(function (item) {
+      if (!item || typeof item.ar !== 'string') return;
+      if (typeof item.id === 'string' && item.id) index[item.id] = index[item.id] || item;
+      index[hid(item.ar)] = index[hid(item.ar)] || item;
+    });
+    return index;
+  }
+  function preloadDima(lang) {
+    if (!DIMA_LANGS[lang]) return Promise.resolve({ status: 'missing', data: null });
+    return load(lang + '/sections/dima.json').then(function (row) {
+      if (row.status === 'ok' && (row.data.lang !== lang || row.data.section !== 'dima' || !Array.isArray(row.data.items))) {
+        delete cache[lang + '/sections/dima.json']; return { status: 'failed', data: null };
+      }
+      if (row.status === 'ok') dimaIndexes[lang] = itemIndex(row.data.items);
+      return row;
+    });
+  }
+  function dimaText(lang, id, arabic) {
+    var index = dimaIndexes[lang], item = index && (index[id] || index[hid(arabic)]);
+    return item && item.tag !== 'arabic-only' && typeof item.tr === 'string' && item.tr ? item.tr : arabic;
   }
   function place(root, data, index, patterns) {
     var list = (records.get(root) || []).filter(function (r) {
@@ -158,12 +190,12 @@
       }
       if (parent.tagName === 'OPTION') { if (!item || !item.tr) return; r.shown = item.tr; n.nodeValue = item.tr; seen.add(n); list.push(r); return; }
       var control = parent.closest ? parent.closest('button,a,[role="button"],label,summary') : null;
-      if (item && SACRED[item.kind]) {
-        var by = credit(item), note = item.footnotes;
+      if (item && (SACRED[item.kind] || (data.dima && parent.closest && parent.closest('[data-tr4-preserve-ar]')))) {
+        var by = credit(item, data.dima), note = item.footnotes, src = data.dima ? sourceInfo(item) : item.src;
         if (note) add('span', Array.isArray(note) ? note.join('\n') : String(note), 'tr4-foot').style.cssText = 'display:block;font-size:.8em;white-space:pre-line';
         if (by) {
-          var source = add(control ? 'span' : 'a', by, 'tr4-source'); source.style.cssText = 'display:block;font-size:.75em;opacity:.75';
-          if (source.tagName === 'A' && /^https:\/\//.test(item.src.url || '')) { source.href = item.src.url; source.rel = 'noopener noreferrer'; source.target = '_blank'; }
+          var source = add(control ? 'span' : 'a', by, 'tr4-source'); source.style.cssText = 'display:block;font-size:.75em;opacity:.75;white-space:pre-line;overflow-wrap:anywhere';
+          if (source.tagName === 'A' && /^https:\/\//.test(src && src.url || '')) { source.href = src.url; source.rel = 'noopener noreferrer'; source.target = '_blank'; }
         }
         if (item.translit) add('span', item.translit, 'tr4-translit').style.cssText = 'display:block;text-align:start;font-style:italic;opacity:.85';
         add('span', item.tr, 'tr4-tr').style.cssText = 'display:block;text-align:start;white-space:pre-line';
@@ -198,15 +230,17 @@
   }
   /* The mounted root is observed only while a translated section is open. */
   function mount(root, lang, sections) {
-    if (!CONTENT_LANGS[lang] || !root) return function () {};
-    var names = (Array.isArray(sections) ? sections : [sections]).concat('labels'), alive = true, observer = null, timer = 0, index = null, patterns = [], data = { lang: lang };
+    var requested = Array.isArray(sections) ? sections : [sections];
+    if (!root || (!CONTENT_LANGS[lang] && !(DIMA_LANGS[lang] && requested.indexOf('dima') >= 0))) return function () {};
+    var names = CONTENT_LANGS[lang] ? requested.concat('labels') : ['dima'];
+    var alive = true, observer = null, timer = 0, index = null, patterns = [], data = { lang: lang, dima: requested.indexOf('dima') >= 0 };
     function draw() {
       timer = 0; if (!alive || !index) return;
       if (observer) observer.disconnect();
       place(root, data, index, patterns); machineNote(root, data, root.ownerDocument || document);
       if (observer) observer.observe(root, { subtree: true, childList: true, characterData: true });
     }
-    Promise.all(names.map(function (n) { return load(lang + '/sections/' + n + '.json'); })).then(function (rows) {
+    Promise.all(names.map(function (n) { return n === 'dima' ? preloadDima(lang) : load(lang + '/sections/' + n + '.json'); })).then(function (rows) {
       if (!alive) return;
       index = Object.create(null);
       rows.forEach(function (row) {
@@ -217,6 +251,7 @@
         });
         (row.data && Array.isArray(row.data.items) ? row.data.items : []).forEach(function (item) {
           if (!item || typeof item.ar !== 'string') return;
+          if (typeof item.id === 'string' && item.id) index[item.id] = index[item.id] || item;
           index[hid(item.ar)] = index[hid(item.ar)] || item;
         });
       });
@@ -287,5 +322,5 @@
       sweep(); return true;
     });
   }
-  global.TR4 = { norm: norm, hid: hid, configure: configure, language: language, mount: mount, restore: restore, overlayPack: overlayPack, overlayCore: overlayCore, roomOverlay: roomOverlay };
+  global.TR4 = { norm: norm, hid: hid, configure: configure, language: language, preloadDima: preloadDima, dimaText: dimaText, mount: mount, restore: restore, overlayPack: overlayPack, overlayCore: overlayCore, roomOverlay: roomOverlay };
 })(typeof window === 'undefined' ? globalThis : window);
