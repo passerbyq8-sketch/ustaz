@@ -44,6 +44,7 @@
 // Usage:  node tools/schedule-payload-measure.cjs
 // Exit:   0 when every case holds; 1 with the failing cases named.
 'use strict';
+(async () => {
 
 const fs = require('fs');
 const path = require('path');
@@ -124,7 +125,7 @@ function freeNames(root) {
   const free = new Set();
   walk(root, (n, p) => {
     if (n.type !== 'Identifier') return;
-    if (p && p.type === 'MemberExpression' && p.property === n && !p.computed) return;
+    if (p && (p.type === 'MemberExpression' || p.type === 'OptionalMemberExpression') && p.property === n && !p.computed) return;
     if (p && p.type === 'ObjectProperty' && p.key === n && !p.computed) return;
     if (p && p.type === 'ObjectMethod' && p.key === n && !p.computed) return;
     if (p && (p.type === 'VariableDeclarator' || p.type === 'FunctionDeclaration'
@@ -147,7 +148,7 @@ const ENV_NAMES = ['window', 'document', 'setTimeout', 'clearTimeout', 'useEffec
 // THE PIPE, BY NAME. Every one of these must exist or extraction throws.
 const ROOTS = ['ezikSchedBridge', 'ezikSchedRoute', 'ezikSchedPayload', 'ezikSchedSend',
   'ezikSchedItems', 'ezikSchedArm', 'useEzikSchedRoot', 'useEzikSchedWatch',
-  'ezikAdhanItems',
+  'ezikAdhanItems', 'ezikDimaAlertItems', 'dimaBuildCatalog',
   // ITEMS 43-b / 47-b. The prayers moved down one level into a feed of their own and three
   // functions joined them: the reminders the reader sets the times for, the store those times
   // live in, and the shape check that decides whether a stored string is a time at all.
@@ -241,6 +242,7 @@ const HARNESS = ['"use strict";']
   .concat([ALL_LIFTED])
   .concat(['return { ' + ROOTS.concat(SWITCH_ROOTS).map((n) => n + ': ' + n).join(', ')
     + ', peekLastSent: function () { return ezikSchedLastSent; }'
+    + ', setDimaFixture: function(data,catalog,lang,ready) { __dimaData=data; __dimaCatalog=catalog; __dimaSessionStore=null; EZ_LANG=lang; __dimaTranslationReady.clear(); if(ready) __dimaTranslationReady.add(lang); }'
     + ', SHELL_SCHED_EMPTY: SHELL_SCHED_EMPTY'
     // The dictionary and the language subscription are exported for the cases, not for the code:
     // what the switch DRAWS is a lookup, and the language moving is one of the triggers the feed
@@ -1537,11 +1539,14 @@ run('nothing on this path is a request, a sound, a permission or a console line'
     is(LIFTED.indexOf(t) === -1, 'the schedule pipe contains ' + t);
   }
   // `localStorage` IS on this path now and legitimately so: the feed reads the reader's saved
-  // position and preferences. What it may never do is WRITE -- arming must not create a store
+  // position and preferences. Only the Dima v1-to-v2 migration may write its own record.
+  // All other declarations retain the exact write ban; actual migration writes are checked below.
+  // Arming must not create an unrelated store
   // for a reader who never opened the panel it belongs to. Asserted here in the source, and
   // measured above by counting writes through a real fake store.
+  const arming = CLOSURE.order.filter(([name]) => name !== 'dimaSaveV2').map(([,decl]) => decl.emit).join('\n');
   for (const t of ['localStorage.setItem', 'localStorage.removeItem', 'localStorage.clear']) {
-    is(LIFTED.indexOf(t) === -1, 'the schedule pipe contains ' + t);
+    is(arming.indexOf(t) === -1, 'the schedule pipe contains ' + t);
   }
   is(LIFTED.indexOf('localStorage.getItem') !== -1, 'the feed no longer reads the reader\'s own stores');
   return '17 forbidden constructs + 3 store writes, 0 present across '
@@ -2149,6 +2154,34 @@ console.log('');
   console.log('');
 }
 
+
+// Active content is loaded through the real catalog builder, not a stale 30-day stub.
+const dimaData=JSON.parse(fs.readFileSync(path.join(REPO,'dima/dima-v1.json'),'utf8'));
+const dimaManifest=JSON.parse(fs.readFileSync(path.join(REPO,'dima/pack-manifest-v1.json'),'utf8'));
+const dimaCatalog=await fresh().h.dimaBuildCatalog(dimaData,dimaManifest,async p=>JSON.parse(fs.readFileSync(path.join(REPO,p),'utf8')));
+const dimaLegacyKey=literalOf('DIMA_KEY','StringLiteral'),dimaKey=literalOf('DIMA_V2_KEY','StringLiteral');
+const dimaNow=new Date('2026-11-05T00:00:00Z');
+for(const [index,start] of [[1,'2026-11-05'],[61,'2026-09-06'],[90,'2026-08-08'],[91,'2026-08-07']])run('Dima real resolver and notification for day '+index,()=>{
+ const record={schema:2,startDate:start,log:{},notify:{on:true,slot:'isha'},notifySeen:true,presented:{}};
+ const {h,env}=fresh({store:{[dimaKey]:JSON.stringify(record)}});h.setDimaFixture(dimaData,dimaCatalog,'ar',true);
+ const items=h.ezikDimaAlertItems(dimaNow);is(items.length>0,'Dima items absent');const item=items.find(x=>x.id==='daily:dima:2026-11-05');is(item,'today absent');
+ const expected=index>90?h.ezT('dima.repeatHelp'):index<=30?dimaData.notifications.daily[(index-1)%dimaData.notifications.daily.length]:dimaCatalog.regular[index-1].day.notification.text;
+ eq(item.body,expected,'selected day notification');eq(item.route,'dima','route');is(item.at>dimaNow.getTime(),'absolute future timestamp');eq(env.writes,[],'v2 scheduling writes nothing');
+});
+run('Dima legacy content lookup, readiness and opt-out',()=>{
+ const record={schema:2,startDate:'2026-11-05',log:{},notify:{on:true,slot:'isha'},notifySeen:true,presented:{}};
+ const {h,env}=fresh({store:{[dimaKey]:JSON.stringify(record)}}),calls=[];
+ const bundle=JSON.parse(fs.readFileSync(path.join(REPO,'lang/content/fr/sections/dima.json'),'utf8'));
+ env.window.TR4={dimaText:(lang,id,text)=>{calls.push({lang,id,text});const row=bundle.items.find(x=>x.ar===text);return row?.tr||text;}};
+ h.setDimaFixture(dimaData,dimaCatalog,'fr',false);eq(h.ezikDimaAlertItems(dimaNow),[],'wait for translated content');
+ h.setDimaFixture(dimaData,dimaCatalog,'fr',true);const items=h.ezikDimaAlertItems(dimaNow);is(items.length>0&&calls.length>0,'real content lookup reached');eq(calls[0].lang,'fr','lookup language');eq(items[0].body,bundle.items.find(x=>x.ar===calls[0].text).tr,'translated body');
+ record.notify.on=false;env.store[dimaKey]=JSON.stringify(record);h.setDimaFixture(dimaData,dimaCatalog,'fr',true);eq(h.ezikDimaAlertItems(dimaNow),[],'Dima opt-out');
+});
+run('Dima migration writes only its v2 record once and preserves legacy bytes',()=>{
+ const record={startDate:'2026-11-05',log:{},notify:{on:false,slot:'isha'},notifySeen:true};const encoded=JSON.stringify(record);
+ const {h,env}=fresh({store:{[dimaLegacyKey]:encoded}});h.setDimaFixture(dimaData,dimaCatalog,'ar',true);h.ezikDimaAlertItems(dimaNow);h.ezikDimaAlertItems(dimaNow);
+ eq(env.writes.map(x=>x.slice(0,2)),[['set',dimaKey]],'exact migration write set');eq(env.store[dimaLegacyKey],encoded,'legacy retained');
+});
 let failed = 0;
 for (const r of results) {
   if (!r.ok) failed++;
@@ -2161,4 +2194,5 @@ if (failed) {
   console.log('-- FAILURES --');
   for (const r of results) { if (!r.ok) console.log('   * ' + r.name + ': ' + r.detail); }
 }
-process.exit(failed ? 1 : 0);
+process.exitCode=failed ? 1 : 0;
+})().catch(e=>{console.error(e);process.exitCode=1;});
