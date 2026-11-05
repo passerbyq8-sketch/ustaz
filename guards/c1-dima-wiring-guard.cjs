@@ -10,7 +10,15 @@ function translationFixture(lang,code=loader,offline=false){const {window,docume
  const scope=vm.createContext({window,document,TextEncoder,Uint8Array,Int32Array,DataView,Map,WeakMap,WeakSet,Promise,Array,Object,String,RegExp,Math,Error,unescape,encodeURIComponent});
  vm.runInContext(code,scope);const layer=window.TR4;layer.configure({direction:c=>/^(fa|ur|ps)$/.test(c)?'rtl':'ltr',text:()=>''});
  return{window,document,layer,urls,root:document.getElementById('root'),host:document.querySelector('section')};}
-async function verify(code=loader){let n=0;
+const directionCSS=fs.readFileSync(path.join(root,'index.html'),'utf8');
+function verifyDirection(css){
+ const ltr=css.match(/\.dimaRoot\[dir="ltr"\][^{]*\{direction:([^}]+)\}/);assert(ltr,'Dima LTR layout rule');assert.equal(ltr[1],'ltr');
+ for(const selector of ['.dimaRoot[dir="ltr"]','.dimaRoot[dir="ltr"] .dimaHeader','.dimaRoot[dir="ltr"] .dimaHeaderTitle'])assert(ltr[0].split('{')[0].split(',').includes(selector));
+ assert(css.includes('.dimaRoot[dir="ltr"] .dimaHeaderTitle{text-align:start}'));
+}
+const directionMutant=directionCSS.replace('.dimaRoot[dir="ltr"],.dimaRoot[dir="ltr"] .dimaHeader,.dimaRoot[dir="ltr"] .dimaHeaderTitle{direction:ltr}','.dimaRoot[dir="ltr"],.dimaRoot[dir="ltr"] .dimaHeader,.dimaRoot[dir="ltr"] .dimaHeaderTitle{direction:rtl}');
+assert.notEqual(directionMutant,directionCSS);
+async function verify(code=loader){let n=0;verifyDirection(process.argv.includes('--direction-mutant')?directionMutant:directionCSS);assert.throws(()=>verifyDirection(directionMutant));
  const dictNode=ast.program.body.find(x=>x.type==='VariableDeclaration'&&x.declarations.some(d=>d.id.name==='EZ_I18N'));
  const dicts=vm.runInNewContext(source.slice(dictNode.start,dictNode.end)+';EZ_I18N');for(const file of fs.readdirSync(path.join(root,'lang')).filter(x=>x.endsWith('.json')))dicts[file.slice(0,-5)]=read('lang/'+file);
  assert.equal(Object.keys(dicts).length,24);for(const [lang,dict]of Object.entries(dicts))for(const key of ['repeatLabel','repeatHelp','seasonLabel','saveWarning']){const text=dict['dima.'+key];assert(typeof text==='string'&&text.trim()&&!text.includes('??'),lang+' '+key);if(lang==='ku'){assert(/[\u0600-\u06ff]/.test(text));assert(!/[A-Za-z]/.test(text));}}
