@@ -9,6 +9,7 @@
 //
 // No request leaves this harness: /places.json is served from the repository file, every other path is refused.
 'use strict';
+require('./prayer-current-contrast.cjs');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
