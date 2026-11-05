@@ -39,9 +39,18 @@ export default async function handler(req, res) {
   if (!buf.length) return res.status(400).json({ error: 'empty audio' });
   if (buf.length > MAX_AUDIO_BYTES) return res.status(413).json({ error: 'audio too large' });
 
-  const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.headers['x-real-ip'] || 'unknown';
-  const rl = await checkAudioLimit(ip, 'tts'); // shares the audio budget on purpose: same vendor, same money
-  if (!rl.ok) return res.status(429).json({ error: 'audio rate limit exceeded' });
+  const ip = req.headers['x-real-ip'] || (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'unknown';
+  // Its OWN budget (aud:stt:*, BRAIN36 2026-11-05): a flood of recordings must not silence
+  // playback, nor the reverse. It used to share the tts family.
+  const rl = await checkAudioLimit(ip, 'stt');
+  if (!rl.ok) {
+    // BRAIN36 (2026-11-05): the refused window's reset travels with the verdict, so the client is
+    // told when to come back. The body is unchanged.
+    if (typeof rl.reset === 'number' && Number.isFinite(rl.reset)) {
+      res.setHeader('Retry-After', String(Math.max(1, Math.ceil((rl.reset - Date.now()) / 1000))));
+    }
+    return res.status(429).json({ error: 'audio rate limit exceeded' });
+  }
 
   let lastStatus = 500;
   let lastText = 'unknown';

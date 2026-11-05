@@ -115,9 +115,14 @@ export default async function handler(req, res) {
   if (text.length > MAX_TASHKEEL_CHARS) {
     return res.status(200).json({ text: text, warning: `Tashkeel skipped: input too long (${text.length} chars)` });
   }
-  const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.headers['x-real-ip'] || 'unknown';
+  const ip = req.headers['x-real-ip'] || (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'unknown';
   const rl = await checkAudioLimit(ip, 'tashkeel');
   if (!rl.ok) {
+    // BRAIN36 (2026-11-05): the refused window's reset travels with the verdict, so the client is
+    // told when to come back. The body is unchanged.
+    if (typeof rl.reset === 'number' && Number.isFinite(rl.reset)) {
+      res.setHeader('Retry-After', String(Math.max(1, Math.ceil((rl.reset - Date.now()) / 1000))));
+    }
     return res.status(429).json({ error: 'audio rate limit exceeded' });
   }
 
