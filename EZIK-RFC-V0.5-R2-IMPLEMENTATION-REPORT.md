@@ -349,9 +349,9 @@ every purpose and `capabilityEligible()` is false for every capability. **Regist
 
 ## K. Gates and tests
 
-Expected signature for the current integrated roster. CURRENT_RECON records measured 366/0/0 pre-self-check counts on c1211a6b from the order-8 focused audit. The restored audit adds its self-check for 367/0/0. This expected roster signature is not a full-run success claim; REPORT-C2-ORDER-8.md records the actual run and remaining findings.
+Expected signature for the current integrated roster. CURRENT_RECON retains the prior measured result pending the order-9 focused recon measurement and full run. Evidence: REPORT-C1-ORDER-9.md:
 
-All 273 gates in the current roster run sequentially through tools/run-gates.cjs. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
+All 274 gates in the current roster run sequentially through tools/run-gates.cjs. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -466,7 +466,8 @@ securityauthredirectcompletion 0
 c1authproofclient 0
 c1authproofwiring 0
 c2authlifecycle 0
-TOTAL_GATES        273/273 PASS
+c1legacycancel 0
+TOTAL_GATES        274/274 PASS
 CURRENT_RECON PASS=366 WARN=0 FAIL=0
 PRE_REBASE_UPSTREAM_TOTAL_GATES 206/206 PASS
 PRE_REBASE_UPSTREAM_RECON PASS=299 WARN=0 FAIL=0
