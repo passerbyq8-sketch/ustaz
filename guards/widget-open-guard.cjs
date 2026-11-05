@@ -191,6 +191,12 @@ function boot(opts) {
     click: async (el) => { if (!el) throw new Error('missing fixture button'); el.dispatchEvent(new window.Event('click', { bubbles: true })); await tick(100); },
     back: async () => { window.history.back(); await tick(160); }, caught: () => caught };
 }
+const legacyLocationPosts=c=>c.posts.map(x=>JSON.parse(x)).filter(x=>x.type==='ezik:location:request');
+async function settleLocation(c){
+  await c.read('ezikNativeLocation && ezikNativeLocation.ready');
+  await c.untilValue(()=>legacyLocationPosts(c).length,1);
+  await tick(120);
+}
 const SCENES = {};
 for (const route of ROUTES) SCENES['cold-' + route] = async (c, t) => {
   c.open(route);
@@ -390,6 +396,7 @@ SCENES['no-shell'] = async (c, t) => {
 };
 SCENES['widget-reply-silence'] = async (c, t, notes) => {
   await c.until('chat');
+  await settleLocation(c);
   t('reply fixture completes the widget boot send', await c.untilValue(() => c.widgetPosts().length, 1), 1);
   // Count entry into the REAL arm function, even when its fingerprint would suppress a post.
   c.window.__widgetReplyArms = 0;
@@ -628,6 +635,7 @@ const ADHAN_CARD_ARM_BOUND = 3; // re-arm calls from the first supported reply t
 const adhanCards = (c) => c.root.querySelectorAll(ADHAN_CARD_SEL).length;
 SCENES['widget-adhan-card'] = async (c, t, notes) => {
   await c.until('chat');
+  await settleLocation(c);
   t('card fixture sends its first probe', await c.untilValue(() => c.widgetPosts().length, 1), 1);
   t('card fixture: capability pending after the probe', c.read('ezikWidgetDataCapability'), 'pending');
   const foreign = { ...WIDGET_RESULT, inReplyTo: 'schedule' };
@@ -660,8 +668,25 @@ SCENES['widget-adhan-card-legacy'] = async (c, t) => {
   await tick(300);
   t('a result after disabled still never draws the card', adhanCards(c), 0);
 };
+SCENES['widget-location-timeout'] = async(c,t)=>{
+ await c.until('chat');
+ const probe=c.posts.map(x=>JSON.parse(x)).find(x=>x.type==='ezik:location'&&x.op==='capabilities');
+ t('safe location capability probe exists',!!probe,true);
+ await settleLocation(c);
+ t('capability timeout preserves the legacy location request',legacyLocationPosts(c).length,1);
+ t('timeout does not manufacture capabilities',c.read('ezikNativeLocation.getCapabilities()'),null);
+ const before=c.posts.length,writes=c.storageWrites.length;
+ const late={type:'ezik:location:result',v:'2',id:probe.id,op:'capabilities',ok:true,capabilities:{coarse:true,precise:false,metadata:true,fresh:true}};
+ c.window.dispatchEvent(new c.window.CustomEvent('ezik:location:result',{detail:late}));await tick(150);
+ t('late capabilities cannot revive a timed-out request',c.read('ezikNativeLocation.getCapabilities()'),null);
+ t('late reply sends no outbound message',c.posts.length,before);
+ t('late reply leaves storage alone',c.storageWrites.length,writes);
+ t('legacy fallback remains single',legacyLocationPosts(c).length,1);
+};
 // Every needle must match exactly once; assertions execute the mutant, never recognize it.
 const MUTANTS = [
+ {name:'location-timeout-suppresses-legacy',scene:'widget-location-timeout',edits:[["if (!caps) { stop = legacy(); return; }","if (!caps) { return; }"]]},
+ {name:'location-timeout-keeps-pending',scene:'widget-location-timeout',edits:[["const timer = setTimeout(() => { cancel(); done({ ok: false, error: 'timeout' }); }, timeout);","const timer = setTimeout(() => { done({ ok: false, error: 'timeout' }); }, timeout);"]]},
   { name: "adhan-card-no-probe", scene: "widget-adhan-card", edits: [["    EZ_LANG_SUBS.add(wake);\n    wake();\n    atMidnight();", "    EZ_LANG_SUBS.add(wake);\n    atMidnight();"]] },
   { name: "adhan-card-no-pending", scene: "widget-adhan-card", edits: [["if (ezikWidgetDataCapability === 'unknown') ezikWidgetDataCapability = 'pending';", ""]] },
   { name: "adhan-card-draws-pending", scene: "widget-adhan-card", edits: [["setEz110AdhanShellOk(ezikWidgetDataCapability === 'supported')", "setEz110AdhanShellOk(ezikWidgetDataCapability === 'supported' || ezikWidgetDataCapability === 'pending')"]] },
