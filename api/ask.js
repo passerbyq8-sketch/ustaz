@@ -16,6 +16,7 @@
 
 import {
   checkAskLimit,
+  checkAskGlobal,
   MAX_CHAT_BODY_BYTES,
   MAX_CHAT_TOKENS,
   applyCorsOrigin,
@@ -871,15 +872,13 @@ export default async function handler(req, res) {
   // the response and not to any one branch.
   guardEmptyAnswer(res, 'ask');
 
-  // Per-IP ask throttle (fail-open). Runs before any work — body parse, retrieval,
-  // or upstream call — so a throttled request costs nothing. On limit hit we emit the
-  // gentle Arabic message via the existing SSE synthesizer (HTTP 200, no client change).
-  const ip = req.headers['x-real-ip']
-    || (req.headers['x-forwarded-for'] || '').split(',')[0].trim()
-    || 'unknown';
-  const { ok } = await checkAskLimit(ip);
-  if (!ok) { return sendSynthesizedText(res, ASK_LIMIT_MESSAGE); }
-
+  // BRAIN36 (2026-11-05): the per-IP throttle used to sit HERE, above the body parse, and the
+  // GLOBAL window sat inside it -- so an empty object, an empty messages array or a non-JSON
+  // body spent a unit of the whole app's day before it was refused. The order of this handler
+  // is now: consent (above) -> body parse -> shape -> size -> messages -> per-IP throttle ->
+  // day cap -> GLOBAL window -> model. The four shape refusals below name themselves with one
+  // response header, X-Murabbi-Refused: shape, so a deployment can be told apart from the
+  // outside; the body already says the same, so nothing new is disclosed.
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return res.status(500).json({ error: 'ANTHROPIC_API_KEY غير مضبوط' });
@@ -890,9 +889,11 @@ export default async function handler(req, res) {
   try {
     body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
   } catch {
+    res.setHeader('X-Murabbi-Refused', 'shape');
     return res.status(400).json({ error: 'Invalid JSON body' });
   }
   if (!body || typeof body !== 'object' || !Array.isArray(body.messages) || body.messages.length === 0) {
+    res.setHeader('X-Murabbi-Refused', 'shape');
     return res.status(400).json({ error: 'messages array required' });
   }
   // D02ب: `system` IS NO LONGER A FIELD OF THIS API. It used to be REQUIRED here -- the client
@@ -918,8 +919,24 @@ export default async function handler(req, res) {
     return res.status(413).json({ error: 'Request body too large' });
   }
   const messages = providerMessages(body.messages);
-  if (!messages) return res.status(400).json({ error: 'invalid messages' });
+  if (!messages) { res.setHeader('X-Murabbi-Refused', 'shape'); return res.status(400).json({ error: 'invalid messages' }); }
   body.messages = messages;
+
+  // Per-IP ask throttle (fail-open): the minute and day windows of THIS address, and nothing
+  // global (lib/ratelimit.js checkAskLimit). It sits after the body was validated, so a
+  // malformed request costs no window at all, and before the day cap, so a grinding address is
+  // refused before any identity is counted. On limit hit we emit the gentle Arabic message via
+  // the existing SSE synthesizer (HTTP 200, no client change).
+  const ip = req.headers['x-real-ip']
+    || (req.headers['x-forwarded-for'] || '').split(',')[0].trim()
+    || 'unknown';
+  // THE ONE THROTTLE ANSWER. Both throttle doors -- the per-IP pair here and the global window
+  // after the day cap -- refuse through this seat, with the same message. One message, one seat:
+  // the reader-text seams of this handler are enumerated by guards (lib-quote A6, source-honesty
+  // D5), and a throttle is one of them, not two.
+  const sendThrottleMessage = () => sendSynthesizedText(res, ASK_LIMIT_MESSAGE);
+  const { ok } = await checkAskLimit(ip);
+  if (!ok) { return sendThrottleMessage(); }
 
   // DAILY QUESTION CAP (directive 78). Sits AFTER body parse + the size cap and BEFORE the
   // first Anthropic call, so a capped request costs nothing. NO IP: identity is the device
@@ -940,6 +957,18 @@ export default async function handler(req, res) {
     // cap-unavailable KEEPS its 429: the store being down is a real failure and must look
     // like one, carrying our own truthful wording rather than a generic line.
     return res.status(429).json({ error: cap.reason, message: dayCapMessage(cap.reason) });
+  }
+
+  // THE GLOBAL WINDOW, LAST (BRAIN36, 2026-11-05). It is consulted only now -- after the shape,
+  // the per-IP pair and the day cap all admitted the request -- so every unit it counts is a
+  // request that will reach a model, and no free refusal can spend the whole app's day. On a
+  // refusal the question of the day this request just spent is given back (refundDayCap; a
+  // no-op for the founder's uncounted bypass verdict) and the reader gets the same gentle
+  // throttle message the per-IP windows answer with.
+  const global = await checkAskGlobal();
+  if (!global.ok) {
+    await refundDayCap(cap);
+    return sendThrottleMessage();
   }
 
   // ITEM 74 -- the question of a reader who wrote in another language is carried into Arabic HERE: after the
