@@ -33257,6 +33257,7 @@ function createEzikAuthProofClient(env) {
   const secret = v => typeof v === 'string' && /^[A-Za-z0-9_-]{43}$/.test(v);
   const providerOk = v => v === 'google' || v === 'apple';
   const listeners = new Set();
+  let legacyNativeCanceled = false;
   let observedOn = env.observedOn === true, active = null, pending = null, last = null, disposed = false;
   const fail = (code, status = 0, uncertain = false) => Object.assign(new Error(code), { code, status, uncertain });
   const random = () => {
@@ -33524,6 +33525,7 @@ function createEzikAuthProofClient(env) {
   }
   async function signin(provider, options = {}) {
     if (disposed || active || pending) return { ok: false, code: 'busy' };
+    legacyNativeCanceled = false; // Only a fresh explicit attempt reopens legacy delivery.
     try { return await run(flowFor(provider, options, null)); } catch (e) { return { ok: false, code: e.code || 'auth-unavailable' }; }
   }
   async function action(actionName, target, options = {}) {
@@ -33553,6 +33555,10 @@ function createEzikAuthProofClient(env) {
   function cancel() {
     if (active) {
       active.canceled = true; active.material = null;
+      if (active.version === 0 && !active.operation) {
+        if (active.provider === 'apple' && active.native && env.bridge()) legacyNativeCanceled = true;
+        if (active.stop) active.stop(true);
+      }
       if (active.popup) { try { active.popup.close(); } catch (e) {} }
       // A live shell sheet still owns its single-flight slot until its result arrives.
       last = { ok: false, code: 'auth-close-provider' }; changed(); return;
@@ -33604,7 +33610,7 @@ function createEzikAuthProofClient(env) {
     listeners.clear();
   }
   return { signin, action, retry, cancel, resume, dispose, state, discover,
-    acceptsLegacy: () => !observedOn && !(active && active.version === 1),
+    acceptsLegacy: () => !legacyNativeCanceled && !observedOn && !(active && active.version === 1),
     subscribe: fn => { listeners.add(fn); return () => listeners.delete(fn); } };
 }
 
@@ -33653,13 +33659,29 @@ function ezikAuthProofClient() {
 function ezikAuthProofLegacy(provider, native, registerStop) {
   const bridge = ezikAuthBridge();
   return new Promise(resolve => {
-    let stop = null, sub = null, settled = false;
+    let stop = null, sub = null, drain = null, settled = false, canceled = false;
     const done = out => {
       if (settled) return; settled = true;
       if (stop) stop(); if (sub) EZIK_NATIVE_AUTH_SUBS.delete(sub);
+      if (drain) window.removeEventListener(SHELL_AUTH_SESSION, drain);
       resolve(out);
     };
-    registerStop(() => done({ ok: false, code: 'canceled' }));
+    registerStop(cancel => {
+      if (cancel && bridge && provider === 'apple' && native && !settled) {
+        if (canceled) return;
+        canceled = true;
+        if (stop) stop(); if (sub) EZIK_NATIVE_AUTH_SUBS.delete(sub);
+        // No delivery consumer remains. Observe only the physical sheet ending;
+        // keep its single-flight slot, and never publish this canceled result.
+        drain = ev => {
+          const detail = ev && ev.detail;
+          if (ezikNativeSessionOf(detail) || ezikNativeOutcomeOf(detail) !== null) done({ ok: false, code: 'canceled' });
+        };
+        window.addEventListener(SHELL_AUTH_SESSION, drain);
+        return;
+      }
+      done({ ok: false, code: 'canceled' });
+    });
     if (bridge && provider === 'apple' && native) {
       sub = got => done({ ok: true, session: got }); EZIK_NATIVE_AUTH_SUBS.add(sub);
       stop = ezikNativeAppleAsk(bridge, outcome => done({ ok: false, code: outcome === 'canceled' ? 'canceled' : 'legacy-native:' + outcome }));
@@ -33676,6 +33698,7 @@ function ezikAuthProofLegacy(provider, native, registerStop) {
       return;
     }
     stop = ezikAuthAsk(bridge, url.toString(), async d => {
+      if (settled) return;
       if (!d || d.ok !== true) { done({ ok: false, code: d && d.reason === 'dismissed' ? 'canceled' : 'legacy-reason:' + (d && d.reason || '') }); return; }
       const p = ezikAuthReturnParams(d.url);
       if (!p) { done({ ok: false, code: 'legacy-bad-return' }); return; }
