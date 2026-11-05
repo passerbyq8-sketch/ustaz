@@ -1111,3 +1111,4 @@ guards/security-reauth-guard.cjs text eol=lf
 guards/security-iap-worker-guard.cjs text eol=lf
 guards/security-iap-receipt-guard.cjs text eol=lf
 guards/security-auth-capabilities-guard.cjs text eol=lf
+guards/security-auth-redirect-completion-guard.cjs text eol=lf

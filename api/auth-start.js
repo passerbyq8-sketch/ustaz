@@ -35,7 +35,8 @@ import {
 } from '../lib/auth/oidc.js';
 import { stateKey, writeJson, STATE_TTL_SECONDS } from '../lib/auth/store.js';
 
-import { consumeChallenge, proofRequired, sendProofFailure } from '../lib/auth/proof.js';
+import { consumeChallenge, proofRequired } from '../lib/auth/proof.js';
+import { sendStartFailure } from '../lib/auth/start-completion.js';
 
 export const STATE_RECORD_VERSION = 1;
 
@@ -111,7 +112,7 @@ export default async function handler(req, res) {
 
   // Fails CLOSED -- a start we cannot count is a start we do not make. See lib/ratelimit.js.
   const rl = await checkAuthLimit(clientAddress(req, 'unknown'));
-  if (!rl.ok) return res.status(429).json({ ok: false, error: 'auth-rate-limited' });
+  if (!rl.ok) return sendStartFailure(req, res, { status: 429, code: 'auth-rate-limited' });
 
   const query = (req.query && typeof req.query === 'object') ? req.query : {};
   const providerName = Array.isArray(query.provider) ? query.provider[0] : query.provider;
@@ -120,18 +121,18 @@ export default async function handler(req, res) {
   // body says which provider and never which variable, still less what was in it.
   const conf = providerConfig(providerName, process.env);
   if (!conf.ok) {
-    return res.status(conf.status).json({ ok: false, error: conf.code, provider: conf.provider });
+    return sendStartFailure(req, res, conf);
   }
   const cfg = conf.cfg;
 
   let proof = null;
   if (query.pv !== undefined || query.challenge !== undefined) {
-    if (query.pv !== '1') return sendProofFailure(res, { status: 400, code: 'auth-proof-version' });
+    if (query.pv !== '1') return sendStartFailure(req, res, { status: 400, code: 'auth-proof-version', proof: true });
     const challenge = await consumeChallenge(query.challenge, cfg.name, 'redirect');
-    if (!challenge.ok) return sendProofFailure(res, challenge);
+    if (!challenge.ok) return sendStartFailure(req, res, { ...challenge, proof: true });
     proof = challenge.record;
   } else if (proofRequired()) {
-    return sendProofFailure(res, { status: 428, code: 'auth-proof-required' });
+    return sendStartFailure(req, res, { status: 428, code: 'auth-proof-required', proof: true });
   }
 
   const state = newState();
@@ -154,7 +155,7 @@ export default async function handler(req, res) {
 
   // A store we cannot write is a sign-in we cannot finish: the return leg would find no state,
   // no nonce and no verifier. Refuse HERE, before the reader is sent to a provider for nothing.
-  if (!written) return res.status(503).json({ ok: false, error: 'auth-store-unavailable' });
+  if (!written) return sendStartFailure(req, res, { status: 503, code: 'auth-store-unavailable' });
 
   const target = buildAuthorizeUrl(cfg, {
     state,

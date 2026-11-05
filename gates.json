@@ -1175,5 +1175,10 @@
     "name": "securityauthcapabilities",
     "script": "guards/security-auth-capabilities-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "securityauthredirectcompletion",
+    "script": "guards/security-auth-redirect-completion-guard.cjs",
+    "args": ""
   }
 ]

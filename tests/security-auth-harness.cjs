@@ -52,7 +52,7 @@ async function harness({ clockStep = 0 } = {}) {
   const jwk = { ...pair.publicKey.export({ format: 'jwk' }), kid: 'synthetic-key', alg: 'RS256', use: 'sig' };
   const nonce = 'synthetic-native-nonce-for-security-test';
   const logs = [];
-  const http = { idToken: null, calls: [] };
+  const http = { idToken: null, calls: [], responses: new Map() };
   const effects = { weld: 0, erase: 0 };
   const context = vm.createContext({
     Buffer, URL, URLSearchParams, TextEncoder, TextDecoder, AbortController, AbortSignal, setTimeout, clearTimeout,
@@ -60,6 +60,11 @@ async function harness({ clockStep = 0 } = {}) {
     process: { env }, console: { log: (...a) => logs.push(a), warn: (...a) => logs.push(a), error: (...a) => logs.push(a) },
     fetch: async (url) => {
       http.calls.push(url);
+      if (http.responses.has(url)) {
+        const response = http.responses.get(url);
+        if (response instanceof Error) throw response;
+        return response;
+      }
       if (['https://appleid.apple.com/auth/keys', 'https://www.googleapis.com/oauth2/v3/certs'].includes(url)) {
         return { ok: true, status: 200, json: async () => ({ keys: [jwk] }) };
       }
@@ -80,7 +85,7 @@ async function harness({ clockStep = 0 } = {}) {
     let mod;
     if (id === 'node:crypto') mod = synthetic(id, { default: crypto });
     else if (id === '@upstash/redis') mod = synthetic(id, { Redis: class { constructor() { return redis; } } });
-    else if (id.endsWith('/lib/ratelimit.js')) mod = synthetic(id, { applyCorsOrigin() {}, checkAuthLimit: async () => ({ ok: true }) });
+    else if (id.endsWith('/lib/ratelimit.js')) mod = synthetic(id, { applyCorsOrigin() {}, checkAuthLimit: async () => ({ ok: !faults.rate }) });
     else if (id.endsWith('/lib/sync/service.js')) mod = synthetic(id, { weldByVerifiedEmail: async () => { effects.weld++; return { welded: false }; }, eraseForAccountDelete: async () => { effects.erase++; if (faults.erase) throw Error('synthetic erase outage'); } });
     else if (id.endsWith('/lib/daycap.js')) mod = synthetic(id, { DEVICE_HEADER: 'x-murabbi-device', FOUNDER_HEADER: 'x-founder', hasUnrevokedFounderToken: async () => false, safeId: value => value || null, kuwaitDayStamp: () => 'synthetic-day', DAY_CAP_TTL_SECONDS: 172800 });
     else if (id.endsWith('/lib/answer-log.js')) mod = synthetic(id, { readAnswerLog: async () => [], ANSWER_LOG_PATHS: [] });

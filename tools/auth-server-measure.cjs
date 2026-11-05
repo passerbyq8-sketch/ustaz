@@ -51,6 +51,7 @@ const NEW_MODULES = [
   'lib/auth/store.js',
   'lib/auth/reauth.js',
   'lib/auth/proof.js',
+  'lib/auth/start-completion.js',
   'lib/auth/oidc.js',
   'lib/auth/account.js',
   'api/auth-start.js',

@@ -54,11 +54,13 @@ import {
   stateKey,
   ticketKey,
   takeOnce,
+  takeOnceStrict,
   writeJson,
   TICKET_TTL_SECONDS,
 } from '../lib/auth/store.js';
 import { upsertAccount, indexVerifiedEmail } from '../lib/auth/account.js';
 import { weldByVerifiedEmail } from '../lib/sync/service.js';
+import { proofRequired } from '../lib/auth/proof.js';
 
 // The ticket is OURS, not the protocol's, so it is minted here rather than in lib/auth/oidc.js.
 // Same source of randomness as everything else on this path: node:crypto, never Math.random.
@@ -130,7 +132,8 @@ export default async function handler(req, res) {
   // Fails CLOSED. This is the leg that spends OUR credentials at the provider; see the note on
   // AUTH_FAIL_OPEN in lib/ratelimit.js for why this family is the one that refuses.
   const rl = await checkAuthLimit(clientAddress(req, 'unknown'));
-  if (!rl.ok) return res.status(429).json({ ok: false, error: 'auth-rate-limited' });
+  const completeErrors = proofRequired();
+  if (!rl.ok && !completeErrors) return res.status(429).json({ ok: false, error: 'auth-rate-limited' });
 
   const query = paramsOf(req);
   const state = typeof scalar(query.state) === 'string' ? scalar(query.state) : '';
@@ -151,7 +154,11 @@ export default async function handler(req, res) {
   // CONSUMED ONCE, ATOMICALLY. A replay of this exact URL finds nothing: the read and the delete
   // are one script (lib/auth/store.js TAKE_ONCE_SCRIPT), so two simultaneous deliveries cannot
   // both see the record. An expired state is the same answer as a spent one.
-  const record = await takeOnce(stateKey(state));
+  // ON also completes admission refusals, using only the consumed server record
+  // for cs/destination. No token exchange follows a refusal. OFF is unchanged.
+  const taken = completeErrors ? await takeOnceStrict(stateKey(state))
+    : { ok: true, value: await takeOnce(stateKey(state)) };
+  const record = taken.value;
 
   // ITEM 8: WHICH END STARTED THIS, read out of the record api/auth-start.js wrote and out of
   // nothing else. A record we could not read -- a replay, an expiry, a state nobody minted --
@@ -167,6 +174,11 @@ export default async function handler(req, res) {
   const echo = (record && typeof record.clientState === 'string' && record.clientState)
     ? record.clientState : state;
 
+  if (!taken.ok) return toApp(res, { error: 'auth-store-unavailable', state: echo }, web);
+  if (completeErrors && (!record || typeof record !== 'object')) {
+    return toApp(res, { error: 'auth-state-invalid', state: echo }, web);
+  }
+  if (!rl.ok) return toApp(res, { error: 'auth-rate-limited', state: echo }, web);
   if (denied) return toApp(res, { error: 'auth-provider-denied', state: echo }, web);
   if (!record || typeof record !== 'object') return toApp(res, { error: 'auth-state-invalid', state: echo }, web);
   if (!code) return toApp(res, { error: 'auth-code-missing', state: echo }, web);
