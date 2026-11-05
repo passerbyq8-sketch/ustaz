@@ -7394,7 +7394,8 @@ const ShareReplyButton = ({ getText }) => {
   const doShare = async () => {
     const payload = ezikFixPlainHeads((typeof getText === 'function') ? getText() : '');
     if (!payload) { say('fail'); return; }
-    if (typeof ezikNativeShareAttempt === 'function' && ezikNativeShareAttempt({ kind: 'text', text: payload }, async () => say(await ezikWriteClipboard(payload) ? 'copied' : 'fail'), () => say('fail'))) return;
+    const copy = async () => say(await ezikWriteClipboard(payload) ? 'copied' : 'fail');
+    if (typeof ezikNativeShareAttempt === 'function' && ezikNativeShareAttempt({ kind: 'text', text: payload }, copy, () => say('fail'))) return;
     try {
       if (navigator.share) {
         await navigator.share({ text: payload });
@@ -7404,7 +7405,7 @@ const ShareReplyButton = ({ getText }) => {
       if (e && e.name === 'AbortError') return;      // the reader changed their mind
       // anything else -- refused, unsupported scheme -- falls through to the clipboard
     }
-    say(await ezikWriteClipboard(payload) ? 'copied' : 'fail');
+    await copy();
   };
   return (
     <button type="button" onClick={doShare} aria-label={EZIK_SHARE_ARIA} className="ezik-focus" style={miniBtnStyle}>
@@ -7858,7 +7859,6 @@ let EZIK_PRINT_FALLBACK_TITLE = ezT('c.EZIK_PRINT_FALLBACK_TITLE');
 const EZIK_PRINT_BACKSTOP_MS = 60000;
 
 const printAsPdf = async (title, bodyHtml) => {
-  if (typeof ezikNativePdfAllowed === 'function' && !ezikNativePdfAllowed()) throw new Error('pdf-unavailable');
   const area = document.getElementById('print-area');
   if (!area) return;
   area.innerHTML = '<h1>' + escapeHtml(title) + '</h1>' + bodyHtml;
@@ -7930,6 +7930,7 @@ const ExportPdfReplyButton = ({ getText }) => {
   const busyRef = useRef(false);
   const doExport = async () => {
     if (busyRef.current) return;
+    if (!ezikNativePdfAllowed()) { setFlash('fail'); return; }
     const payload = (typeof getText === 'function') ? getText() : '';
     if (!payload) { setFlash('fail'); setTimeout(() => setFlash(''), 1500); return; }
     busyRef.current = true;
@@ -28278,7 +28279,10 @@ function DocumentCard({ title, content, age }) {
     }
     downloadAsWord(name, name, content);
   };
-  const exportPdf = () => printAsPdf(title || 'مستند', docToHtml(content)).catch(() => setSaid(EZIK_PDF_FAIL));
+  const exportPdf = () => {
+    if (!ezikNativePdfAllowed()) { setSaid(EZIK_PDF_FAIL); return; }
+    return printAsPdf(title || 'مستند', docToHtml(content)).catch(() => setSaid(EZIK_PDF_FAIL));
+  };
   const canExport = deriveCaps(age).export;
   return (
     <div style={{ border: '1px solid var(--line)', borderRadius: 12, padding: '14px 16px', background: 'var(--white)', width: '100%' }}>
