@@ -1197,7 +1197,7 @@ async function accountDeletionCases() {
           return new Promise((resolve, reject) => { answer = () => outcome === 'lost' ? reject(Error('lost response')) : resolve(response(url, outcome === 'refused' ? { ok: false, error: 'auth-reauth-required' } : { ok: true }, outcome === 'refused' ? 428 : 200)); });
         } };
       const names = Object.keys(env);
-      const make = new Function(...names, 'let EZIK_AUTH_PROOF_CLIENT = null;\n' + factory + '\n' + adapter + '\nreturn { client: ezikAuthProofClient(), confirm: ' + confirm + ' };');
+      const make = new Function(...names, 'let EZIK_AUTH_PROOF_CLIENT = null; let EZIK_AUTH_PROOF_OBSERVED_ON = false; let EZIK_AUTH_PROOF_LIFECYCLE_BOUND = false;\n' + factory + '\n' + adapter + '\nreturn { client: ezikAuthProofClient(), confirm: ' + confirm + ' };');
       const h = make(...names.map(name => env[name]));
       h.confirm();
       for (let i = 0; i < 50 && !answer; i++) await new Promise(resolve => setImmediate(resolve));

@@ -233,7 +233,7 @@ const HARNESS_PARTS = [
   text(FN_WEB_RETURN), text(FN_WEB_CLEAN), text(FN_WEB_HOOK),
   text(C_FOUNDER_KEY), text(FN_TOKEN_ALIVE), text(FN_HAS_FOUNDER),
   text(C_ADMIN_ROUTE), text(FN_GRANT_CHECK),
-  text(topConst('EZIK_AUTH_PROOF_CLIENT')),
+  ...['EZIK_AUTH_PROOF_CLIENT', 'EZIK_AUTH_PROOF_OBSERVED_ON', 'EZIK_AUTH_PROOF_LIFECYCLE_BOUND'].map(name => text(topConst(name))),
   ...['createEzikAuthProofClient', 'ezikAuthProofClient', 'ezikAuthProofLegacy', 'ezikAuthProofLine', 'useEzikAuthProofStatus', 'ezikAuthProofSignIn', 'EzikAuthProofRecovery', 'EzikRoleProofActions'].map(name => text(topFunction(name))),
   text(FN_ROW),
   'return {',
