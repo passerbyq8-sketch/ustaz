@@ -1036,6 +1036,10 @@ const DRAW_SRC = babel.transformSync([
   'const useState = env.useState;',
   'const useRef = env.useRef;',
   'const useEffect = env.useEffect;',
+  'const ezikNativeShare = env.ezikNativeShare;',
+  'const ez110AndroidShell = env.ez110AndroidShell;',
+  text(topFunction('useEzikNativeShareCaps')),
+  text(topFunction('ezikNativePdfAllowed')),
   'const s = env.s;',
   'const deriveCaps = env.deriveCaps;',
   'const printAsPdf = env.printAsPdf;',
@@ -1177,6 +1181,8 @@ function drawScene(opts) {
     lang: 'ar',
     s: { qiblaNote: { marginTop: 6 } },
     deriveCaps: () => ({ export: true }),
+    ezikNativeShare: { getCapabilities: () => o.caps || null },
+    ez110AndroidShell: () => o.android === true,
     printAsPdf: () => {},
     docToHtml: () => DOC_BODY,
     ezikDocxBytes: () => new TextEncoder().encode(DOC_BODY),
@@ -1248,6 +1254,23 @@ run('DRAWN: the document card gains nothing at all in a browser, and one node in
   b.unmount();
   eq(shell.win.live(CONTRACT.SHELL_DL_RESULT), 0, 'listeners after the unmount effect ran');
   return browserNodes + ' nodes in a browser, unchanged in the shell until a refusal adds exactly 2';
+});
+
+run('DRAWN: actual PDF capability seam handles absent, available and unsupported capabilities', () => {
+ for(const android of [false,true])for(const caps of [null,{htmlToPdf:true},{htmlToPdf:false}]){
+  const options={shell:'recording',android,caps};const s=drawScene(options);
+  const m=mountComponent('DocumentCard',{title:DOC_TITLE,content:'x',age:12},s);
+  const pdf=()=>findTags(nodesOf(m.tree()),'button').filter(b=>String(b.props.onClick).includes('exportPdf'));
+  // The rendered PDF control invokes its named real export handler.
+  const buttons=()=>findTags(nodesOf(m.tree()),'button');
+  eq(buttons().length,android&&caps?.htmlToPdf===false?1:2,'PDF visibility');
+  eq(s.win.live('ezik:share:capability'),1,'real hook subscribed');
+  options.caps={htmlToPdf:false};s.win.dispatch('ezik:share:capability',{});
+  eq(buttons().length,android?1:2,'fresh unsupported capability rerenders');
+  options.caps={htmlToPdf:true};s.win.dispatch('ezik:share:capability',{});eq(buttons().length,2,'available PDF returns');
+  m.unmount();eq(s.win.live('ezik:share:capability'),0,'capability listener released');
+ }
+ return '6 initial states, capability changes, cleanup; real hook and PDF predicate';
 });
 
 // ---------------------------------------------------------------------------
