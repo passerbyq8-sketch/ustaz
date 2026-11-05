@@ -99,8 +99,12 @@ function boot(opts) {
   // reply cannot draw it in the scenes that prove those replies silent (widget-reply-silence) and unpersisted
   // (widget-supported-failure, ruling of side session 24+58); widget-adhan-card proves the drawing itself.
   if (opts.adhanAsked) seed.ezik_110_adhan_asked_v1 = '1';
+  if(opts.thread){
+    seed.ezik_chats_v1=JSON.stringify([{id:'d18-thread',pk:PROFILE_PID,title:'D18 saved thread',at:1}]);
+    seed['ezik_chat_v1_d18-thread']=JSON.stringify([{role:'user',content:'D18 saved question'},{role:'assistant',content:'D18 saved answer'}]);
+  }
   window.localStorage = makeStore(seed, storageWrites, 'local');
-  window.sessionStorage = makeStore({}, storageWrites, 'session');
+  window.sessionStorage = makeStore(opts.thread?{ezik_resume_thread_v1:'d18-thread'}:{}, storageWrites, 'session');
   window.postMessage = (wire) => browserPosts.push(String(wire));
   if (opts.shell) window.ReactNativeWebView = { postMessage: (wire) => posts.push(String(wire)) };
   window.fetch = (url) => {
@@ -281,12 +285,28 @@ SCENES['list-reset'] = async (c, t) => {
   }
 };
 SCENES['chat-reset'] = async (c, t) => {
-  await c.until('chat'); const input = c.root.querySelector('textarea');
-  c.props(input).onChange({ target: { value: 'fixture draft' } }); await tick(100);
-  t('fixture draft exists', c.root.querySelector('textarea').value, 'fixture draft');
-  const count = c.focuses.length; c.open('chat'); await c.quiet();
-  t('chat starts a new empty thread', c.root.querySelector('textarea').value, '');
-  t('chat focuses after its new render', c.focuses.length > count && c.focuses[c.focuses.length - 1] === c.root.querySelector('textarea'), true);
+  await c.until('chat');
+  const thread=()=>c.root.querySelector('.ezc-scroll')?.textContent||'';
+  const saved=c.window.localStorage.getItem('ezik_chat_v1_d18-thread');
+  t('saved question and answer are mounted',thread().includes('D18 saved question')&&thread().includes('D18 saved answer'),true);
+  c.props(c.root.querySelector('textarea')).onChange({target:{value:'fixture draft'}});await tick(100);
+  const keep=label=>{
+    t(label+': draft stays',c.root.querySelector('textarea').value,'fixture draft');
+    t(label+': messages stay',thread().includes('D18 saved question')&&thread().includes('D18 saved answer'),true);
+    t(label+': current chat identity stays',c.root.querySelector('.ezc-brand-text')?.textContent,'D18 saved thread');
+    t(label+': saved body stays byte-identical',c.window.localStorage.getItem('ezik_chat_v1_d18-thread'),saved);
+  };
+  c.open('home');await c.until('home');const count=c.focuses.length;
+  c.open('chat');await c.until('chat');await c.quiet();keep('widget/deep-link return');
+  t('widget return focuses its composer',c.focuses.length>count&&c.focuses.at(-1)===c.root.querySelector('textarea'),true);
+  c.open('home');await c.until('home');
+  await c.click(c.root.querySelector('.ez110-nav .ez110-tab'));await c.until('chat');await c.quiet();keep('bottom Ezik tab');
+  await c.click(c.root.querySelector('.ezc-rail button.ezc-icon'));
+  const fresh=Array.from(c.root.querySelectorAll('button')).find(el=>String(c.props(el)?.onClick).includes('startChatFromMenu'));
+  t('explicit New chat still invokes startChatFromMenu',!!fresh,true);await c.click(fresh);await tick(150);
+  t('explicit New chat clears the draft',c.root.querySelector('textarea').value,'');
+  t('explicit New chat clears the visible current messages',thread().includes('D18 saved question')||thread().includes('D18 saved answer'),false);
+  t('explicit New chat retains the saved conversation',c.window.localStorage.getItem('ezik_chat_v1_d18-thread'),saved);
 };
 SCENES['chat-consent'] = async (c, t) => {
   c.open('chat'); await c.until('gate'); await c.quiet();
@@ -721,7 +741,7 @@ const MUTANTS = [
   { name: 'wirdi-not-a-home-layer', scene: 'cold-wirdi', edits: [["wirdi: 1, tasbih: 1, calc: 1, compass: 1 };", "tasbih: 1, calc: 1, compass: 1 };"]] },
   { name: 'adhkar-index-not-reset', scene: 'list-reset', edits: [['<AdhkarScreen onBack={goEzikBack} key={homeEpoch} />', '<AdhkarScreen onBack={goEzikBack} />']] },
   { name: 'arbaeen-list-not-reset', scene: 'list-reset', edits: [['<ArbaeenScreen onBack={goEzikBack} key={homeEpoch} />', '<ArbaeenScreen onBack={goEzikBack} />']] },
-  { name: 'chat-thread-not-new', scene: 'chat-reset', edits: [["      newChat();\n      setScreen('chat');", "      setScreen('chat');"]] },
+  { name: 'chat-thread-reset-on-return', scene: 'chat-reset', edits: [["      ezikClearResume();\n      setScreen('chat');", "      ezikClearResume();\n      newChat();\n      setScreen('chat');"]] },
   { name: 'chat-focus-missing', scene: 'chat-consent', edits: [['    el.focus();\n    widgetChatFocusRef.current = false;', '    widgetChatFocusRef.current = false;']] },
   { name: 'adhan-sound-missing', scene: 'adhan', edits: [["        adhanSound: prefs.adhanSound ? (k === 'fajr' ? 'fajr' : 'other') : 'none',\n", '']] },
   { name: 'adhan-whitelist-drops-sound', scene: 'adhan', edits: [['    if (type === ADHAN_TYPE) rec.adhanSound = it.adhanSound;\n', '']] },
@@ -801,7 +821,7 @@ async function runScene(name, mutant) {
     // One failed assertion already kills a mutant. Avoid waiting for every later timeout.
     if (mutant && !ok) throw new Error('mutation assertion failed: ' + label);
   };
-  const c = boot({ profile: name !== 'onboarding', consent: name !== 'chat-consent',
+  const c = boot({ thread: name === 'chat-reset', profile: name !== 'onboarding', consent: name !== 'chat-consent',
     shell: name.startsWith('widget-') || name === 'adhan' || name === 'adhan-legacy-hidden' || name.startsWith('adhan-supported-'),
     deferFixtures: name === 'widget-inflight-rejection', offline: name === 'offline', adhanAsked: name === 'widget-reply-silence' || name === 'widget-supported-failure', mutant });
   if (c.notApplied) return { notApplied: true, results, notes };

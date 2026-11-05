@@ -22740,7 +22740,6 @@ function App() {
     }
     if (route === 'chat') {
       ezikClearResume();
-      newChat();
       setScreen('chat');
       widgetChatFocusRef.current = !ez110TakeBarNav();
       return;
