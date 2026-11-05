@@ -1265,5 +1265,10 @@
     "name": "c1widgetnumerals",
     "script": "guards/c1-widget-numerals-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1nativeshare",
+    "script": "guards/c1-native-share-guard.cjs",
+    "args": ""
   }
 ]

@@ -7303,12 +7303,96 @@ const CopyReplyButton = ({ text, getText }) => {
 // refused in some WebViews. A button that vanished there would be a button the reader cannot
 // learn, so the control is always present and the fallback is the file's ONE clipboard path.
 // A share the reader CANCELS is not a failure: AbortError leaves the label alone.
+// B9 / S3: capability discovery happens before gestures. Results do not prove delivery.
+function createEzikNativeShareAdapter(win = window) {
+  let sequence = 0, capabilities = null, busy = false, lastGesture = -Infinity, disposed = false;
+  const prefix = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+  const pending = new Map();
+  function onResult(event) {
+    const d = event.detail;
+    if (!d || d.type !== 'ezik:share:result' || d.v !== '1' || typeof d.id !== 'string') return;
+    const entry = pending.get(d.id);
+    if (!entry) return;
+    if (entry.op === 'capabilities') {
+      if (d.status !== 'capabilities' || d.ok !== true || !d.capabilities ||
+          !['text', 'link', 'file', 'htmlToPdf'].every(k => typeof d.capabilities[k] === 'boolean') ||
+          !Number.isInteger(d.capabilities.maxTextLength) || d.capabilities.maxTextLength < 1 ||
+          !Number.isInteger(d.capabilities.maxFileBytes) || d.capabilities.maxFileBytes < 1) return;
+    } else if (!(['shared', 'presented', 'dismissed'].includes(d.status) && d.ok === true) &&
+        !(d.status === 'error' && d.ok === false && typeof d.reason === 'string')) return;
+    pending.delete(d.id); clearTimeout(entry.timer); entry.resolve(d);
+  }
+  win.addEventListener('ezik:share:result', onResult);
+  function send(fields, timeout) {
+    if (disposed) return Promise.resolve({ status: 'error', reason: 'inactive' });
+    if (typeof win.ReactNativeWebView?.postMessage !== 'function') return Promise.resolve({ status: 'unavailable' });
+    const id = 'share-' + prefix + '-' + ++sequence;
+    return new Promise(resolve => {
+      const timer = setTimeout(() => { pending.delete(id); resolve({ status: 'unknown' }); }, timeout);
+      pending.set(id, { resolve, timer, op: fields.op });
+      try { win.ReactNativeWebView.postMessage(JSON.stringify({ ...fields, type: 'ezik:share', v: '1', id })); }
+      catch (e) { clearTimeout(timer); pending.delete(id); resolve({ status: 'unknown' }); }
+    });
+  }
+  const ready = send({ op: 'capabilities' }, 1000).then(result => {
+    if (!disposed && result.status === 'capabilities' && result.ok === true) capabilities = { ...result.capabilities };
+    return capabilities;
+  });
+  return {
+    ready,
+    getCapabilities: () => capabilities,
+    canShare: kind => !disposed && capabilities?.[kind] === true,
+    async share(fields) {
+      if (disposed || win.document?.visibilityState === 'hidden') return { status: 'error', reason: 'inactive' };
+      if (capabilities?.[fields.kind] !== true) return { status: 'unavailable' };
+      if (busy || Date.now() - lastGesture < 750) return { status: 'error', reason: 'busy' };
+      busy = true; lastGesture = Date.now();
+      try { return await send({ ...fields, op: 'share' }, 120000); }
+      finally { busy = false; }
+    },
+    dispose() {
+      disposed = true; capabilities = null;
+      win.removeEventListener('ezik:share:result', onResult);
+      for (const entry of pending.values()) { clearTimeout(entry.timer); entry.resolve({ status: 'error', reason: 'inactive' }); }
+      pending.clear();
+    }
+  };
+}
+const ezikNativeShare = typeof window === 'undefined' ? null : createEzikNativeShareAdapter(window);
+if (ezikNativeShare) {
+  ezikNativeShare.ready.then(caps => { if (caps) window.dispatchEvent(new CustomEvent('ezik:share:capability')); });
+  window.addEventListener('pagehide', () => ezikNativeShare.dispose(), { once: true });
+}
+// Synchronous capability branch preserves navigator.share's activation on the legacy path.
+function ezikNativeShareAttempt(fields, copy, fail) {
+  if (!ezikNativeShare || !ezikNativeShare.canShare(fields.kind)) return false;
+  ezikNativeShare.share(fields).then(result => {
+    if (result.status === 'unavailable' || result.reason === 'share-unavailable') return copy();
+    if (['shared', 'presented', 'dismissed'].includes(result.status) || ['busy', 'inactive'].includes(result.reason)) return;
+    fail();
+  }).catch(fail);
+  return true;
+}
+function ezikNativePdfAllowed() {
+  const caps = ezikNativeShare && ezikNativeShare.getCapabilities();
+  return !(caps && ez110AndroidShell() && caps.htmlToPdf !== true);
+}
+function useEzikNativeShareCaps() {
+  const [, update] = useState(0);
+  useEffect(() => {
+    const refresh = () => update(n => n + 1);
+    window.addEventListener('ezik:share:capability', refresh);
+    return () => window.removeEventListener('ezik:share:capability', refresh);
+  }, []);
+}
+
 const ShareReplyButton = ({ getText }) => {
   const [flash, setFlash] = useState('');            // '' | 'copied' | 'fail'
   const say = (v) => { setFlash(v); setTimeout(() => setFlash(''), 1500); };
   const doShare = async () => {
     const payload = ezikFixPlainHeads((typeof getText === 'function') ? getText() : '');
     if (!payload) { say('fail'); return; }
+    if (typeof ezikNativeShareAttempt === 'function' && ezikNativeShareAttempt({ kind: 'text', text: payload }, async () => say(await ezikWriteClipboard(payload) ? 'copied' : 'fail'), () => say('fail'))) return;
     try {
       if (navigator.share) {
         await navigator.share({ text: payload });
@@ -7398,6 +7482,7 @@ const EZIK_ICON_SHARE_DRAWER = (
 // WebViews, and a control that vanished there would be a control the reader cannot learn. A share
 // the reader CANCELS is not a failure -- AbortError returns without saying anything.
 const ezikShareLinks = async (payload, say) => {
+  if (typeof ezikNativeShareAttempt === 'function' && ezikNativeShareAttempt({ ...payload, kind: payload.url ? 'link' : 'text' }, async () => say(await ezikWriteClipboard(payload.url || payload.text || '') ? 'copied' : 'fail'), () => say('fail'))) return;
   try {
     if (navigator.share) {
       await navigator.share(payload);
@@ -7771,6 +7856,7 @@ let EZIK_PRINT_FALLBACK_TITLE = ezT('c.EZIK_PRINT_FALLBACK_TITLE');
 const EZIK_PRINT_BACKSTOP_MS = 60000;
 
 const printAsPdf = async (title, bodyHtml) => {
+  if (typeof ezikNativePdfAllowed === 'function' && !ezikNativePdfAllowed()) throw new Error('pdf-unavailable');
   const area = document.getElementById('print-area');
   if (!area) return;
   area.innerHTML = '<h1>' + escapeHtml(title) + '</h1>' + bodyHtml;
@@ -7835,6 +7921,7 @@ let EZIK_PDF_FAIL = ezT('c.EZIK_PDF_FAIL');
 const EZIK_PDF_TITLE = 'ردُّ عزك';
 
 const ExportPdfReplyButton = ({ getText }) => {
+  useEzikNativeShareCaps();
   const [flash, setFlash] = useState('');
   // ONE PRESS, ONE FILE. State alone could not promise it: two taps dispatched inside one task
   // both read the value from before React committed the first. The ref flips synchronously.
@@ -7854,6 +7941,7 @@ const ExportPdfReplyButton = ({ getText }) => {
     }
     busyRef.current = false;
   };
+  if (!ezikNativePdfAllowed()) return null;
   return (
     <button type="button" onClick={doExport} aria-label={EZIK_PDF_ARIA} className="ezik-focus" style={miniBtnStyle}>
       {flash === 'wait' ? EZIK_PDF_WAIT : flash === 'fail' ? EZIK_PDF_FAIL : EZIK_PDF_LABEL}
@@ -20096,6 +20184,7 @@ function AdhkarCategoryV2({ cat, startAt, onBack }) {
     const text = (cur && typeof cur.text === 'string') ? cur.text : '';
     if (!text) return;
     const fail = (e) => { if (e && e.name === 'AbortError') { setNote(''); return; } setNote(A2_SHARE_FAIL); };
+    if (ezikNativeShareAttempt({ kind: 'text', text }, async () => setNote(await ezikWriteClipboard(text) ? A2_COPY_OK : A2_SHARE_FAIL), () => setNote(A2_SHARE_FAIL))) return;
     try {
       if (navigator.share) { navigator.share({ text: text }).then(() => setNote(A2_SHARE_OK)).catch(fail); return; }
       if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(() => setNote(A2_COPY_OK)).catch(fail); return; }
@@ -28118,6 +28207,7 @@ function BoardCard({ content }) {
 }
 
 function DocumentCard({ title, content, age }) {
+  useEzikNativeShareCaps();
   // THE SHELL'S ANSWER, in the reader's own words, on the same terms as the reply card's: it
   // stays until the next press, and in a browser it is never anything but ''.
   const [said, setSaid] = useState('');
@@ -28141,7 +28231,7 @@ function DocumentCard({ title, content, age }) {
     }
     downloadAsWord(name, name, content);
   };
-  const exportPdf = () => printAsPdf(title || 'مستند', docToHtml(content));
+  const exportPdf = () => printAsPdf(title || 'مستند', docToHtml(content)).catch(() => setSaid(EZIK_PDF_FAIL));
   const canExport = deriveCaps(age).export;
   return (
     <div style={{ border: '1px solid var(--line)', borderRadius: 12, padding: '14px 16px', background: 'var(--white)', width: '100%' }}>
@@ -28152,10 +28242,10 @@ function DocumentCard({ title, content, age }) {
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--on-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9 15h6"/></svg>
         صدِّر كملف Word
       </button>
-      <button onClick={exportPdf} style={{ marginTop: 12, marginRight: 8, background: 'transparent', color: 'var(--red)', border: '1px solid var(--red)', borderRadius: 10, padding: '9px 16px', fontSize: 15, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+      {ezikNativePdfAllowed() && <button onClick={exportPdf} style={{ marginTop: 12, marginRight: 8, background: 'transparent', color: 'var(--red)', border: '1px solid var(--red)', borderRadius: 10, padding: '9px 16px', fontSize: 15, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--red)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-4"/></svg>
         PDF
-      </button>
+      </button>}
       {said ? <div style={s.qiblaNote}>{said}</div> : null}
       </>)}
     </div>
@@ -36172,6 +36262,7 @@ function PrayerCalendarSheet({ onClose, loc, onShowDay, onOpenConverter }) {
   };
   const save = () => {
     const text = monthText();
+    if (ezikNativeShareAttempt({ kind: 'text', title: monthTitle, text }, async () => setSaid(await ezikWriteClipboard(text) ? 'copied' : 'fail'), () => setSaid('fail'))) return;
     try {
       if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') { navigator.share({ title: monthTitle, text: text }).then(() => setSaid('shared'), () => {}); return; }
       if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(() => setSaid('copied'), () => setSaid('')); return; }
@@ -36234,6 +36325,7 @@ function PrayerCalendarSheet({ onClose, loc, onShowDay, onOpenConverter }) {
           <button type="button" onClick={onOpenConverter} data-ezik-cal="conv" className="ezik-focus ez110-pcard-pill is-ink">{ezT('conv.title')}</button>
           <button type="button" onClick={save} data-ezik-cal="save" className="ezik-focus ez110-pcard-pill is-ink">{ezT('cal.save')}</button>
         </div>
+        {said === 'fail' ? <div className="ez110-cal-note" role="status">{EZIK_SHARE_FAIL}</div> : null}
         {said === 'copied' ? <div className="ez110-cal-note" role="status" data-ezik-cal="saved">{ezT('cal.saved')}</div> : null}
         {said === 'shared' ? <div className="ez110-cal-note" role="status" data-ezik-cal="saved">{ezT('cal.shared')}</div> : null}
       </div>
@@ -36285,6 +36377,7 @@ function PrayerMonthSheet({ onClose, loc }) {
   };
   const share = () => {
     const body = text();
+    if (ezikNativeShareAttempt({ kind: 'text', title: ezT('panel.openMonth'), text: body }, copy, () => setSaid('fail'))) return;
     try { if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') { navigator.share({ title: ezT('panel.openMonth'), text: body }).then(() => setSaid('shared'), () => {}); return; } } catch (e) {}
     copy();
   };
@@ -36322,6 +36415,7 @@ function PrayerMonthSheet({ onClose, loc }) {
           <button type="button" onClick={share} data-ezik-month="share" className="ezik-focus ez110-pcard-pill is-ink">{ezT('month.share')}</button>
           <button type="button" onClick={copy} data-ezik-month="copy" className="ezik-focus ez110-pcard-pill is-ink">{ezT('month.copy')}</button>
         </div>
+        {said === 'fail' ? <div className="ez110-cal-note" role="status">{EZIK_SHARE_FAIL}</div> : null}
         {said === 'copied' ? <div className="ez110-cal-note" role="status" data-ezik-month="said">{ezT('month.copied')}</div> : null}
         {said === 'shared' ? <div className="ez110-cal-note" role="status" data-ezik-month="said">{ezT('month.shared')}</div> : null}
         <div className="ez110-cal-note">{ezT('cal.umm')}</div>
