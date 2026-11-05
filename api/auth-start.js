@@ -165,7 +165,9 @@ export default async function handler(req, res) {
   // No-store: this response carries a URL bearing the state, and a cache that kept it would
   // serve one reader's in-flight sign-in to the next.
   res.setHeader('Cache-Control', 'private, no-store');
-  res.setHeader('Location', target);
+  const redirect = new URL(target);
+  if (proof?.purpose === 'reauth' && cfg.reauthPrompt) redirect.searchParams.set('prompt', cfg.reauthPrompt);
+  res.setHeader('Location', redirect.toString());
   return res.status(302).end();
 }
 

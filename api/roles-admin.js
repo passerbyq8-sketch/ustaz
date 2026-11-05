@@ -49,6 +49,9 @@ import { clientAddress } from '../lib/attempts.js';
 import { DEVICE_HEADER } from '../lib/daycap.js';
 import { resolveActorState, grantRole, revokeRole, ROLE_OWNER } from '../lib/articles/roles.js';
 
+import { requireReauthentication } from '../lib/auth/reauth.js';
+import { sendProofFailure } from '../lib/auth/proof.js';
+
 export const ROLE_ACTIONS = Object.freeze(['grant', 'revoke']);
 
 const CLIENT_ERRORS = Object.freeze([
@@ -98,6 +101,9 @@ export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'private, no-store');
 
   const target = typeof body.accountKey === 'string' ? body.accountKey : '';
+
+  const proved = await requireReauthentication(body, 'roles-' + action, { accountKey: target, sections: body.sections });
+  if (!proved.ok) return sendProofFailure(res, proved);
 
   if (action === 'grant') {
     const sections = Array.isArray(body.sections) ? body.sections : [];

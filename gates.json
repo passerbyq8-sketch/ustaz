@@ -1155,5 +1155,10 @@
     "name": "securityauthproof",
     "script": "guards/security-auth-proof-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "securityreauth",
+    "script": "guards/security-reauth-guard.cjs",
+    "args": ""
   }
 ]

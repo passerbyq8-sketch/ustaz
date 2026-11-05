@@ -36,6 +36,7 @@ const parser = require(path.join(REPO, 'node_modules', '@babel', 'parser'));
 
 const NEW_MODULES = [
   'lib/auth/store.js',
+  'lib/auth/reauth.js',
   'lib/auth/proof.js',
   'lib/auth/oidc.js',
   'lib/auth/account.js',

@@ -108,6 +108,8 @@ const parser = require(path.join(REPO, 'node_modules', '@babel', 'parser'));
 
 const MODULES = [
   'lib/auth/store.js',
+  'lib/auth/reauth.js',
+  'lib/auth/proof.js',
   'lib/auth/account.js',
   'lib/articles/store.js',
   'lib/articles/roles.js',

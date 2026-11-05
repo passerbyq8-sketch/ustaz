@@ -1319,7 +1319,7 @@ function liftRoute(rel, dep) {
 const ROUTE = 'api/auth-delete.js';
 const ROUTE_SRC = fs.readFileSync(path.join(REPO, ROUTE), 'utf8');
 
-let STORE = null, ACCOUNT = null, DAYCAP = null, ATTEMPTS = null, SYNC = null;
+let STORE = null, ACCOUNT = null, DAYCAP = null, ATTEMPTS = null, SYNC = null, REAUTH = null, PROOF = null;
 
 const FX = {
   provider: 'a-provider',
@@ -1371,6 +1371,8 @@ async function callRoute(scene, opts) {
     if (spec === '../lib/attempts.js') return ATTEMPTS;
     if (spec === '../lib/daycap.js') return DAYCAP;
     if (spec === '../lib/auth/account.js') return ACCOUNT;
+    if (spec === '../lib/auth/reauth.js') return REAUTH;
+    if (spec === '../lib/auth/proof.js') return PROOF;
     // ITEM 24: the sync erasure the route runs before the account delete. The real module is
     // supplied; with no KV on this machine it erases nothing (no space can exist), and a case
     // below swaps in one that refuses, to prove a refused sync erasure stops the delete.
@@ -1401,6 +1403,8 @@ async function serverCases() {
   const load = (...bits) => import(nodeUrl.pathToFileURL(path.join(REPO, ...bits)).href);
   STORE = await load('lib', 'auth', 'store.js');
   ACCOUNT = await load('lib', 'auth', 'account.js');
+  REAUTH = await load('lib', 'auth', 'reauth.js');
+  PROOF = await load('lib', 'auth', 'proof.js');
   DAYCAP = await load('lib', 'daycap.js');
   ATTEMPTS = await load('lib', 'attempts.js');
   SYNC = await load('lib', 'sync', 'service.js');

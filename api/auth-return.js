@@ -50,6 +50,7 @@ import {
   verifyIdToken,
 } from '../lib/auth/oidc.js';
 import {
+  accountKey,
   stateKey,
   ticketKey,
   takeOnce,
@@ -188,14 +189,20 @@ export default async function handler(req, res) {
 
   // Signature, issuer, audience, expiry, nonce. The nonce is the one that ties this token to
   // the start WE minted; without it any valid token for this client would be accepted here.
-  const verified = verifyIdToken(cfg, exchanged.idToken, { keys: jwks.keys, nonce: record.nonce });
+  const verified = verifyIdToken(cfg, exchanged.idToken, { keys: jwks.keys, nonce: record.nonce,
+    ...(record.proof?.purpose === 'reauth' ? { freshSince: record.proof.createdAt / 1000 } : {}) });
   if (!verified.ok) return toApp(res, { error: verified.code, state: echo }, web);
 
   const claims = verified.claims;
 
   // FIVE FIELDS. `sub`, `email` and `emailVerified` are all that crosses from the token into the
   // record; `provider` and `v` are ours. Nothing else the provider sent is carried this far.
-  const account = await upsertAccount({
+  const reauth = record.proof?.purpose === 'reauth';
+  if (reauth && accountKey(cfg.name, claims.sub) !== record.proof.reauth?.accountKey) {
+    return toApp(res, { error: 'auth-reauth-invalid', state: echo }, web);
+  }
+  const account = reauth ? { ok: true, key: record.proof.reauth.accountKey, generation: record.proof.reauth.generation }
+    : await upsertAccount({
     provider: cfg.name,
     sub: claims.sub,
     email: claims.email,
@@ -205,20 +212,22 @@ export default async function handler(req, res) {
 
   // The seam between two providers, and it opens on a PROVED address only. An unverified sign-in
   // reaches this line and writes nothing -- it still has its own account.
-  await indexVerifiedEmail(claims.email, claims.emailVerified, account.key);
+  if (!reauth) await indexVerifiedEmail(claims.email, claims.emailVerified, account.key);
 
   // SYNC FIX 4 (items 24 + 58, behind SYNC_SWITCH): a proved address equal to the proved address of
   // an account that already exists welds this sign-in into it, on the «link your other account»
   // road (lib/sync/service.js weldByVerifiedEmail). A refusal or a store failure never fails the
   // sign-in, and nothing about it is logged but its code.
-  try { await weldByVerifiedEmail(account.key, claims.email, claims.emailVerified); }
-  catch (e) { console.warn('[auth] weld skipped'); }
+  if (!reauth) {
+    try { await weldByVerifiedEmail(account.key, claims.email, claims.emailVerified); }
+    catch (e) { console.warn('[auth] weld skipped'); }
+  }
 
   // THE TICKET. Sixty seconds, spent once, bound to the device the flow started on.
   const ticket = randomTicket();
   const written = await writeJson(ticketKey(ticket), {
     v: TICKET_RECORD_VERSION,
-    ...(record.proof ? { proof: record.proof } : {}),
+    ...(record.proof ? { proof: { ...record.proof, ...(reauth ? { verifiedAt: Date.now() } : {}) } } : {}),
     accountKey: account.key,
     generation: account.generation,
     deviceId: typeof record.deviceId === 'string' ? record.deviceId : '',

@@ -53,6 +53,7 @@ async function harness() {
   const nonce = 'synthetic-native-nonce-for-security-test';
   const logs = [];
   const http = { idToken: null, calls: [] };
+  const effects = { weld: 0, erase: 0 };
   const context = vm.createContext({
     Buffer, URL, URLSearchParams, TextEncoder, TextDecoder, AbortController, AbortSignal, setTimeout, clearTimeout,
     Date: class extends Date { static now() { return now; } },
@@ -80,7 +81,7 @@ async function harness() {
     if (id === 'node:crypto') mod = synthetic(id, { default: crypto });
     else if (id === '@upstash/redis') mod = synthetic(id, { Redis: class { constructor() { return redis; } } });
     else if (id.endsWith('/lib/ratelimit.js')) mod = synthetic(id, { applyCorsOrigin() {}, checkAuthLimit: async () => ({ ok: true }) });
-    else if (id.endsWith('/lib/sync/service.js')) mod = synthetic(id, { weldByVerifiedEmail: async () => ({ welded: false }), eraseForAccountDelete: async () => {} });
+    else if (id.endsWith('/lib/sync/service.js')) mod = synthetic(id, { weldByVerifiedEmail: async () => { effects.weld++; return { welded: false }; }, eraseForAccountDelete: async () => { effects.erase++; if (faults.erase) throw Error('synthetic erase outage'); } });
     else if (id.endsWith('/lib/daycap.js')) mod = synthetic(id, { DEVICE_HEADER: 'x-murabbi-device', FOUNDER_HEADER: 'x-founder', hasUnrevokedFounderToken: async () => false, safeId: value => value || null, kuwaitDayStamp: () => 'synthetic-day', DAY_CAP_TTL_SECONDS: 172800 });
     else if (id.endsWith('/lib/answer-log.js')) mod = synthetic(id, { readAnswerLog: async () => [], ANSWER_LOG_PATHS: [] });
     else if (id.endsWith('/lib/usage.js')) mod = synthetic(id, { readUsage() {}, readUsageChat() {}, usageAnswerOutcome() {}, usageWindow() {} });
@@ -108,6 +109,6 @@ async function harness() {
     await handler({ method: 'POST', headers: { 'x-murabbi-device': 'synthetic-device' }, body }, res);
     return res;
   }
-  return { data, operations, faults, redis, env, logs, http, load, sign, nonce, post, now: () => now, advance(ms) { now += ms; } };
+  return { data, operations, faults, redis, env, logs, http, effects, load, sign, nonce, post, now: () => now, advance(ms) { now += ms; } };
 }
 module.exports = { harness };
