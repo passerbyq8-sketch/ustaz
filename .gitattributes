@@ -1151,3 +1151,4 @@ guards/c1-dima-drop-guard.cjs text eol=lf
 guards/c1-library-look-guard.cjs text eol=lf
 guards/c1-auth-proof-client-guard.cjs text eol=lf
 guards/c1-auth-proof-wiring-guard.cjs text eol=lf
+guards/helpers/auth-dom-fixture.cjs text eol=lf

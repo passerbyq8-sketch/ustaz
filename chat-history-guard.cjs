@@ -164,6 +164,7 @@ function buildContext(seed, mount) {
   global.window = window;
   global.document = window.document;
 
+  require('./guards/helpers/auth-dom-fixture.cjs').installAuthDomFixture(window, { useExistingFetch: false });
   const ctx = vm.createContext(window);
   const loadUMD = (file) => vm.runInContext(fs.readFileSync(path.join(__dirname, 'vendor', file), 'utf8'), ctx, { filename: file });
   loadUMD('react.umd.js');

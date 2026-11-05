@@ -107,6 +107,7 @@ async function boot(htmlFile, { tashkeel = true, reduced = false, seed = {} } = 
   Object.defineProperty(global, 'navigator', { value: window.navigator, configurable: true });
   global.window = window;
   global.document = window.document;
+  require('./helpers/auth-dom-fixture.cjs').installAuthDomFixture(window, { useExistingHistory: false });
   const ctx = vm.createContext(window);
   for (const f of ['react.umd.js', 'react-dom.umd.js']) vm.runInContext(fs.readFileSync(path.join(REPO, 'vendor', f), 'utf8'), ctx, { filename: f });
   const grab = (expr) => vm.runInContext('(' + expr + ')', ctx);
