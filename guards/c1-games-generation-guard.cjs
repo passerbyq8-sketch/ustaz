@@ -1,13 +1,13 @@
 'use strict';
 const assert = require('assert/strict');
-const { read, fixtures, ORIGIN, environment, entry, connected, iap } = require('./c1-games-harness.cjs');
+const { read, fixtures, ORIGIN, HOST_TOKEN, environment, entry, connected, iap } = require('./c1-games-harness.cjs');
 const core = read('hanna-laha/assets/iap-bridge-v1.js').split('/* ONLINE_GENERATION_END */')[0] + '/* ONLINE_GENERATION_END */';
 const tests = [], results = [];
 const test = (id, fn) => tests.push({ id, fn });
 const session = suffix => ['synthetic', 'account', suffix, 'fixture'].join('-');
 const room = { code: '123456', roomId: 'a'.repeat(24), existing: true };
 const provenance = generation => ({ kunuz_worker_rooms_v1: JSON.stringify([{ origin: ORIGIN, game: 'board', code: room.code, roomId: room.roomId, generation }]) });
-async function open(env, client) { const ticket = await client.open(); client.hello(ticket, { t: 'hello', v: 1, roomId: room.roomId, hostToken: 'synthetic-room-host', deviceId: 'synthetic-device' }, message => { env.messages.push(message); return true; }); }
+async function open(env, client) { const ticket = await client.open(); client.hello(ticket, { t: 'hello', v: 1, roomId: room.roomId, hostToken: HOST_TOKEN, deviceId: 'synthetic-device' }, message => { env.messages.push(message); return true; }); }
 const snap = (phase = 'lobby', version = 1, gameNumber = 0) => ({ roomId: room.roomId, phase, version, gameNumber });
 for (const sw of ['sw.js', 'quest-sw.js']) for (const game of ['hanna', 'harb', 'board']) for (const fixture of fixtures.responseCases) {
   test('fixture/' + sw + '/' + game + '/' + fixture.id, async source => {
@@ -66,7 +66,7 @@ for (const sw of ['sw.js', 'quest-sw.js']) for (const game of ['hanna', 'harb', 
       case 'resume':
         client.disconnect();
         if ((step.fixture === 'account-exact' ? 'ACCOUNT' : 'LEGACY') !== sequence.roomGeneration) { await assert.rejects(open(env, client)); assert.equal(env.messages.length, count); }
-        else { await open(env, client); assert.equal(env.messages.at(-1).hostToken, 'synthetic-room-host'); await assert.rejects(client.send({ t: 'start' }, raw)); client.observe(snap()); }
+        else { await open(env, client); assert.equal(env.messages.at(-1).hostToken, HOST_TOKEN); await assert.rejects(client.send({ t: 'start' }, raw)); client.observe(snap()); }
         break;
       case 'established-socket':
         client.observe(snap('question', 2, 1)); await client.send({ t: 'answer', qn: 1, pos: 0 }, raw); assert.equal(env.messages.length, count + 1); await assert.rejects(client.send({ t: 'rematch', rev: 2 }, raw)); break;

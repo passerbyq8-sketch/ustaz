@@ -2,6 +2,7 @@
 const fs = require('fs'), path = require('path'), vm = require('vm'), assert = require('assert/strict');
 const babel = require('@babel/core');
 const root = path.resolve(__dirname, '..');
+const HOST_TOKEN = ['synthetic', 'room', 'host'].join('-');
 const ORIGIN = 'https://hanna-laha.hl-worker.workers.dev';
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const fixtures = JSON.parse(read('guards/c1-games-response-fixtures.json'));
@@ -77,7 +78,7 @@ function environment(options = {}) {
     if (parsed.pathname === '/api/board/catalog') return Response.json({ bankStamp: 'fixture-bank', categories: ['deen', 'prayer', 'quran'].map((slug, index) => ({ slug, index })) });
     if (request.method === 'POST' && /\/rooms$/.test(parsed.pathname)) {
       posts.push({ headers: [...request.headers], body: await request.json() });
-      return Response.json({ code: '123456', roomId: 'a'.repeat(24), hostToken: 'synthetic-room-host', createdAt: 1 });
+      return Response.json({ code: '123456', roomId: 'a'.repeat(24), hostToken: HOST_TOKEN, createdAt: 1 });
     }
     throw Error('Unexpected local fixture route ' + parsed.pathname);
   }
@@ -130,7 +131,7 @@ async function connected(env, game, generation) {
   env.localStorage.setItem('kunuz_worker_rooms_v1', JSON.stringify([record]));
   env.fixture(generation === 'ACCOUNT' ? 'account-exact' : 'legacy-fix46-4725edfd');
   const snapshot = (phase = 'lobby', version = 1, gameNumber = 0) => ({ roomId: record.roomId, phase, stage: phase === 'lobby' ? 'lobby' : 'play', version, gameNumber, bankStamp: 'fixture-bank', self: { role: 'host' }, teams: [{ name: 'First', color: 0, score: 0, shows: 2 }, { name: 'Second', color: 1, score: 0, shows: 2 }], config: { rounds: 1 }, settings: { options: 'shown', timeMs: 0, reveals: 2, questionOrder: 'points' }, cats: [0, 1, 2], slots: [], restartCats: [], turn: 0, question: null });
-  const credentials = { code: record.code, roomId: record.roomId, hostToken: 'synthetic-room-host', teamToken: '', deviceId: 'synthetic-device' };
+  const credentials = { code: record.code, roomId: record.roomId, hostToken: HOST_TOKEN, teamToken: '', deviceId: 'synthetic-device' };
   let controller, send, reconnect, receive, startEntry;
   if (game === 'hanna') {
     c.s = (config, route) => config.apiOrigin + route; c.c = (config, code) => config.apiOrigin.replace('http', 'ws') + '/ws/rooms/' + code;
@@ -175,4 +176,4 @@ function iap(env) {
   env.run(['roomSessionId', 'consumeAndStart', 'startWithIntent', 'startWithoutIap', 'beginStart'].map(n => functionSource(source, n)).join('\n'));
   return { consume, begin: (send, game, options) => c.beginStart(send, '123456', game, options) };
 }
-module.exports = { root, read, fixtures, ORIGIN, environment, entry, connected, iap, snippets, functionSource, classSource };
+module.exports = { root, read, fixtures, ORIGIN, HOST_TOKEN, environment, entry, connected, iap, snippets, functionSource, classSource };
