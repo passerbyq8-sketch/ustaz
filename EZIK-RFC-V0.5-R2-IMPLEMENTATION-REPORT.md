@@ -349,7 +349,7 @@ every purpose and `capabilityEligible()` is false for every capability. **Regist
 
 ## K. Gates and tests
 
-Expected signature for the current integrated roster. CURRENT_RECON retains the prior measured result pending the order-7 focused recon measurement and full run. Evidence: REPORT-C1-ORDER-7.md:
+Expected signature for the current integrated roster. CURRENT_RECON records the measured 364/0/1 pre-self-check counts on 5a79ea4e6f2d21e7267baf861da7be80e747579f from the focused order-7 audit. The synthetic identityToken fixture is flagged by the secret scanner and retained under the owner rule. This record is not a green gate claim. Full-run evidence and NOTICED are in REPORT-C1-ORDER-7.md:
 
 All 272 gates in the current roster run sequentially through tools/run-gates.cjs. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
 
@@ -466,7 +466,7 @@ securityauthredirectcompletion 0
 c1authproofclient 0
 c1authproofwiring 0
 TOTAL_GATES        272/272 PASS
-CURRENT_RECON PASS=363 WARN=0 FAIL=0
+CURRENT_RECON PASS=364 WARN=0 FAIL=1
 PRE_REBASE_UPSTREAM_TOTAL_GATES 206/206 PASS
 PRE_REBASE_UPSTREAM_RECON PASS=299 WARN=0 FAIL=0
 PRE_REBASE_BRANCH_TOTAL_GATES 208/208 PASS
