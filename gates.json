@@ -1220,5 +1220,10 @@
     "name": "c1deferredgender",
     "script": "guards/c1-deferred-gender-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1adhanlater",
+    "script": "guards/c1-adhan-later-guard.cjs",
+    "args": ""
   }
 ]
