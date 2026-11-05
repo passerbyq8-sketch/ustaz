@@ -25,8 +25,15 @@ for (const sw of ['sw.js', 'quest-sw.js']) for (const game of ['hanna', 'harb', 
       assert(env.posts[0].body.config); assert(env.posts[0].body.deviceId);
     }
     assert.equal(JSON.parse(env.localStorage.getItem('ezik_auth_session_v1')).session, session('fresh'));
-    const saved = env.localStorage.getItem('kunuz_worker_rooms_v1') || '';
-    assert(!saved.includes(session('fresh')) && !saved.includes(session('before')), 'no account session in game records');
+    const saved = env.localStorage.getItem('kunuz_worker_rooms_v1');
+    if (fixture.expected.generation === 'UNKNOWN') assert.equal(saved, null, 'unknown creates no room provenance');
+    else {
+      assert(saved && saved.length > 0, 'successful create persists nonempty provenance');
+      const records = JSON.parse(saved);
+      assert(Array.isArray(records) && records.length > 0, 'parsed provenance is nonempty');
+      assert(records.some(record => record.origin === ORIGIN && record.game === game && record.code === room.code && record.roomId === room.roomId && record.generation === fixture.expected.generation), 'created room provenance matches');
+      assert(!saved.includes(session('fresh')) && !saved.includes(session('before')), 'no account session in game records');
+    }
     for (const call of env.calls) assert(!call.url.includes(session('fresh')), 'no session in URL');
   });
 }
