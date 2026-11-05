@@ -64,6 +64,28 @@ function EzPanelCampaignEditor({ document, onChange, busy }) {
   </fieldset>;
 }
 
+function EzPanelHealth() {
+  const [data,setData]=useState(null),[limit,setLimit]=useState('10'),[failed,setFailed]=useState(false);
+  const alive=useRef(true);
+  const call=async payload=>{
+    const held=readAuthSession();if(!held)return null;
+    try{const r=await fetch('/api/panel-health',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...payload,session:held.session})});return r.ok?await r.json():null;}catch{return null;}
+  };
+  const refresh=()=>call({action:'read'}).then(r=>{if(!alive.current)return;setFailed(!r?.ok);setData(r?.ok?r:null);if(r?.ok)setLimit(String(r.limitUsd));});
+  useEffect(()=>{alive.current=true;refresh();const timer=setInterval(refresh,60000);return()=>{alive.current=false;clearInterval(timer);};},[]);
+  const act=async payload=>{const r=await call(payload);if(!alive.current)return;if(!r?.ok){setFailed(true);return;}refresh();};
+  return <section className="ezub-card" data-panel-health="1"><h3>{ezT('panel.navOverview')} · UTC</h3>
+    {failed?<p role="alert">{ezT('panel.settingsError')}</p>:null}
+    <label>{ezT('panel.dailyLimit')}<input type="number" min="0.01" max="10000" step="0.01" value={limit} onChange={e=>setLimit(e.target.value)} /></label>
+    <button type="button" className="ezcp-act" onClick={()=>act({action:'limit',usd:Number(limit)})}>{ezT('common.save')}</button>
+    <p>{ezT('panel.costMissing')}</p><p>{ezT('panel.sampleCoverage')}</p>
+    {data?<><p>{data.day} · {ezT('usage.noFind')}: {ezUbNum(data.sample.noFind)} / {ezUbNum(data.sample.read)} · {ezT('usage.faults')}: {ezUbNum(data.sample.faults)}</p>
+      {data.alerts.map(a=><div key={a.id} data-panel-private-notification={a.id} role={a.acknowledged?undefined:'alert'}>
+        <strong>↑ {ezT(a.kind==='noFind'?'usage.noFind':a.kind==='faults'?'usage.faults':'panel.dailyLimit')}</strong>
+        {!a.acknowledged?<button type="button" className="ezcp-act" onClick={()=>act({action:'ack',id:a.id})}>{ezT('common.close')}</button>:null}
+      </div>)}</>:null}
+  </section>;
+}
 function EzPanelControls() {
   const [opened, setOpened] = useState(false), [doc, setDoc] = useState(null), [busy, setBusy] = useState(false), [error, setError] = useState('');
   const request = async (action, document) => {
@@ -486,6 +508,9 @@ function useEzLang() {
 // here and no translated string is ever handed to innerHTML. ---------------------------
 const EZ_I18N = {
   ar: {
+    'panel.dailyLimit': "الحد اليومي (USD، UTC)",
+    'panel.costMissing': "التكلفة غير متاحة: بيانات التسعير والاستهلاك غير مكتملة.",
+    'panel.sampleCoverage': "عينة لا تتجاوز 200 إجابة يوميا؛ لا تشمل كل الاستخدام.",
     'panel.oldDevices': "أجهزة بإصدارات قديمة",
     'panel.unknown': "غير معروف",
     'panel.campaign': "رسالة من الإدارة",
@@ -2489,6 +2514,9 @@ const EZ_I18N = {
     'tr4.machine': 'ترجمة آلية',
   },
   en: {
+    'panel.dailyLimit': "Daily limit (USD, UTC)",
+    'panel.costMissing': "Cost unavailable: pricing and usage accounting are incomplete.",
+    'panel.sampleCoverage': "Sample of at most 200 answers per day; not all traffic.",
     'panel.oldDevices': "Devices on older versions",
     'panel.unknown': "Unknown",
     'panel.campaign': "Announcement",
@@ -30718,6 +30746,7 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
   return (
     <EzCpShell kind={kind} title={ezT(tabTitle)} onNav={switchKind} onBack={back} badges={badges} actions={headActions}>
       {kind === 'overview' ? <EzPanelControls /> : null}
+      {kind === 'overview' ? <EzPanelHealth /> : null}
       {kind === 'overview' ? <EzCpOverview data={over} failed={overFailed} onGo={switchKind} onRetry={refresh} /> : null}
       {/* «المحدَّد» -- the bar that names how many are ticked and is the only way to erase them. */}
       {picking ? (
