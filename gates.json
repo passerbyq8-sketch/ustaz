@@ -1240,5 +1240,10 @@
     "name": "c1signoutprofile",
     "script": "guards/c1-signout-profile-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1dictationowner",
+    "script": "guards/c1-dictation-owner-guard.cjs",
+    "args": ""
   }
 ]

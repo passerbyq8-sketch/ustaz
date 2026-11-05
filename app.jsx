@@ -6574,6 +6574,7 @@ const ezNewRecognition = () => {
 // Returns true only if the engine actually began listening.
 const ezStartRecognition = (rec) => {
   if (!rec) return false;
+  if (rec.ezikFounderOnly && !hasFounderToken()) { ezKillRecognizer(rec); return false; }
   if (!hasValidAIConsent()) { ezKillRecognizer(rec); return false; }
   try { rec.start(); return true; } catch (e) { return false; }
 };
@@ -22431,6 +22432,7 @@ function App() {
   useEffect(() => {
     const recognition = ezNewRecognition();
     if (!recognition) { recognitionRef.current = null; return; }
+    recognition.ezikFounderOnly = true; // D27: recheck owner at every start, including automatic restarts
     recognition.lang = 'ar-SA';
     recognition.continuous = true;       // keep listening across pauses until the user taps the mic off
     recognition.interimResults = true;
@@ -23671,11 +23673,13 @@ function App() {
     dictStreamRef.current = null;
   };
   const startCloudDictation = async () => {
+    if (!hasFounderToken()) return;
     // The cloud dictation recorder, on the same terms as everything else: no consent, no
     // getUserMedia. startListening already refuses above this, so this is the second barrier.
     if (!hasValidAIConsent()) { setIsListening(false); setVoiceError(EZ_SPEECH_NO_CONSENT); setTimeout(() => setVoiceError(''), 6000); return; }
     try {
       dictStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
+      if (!hasFounderToken() || !hasValidAIConsent()) { stopDictAll(); setIsListening(false); return; }
       dictChunksRef.current = [];
       const mr = new MediaRecorder(dictStreamRef.current, pickRecMime());
       mr.ondataavailable = (e) => { if (e.data && e.data.size) dictChunksRef.current.push(e.data); };
@@ -23690,6 +23694,7 @@ function App() {
     }
   };
   const stopCloudDictation = async () => {
+    if (!hasFounderToken()) { stopDictAll(); setIsListening(false); return; }
     const mr = dictRecRef.current;
     setIsListening(false);
     if (!mr) { stopDictAll(); setVoiceError('DBG A no-recorder'); setTimeout(() => setVoiceError(''), 8000); return; }
@@ -23700,6 +23705,7 @@ function App() {
     stopDictAll();
     if (!blob || blob.size < 1500) { setVoiceError('DBG B bytes=' + (blob ? blob.size : -1)); setTimeout(() => setVoiceError(''), 8000); return; }
     const b64 = await blobToBase64(blob);
+    if (!hasFounderToken()) return;
     let text = '';
     try {
       const band = (() => { try { return deriveCaps(profileRef.current?.age).band; } catch (e) { return 'young'; } })();
@@ -23720,6 +23726,7 @@ function App() {
     // بلا موافقة: لا يُفتح الميكروفونُ إطلاقاً — لا تسجيلٌ يُرسَل إلى ElevenLabs ولا جلسةُ
     // تعرُّفٍ يفتحها المتصفّح. فشلٌ آمنٌ صامتٌ إلى الوضعِ المحلّيّ.
     if (!hasValidAIConsent()) { setAiConsent(aiConsentStatus()); return; }
+    if (!hasFounderToken()) return;
     if (DICTATE_CLOUD) {
       if (isSpeaking) stopSpeaking();
       baseTextRef.current = input && !/\s$/.test(input) ? input + ' ' : input;
@@ -23746,6 +23753,7 @@ function App() {
       setTimeout(() => setVoiceError(''), 6000);
       return;
     }
+    if (!hasFounderToken()) { shouldListenRef.current = false; setIsListening(false); return; }
     if (isSpeaking) stopSpeaking();
     // Snapshot the current box (typed or previously dictated, incl. hand-edits) as the base.
     // New speech is appended AFTER it — nothing already there is erased or replaced.
@@ -26004,7 +26012,7 @@ function App() {
           </button>
           <button
             onClick={isListening ? stopListening : startListening}
-            disabled={isLoading}
+            disabled={isLoading || !hasFounderToken()}
             aria-label={'\u0625\u0645\u0644\u0627\u0621 \u0635\u0648\u062a\u064a'}
             {...(uiLang === 'ar' ? null : { 'aria-label': ezT('chat.dictate') })}
             className="ez-anim"
@@ -26012,7 +26020,7 @@ function App() {
               ...s.micBtn,
               background: isListening ? 'var(--red-deep)' : 'var(--tint)',
               animation: isListening ? 'pulse 1.2s ease-in-out infinite' : 'none',
-              opacity: isLoading ? 0.4 : 1,
+              opacity: isLoading || !hasFounderToken() ? 0.4 : 1,
             }}
           >
             {isListening ? <MicOffIcon size={20} color="var(--on-accent)" /> : <MicIcon size={20} color="var(--red)" />}
