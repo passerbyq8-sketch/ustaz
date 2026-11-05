@@ -1149,3 +1149,4 @@ guards/security-auth-capabilities-guard.cjs text eol=lf
 guards/security-auth-redirect-completion-guard.cjs text eol=lf
 guards/c1-dima-drop-guard.cjs text eol=lf
 guards/c1-library-look-guard.cjs text eol=lf
+guards/security-admission-guard.cjs text eol=lf

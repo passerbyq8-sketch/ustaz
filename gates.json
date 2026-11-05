@@ -1355,5 +1355,10 @@
     "name": "c1librarylook",
     "script": "guards/c1-library-look-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "securityadmission",
+    "script": "guards/security-admission-guard.cjs",
+    "args": ""
   }
 ]
