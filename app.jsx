@@ -12084,7 +12084,7 @@ function DimaHomeCard({ onOpenDima, onOpenMenu, name }) {
         {!complete ? <>
           <span className="dimaHomeProgressRow">
             <span className="dimaHomeProgress">
-            <span className="dimaHomeProgressDrops" aria-hidden="true">{[0, 1, 2].map((drop) => <svg key={drop} width="14" height="14" viewBox="0 0 24 24" className={drop < todayCount ? 'dimaHomeProgressDrop is-filled' : 'dimaHomeProgressDrop'}><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" /></svg>)}</span>
+            <span className="dimaHomeProgressDrops" aria-hidden="true">{[0, 1, 2].map((drop) => <svg key={drop} width="14" height="14" viewBox="0 0 24 24" className={drop < todayCount ? 'dimaHomeProgressDrop is-filled' : 'dimaHomeProgressDrop'}><path d="M12 2.8C11.25 5.45 9.6 7.55 7.6 9.35C5.7 11.05 4.8 12.85 4.8 15.05C4.8 19.03 8.02 21.3 12 21.3C15.98 21.3 19.2 19.03 19.2 15.05C19.2 12.85 18.3 11.05 16.4 9.35C14.4 7.55 12.75 5.45 12 2.8Z" /></svg>)}</span>
             <span className="dimaHomeProgressLabel">{progressLabel}</span>
             </span>
             <span className="dimaHomeAction is-pulse"><span>{actionLabel}</span><span aria-hidden="true">{EZ_LANG_DIR[EZ_LANG] === 'rtl' ? '\u2039' : '\u203a'}</span></span>
@@ -17224,7 +17224,7 @@ function ezikDimaAlertItems(now) {
 }
 function DimaDropMark({ className, size = 24 }) {
   return <svg className={className || ''} width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" />
+    <path d="M12 2.8C11.25 5.45 9.6 7.55 7.6 9.35C5.7 11.05 4.8 12.85 4.8 15.05C4.8 19.03 8.02 21.3 12 21.3C15.98 21.3 19.2 19.03 19.2 15.05C19.2 12.85 18.3 11.05 16.4 9.35C14.4 7.55 12.75 5.45 12 2.8Z" />
   </svg>;
 }
 function DimaPlant({ stage, today, instant }) {

@@ -1335,5 +1335,10 @@
     "name": "c1libraryentry",
     "script": "guards/c1-library-entry-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1dimadrop",
+    "script": "guards/c1-dima-drop-guard.cjs",
+    "args": ""
   }
 ]

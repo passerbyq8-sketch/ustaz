@@ -1145,3 +1145,4 @@ guards/security-iap-receipt-guard.cjs text eol=lf
 guards/c1-dima-offline-guard.cjs text eol=lf
 guards/c1-quest-delivery-guard.cjs text eol=lf
 guards/c1-library-entry-guard.cjs text eol=lf
+guards/c1-dima-drop-guard.cjs text eol=lf
