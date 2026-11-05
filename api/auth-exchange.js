@@ -26,7 +26,9 @@ import { applyCorsOrigin, checkAuthLimit } from '../lib/ratelimit.js';
 import { clientAddress } from '../lib/attempts.js';
 import { safeId, DEVICE_HEADER } from '../lib/daycap.js';
 import { ticketKey, takeOnce, readJson } from '../lib/auth/store.js';
+import { issueReauthentication } from '../lib/auth/reauth.js';
 import { mintSession } from '../lib/auth/account.js';
+import { verifyClientProof, sendProofFailure } from '../lib/auth/proof.js';
 
 export default async function handler(req, res) {
   applyCorsOrigin(req, res);
@@ -56,10 +58,20 @@ export default async function handler(req, res) {
     return res.status(400).json({ ok: false, error: 'auth-ticket-invalid' });
   }
 
+  const proved = verifyClientProof(record.proof, body);
+  if (!proved.ok) return sendProofFailure(res, proved);
+
   const device = safeId((req.headers || {})[DEVICE_HEADER]);
   const startedOn = typeof record.deviceId === 'string' ? record.deviceId : '';
   if (startedOn && device !== startedOn) {
     return res.status(403).json({ ok: false, error: 'auth-device-mismatch' });
+  }
+
+  if (record.proof?.purpose === 'reauth') {
+    const issued = await issueReauthentication(record.proof, body.session);
+    if (!issued.ok) return sendProofFailure(res, issued);
+    res.setHeader('Cache-Control', 'private, no-store');
+    return res.status(200).json(issued);
   }
 
   const account = await readJson(record.accountKey);

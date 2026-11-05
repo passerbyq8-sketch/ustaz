@@ -9,6 +9,8 @@
 import { applyCorsOrigin, checkAuthLimit } from '../lib/ratelimit.js';
 import { clientAddress } from '../lib/attempts.js';
 import { safeId, DEVICE_HEADER } from '../lib/daycap.js';
+import { requireReauthentication } from '../lib/auth/reauth.js';
+import { sendProofFailure } from '../lib/auth/proof.js';
 import { sessionState, deleteAccount } from '../lib/auth/account.js';
 // ITEM 24 -- DELETING THE ACCOUNT ERASES ITS SYNCED DATA WITH IT, immediately (owner decision 4).
 // The account's sync space and every link into it are erased BEFORE the account record, so a
@@ -45,6 +47,9 @@ export default async function handler(req, res) {
     // Only a confirmed dead session is a sign-in refusal.
     return res.status(401).json({ ok: false, error: 'auth-session-invalid' });
   }
+
+  const proved = await requireReauthentication(body, 'account-delete');
+  if (!proved.ok) return sendProofFailure(res, proved);
 
   try { await eraseForAccountDelete(record.accountKey); }
   catch (e) { return res.status(503).json({ ok: false, error: 'auth-delete-sync' }); }

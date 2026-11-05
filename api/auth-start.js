@@ -35,6 +35,8 @@ import {
 } from '../lib/auth/oidc.js';
 import { stateKey, writeJson, STATE_TTL_SECONDS } from '../lib/auth/store.js';
 
+import { consumeChallenge, proofRequired, sendProofFailure } from '../lib/auth/proof.js';
+
 export const STATE_RECORD_VERSION = 1;
 
 /**
@@ -122,12 +124,23 @@ export default async function handler(req, res) {
   }
   const cfg = conf.cfg;
 
+  let proof = null;
+  if (query.pv !== undefined || query.challenge !== undefined) {
+    if (query.pv !== '1') return sendProofFailure(res, { status: 400, code: 'auth-proof-version' });
+    const challenge = await consumeChallenge(query.challenge, cfg.name, 'redirect');
+    if (!challenge.ok) return sendProofFailure(res, challenge);
+    proof = challenge.record;
+  } else if (proofRequired()) {
+    return sendProofFailure(res, { status: 428, code: 'auth-proof-required' });
+  }
+
   const state = newState();
   const nonce = newNonce();
   const codeVerifier = newVerifier();
 
   const written = await writeJson(stateKey(state), {
     v: STATE_RECORD_VERSION,
+    ...(proof ? { proof } : {}),
     provider: cfg.name,
     nonce,
     codeVerifier,
@@ -152,7 +165,9 @@ export default async function handler(req, res) {
   // No-store: this response carries a URL bearing the state, and a cache that kept it would
   // serve one reader's in-flight sign-in to the next.
   res.setHeader('Cache-Control', 'private, no-store');
-  res.setHeader('Location', target);
+  const redirect = new URL(target);
+  if (proof?.purpose === 'reauth' && cfg.reauthPrompt) redirect.searchParams.set('prompt', cfg.reauthPrompt);
+  res.setHeader('Location', redirect.toString());
   return res.status(302).end();
 }
 

@@ -63,6 +63,10 @@ export const MAX_NONCE_CHARS = 512;
  * raw string is handled rather than assumed away -- a route that only works when something
  * upstream happened to parse for it is a route with an undeclared dependency.
  */
+import { issueReauthentication } from '../lib/auth/reauth.js';
+import { accountKey } from '../lib/auth/store.js';
+import { consumeChallenge, verifyClientProof, sendProofFailure, proofRequired } from '../lib/auth/proof.js';
+
 function bodyOf(req) {
   const body = req.body;
   if (typeof body === 'string') {
@@ -115,6 +119,18 @@ export default async function handler(req, res) {
   const conf = nativeConfig(body.provider, process.env);
   if (!conf.ok) return res.status(conf.status).json({ ok: false, error: conf.code });
   const cfg = conf.cfg;
+  let proof = null;
+  if (body.challenge !== undefined || body.proofVersion !== undefined) {
+    if (body.proofVersion !== 1) return sendProofFailure(res, { status: 400, code: 'auth-proof-version' });
+    const challenge = await consumeChallenge(body.challenge, cfg.name, 'native');
+    if (!challenge.ok) return sendProofFailure(res, challenge);
+    proof = challenge.record;
+    const checked = verifyClientProof(proof, body);
+    if (!checked.ok) return sendProofFailure(res, checked);
+    if (rawNonce !== proof.nonce) return sendProofFailure(res, { status: 403, code: 'auth-proof-invalid' });
+  } else if (proofRequired()) {
+    return sendProofFailure(res, { status: 428, code: 'auth-proof-required' });
+  }
 
   // The provider's public keys -- the one outbound request on this path, and cached six hours in
   // the store by the same helper the web path uses. A key endpoint we cannot reach is an outage,
@@ -129,8 +145,12 @@ export default async function handler(req, res) {
   const verified = verifyIdToken(cfg, identityToken, {
     keys: jwks.keys,
     nonce: rawNonce,
+    ...(proof?.purpose === 'reauth' ? { freshSince: proof.createdAt / 1000 } : {}),
   });
-  if (!verified.ok) return res.status(401).json({ ok: false, error: verified.code });
+  if (!verified.ok) {
+    if (proof?.purpose === 'reauth') return sendProofFailure(res, { status: 403, code: verified.code });
+    return res.status(401).json({ ok: false, error: verified.code });
+  }
 
   const claims = verified.claims;
 
@@ -142,12 +162,25 @@ export default async function handler(req, res) {
     .update(cfg.name + ':' + identityToken.split('.').slice(0, 2).join('.'), 'utf8').digest('hex');
   const reservation = await reserveNativeAssertion(assertion, claims.expiresAt);
   if (reservation.state === 'unknown') return res.status(503).json({ ok: false, error: 'auth-native-unavailable' });
-  if (reservation.state === 'expired') return res.status(401).json({ ok: false, error: 'auth-idtoken-expired' });
+  if (reservation.state === 'expired') {
+    if (proof?.purpose === 'reauth') return sendProofFailure(res, { status: 403, code: 'auth-idtoken-expired' });
+    return res.status(401).json({ ok: false, error: 'auth-idtoken-expired' });
+  }
   if (reservation.state !== 'reserved') return res.status(409).json({ ok: false, error: 'auth-native-replayed' });
 
   // THE SAME ACCOUNT WRITER, WITH THE SAME FOUR FIELDS. `sub` is the stable identifier and is
   // enough on its own: a reader who hid their address has an account keyed by subject like anyone
   // else, and simply does not get the email seam below.
+  if (proof?.purpose === 'reauth') {
+    if (accountKey(cfg.name, claims.sub) !== proof.reauth?.accountKey) {
+      return sendProofFailure(res, { status: 403, code: 'auth-reauth-invalid' });
+    }
+    const issued = await issueReauthentication({ ...proof, verifiedAt: Date.now() }, body.session);
+    if (!issued.ok) return sendProofFailure(res, issued);
+    res.setHeader('Cache-Control', 'private, no-store');
+    return res.status(200).json(issued);
+  }
+
   const account = await upsertAccount({
     provider: cfg.name,
     sub: claims.sub,

@@ -1136,3 +1136,7 @@ guards/c1-native-haptic-guard.cjs text eol=lf
 guards/c1-dima-resolver-guard.cjs text eol=lf
 guards/c1-dima-wiring-guard.cjs text eol=lf
 guards/c1-solid-bars-guard.cjs text eol=lf
+guards/security-auth-proof-guard.cjs text eol=lf
+guards/security-reauth-guard.cjs text eol=lf
+guards/security-iap-worker-guard.cjs text eol=lf
+guards/security-iap-receipt-guard.cjs text eol=lf

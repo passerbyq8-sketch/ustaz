@@ -6,7 +6,7 @@ const vm = require('node:vm');
 const crypto = require('node:crypto');
 const ROOT = path.resolve(__dirname, '..');
 
-async function harness() {
+async function harness({ clockStep = 0 } = {}) {
   const data = new Map(), operations = [];
   const faults = { get: false, set: false, down: false };
   let now = Date.now();
@@ -52,13 +52,21 @@ async function harness() {
   const jwk = { ...pair.publicKey.export({ format: 'jwk' }), kid: 'synthetic-key', alg: 'RS256', use: 'sig' };
   const nonce = 'synthetic-native-nonce-for-security-test';
   const logs = [];
+  const http = { idToken: null, calls: [] };
+  const effects = { weld: 0, erase: 0 };
   const context = vm.createContext({
     Buffer, URL, URLSearchParams, TextEncoder, TextDecoder, AbortController, AbortSignal, setTimeout, clearTimeout,
-    Date: class extends Date { static now() { return now; } },
+    Date: class extends Date { static now() { const value = now; now += clockStep; return value; } },
     process: { env }, console: { log: (...a) => logs.push(a), warn: (...a) => logs.push(a), error: (...a) => logs.push(a) },
     fetch: async (url) => {
-      if (url !== 'https://appleid.apple.com/auth/keys') throw Error('unexpected outbound request');
-      return { ok: true, status: 200, json: async () => ({ keys: [jwk] }) };
+      http.calls.push(url);
+      if (['https://appleid.apple.com/auth/keys', 'https://www.googleapis.com/oauth2/v3/certs'].includes(url)) {
+        return { ok: true, status: 200, json: async () => ({ keys: [jwk] }) };
+      }
+      if (['https://appleid.apple.com/auth/token', 'https://oauth2.googleapis.com/token'].includes(url)) {
+        return { ok: true, status: 200, json: async () => ({ id_token: http.idToken }) };
+      }
+      throw Error('unexpected outbound request');
     },
   });
   const cache = new Map();
@@ -73,7 +81,7 @@ async function harness() {
     if (id === 'node:crypto') mod = synthetic(id, { default: crypto });
     else if (id === '@upstash/redis') mod = synthetic(id, { Redis: class { constructor() { return redis; } } });
     else if (id.endsWith('/lib/ratelimit.js')) mod = synthetic(id, { applyCorsOrigin() {}, checkAuthLimit: async () => ({ ok: true }) });
-    else if (id.endsWith('/lib/sync/service.js')) mod = synthetic(id, { weldByVerifiedEmail: async () => ({ welded: false }), eraseForAccountDelete: async () => {} });
+    else if (id.endsWith('/lib/sync/service.js')) mod = synthetic(id, { weldByVerifiedEmail: async () => { effects.weld++; return { welded: false }; }, eraseForAccountDelete: async () => { effects.erase++; if (faults.erase) throw Error('synthetic erase outage'); } });
     else if (id.endsWith('/lib/daycap.js')) mod = synthetic(id, { DEVICE_HEADER: 'x-murabbi-device', FOUNDER_HEADER: 'x-founder', hasUnrevokedFounderToken: async () => false, safeId: value => value || null, kuwaitDayStamp: () => 'synthetic-day', DAY_CAP_TTL_SECONDS: 172800 });
     else if (id.endsWith('/lib/answer-log.js')) mod = synthetic(id, { readAnswerLog: async () => [], ANSWER_LOG_PATHS: [] });
     else if (id.endsWith('/lib/usage.js')) mod = synthetic(id, { readUsage() {}, readUsageChat() {}, usageAnswerOutcome() {}, usageWindow() {} });
@@ -101,6 +109,6 @@ async function harness() {
     await handler({ method: 'POST', headers: { 'x-murabbi-device': 'synthetic-device' }, body }, res);
     return res;
   }
-  return { data, operations, faults, redis, env, logs, load, sign, nonce, post, now: () => now, advance(ms) { now += ms; } };
+  return { data, operations, faults, redis, env, logs, http, effects, load, sign, nonce, post, now: () => now, advance(ms) { now += ms; } };
 }
 module.exports = { harness };

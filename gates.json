@@ -1305,5 +1305,25 @@
     "name": "c1dimaoffline",
     "script": "guards/c1-dima-offline-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "securityauthproof",
+    "script": "guards/security-auth-proof-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "securityreauth",
+    "script": "guards/security-reauth-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "security-iap-worker",
+    "script": "guards/security-iap-worker-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "security-iap-receipt",
+    "script": "guards/security-iap-receipt-guard.cjs",
+    "args": ""
   }
 ]
