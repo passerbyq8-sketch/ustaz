@@ -599,7 +599,9 @@ ok('image flag const untouched', /^const MADINA_IMG_ON = readMadinaImgFlag\(\);$
 // no Arabic label and no Quran text is ever lifted into this file or printed by it.
 const stripBlock = iStrip > 0 ? SRC.slice(iStrip, iStrip + 1200) : '';
 ok('strip branches on the target', stripBlock.indexOf('{wirdTarget ? (') !== -1);
-eq('strip shows the day count on both branches', (stripBlock.match(/toArabicDigits\(wirdDone\)/g) || []).length, 2);
+eq('strip shows the day count only with an explicit target', (stripBlock.match(/toArabicDigits\(wirdDone\)/g) || []).length, 1);
+const noTargetStrip = stripBlock.split(') : (')[1]?.split(/\r?\n\s*\)\}/)[0] || '';
+ok('no-target strip is only the localized action', /^\s*<span style=\{s\.wirdText\}>\{ezT\('x\.643'\)\.replace\(\/\^\[\\s\\u00b7\]\+\/, ''\)\}<\/span>\s*$/.test(noTargetStrip));
 ok('strip shows count over target', stripBlock.indexOf('{toArabicDigits(wirdDone)} / {toArabicDigits(wirdTarget)}') !== -1);
 ok('strip carries a capped fill when a target is set',
   stripBlock.indexOf('s.wirdTrack') !== -1 && stripBlock.indexOf('...s.wirdFill, width: wirdPct') !== -1);
