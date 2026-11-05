@@ -1215,5 +1215,10 @@
     "name": "c1emptywird",
     "script": "guards/c1-empty-wird-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1deferredgender",
+    "script": "guards/c1-deferred-gender-guard.cjs",
+    "args": ""
   }
 ]
