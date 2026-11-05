@@ -11096,7 +11096,8 @@ function ez110BarName(id) { return ez110Name(id) || (id === 'wird' ? DW_CARD_TIT
 // While the menu is being arranged (edit) the two chosen slots are targets: a tile dropped on one takes it, or a slot
 // pressed and then a tile pressed (the way that needs no dragging, and the screen reader's).
 function Ez110Nav({ active, edit, bar, slotSel, onSlot }) {
-  const ids = bar || ez110ReadBar();
+  const panel = useEzikPanelSettings();
+  const ids = (bar || ez110ReadBar()).filter(id => ezPanelAvailability(panel, id).state !== 'hidden');
   const tabs = [
     { k: 'chat', label: ezT('ez110.nav.ezik'), go: () => ez110Go('chat') },
     { k: 'home', label: ezT('ez110.nav.menu'), go: () => ez110Go('home') },

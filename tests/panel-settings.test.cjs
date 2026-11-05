@@ -3,6 +3,14 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const P=require('../lib/panel-policy.cjs'),{runIapLua}=require('./iap-receipt-lua-fixture.cjs');
 const root=path.resolve(__dirname,'..');
 const locked={schema:1,revision:1,sections:{asmaa:{state:'hidden',reason:''},prayer:{state:'locked',reason:'Maintenance'}}};
+test('34.1 saved navigation hides unavailable entries and mutation restores them',()=>{
+ const app=fs.readFileSync(root+'/app.jsx','utf8');
+ const source=app.slice(app.indexOf('function Ez110Nav('),app.indexOf('  const tabs = [',app.indexOf('function Ez110Nav(')));
+ const run=s=>vm.runInNewContext(s+'return ids;};Ez110Nav({bar:["asmaa","prayer"]});',{useEzikPanelSettings:()=>locked,ezPanelAvailability:P.availability});
+ assert.deepEqual(Array.from(run(source)),['prayer']);
+ const mutant=source.replace(/\.filter\(id => ezPanelAvailability\(panel, id\).state !== 'hidden'\)/,'');
+ assert.deepEqual(Array.from(run(mutant)),['asmaa','prayer']);
+});
 function modules(mutate=s=>s){const app=fs.readFileSync(root+'/app.jsx','utf8'),source=app.slice(app.indexOf('function ezHomeModules(v) {'),app.indexOf('// ---- S101 ISTANA HOME START'));const context={ezWomenSectionHidden:()=>false,toArabicDigits:String,window:{EzikPanelPolicy:P},ezPanelAvailability:(doc,id)=>P.availability(doc,id)};for(const name of new Set(source.match(/\bEZH_\w+/g)))context[name]=name;return vm.runInNewContext(mutate(source)+';ezHomeModules',context);}
 test('34.1 shipped home descriptor builder hides sections and routes locked tiles to their explanation',()=>{
  let blocked='';const rows=modules()({panel:locked,onPanelDenied:id=>{blocked=id;}});assert(!rows.some(m=>m.id==='asmaa'));const prayer=rows.find(m=>m.id==='prayer');assert.equal(prayer.panelState,'locked');prayer.onClick();assert.equal(blocked,'prayer');
@@ -32,7 +40,7 @@ test('34.1 offline clients retain validated state and reject stale or malformed 
 });
 test('34.1 standalone direct visits apply the cached lock and restore the page on unlock',()=>{
  const {parseHTML}=require('linkedom');
- for(const [pathname,id] of [['/library.html','library'],['/quest.html','treasure'],['/hanna-laha/','treasure']]){
+ for(const [pathname,id] of [['/library.html','library'],['/quest.html','treasure'],['/quest-ghaws.html','treasure'],['/quest-harb.html','treasure'],['/quest-test.html','treasure'],['/quest-board.html','treasure'],['/hanna-laha/','treasure']]){
   const {document}=parseHTML('<html><body><main style="display:flex"><button>content</button></main></body></html>');
   const cache={schema:1,revision:1,sections:{[id]:{state:'locked',reason:'Maintenance'}}};
   const window={document,location:{pathname},EzikPanelPolicy:P,localStorage:{getItem:()=>JSON.stringify(cache),setItem(){}},addEventListener(){},dispatchEvent(){},CustomEvent:class{}};

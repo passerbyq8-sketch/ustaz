@@ -43,7 +43,7 @@
   function standaloneId() {
     var path = root.location && root.location.pathname || '';
     if (/^\/library(?:\.html|\/)/.test(path)) return 'library';
-    if (/^\/(?:quest(?:\.html|\/)|hanna-laha\/)/.test(path)) return 'treasure';
+    if (/^\/(?:quest(?:\.html|\/|-[a-z]+\.html)|hanna-laha\/)/.test(path)) return 'treasure';
     return '';
   }
   function protectStandalone() {
