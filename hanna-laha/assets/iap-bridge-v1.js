@@ -1,3 +1,200 @@
+/* ONLINE_GENERATION_BEGIN: worker account contract v2, public discovery only. */
+(function (global) {
+  'use strict';
+  const ACCOUNT = 'ACCOUNT', LEGACY = 'LEGACY', UNKNOWN = 'UNKNOWN';
+  const ROOM_KEY = 'kunuz_worker_rooms_v1';
+  const live = new Set();
+  function trustedOrigin(value) {
+    try {
+      const url = new URL(value), page = new URL(global.location.href);
+      const local = ['localhost', '127.0.0.1', '[::1]'];
+      if (url.username || url.password || url.search || url.hash || url.pathname !== '/') return null;
+      if (url.origin === 'https://hanna-laha.hl-worker.workers.dev') return url.origin;
+      if (local.includes(page.hostname) && local.includes(url.hostname) && ['http:', 'https:'].includes(url.protocol)) return url.origin;
+    } catch (_) {}
+    return null;
+  }
+  async function discover(origin, current, signal) {
+    if (!trustedOrigin(origin) || !current()) return UNKNOWN;
+    const controller = new AbortController(), started = performance.now();
+    let reader, timer, abort;
+    const deadline = new Promise(resolve => {
+      abort = () => { controller.abort(); if (reader) reader.cancel().catch(() => {}); resolve(UNKNOWN); };
+      timer = setTimeout(abort, 5000);
+      if (signal) { signal.addEventListener('abort', abort, { once: true }); if (signal.aborted) abort(); }
+    });
+    const request = (async () => {
+      try {
+        const bytes = new Uint8Array(16);
+        global.crypto.getRandomValues(bytes);
+        const probe = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+        const url = origin + '/api/account-capabilities?probe=' + probe;
+        const response = await global.fetch(url, { method: 'GET', credentials: 'omit', cache: 'no-store', redirect: 'error', signal: controller.signal });
+        if (controller.signal.aborted || !current() || performance.now() - started >= 5000 || response.redirected || response.type === 'opaque' || response.type === 'opaqueredirect' || response.url !== url) return UNKNOWN;
+        if (!/(?:^|,)\s*no-store\s*(?:,|$)/i.test(response.headers.get('cache-control') || '') || !/^application\/json(?:\s*;|$)/i.test(response.headers.get('content-type') || '')) return UNKNOWN;
+        // These headers are optional across CORS. Reject a known cache hit if exposed.
+        if (Number(response.headers.get('age')) > 0 || /\bhit\b/i.test((response.headers.get('x-cache') || '') + ' ' + (response.headers.get('cf-cache-status') || ''))) return UNKNOWN;
+        if (Number(response.headers.get('content-length')) > 4096 || !response.body || !response.body.getReader) return UNKNOWN;
+        reader = response.body.getReader();
+        const chunks = []; let size = 0;
+        for (;;) {
+          const part = await reader.read();
+          if (controller.signal.aborted || !current() || performance.now() - started >= 5000) return UNKNOWN;
+          if (part.done) break;
+          size += part.value.byteLength;
+          if (size > 4096) { reader.cancel().catch(() => {}); return UNKNOWN; }
+          chunks.push(part.value);
+        }
+        const body = new Uint8Array(size); let offset = 0;
+        for (const chunk of chunks) { body.set(chunk, offset); offset += chunk.byteLength; }
+        const data = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(body));
+        if (!data || typeof data !== 'object' || Array.isArray(data)) return UNKNOWN;
+        const keys = Object.keys(data).sort().join(',');
+        if (response.status === 200 && keys === 'accountProtocol,ok,probe' && data.ok === true && data.accountProtocol === 'ezik-games-account-v1' && data.probe === probe) return ACCOUNT;
+        if (response.status === 404 && keys === 'error' && data.error === 'NOT_FOUND') return LEGACY;
+      } catch (_) {}
+      return UNKNOWN;
+    })();
+    try { return await Promise.race([request, deadline]); }
+    finally { clearTimeout(timer); if (signal) signal.removeEventListener('abort', abort); controller.abort(); if (reader) reader.cancel().catch(() => {}); }
+  }
+  function accountSession() {
+    try {
+      const record = JSON.parse(global.localStorage.getItem('ezik_auth_session_v1') || 'null');
+      return record && typeof record.session === 'string' && record.session.length >= 16 && record.session.length <= 128 ? record.session : '';
+    } catch (_) { return ''; }
+  }
+  function create(options) {
+    const origin = trustedOrigin(options.origin), game = options.game;
+    if (!origin || !['hanna', 'harb', 'board'].includes(game)) throw new Error('online-origin-unavailable');
+    let epoch = 0, pendingProbe = null, room = null, snapshot = null, snapshotReady = false;
+    let pendingStart = null, acknowledged = null, blocked = '', recovery = {}, opening = null, helloSent = false;
+    function readRooms() {
+      try { const rows = JSON.parse(global.localStorage.getItem(ROOM_KEY) || '[]'); return Array.isArray(rows) ? rows : []; } catch (_) { return []; }
+    }
+    function known(code, roomId) {
+      return readRooms().find(row => row.origin === origin && row.game === game && row.code === code && (!roomId || row.roomId === roomId));
+    }
+    function remember() {
+      if (!room || ![ACCOUNT, LEGACY].includes(room.generation)) return;
+      const row = { origin, game, code: room.code, roomId: room.roomId || '', generation: room.generation };
+      const rows = readRooms().filter(r => !(r.origin === origin && r.game === game && r.code === room.code));
+      rows.push(row);
+      try { global.localStorage.setItem(ROOM_KEY, JSON.stringify(rows.slice(-48))); } catch (_) {}
+    }
+    function invalidate() { epoch++; if (pendingProbe) pendingProbe.abort(); pendingProbe = null; opening = null; }
+    function fail(reason) {
+      blocked = reason;
+      if (typeof global.ezikOnlineRecovery === 'function') global.ezikOnlineRecovery({ reason, retry: recovery.retry, newRoom: recovery.newRoom });
+      const error = new Error('online-' + reason); error.code = 'SERVER'; throw error;
+    }
+    async function fresh(kind, checkRoom = true) {
+      invalidate(); const mine = epoch, boundRoom = room, abort = new AbortController(); pendingProbe = abort;
+      const current = () => epoch === mine && room === boundRoom && !abort.signal.aborted;
+      const generation = await discover(origin, current, abort.signal);
+      if (!current()) throw new Error('online-superseded');
+      pendingProbe = null;
+      if (generation === UNKNOWN) return fail('unavailable');
+      if (checkRoom && room) {
+        if (!room.generation) {
+          if (room.existing && generation !== LEGACY) return fail('generation-changed');
+          room.generation = generation; remember();
+        }
+        if (room.generation !== generation) return fail('generation-changed');
+      }
+      blocked = '';
+      return { generation, mine, room: boundRoom, kind };
+    }
+    function current(ticket) { return ticket && ticket.mine === epoch && ticket.room === room; }
+    function withSession(message, generation) {
+      const value = { ...message }; delete value.session;
+      if (generation === ACCOUNT) { const session = accountSession(); if (session) value.session = session; }
+      return value;
+    }
+    const api = {
+      get origin() { return origin; },
+      get generation() { return room?.generation || UNKNOWN; },
+      get blocked() { return blocked; },
+      setRecovery(value) { recovery = value || {}; },
+      bind(value) {
+        invalidate(); helloSent = false; snapshotReady = false; snapshot = null; pendingStart = null; acknowledged = null;
+        const old = known(value.code, value.roomId);
+        room = { code: value.code, roomId: value.roomId || '', existing: !!value.existing, generation: old && [ACCOUNT, LEGACY].includes(old.generation) ? old.generation : '' };
+      },
+      async createRoom(url, init, fetcher) {
+        if (new URL(url).origin !== origin) return fail('unavailable');
+        const ticket = await fresh('create', false);
+        const body = JSON.parse(init.body);
+        if (body.previous) {
+          const old = known(body.previous.code, body.previous.roomId);
+          if ((old?.generation || LEGACY) !== ticket.generation) return fail('generation-changed');
+        }
+        const headers = new Headers(init.headers); headers.delete('x-ezik-session');
+        if (ticket.generation === ACCOUNT) { const session = accountSession(); if (session) headers.set('x-ezik-session', session); }
+        const response = await (fetcher || global.fetch.bind(global))(url, { ...init, headers, redirect: 'error' });
+        if (!current(ticket)) throw new Error('online-superseded');
+        if (response.ok) {
+          const data = await response.clone().json();
+          if (!current(ticket)) throw new Error('online-superseded');
+          room = { code: data.code, roomId: data.roomId, generation: ticket.generation, existing: true }; remember();
+        } else if (response.status === 401 || response.status === 403) api.permissionError('FORBIDDEN');
+        return response;
+      },
+      async open() { helloSent = false; snapshotReady = false; const ticket = await fresh('open'); opening = ticket; return ticket; },
+      hello(ticket, message, send) {
+        if (opening !== ticket || !current(ticket)) return fail('unavailable');
+        opening = null; helloSent = true;
+        return send(withSession(message, ticket.generation));
+      },
+      async modeForStart() { return (await fresh('start-policy')).generation; },
+      async send(message, send) {
+        if (!['start', 'rematch'].includes(message.t)) return send(message);
+        if (!room || !snapshotReady || pendingStart) return fail('snapshot-required');
+        const ticket = await fresh(message.t);
+        if (!current(ticket) || !snapshotReady || pendingStart) return fail('snapshot-required');
+        pendingStart = { kind: message.t, generation: ticket.generation, before: snapshot, room };
+        acknowledged = null;
+        const result = send(withSession(message, ticket.generation));
+        if (result === false) { pendingStart = null; snapshotReady = false; return fail('snapshot-required'); }
+        return true;
+      },
+      observe(value) {
+        if (!value || !room || !helloSent) return;
+        if (room.roomId && value.roomId && room.roomId !== value.roomId) return;
+        if (!room.roomId && value.roomId) { room.roomId = value.roomId; remember(); }
+        const reconnected = !snapshotReady;
+        snapshot = value; snapshotReady = true;
+        if (pendingStart) {
+          const phase = value.phase || value.stage;
+          const before = pendingStart.before;
+          const advanced = value.version > (before?.version ?? -1) || value.rev > (before?.rev ?? -1);
+          const started = pendingStart.kind === 'start' ? phase !== 'lobby' : phase !== (before?.phase || before?.stage) || Number(value.gameNumber) > Number(before?.gameNumber);
+          if ((advanced || reconnected) && started) { acknowledged = pendingStart; pendingStart = null; }
+          else if (reconnected) pendingStart = null;
+        }
+      },
+      async legacyConsumption() {
+        if (!acknowledged || acknowledged.generation !== LEGACY || acknowledged.room !== room || room?.generation !== LEGACY) return fail('reconcile');
+        const ack = acknowledged, ticket = await fresh('post-start');
+        if (!current(ticket) || ticket.generation !== LEGACY || acknowledged !== ack) return fail('reconcile');
+        return true;
+      },
+      permissionError(code) {
+        if (code === 'FORBIDDEN' && typeof global.ezikOnlineRefreshAccount === 'function') global.ezikOnlineRefreshAccount();
+        if (code === 'FORBIDDEN' || code === 'SERVER') { snapshotReady = false; try { fail('snapshot-required'); } catch (_) {} }
+      },
+      suspend() { invalidate(); if (pendingStart) { snapshotReady = false; helloSent = false; } },
+      disconnect() { invalidate(); helloSent = false; snapshotReady = false; },
+      dispose() { invalidate(); live.delete(api); }
+    };
+    live.add(api); return Object.freeze(api);
+  }
+  global.addEventListener('pagehide', () => live.forEach(client => client.suspend()));
+  global.document.addEventListener('visibilitychange', () => { if (global.document.visibilityState === 'hidden') live.forEach(client => client.suspend()); });
+  global.KunuzOnline = Object.freeze({ create, discover, trustedOrigin });
+})(window);
+/* ONLINE_GENERATION_END */
+
 (function () {
   'use strict';
 
@@ -332,10 +529,12 @@
   async function startWithoutIap(context) {
     if (!context || typeof context.start !== 'function') return false;
     try {
-      await Promise.resolve(context.start());
+      var sent = await Promise.resolve(context.start());
+      if (context.online && sent === false) return false;
       closeModal();
       return true;
     } catch (e) {
+      if (context.online) return false;
       showFailure('تعذّر إكمال العملية الآن. حاول مرة أخرى.');
       return false;
     }
@@ -623,15 +822,20 @@
       if (await Promise.resolve(context.start()) === false) {
         if (waiting && typeof waiting.cancel === 'function') waiting.cancel();
         context.inFlight = false;
-        closeModal();
+        if (!context.online) closeModal();
         return false;
       }
       if (startSignal) await startSignal;
     } catch (e) {
       if (waiting && typeof waiting.cancel === 'function') waiting.cancel();
       context.inFlight = false;
+      if (context.online) { context.online.permissionError('SERVER'); return false; }
       showFailure('لم تبدأ الجولة بعد؛ لم يُخصم أي رصيد. حاول مرة أخرى.');
       return false;
+    }
+    if (context.online) {
+      try { if (!startSignal || !await context.online.legacyConsumption()) return false; }
+      catch (_) { context.inFlight = false; return false; }
     }
     var result = await consumeAndStart(request, context.gameId, intent);
     if (result !== true) context.inFlight = false;
@@ -971,14 +1175,20 @@
 
   async function beginStart(start, roomCode, gameId, options) {
     options = options && typeof options === 'object' ? options : {};
-    startContext = {
+    var context = startContext = {
       start: start,
       roomCode: roomCode || 'room',
       roomInstanceId: typeof options.roomInstanceId === 'string' ? options.roomInstanceId : '',
       gameId: typeof gameId === 'string' && gameId ? gameId : 'hanna',
       waitForStart: typeof options.waitForStart === 'function' ? options.waitForStart : null,
       cycle: options.cycle,
+      online: options.online || null,
     };
+    if (context.online) {
+      try {
+        if (await context.online.modeForStart() === 'ACCOUNT') { await startWithoutIap(context); return; }
+      } catch (_) { return; }
+    }
     window.__ezikIapStartGame = start;
     window.__ezikIapRoomCode = roomCode;
     var enforcement;
@@ -988,14 +1198,14 @@
     if (mode === 'free') {
       if (!['all', 'host'].includes(enforcement.signin)) {
         stopSignInWatch();
-        await startWithoutIap(startContext);
+        await startWithoutIap(context);
         return;
       }
       var freeSession = authSession();
       var resumeFreeStart = function () { return beginStart(start, roomCode, gameId, options); };
       if (!freeSession) { showSignIn(resumeFreeStart, { signinRule: true }); return; }
       if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-        await startWithoutIap(startContext);
+        await startWithoutIap(context);
         return;
       }
       var freeBalance;
@@ -1004,12 +1214,12 @@
         showSignIn(resumeFreeStart, { signinRule: true });
         return;
       }
-      await startWithoutIap(startContext);
+      await startWithoutIap(context);
       return;
     }
     if (mode === 'off' || mode === 'test' && !authSession()) {
       stopSignInWatch();
-      await startWithoutIap(startContext);
+      await startWithoutIap(context);
       return;
     }
     var session = authSession();
@@ -1024,15 +1234,15 @@
       return;
     }
     var balance = response.data;
-    if (balance.enforced !== true) { await startWithoutIap(startContext); return; }
-    if (hasFreeEntitlement(balance)) { await startWithIntent(startContext, 'automatic'); return; }
+    if (balance.enforced !== true) { await startWithoutIap(context); return; }
+    if (hasFreeEntitlement(balance)) { await startWithIntent(context, 'automatic'); return; }
     if (Number(balance.credits) > 0) {
       var modal = openModal('تأكيد بدء الجلسة', 'سيُخصم من رصيدك جلسة واحدة (رصيدك ' + arabicDigits(balance.credits) + ')');
-      modal.content.append(button('ابدأ', function () { startWithIntent(startContext, 'automatic'); }));
+      modal.content.append(button('ابدأ', function () { startWithIntent(context, 'automatic'); }));
       modal.content.append(button('إلغاء', closeModal, true));
       return;
     }
-    showExpired(startContext.gameId, window.location.pathname + window.location.search + window.location.hash, balance);
+    showExpired(context.gameId, window.location.pathname + window.location.search + window.location.hash, balance);
   }
 
   function isIosWebViewWithMessaging() {
@@ -1273,6 +1483,20 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', installEntryGuard, { once: true });
   else installEntryGuard();
 
+  window.ezikOnlineRefreshAccount = function () {
+    cachedEnforcementAt = 0;
+    var session = authSession();
+    if (session) getBalance(session).catch(function () {});
+  };
+  window.ezikOnlineRecovery = function (options) {
+    var mismatch = options.reason === 'generation-changed';
+    var modal = openModal('استعادة الغرفة', mismatch
+      ? 'تغيّر خادم اللعبة. حُفظت حالة غرفتك. يمكنك إعادة الاتصال أو فتح غرفة جديدة.'
+      : 'تعذّر تأكيد حالة الغرفة. حُفظت حالتك؛ أعد الاتصال للتحقق قبل بدء جولة.');
+    if (typeof options.retry === 'function') modal.content.append(button('إعادة الاتصال', function () { closeModal(); options.retry(); }));
+    if (mismatch && typeof options.newRoom === 'function') modal.content.append(button('غرفة جديدة', function () { closeModal(); options.newRoom(); }, true));
+    modal.content.append(button('البقاء هنا', closeModal, true));
+  };
   window.ezikIapStart = function (start, roomCode, gameId, options) {
     if (typeof start !== 'function') return;
     if (active) return;

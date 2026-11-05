@@ -843,6 +843,11 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
+  // Public worker generation discovery must never enter an offline cache.
+  if (url.pathname === '/api/account-capabilities') {
+    event.respondWith(fetch(new Request(event.request, { cache: 'no-store', credentials: 'omit', redirect: 'error' })));
+    return;
+  }
   const sameOrigin = url.origin === self.location.origin;
 
   // NETWORK-ONLY, never cached: every /api/*. Not calling respondWith lets the request go

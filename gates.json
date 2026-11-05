@@ -1355,5 +1355,15 @@
     "name": "c1librarylook",
     "script": "guards/c1-library-look-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1gamesgeneration",
+    "script": "guards/c1-games-generation-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1gamesdelivery",
+    "script": "guards/c1-games-delivery-guard.cjs",
+    "args": ""
   }
 ]

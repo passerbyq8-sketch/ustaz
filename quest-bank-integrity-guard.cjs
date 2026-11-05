@@ -2101,7 +2101,7 @@ const SEALED = {
   // 2026-11-03 IAP-LAUNCH-SIGNIN source commit e4754ef0: cache ezik-v135; app.js rebuilt at the same byte length; CORE unchanged. Digest measured from the committed sw.js blob at CR = 0.
   // 2026-11-04 QAF-GAP-N2: ezik-v136; rebuild and CORE measurement, then LF worker seal.
   // 2026-11-04 INTEG1 preview: reserved ezik-v137; rebuilt app.js, measured CORE, LF worker seal.
-  'sw.js': 'c72d8ca6ed420d720a16c96cd0e8457444a3d7cdd6abc06aa76ae2be3dd4a9da',
+  'sw.js': '31544dac8192ab3bbe8232f63cbc027b01d210d7c0a6ebd0f769d934a3ef033e',
 };
 
 // ---------------------------------------------------------------------------
