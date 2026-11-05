@@ -408,7 +408,7 @@ function dimaPackValid(pack, entry, seasonal) {
   });
 }
 // B10: only complete Dima revisions may replace a reader's offline copy.
-function swDimaPath(path) { return /^\/dima\/pack-[a-z0-9-]+\.json$/.test(path); }
+function swDimaPath(path) { return /^\/dima\/pack-(?:manifest-v1|regular-\d{3}|(?:ramadan|dhul-hijjah|white-days)-\d{3})\.json$/.test(path); }
 function swDimaValid(path, value) {
   if (!dimaObject(value)) return false;
   const version = entry => entry && Number.isInteger(entry.version) && entry.version > 0;

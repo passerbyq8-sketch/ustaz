@@ -42,15 +42,18 @@ async function verify(code,mirror=true){
  const repair=worker(code,new Map([[packPath,'{']]));await repair.warm();assert.equal(repair.stored.get(packPath),bodies.get(packPath));cases++;
  const keep=worker(code,new Map([[packPath,bodies.get(packPath)]]));keep.network.set(packPath,'{');await keep.warm();assert.equal(keep.stored.get(packPath),bodies.get(packPath));assert(!keep.calls.includes(packPath),'idle skips a valid cached pack');cases++;
  const good=bodies.get(packPath),full=worker(code,new Map([[packPath,good]]),new Map(bodies),true);const changed=parse(packPath);changed.days[0].qalb.note+=' fixture';full.network.set(packPath,changed);assert.equal(await(await full.get(packPath)).text(),good);assert.equal(full.stored.get(packPath),good,'quota failure leaves old valid body');cases++;
+ const evidencePath='/dima/pack-source-evidence-v1.json',evidence=worker(code);evidence.network.set(evidencePath,'{"evidence":true}');assert.equal((await evidence.get(evidencePath)).status,200,'source evidence keeps the ordinary JSON policy');cases++;
  return cases;
 }
 const bypass=source.replace('return swDimaValid(path, JSON.parse(await response.clone().text()));','return true;');
 const idleBypass=source.replace('return swDimaPath(u) ? swDimaAdd(cache, u) : cache.add(u);','return cache.add(u);');
+const broadPath=source.replace(helper(source,'swDimaPath'),'function swDimaPath(path) { return path.startsWith("/dima/pack-"); }');
 async function main(){
  assert.notEqual(bypass,source);assert.notEqual(idleBypass,source);
  if(process.argv.includes('--mutant'))return verify(bypass,false);
  if(process.argv.includes('--mutant-idle'))return verify(idleBypass);
- const cases=await verify(source);await assert.rejects(()=>verify(bypass,false));await assert.rejects(()=>verify(idleBypass));
- console.log('PASS B10 offline: '+cases+' runtime/warm/persistence fixtures; app/worker validation parity; future pack; malformed/partial/ID/version/source/schema failures; restart offline and quota retention; two bypass mutants rejected.');
+ if(process.argv.includes('--mutant-path'))return verify(broadPath);
+ const cases=await verify(source);await assert.rejects(()=>verify(bypass,false));await assert.rejects(()=>verify(idleBypass));await assert.rejects(()=>verify(broadPath));
+ console.log('PASS B10 offline: '+cases+' runtime/warm/persistence fixtures; app/worker validation parity; future pack; malformed/partial/ID/version/source/schema failures; restart offline and quota retention; unrelated JSON policy; three mutants rejected.');
 }
 main().catch(e=>{console.error(e.stack);process.exitCode=1;});
