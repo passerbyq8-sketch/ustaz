@@ -1300,5 +1300,10 @@
     "name": "c1solidbars",
     "script": "guards/c1-solid-bars-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1dimaoffline",
+    "script": "guards/c1-dima-offline-guard.cjs",
+    "args": ""
   }
 ]
