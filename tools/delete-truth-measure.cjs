@@ -378,6 +378,7 @@ const LAB_NAMES = ['settings', 'bm', 'tags', 'fav', 'notes', 'refl', 'recent', '
 // mentioned would be a false citation there. What makes an entry lawful here is that the button
 // erases it and is asserted to keep erasing it -- not the date it was added.
 const MUST_GO_ALREADY = [
+  { lit: 'ezik_dima_v2' },              // active pack progress and frozen selections
   { lit: 'child_profile' },              // the name, birth year and gender
   { c: 'EZIK_CHATS_KEY' },               // the index of saved conversations
   { chat: 'c_alpha' },                   // and every stored body that index lists
