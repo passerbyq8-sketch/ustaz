@@ -233,6 +233,8 @@ const HARNESS_PARTS = [
   text(FN_WEB_RETURN), text(FN_WEB_CLEAN), text(FN_WEB_HOOK),
   text(C_FOUNDER_KEY), text(FN_TOKEN_ALIVE), text(FN_HAS_FOUNDER),
   text(C_ADMIN_ROUTE), text(FN_GRANT_CHECK),
+  text(topConst('EZIK_AUTH_PROOF_CLIENT')),
+  ...['createEzikAuthProofClient', 'ezikAuthProofClient', 'ezikAuthProofLegacy', 'ezikAuthProofLine', 'useEzikAuthProofStatus', 'ezikAuthProofSignIn', 'EzikAuthProofRecovery', 'EzikRoleProofActions'].map(name => text(topFunction(name))),
   text(FN_ROW),
   'return {',
   '  EzikSignInRow: EzikSignInRow,',
@@ -335,9 +337,11 @@ function fakeWindow(bridge) {
   // ITEM 8: the three things a BROWSER press touches and a shell press never does -- the tab's own
   // store, the address bar, and the navigation itself. Every one of them RECORDS rather than acts,
   // so a case can read what the press did instead of watching a page disappear.
+  w.btoa = value => Buffer.from(value, 'binary').toString('base64');
   w.sessionStorage = fakeStorage();
   w.location = {
     href: 'https://ezik.app/',
+    origin: 'https://ezik.app',
     pathname: '/',
     search: '',
     hash: '',
@@ -355,6 +359,7 @@ function fakeWindow(bridge) {
 function fakeStorage() {
   const m = new Map();
   return {
+    get length() { return m.size; }, key: index => [...m.keys()][index] ?? null,
     getItem: (k) => (m.has(k) ? m.get(k) : null),
     setItem: (k, v) => { m.set(k, String(v)); },
     removeItem: (k) => { m.delete(k); },
@@ -390,6 +395,7 @@ function throwingBridge() {
 // REAL RANDOMNESS FROM node:crypto, not a counter. A counter would let a client state that was
 // never actually random pass a case about a client state.
 const realRandom = {
+  subtle: nodeCrypto.webcrypto.subtle,
   getRandomValues: (arr) => { nodeCrypto.randomFillSync(arr); return arr; },
 };
 
@@ -402,19 +408,23 @@ const FIXTURE = {
 };
 
 /** The exchange, answered by the test rather than by a network. */
-function fakeFetch(plan) {
-  const calls = [];
+function fakeFetch(plan, proofVersion = 0) {
+  const calls = [], discovery = [];
   const fn = (url, init) => {
+    if (new URL(url, 'https://ezik.app').pathname === '/api/auth-capabilities') {
+      discovery.push({url, init});
+      return Promise.resolve({status:200, url, redirected:false, headers:{get:()=> 'application/json'}, json:async()=>({ok:true,proofVersion})});
+    }
     calls.push({ url: url, init: init });
     const answer = plan.shift() || { status: 200, body: { ok: true, session: FIXTURE.session, email: FIXTURE.email, provider: FIXTURE.provider } };
     if (answer.throws) return Promise.reject(new Error('network'));
     return Promise.resolve({
       ok: answer.status >= 200 && answer.status < 300,
-      status: answer.status,
+      status: answer.status, url, redirected: false, headers: { get: () => 'application/json' },
       json: () => Promise.resolve(answer.body),
     });
   };
-  fn.calls = calls;
+  fn.calls = calls; fn.discovery = discovery;
   return fn;
 }
 
@@ -529,7 +539,7 @@ function scene(opts) {
   // control is drawn at all. Written through the store's own setItem, so a seeded device is
   // indistinguishable from one that reached the same state by using the application.
   for (const k of Object.keys(o.seed || {})) storage.setItem(k, o.seed[k]);
-  const fetchFn = fakeFetch((o.fetchPlan || []).slice());
+  const fetchFn = fakeFetch((o.fetchPlan || []).slice(), o.proofVersion ?? 0);
   const env = {
     window: win,
     localStorage: storage,
@@ -562,12 +572,12 @@ function seam(opts) {
 }
 
 /** Mount the row and press the button, returning everything the press touched. */
-function press(opts, factory) {
+async function press(opts, factory) {
   const scn = scene(opts);
   const m = mountRow(scn, factory);
   const btn = findTags(nodesOf(m.tree()), 'button')[0];
   if (!btn) throw new Error('the row drew no button to press');
-  btn.props.onClick();
+  btn.props.onClick(); await flush();
   return Object.assign({ m: m, btn: () => findTags(nodesOf(m.tree()), 'button')[0] }, scn);
 }
 
@@ -578,7 +588,7 @@ function reply(mod, id, over) {
 function sentId(scn) { return JSON.parse(scn.sent[0]).id; }
 
 /** Let the exchange's promise chain finish. Two awaits inside it, one .then on the caller. */
-async function flush() { for (let i = 0; i < 12; i++) await Promise.resolve(); }
+async function flush() { for (let i = 0; i < 60; i++) await Promise.resolve(); }
 
 // ---------------------------------------------------------------------------
 // THE CASES.
@@ -597,8 +607,8 @@ const CONTRACT = makeSeam(scene({}).env);
 
 /* -- THE FOUR FIELDS ------------------------------------------------------- */
 
-run('the request carries the four fields the contract names, and NO fifth', () => {
-  const p = press({});
+run('the request carries the four fields the contract names, and NO fifth', async () => {
+  const p = (await press({}));
   eq(p.sent.length, 1, 'messages posted for one press');
   const m = JSON.parse(p.sent[0]);
   eq(Object.keys(m).sort(), ['id', 'type', 'url', 'v'], 'the fields on the wire');
@@ -607,8 +617,8 @@ run('the request carries the four fields the contract names, and NO fifth', () =
   return Object.keys(m).sort().join(',') + '  type=' + m.type;
 });
 
-run('`v` crosses as the STRING "1" and never the number 1', () => {
-  const p = press({});
+run('`v` crosses as the STRING "1" and never the number 1', async () => {
+  const p = (await press({}));
   const m = JSON.parse(p.sent[0]);
   eq(typeof m.v, 'string', 'the type of v on the wire');
   eq(m.v, '1', 'the value of v');
@@ -617,8 +627,8 @@ run('`v` crosses as the STRING "1" and never the number 1', () => {
   return 'v = ' + JSON.stringify(m.v) + ' (' + typeof m.v + ')';
 });
 
-run('the url is https on ezik.app and is OUR route, never the provider\'s', () => {
-  const p = press({});
+run('the url is https on ezik.app and is OUR route, never the provider\'s', async () => {
+  const p = (await press({}));
   const m = JSON.parse(p.sent[0]);
   const u = new URL(m.url);
   eq(u.protocol, 'https:', 'the scheme the shell is asked to open');
@@ -632,10 +642,10 @@ run('the url is https on ezik.app and is OUR route, never the provider\'s', () =
 
 /* -- THE id MATCH ---------------------------------------------------------- */
 
-run('a reply carrying ANOTHER id is neither an answer nor a refusal', () => {
-  const p = press({});
+run('a reply carrying ANOTHER id is neither an answer nor a refusal', async () => {
+  const p = (await press({}));
   const id = sentId(p);
-  p.win.dispatch(CONTRACT.SHELL_AUTH_RESULT, reply(CONTRACT.mod || CONTRACT, id + '-x', { ok: false, reason: 'browser-failed' }));
+  p.win.dispatch(CONTRACT.SHELL_AUTH_RESULT, reply(CONTRACT.mod || CONTRACT, id + '-x', { ok: false, reason: 'browser-failed' })); await flush();
   eq(p.win.live(CONTRACT.SHELL_AUTH_RESULT), 1, 'listeners after another press\'s answer');
   eq(p.btn().props.disabled, true, 'the button after another press\'s answer');
   eq(textOf(nodesOf(p.m.tree())).indexOf(CONTRACT.EZ_I18N.ar['auth.browserFailed']), -1,
@@ -643,12 +653,12 @@ run('a reply carrying ANOTHER id is neither an answer nor a refusal', () => {
   return 'listener still attached, button still disabled, nothing drawn';
 });
 
-run('a reply with the wrong type or the wrong version is ignored the same way', () => {
+run('a reply with the wrong type or the wrong version is ignored the same way', async () => {
   for (const over of [{ type: 'ezik:download:result' }, { v: 1 }, { v: '2' }]) {
-    const p = press({});
+    const p = (await press({}));
     const id = sentId(p);
     p.win.dispatch(CONTRACT.SHELL_AUTH_RESULT,
-      Object.assign(reply(CONTRACT, id, { ok: true, url: 'ezik://auth/return?ticket=t&state=s' }), over));
+      Object.assign(reply(CONTRACT, id, { ok: true, url: 'ezik://auth/return?ticket=t&state=s' }), over)); await flush();
     eq(p.win.live(CONTRACT.SHELL_AUTH_RESULT), 1, 'listeners after ' + JSON.stringify(over));
     eq(p.fetch.calls.length, 0, 'exchanges made for ' + JSON.stringify(over));
   }
@@ -683,11 +693,11 @@ run('the five sort into exactly THREE treatments, and each one is the treatment 
   return '3 treatments over 5 reasons; unsupported keeps its own line';
 });
 
-run('`dismissed` is SILENCE: no line, and the offer is standing again', () => {
-  const p = press({});
+run('`dismissed` is SILENCE: no line, and the offer is standing again', async () => {
+  const p = (await press({}));
   const id = sentId(p);
   eq(p.btn().props.disabled, true, 'the button while the sheet is open');
-  p.win.dispatch(CONTRACT.SHELL_AUTH_RESULT, reply(CONTRACT, id, { ok: false, reason: 'dismissed' }));
+  p.win.dispatch(CONTRACT.SHELL_AUTH_RESULT, reply(CONTRACT, id, { ok: false, reason: 'dismissed' })); await flush();
   eq(CONTRACT.ezikAuthLine('dismissed'), '', 'the line for dismissed');
   eq(p.btn().props.disabled, false, 'the button after the reader closed the sheet');
   const drawn = textOf(nodesOf(p.m.tree()));
@@ -696,12 +706,12 @@ run('`dismissed` is SILENCE: no line, and the offer is standing again', () => {
   return 'no line, button released, exactly the offer redrawn';
 });
 
-run('every other reason draws its OWN line and releases the button', () => {
+run('every other reason draws its OWN line and releases the button', async () => {
   const seen = [];
   for (const reason of ['bad-payload', 'bad-url', 'unsupported', 'browser-failed']) {
-    const p = press({});
+    const p = (await press({}));
     const id = sentId(p);
-    p.win.dispatch(CONTRACT.SHELL_AUTH_RESULT, reply(CONTRACT, id, { ok: false, reason: reason }));
+    p.win.dispatch(CONTRACT.SHELL_AUTH_RESULT, reply(CONTRACT, id, { ok: false, reason: reason })); await flush();
     const want = CONTRACT.EZ_I18N.ar[CONTRACT.SHELL_AUTH_LINES[reason]];
     is(!!want, 'no dictionary line for ' + reason);
     is(textOf(nodesOf(p.m.tree())).indexOf(want) !== -1, 'the line for ' + reason + ' was not drawn');
@@ -711,16 +721,16 @@ run('every other reason draws its OWN line and releases the button', () => {
   return seen.length + ' reasons, 4 distinct lines, button released each time';
 });
 
-run('a SIXTH reason nobody has heard of is treated exactly as `browser-failed`', () => {
+run('a SIXTH reason nobody has heard of is treated exactly as `browser-failed`', async () => {
   const want = CONTRACT.EZ_I18N.ar[CONTRACT.SHELL_AUTH_LINES['browser-failed']];
   for (const sixth of ['provider-exploded', '', undefined, null, 42, {}]) {
     eq(CONTRACT.ezikAuthClass(sixth), CONTRACT.ezikAuthClass('browser-failed'),
       'the class for ' + JSON.stringify(sixth));
     eq(CONTRACT.ezikAuthLine(sixth), want, 'the line for ' + JSON.stringify(sixth));
   }
-  const p = press({});
+  const p = (await press({}));
   p.win.dispatch(CONTRACT.SHELL_AUTH_RESULT,
-    reply(CONTRACT, sentId(p), { ok: false, reason: 'a-word-from-a-newer-shell' }));
+    reply(CONTRACT, sentId(p), { ok: false, reason: 'a-word-from-a-newer-shell' })); await flush();
   is(textOf(nodesOf(p.m.tree())).indexOf(want) !== -1, 'the sixth reason drew no line');
   eq(p.btn().props.disabled, false, 'the button after a sixth reason');
   eq(CONTRACT.SHELL_AUTH_REASON_OTHER, 'browser-failed', 'the declared fallback');
@@ -729,16 +739,16 @@ run('a SIXTH reason nobody has heard of is treated exactly as `browser-failed`',
 
 /* -- NO DEADLINE ----------------------------------------------------------- */
 
-run('NOT ONE TIMER IS ARMED -- not on the press, not on the answer, not on the failure', () => {
-  const answered = press({});
+run('NOT ONE TIMER IS ARMED -- not on the press, not on the answer, not on the failure', async () => {
+  const answered = (await press({}));
   eq(answered.clock.pending(), 0, 'timers pending after the press');
   answered.win.dispatch(CONTRACT.SHELL_AUTH_RESULT,
-    reply(CONTRACT, sentId(answered), { ok: false, reason: 'dismissed' }));
+    reply(CONTRACT, sentId(answered), { ok: false, reason: 'dismissed' })); await flush();
   eq(answered.clock.pending(), 0, 'timers pending after the answer');
   eq(answered.clock.delays(), [], 'delays armed at any point');
 
   // And the silent case: no answer at all. The button stays disabled, which IS the contract.
-  const silent = press({});
+  const silent = (await press({}));
   eq(silent.clock.pending(), 0, 'timers pending while waiting for an answer that never comes');
   eq(silent.btn().props.disabled, true, 'the button with no answer');
   eq(silent.win.live(CONTRACT.SHELL_AUTH_RESULT), 1, 'the listener with no answer');
@@ -758,7 +768,7 @@ run('NOT ONE TIMER IS ARMED -- not on the press, not on the answer, not on the f
 run('the button is disabled on the press and released in EVERY failure branch', async () => {
   const branches = [];
   // 1. the bridge itself throws -- onDone is called synchronously, before any listener exists
-  const t = press({ shell: 'throwing' });
+  const t = (await press({ shell: 'throwing' }));
   eq(t.btn().props.disabled, false, 'the button when the bridge refused the message');
   eq(t.win.live(CONTRACT.SHELL_AUTH_RESULT), 0, 'a listener left behind by a refused post');
   branches.push('bridge-throws');
@@ -771,19 +781,19 @@ run('the button is disabled on the press and released in EVERY failure branch', 
     ['no ticket in a matching return', (cs) => ({ ok: true, url: 'ezik://auth/return?state=' + cs }), 'auth.badReturn'],
   ];
   for (const [label, build, key] of cases) {
-    const p = press({});
+    const p = (await press({}));
     const cs = new URL(JSON.parse(p.sent[0]).url).searchParams.get('cs');
-    p.win.dispatch(CONTRACT.SHELL_AUTH_RESULT, reply(CONTRACT, sentId(p), build(cs)));
+    p.win.dispatch(CONTRACT.SHELL_AUTH_RESULT, reply(CONTRACT, sentId(p), build(cs))); await flush();
     eq(p.btn().props.disabled, false, 'the button after ' + label);
     is(textOf(nodesOf(p.m.tree())).indexOf(CONTRACT.EZ_I18N.ar[key]) !== -1,
       'the line for ' + label);
     branches.push(label);
   }
   // 6. the exchange itself refuses.
-  const bad = press({ fetchPlan: [{ status: 400, body: { ok: false, error: 'auth-ticket-invalid' } }] });
+  const bad = (await press({ fetchPlan: [{ status: 400, body: { ok: false, error: 'auth-ticket-invalid' } }] }));
   const cs6 = new URL(JSON.parse(bad.sent[0]).url).searchParams.get('cs');
   bad.win.dispatch(CONTRACT.SHELL_AUTH_RESULT,
-    reply(CONTRACT, sentId(bad), { ok: true, url: 'ezik://auth/return?ticket=t&state=' + cs6 }));
+    reply(CONTRACT, sentId(bad), { ok: true, url: 'ezik://auth/return?ticket=t&state=' + cs6 })); await flush();
   await flush();
   eq(bad.btn().props.disabled, false, 'the button after the exchange refused');
   is(textOf(nodesOf(bad.m.tree())).indexOf(CONTRACT.EZ_I18N.ar['auth.exchangeFailed']) !== -1,
@@ -791,10 +801,10 @@ run('the button is disabled on the press and released in EVERY failure branch', 
   branches.push('exchange-refused');
 
   // And a network that never answers at all is the seventh: same release, same line.
-  const dead = press({ fetchPlan: [{ throws: true }] });
+  const dead = (await press({ fetchPlan: [{ throws: true }] }));
   const cs7 = new URL(JSON.parse(dead.sent[0]).url).searchParams.get('cs');
   dead.win.dispatch(CONTRACT.SHELL_AUTH_RESULT,
-    reply(CONTRACT, sentId(dead), { ok: true, url: 'ezik://auth/return?ticket=t&state=' + cs7 }));
+    reply(CONTRACT, sentId(dead), { ok: true, url: 'ezik://auth/return?ticket=t&state=' + cs7 })); await flush();
   await flush();
   eq(dead.btn().props.disabled, false, 'the button after the exchange threw');
   branches.push('exchange-threw');
@@ -803,10 +813,10 @@ run('the button is disabled on the press and released in EVERY failure branch', 
 
 /* -- THE CLIENT STATE ------------------------------------------------------ */
 
-run('`cs` is minted per press, is never stored, and never repeats', () => {
+run('`cs` is minted per press, is never stored, and never repeats', async () => {
   const seen = new Set();
   for (let i = 0; i < 24; i++) {
-    const p = press({});
+    const p = (await press({}));
     const cs = new URL(JSON.parse(p.sent[0]).url).searchParams.get('cs');
     is(/^[0-9a-f]{32}$/.test(cs), 'cs is not 32 hex characters: ' + cs);
     is(!seen.has(cs), 'cs repeated across presses');
@@ -821,12 +831,12 @@ run('`cs` is minted per press, is never stored, and never repeats', () => {
   return seen.size + ' presses, ' + seen.size + ' distinct 32-hex states, 0 store writes';
 });
 
-run('a return whose `state` does not match this press is REFUSED before anything else is read', () => {
-  const p = press({});
+run('a return whose `state` does not match this press is REFUSED before anything else is read', async () => {
+  const p = (await press({}));
   const id = sentId(p);
   // A perfectly well-formed return -- ticket and all -- but from another press.
   p.win.dispatch(CONTRACT.SHELL_AUTH_RESULT,
-    reply(CONTRACT, id, { ok: true, url: 'ezik://auth/return?ticket=' + FIXTURE.ticket + '&state=someone-else' }));
+    reply(CONTRACT, id, { ok: true, url: 'ezik://auth/return?ticket=' + FIXTURE.ticket + '&state=someone-else' })); await flush();
   eq(p.fetch.calls.length, 0, 'exchanges made for a state that did not match');
   eq(p.storage.keys(), [], 'sessions stored for a state that did not match');
   is(textOf(nodesOf(p.m.tree())).indexOf(CONTRACT.EZ_I18N.ar['auth.stateMismatch']) !== -1,
@@ -835,10 +845,10 @@ run('a return whose `state` does not match this press is REFUSED before anything
 });
 
 run('a matching return is exchanged, and the exchange carries the device header', async () => {
-  const p = press({});
+  const p = (await press({}));
   const cs = new URL(JSON.parse(p.sent[0]).url).searchParams.get('cs');
   p.win.dispatch(CONTRACT.SHELL_AUTH_RESULT,
-    reply(CONTRACT, sentId(p), { ok: true, url: 'ezik://auth/return?ticket=' + FIXTURE.ticket + '&state=' + cs }));
+    reply(CONTRACT, sentId(p), { ok: true, url: 'ezik://auth/return?ticket=' + FIXTURE.ticket + '&state=' + cs })); await flush();
   await flush();
   eq(p.fetch.calls.length, 1, 'exchanges made');
   const call = p.fetch.calls[0];
@@ -946,10 +956,10 @@ run('the shell can ask for the settings row to go, and it goes whole -- account 
 });
 
 run('after a successful sign-in the ADDRESS is shown and nothing else is', async () => {
-  const p = press({});
+  const p = (await press({}));
   const cs = new URL(JSON.parse(p.sent[0]).url).searchParams.get('cs');
   p.win.dispatch(CONTRACT.SHELL_AUTH_RESULT,
-    reply(CONTRACT, sentId(p), { ok: true, url: 'ezik://auth/return?ticket=' + FIXTURE.ticket + '&state=' + cs }));
+    reply(CONTRACT, sentId(p), { ok: true, url: 'ezik://auth/return?ticket=' + FIXTURE.ticket + '&state=' + cs })); await flush();
   await flush();
   const drawn = textOf(nodesOf(p.m.tree()));
   is(drawn.indexOf(FIXTURE.email) !== -1, 'the address was not drawn');
@@ -987,10 +997,10 @@ const DEAD_FOUNDER = 'v2.' + Math.floor(FIXED_NOW / 1000 - 1) + '.nite.mac';
 
 /** The row, signed in, with whatever the device is holding. */
 async function signedIn(seed, fetchPlan) {
-  const p = press({ seed: seed, fetchPlan: fetchPlan });
+  const p = (await press({ seed: seed, fetchPlan: fetchPlan }));
   const cs = new URL(JSON.parse(p.sent[0]).url).searchParams.get('cs');
   p.win.dispatch(CONTRACT.SHELL_AUTH_RESULT,
-    reply(CONTRACT, sentId(p), { ok: true, url: 'ezik://auth/return?ticket=' + FIXTURE.ticket + '&state=' + cs }));
+    reply(CONTRACT, sentId(p), { ok: true, url: 'ezik://auth/return?ticket=' + FIXTURE.ticket + '&state=' + cs })); await flush();
   await flush();
   return p;
 }
@@ -1039,7 +1049,7 @@ run('the grant check reads all four refusals, and shows the digest only on the f
       const btn = findTags(nodesOf(p.m.tree()), 'button')
         .filter((b) => textOf([b]) === LBL_CHECK)[0];
       is(!!btn, 'the grant check was not on the screen for ' + what);
-      btn.props.onClick();
+      btn.props.onClick(); await flush();
       await flush();
       const drawn = textOf(nodesOf(p.m.tree()));
       is(drawn.indexOf(line) !== -1, 'the wrong line for ' + what + ': ' + drawn);
@@ -1072,10 +1082,10 @@ function mountHook(scn) {
   });
 }
 
-run('the browser press navigates to our own start route, marked as a web flow', () => {
+run('the browser press navigates to our own start route, marked as a web flow', async () => {
   const tab = scene({ shell: false });
   const m = mountRow(tab);
-  findTags(nodesOf(m.tree()), 'button')[0].props.onClick();
+  findTags(nodesOf(m.tree()), 'button')[0].props.onClick(); await flush();
   eq(tab.win.location.assigned.length, 1, 'navigations the press made');
   const u = new URL(tab.win.location.assigned[0]);
   eq(u.origin + u.pathname, CONTRACT.SHELL_AUTH_ORIGIN + CONTRACT.SHELL_AUTH_START_PATH,
@@ -1094,11 +1104,11 @@ run('the browser press navigates to our own start route, marked as a web flow', 
   return 'one navigation, web=1, state kept in the tab and nowhere else';
 });
 
-run('a tab whose own store refuses does not navigate, and says so', () => {
+run('a tab whose own store refuses does not navigate, and says so', async () => {
   const tab = scene({ shell: false });
   tab.win.sessionStorage.setItem = () => { throw new Error('denied'); };
   const m = mountRow(tab);
-  findTags(nodesOf(m.tree()), 'button')[0].props.onClick();
+  findTags(nodesOf(m.tree()), 'button')[0].props.onClick(); await flush();
   eq(tab.win.location.assigned.length, 0,
     'the reader was sent to a provider with nothing to match the answer against');
   is(textOf(nodesOf(m.tree())).indexOf(CONTRACT.EZ_I18N.ar['auth.browserFailed']) !== -1,
@@ -1163,14 +1173,14 @@ run('the return leg does nothing at all inside the shell', async () => {
 });
 
 run('signing out removes the key locally and calls nothing', async () => {
-  const p = press({});
+  const p = (await press({}));
   const cs = new URL(JSON.parse(p.sent[0]).url).searchParams.get('cs');
   p.win.dispatch(CONTRACT.SHELL_AUTH_RESULT,
-    reply(CONTRACT, sentId(p), { ok: true, url: 'ezik://auth/return?ticket=' + FIXTURE.ticket + '&state=' + cs }));
+    reply(CONTRACT, sentId(p), { ok: true, url: 'ezik://auth/return?ticket=' + FIXTURE.ticket + '&state=' + cs })); await flush();
   await flush();
   eq(p.storage.keys(), [CONTRACT.AUTH_SESSION_KEY], 'the keys after a sign-in');
   const before = p.fetch.calls.length;
-  findTags(nodesOf(p.m.tree()), 'button')[0].props.onClick();
+  findTags(nodesOf(p.m.tree()), 'button')[0].props.onClick(); await flush();
   eq(p.storage.keys(), [], 'the keys after signing out');
   eq(p.fetch.calls.length, before, 'requests made by signing out');
   is(textOf(nodesOf(p.m.tree())).indexOf(CONTRACT.EZ_I18N.ar['auth.signIn']) !== -1,
@@ -1178,12 +1188,12 @@ run('signing out removes the key locally and calls nothing', async () => {
   return '1 key written, 1 key removed, 0 requests';
 });
 
-run('the listener is torn down when the row unmounts with a press still open', () => {
+run('the listener is torn down when the row unmounts with a press still open', async () => {
   const scn = scene({});
   const m = mountRow(scn);
-  findTags(nodesOf(m.tree()), 'button')[0].props.onClick();
+  findTags(nodesOf(m.tree()), 'button')[0].props.onClick(); await flush();
   eq(scn.win.live(CONTRACT.SHELL_AUTH_RESULT), 1, 'the listener while the press is open');
-  m.unmount();
+  m.unmount(); await flush();
   eq(scn.win.live(CONTRACT.SHELL_AUTH_RESULT), 0, 'listeners after the unmount effect ran');
   return 'attached on press, gone on unmount';
 });
@@ -1560,11 +1570,11 @@ function googleBtn(m) {
     .filter((b) => textOf(b.children || []) === label)[0] || null;
 }
 /** Press it the way a browser would: a disabled control does not deliver a click. */
-function pressApple(m) {
+async function pressApple(m) {
   const b = appleBtn(m);
   if (!b) throw new Error('the card drew no Apple door to press');
   if (b.props.disabled) return false;
-  b.props.onClick();
+  b.props.onClick(); await flush();
   return true;
 }
 /** The line the card is showing, or '' -- the seat entry errors already used. */
@@ -1582,9 +1592,10 @@ function cardLine(m) {
  * useEzikNativeAuthRoot is mounted by App, not by this card, and a case that dispatched only the
  * event would be measuring a page with half its wiring missing.
  */
-function shellSays(m, scn, payload) {
-  scn.win.dispatch(m.mod.SHELL_AUTH_SESSION, payload);
+async function shellSays(m, scn, payload) {
+  scn.win.dispatch(m.mod.SHELL_AUTH_SESSION, payload); await flush();
   m.mod.ezikNativeAuthReceive(payload);
+  await flush();
 }
 function okPayload(m, over) {
   return Object.assign({
@@ -1596,11 +1607,11 @@ function failPayload(m, outcome) {
   return { type: m.mod.SHELL_AUTH_SESSION, v: m.mod.SHELL_AUTH_V, ok: false, outcome: outcome };
 }
 
-run('the Apple door posts ONE native request and never opens the web path', () => {
+run('the Apple door posts ONE native request and never opens the web path', async () => {
   const scn = scene({});
   const m = mountEntry(scn);
   eq(scn.sent.length, 0, 'messages posted before the press');
-  is(pressApple(m) === true, 'the Apple door refused the first press');
+  is((await pressApple(m)) === true, 'the Apple door refused the first press');
   eq(scn.sent.length, 1, 'messages posted for one press');
   const msg = JSON.parse(scn.sent[0]);
   eq(Object.keys(msg).sort(), ['type', 'v'], 'the fields on the wire -- two, and no third');
@@ -1620,25 +1631,25 @@ run('the Apple door posts ONE native request and never opens the web path', () =
   return '1 message {type,v}, v="1" string, 0 web listeners, 0 fetches, button held';
 });
 
-run('two presses in a row post ONE message, not two', () => {
+run('two presses in a row post ONE message, not two', async () => {
   const scn = scene({});
   const m = mountEntry(scn);
-  is(pressApple(m) === true, 'the first press did not land');
-  is(pressApple(m) === false, 'the SECOND press landed -- the door was not held');
+  is((await pressApple(m)) === true, 'the first press did not land');
+  is((await pressApple(m)) === false, 'the SECOND press landed -- the door was not held');
   eq(scn.sent.length, 1, 'messages posted for two presses');
   // And the disable is real rather than decorative: the handler refuses too, so a click that
   // reached it anyway -- a synthetic one, a stale closure -- still cannot post a second sheet.
-  appleBtn(m).props.onClick();
+  appleBtn(m).props.onClick(); await flush();
   eq(scn.sent.length, 1, 'messages after the handler was called directly while busy');
   return '2 presses + 1 forced call -> 1 message';
 });
 
-run('ok:true is written exactly as it is today, and email:"" is a lawful address', () => {
+run('ok:true is written exactly as it is today, and email:"" is a lawful address', async () => {
   for (const email of [FIXTURE.email, '']) {
     const scn = scene({});
     const m = mountEntry(scn);
-    pressApple(m);
-    shellSays(m, scn, okPayload(m, { email: email }));
+    (await pressApple(m));
+    (await shellSays(m, scn, okPayload(m, { email: email })));
     eq(scn.storage.keys(), [CONTRACT.AUTH_SESSION_KEY], 'keys after ok:true, email=' + JSON.stringify(email));
     const held = JSON.parse(scn.storage.getItem(CONTRACT.AUTH_SESSION_KEY));
     eq(held.session, FIXTURE.session, 'the session stored');
@@ -1652,15 +1663,15 @@ run('ok:true is written exactly as it is today, and email:"" is a lawful address
   return 'session written for both addresses, card advanced, 0 timers left armed';
 });
 
-run('all SEVEN outcomes write no session and give the door back', () => {
+run('all SEVEN outcomes write no session and give the door back', async () => {
   const seven = ['canceled', 'unavailable', 'rejected', 'throttled', 'server-down', 'client-bug', 'failed'];
   eq(seven, CONTRACT.SHELL_AUTH_OUTCOMES.slice(), 'the seven, against the list the page itself holds');
   const lines = [];
   for (const outcome of seven) {
     const scn = scene({});
     const m = mountEntry(scn);
-    pressApple(m);
-    shellSays(m, scn, failPayload(m, outcome));
+    (await pressApple(m));
+    (await shellSays(m, scn, failPayload(m, outcome)));
     eq(scn.storage.keys(), [], 'keys written by outcome ' + outcome);
     is(appleBtn(m) !== null, 'the card advanced on outcome ' + outcome);
     is(appleBtn(m).props.disabled === false, 'the door is still held after outcome ' + outcome);
@@ -1672,19 +1683,19 @@ run('all SEVEN outcomes write no session and give the door back', () => {
   return '7 outcomes, 0 sessions, 7 doors released  ·  ' + lines.join(' ');
 });
 
-run('canceled says NOTHING, and the other six say one thing each', () => {
+run('canceled says NOTHING, and the other six say one thing each', async () => {
   const scn0 = scene({});
   const m0 = mountEntry(scn0);
-  pressApple(m0);
-  shellSays(m0, scn0, failPayload(m0, 'canceled'));
+  (await pressApple(m0));
+  (await shellSays(m0, scn0, failPayload(m0, 'canceled')));
   eq(cardLine(m0), [], 'lines shown after the reader closed the sheet themselves');
 
   const said = {};
   for (const outcome of ['unavailable', 'rejected', 'throttled', 'server-down', 'client-bug', 'failed']) {
     const scn = scene({});
     const m = mountEntry(scn);
-    pressApple(m);
-    shellSays(m, scn, failPayload(m, outcome));
+    (await pressApple(m));
+    (await shellSays(m, scn, failPayload(m, outcome)));
     const shown = cardLine(m);
     eq(shown.length, 1, 'lines shown for outcome ' + outcome);
     is(shown[0].length > 0, 'an EMPTY line was drawn for outcome ' + outcome);
@@ -1710,17 +1721,17 @@ run('canceled says NOTHING, and the other six say one thing each', () => {
   return 'canceled: 0 lines  ·  6 outcomes: 1 line each, 4 distinct, all from the dictionary';
 });
 
-run('silence is answered by the deadline, and the deadline is sixty seconds', () => {
+run('silence is answered by the deadline, and the deadline is sixty seconds', async () => {
   const scn = scene({});
   const m = mountEntry(scn);
-  pressApple(m);
+  (await pressApple(m));
   eq(scn.clock.pending(), 1, 'deadlines armed by the native press');
   eq(scn.clock.delays(), [CONTRACT.SHELL_AUTH_APPLE_WAIT_MS], 'the delay armed');
   eq(CONTRACT.SHELL_AUTH_APPLE_WAIT_MS, 60000, 'the deadline the order names');
   // Nothing comes back at all -- one of the five cases the shell drops without answering.
   is(appleBtn(m).props.disabled === true, 'the door was released before the deadline expired');
   eq(cardLine(m), [], 'a line was shown before the deadline expired');
-  eq(scn.clock.fire(), 1, 'timers that fired');
+  eq(scn.clock.fire(), 1, 'timers that fired'); await flush();
   is(appleBtn(m).props.disabled === false, 'the door is still held after the deadline expired');
   eq(cardLine(m).length, 1, 'lines shown after the deadline expired');
   eq(scn.storage.keys(), [], 'keys written by a deadline');
@@ -1728,16 +1739,16 @@ run('silence is answered by the deadline, and the deadline is sixty seconds', ()
   return '60000ms armed, fired, door released, 1 line, 0 keys, 0 listeners';
 });
 
-run('a session that arrives AFTER the deadline is still written', () => {
+run('a session that arrives AFTER the deadline is still written', async () => {
   const scn = scene({});
   const m = mountEntry(scn);
-  pressApple(m);
-  eq(scn.clock.fire(), 1, 'the deadline fired');
+  (await pressApple(m));
+  eq(scn.clock.fire(), 1, 'the deadline fired'); await flush();
   eq(cardLine(m).length, 1, 'the reader was told the attempt timed out');
   is(appleBtn(m) !== null, 'the card advanced on a deadline');
   // AND THE SHELL SPEAKS ANYWAY, sixty-one seconds late. The root listener never stopped
   // listening, so the answer is not lost -- being late is not the same as being wrong.
-  shellSays(m, scn, okPayload(m));
+  (await shellSays(m, scn, okPayload(m)));
   eq(scn.storage.keys(), [CONTRACT.AUTH_SESSION_KEY], 'keys after a late ok:true');
   eq(JSON.parse(scn.storage.getItem(CONTRACT.AUTH_SESSION_KEY)).session, FIXTURE.session,
     'the session stored by a late answer');
@@ -1772,12 +1783,12 @@ run('the outcome reader refuses everything the contract does not carry', () => {
   return bad.length + ' malformed refusals refused, tab refused, the two readers disjoint';
 });
 
-run('the Google door is untouched -- still the web ladder, still its own press', () => {
+run('the Google door is untouched -- still the web ladder, still its own press', async () => {
   const scn = scene({});
   const m = mountEntry(scn);
   const g = googleBtn(m);
   is(g !== null, 'the Google door is gone from the card');
-  g.props.onClick();
+  g.props.onClick(); await flush();
   eq(scn.sent.length, 1, 'messages posted by the Google press');
   const msg = JSON.parse(scn.sent[0]);
   eq(msg.type, CONTRACT.SHELL_AUTH_REQUEST, 'the Google press posted ' + msg.type);
@@ -1791,8 +1802,9 @@ run('the Google door is untouched -- still the web ladder, still its own press',
 // ---------------------------------------------------------------------------
 // THE MUTANTS -- the same lifted source with one line changed, each of which must be KILLED.
 // ---------------------------------------------------------------------------
-const mutants = [];
-function mutant(name, from, to, killedBy) {
+const mutants = [], mutationJobs = [];
+function mutant(name, from, to, killedBy) { mutationJobs.push(() => runMutant(name, from, to, killedBy)); }
+async function runMutant(name, from, to, killedBy) {
   const at = HARNESS_JSX.indexOf(from);
   if (at === -1) { mutants.push({ name: name, applied: false, killed: false, note: 'the line to mutate is gone: ' + from }); return; }
   if (HARNESS_JSX.indexOf(from, at + 1) !== -1) { mutants.push({ name: name, applied: false, killed: false, note: 'the line to mutate is not unique' }); return; }
@@ -1801,7 +1813,7 @@ function mutant(name, from, to, killedBy) {
   try { factory = new Function('env', compile(src)); }
   catch (e) { mutants.push({ name: name, applied: true, killed: false, note: 'the mutant does not compile: ' + e.message }); return; }
   let died = null;
-  try { killedBy(factory); }
+  try { await killedBy(factory); }
   catch (e) { died = e.message; }
   mutants.push({ name: name, applied: true, killed: died !== null, note: died || 'SURVIVED -- no case above bites it' });
 }
@@ -1810,46 +1822,45 @@ mutant('م١ a deadline is armed on the press',
   '  try { window.addEventListener(SHELL_AUTH_RESULT, onResult); }',
   '  setTimeout(function () { stop(); onDone({ ok: false, reason: \'browser-failed\' }); }, 30000);\n'
   + '  try { window.addEventListener(SHELL_AUTH_RESULT, onResult); }',
-  (f) => {
-    const p = press({}, f);
+  async (f) => {
+    const p = (await press({}, f));
     eq(p.clock.pending(), 0, 'timers the press left running');
     eq(p.clock.delays(), [], 'deadlines armed by the press');
   });
 
 mutant('م٢ a reply is accepted without matching the request id',
   '    if (d.id !== id) return;', '    if (false) return;',
-  (f) => {
-    const p = press({}, f);
+  async (f) => {
+    const p = (await press({}, f));
     p.win.dispatch(CONTRACT.SHELL_AUTH_RESULT,
-      reply(CONTRACT, sentId(p) + '-x', { ok: false, reason: 'browser-failed' }));
+      reply(CONTRACT, sentId(p) + '-x', { ok: false, reason: 'browser-failed' })); await flush();
     eq(p.btn().props.disabled, true, 'the button after ANOTHER press\'s answer');
     eq(p.win.live(CONTRACT.SHELL_AUTH_RESULT), 1, 'listeners after another press\'s answer');
   });
 
 mutant('م٣ the version crosses as the NUMBER 1',
   "const SHELL_AUTH_V = '1';", 'const SHELL_AUTH_V = 1;',
-  (f) => {
-    const p = press({}, f);
+  async (f) => {
+    const p = (await press({}, f));
     const m = JSON.parse(p.sent[0]);
     eq(typeof m.v, 'string', 'v crossed the bridge as a ' + typeof m.v);
   });
 
 mutant('م٤ the client-state comparison is dropped',
-  "    if (p.get('state') !== csRef.current) { settle(ezT('auth.stateMismatch')); return; }",
-  "    if (false) { settle(ezT('auth.stateMismatch')); return; }",
-  (f) => {
-    const p = press({}, f);
+  "      if (!p || p.getAll('state').length !== 1 || p.get('state') !== cs) { done({ ok: false, code: 'callback-mismatch' }); return; }",
+  "      if (false) { done({ ok: false, code: 'callback-mismatch' }); return; }",
+  async (f) => {
+    const p = (await press({}, f));
     p.win.dispatch(CONTRACT.SHELL_AUTH_RESULT, reply(CONTRACT, sentId(p),
-      { ok: true, url: 'ezik://auth/return?ticket=' + FIXTURE.ticket + '&state=someone-else' }));
+      { ok: true, url: 'ezik://auth/return?ticket=' + FIXTURE.ticket + '&state=someone-else' })); await flush();
     eq(p.fetch.calls.length, 0, 'exchanges made for a state that did not match');
   });
 
 mutant('م٥ `dismissed` is drawn as a red line like every other refusal',
-  '  if (SHELL_AUTH_CLASSES[r] === SHELL_AUTH_QUIET) return \'\';',
-  '  if (SHELL_AUTH_CLASSES[r] === SHELL_AUTH_QUIET) return ezT(SHELL_AUTH_LINES[SHELL_AUTH_REASON_OTHER]);',
-  (f) => {
-    const p = press({}, f);
-    p.win.dispatch(CONTRACT.SHELL_AUTH_RESULT, reply(CONTRACT, sentId(p), { ok: false, reason: 'dismissed' }));
+  "out.code === 'canceled' || out.code === 'dismissed'", "false || false",
+  async (f) => {
+    const p = (await press({}, f));
+    p.win.dispatch(CONTRACT.SHELL_AUTH_RESULT, reply(CONTRACT, sentId(p), { ok: false, reason: 'dismissed' })); await flush();
     const drawn = textOf(nodesOf(p.m.tree()));
     eq(drawn, CONTRACT.EZ_I18N.ar['auth.signIn'],
       'what is drawn after the reader simply closed the sheet');
@@ -1871,8 +1882,8 @@ mutant('م٥ `dismissed` is drawn as a red line like every other refusal',
 // request that should never have been made is visible at once and a session that should never
 // have been written is not.
 mutant('م٦ the browser return stops matching the answer to this tab own press',
-  '    if (!mine || got.state !== mine) return;', '    if (!mine) return;',
-  (f) => {
+  '      if (!got || !mine || got.state !== mine) return;', '    if (!mine) return;',
+  async (f) => {
     const tab = scene({ shell: false });
     tab.win.location.search = '?ticket=' + FIXTURE.ticket + '&state=' + 'b'.repeat(32);
     tab.win.location.href = 'https://ezik.app/' + tab.win.location.search;
@@ -1880,7 +1891,7 @@ mutant('م٦ the browser return stops matching the answer to this tab own press'
     mountRow(tab, f, (mod) => function EzikWebReturnProbe() {
       mod.useEzikWebAuthReturn();
       return null;
-    });
+    }); await flush();
     eq(tab.fetch.calls.length, 0, 'requests made for an answer belonging to another press');
   });
 
@@ -1958,7 +1969,8 @@ mutant('م١٦ the grant check is offered to every signed-in reader',
   });
 
 /** The same mutation discipline, over the entry card's own lift. */
-function mutantEntry(name, from, to, killedBy) {
+function mutantEntry(name, from, to, killedBy) { mutationJobs.push(() => runMutantEntry(name, from, to, killedBy)); }
+async function runMutantEntry(name, from, to, killedBy) {
   const at = HARNESS_ENTRY_JSX.indexOf(from);
   if (at === -1) { mutants.push({ name: name, applied: false, killed: false, note: 'the line to mutate is gone: ' + from }); return; }
   if (HARNESS_ENTRY_JSX.indexOf(from, at + 1) !== -1) { mutants.push({ name: name, applied: false, killed: false, note: 'the line to mutate is not unique' }); return; }
@@ -1967,7 +1979,7 @@ function mutantEntry(name, from, to, killedBy) {
   try { factory = new Function('env', compile(src)); }
   catch (e) { mutants.push({ name: name, applied: true, killed: false, note: 'the mutant does not compile: ' + e.message }); return; }
   let died = null;
-  try { killedBy(factory); }
+  try { await killedBy(factory); }
   catch (e) { died = e.message; }
   mutants.push({ name: name, applied: true, killed: died !== null, note: died || 'SURVIVED -- no case above bites it' });
 }
@@ -1986,10 +1998,10 @@ mutantEntry('م١٠ the entry card goes back to reading the bridge alone',
 mutantEntry('م١٢ the native request sends v as the NUMBER 1',
   '  return { type: SHELL_AUTH_APPLE_START, v: SHELL_AUTH_V };',
   '  return { type: SHELL_AUTH_APPLE_START, v: 1 };',
-  (f) => {
+  async (f) => {
     const scn = scene({});
     const m = mountEntry(scn, f);
-    pressApple(m);
+    (await pressApple(m));
     const msg = JSON.parse(scn.sent[0]);
     is(typeof msg.v === 'string', 'v crossed the sixth channel as a ' + typeof msg.v);
   });
@@ -2014,24 +2026,25 @@ mutantEntry('م١٣ the ok === true guard is taken off the session reader',
 mutantEntry('م١٤ the Apple door stops being disabled while a sheet is open',
   '          <button type="button" onClick={appleSignIn} disabled={busy}',
   '          <button type="button" onClick={appleSignIn} disabled={false}',
-  (f) => {
+  async (f) => {
     const scn = scene({});
     const m = mountEntry(scn, f);
-    pressApple(m);
+    (await pressApple(m));
     is(appleBtn(m).props.disabled === true, 'the Apple door is still pressable after the press');
   });
 
 mutantEntry('م١٥ the busy guard is taken off the native press',
   '  const appleSignIn = () => {\n    if (busy || !bridge) return;',
   '  const appleSignIn = () => {\n    if (!bridge) return;',
-  (f) => {
+  async (f) => {
     // The disable above and this guard are two locks on one door. م١٤ proves the visible one is
     // there; this proves the one that actually holds when a click reaches the handler anyway.
     const scn = scene({});
     const m = mountEntry(scn, f);
-    pressApple(m);
-    appleBtn(m).props.onClick();
+    (await pressApple(m));
+    appleBtn(m).props.onClick(); await flush();
     eq(scn.sent.length, 1, 'messages posted after a second call while a sheet was open');
+    is(appleBtn(m).props.disabled === true, 'the pending native sheet must keep the door held');
   });
 
 run('every mutant was applied and every one of them was killed', () => {
@@ -2047,6 +2060,7 @@ run('every mutant was applied and every one of them was killed', () => {
 // RUN, THEN REPORT.
 // ---------------------------------------------------------------------------
 (async () => {
+  for (const job of mutationJobs) await job();
   for (const item of queue) {
     try { results.push({ name: item.name, ok: true, detail: (await item.fn()) || '' }); }
     catch (e) { results.push({ name: item.name, ok: false, detail: e.message }); }
