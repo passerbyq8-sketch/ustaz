@@ -56,6 +56,7 @@ import { readAnswerLog, ANSWER_LOG_PATHS } from '../lib/answer-log.js';
 import { readUsage, readUsageChat, usageAnswerOutcome, usageWindow } from '../lib/usage.js';
 import { TEXT_CAP } from './feedback.js';
 import { readDeviceVersions } from '../lib/panel-versions.js';
+import { resolvePanelViewer, projectViewer } from '../lib/panel-access.js';
 
 const redis = new Redis({
   url: process.env.KV_REST_API_URL,
@@ -417,6 +418,15 @@ export default async function handler(req, res) {
     if (resolved.state === 'unknown') return res.status(503).json({ ok: false, error: 'inbox-store' });
     const actor = resolved.actor;
     if (!actor || actor.role !== ROLE_OWNER) {
+      if (action === 'list' && ['usage', 'usage-chat'].includes(body.kind)) {
+        const viewer = await resolvePanelViewer(req);
+        if (viewer.state === 'unknown') return res.status(503).json({ ok:false, error:'inbox-store' });
+        if (viewer.state === 'live') {
+          try { usageWindow(body); } catch { return res.status(400).json({ ok:false, error:'inbox-usage-window' }); }
+          try { return res.status(200).json(projectViewer(body.kind, await (body.kind === 'usage' ? readUsage(body) : readUsageChat(body)))); }
+          catch { return res.status(503).json({ ok:false, error:'inbox-store' }); }
+        }
+      }
       return res.status(401).json({ ok: false, error: 'inbox-unauthenticated' });
     }
     return ownerAction(req, res, body, action);

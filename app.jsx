@@ -21687,6 +21687,7 @@ function App() {
   // the row exists for the owner and for nobody else. It is never read from a profile, a flag
   // or a stored role: this file does not know who the owner is and must not start guessing.
   const [inboxOpen, setInboxOpen] = useState(false);
+  const [panelViewer, setPanelViewer] = useState('');
   // ITEM 87: the day, from waking to sleeping. A FIFTH panel of exactly the same kind as the
   // four above -- one boolean, one history entry, no `screen` key -- opened from the same menu.
   const [sunanOpen, setSunanOpen] = useState(() => ezikReadResume() === 'sunan-day');
@@ -22765,6 +22766,9 @@ function App() {
   // count is computed over the route's whole window regardless of how many items travel.
   const probeInbox = () => {
     const held = readAuthSession();
+    setPanelViewer('');
+    if (held?.session) fetch('/api/panel-access', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({session:held.session,action:'self'}) })
+      .then(r => r.ok ? r.json() : null).then(r => setPanelViewer(r?.role === 'viewer' ? held.session : '')).catch(() => setPanelViewer(''));
     if (!held || typeof held.session !== 'string' || !held.session) { setInboxUnread(null); setFbUnseen(0); return; }
     ezikInbox({ session: held.session, action: 'list', kind: 'feedback', limit: 1 }).then((res) => {
       if (!res.ok || !res.data) { setInboxUnread(null); return; }
@@ -25991,6 +25995,7 @@ function App() {
                 `list` call returned 200 -- see probeInbox() above -- so there is no role, no flag
                 and no digest in this file for anybody to forge. The badge is the count of unread
                 messages in «اقتراحات وشكاوى» and never in «بلاغات», which is decision ج١٣. */}
+            {panelViewer && panelViewer === readAuthSession()?.session && inboxUnread === null ? <button type="button" style={s.drawerItem} onClick={() => closeDrawerWith(() => setInboxOpen(true))}>{ezT('inbox.tabUsage')}</button> : null}
             {inboxUnread !== null ? (
               <button onClick={() => closeDrawerWith(() => setInboxOpen(true))} style={s.drawerItem} className="ezik-focus" aria-label={ezT('menu.inboxAria')}>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -26083,6 +26088,7 @@ function App() {
   // sends no question to a model and spends no allowance, which is the identical argument the
   // three panels above it are placed on. Its own back control closes the opened message first
   // and the panel second, and the device button takes the same two steps.
+  if (inboxOpen && panelViewer && panelViewer === readAuthSession()?.session) return <EzPanelViewer onBack={() => setInboxOpen(false)} />;
   if (inboxOpen) return (
     <EzikInboxSheet
       onBack={() => { if (ezikHistBack()) return; setInboxOpen(false); }}
@@ -29837,6 +29843,20 @@ function EzCpPlatform({ p }) {
   );
 }
 
+function EzPanelViewer({ onBack }) {
+  const [allowed, setAllowed] = useState(false);
+  useEffect(() => {
+    let live = true;
+    const check = () => {
+      const held = readAuthSession(); if (!held) { setAllowed(false); return; }
+      fetch('/api/panel-access', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session:held.session,action:'self'})})
+        .then(r => r.ok ? r.json() : null).then(r => { if (live) setAllowed(r?.role === 'viewer'); }).catch(() => { if (live) setAllowed(false); });
+    };
+    check();window.addEventListener('focus',check);const timer=setInterval(check,60000);
+    return () => {live=false;window.removeEventListener('focus',check);clearInterval(timer);};
+  }, []);
+  return <EzShell title={ezT('inbox.tabUsage')} onBack={onBack}><div data-panel-viewer="1">{allowed ? <EzikUsageBoard /> : <p>{ezT('panel.unavailable')}</p>}</div></EzShell>;
+}
 function EzPanelVersionDevices() {
   const [data, setData] = useState(null);
   useEffect(() => {
