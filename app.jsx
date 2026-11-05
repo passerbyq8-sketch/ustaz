@@ -3,6 +3,45 @@ const { useState, useEffect, useRef } = React;
 
 // Track committed navigation, including drawer/widget entries and restored layers.
 // The logger is optional: a missing script or failed request cannot break a section.
+function ezPanelAvailability(doc, id) {
+  return typeof window !== 'undefined' && window.EzikPanelPolicy ? window.EzikPanelPolicy.availability(doc, id) : { state: 'visible', reason: '' };
+}
+function useEzikPanelSettings() {
+  const read = () => { try { return window.EzikPanel ? window.EzikPanel.read() : { schema: 1, revision: 0, sections: {} }; } catch (_) { return { schema: 1, revision: 0, sections: {} }; } };
+  const [doc, setDoc] = useState(read);
+  useEffect(() => { const changed = () => setDoc(read()); window.addEventListener('ezik-panel-settings', changed); changed(); return () => window.removeEventListener('ezik-panel-settings', changed); }, []);
+  return doc;
+}
+function EzPanelUnavailable({ policy, onBack }) {
+  return <EzShell title={ezT('panel.unavailable')} onBack={onBack} backLabel={ezT('common.back')}>
+    <section data-panel-unavailable="1" role="status"><p dir="auto">{policy.reason || ezT('panel.unavailable')}</p><button type="button" onClick={onBack}>{ezT('common.back')}</button></section>
+  </EzShell>;
+}
+function EzPanelControls() {
+  const [opened, setOpened] = useState(false), [doc, setDoc] = useState(null), [busy, setBusy] = useState(false), [error, setError] = useState('');
+  const request = async (action, document) => {
+    const held = readAuthSession(); if (!held) throw Error('session');
+    const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 8000);
+    try {
+      const response = await fetch('/api/panel-settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session: held.session, action, document }), signal: controller.signal });
+      const data = await response.json(); if (!response.ok || !data.ok) throw Error(data.error || 'settings'); return data.document;
+    } finally { clearTimeout(timer); }
+  };
+  const load = async () => { setOpened(true); setBusy(true); setError(''); try { setDoc(await request('read')); } catch (_) { setError(ezT('panel.settingsError')); } finally { setBusy(false); } };
+  const save = async () => { setBusy(true); setError(''); try { const next = await request('save', doc); setDoc(next); if (window.EzikPanel) window.EzikPanel.accept(next); } catch (_) { setError(ezT('panel.settingsError')); } finally { setBusy(false); } };
+  const labels = { asmaa: EZH_ASMAA, articles: EZH_ARTICLES, memorize: EZH_MEMORIZE, adhkar: EZH_ADHKAR, 'sunan-day': EZH_SUNAN, arbaeen: EZH_ARBAEEN, mushaf: EZH_MUSHAF, treasure: EZH_TREASURE, yahimmak: EZH_YAHIMMAK, dima: EZH_DIMA, fatwa: EZH_FATWA, lessons: EZH_LESSONS, library: EZH_LIBRARY, prayer: EZH_PRAYER, women: EZH_WOMEN };
+  const edit = (id, field, value) => setDoc(prev => ({ ...prev, sections: { ...prev.sections, [id]: { ...ezPanelAvailability(prev, id), [field]: value } } }));
+  return <section className="ezcp-card" data-panel-settings="1">
+    <button type="button" className="ezcp-act" onClick={opened ? () => setOpened(false) : load}>{ezT('settings.title')}</button>
+    {error ? <p role="alert">{error}</p> : null}
+    {opened && doc ? <div>{Object.keys(labels).map(id => <fieldset key={id} data-panel-section={id} disabled={busy}>
+      <legend>{labels[id]}</legend><label>{ezT('settings.title')}<select value={ezPanelAvailability(doc,id).state} onChange={e => edit(id,'state',e.target.value)}>
+        {[['visible', ezT('panel.state.visible')], ['hidden', ezT('panel.state.hidden')], ['locked', ezT('panel.state.locked')]].map(([state, label]) => <option key={state} value={state}>{label}</option>)}
+      </select></label><label>{ezT('inbox.reportNote')}<input maxLength={160} value={ezPanelAvailability(doc,id).reason} onChange={e => edit(id,'reason',e.target.value)} /></label>
+    </fieldset>)}<button type="button" className="ezcp-act" disabled={busy} onClick={save}>{ezT('common.save')}</button><button type="button" className="ezcp-act" disabled={busy} onClick={load}>{ezT('panel.refresh')}</button></div> : null}
+  </section>;
+}
+
 function useUsageSection(name) {
   useEffect(() => {
     try {
@@ -400,6 +439,11 @@ function useEzLang() {
 // here and no translated string is ever handed to innerHTML. ---------------------------
 const EZ_I18N = {
   ar: {
+    "panel.state.visible": "متاح",
+    "panel.state.hidden": "مخفي",
+    "panel.state.locked": "مقفل",
+    "panel.unavailable": "القسم غير متاح",
+    "panel.settingsError": "تعذر حفظ الإعدادات. حدّث الصفحة ثم حاول مجددًا.",
     'dima.repeatLabel': "\u0625\u0639\u0627\u062f\u0629 \u0645\u0646 \u0627\u0644\u0623\u064a\u0627\u0645 \u0627\u0644\u0645\u062a\u0627\u062d\u0629",
     'dima.repeatHelp': "\u0646\u0643\u0631\u0631 \u0627\u0644\u0623\u064a\u0627\u0645 \u0627\u0644\u0645\u062a\u0627\u062d\u0629 \u0645\u0639 \u062d\u0641\u0638 \u062a\u0642\u062f\u0645\u0643",
     'dima.seasonLabel': "\u0628\u0637\u0627\u0642\u0629 \u0645\u0648\u0633\u0645\u064a\u0629",
@@ -2392,6 +2436,11 @@ const EZ_I18N = {
     'tr4.machine': 'ترجمة آلية',
   },
   en: {
+    "panel.state.visible": "Visible",
+    "panel.state.hidden": "Hidden",
+    "panel.state.locked": "Locked",
+    "panel.unavailable": "Section unavailable",
+    "panel.settingsError": "Could not save settings. Refresh and try again.",
     'dima.repeatLabel': "Repeating an available day",
     'dima.repeatHelp': "Available days repeat; your progress is kept.",
     'dima.seasonLabel': "Seasonal card",
@@ -11315,7 +11364,7 @@ function Ez110Home(v) {
       <EzistTopNav onOpenMenu={v.onOpenMenu} onOpenDima={v.onOpenDima} name={v.name} />
       <div style={s.ezistScroll}>
         <div className="ezist-wrap ez110-wrap">
-          <Ez110PrayerCard onOpen={v.onOpenPrayer} hijri={v.hijri} onQibla={v.onOpenQibla} />
+          {ezPanelAvailability(v.panel, 'prayer').state !== 'hidden' ? <Ez110PrayerCard onOpen={v.onOpenPrayer} hijri={v.hijri} onQibla={v.onOpenQibla} /> : null}
           {/* ROUND 3 §3-1 (owner): no «الأقسام» title, and «ترتيب القائمة» is the last thing on the page, under the last tile */}
           {edit ? <p className="ez110-hint" role="status">{ezT('ez110.order.hint')} {ezT(slotSel === null ? 'ez110.bar.hint' : 'ez110.bar.pick')}</p> : null}
           {shelf}
@@ -11966,7 +12015,11 @@ function ezHomeModules(v) {
     { id: 'library',  label: EZH_LIBRARY,  icon: EZH_ICON_LIBRARY,  onClick: v.onOpenLibrary,  meta: null },
     { id: 'prayer',   label: EZH_PRAYER,   icon: EZH_ICON_PRAYER,   onClick: v.onOpenPrayer,   meta: null },
     { id: 'women',    label: EZH_WOMEN,    icon: EZH_ICON_WOMEN,    onClick: v.onOpenWomen,    meta: null, fresh: !!(v.artFresh && v.artFresh.women) },
-  ].filter((m) => !(m.id === 'women' && ezWomenSectionHidden(v.gender)));
+  ].filter((m) => !(m.id === 'women' && ezWomenSectionHidden(v.gender)))
+    /* PANEL-HOME START */
+    .filter(m => ezPanelAvailability(v.panel, m.id).state !== 'hidden')
+    .map(m => { const policy = ezPanelAvailability(v.panel, m.id); return { ...m, panelState: policy.state, onClick: policy.state === 'locked' ? () => v.onPanelDenied(m.id) : m.onClick }; })
+    /* PANEL-HOME END */;
 }
 
 // ---- S101 ISTANA HOME START --------------------------------------------------------------
@@ -14320,6 +14373,8 @@ function EzikHomeWidgetArrange({ widgets, onWidgets, arrangeOpen, onArrange }) {
 }
 
 function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, onOpenYahimmak, onOpenDima, onOpenArbaeen, onOpenMushaf, onOpenFatwa, onOpenLessons, onOpenAsmaa, onOpenSettings }) {
+  const panel = useEzikPanelSettings();
+  const [panelDenied, setPanelDenied] = useState('');
   const ez110 = useEz110();   // ITEM 110: the lit identity draws its own menu below
   // THE OWNER. Every prop it was handed is handed straight on, and the treasure entry resolves
   // to the same href it always did. There is no second router here and no duplicated navigation
@@ -14538,6 +14593,7 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
   // not. What arrives is a PERMUTATION applied to the finished array, at the one place that
   // array is put into the props object -- and with nothing stored the overlay hands back the
   // built array itself, so the default shelf is byte for byte the shelf that was here before.
+  view.panel = panel; view.onPanelDenied = setPanelDenied;
   const home = { ...view, modules: ezHomeOrderApply(ezHomeModules(view), readHomeOrder().order) };
   // S102 -- ONE DESIGN. The journey/deck presentation system is gone from the file, not
   // hidden behind a flag: its two home components, its three shared parts, its key, its
@@ -14565,6 +14621,9 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
   // section second -- and it costs the prayer sheet nothing: each layer took its own history
   // entry when it opened, so one press of back pops the compass and lands on the sheet, and the
   // next pops the sheet and lands on the home.
+  const panelDestination = panelDenied || (prayerOpen || compassOpen ? 'prayer' : artSection || '');
+  const panelPolicy = ezPanelAvailability(panel, panelDestination);
+  if (panelPolicy.state !== 'visible') return <EzPanelUnavailable policy={panelPolicy} onBack={() => { setPanelDenied(''); setPrayerOpen(false); setCompassOpen(false); setArtSection(null); }} />;
   if (compassOpen) return <CompassSheet onClose={ezikGoBack} />;
   if (prayerOpen) return <PrayerSheet onClose={ezikGoBack} onOpenCompass={() => setCompassOpen(true)} />;
   // ITEM 05-C. Same door as the device button: the visible back spends the layer's entry
@@ -21506,6 +21565,7 @@ const EZIK_REVEAL_MIN_STEP = 2;
 const EZIK_REVEAL_MAX_STEP = 11;
 
 function App() {
+  const panel = useEzikPanelSettings();
   // S100: mounted here and not only in Settings, because the 'storage' event fires in the
   // tabs that did NOT make the change -- a tab sitting on the chat has to repaint too. The
   // hook owns no screen state and renders nothing; it keeps <html> honest.
@@ -25902,6 +25962,9 @@ function App() {
   // ABOVE every gate below because it sends nothing: no question, no session, no route and no
   // model. A spend gate or a consent notice in front of a static sheet would be a barrier in
   // front of a door that costs nothing to walk through.
+  const panelDestination = asmaaOpen ? 'asmaa' : sunanOpen ? 'sunan-day' : yahimmakOpen ? 'yahimmak' : dimaOpen ? 'dima' : screen;
+  const panelPolicy = ezPanelAvailability(panel, panelDestination);
+  if (panelPolicy.state !== 'visible') return <EzPanelUnavailable policy={panelPolicy} onBack={ezikGoBack} />;
   if (asmaaOpen) return <EzikAsmaaSection onHome={ezikGoBack} />;
   // ITEM 92-ب -- THE MENU'S THREE PANELS, and they stand HERE for three different reasons.
   //
@@ -30563,6 +30626,7 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
   const tabTitle = (EZIK_INBOX_TABS.find((t) => t.id === kind) || EZIK_INBOX_TABS[0]).k;
   return (
     <EzCpShell kind={kind} title={ezT(tabTitle)} onNav={switchKind} onBack={back} badges={badges} actions={headActions}>
+      {kind === 'overview' ? <EzPanelControls /> : null}
       {kind === 'overview' ? <EzCpOverview data={over} failed={overFailed} onGo={switchKind} onRetry={refresh} /> : null}
       {/* «المحدَّد» -- the bar that names how many are ticked and is the only way to erase them. */}
       {picking ? (
