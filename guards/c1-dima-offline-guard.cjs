@@ -4,7 +4,8 @@ const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('ass
 const root=path.join(__dirname,'..'),read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const source=read('sw.js'), app=read('app.jsx'), clone=x=>JSON.parse(JSON.stringify(x));
 const packPath='/dima/pack-regular-002.json',manifestPath='/dima/pack-manifest-v1.json';
-const bodies=new Map([manifestPath,packPath,'/dima/pack-ramadan-001.json','/dima/pack-dhul-hijjah-001.json','/dima/pack-white-days-001.json'].map(p=>[p,read(p.slice(1))]));
+const manifest=JSON.parse(read(manifestPath.slice(1)));
+const bodies=new Map([manifestPath,...manifest.regular.filter(p=>!p.legacy).map(p=>p.path),...manifest.seasonal.map(p=>p.path)].map(p=>[p,read(p.slice(1))]));
 const parse=p=>JSON.parse(bodies.get(p));
 function worker(code,stored=new Map(),network=new Map(bodies),quota=false){
  const listeners={},calls=[],key=r=>new URL(typeof r==='string'?r:r.url,'https://fixture.test').pathname;
@@ -24,10 +25,11 @@ async function verify(code,mirror=true){
  if(mirror)for(const name of ['dimaObject','dimaPackValid'])assert.equal(helper(code,name),helper(app,name),'worker/app pack validation parity');
  let cases=0;
  for(const [p,body]of bodies){const w=worker(code),r=await w.get(p);assert.equal(r.status,200);assert.equal(await r.text(),body);assert.equal(w.stored.get(p),body);cases++;}
- const future=clone(parse(packPath));future.id='dima-regular-003';future.startDay=61;
- future.days=future.days.map((day,i)=>JSON.parse(JSON.stringify(day).replaceAll('dima.regular.'+String(i+31).padStart(3,'0'),'dima.regular.'+String(i+61).padStart(3,'0'))));future.days.forEach((d,i)=>d.position=i+61);
- const next='/dima/pack-regular-003.json';const fw=worker(code);fw.network.set(next,future);assert.equal((await fw.get(next)).status,200);assert(fw.stored.has(next));cases++;
- const fm=parse(manifestPath);fm.regular.push({id:future.id,version:future.version,path:next,firstDay:61,lastDay:90});const mw=worker(code);mw.network.set(manifestPath,fm);assert.equal((await mw.get(manifestPath)).status,200);cases++;
+ const last=manifest.regular.at(-1),first=last.lastDay+1,suffix=String(manifest.regular.length+1).padStart(3,'0');
+ const future=clone(parse(last.path));future.id='dima-regular-'+suffix;future.startDay=first;
+ future.days=future.days.map((day,i)=>JSON.parse(JSON.stringify(day).replaceAll('dima.regular.'+String(last.firstDay+i).padStart(3,'0'),'dima.regular.'+String(first+i).padStart(3,'0'))));future.days.forEach((d,i)=>d.position=i+first);
+ const next='/dima/pack-regular-'+suffix+'.json';const fw=worker(code);fw.network.set(next,future);assert.equal((await fw.get(next)).status,200);assert(fw.stored.has(next));cases++;
+ const fm=parse(manifestPath);fm.regular.push({id:future.id,version:future.version,path:next,firstDay:first,lastDay:first+29});const mw=worker(code);mw.network.set(manifestPath,fm);assert.equal((await mw.get(manifestPath)).status,200);cases++;
  const badPacks=['{','null',JSON.stringify({...parse(packPath),days:parse(packPath).days.slice(1)}),JSON.stringify({...parse(packPath),id:'wrong'}),JSON.stringify({...parse(packPath),version:0}),JSON.stringify({...parse(packPath),sourceBase:{path:'wrong',sha256:'wrong'}})];
  const badDrop=parse(packPath);delete badDrop.days[0].qalb.action;badPacks.push(JSON.stringify(badDrop));
  const badManifests=['{',JSON.stringify({...parse(manifestPath),regular:[parse(manifestPath).regular[0],{...parse(manifestPath).regular[1],firstDay:32}]}),JSON.stringify({...parse(manifestPath),seasonal:[]}),JSON.stringify({...parse(manifestPath),labels:{}})];
@@ -48,12 +50,14 @@ async function verify(code,mirror=true){
 const bypass=source.replace('return swDimaValid(path, JSON.parse(await response.clone().text()));','return true;');
 const idleBypass=source.replace('return swDimaPath(u) ? swDimaAdd(cache, u) : cache.add(u);','return cache.add(u);');
 const broadPath=source.replace(helper(source,'swDimaPath'),'function swDimaPath(path) { return path.startsWith("/dima/pack-"); }');
+const missingLatestIdle=source.replace("  '"+manifest.regular.at(-1).path+"',\n",'');
 async function main(){
- assert.notEqual(bypass,source);assert.notEqual(idleBypass,source);
+ assert.notEqual(bypass,source);assert.notEqual(idleBypass,source);assert.notEqual(missingLatestIdle,source);
  if(process.argv.includes('--mutant'))return verify(bypass,false);
  if(process.argv.includes('--mutant-idle'))return verify(idleBypass);
  if(process.argv.includes('--mutant-path'))return verify(broadPath);
- const cases=await verify(source);await assert.rejects(()=>verify(bypass,false));await assert.rejects(()=>verify(idleBypass));await assert.rejects(()=>verify(broadPath));
- console.log('PASS B10 offline: '+cases+' runtime/warm/persistence fixtures; app/worker validation parity; future pack; malformed/partial/ID/version/source/schema failures; restart offline and quota retention; unrelated JSON policy; three mutants rejected.');
+ if(process.argv.includes('--mutant-latest-idle'))return verify(missingLatestIdle);
+ const cases=await verify(source);await assert.rejects(()=>verify(bypass,false));await assert.rejects(()=>verify(idleBypass));await assert.rejects(()=>verify(broadPath));await assert.rejects(()=>verify(missingLatestIdle));
+ console.log('PASS B10 offline: '+cases+' runtime/warm/persistence fixtures; app/worker validation parity; manifest packs and next future pack; malformed/partial/ID/version/source/schema failures; restart offline and quota retention; unrelated JSON policy; four mutants rejected.');
 }
 main().catch(e=>{console.error(e.stack);process.exitCode=1;});
