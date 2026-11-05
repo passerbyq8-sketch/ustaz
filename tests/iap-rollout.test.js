@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import vm from 'node:vm';
 import { parseHTML } from 'linkedom';
+import { trackIapLifecycle } from './iap-lifecycle-fixture.js';
 import * as iapStore from '../lib/iap/store.js';
 
 import { handleIapBalance } from '../api/iap-balance.js';
@@ -74,8 +75,10 @@ async function runIapBridge(mode, accountSession = null) {
   const calls = [];
   let starts = 0;
   const noop = () => {};
-  window.addEventListener = noop;
-  window.removeEventListener = noop;
+  const listeners = new Map();
+  window.addEventListener = (type, fn) => { const set = listeners.get(type) || new Set(); set.add(fn); listeners.set(type, set); };
+  window.removeEventListener = (type, fn) => listeners.get(type)?.delete(fn);
+  window.dispatchEvent = event => { for (const fn of listeners.get(event.type) || []) fn(event); };
   window.sessionStorage = sessionStorage;
   document.visibilityState = 'visible';
   const originalCreateElement = document.createElement.bind(document);
@@ -96,6 +99,7 @@ async function runIapBridge(mode, accountSession = null) {
     }
     throw new Error('unexpected-fetch');
   };
+  trackIapLifecycle(window, document);
   vm.runInNewContext(source, { window, document, localStorage, fetch, setTimeout, clearTimeout });
   window.ezikIapStart(() => { starts += 1; }, 'room-1', 'hanna');
   await new Promise((resolve) => setTimeout(resolve, 0));
@@ -109,8 +113,9 @@ async function runFreeSignInGate(signin, scenario, entrypoint, lockedPage = fals
   const windowListeners = new Map();
   const window = {
     location: { pathname: '/quest-ghaws.html', search: '', hash: '', href: '' },
-    addEventListener(type, fn) { windowListeners.set(type, fn); },
-    removeEventListener(type) { windowListeners.delete(type); },
+    addEventListener(type, fn) { const set = windowListeners.get(type) || new Set(); set.add(fn); windowListeners.set(type, set); },
+    removeEventListener(type, fn) { windowListeners.get(type)?.delete(fn); },
+    dispatchEvent(event) { for (const fn of windowListeners.get(event.type) || []) fn(event); },
   };
   const initialStorage = {};
   const session = ['no-session', 'no-session-resume'].includes(scenario) ? '' : 's'.repeat(32);
@@ -154,6 +159,7 @@ async function runFreeSignInGate(signin, scenario, entrypoint, lockedPage = fals
     }
     throw new Error('unexpected-fetch');
   };
+  trackIapLifecycle(window, document);
   vm.runInNewContext(source, { window, document, localStorage, sessionStorage, fetch, navigator, setTimeout, clearTimeout });
   if (entrypoint === 'access') {
     await window.ezikIapCheckGameAccess('ghaws', () => { allowed += 1; }, '/quest-ghaws.html', { lockedPage });
@@ -164,9 +170,8 @@ async function runFreeSignInGate(signin, scenario, entrypoint, lockedPage = fals
   let dialogSeenBeforeResume = false;
   if (scenario === 'no-session-resume' && ['all', 'host'].includes(signin)) {
     dialogSeenBeforeResume = !!document.querySelector('[role="dialog"]');
-    const onStorage = windowListeners.get('storage');
     localStorage.setItem('ezik_auth_session_v1', JSON.stringify({ session: 'signed-in-after-dialog' }));
-    await onStorage({ type: 'storage', key: 'ezik_auth_session_v1' });
+    await window.dispatchEvent({ type: 'storage', key: 'ezik_auth_session_v1' });
   }
   await new Promise((resolve) => setTimeout(resolve, 0));
   await new Promise((resolve) => setTimeout(resolve, 0));

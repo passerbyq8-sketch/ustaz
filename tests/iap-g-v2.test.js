@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test, { beforeEach } from 'node:test';
 import vm from 'node:vm';
 import { parseHTML } from 'linkedom';
+import { trackIapLifecycle } from './iap-lifecycle-fixture.js';
 
 import { handleIapTestAdjust } from '../api/iap-test-adjust.js';
 import { handleIapTrialStart } from '../api/iap-trial-start.js';
@@ -359,6 +360,7 @@ function makeBridge({ mode = 'all', accountSession = null, balance = {}, prices 
       if (String(url).endsWith('/api/iap-consume')) return { ok: true, status: 200, json: async () => ({ ok: true, mode: 'credit' }) };
       throw new Error('unexpected-fetch: ' + String(url));
     };
+    trackIapLifecycle(window, document);
     vm.runInNewContext(source, { window, document, localStorage, sessionStorage, fetch, setTimeout, clearTimeout, setInterval, clearInterval, URLSearchParams, console, Date, Math });
     return { window, document, localStorage, sessionStorage, calls, posted, state };
   });
