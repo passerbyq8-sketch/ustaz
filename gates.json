@@ -1230,5 +1230,10 @@
     "name": "c1diagnosticsurface",
     "script": "guards/c1-diagnostic-surface-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1crystalretirement",
+    "script": "guards/c1-crystal-retirement-guard.cjs",
+    "args": ""
   }
 ]
