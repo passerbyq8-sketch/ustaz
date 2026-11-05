@@ -1345,5 +1345,15 @@
     "name": "securityauthredirectcompletion",
     "script": "guards/security-auth-redirect-completion-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1dimadrop",
+    "script": "guards/c1-dima-drop-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1librarylook",
+    "script": "guards/c1-library-look-guard.cjs",
+    "args": ""
   }
 ]

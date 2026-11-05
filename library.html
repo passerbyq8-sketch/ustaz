@@ -4,22 +4,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#0B5F8E">
+<meta name="theme-color" content="#2455E8">
 <title>المكتبة</title>
 <style>
-/* Identity: Ezik istana_33 tokens (inputs/ezik-index-snapshot.html, S100), day = light,
-   night = dark. Sepia is the library's own third mode. Fonts are named, never downloaded. */
+/* D44: October menu palette and quiet flat surfaces. Reader modes and behavior retained. */
 :root{
-  --vt-page:#FFFFFF; --vt-surface:#FFFFFF; --vt-surface2:#EEF6F7;
-  --vt-ink:#10364E; --vt-muted:#647780;
-  --vt-accent:#0B5F8E; --vt-accent2:#C43E38;
-  --vt-line:#C8DDE2;
-  --vt-radius:18px; --vt-radius-sig:120px 120px 18px 18px;
-  --vt-shadow:0 18px 45px rgba(12,78,105,.12);
-  --vt-focus:#08486E;
-  --vt-on-accent:#FFFFFF; --vt-accent-ink:#0A5480; --vt-accent2-ink:#9E2F2A;
+  --vt-page:#FFFFFF; --vt-surface:#FFFFFF; --vt-surface2:#EAF3FF;
+  --vt-ink:#172033; --vt-muted:#626F86;
+  --vt-accent:#2455E8; --vt-accent2:#C43E38;
+  --vt-line:#E7EDF7;
+  --vt-radius:18px; --vt-radius-sig:18px;
+  --vt-shadow:none;
+  --vt-focus:#1745C4;
+  --vt-on-accent:#FFFFFF; --vt-accent-ink:#2455E8; --vt-accent2-ink:#9E2F2A;
   --vt-on-accent2:#FFFFFF; --vt-marker:#C43E38;
-  --vt-deep:#083A57; --vt-soft:#E3EFF5;
+  --vt-deep:#183FAD; --vt-soft:#F3F7FF;
   --vt-font:'Noto Naskh Arabic', 'Amiri', 'Traditional Arabic', Georgia, serif;
   --ez-ui-font:'Tajawal', 'Noto Kufi Arabic', Tahoma, sans-serif;
   --hl1:rgba(255,213,79,.55); --hl2:rgba(129,199,132,.50); --hl3:rgba(100,181,246,.45);
@@ -27,15 +26,15 @@
   color-scheme:light;
 }
 :root[data-mode="night"]{
-  --vt-page:#0A141B; --vt-surface:#101F29; --vt-surface2:#182D39;
-  --vt-ink:#E6F1F7; --vt-muted:#A8BBC5;
-  --vt-accent:#63B6E4; --vt-accent2:#EE8A83;
-  --vt-line:#25404E;
-  --vt-shadow:0 18px 45px rgba(0,0,0,.50);
-  --vt-focus:#8CCDEE;
-  --vt-on-accent:#04202F; --vt-accent-ink:#8CCDEE; --vt-accent2-ink:#F4B2AC;
+  --vt-page:#111827; --vt-surface:#182132; --vt-surface2:#23334F;
+  --vt-ink:#F1F5FC; --vt-muted:#B4C0D4;
+  --vt-accent:#9BBEFF; --vt-accent2:#EE8A83;
+  --vt-line:#35435C;
+  --vt-shadow:none;
+  --vt-focus:#BED3FF;
+  --vt-on-accent:#14213C; --vt-accent-ink:#B5CDFF; --vt-accent2-ink:#F4B2AC;
   --vt-on-accent2:#04202F; --vt-marker:#EE8A83;
-  --vt-deep:#4A9CCB; --vt-soft:#142C3A;
+  --vt-deep:#7EA5F2; --vt-soft:#1E2D45;
   --hl1:rgba(255,213,79,.30); --hl2:rgba(129,199,132,.30); --hl3:rgba(100,181,246,.30);
   color-scheme:dark;
 }
@@ -44,7 +43,7 @@
   --vt-ink:#43301C; --vt-muted:#7A6650;
   --vt-accent:#7B4F22; --vt-accent2:#A63A33;
   --vt-line:#DCCBA8;
-  --vt-shadow:0 18px 45px rgba(90,60,20,.14);
+  --vt-shadow:none;
   --vt-focus:#5C3A17;
   --vt-on-accent:#FFFFFF; --vt-accent-ink:#6A421B; --vt-accent2-ink:#8E2F29;
   --vt-deep:#5C3A17; --vt-soft:#EADBBC;
@@ -65,8 +64,8 @@ button{cursor:pointer;border:0;background:none;padding:0}
 .scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}
 .wrap{max-width:880px;margin:0 auto;padding:16px}
 .search{width:100%;height:46px;border-radius:14px;border:1px solid var(--vt-line);background:var(--vt-surface);padding:0 14px;font-size:16px}
-.hero{border-radius:var(--vt-radius-sig);background:var(--vt-soft);padding:36px 20px 18px;text-align:center;margin-bottom:14px}
-.hero h2{margin:0 0 6px;font-family:var(--vt-font);font-size:26px;color:var(--vt-accent-ink)}
+.hero{border-radius:var(--vt-radius-sig);background:var(--vt-page);padding:24px 20px 20px;text-align:center;margin-bottom:14px}
+.hero h2{margin:0 0 6px;font-family:var(--ez-ui-font);font-size:26px;color:var(--vt-accent-ink)}
 .hero p{margin:0;color:var(--vt-muted);font-size:14px}
 .sec-title{font-size:15px;color:var(--vt-muted);margin:18px 2px 8px}
 .row{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x mandatory}
@@ -74,7 +73,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
 .cont b{display:block;font-family:var(--vt-font);font-size:16px;line-height:1.5;max-height:3em;overflow:hidden}
 .cont span{font-size:13px;color:var(--vt-muted)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
-.cat{background:var(--vt-surface);border:1px solid var(--vt-line);border-radius:var(--vt-radius);padding:14px 12px;text-align:right;min-height:78px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 1px 0 var(--vt-line)}
+.cat{background:var(--vt-surface2);border:1px solid transparent;border-radius:var(--vt-radius);padding:14px 12px;text-align:right;min-height:78px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:none}
 .cat b{font-size:15px;line-height:1.45}
 .cat span{font-size:13px;color:var(--vt-muted)}
 .cat.empty{opacity:.55}
