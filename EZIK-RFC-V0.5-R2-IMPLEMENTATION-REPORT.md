@@ -349,7 +349,7 @@ every purpose and `capabilityEligible()` is false for every capability. **Regist
 
 ## K. Gates and tests
 
-Expected signature for the current integrated roster. CURRENT_RECON records the measured 364/0/0 pre-self-check counts from the C3 order-9 focused audit after generating the synthetic room-token fixture at runtime. The scanner and equal-value wire assertions are unchanged. Full-suite acceptance is recorded separately in REPORT-C3-ORDER-9.md:
+Expected signature for the current integrated roster. CURRENT_RECON records the measured 365/0/0 pre-self-check counts from the C3 order-9 focused audit on clean head ea9ef7666be10eefad708c1bfda8330d99433cce after the fixture and timing fixes. The scanner and equal-value wire assertions are unchanged. Full-suite acceptance is recorded separately in REPORT-C3-ORDER-9.md:
 
 All 272 gates in the current roster run sequentially through tools/run-gates.cjs. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
 
@@ -466,7 +466,7 @@ securityauthredirectcompletion 0
 c1gamesgeneration 0
 c1gamesdelivery 0
 TOTAL_GATES        272/272 PASS
-CURRENT_RECON PASS=364 WARN=0 FAIL=0
+CURRENT_RECON PASS=365 WARN=0 FAIL=0
 PRE_REBASE_UPSTREAM_TOTAL_GATES 206/206 PASS
 PRE_REBASE_UPSTREAM_RECON PASS=299 WARN=0 FAIL=0
 PRE_REBASE_BRANCH_TOTAL_GATES 208/208 PASS
