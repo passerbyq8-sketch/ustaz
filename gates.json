@@ -1210,5 +1210,10 @@
     "name": "c1prayernumerals",
     "script": "guards/c1-prayer-numerals-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1emptywird",
+    "script": "guards/c1-empty-wird-guard.cjs",
+    "args": ""
   }
 ]

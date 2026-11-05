@@ -42850,7 +42850,7 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
                 <span style={s.wirdTrack}><span style={{ ...s.wirdFill, width: wirdPct + '%' }} /></span>
               </React.Fragment>
             ) : (
-              <span style={s.wirdText}>اليوم {toArabicDigits(wirdDone)} · حدّد وردك</span>
+              <span style={s.wirdText}>حدّد وردك</span>
             )}
           </button>
           {/* THE ONE EXPLICIT ACT, on the reader's own row. It is a press and nothing else:
