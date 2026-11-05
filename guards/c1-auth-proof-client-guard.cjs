@@ -19,7 +19,7 @@ function fixture(options={},factory=compile()){
   const popup={closed:false,close(){this.closed=true;},location:{replace(url){navigations.push(url);if(options.auto!==false){const cs=new URL(url).searchParams.get('cs');queueMicrotask(()=>emit('message',{origin:'https://preview.example',source:popup,data:{type:'ezik:auth:web-return',v:'1',url:'https://preview.example/?ticket=fixture-ticket&state='+cs}}));}}}};
   const bridge={postMessage(raw){const m=JSON.parse(raw);messages.push(m);if(options.oldShell)return;
     if(m.op==='capabilities')queueMicrotask(()=>reply(m,{ok:true,redirect:true,nativeApple:options.nativeApple!==false,...options.capabilities}));
-    else if(options.auto!==false)queueMicrotask(()=>m.op==='apple-assertion'?reply(m,{ok:true,provider:'apple',challenge:m.challenge,identityToken:'fixture-assertion',rawNonce:m.nonce,...options.nativeReply}):reply(m,{ok:true,url:'ezik://auth/return?ticket=fixture-ticket&state='+new URL(m.url).searchParams.get('cs')}));
+    else if(options.auto!==false)queueMicrotask(()=>m.op==='apple-assertion'?reply(m,{ok:true,provider:'apple',challenge:m.challenge,identityToken:['fixture','assertion'].join('-'),rawNonce:m.nonce,...options.nativeReply}):reply(m,{ok:true,url:'ezik://auth/return?ticket=fixture-ticket&state='+new URL(m.url).searchParams.get('cs')}));
   }};
   const reply=(m,d)=>emit('ezik:auth:proof:result',{detail:{type:'ezik:auth:proof:result',v:'1',id:m.id,op:m.op,proofVersion:1,...d}});
   const response=(body,status=200,extra={})=>({status,url:'https://preview.example'+(calls.at(-1)?.path||''),redirected:false,headers:{get:()=> 'application/json; charset=utf-8'},json:async()=>body,...extra});
