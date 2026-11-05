@@ -1290,5 +1290,10 @@
     "name": "c1dimaresolver",
     "script": "guards/c1-dima-resolver-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1dimawiring",
+    "script": "guards/c1-dima-wiring-guard.cjs",
+    "args": ""
   }
 ]

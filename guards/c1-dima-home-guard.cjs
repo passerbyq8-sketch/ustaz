@@ -20,7 +20,7 @@ const ctx=vm.createContext({React,Date,EZ_I18N:dicts,EZ_LANG_FALLBACK:'ar',EZ_DI
  EZ_LANG_DIR:Object.fromEntries(table.map(r=>[r.code,r.dir])),ezLangEntry:code=>table.find(r=>r.code===code),
  useState:init=>[typeof init==='function'?init():init,()=>{}],useEffect:()=>{},useEzLang:()=>{},
  EZH_NAV_MENU:'Menu',EZH_ICON_MENU:null,EZH_SALAM:'Greeting',EZH_HELLO:'Hello',EZH_HELLO_NO_NAME:'Hello',
- DimaDropMark:()=>null,DimaPlant:()=>null});
+ dimaCivilDate:()=>new Date(),DimaDropMark:()=>null,DimaPlant:()=>null});
 vm.runInContext(compiled+'\nthis.renderHome=DimaHomeCard;',ctx);
 const day=ctx.dimaDateKey(new Date());let checks=0;
 for(const row of table)for(const count of [0,1,2,3])for(const slot of ['fajr30','duha','asr','isha'])for(const notify of [false,true]){

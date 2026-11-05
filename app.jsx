@@ -375,7 +375,7 @@ function ezTr4Load() {
 function useTr4Section(name) {
   const lang = useEzLang();
   useEffect(() => {
-    if (!name || ['am', 'om', 'en', 'fa'].indexOf(lang) < 0) return undefined;
+    if (!name || (!['am', 'om', 'en', 'fa'].includes(lang) && !(name === 'dima' && DIMA_CONTENT_LANGS.includes(lang)))) return undefined;
     let off = null, gone = false;
     ezTr4Load().then((layer) => {
       if (!layer || gone) return;
@@ -400,6 +400,10 @@ function useEzLang() {
 // here and no translated string is ever handed to innerHTML. ---------------------------
 const EZ_I18N = {
   ar: {
+    "dima.repeatLabel": "\u0625\u0639\u0627\u062f\u0629 \u0645\u0646 \u0627\u0644\u0623\u064a\u0627\u0645 \u0627\u0644\u0645\u062a\u0627\u062d\u0629",
+    "dima.repeatHelp": "\u0646\u0643\u0631\u0631 \u0627\u0644\u0623\u064a\u0627\u0645 \u0627\u0644\u0645\u062a\u0627\u062d\u0629 \u0645\u0639 \u062d\u0641\u0638 \u062a\u0642\u062f\u0645\u0643",
+    "dima.seasonLabel": "\u0628\u0637\u0627\u0642\u0629 \u0645\u0648\u0633\u0645\u064a\u0629",
+    "dima.saveWarning": "\u062a\u0639\u0630\u0631 \u062a\u0623\u0643\u064a\u062f \u062d\u0641\u0638 \u062a\u0642\u062f\u0645\u0643. \u0627\u062d\u062a\u0641\u0638\u0646\u0627 \u0628\u0647 \u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u062c\u0644\u0633\u0629.",
     "countdown.hour": "ساعات",
     "countdown.minute": "دقائق",
     "countdown.second": "ثوان",
@@ -2381,6 +2385,10 @@ const EZ_I18N = {
     'tr4.machine': 'ترجمة آلية',
   },
   en: {
+    "dima.repeatLabel": "Repeating an available day",
+    "dima.repeatHelp": "Available days repeat; your progress is kept.",
+    "dima.seasonLabel": "Seasonal card",
+    "dima.saveWarning": "Saving could not be confirmed. Your progress is kept in this session.",
     "countdown.hour": "hours",
     "countdown.minute": "minutes",
     "countdown.second": "seconds",
@@ -11987,26 +11995,30 @@ let EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize
 
 function DimaHomeCard({ onOpenDima, onOpenMenu, name }) {
   useEzLang();
-  const [todayKey, setTodayKey] = useState(() => dimaDateKey(new Date()));
+  const [todayKey, setTodayKey] = useState(() => dimaDateKey(dimaCivilDate()));
   const [, setRefreshVersion] = useState(0);
   useEffect(() => {
     let timer = 0;
     const refresh = () => {
-      setTodayKey(dimaDateKey(new Date()));
+      setTodayKey(dimaDateKey(dimaCivilDate()));
       setRefreshVersion((version) => version + 1);
     };
     const scheduleMidnight = () => {
       const now = new Date();
-      const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 1, 0);
+      const next = new Date(now.getTime() + 30000);
       timer = window.setTimeout(() => { refresh(); scheduleMidnight(); }, Math.max(1000, next.getTime() - now.getTime()));
     };
     scheduleMidnight();
     window.addEventListener('focus', refresh);
+    window.addEventListener('ezik:dima:state', refresh);
+    window.addEventListener('ezik-widget-data-change', refresh);
     window.addEventListener('storage', refresh);
     document.addEventListener('visibilitychange', refresh);
     return () => {
       if (timer) window.clearTimeout(timer);
       window.removeEventListener('focus', refresh);
+      window.removeEventListener('ezik:dima:state', refresh);
+      window.removeEventListener('ezik-widget-data-change', refresh);
       window.removeEventListener('storage', refresh);
       document.removeEventListener('visibilitychange', refresh);
     };
@@ -12018,7 +12030,7 @@ function DimaHomeCard({ onOpenDima, onOpenMenu, name }) {
     const dayIndex = store.startDate ? dimaIndexForDate(store.startDate, date) : 0;
     const dayLog = dimaLogFor(store, dimaDateKey(date));
     const stage = index === 0
-      ? (store.startDate ? dayLog.l + dayLog.q + dayLog.j : 0)
+      ? (dayIndex > 0 ? dayLog.l + dayLog.q + dayLog.j : 0)
       : (dayIndex > 0 ? dayLog.l + dayLog.q + dayLog.j : 0);
     return { key: dimaDateKey(date), stage: stage, today: index === 0 };
   });
@@ -17051,6 +17063,70 @@ function dimaFreezePresented(store, record) {
 }
 function dimaResetSession() { __dimaSessionStore = null; __dimaStoreError = ''; }
 
+const DIMA_CONTENT_LANGS = ['am', 'om', 'en', 'fa', 'fr', 'ur', 'id', 'ha', 'sw', 'zh', 'de', 'hi', 'ps', 'uz'];
+const __dimaTranslationReady = new Set(), __dimaTranslationPending = new Map();
+function dimaPrepareTranslations(lang = EZ_LANG) {
+  if (!DIMA_CONTENT_LANGS.includes(lang) || __dimaTranslationReady.has(lang)) return Promise.resolve();
+  if (__dimaTranslationPending.has(lang)) return __dimaTranslationPending.get(lang);
+  const work = ezTr4Load().then(layer => layer?.preloadDima ? layer.preloadDima(lang) : null)
+    .catch(() => null).then(() => { __dimaTranslationReady.add(lang); __dimaTranslationPending.delete(lang); });
+  __dimaTranslationPending.set(lang, work);
+  return work;
+}
+function dimaTranslatedText(item, legacy = true) {
+  if (!item) return '';
+  if (item.id === 'dima.repeat.notification') return ezT('dima.repeatHelp');
+  const text = typeof item === 'string' ? item : item.text;
+  return legacy && window.TR4?.dimaText ? window.TR4.dimaText(EZ_LANG, item.id || '', text) : text;
+}
+function dimaRefreshFromStorage(event) {
+  if (!event || !event.key || event.key === DIMA_KEY || event.key === DIMA_V2_KEY) dimaResetSession();
+}
+function useDimaRevision() {
+  const [version, setVersion] = useState(0);
+  useEffect(() => {
+    const refresh = () => setVersion(value => value + 1);
+    const storage = event => { dimaRefreshFromStorage(event); refresh(); };
+    const timer = setInterval(refresh, 30000);
+    if (timer && typeof timer.unref === 'function') timer.unref();
+    const names = ['focus', 'ezik:dima:data', 'ezik:dima:state', 'ezik-widget-data-change'];
+    names.forEach(name => window.addEventListener(name, refresh));
+    window.addEventListener('storage', storage);
+    document.addEventListener('visibilitychange', refresh);
+    return () => { clearInterval(timer); names.forEach(name => window.removeEventListener(name, refresh));
+      window.removeEventListener('storage', storage); document.removeEventListener('visibilitychange', refresh); };
+  }, []);
+  return version;
+}
+function useDimaSchedule() {
+  useEffect(() => {
+    let alive = true, signature = '', busy = false, pending = false;
+    const wake = async (event) => {
+      if (event?.type === 'storage') dimaRefreshFromStorage(event);
+      if (busy) { pending = true; return; }
+      if (!dimaReadStore().startDate) return;
+      const refresh = event && ['online', 'focus'].includes(event.type);
+      const next = [dimaDateKey(dimaCivilDate()), EZ_LANG, readHijriOffset(), JSON.stringify(readQiblaLoc()),
+        __dimaCatalog?.revision, JSON.stringify(dimaReadStore().notify), JSON.stringify(dimaReadStore().log)].join('|');
+      if (!refresh && next === signature) return;
+      busy = true;
+      try {
+        await loadDimaPacks(!!refresh);
+        if (refresh) __dimaTranslationReady.delete(EZ_LANG);
+        await dimaPrepareTranslations();
+        if (alive) { signature = next; ezikSchedArm(); }
+      } catch (e) {} finally { busy = false; if (alive && pending) { pending = false; wake(); } }
+    };
+    const names = ['focus', 'online', 'storage', 'ezik:dima:state', 'ezik:dima:data', 'ezik-widget-data-change'];
+    names.forEach(name => window.addEventListener(name, wake));
+    EZ_LANG_SUBS.add(wake);
+    const timer = setInterval(wake, 30000);
+    if (timer && typeof timer.unref === 'function') timer.unref();
+    wake();
+    return () => { alive = false; clearInterval(timer); names.forEach(name => window.removeEventListener(name, wake)); EZ_LANG_SUBS.delete(wake); };
+  }, []);
+}
+
 function dimaDefaultStore() {
   return { startDate: null, log: {}, notify: { on: true, slot: 'fajr30' }, notifySeen: false };
 }
@@ -17117,7 +17193,8 @@ function dimaPrayerAt(date, slot) {
 }
 function ezikDimaAlertItems(now) {
   const items = [];
-  if (!(now instanceof Date) || !isFinite(now.getTime()) || !__dimaData) return items;
+  if (!(now instanceof Date) || !isFinite(now.getTime()) || !__dimaCatalog ||
+      (DIMA_CONTENT_LANGS.includes(EZ_LANG) && !__dimaTranslationReady.has(EZ_LANG))) return items;
   const store = dimaReadStore();
   if (!store.startDate) return items;
   const prefs = store.notify || { on: true, slot: 'fajr30' };
@@ -17132,14 +17209,14 @@ function ezikDimaAlertItems(now) {
     const log = dimaLogFor(store, key);
     if (log.laterAt > now.getTime()) {
       items.push({ id: 'daily:dima-later:' + key, type: 'daily', at: log.laterAt,
-        title: ezT('dima.title'), body: __dimaData.notifications.later, route: 'dima' });
+        title: ezT('dima.title'), body: dimaTranslatedText({ id: 'dima.later.notification', text: __dimaData.notifications.later }), route: 'dima' });
     }
     if (prefs.on !== true || DIMA_SLOTS.indexOf(prefs.slot) < 0) continue;
     const at = dimaPrayerAt(dt, prefs.slot);
     if (!isFinite(at) || at <= now.getTime()) continue;
-    const friday = dt.getDay() === 5;
-    const daily = __dimaData.notifications.daily;
-    const body = friday ? __dimaData.notifications.friday : daily[(dayIndex - 1) % daily.length];
+    const resolved = dimaResolveForDate(store, dt);
+    if (!resolved) continue;
+    const body = dimaTranslatedText(resolved.snapshot.notification, resolved.legacy);
     items.push({ id: 'daily:dima:' + key, type: 'daily', at: at,
       title: ezT('dima.title'), body: body, route: 'dima' });
   }
@@ -17194,11 +17271,13 @@ function DimaScene({ plants, todayCount, instant, data }) {
 }
 function dimaDayTitle(index, english, data) {
   const ordinal = data && data.ui && Array.isArray(data.ui.dayOrdinals) ? data.ui.dayOrdinals[index - 1] : '';
-  return english ? ezT('dima.day') + ' ' + index : ezT('dima.day') + ' ' + ordinal;
+  return ezT('dima.day') + ' ' + (EZ_LANG === 'ar' && ordinal ? ordinal : ezNum(index));
 }
 function EzikDimaSection({ onBack }) {
+  const lang = useEzLang();
+  const revision = useDimaRevision();
   const [store, setStore] = useState(dimaReadStore);
-  const [data, setData] = useState(__dimaData);
+  const [data, setData] = useState(__dimaCatalog ? __dimaData : null);
   const [loadFailed, setLoadFailed] = useState(false);
   const [tab, setTab] = useState(0);
   const [step, setStep] = useState('main');
@@ -17209,15 +17288,17 @@ function EzikDimaSection({ onBack }) {
   const aliveRef = useRef(true);
   useEffect(() => () => { aliveRef.current = false; if (moveTimer.current) clearTimeout(moveTimer.current); }, []);
   useEffect(() => {
-    loadDima().then((next) => { if (aliveRef.current) { setData(next); setLoadFailed(false); ezikSchedArm(); } })
+    loadDimaPacks().then(() => dimaPrepareTranslations()).then(() => { if (aliveRef.current) { setData(__dimaData); setStore(dimaReadStore()); setLoadFailed(false); ezikSchedArm(); } })
       .catch(() => { if (aliveRef.current) setLoadFailed(true); });
   }, []);
+  useEffect(() => { setStore(dimaReadStore()); }, [revision]);
+  useEffect(() => { dimaPrepareTranslations(lang).then(() => { if (aliveRef.current) ezikSchedArm(); }); }, [lang]);
   useEzikBackLayer(step !== 'main', () => { setStep('main'); setNotice(''); });
   const persist = (next) => { const saved = dimaWriteStore(next); setStore(saved); ezikSchedArm(); return saved; };
-  const today = new Date();
+  const today = dimaCivilDate();
   const todayKey = dimaDateKey(today);
   const rawIndex = store.startDate ? dimaIndexForDate(store.startDate, today) : 1;
-  const todayIndex = Math.max(1, Math.min(30, rawIndex || 1));
+  const todayIndex = Math.max(1, rawIndex || 1);
   const currentLog = dimaLogFor(store, todayKey);
   const dropCount = currentLog.l + currentLog.q + currentLog.j;
   const plants = Array.from({ length: 7 }, (_, i) => {
@@ -17226,15 +17307,17 @@ function EzikDimaSection({ onBack }) {
     const log = dimaLogFor(store, key);
     return { key: key, stage: store.startDate && key >= store.startDate ? log.l + log.q + log.j : 0 };
   });
-  const baseDay = data ? data.days[(todayIndex - 1) % data.days.length] : null;
-  const isFriday = today.getDay() === 5;
-  const contentDay = data && isFriday ? data.overrides.friday : baseDay;
-  const lisan = data ? data.lisan[(todayIndex - 1) % data.lisan.length] : null;
-  const entry = !data ? null : tab === 0 ? (contentDay.lisan || lisan) : contentDay[tab === 1 ? 'qalb' : 'jawarih'];
+  const resolved = data ? dimaResolveForDate(store, today) : null;
+  const contentDay = resolved?.snapshot;
+  const entry = !contentDay ? null : contentDay[tab === 0 ? 'lisan' : tab === 1 ? 'qalb' : 'jawarih'];
+  useEffect(() => {
+    if (!resolved || step !== 'main' || !store.startDate || rawIndex < 1 || store.presented?.[todayKey]) return;
+    setStore(dimaFreezePresented(store, resolved));
+  }, [data, store, todayKey, step]);
   const done = !!(currentLog.l && currentLog.q && currentLog.j);
   const showDone = done;
   const english = typeof document !== 'undefined' && document.documentElement.lang === 'en';
-  const dayNum = (n) => english ? String(n) : toArabicDigits(String(n));
+  const dayNum = (n) => ezNum(n);
   const rootTitle = step === 'main' ? ezT('dima.title') : ezT('dima.notifications');
   const openNotify = () => { setNotice(''); setStep(store.notifySeen ? 'settings' : 'intro'); };
   const close = () => {
@@ -17242,7 +17325,9 @@ function EzikDimaSection({ onBack }) {
     onBack();
   };
   const updateLog = (patch) => {
-    const next = { ...store, log: { ...(store.log || {}), [todayKey]: { ...currentLog, ...patch } } };
+    if (!store.startDate || rawIndex < 1) return;
+    const frozen = dimaFreezePresented(store, resolved);
+    const next = { ...frozen, log: { ...(frozen.log || {}), [todayKey]: { ...currentLog, ...patch } } };
     persist(next);
   };
   const begin = () => {
@@ -17251,7 +17336,7 @@ function EzikDimaSection({ onBack }) {
     setTab(0);
   };
   const mark = () => {
-    if (!entry || showDone) return;
+    if (!entry || showDone || rawIndex < 1) return;
     setInstantPlant(false);
     if (tab === 0) updateLog({ l: 1, taps: currentLog.taps + 1 });
     else updateLog(tab === 1 ? { q: 1 } : { j: 1 });
@@ -17312,16 +17397,16 @@ function EzikDimaSection({ onBack }) {
     {step === 'main' ? <button type="button" className="dimaIconButton" onClick={openNotify} aria-label={ezT('dima.openNotifications')}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg></button> : <span className="dimaHeaderSpacer" />}
   </header>;
   const ui = data && data.ui ? (english && data.ui.en ? data.ui.en : data.ui) : null;
-  if (!data && !loadFailed) return <div className="dimaRoot">{header}<main className="dimaPage"><p role="status">{ezT('dima.loading')}</p></main></div>;
-  if (!data && loadFailed) return <div className="dimaRoot">{header}<main className="dimaPage"><p role="alert">{ezT('dima.loadError')}</p><button type="button" className="dimaAction" onClick={() => { setLoadFailed(false); loadDima().then(setData).catch(() => setLoadFailed(true)); }}>{ezT('dima.retry')}</button></main></div>;
-  if (step === 'intro') return <div className="dimaRoot">{header}<main className="dimaPage dimaNotifyIntro">
+  if (!data && !loadFailed) return <div className="dimaRoot" dir={EZ_LANG_DIR[lang] || 'ltr'}>{header}<main className="dimaPage"><p role="status">{ezT('dima.loading')}</p></main></div>;
+  if (!data && loadFailed) return <div className="dimaRoot" dir={EZ_LANG_DIR[lang] || 'ltr'}>{header}<main className="dimaPage"><p role="alert">{ezT('dima.loadError')}</p><button type="button" className="dimaAction" onClick={() => { setLoadFailed(false); loadDimaPacks(true).then(() => { setData(__dimaData); setStore(dimaReadStore()); }).catch(() => setLoadFailed(true)); }}>{ezT('dima.retry')}</button></main></div>;
+  if (step === 'intro') return <div className="dimaRoot" dir={EZ_LANG_DIR[lang] || 'ltr'}>{header}<main className="dimaPage dimaNotifyIntro">
     <DimaScene plants={plants} todayCount={dropCount} instant={instantPlant} data={data} />
     <h1>{data.ui.intro.title}</h1><p>{data.ui.intro.body}</p><small>{data.ui.intro.footnote}</small>
     {notice ? <p className="dimaNotice" role="status">{notice}</p> : null}
     <button type="button" className="dimaAction" onClick={requestNotify}>{data.ui.intro.enable}</button>
     <button type="button" className="dimaSecondary" onClick={() => { persist({ ...store, notify: { ...store.notify, on: false }, notifySeen: true }); setStep('settings'); }}>{data.ui.intro.later}</button>
   </main></div>;
-  if (step === 'settings') return <div className="dimaRoot">{header}<main className="dimaPage dimaNotifySettings">
+  if (step === 'settings') return <div className="dimaRoot" dir={EZ_LANG_DIR[lang] || 'ltr'}>{header}<main className="dimaPage dimaNotifySettings">
     <DimaScene plants={plants} todayCount={dropCount} instant={instantPlant} data={data} />
     <h1>{data.ui.notifyTitle}</h1><p>{data.ui.notifyDaily}</p>
     <div className="dimaNotifyRow"><div><strong>{store.notify.on ? data.ui.notifyOn : data.ui.notifyOff}</strong><small>{data.ui.notifyTimeNote}</small></div>
@@ -17332,44 +17417,48 @@ function EzikDimaSection({ onBack }) {
     </div>
     <p className="dimaFinePrint">{data.ui.notifyTimeNote}</p>
     <h2>{data.ui.notifyPreview}</h2>
-    <div className={'dimaPreview' + (store.notify.on ? '' : ' is-off')}><span><b>{ezT('dima.title')}</b><small>{data.notifications.slots[store.notify.slot]}</small></span><p>{data.notifications.daily[0]}</p></div>
-    <div className={'dimaPreview dimaPreviewFriday' + (store.notify.on ? '' : ' is-off')}><span><b>{ezT('dima.title')}</b><small>{data.notifications.slots[store.notify.slot]}</small></span><p>{data.notifications.friday}</p></div>
+    <div className={'dimaPreview' + (store.notify.on ? '' : ' is-off')}><span><b>{ezT('dima.title')}</b><small>{data.notifications.slots[store.notify.slot]}</small></span><p>{dimaTranslatedText(resolved?.snapshot.notification, resolved?.legacy)}</p></div>
+    <div className={'dimaPreview dimaPreviewFriday' + (store.notify.on ? '' : ' is-off')}><span><b>{ezT('dima.title')}</b><small>{data.notifications.slots[store.notify.slot]}</small></span><p>{dimaTranslatedText({ text: data.notifications.friday })}</p></div>
     <p className="dimaFinePrint">{data.ui.notifyPreviewNote}</p>
     {notice ? <p className="dimaNotice" role="status">{notice}</p> : null}
     <button type="button" className="dimaSecondary" onClick={() => setStep('main')}>{data.ui.cancel}</button>
   </main></div>;
-  if (!store.startDate) return <div className="dimaRoot">{header}<main className="dimaPage dimaIntro">
+  if (!store.startDate) return <div className="dimaRoot" dir={EZ_LANG_DIR[lang] || 'ltr'}>{header}<main className="dimaPage dimaIntro">
     <DimaScene plants={plants} todayCount={dropCount} instant={instantPlant} data={data} />
     <h1>{data.name}</h1><p>{data.tagline}</p>
-    <div className="dimaIntroInfo"><span>{ezT('dima.programLength')}</span><strong>{ezT('dima.oneMinute')}</strong></div>
+    <div className="dimaIntroInfo"><span>{ezT('dima.todayPractices')}</span><strong>{ezT('dima.oneMinute')}</strong></div>
     <button type="button" className="dimaAction" onClick={begin}>{ezT('dima.begin')}</button>
   </main></div>;
   const currentFlag = tab === 0 ? currentLog.l : tab === 1 ? currentLog.q : currentLog.j;
   const slotLabel = data.notifications.slots[store.notify.slot] || data.notifications.slots.fajr30;
-  return <div className="dimaRoot" dir="rtl">
+  return <div className="dimaRoot" dir={EZ_LANG_DIR[lang] || 'ltr'}>
     {header}
     <main className="dimaPage dimaMainPage">
     <DimaScene plants={plants} todayCount={dropCount} instant={instantPlant} data={data} />
-      <section className="dimaCard" aria-label={ezT('dima.todayPractices')}>
+      <section className="dimaCard" data-dima-day={resolved.dayId} data-dima-index={todayIndex} data-dima-pack={resolved.packId} data-dima-version={resolved.version} aria-label={ezT('dima.todayPractices')}>
         <div className="dimaCardHead"><strong>{dimaDayTitle(todayIndex, english, data)}</strong><span className={'dimaStatus' + (done ? ' is-done' : '')}>{done ? ui.completeBadge : ui.todayBadge}</span></div>
+        {resolved.repeat ? <p className="dimaRepeat" data-tr4-owned="" role="status">{ezT('dima.repeatLabel')} — {ezT('dima.repeatHelp')}</p> : null}
+        {resolved.season ? <p className="dimaSeason" data-tr4-owned="">{ezT('dima.seasonLabel')}</p> : null}
+        {__dimaStoreError ? <p className="dimaNotice" data-tr4-owned="" role="status">{ezT('dima.saveWarning')}</p> : null}
         <div className="dimaTabs" role="group" aria-label={ezT('dima.todayPractices')}>
           {data.ui.pills.map((label, i) => <button type="button" key={i} disabled={done} aria-pressed={tab === i ? 'true' : 'false'} className={'dimaTab' + (tab === i ? ' is-selected' : '') + ((i === 0 ? currentLog.l : i === 1 ? currentLog.q : currentLog.j) ? ' is-done' : '')} onClick={() => { setTab(i); setShowTafsir(false); }}>{english ? [ezT('dima.tab.lisan'), ezT('dima.tab.qalb'), ezT('dima.tab.jawarih')][i] : label}</button>)}
         </div>
         {showDone ? <div className="dimaDone">
           <DimaDropMark className="dimaDoneDropIcon" size={38} />
-          <h2>{todayIndex === 30 ? data.ui.doneMonth : data.ui.doneTitle}</h2>
+          <h2>{data.ui.doneTitle}</h2>
           <p>{data.ui.doneBody}</p>
           <blockquote>{data.closing.text}<small>{data.closing.src}</small></blockquote>
-          <p className="dimaNextNotice">{ui.tomorrowNotice}</p>
-          {store.notify.on ? <p className="dimaTomorrowNotify">{ui.tomorrowNotification.replace('{slot}', slotLabel)}</p> : null}
+          <p className="dimaNextNotice">{ezT('dima.repeatHelp')}</p>
+          {store.notify.on ? <p className="dimaTomorrowNotify">{slotLabel}</p> : null}
         </div> : <>
           <div className="dimaDropKicker"><span>{data.ui.kickers[tab]}</span><span>{data.ui.hints[tab]}</span></div>
-          <div className={'dimaVerse ' + (entry.kind === 'quran' || entry.kind === 'ayah' ? 'is-quran' : '')} dir="rtl">{entry.text}</div>
-          {entry.note || entry.fadl ? <div className="dimaNote">{entry.note || entry.fadl}</div> : null}
-          {sourceLabel(entry) ? <small className="dimaSource">{sourceLabel(entry)}</small> : null}
+          <div key={resolved.dayId + ':' + tab} data-tr4-owned={resolved.legacy ? undefined : ''} dir="rtl">
+          <div data-tr4-id={entry.id} data-tr4-preserve-ar={entry.kind === 'story' ? '' : undefined} className={'dimaVerse ' + (entry.textKind !== 'guidance' && (entry.kind === 'quran' || entry.kind === 'ayah') ? 'is-quran' : '')} dir="rtl">{entry.text}</div>
+          {entry.note || entry.fadl ? <div className="dimaNote" data-tr4-id={entry.noteId} data-tr4-preserve-ar="" dir="rtl">{entry.note || entry.fadl}</div> : null}
+          {sourceLabel(entry) ? <small className="dimaSource" data-tr4-owned="" dir="rtl">{sourceLabel(entry)}</small> : null}
           {entry.tafsir ? <div className="dimaTafsir"><button type="button" className="dimaTextButton" aria-expanded={showTafsir ? 'true' : 'false'} onClick={() => setShowTafsir(!showTafsir)}>{data.ui.misc.readTafsir}</button>{showTafsir ? <p>{entry.tafsir}</p> : null}</div> : null}
           <div className="dimaActions">
-            {!currentFlag ? <button type="button" className={tab === 0 ? 'dimaCounter' : 'dimaAction'} onClick={mark} aria-label={tab === 0 ? entry.action + ' ' + dayNum(currentLog.taps) : entry.action}>
+            {!currentFlag ? <button type="button" disabled={rawIndex < 1} data-tr4-id={entry.actionId} className={tab === 0 ? 'dimaCounter' : 'dimaAction'} onClick={mark} aria-label={tab === 0 ? entry.action + ' ' + dayNum(currentLog.taps) : entry.action}>
               {tab === 0 ? <><span>{entry.action}</span><b>{dayNum(currentLog.taps)}</b></> : entry.action}
             </button> : <div className="dimaDoneControls"><span>{data.ui.dropLanded}</span><button type="button" className="dimaSecondary" onClick={undo}>{data.ui.undo}</button>{tab < 2 ? <button type="button" className="dimaAction" onClick={() => setTab(tab + 1)}>{data.ui.nextDrop}</button> : null}</div>}
             {tab === 2 && entry.later === true && !currentFlag ? (currentLog.laterAt > Date.now()
@@ -17377,6 +17466,7 @@ function EzikDimaSection({ onBack }) {
               : <button type="button" className="dimaTextButton" onClick={queueLater}>{data.ui.remindLater}</button>) : null}
           </div>
           {notice ? <p className="dimaNotice" role="status">{notice}</p> : null}
+          </div>
         </>}
       </section>
     </main>
@@ -21411,6 +21501,7 @@ function App() {
   // 67 / 43-b / 47-b: the schedule pipe, armed at the root. It owns no screen state and renders
   // nothing; a reader who never opens the prayer sheet still has a day that needs arming.
   useEzikSchedRoot();
+  useDimaSchedule();
   useEzikUsageNotif();
   // PRAYER REBUILD (29 October 2026): the app's door asks for the position -- the shell through its bridge, a browser
   // only where the permission is already granted -- so the times move within seconds of opening (owner, 29 October).
@@ -21470,7 +21561,7 @@ function App() {
   const [dimaOpen, setDimaOpen] = useState(() => ezikReadResume() === 'dima');
   useEffect(() => {
     if (!dimaReadStore().startDate) return;
-    loadDima().then(() => ezikSchedArm()).catch(() => {});
+    loadDimaPacks().then(() => dimaPrepareTranslations()).then(() => ezikSchedArm()).catch(() => {});
   }, []);
   const [inboxUnread, setInboxUnread] = useState(null);
   // DECISION ج١٣'s other half -- the sender's dot. A count of answers this reader has been
@@ -25372,6 +25463,8 @@ function App() {
       // WIRD_LIST_KEY is already swept a few lines below.
       localStorage.removeItem(WIRD_ALERTS_KEY);
       try { localStorage.removeItem(DIMA_KEY); } catch (e) {}
+      try { localStorage.removeItem('ezik_dima_v2'); } catch (e) {}
+      if (typeof dimaResetSession === 'function') dimaResetSession();
       // Session 86 -- and the APPLICATION UI STYLE with them, the one key that now governs the
       // home screen and the adhkar screens together. Removing it is enough: the reader is total,
       // so an absent key IS 'journey', and the event tells every mounted screen -- the home, the

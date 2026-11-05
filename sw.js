@@ -142,7 +142,7 @@ const CORE = [
 // ---------------------------------------------------------------------------
 
 // The measured cost of CORE, byte for byte, at the commit that cut this constant:
-//   /  (index.html) 188113 + app.js 2616242 + icon-watermark.png 368386
+//   /  (index.html) 188113 + app.js 2622261 + icon-watermark.png 368386
 //   + adhkar.json 177392 + vendor/react-dom.umd.js 131835 + sunan-day.json 84759
 //   + arbaeen.json 47288 + daily-tafsir.json 23984 + icon-512.png 12893
 //   + vendor/react.umd.js 10751 + adhkar-split-27.json 7182 + icon-maskable-512.png 5938
@@ -167,7 +167,7 @@ const CORE = [
 // constant, that table, and the sw.js digest in quest-bank-integrity-guard.cjs in the SAME
 // commit -- item 89-b is the worked example. CACHE is untouched by all of it: the store name is
 // a ship decision and the merge round owns the bump.
-const CORE_BYTES = 3834813;
+const CORE_BYTES = 3840832;
 // The safe margin: half again as much as CORE measures. The Cache API stores request and
 // response headers beside every body, a gzipped transfer is stored decompressed, and a constant
 // re-cut by hand always trails the files it describes by some amount.
@@ -333,6 +333,11 @@ const IDLE = [
   // streams from his own site, which this worker never intercepts (the cross-origin return below).
   // Dima's sourced thirty-day content is warmed with the other section data for offline reading.
   '/dima/dima-v1.json',
+  '/dima/pack-manifest-v1.json',
+  '/dima/pack-regular-002.json',
+  '/dima/pack-ramadan-001.json',
+  '/dima/pack-dhul-hijjah-001.json',
+  '/dima/pack-white-days-001.json',
   '/yahimmak.json',
   '/yahimmak-book.json',
   // ITEM 89. The explanation, the narrator and the audio address of each of the
