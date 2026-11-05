@@ -16,8 +16,9 @@ function wordsMatchDictionaries(){
 function verify(source){
  for(const lang of langs){
   const {document}=parseHTML('<!doctype html><html><body><main>Usable app</main></body></html>');
+  document.documentElement.setAttribute('lang',lang);
   const bus={},copies=[];let reload=0;
-  const w={document,localStorage:{getItem:()=>lang},navigator:{userAgent:'fixture',clipboard:{writeText:t=>{copies.push(t);return Promise.resolve();}}},location:{reload:()=>{reload++;}},addEventListener:(t,f)=>{bus[t]=f;}};w.window=w;
+  const w={document,localStorage:{getItem:()=>{throw Error('catcher must use the already initialized document language');}},navigator:{userAgent:'fixture',clipboard:{writeText:t=>{copies.push(t);return Promise.resolve();}}},location:{reload:()=>{reload++;}},addEventListener:(t,f)=>{bus[t]=f;}};w.window=w;
   vm.runInNewContext(source,w);
   for(const tag of ['script','link','img','audio'])bus.error({target:document.createElement(tag)});
   assert.equal(document.querySelectorAll('[role="alert"]').length,0,'resource failures remain record-only');
