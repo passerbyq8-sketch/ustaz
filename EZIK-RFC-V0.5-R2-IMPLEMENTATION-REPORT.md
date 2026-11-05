@@ -349,7 +349,7 @@ every purpose and `capabilityEligible()` is false for every capability. **Regist
 
 ## K. Gates and tests
 
-Expected signature for the current integrated roster. CURRENT_RECON retains the prior measured result pending the order-5 full run. Current evidence is recorded in REPORT-C1-ORDER-5.md:
+Expected signature for the current integrated roster. CURRENT_RECON records the actual 359/0/0 pre-self-check counts from the stock full run on 819cfecd38704a6b4a97d5c05e8045d6e4161de9 (2026-11-05T05:36:32.522Z). That run passed 262/266; failures: recon, kunuztest, kunuzboard, c1dimaoffline. This record correction does not resolve other gate failures. Subsequent recon/guardhonesty results and remaining blockers are documented in REPORT-C1-ORDER-5.md:
 
 All 266 gates in the current roster run sequentially through tools/run-gates.cjs. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
 
@@ -460,7 +460,7 @@ security-iap-receipt 0
 c1questdelivery 0
 c1libraryentry 0
 TOTAL_GATES        266/266 PASS
-CURRENT_RECON PASS=352 WARN=0 FAIL=0
+CURRENT_RECON PASS=359 WARN=0 FAIL=0
 PRE_REBASE_UPSTREAM_TOTAL_GATES 206/206 PASS
 PRE_REBASE_UPSTREAM_RECON PASS=299 WARN=0 FAIL=0
 PRE_REBASE_BRANCH_TOTAL_GATES 208/208 PASS
