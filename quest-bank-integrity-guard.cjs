@@ -2101,7 +2101,7 @@ const SEALED = {
   // 2026-11-03 IAP-LAUNCH-SIGNIN source commit e4754ef0: cache ezik-v135; app.js rebuilt at the same byte length; CORE unchanged. Digest measured from the committed sw.js blob at CR = 0.
   // 2026-11-04 QAF-GAP-N2: ezik-v136; rebuild and CORE measurement, then LF worker seal.
   // 2026-11-04 INTEG1 preview: reserved ezik-v137; rebuilt app.js, measured CORE, LF worker seal.
-  'sw.js': '46effc73d363e8996d127592fa8f5c9c121d5fd3f329f3ed380e15414f0b49a6',
+  'sw.js': 'c07bf6fa84119c796e210db1bf000422dc7e83433a32d76a9c19446c9a6fbe66',
 };
 
 // ---------------------------------------------------------------------------
@@ -3277,7 +3277,7 @@ async function compare(bankPath) {
     //  { n, sum: [a, b] }  n is the byte sum of those files on disk
     //  { n, dir: 'count' | 'sum' | 'mean' }   n is that statistic over the mushaf page scans
     const SW_PROSE = [
-      { n: 183365, of: 'index.html' },
+      { n: 188114, of: 'index.html' },
       // ITEM 85. The two CORE entries the self-hosted faces added, stated in the worker's byte
       // table beside the rest and re-derived here from the files they name. They are the arabic
       // and latin cuts of Noto Naskh Arabic, which is what the first screen is painted in.

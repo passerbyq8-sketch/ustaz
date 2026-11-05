@@ -1225,5 +1225,10 @@
     "name": "c1adhanlater",
     "script": "guards/c1-adhan-later-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1diagnosticsurface",
+    "script": "guards/c1-diagnostic-surface-guard.cjs",
+    "args": ""
   }
 ]

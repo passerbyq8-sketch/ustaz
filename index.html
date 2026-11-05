@@ -1962,41 +1962,64 @@
       }
     }
 
+    // D17: the recovery message also works before the app or its dictionary can boot.
+    // These four existing UI strings are mirrored for each declared interface language.
+    var diagnosticWords = {"ar":["rtl","حدث خطأ، حاول مرة أخرى","التفاصيل","نسخ","إعادة المحاولة"],"en":["ltr","Something went wrong, please try again","Details","Copy","Try again"],"fa":["rtl","مشکلی پیش آمد، لطفاً دوباره امتحان کنید","جزئیات","کپی","دوباره امتحان کنید"],"fr":["ltr","Un problème est survenu, réessaie","Détails","Copier","Réessayer"],"id":["ltr","Terjadi kesalahan, silakan coba lagi","Detail","Salin","Coba lagi"],"ur":["rtl","کچھ غلط ہو گیا، براہِ کرم دوبارہ کوشش کریں","تفصیلات","نقل کریں","دوبارہ کوشش کریں"],"bn":["ltr","কিছু ভুল হয়েছে, অনুগ্রহ করে আবার চেষ্টা করুন","বিস্তারিত","অনুলিপি করুন","আবার চেষ্টা করুন"],"tr":["ltr","Bir şeyler ters gitti, lütfen tekrar deneyin","Ayrıntılar","Kopyala","Tekrar dene"],"ha":["ltr","Wani abu ya faru ba daidai ba, don Allah ka sake gwadawa","Cikakkun bayanai","Kwafa","Sake gwadawa"],"ms":["ltr","Sesuatu telah berlaku, sila cuba lagi","Butiran","Salin","Cuba lagi"],"sw":["ltr","Kuna hitilafu imetokea, tafadhali jaribu tena","Maelezo","Nakili","Jaribu tena"],"ru":["ltr","Что-то пошло не так, попробуйте снова","Подробности","Копировать","Попробовать снова"],"zh":["ltr","出了点问题,请重试","详情","复制","重试"],"es":["ltr","Algo salió mal, inténtalo de nuevo","Detalles","Copiar","Inténtalo de nuevo"],"pt":["ltr","Algo deu errado, tente novamente","Detalhes","Copiar","Tentar novamente"],"de":["ltr","Etwas ist schiefgegangen, versuche es erneut","Details","Kopieren","Erneut versuchen"],"hi":["ltr","कुछ गड़बड़ हो गई, फिर कोशिश करें","विवरण","कॉपी करें","फिर कोशिश करें"],"so":["ltr","Wax baa khaldamay, mar kale isku day","Faahfaahin","Koobiyee","Mar kale isku day"],"ps":["rtl","یو څه غلط شول، بیا هڅه وکړئ","جزئیات","کاپي کړئ","بیا هڅه وکړئ"],"ku":["rtl","شتێک هەڵە بوو، دووبارە هەوڵ بدەوە","وردەکاری","کۆپی","دووبارە هەوڵ بدەوە"],"uz":["ltr","Нимадир нотўғри кетди, қайта уриниб кўринг","Тафсилотлар","Нусха олиш","Қайта уриниб кўринг"],"am":["ltr","የሆነ ችግር ተፈጠረ፣ እንደገና ሞክር","ዝርዝሮች","ቅዳ","እንደገና ሞክር"],"ta":["ltr","ஏதோ தவறாகிவிட்டது, மீண்டும் முயலுங்கள்","விவரங்கள்","நகலெடு","மீண்டும் முயலுங்கள்"],"om":["ltr","Dogoggorri uumame; irra deebi'ii yaali","Bal'ina","Garagalchi","Irra deebi'ii yaali"]};
+    function diagnosticChoice() {
+      var lang = 'ar';
+      try { lang = window.localStorage.getItem('ezik_ui_lang_v1') || 'ar'; } catch (ignored) {}
+      return diagnosticWords[lang] || diagnosticWords.ar;
+    }
     function buildPanel() {
       try {
         var host = document.body || document.documentElement;
         if (!host) return null;
-
+        var words = diagnosticChoice();
         panel = document.createElement('div');
         panel.setAttribute('role', 'alert');
-        panel.setAttribute('dir', 'ltr');
-        panel.style.cssText = 'position:fixed;inset:0;top:0;right:0;bottom:0;left:0;z-index:2147483647;background:#0b0b0b;color:#eaeaea;font-family:monospace;font-size:13px;direction:ltr;text-align:left;padding:14px;overflow:auto;white-space:pre-wrap;box-sizing:border-box;';
-
+        panel.setAttribute('data-ezik-diagnostic', 'recovery');
+        panel.setAttribute('dir', words[0]);
+        panel.style.cssText = 'position:fixed;bottom:calc(12px + env(safe-area-inset-bottom,0px));left:12px;right:12px;max-width:36rem;max-height:70vh;margin-inline:auto;z-index:2147483647;background:var(--surface,#fff);color:var(--text,#20252b);font:16px/1.5 system-ui,sans-serif;text-align:start;padding:16px;border:1px solid var(--border,#cbd0d5);border-radius:14px;box-shadow:0 4px 20px #0003;overflow:auto;box-sizing:border-box;';
+        var message = document.createElement('p');
+        message.setAttribute('data-diag-message', '');
+        message.style.cssText = 'margin:0 0 12px;';
+        message.textContent = words[1];
         var controls = document.createElement('div');
-        controls.style.cssText = 'direction:ltr;text-align:left;white-space:normal;margin:0 0 14px 0;';
-
-        var copyButton = document.createElement('button');
-        copyButton.type = 'button';
-        copyButton.appendChild(document.createTextNode('COPY'));
-        copyButton.style.cssText = 'font:13px monospace;margin:0 8px 0 0;padding:8px 12px;';
-        copyButton.onclick = function () {
-          try { copyAll(); } catch (ignored) {}
+        controls.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;';
+        function button(label, attribute) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.setAttribute(attribute, '');
+          b.textContent = label;
+          b.style.cssText = 'font:inherit;color:inherit;background:transparent;border:1px solid currentColor;border-radius:8px;padding:8px 12px;min-height:44px;cursor:pointer;';
+          return b;
+        }
+        var reloadButton = button(words[4], 'data-diag-reload');
+        reloadButton.onclick = function () { try { window.location.reload(); } catch (ignored) {} };
+        var detailsButton = button(words[2], 'data-diag-toggle');
+        detailsButton.setAttribute('aria-expanded', 'false');
+        detailsButton.setAttribute('aria-controls', 'ezik-diagnostic-details');
+        var details = document.createElement('div');
+        details.id = 'ezik-diagnostic-details';
+        details.setAttribute('data-diag-details', '');
+        details.hidden = true;
+        details.style.cssText = 'margin-top:12px;';
+        detailsButton.onclick = function () {
+          details.hidden = !details.hidden;
+          detailsButton.setAttribute('aria-expanded', details.hidden ? 'false' : 'true');
         };
-
-        var reloadButton = document.createElement('button');
-        reloadButton.type = 'button';
-        reloadButton.appendChild(document.createTextNode('RELOAD'));
-        reloadButton.style.cssText = 'font:13px monospace;margin:0;padding:8px 12px;';
-        reloadButton.onclick = function () {
-          try { window.location.reload(); } catch (ignored) {}
-        };
-
-        output = document.createElement('div');
-        output.style.cssText = 'direction:ltr;text-align:left;white-space:pre-wrap;';
-        controls.appendChild(copyButton);
+        var copyButton = button(words[3], 'data-diag-copy');
+        copyButton.onclick = function () { try { copyAll(); } catch (ignored) {} };
+        output = document.createElement('pre');
+        output.setAttribute('dir', 'ltr');
+        output.style.cssText = 'font:12px/1.5 monospace;direction:ltr;text-align:left;unicode-bidi:plaintext;white-space:pre-wrap;overflow-wrap:anywhere;';
         controls.appendChild(reloadButton);
+        controls.appendChild(detailsButton);
+        details.appendChild(copyButton);
+        details.appendChild(output);
+        panel.appendChild(message);
         panel.appendChild(controls);
-        panel.appendChild(output);
+        panel.appendChild(details);
         host.appendChild(panel);
         return panel;
       } catch (ignored) {
