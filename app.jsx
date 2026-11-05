@@ -33662,7 +33662,7 @@ function ezikAuthProofLegacy(provider, native, registerStop) {
     registerStop(() => done({ ok: false, code: 'canceled' }));
     if (bridge && provider === 'apple' && native) {
       sub = got => done({ ok: true, session: got }); EZIK_NATIVE_AUTH_SUBS.add(sub);
-      stop = ezikNativeAppleAsk(bridge, outcome => done({ ok: false, code: outcome === 'canceled' ? 'canceled' : 'auth-unavailable' }));
+      stop = ezikNativeAppleAsk(bridge, outcome => done({ ok: false, code: outcome === 'canceled' ? 'canceled' : 'legacy-native:' + outcome }));
       if (!stop) done({ ok: false, code: 'unsupported' });
       return;
     }
@@ -33691,6 +33691,7 @@ function ezikAuthProofLegacy(provider, native, registerStop) {
 }
 function ezikAuthProofLine(out) {
   if (!out || out.ok || out.navigating || out.code === 'canceled' || out.code === 'dismissed') return '';
+  if (out.code && out.code.startsWith('legacy-native:')) return ezikNativeOutcomeLine(out.code.slice(14));
   if (out.code && out.code.startsWith('legacy-reason:')) return ezikAuthLine(out.code.slice(14));
   if (out.code === 'legacy-bad-return') return ezT('auth.badReturn');
   if (out.code === 'legacy-browser-storage') return ezT('auth.browserFailed');

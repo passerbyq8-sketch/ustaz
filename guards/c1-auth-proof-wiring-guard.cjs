@@ -15,7 +15,8 @@ structural('root resumes callback and returns to account controls',app,s=>{asser
 structural('explicit signout discards private flow',source('EzikSignInRow'),s=>assert(/const signOut = \(\) => \{\s*ezikAuthProofClient\(\)\.cancel\(\)/.test(s)),s=>s.replace('const signOut = () => {\n    ezikAuthProofClient().cancel();','const signOut = () => {'));
 structural('all 24 languages have nonempty recovery labels',app,s=>{for(const key of ['proofTab','proofClose','roleTarget','roleSections','roleGrant','roleRevoke','roleDone']){assert.equal((s.match(new RegExp("'auth\\."+key+"':",'g'))||[]).length,2);for(const file of fs.readdirSync(path.join(root,'lang')).filter(f=>f.endsWith('.json')))assert(JSON.parse(fs.readFileSync(path.join(root,'lang',file),'utf8'))['auth.'+key]);}},s=>s.replace("'auth.proofTab':","'auth.removed':"));
 function legacyLines(raw) {
- const line=execute('ezikAuthProofLine',{ezikAuthLine:r=>'legacy:'+r},raw);
+ const line=execute('ezikAuthProofLine',{ezikAuthLine:r=>'legacy:'+r,ezikNativeOutcomeLine:r=>'native:'+r},raw);
+ for(const outcome of ['unavailable','rejected','throttled','server-down','client-bug','failed','no-answer']) assert.equal(line({code:'legacy-native:'+outcome}),'native:'+outcome);
  for(const reason of ['bad-payload','bad-url','browser-failed','unsupported','unknown']) assert.equal(line({code:'legacy-reason:'+reason}),'legacy:'+reason);
  assert.equal(line({code:'legacy-bad-return'}),'auth.badReturn');
  assert.equal(line({code:'legacy-browser-storage'}),'auth.browserFailed');
@@ -26,6 +27,7 @@ function legacyLines(raw) {
 }
 legacyLines(); checks++;
 assert.throws(()=>legacyLines(source('ezikAuthProofLine').replace("return ezikAuthLine(out.code.slice(14))","return ezT('auth.exchangeFailed')"))); mutants++;
+assert.throws(()=>legacyLines(source('ezikAuthProofLine').replace("return ezikNativeOutcomeLine(out.code.slice(14))","return ezT('auth.exchangeFailed')"))); mutants++;
 console.log('PASS typed legacy failure lines and unchanged proof lines; collapse mutation rejected');
 const tick=()=>new Promise(ok=>setImmediate(ok));
 async function legacy(raw){const calls=[],sub=new Set();let reply,stop;const fn=execute('ezikAuthProofLegacy',{window:{location:{origin:'https://preview.example'}},ezikAuthBridge:()=>({}),EZIK_NATIVE_AUTH_SUBS:sub,ezikAuthClientState:()=> 'legacy-cs',getDeviceId:()=> 'device',ezikAuthStartUrl:()=> 'https://ezik.app/api/auth-start?provider=google&device=device&cs=legacy-cs',ezikNativeAppleAsk:(b,cb)=>{calls.push('native');return()=>calls.push('detached');},ezikAuthAsk:(b,url,cb)=>{calls.push(url);reply=cb;return()=>{};},ezikAuthReturnParams:u=>new URL(u).searchParams,ezikAuthExchange:async(t,o)=>{calls.push({ticket:t,origin:o});return{session:'legacy-session'};},writeAuthSession:s=>calls.push(s)},raw);
