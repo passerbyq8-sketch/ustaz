@@ -349,9 +349,9 @@ every purpose and `capabilityEligible()` is false for every capability. **Regist
 
 ## K. Gates and tests
 
-Expected signature for the current integrated roster. CURRENT_RECON records the actual 352/0/0 pre-self-check counts from the stock full run on f96ea65aec0fcbf7551ded3731eaecf602596104 (2026-11-05T02:42:04.203Z). That run passed 246/259; failures: recon, themecoverage, wird, i18nui, deletetruth, schedulepayload, savebridge, widgetopen, prayerfeatures, assetversions, prayerlog, iaplaunch, dimapacks. This record correction does not resolve other gate failures. Subsequent recon/guardhonesty results and remaining blockers are documented in REPORT-C1-ORDER-4.md:
+Expected signature for the current integrated roster. CURRENT_RECON retains the prior measured result pending the order-5 full run. Current evidence is recorded in REPORT-C1-ORDER-5.md:
 
-All 259 gates in the current roster run sequentially through tools/run-gates.cjs. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
+All 266 gates in the current roster run sequentially through tools/run-gates.cjs. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -452,7 +452,14 @@ c1nativehaptic 0
 c1dimaresolver 0
 c1dimawiring 0
 c1solidbars 0
-TOTAL_GATES        259/259 PASS
+c1dimaoffline 0
+securityauthproof 0
+securityreauth 0
+security-iap-worker 0
+security-iap-receipt 0
+c1questdelivery 0
+c1libraryentry 0
+TOTAL_GATES        266/266 PASS
 CURRENT_RECON PASS=352 WARN=0 FAIL=0
 PRE_REBASE_UPSTREAM_TOTAL_GATES 206/206 PASS
 PRE_REBASE_UPSTREAM_RECON PASS=299 WARN=0 FAIL=0
