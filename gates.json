@@ -1355,5 +1355,15 @@
     "name": "c1librarylook",
     "script": "guards/c1-library-look-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1authproofclient",
+    "script": "guards/c1-auth-proof-client-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1authproofwiring",
+    "script": "guards/c1-auth-proof-wiring-guard.cjs",
+    "args": ""
   }
 ]
