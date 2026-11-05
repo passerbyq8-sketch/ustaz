@@ -403,6 +403,7 @@ const EZ_I18N = {
     "countdown.hour": "ساعات",
     "countdown.minute": "دقائق",
     "countdown.second": "ثوان",
+    "place.deviceZone": "التوقيت من الجهاز: {tz}. اختر مدينة لتأكيد توقيت الموقع.",
     "mushaf.waqfatTitle": "وقفات",
     'common.close': 'إغلاق',
     'answer.translation': 'ترجمة',
@@ -2383,6 +2384,7 @@ const EZ_I18N = {
     "countdown.hour": "hours",
     "countdown.minute": "minutes",
     "countdown.second": "seconds",
+    "place.deviceZone": "Using the device time zone: {tz}. Choose a city to confirm the location time zone.",
     "mushaf.waqfatTitle": "Reflections",
     'common.close': 'Close',
     'answer.translation': 'Translation',
@@ -31609,14 +31611,16 @@ function PrayerTimesPanel({ loc, day, onDay, part, onLoc, onCity }) {
   // -- and the way back to the automatic source over a manual city. The press is the only caller besides the doors.
   const [fix, setFix] = useState({ state: '', at: 0, error: '' });
   const fixStopRef = useRef(null);
+  useEffect(() => () => { if (fixStopRef.current) fixStopRef.current(); }, []);
   const showMain = !part || part === 'main';
   const showRest = !part || part === 'rest';
   const showNotify = !part || part === 'rest' || part === 'notify';
   const refresh = () => {
     if (fixStopRef.current) fixStopRef.current();
     setFix({ state: 'asking', at: Date.now(), error: '' });
-    fixStopRef.current = prayerLocateAndApply({ fresh: true, force: true }, (r, next) => {
+    fixStopRef.current = prayerLocateAndApply({ fresh: true, force: true, userInitiated: true }, (r, next) => {
       fixStopRef.current = null;
+      if (r.error === 'cancelled') { setFix({ state: '', at: 0, error: '' }); return; }
       if (!r.ok) { setFix({ state: 'failed', at: Date.now(), error: r.error }); return; }
       if (onLoc) onLoc(next);
       setFix({ state: 'done', at: Date.now(), error: '' });
@@ -31677,6 +31681,8 @@ function PrayerTimesPanel({ loc, day, onDay, part, onLoc, onCity }) {
         {fix.state === 'failed' && fix.error === 'permission-denied' ? (
           <button type="button" onClick={refresh} data-ezik-city="allow" className="ezik-focus ez110-pcard-pill">{ezT('qibla.allowLoc')}</button>
         ) : null}
+        <EzikLocationSettings />
+        <EzikLocationZoneNote loc={loc} />
         {loc.by === 'place' ? (
           <button type="button" onClick={toAuto} data-ezik-city="auto" className="ezik-focus ez110-pcard-pill">{ezT('place.auto.short')}</button>
         ) : null}
@@ -31964,23 +31970,26 @@ function readQiblaLoc() {
       && rec.lat >= -90 && rec.lat <= 90 && rec.lng >= -180 && rec.lng <= 180) {
       const pl = readPrayerPlaceFor(rec.lat, rec.lng);
       if (pl) return { lat: rec.lat, lng: rec.lng, by: 'place', place: pl };
-      return { lat: rec.lat, lng: rec.lng, by: 'device' };
+      const meta = typeof prayerNativeMetadata === 'function' ? prayerNativeMetadata(rec.meta) : null;
+      return { lat: rec.lat, lng: rec.lng, by: 'device', ...(meta ? { meta } : {}) };
     }
   }
   return { lat: QIBLA_DEFAULT_LAT, lng: QIBLA_DEFAULT_LNG, by: 'default' };
 }
-function writeQiblaLoc(lat, lng) {
+function writeQiblaLoc(lat, lng, metadata) {
+  const meta = typeof prayerNativeMetadata === 'function' ? prayerNativeMetadata(metadata) : null;
   if (typeof lat !== 'number' || typeof lng !== 'number') return readQiblaLoc();
   if (!isFinite(lat) || !isFinite(lng)) return readQiblaLoc();
   if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return readQiblaLoc();
   // A device fix replaces any place the reader chose by name.
   try { localStorage.removeItem(PRAYER_PLACE_KEY); } catch (e) {}
-  try { localStorage.setItem(QIBLA_LOC_KEY, JSON.stringify({ lat: lat, lng: lng })); }
+  try { localStorage.setItem(QIBLA_LOC_KEY, JSON.stringify({ lat: lat, lng: lng, ...(meta ? { meta } : {}) })); }
   catch (e) { return readQiblaLoc(); }
   try { ezikWidgetDataChanged(); } catch (e) {}
-  return { lat: lat, lng: lng, by: 'device' };
+  return { lat: lat, lng: lng, by: 'device', ...(meta ? { meta } : {}) };
 }
 function clearQiblaLoc() {
+  if (typeof ezikLocationChoiceChanged === 'function') ezikLocationChoiceChanged();
   try { localStorage.removeItem(PRAYER_PLACE_KEY); } catch (e) {}
   try { localStorage.removeItem(QIBLA_LOC_KEY); ezikWidgetDataChanged(); } catch (e) {}
   return readQiblaLoc();
@@ -32063,6 +32072,7 @@ function writePrayerPlace(p) {
   if (typeof p.lat !== 'number' || typeof p.lng !== 'number' || !isFinite(p.lat) || !isFinite(p.lng)) return readQiblaLoc();
   if (p.lat < -90 || p.lat > 90 || p.lng < -180 || p.lng > 180) return readQiblaLoc();
   if (typeof p.n !== 'string' || !p.n || typeof p.tz !== 'string' || !prayerZoneFmt(p.tz)) return readQiblaLoc();
+  if (typeof ezikLocationChoiceChanged === 'function') ezikLocationChoiceChanged();
   try {
     localStorage.setItem(QIBLA_LOC_KEY, JSON.stringify({ lat: p.lat, lng: p.lng }));
     localStorage.setItem(PRAYER_PLACE_KEY, JSON.stringify({ n: p.n, a: typeof p.a === 'string' ? p.a : '',
@@ -32262,6 +32272,113 @@ const SHELL_LOC_RESULT = 'ezik:location:result';
 // to getCurrentPosition, because the reader is waiting on one button either way.
 const SHELL_LOC_TIMEOUT_MS = 10000;
 
+// B9 / S4. A distinct capability message is safe even on shells with the old locator.
+function createEzikNativeLocationAdapter(win = window) {
+  let sequence = 0, caps = null, permission = null, disposed = false, settingsId = null;
+  const prefix = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+  const pending = new Map();
+  const permissionOf = p => p && ['granted', 'denied', 'undetermined', 'restricted', 'unknown'].includes(p.state) &&
+    typeof p.canAskAgain === 'boolean' ? { state: p.state, canAskAgain: p.canAskAgain, accuracy: typeof p.accuracy === 'string' ? p.accuracy : null } : null;
+  const publish = p => { const value = permissionOf(p); if (!value) return; permission = value;
+    try { win.dispatchEvent(new win.CustomEvent('ezik:location:permission', { detail: value })); } catch (e) {} };
+  function onResult(event) {
+    const d = event && event.detail;
+    if (disposed || !d || d.type !== 'ezik:location:result' || d.v !== '2' || typeof d.id !== 'string') return;
+    if (d.id === settingsId && d.op === 'status' && d.reason === 'settings-return') {
+      if (permissionOf(d.permission)) { settingsId = null; publish(d.permission); } return;
+    }
+    const p = pending.get(d.id);
+    if (!p || d.op !== p.op || typeof d.ok !== 'boolean') return;
+    if (p.op === 'capabilities' && (!d.ok || !d.capabilities || d.capabilities.coarse !== true ||
+        d.capabilities.metadata !== true || d.capabilities.fresh !== true || typeof d.capabilities.precise !== 'boolean')) return;
+    pending.delete(d.id); clearTimeout(p.timer);
+    if (p.op === 'open-settings' && d.ok && d.status === 'settings-opened') settingsId = d.id;
+    publish(d.permission); p.done(d);
+  }
+  function request(op, fields, done, timeout = 10000) {
+    if (disposed || typeof win.ReactNativeWebView?.postMessage !== 'function') { done({ ok: false, error: 'unsupported' }); return () => {}; }
+    if (op !== 'capabilities' && !caps) { done({ ok: false, error: 'unsupported' }); return () => {}; }
+    if (op === 'get' && (fields.userInitiated !== true || win.document?.visibilityState === 'hidden')) { done({ ok: false, error: 'inactive' }); return () => {}; }
+    if (op === 'get') cancelFixes();
+    if (op === 'open-settings' && (!caps.settings || fields.userInitiated !== true || permission?.state !== 'denied' || permission.canAskAgain !== false)) { done({ ok: false, error: 'settings-not-needed' }); return () => {}; }
+    const id = 'loc-' + prefix + '-' + ++sequence;
+    const cancel = () => { const p = pending.get(id); if (!p) return; clearTimeout(p.timer); pending.delete(id); };
+    const timer = setTimeout(() => { cancel(); done({ ok: false, error: 'timeout' }); }, timeout);
+    pending.set(id, { op, timer, done });
+    try { win.ReactNativeWebView.postMessage(JSON.stringify({ ...fields, type: 'ezik:location', v: '2', id, op })); }
+    catch (e) { cancel(); done({ ok: false, error: 'location-error' }); }
+    return cancel;
+  }
+  function cancelFixes() {
+    for (const [id,p] of pending) if (p.op === 'get') { clearTimeout(p.timer); pending.delete(id); p.done({ ok: false, error: 'inactive' }); }
+  }
+  const onVisibility = () => { if (win.document?.visibilityState === 'hidden') cancelFixes(); };
+  const dispose = () => {
+    disposed = true; cancelFixes();
+    for (const p of pending.values()) { clearTimeout(p.timer); p.done({ ok: false, error: 'inactive' }); } pending.clear();
+    win.removeEventListener('ezik:location:result', onResult); win.removeEventListener('ezik:location:choice', cancelFixes);
+    win.removeEventListener('pagehide', dispose); win.removeEventListener('popstate', cancelFixes);
+    win.document?.removeEventListener('visibilitychange', onVisibility);
+  };
+  win.addEventListener('ezik:location:result', onResult); win.addEventListener('ezik:location:choice', cancelFixes);
+  win.addEventListener('pagehide', dispose); win.addEventListener('popstate', cancelFixes);
+  win.document?.addEventListener('visibilitychange', onVisibility);
+  const ready = new Promise(resolve => request('capabilities', {}, d => { if (d.ok && d.capabilities) caps = { ...d.capabilities }; resolve(caps); }, 1000));
+  return { ready, request, getCapabilities: () => caps, getPermission: () => permission, dispose };
+}
+const ezikNativeLocation = typeof window === 'undefined' || !ezikShellBridge() ? null : createEzikNativeLocationAdapter(window);
+let ezikLocationChoiceVersion = 0;
+function ezikLocationChoiceChanged() {
+  ezikLocationChoiceVersion += 1;
+  try { window.dispatchEvent(new CustomEvent('ezik:location:choice')); } catch (e) {}
+}
+// Optional metadata belongs to these exact coordinates; it never borrows a nearest city's zone.
+function prayerNativeMetadata(value) {
+  if (!value || value.precision !== 'coarse' || value.coordinateResolutionDegrees !== 0.01 ||
+      !['last-known', 'fresh'].includes(value.source) || !Number.isFinite(value.timestamp) ||
+      !Number.isFinite(value.accuracyMeters) || value.accuracyMeters < 0 || !Number.isFinite(value.ageMs) || value.ageMs < 0) return null;
+  const text = k => typeof value[k] === 'string' && value[k].length <= 200 ? value[k] : null;
+  let timezone = text('timezone');
+  if (timezone && (value.timezoneSource !== 'native-geocoder' || !prayerZoneFmt(timezone))) timezone = null;
+  return { precision: 'coarse', coordinateResolutionDegrees: 0.01, source: value.source,
+    timestamp: value.timestamp, ageMs: value.ageMs, accuracyMeters: value.accuracyMeters,
+    region: text('region'), city: text('city'), district: text('district'), countryCode: text('countryCode'),
+    localitySource: text('localitySource'), timezone, timezoneSource: timezone ? 'native-geocoder' : null,
+    permission: value.permission && typeof value.permission === 'object' ? { state: value.permission.state,
+      canAskAgain: value.permission.canAskAgain, accuracy: value.permission.accuracy } : null };
+}
+function prayerNativeFix(detail) {
+  if (!detail || detail.ok !== true) return { ok: false, error: detail?.error || 'no-position', permission: detail?.permission || null };
+  const meta = prayerNativeMetadata(detail), coords = shellLocResultCoords(detail);
+  if (!meta || !coords || Math.abs(coords.lat) > 90 || Math.abs(coords.lng) > 180 ||
+      detail.timestamp > Date.now() + 5000 || Date.now() - detail.timestamp > 120000 || detail.ageMs > 120000) return { ok: false, error: 'no-position' };
+  return { ok: true, lat: coords.lat, lng: coords.lng, source: 'shell-v2', meta, permission: meta.permission };
+}
+function EzikLocationSettings() {
+  const [permission, setPermission] = useState(() => ezikNativeLocation?.getPermission());
+  const [failed, setFailed] = useState(false);
+  const stop = useRef(null);
+  useEffect(() => {
+    const update = ev => { setPermission(ev.detail); setFailed(false); };
+    window.addEventListener('ezik:location:permission', update);
+    return () => { window.removeEventListener('ezik:location:permission', update); if (stop.current) stop.current(); };
+  }, []);
+  if (!ezikNativeLocation?.getCapabilities()?.settings || permission?.state !== 'denied' || permission.canAskAgain !== false) return null;
+  return <div className="ez110-pcard-state">
+    <button type="button" className="ezik-focus ez110-pcard-pill" onClick={() => {
+      if (stop.current) stop.current(); setFailed(false);
+      stop.current = ezikNativeLocation.request('open-settings', { userInitiated: true }, r => setFailed(!r.ok));
+    }}>{ezT('settings.title')}</button>
+    {failed ? <span role="status">{ezT('place.fail.nopos')}</span> : null}
+  </div>;
+}
+function EzikLocationZoneNote({ loc }) {
+  if (!loc?.meta || loc.meta.timezone) return null;
+  let zone = ''; try { zone = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
+  return <div className="ez110-pcard-state" data-ezik-zone-source="device">{ezT('place.deviceZone', { tz: zone })}</div>;
+}
+
+
 // THE ONE PLACE lon BECOMES lng, AND THERE IS NO SECOND ONE. The shell says `lon` and every other
 // line in this file says `lng`; the rename happens here so the shell's object is never handed to
 // writeQiblaLoc raw and no caller has to remember which vocabulary it is holding.
@@ -32311,6 +32428,7 @@ let PRAYER_LOCATE_LAST_AT = 0;
 function prayerZoneOf(loc) {
   if (loc && loc.by === 'place') return loc.place;
   if (loc && loc.by === 'default') return PRAYER_DEFAULT_ZONE;
+  if (loc && loc.meta && loc.meta.timezoneSource === 'native-geocoder' && prayerZoneFmt(loc.meta.timezone)) return { tz: loc.meta.timezone };
   return null;
 }
 // Great-circle distance in kilometres (haversine), for the three-kilometre and forty-kilometre rules.
@@ -32326,6 +32444,26 @@ function prayerDistanceKm(lat1, lng1, lat2, lng2) {
 // Errors are five named words: permission-denied, no-position, timeout, unsupported, error.
 function prayerLocate(opts, onDone) {
   const o = opts || {};
+  if (typeof ezikNativeLocation !== 'undefined' && ezikNativeLocation) {
+    let live = true, stop = null;
+    const choice = ezikLocationChoiceVersion;
+    ezikNativeLocation.ready.then(caps => {
+      if (!live) return;
+      if (!caps) { stop = legacy(); return; }
+      if (o.userInitiated !== true) {
+        stop = ezikNativeLocation.request('status', {}, r => { if (live) onDone({ ok: false, error: 'inactive', permission: r.permission || null }); });
+        return;
+      }
+      stop = ezikNativeLocation.request('get', { userInitiated: true, precision: 'coarse', fresh: o.fresh === true, metadata: true }, r => {
+        if (!live) return;
+        if (choice !== ezikLocationChoiceVersion) { onDone({ ok: false, error: 'cancelled' }); return; }
+        onDone(prayerNativeFix(r));
+      }, SHELL_LOC_TIMEOUT_MS + (o.slowMs > 0 ? o.slowMs : 0));
+    });
+    return () => { live = false; if (stop) stop(); };
+  }
+
+  function legacy() {
   let over = false;
   const done = (r) => { if (over) return; over = true; try { onDone(r); } catch (e) {} };
   const bridge = ezikShellBridge();
@@ -32368,6 +32506,8 @@ function prayerLocate(opts, onDone) {
     }, o.fresh ? PRAYER_LOCATE_FRESH : PRAYER_LOCATE_QUICK);
   } catch (e) { done({ ok: false, error: 'error' }); }
   return () => { over = true; };
+  }
+  return legacy();
 }
 // THE NAME OF A FIX: the nearest city of places.json within PRAYER_PLACE_NAME_KM, else none. Asynchronous (the list
 // is fetched once, when first needed) and silent: a failed download leaves the fix nameless, never unused.
@@ -32393,9 +32533,21 @@ function prayerNameFix(lat, lng, onName) {
 function prayerLocateApply(fix, force) {
   const cur = readQiblaLoc();
   if (cur.by === 'place' && !force) return cur;
-  if (cur.by === 'device' && prayerDistanceKm(cur.lat, cur.lng, fix.lat, fix.lng) < PRAYER_LOCATE_MOVE_KM) return cur;
-  const next = writeQiblaLoc(fix.lat, fix.lng);
+  if (!fix.meta && cur.by === 'device' && prayerDistanceKm(cur.lat, cur.lng, fix.lat, fix.lng) < PRAYER_LOCATE_MOVE_KM) return cur;
+  const next = writeQiblaLoc(fix.lat, fix.lng, fix.meta);
   if (next.by !== 'device') return next;
+
+  if (fix.meta) {
+    const m = fix.meta, name = m.district || m.city || m.region || '';
+    writePrayerPrefs({ dev: { n: name, a: name, cc: m.countryCode || '', tz: m.timezone || '', lat: fix.lat, lng: fix.lng } });
+    if (!name) prayerNameFix(fix.lat, fix.lng, value => {
+      const now = readQiblaLoc();
+      if (now.by !== 'device' || now.lat !== fix.lat || now.lng !== fix.lng || now.meta?.timestamp !== m.timestamp) return;
+      writePrayerPrefs({ dev: { n: value?.n || '', a: value?.a || '', cc: value?.cc || '', tz: m.timezone || '', lat: fix.lat, lng: fix.lng } });
+    });
+    try { ezikSchedArm(); } catch (e) {}
+    return next;
+  }
   const dev = { n: '', a: '', cc: '', tz: '', lat: fix.lat, lng: fix.lng };
   writePrayerPrefs({ dev: dev });
   prayerNameFix(fix.lat, fix.lng, (name) => {
@@ -35898,10 +36050,11 @@ function QiblaPanel({ loc, onLoc, full }) {
     if (locStopRef.current) { locStopRef.current(); locStopRef.current = null; }
     setLocState('asking');
     const lit = typeof EZIK_FIX_LIT !== 'undefined' && EZIK_FIX_LIT === true;
-    locStopRef.current = prayerLocateAndApply({ force: true, slowMs: lit ? 50000 : 0, onSlow: () => setLocState('slow'), onImproved: (l) => setLoc(l) }, (r, next) => {
+    locStopRef.current = prayerLocateAndApply({ force: true, userInitiated: true, slowMs: lit ? 50000 : 0, onSlow: () => setLocState('slow'), onImproved: (l) => setLoc(l) }, (r, next) => {
       locStopRef.current = null;
       // ok:false IS A LAWFUL ANSWER, NOT A FAULT. A refusal ends exactly where the browser's own refusal ends: one
       // line of prose, the position standing as it was. No error screen, no silence, nothing thrown.
+      if (r.error === 'cancelled') { setLocState(''); return; }
       if (!r.ok) { setLocState(lit && r.error !== 'permission-denied' && r.error !== 'unsupported' ? 'nopos' : 'denied'); return; }
       setLoc(next);
       setLocState('');
@@ -36128,6 +36281,7 @@ function QiblaPanel({ loc, onLoc, full }) {
         {QIBLA_PLACE_LABEL} {placeName}{loc.by !== 'default' ? '' : ' (' + QIBLA_PLACE_DEFAULT_NOTE + ')'}
       </div>
       )}
+      {!bare ? <><EzikLocationSettings /><EzikLocationZoneNote loc={loc} /></> : null}
       {!bare && locState === 'asking' ? <div style={s.qiblaNote}>{QIBLA_LOC_ASKING}</div> : null}
       {!bare && locState === 'denied' ? <div style={s.qiblaNote}>{QIBLA_LOC_DENIED}</div> : null}
       {!bare && locState === 'slow' ? <div style={s.qiblaNote} role="status">{ezT('fix.loc.slow')}</div> : null}

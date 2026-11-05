@@ -1270,5 +1270,10 @@
     "name": "c1nativeshare",
     "script": "guards/c1-native-share-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1nativelocation",
+    "script": "guards/c1-native-location-guard.cjs",
+    "args": ""
   }
 ]
