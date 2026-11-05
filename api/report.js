@@ -14,6 +14,7 @@
 // the KV_REST_API_* vars Vercel injects. The throttle lives in lib/ratelimit.js.
 
 import { Redis } from '@upstash/redis';
+import { saveReport } from '../lib/report-intake.js';
 import { checkReportLimit, applyCorsOrigin } from '../lib/ratelimit.js';
 import { clientAddress } from '../lib/attempts.js';
 
@@ -64,7 +65,7 @@ const REASONS = new Set(['wrong_info', 'wrong_ruling', 'inappropriate', 'other']
 const BANDS = new Set(['young', 'teen', 'adult']);
 
 const REPORTS_KEY = 'reports';
-const REPORTS_KEEP = 5000; // LTRIM 0 4999 — newest 5000 only; bounded on the free tier
+const REPORTS_KEEP = 5000; // Protected capacity: refuse overflow instead of evicting accepted reports.
 
 // Coerce to string and hard-cut to `n` characters. Non-strings collapse to ''.
 function cut(v, n) {
@@ -125,8 +126,9 @@ export default async function handler(req, res) {
   // NOT swallow it: a report that silently evaporates is a dead safety feature, and the
   // caller must learn the truth so it can retry or tell a human.
   try {
-    await redis.lpush(REPORTS_KEY, JSON.stringify(record));
-    await redis.ltrim(REPORTS_KEY, 0, REPORTS_KEEP - 1);
+    const saved = await saveReport(redis, record, REPORTS_KEEP);
+    if (saved === 0) return res.status(429).json({ error: 'duplicate report already received' });
+    if (saved !== 1) return res.status(503).json({ error: 'report inbox full; please try again later' });
   } catch (e) {
     console.error('[report] STORE FAILED — report NOT saved:', e && e.message ? e.message : e);
     return res.status(503).json({ error: 'could not save report; please try again' });
