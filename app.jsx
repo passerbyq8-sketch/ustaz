@@ -32647,7 +32647,30 @@ const SHELL_HEADING_NUDGE_MS = [250, 700, 1500];
 // Qibla bearing is clockwise from TRUE north (qiblaBearing above). Expo may publish -1 for an
 // unavailable trueHeading, so a valid true heading wins and the magnetic heading is the named
 // fallback. No accuracy threshold appears here: calibration remains the shell's judgment.
+// S4 v2 identifies the reference explicitly. Legacy events keep the old-shell path.
+let ezikHeadingStartedAt = 0, ezikHeadingActive = false;
+function shellHeadingV2Enabled() {
+  return typeof ezikNativeLocation !== 'undefined' && !!ezikNativeLocation?.getCapabilities()?.headingReference;
+}
+function shellHeadingCurrent(detail) {
+  if (!shellHeadingV2Enabled() || detail?.v !== '2') return true;
+  return ezikHeadingActive && Number.isFinite(detail.timestamp) && detail.timestamp >= ezikHeadingStartedAt &&
+    detail.timestamp <= Date.now() + 5000 && (typeof document === 'undefined' || document.visibilityState !== 'hidden');
+}
+function shellTrueNorth(detail, loc, date) {
+  const valid = n => typeof n === 'number' && Number.isFinite(n) && n >= 0 && n <= 360;
+  const norm = n => (n % 360 + 360) % 360;
+  if (!detail || !['ready', 'calibration-needed'].includes(detail.status) || !Number.isInteger(detail.accuracy) || detail.accuracy < 0 || detail.accuracy > 3) return null;
+  const reference = valid(detail.trueHeading) ? 'true' : valid(detail.magHeading) ? 'magnetic' : null;
+  const raw = reference === 'true' ? detail.trueHeading : detail.magHeading;
+  if (!reference || detail.reference !== reference || !valid(detail.headingDegrees) || Math.abs(norm(detail.headingDegrees) - norm(raw)) > 0.000001) return null;
+  if (reference === 'true') return norm(raw);
+  if (!loc || !Number.isFinite(loc.lat) || !Number.isFinite(loc.lng) || Math.abs(loc.lat) > 90 || Math.abs(loc.lng) > 180) return null;
+  const declination = wmmDeclination(loc.lat, loc.lng, wmmYearOf(date));
+  return Number.isFinite(declination) ? norm(raw + declination) : null;
+}
 function shellHeadingOf(detail) {
+  if (detail?.v === '2' && typeof shellHeadingV2Enabled === 'function' && shellHeadingV2Enabled()) return shellTrueNorth(detail, readQiblaLoc(), new Date());
   if (!detail || typeof detail !== 'object' || detail.type !== SHELL_HEADING_RESULT) return null;
   const trueHeading = detail.trueHeading;
   if (typeof trueHeading === 'number' && isFinite(trueHeading) && trueHeading >= 0 && trueHeading <= 360) {
@@ -32662,6 +32685,10 @@ function shellHeadingOf(detail) {
 
 function sendShellHeadingCommand(bridge, type) {
   if (!bridge || (type !== SHELL_HEADING_START && type !== SHELL_HEADING_STOP)) return false;
+  if (typeof shellHeadingV2Enabled === 'function' && shellHeadingV2Enabled()) {
+    ezikHeadingActive = type === SHELL_HEADING_START;
+    if (ezikHeadingActive) ezikHeadingStartedAt = Date.now();
+  }
   try { bridge.postMessage(JSON.stringify({ type: type })); return true; }
   catch (e) { return false; }
 }
@@ -35923,7 +35950,7 @@ function QiblaPanel({ loc, onLoc, full }) {
   const bearing = qiblaBearing(loc.lat, loc.lng);
   bearingRef.current = bearing;
   // F6: the browser reads magnetic north, so its readings get the local declination; the shell's trueHeading does not.
-  declRef.current = headingBridgeRef.current ? 0 : (wmmDeclination(loc.lat, loc.lng, wmmYearOf(new Date())) || 0);
+  declRef.current = wmmDeclination(loc.lat, loc.lng, wmmYearOf(new Date())) || 0; // Browser intake only; v2 shell intake corrects its explicit reference once.
 
   // ---- THE FRAME: the one place the DOM is turned -------------------------------------------------------------
   const paint = (snap) => {
@@ -35992,6 +36019,7 @@ function QiblaPanel({ loc, onLoc, full }) {
       const onHeadingResult = (ev) => {
         const detail = ev && ev.detail;
         if (!detail || typeof detail !== 'object' || detail.type !== SHELL_HEADING_RESULT) return;
+        if (typeof shellHeadingCurrent === 'function' && !shellHeadingCurrent(detail)) return;
         const status = detail.status;
         if (SHELL_HEADING_STATUSES.indexOf(status) === -1) return;
         if (status === 'ready' || status === 'calibration-needed') {
@@ -36024,9 +36052,18 @@ function QiblaPanel({ loc, onLoc, full }) {
       startCompass(QIBLA_GESTURE, false);
       QIBLA_GESTURE = null;
     }
+    const onNativeBackground = () => {
+      if (typeof shellHeadingV2Enabled !== 'function' || !shellHeadingV2Enabled() || !bridge || document.visibilityState !== 'hidden') return;
+      stopHeadingWait();
+      if (stopRef.current) { stopRef.current(); stopRef.current = null; }
+      if (rafRef.current !== null && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(rafRef.current);
+      rafRef.current = null; setCompass('heading-error');
+    };
+    document.addEventListener('visibilitychange', onNativeBackground);
     // THE SHELL ARM ABOVE IS UNTOUCHED. A native shell starts its own heading stream at mount, because that path
     // raises no web permission prompt and needs no gesture -- and the browser's sensor is never started beside it.
     return () => {
+      document.removeEventListener('visibilitychange', onNativeBackground);
       stopHeadingWait();
       if (stopRef.current) { stopRef.current(); stopRef.current = null; }
       if (locStopRef.current) { locStopRef.current(); locStopRef.current = null; }

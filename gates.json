@@ -1275,5 +1275,10 @@
     "name": "c1nativelocation",
     "script": "guards/c1-native-location-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1nativeheading",
+    "script": "guards/c1-native-heading-guard.cjs",
+    "args": ""
   }
 ]
