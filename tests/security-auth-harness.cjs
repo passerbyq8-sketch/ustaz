@@ -89,7 +89,7 @@ async function harness({ clockStep = 0 } = {}) {
     else if (id.endsWith('/lib/sync/service.js')) mod = synthetic(id, { weldByVerifiedEmail: async () => { effects.weld++; return { welded: false }; }, eraseForAccountDelete: async () => { effects.erase++; if (faults.erase) throw Error('synthetic erase outage'); } });
     else if (id.endsWith('/lib/daycap.js')) mod = synthetic(id, { DEVICE_HEADER: 'x-murabbi-device', FOUNDER_HEADER: 'x-founder', hasUnrevokedFounderToken: async () => false, safeId: value => value || null, kuwaitDayStamp: () => 'synthetic-day', DAY_CAP_TTL_SECONDS: 172800 });
     else if (id.endsWith('/lib/answer-log.js')) mod = synthetic(id, { readAnswerLog: async () => [], ANSWER_LOG_PATHS: [] });
-    else if (id.endsWith('/lib/usage.js')) mod = synthetic(id, { readUsage() {}, readUsageChat() {}, usageAnswerOutcome() {}, usageWindow() {} });
+    else if (id.endsWith('/lib/usage.js')) mod = synthetic(id, { readUsage() {}, readUsageChat() {}, usageAnswerOutcome() {}, usageWindow() {}, usageActiveKey() {} });
     else if (id.endsWith('.json')) mod = synthetic(id, { default: JSON.parse(fs.readFileSync(id, 'utf8')) });
     else mod = new vm.SourceTextModule(fs.readFileSync(id, 'utf8'), { context, identifier: id });
     cache.set(id, mod);

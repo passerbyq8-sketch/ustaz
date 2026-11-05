@@ -17,7 +17,7 @@ function runPanelLua(script,keys,args,store){
  }
  const one=a=>new Proxy(a,{get(t,k){return /^\d+$/.test(String(k))?t[Number(k)-1]:t[k];}});
  return vm.runInNewContext('(function(){'+out.join('\n')+'})()',{
-  KEYS:one(keys),ARGV:one(args),redis:{call:store},tonumber:v=>Number.isFinite(Number(v))?Number(v):undefined
+  KEYS:one(keys),ARGV:one(args),redis:{call:store},string:{sub:(s,a,b)=>s.slice(a-1,b)},tonumber:v=>Number.isFinite(Number(v))?Number(v):undefined
  },{timeout:1000});
 }
 module.exports={runPanelLua};

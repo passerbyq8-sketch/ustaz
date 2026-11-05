@@ -55,6 +55,7 @@ import { readJson as readAuthJson } from '../lib/auth/store.js';
 import { readAnswerLog, ANSWER_LOG_PATHS } from '../lib/answer-log.js';
 import { readUsage, readUsageChat, usageAnswerOutcome, usageWindow } from '../lib/usage.js';
 import { TEXT_CAP } from './feedback.js';
+import { readDeviceVersions } from '../lib/panel-versions.js';
 
 const redis = new Redis({
   url: process.env.KV_REST_API_URL,
@@ -432,6 +433,10 @@ export default async function handler(req, res) {
 async function ownerAction(req, res, body, action) {
   if (action === 'list') {
     if (body.kind === 'answers') return res.status(200).json(await answersList(body));
+    if (body.kind === 'version-devices') {
+      try { return res.status(200).json(await readDeviceVersions()); }
+      catch { return res.status(503).json({ ok:false, error:'inbox-store' }); }
+    }
     if (body.kind === 'overview') return res.status(200).json(await panelOverview());
     if (body.kind === 'usage' || body.kind === 'usage-chat') {
       try { usageWindow(body); }

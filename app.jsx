@@ -486,6 +486,8 @@ function useEzLang() {
 // here and no translated string is ever handed to innerHTML. ---------------------------
 const EZ_I18N = {
   ar: {
+    'panel.oldDevices': "أجهزة بإصدارات قديمة",
+    'panel.unknown': "غير معروف",
     'panel.campaign': "رسالة من الإدارة",
     'panel.campaignStart': "البداية (بالتوقيت المحلي)",
     'panel.campaignEnd': "النهاية (بالتوقيت المحلي)",
@@ -2487,6 +2489,8 @@ const EZ_I18N = {
     'tr4.machine': 'ترجمة آلية',
   },
   en: {
+    'panel.oldDevices': "Devices on older versions",
+    'panel.unknown': "Unknown",
     'panel.campaign': "Announcement",
     'panel.campaignStart': "Starts (local time)",
     'panel.campaignEnd': "Ends (local time)",
@@ -29833,6 +29837,19 @@ function EzCpPlatform({ p }) {
   );
 }
 
+function EzPanelVersionDevices() {
+  const [data, setData] = useState(null);
+  useEffect(() => {
+    const held = readAuthSession(); let live = true;
+    if (held) ezikInbox({ session: held.session, action: 'list', kind: 'version-devices' }).then(r => { if (live) setData(r.ok ? r.data : null); });
+    return () => { live = false; };
+  }, []);
+  return <div data-panel-version-devices="1"><h4>{ezT('panel.oldDevices')} · {ezT('usage.week')}</h4>
+    {data ? <><strong>{ezUbNum(data.old)}</strong><p>{ezT('panel.unknown')}: {ezUbNum(data.unknown + data.other)}</p>
+      {data.versions.map(v => <div className="ezub-pair" key={v.v}><bdi dir="ltr">{v.v}</bdi><span>{ezUbNum(v.n)}</span></div>)}
+      <small>{ezT('usage.note')}</small></> : <p>{ezT('usage.pending')}</p>}
+  </div>;
+}
 function EzikUsageBoard({ store }) {
   const [day, setDay] = useState(() => new Date().toISOString().slice(0, 10));
   const [days, setDays] = useState(1);
@@ -29977,9 +29994,7 @@ function EzikUsageBoard({ store }) {
             {b && (b.platforms.a || b.platforms.i || b.platforms.w) ? (
               <>
                 <EzCpPlatform p={b.platforms} />
-                {b.versions.map((v) => (
-                  <div className="ezub-pair" key={v.v}><bdi dir="ltr">{v.v}</bdi><span>{ezUbNum(v.n)}</span></div>
-                ))}
+                <EzPanelVersionDevices />
               </>
             ) : <EzUbCollecting since={since} />}
           </section>
