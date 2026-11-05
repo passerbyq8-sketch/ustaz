@@ -1170,5 +1170,10 @@
     "name": "security-iap-receipt",
     "script": "guards/security-iap-receipt-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "securityauthcapabilities",
+    "script": "guards/security-auth-capabilities-guard.cjs",
+    "args": ""
   }
 ]

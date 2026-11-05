@@ -30,7 +30,7 @@ ok('ask route logs the captured lexical runtime and final route tags', ask.inclu
 const roster = JSON.parse(fs.readFileSync(path.join(ROOT, 'gates.json'), 'utf8'));
 ok('route log guard is registered once', roster.filter((x) => x.name === 'postship3routelog' && x.script === 'guards/brain-postship3-route-log-guard.cjs').length === 1);
 // IAP launch rebuild 2 (2026-10-29): 220 -> 221, one account-scoped entry decision gate.
-ok('gate inventory count is 233', roster.length === 233);
+ok('gate inventory count is 234', roster.length === 234);
 const attrs = fs.readFileSync(path.join(ROOT, '.gitattributes'), 'utf8');
 ok('route helper and guard are pinned to LF', /lib\/route-log\.js text eol=lf/.test(attrs) && /guards\/brain-postship3-route-log-guard\.cjs text eol=lf/.test(attrs));
 console.log(String.fromCharCode(10) + (checks - failures) + '/' + checks + ' checks passed');
