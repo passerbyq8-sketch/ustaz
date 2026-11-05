@@ -1335,5 +1335,15 @@
     "name": "c1libraryentry",
     "script": "guards/c1-library-entry-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "securityauthcapabilities",
+    "script": "guards/security-auth-capabilities-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "securityauthredirectcompletion",
+    "script": "guards/security-auth-redirect-completion-guard.cjs",
+    "args": ""
   }
 ]
