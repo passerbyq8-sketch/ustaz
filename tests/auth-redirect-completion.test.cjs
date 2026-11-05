@@ -3,7 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { harness } = require('./security-auth-harness.cjs');
 const CS = 'initiating_client_state';
-const TOKEN = 'https://oauth2.googleapis.com/token';
+const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
 const KEYS = 'https://www.googleapis.com/oauth2/v3/certs';
 const plain = value => JSON.parse(JSON.stringify(value));
 async function call(h, file, query = {}, { method = 'GET', body = {} } = {}) {
@@ -118,10 +118,10 @@ const callbackCases = [
   { name: 'expired challenge', code: 'auth-challenge-invalid', change: (h, f) => { h.data.get('auth:state:v1:' + f.state).value.proof.expiresAt = h.now(); } },
   { name: 'missing provider config', code: 'auth-provider-unconfigured', change: h => { delete h.env.GOOGLE_OAUTH_CLIENT_SECRET; } },
   { name: 'unknown recorded provider', code: 'auth-provider-unknown', change: (h, f) => { h.data.get('auth:state:v1:' + f.state).value.provider = 'unknown'; } },
-  { name: 'token outage', code: 'auth-token-unreachable', change: h => h.http.responses.set(TOKEN, Error('private outage text')) },
-  { name: 'token refusal', code: 'auth-token-refused', change: h => h.http.responses.set(TOKEN, response(400, {})) },
-  { name: 'token invalid JSON', code: 'auth-token-unreadable', change: h => h.http.responses.set(TOKEN, { ok: true, status: 200, json: async () => { throw Error('bad JSON'); } }) },
-  { name: 'token missing assertion', code: 'auth-token-no-id-token', change: h => h.http.responses.set(TOKEN, response(200, {})) },
+  { name: 'token outage', code: 'auth-token-unreachable', change: h => h.http.responses.set(TOKEN_ENDPOINT, Error('private outage text')) },
+  { name: 'token refusal', code: 'auth-token-refused', change: h => h.http.responses.set(TOKEN_ENDPOINT, response(400, {})) },
+  { name: 'token invalid JSON', code: 'auth-token-unreadable', change: h => h.http.responses.set(TOKEN_ENDPOINT, { ok: true, status: 200, json: async () => { throw Error('bad JSON'); } }) },
+  { name: 'token missing assertion', code: 'auth-token-no-id-token', change: h => h.http.responses.set(TOKEN_ENDPOINT, response(200, {})) },
   { name: 'JWKS outage', code: 'auth-jwks-unreachable', change: h => h.http.responses.set(KEYS, Error('private JWKS outage')) },
   { name: 'JWKS refusal', code: 'auth-jwks-refused', change: h => h.http.responses.set(KEYS, response(503, {})) },
   { name: 'JWKS invalid JSON', code: 'auth-jwks-unreadable', change: h => h.http.responses.set(KEYS, { ok: true, status: 200, json: async () => { throw Error('bad JSON'); } }) },
