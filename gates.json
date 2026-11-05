@@ -1165,5 +1165,10 @@
     "name": "security-iap-worker",
     "script": "guards/security-iap-worker-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "security-iap-receipt",
+    "script": "guards/security-iap-receipt-guard.cjs",
+    "args": ""
   }
 ]
