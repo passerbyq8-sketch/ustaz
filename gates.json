@@ -1185,5 +1185,10 @@
     "name": "securityarticleinput",
     "script": "guards/security-article-input-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1portugueseusage",
+    "script": "guards/c1-portuguese-usage-guard.cjs",
+    "args": ""
   }
 ]
