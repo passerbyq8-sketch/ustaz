@@ -335,6 +335,7 @@ const IDLE = [
   '/dima/dima-v1.json',
   '/dima/pack-manifest-v1.json',
   '/dima/pack-regular-002.json',
+  '/dima/pack-regular-003.json',
   '/dima/pack-ramadan-001.json',
   '/dima/pack-dhul-hijjah-001.json',
   '/dima/pack-white-days-001.json',

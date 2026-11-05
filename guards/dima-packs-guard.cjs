@@ -6,7 +6,7 @@ const BASE='09554894aeef74616a9e030f74f4542b83dc4a1aadf6220d427167c064dae15c';
 const files=['pack-regular-002.json','pack-ramadan-001.json','pack-dhul-hijjah-001.json','pack-white-days-001.json','pack-regular-003.json'];
 function json(f){const b=fs.readFileSync(path.join(root,f));assert(!b.subarray(0,3).equals(Buffer.from([239,187,191])),f+' BOM');assert(!b.includes(13),f+' must be LF');return JSON.parse(b.toString('utf8'));}
 const norm=s=>s.normalize('NFC').replace(/[\u0610-\u061a\u064b-\u065f\u0670\u06d6-\u06ed\u0640]/g,'').replace(/[\u0623\u0625\u0622\u0671]/g,'\u0627').replace(/\u0629/g,'\u0647').replace(/\u0649/g,'\u064a').replace(/[^\u0621-\u064a0-9]/g,'');
-function load(){return {legacy:fs.readFileSync(path.join(root,'dima/dima-v1.json')),packs:files.map(f=>json('dima/'+f)),manifest:json('dima/pack-manifest-v1.json'),schema:json('dima/pack-schema-v1.json'),proof:json('dima/pack-source-evidence-v1.json'),quran:json('quran-uthmani.json'),quranHash:hash(fs.readFileSync(path.join(root,'quran-uthmani.json')))};}
+function load(){return {legacy:fs.readFileSync(path.join(root,'dima/dima-v1.json')),packs:files.map(f=>json('dima/'+f)),manifest:json('dima/pack-manifest-v1.json'),schema:json('dima/pack-schema-v1.json'),proof:json('dima/pack-source-evidence-v1.json'),quran:json('quran-uthmani.json'),quranHash:hash(fs.readFileSync(path.join(root,'quran-uthmani.json'))),activation:Object.fromEntries(['app.jsx','app.js','sw.js'].map(f=>[f,fs.readFileSync(path.join(root,f),'utf8')]))};}
 // Validate the actual JSON Schema subset used by this data, without adding a dependency.
 function schemaCheck(v,s,defs,at){
  if(s.$ref)return schemaCheck(v,defs[s.$ref.split('/').at(-1)],defs,at);
@@ -80,12 +80,16 @@ function validate(s){
    assert.equal(full.slice(span.start,span.end),x.note,'exact excerpt span');assert(x.note.length<=220,'batch 3 quotation too long');
   }
  }
- for(const f of ['app.jsx','app.js','index.html','sw.js']){const source=fs.readFileSync(path.join(root,f),'utf8');for(const name of [...files,'pack-manifest-v1.json','pack-source-evidence-v1.json'])assert(!source.includes(name),'unexpected live registration '+f);}
+ // Active packs are discovered through the manifest and warmed for offline use.
+ for(const f of ['app.jsx','app.js'])assert(s.activation[f].includes('/dima/pack-manifest-v1.json'),'active manifest '+f);
+ assert(s.activation['app.jsx'].includes('await dimaBuildCatalog(data, manifest, get)'),'manifest resolver is called');
+ for(const url of ['/dima/pack-manifest-v1.json',...m.regular.filter(x=>x.path).map(x=>x.path),...m.seasonal.map(x=>x.path)])assert(s.activation['sw.js'].includes("'"+url+"'"),'offline warm '+url);
+
  return ids.size;
 }
-const state=load();console.log('Dima packs PASS: 103 days; '+validate(state)+' stable IDs; local source evidence; legacy bytes unchanged; no live registration.');
+const state=load();console.log('Dima packs PASS: 103 days; '+validate(state)+' stable IDs; local source evidence; legacy bytes unchanged; active manifest resolver and offline pack warming.');
 if(process.argv.includes('--self-test')){
- const mutations=[['duplicate ID',s=>s.packs[0].days[1].id=s.packs[0].days[0].id],['missing source',s=>s.packs[0].days[0].qalb.src=''],['empty notification',s=>s.packs[0].days[0].notification.text=''],['changed quote',s=>s.packs[0].days[0].qalb.note+='!'],['changed live bytes',s=>s.legacy=Buffer.concat([s.legacy,Buffer.from(' ')])],['wrong seasonal count',s=>s.packs[1].days.pop()],['wrong schema',s=>s.packs[0].version='1']];
+ const mutations=[['missing active manifest',s=>s.activation['app.jsx']=s.activation['app.jsx'].replace('/dima/pack-manifest-v1.json','/dima/missing.json')],['missing active resolver',s=>s.activation['app.jsx']=s.activation['app.jsx'].replace('await dimaBuildCatalog(data, manifest, get)','null')],['missing batch 3 offline warm',s=>s.activation['sw.js']=s.activation['sw.js'].replace("'/dima/pack-regular-003.json'", "'/dima/missing.json'")],['duplicate ID',s=>s.packs[0].days[1].id=s.packs[0].days[0].id],['missing source',s=>s.packs[0].days[0].qalb.src=''],['empty notification',s=>s.packs[0].days[0].notification.text=''],['changed quote',s=>s.packs[0].days[0].qalb.note+='!'],['changed live bytes',s=>s.legacy=Buffer.concat([s.legacy,Buffer.from(' ')])],['wrong seasonal count',s=>s.packs[1].days.pop()],['wrong schema',s=>s.packs[0].version='1']];
  mutations.push(
   ['missing batch 3',s=>s.packs.pop()],
   ['missing batch 3 manifest',s=>s.manifest.regular.pop()],

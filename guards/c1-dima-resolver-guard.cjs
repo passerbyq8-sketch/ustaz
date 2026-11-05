@@ -12,7 +12,12 @@ function fixture(code=core){const disk=new Map();let failWrite=false,failRead=fa
  const context=vm.createContext(scope);vm.runInContext(code+'\n'+calendar,context);const read=s=>vm.runInContext(s,context);read('__dimaData = data;');
  return {scope,disk,read,context,failWrite:v=>failWrite=v,failRead:v=>failRead=v};}
 async function verify(code){let n=0;const f=fixture(code);const get=async p=>JSON.parse(fs.readFileSync(path.join(root,p),'utf8'));
- const cat=await f.read('dimaBuildCatalog')(data,manifest,get);assert.equal(cat.regular.length,60);assert.equal(Object.keys(cat.seasonal).length,3);n++;
+ const real90=await f.read('dimaBuildCatalog')(data,manifest,get);assert.equal(real90.regular.length,90);n++;
+ f.scope.real90=real90;f.scope.date=new Date(2026,0,5,12);f.read('hijriForCivilDay = () => ({y:1448,m:2,d:20,by:"fixture",offset:0});');
+ for(const index of [61,90,91]){f.scope.state={startDate:f.read('dimaDateKey(dimaDateAdd(date, 1 - '+index+'))'),log:{},presented:{}};const r=f.read('dimaResolveForDate(state,date,real90)');assert.equal(r.index,index);assert.equal(r.dayId,'dima.regular.'+String((index-1)%90+1).padStart(3,'0'));assert.equal(r.repeat,index>90);n++;}
+ // Retain the 60-day fixture to exercise partial availability and later arrival.
+ const manifest60=clone(manifest);manifest60.regular=manifest60.regular.slice(0,2);
+ const cat=await f.read('dimaBuildCatalog')(data,manifest60,get);assert.equal(cat.regular.length,60);assert.equal(Object.keys(cat.seasonal).length,3);n++;
  f.scope.cat=cat;f.scope.state={startDate:'2026-01-01',log:{},notify:{on:false,slot:'duha'},notifySeen:true,presented:{}};
  // Stable ordinary fixtures isolate calendar selection, not the resolver implementation.
  f.read('hijriForCivilDay = () => ({y:1448,m:2,d:20,by:"fixture",offset:0});');
@@ -24,7 +29,7 @@ async function verify(code){let n=0;const f=fixture(code);const get=async p=>JSO
  const thirty=f.read('dimaResolveForDate(state,date,offline)');assert.equal(thirty.index,31);assert.equal(thirty.dayId,'dima.regular.001');assert(thirty.repeat);assert(thirty.snapshot.notification.text);n++;
  // A future contiguous pack is consumed without a hard-coded filename.
  const third=await get('/dima/pack-regular-002.json');third.id='dima-regular-003';third.startDay=61;third.days=third.days.map(d=>JSON.parse(JSON.stringify(d).replace(/dima\.regular\.(\d{3})/g,(_,i)=>'dima.regular.'+String(+i+30).padStart(3,'0'))));third.days.forEach(d=>d.position+=30);
- const future=clone(manifest);future.regular.push({id:third.id,version:1,path:'/dima/pack-regular-003.json',firstDay:61,lastDay:90});
+ const future=clone(manifest60);future.regular.push({id:third.id,version:1,path:'/dima/pack-regular-003.json',firstDay:61,lastDay:90});
  const cat90=await f.read('dimaBuildCatalog')(data,future,p=>p.endsWith('003.json')?third:get(p));assert.equal(cat90.regular.length,90);n++;
  const bad=clone(third);bad.days[0].qalb.note='';const truncated=await f.read('dimaBuildCatalog')(data,future,p=>p.endsWith('003.json')?bad:get(p));assert.equal(truncated.regular.length,60);n++;
  f.scope.state.startDate='2025-11-06';const original=f.read('dimaResolveForDate(state,date,cat)');assert(original.repeat);f.scope.original=original;
