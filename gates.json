@@ -1250,5 +1250,10 @@
     "name": "c1waqfattitle",
     "script": "guards/c1-waqfat-title-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1questiondisplay",
+    "script": "guards/c1-question-display-guard.cjs",
+    "args": ""
   }
 ]

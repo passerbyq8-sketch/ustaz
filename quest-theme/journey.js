@@ -31,6 +31,31 @@
   const catColors = ['#2a8e84', '#628c6b', '#437e9f', '#98714d', '#8c6f9d', '#b46c54'];
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const ar = n => String(n).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+  // D3 QUESTION DISPLAY START: the app's declared numerals; bank text and scores are untouched.
+  var KZ_QUESTION_NUMERALS = {"ar":"arab","en":"latn","fa":"arabext","fr":"latn","id":"latn","ur":"latn","bn":"beng","tr":"latn","ha":"latn","ms":"latn","sw":"latn","ru":"latn","zh":"latn","es":"latn","pt":"latn","de":"latn","hi":"latn","so":"latn","ps":"arabext","ku":"arab","uz":"latn","am":"latn","ta":"latn","om":"latn"};
+  function kzQuestionLanguage() {
+    var lang = 'ar';
+    try { lang = localStorage.getItem(['ezik', 'ui', 'lang', 'v1'].join('_')) || document.documentElement.getAttribute('lang') || 'ar'; } catch (_) {}
+    return Object.prototype.hasOwnProperty.call(KZ_QUESTION_NUMERALS, lang) ? lang : 'ar';
+  }
+  function kzQuestionDigits(value) {
+    var set = KZ_QUESTION_NUMERALS[kzQuestionLanguage()];
+    var base = set === 'arab' ? 0x660 : set === 'arabext' ? 0x6f0 : set === 'beng' ? 0x9e6 : 0x30;
+    return String(value).replace(/[0-9٠-٩۰-۹০-৯]/g, function (c) {
+      var cp = c.charCodeAt(0), n = cp >= 0x9e6 ? cp - 0x9e6 : cp >= 0x6f0 ? cp - 0x6f0 : cp >= 0x660 ? cp - 0x660 : cp - 0x30;
+      return String.fromCharCode(base + n);
+    });
+  }
+  function kzQuestionCount(current, total) {
+    var text = 'السؤال ' + current + ' من ' + total;
+    if (typeof window.KunuzUIText === 'function') text = window.KunuzUIText(text);
+    return kzQuestionDigits(text);
+  }
+  function kzChoiceLetter(index) {
+    var lang = kzQuestionLanguage();
+    return lang === 'ar' || lang === 'fa' ? ['أ', 'ب', 'ج', 'د', 'هـ', 'و'][index] : String.fromCharCode(65 + index);
+  }
+  // D3 QUESTION DISPLAY END
   // Keep the sign before Arabic digits independently of surrounding RTL prose.
   const score = (n, delta = false) => '<bdi dir="ltr">' + (n < 0 ? '−' : delta && n > 0 ? '+' : '') + ar(Math.abs(n)) + '</bdi>';
   function arabicSource(value) {
@@ -410,7 +435,7 @@
     return '<div class="j-answers">' + data[4].map((answer, i) => {
       const selected = q.selected === i, right = q.answerRevealed && data[5] === i;
       const className = 'j-answer' + (selected ? ' j-picked' : '') + (right ? ' j-correct' : q.answerRevealed && selected ? ' j-wrong' : '');
-      return '<div class="j-answer-row">' + button('<span data-choice="' + i + '">' + esc(answer) + '</span><span class="j-letter">' + (right ? '✓' : ['أ', 'ب', 'ج', 'د', 'هـ', 'و'][i]) + '</span>', 'answer', className, 'data-answer="' + i + '" aria-pressed="' + selected + '"' + (q.settled || q.answerRevealed || q.burned.has(i) || game === 'hanna' && !q.confidence ? ' disabled' : '')) +
+      return '<div class="j-answer-row">' + button('<span data-choice="' + i + '">' + esc(answer) + '</span><span class="j-letter">' + (right ? '✓' : kzChoiceLetter(i)) + '</span>', 'answer', className, 'data-answer="' + i + '" aria-pressed="' + selected + '"' + (q.settled || q.answerRevealed || q.burned.has(i) || game === 'hanna' && !q.confidence ? ' disabled' : '')) +
         (selected && !host && !q.settled && !q.answerRevealed && game === 'hanna' ? button('تأكيد', 'confirm-answer', 'j-confirm') : '') + '</div>';
     }).join('') + '</div>';
   }
@@ -478,7 +503,7 @@
   function quizQuestion() {
     const q = M.question, completed = played();
     const response = M.settings.options === 'shown' ? answers(q) : q.answerRevealed ? '<p class="j-quiz-self-answer"><span data-choice="' + questionText(q)[5] + '">' + esc(questionText(q)[4][questionText(q)[5]]) + '</span></p>' + (!q.settled ? '<div class="j-actions">' + button('عرفتها', 'judge-yes') + button('ما عرفتها', 'judge-no', 'j-secondary') + '</div>' : '') : '<div class="j-actions">' + button('أظهر الجواب', 'reveal-answer') + '</div>';
-    return '<section class="j-quiz-screen"><p class="j-quiz-position">السؤال ' + ar(q.slotIndex + 1) + ' من ' + ar(M.slots.length) + '</p><div class="j-quiz-progress" role="progressbar" aria-label="الأسئلة المكتملة" aria-valuemin="0" aria-valuemax="' + M.slots.length + '" aria-valuenow="' + completed + '"><i style="width:' + completed / M.slots.length * 100 + '%"></i></div><div class="j-paper j-quiz-question"><span class="j-tag">' + esc(catName(questionText(q)[0])) + '</span><h2 translate="no">' + esc(questionText(q)[3]) + '</h2><div id="qvis" hidden></div>' + response + (q.duration ? timerMarkup(q) : '') + '<p class="j-quiz-feedback" role="status">' + (q.settled ? q.correct ? '✓ صحيح!' : 'خطأ · الجواب الصحيح: <span translate="no">' + esc(questionText(q)[4][questionText(q)[5]]) + '</span>' : '') + '</p></div></section>';
+    return '<section class="j-quiz-screen"><p class="j-quiz-position" translate="no">' + esc(kzQuestionCount(q.slotIndex + 1, M.slots.length)) + '</p><div class="j-quiz-progress" role="progressbar" aria-label="الأسئلة المكتملة" aria-valuemin="0" aria-valuemax="' + M.slots.length + '" aria-valuenow="' + completed + '"><i style="width:' + completed / M.slots.length * 100 + '%"></i></div><div class="j-paper j-quiz-question"><span class="j-tag">' + esc(catName(questionText(q)[0])) + '</span><h2 translate="no">' + esc(questionText(q)[3]) + '</h2><div id="qvis" hidden></div>' + response + (q.duration ? timerMarkup(q) : '') + '<p class="j-quiz-feedback" role="status">' + (q.settled ? q.correct ? '✓ صحيح!' : 'خطأ · الجواب الصحيح: <span translate="no">' + esc(questionText(q)[4][questionText(q)[5]]) + '</span>' : '') + '</p></div></section>';
   }
   function quizResults() {
     const correct = M.slots.filter(slot => slot.by >= 0).length;
