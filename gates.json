@@ -1295,5 +1295,10 @@
     "name": "c1dimawiring",
     "script": "guards/c1-dima-wiring-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1solidbars",
+    "script": "guards/c1-solid-bars-guard.cjs",
+    "args": ""
   }
 ]

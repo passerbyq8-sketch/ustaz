@@ -29890,7 +29890,7 @@ position:relative;display:flex;flex-direction:column;height:100dvh;overflow:hidd
 .ezcp-act:disabled,.ezcp-gold:disabled{opacity:.5;cursor:default}
 .ezcp-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .ezcp-wrap{box-sizing:border-box;max-width:600px;margin:0 auto;padding:6px 16px calc(env(safe-area-inset-bottom,0px) + 104px);display:flex;flex-direction:column;gap:14px}
-.ezcp-nav{position:absolute;inset-inline:0;bottom:0;z-index:3;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:6px 6px calc(env(safe-area-inset-bottom,0px) + 6px);background:rgba(12,24,27,.9);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid #234047}
+.ezcp-nav{position:absolute;inset-inline:0;bottom:0;z-index:3;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:6px 6px calc(env(safe-area-inset-bottom,0px) + 6px);background:#0c181b;-webkit-backdrop-filter:none;backdrop-filter:none;border-top:1px solid #234047}
 .ezcp-nav button{all:unset;box-sizing:border-box;position:relative;min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-radius:15px;color:#9FB1AE;font-size:11.5px;font-weight:700;text-align:center;cursor:pointer}
 .ezcp-nav button[aria-current="page"]{color:#D6B25E;background:rgba(214,178,94,.1)}
 .ezcp-nav svg{stroke:currentColor}
