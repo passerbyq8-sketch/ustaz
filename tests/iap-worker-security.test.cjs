@@ -3,8 +3,8 @@ const test=require('node:test'),assert=require('node:assert/strict'),crypto=requ
 const {harness}=require('./security-auth-harness.cjs');
 const secret=crypto.randomBytes(32).toString('hex');
 const hash=s=>crypto.createHash('sha256').update(s).digest('hex');
-async function fixture(){
- const h=await harness();h.env.IAP_WORKER_SECRET=secret;h.env.IAP_ENFORCE='free';h.env.IAP_SIGNIN='all';
+async function fixture(clockStep=0){
+ const h=await harness({clockStep});h.env.IAP_WORKER_SECRET=secret;h.env.IAP_ENFORCE='free';h.env.IAP_SIGNIN='all';
  const accounts=await h.load('lib/auth/account.js');
  const a=await accounts.upsertAccount({provider:'apple',sub:'worker-owner',email:'',emailVerified:false});
  const session=(await accounts.mintSession(a.key)).session;
@@ -40,6 +40,10 @@ test('SEC-003 permission binds account, scope, nonce and a 30-second lifetime wi
  assert.equal(r.body.signature,crypto.createHmac('sha256',secret).update('permission-v1\n'+JSON.stringify(p)).digest('hex'));
  assert.equal((await f.send({subject:'b'.repeat(64)})).statusCode,403);
  assert.equal((await f.accounts.sessionState(f.session)).state,'live');
+});
+test('SEC-003 permission lifetime stays exact when the clock advances between reads',async()=>{
+ const f=await fixture(1),r=await f.send();assert.equal(r.statusCode,200);
+ assert.equal(r.body.permission.expiresAt-r.body.permission.issuedAt,30000);
 });
 test('SEC-003 sales stay disabled while the server payment path rejects unpaid authoritative starts',async()=>{
  const f=await fixture();f.h.env.IAP_ENFORCE='all';

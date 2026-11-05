@@ -6,7 +6,7 @@ const vm = require('node:vm');
 const crypto = require('node:crypto');
 const ROOT = path.resolve(__dirname, '..');
 
-async function harness() {
+async function harness({ clockStep = 0 } = {}) {
   const data = new Map(), operations = [];
   const faults = { get: false, set: false, down: false };
   let now = Date.now();
@@ -56,7 +56,7 @@ async function harness() {
   const effects = { weld: 0, erase: 0 };
   const context = vm.createContext({
     Buffer, URL, URLSearchParams, TextEncoder, TextDecoder, AbortController, AbortSignal, setTimeout, clearTimeout,
-    Date: class extends Date { static now() { return now; } },
+    Date: class extends Date { static now() { const value = now; now += clockStep; return value; } },
     process: { env }, console: { log: (...a) => logs.push(a), warn: (...a) => logs.push(a), error: (...a) => logs.push(a) },
     fetch: async (url) => {
       http.calls.push(url);
