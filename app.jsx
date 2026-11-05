@@ -25250,7 +25250,7 @@ function App() {
                 {chatResults.map((r) => (
                   <div key={r.id} className={r.id === chatId ? 'ezc-row is-on' : 'ezc-row'} style={s.drawerResultRow}>
                     <button onClick={() => closeDrawerWith(() => openSavedChat(r.id))} style={s.drawerResultBtn} title={r.title} className="ezik-focus">
-                      <span style={s.drawerResultTitle}>{r.title}</span>
+                      <span dir="auto" style={{ ...s.drawerResultTitle, unicodeBidi: 'isolate' }}>{r.title}</span>
                       {r.snippet && <span style={s.drawerSnippet}>{r.snippet}</span>}
                       {r.at ? <span style={s.drawerResultDate}>{ezikShortDate(r.at)}</span> : null}
                     </button>
@@ -25279,7 +25279,7 @@ function App() {
                               <path d="M12 17v5" /><path d="M9 10.8V5h6v5.8l2.5 3.2h-11L9 10.8z" />
                             </svg>
                           )}
-                          <span style={s.drawerChatTitle}>{c.title}</span>
+                          <span dir="auto" style={{ ...s.drawerChatTitle, unicodeBidi: 'isolate' }}>{c.title}</span>
                         </button>
                         <button onClick={() => pinSavedChat(c.id)} style={s.drawerChatIcon} aria-label={c.pinned ? '\u0625\u0644\u063a\u0627\u0621 \u0627\u0644\u062a\u062b\u0628\u064a\u062a' : '\u062a\u062b\u0628\u064a\u062a'}>
                           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={c.pinned ? 'var(--red)' : 'var(--muted)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -25682,7 +25682,7 @@ function App() {
           </button>
           <span className="ezc-brand">
             <span className="ezc-brand-arch" aria-hidden="true" />
-            {ezcTitle ? <span className="ezc-brand-text">{ezcTitle}</span> : null}
+            {ezcTitle ? <span className="ezc-brand-text" dir="auto" style={{ unicodeBidi: 'isolate' }}>{ezcTitle}</span> : null}
           </span>
           {/* ITEM 05-B -- THE WAY BACK TO THE SHELF, AT THE VISUAL TOP-LEFT.
               LAST IN SOURCE ON PURPOSE, and for two measured reasons, not for taste:

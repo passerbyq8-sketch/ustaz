@@ -1195,5 +1195,10 @@
     "name": "c1birthyeardirection",
     "script": "guards/c1-birth-year-direction-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1chattitledirection",
+    "script": "guards/c1-chat-title-direction-guard.cjs",
+    "args": ""
   }
 ]
