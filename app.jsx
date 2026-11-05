@@ -33404,7 +33404,10 @@ function createEzikAuthProofClient(env) {
       const poll = () => { if (!flow.popup || flow.popup.closed) done(fail('canceled')); else timer = env.setTimeout(poll, 250); };
       flow.stop = () => done(fail('canceled'));
       win.addEventListener('message', listen);
-      try { flow.popup.location.replace(url); timer = env.setTimeout(poll, 250); } catch (e) { done(fail('popup-blocked')); }
+      try {
+        flow.popup.sessionStorage.setItem('ezik_auth_proof_popup_v1', flow.cs);
+        flow.popup.location.replace(url); timer = env.setTimeout(poll, 250);
+      } catch (e) { done(fail('popup-blocked')); }
     });
   }
   function authResult(flow, d) {
@@ -33559,12 +33562,22 @@ function createEzikAuthProofClient(env) {
   }
   async function resume() {
     const url = cleanUrl(); // Remove handoff fields BEFORE storage, matching or HTTP.
-    if (url && win.opener) {
-      try { win.opener.postMessage({ type: 'ezik:auth:web-return', v: '1', url }, origin); win.close(); } catch (e) {}
-      return { handled: true };
-    }
     let keys;
     try { keys = storedKeys(); } catch (e) { keys = []; }
+    let popupState = '';
+    try {
+      popupState = win.sessionStorage.getItem('ezik_auth_proof_popup_v1');
+      win.sessionStorage.removeItem('ezik_auth_proof_popup_v1');
+    } catch (e) {}
+    // A retained opener alone says nothing about how this document was opened.
+    // The document's own full-tab association takes priority over a reservation.
+    if (!keys.length && url && win.opener && secret(popupState)) {
+      const params = new URL(url).searchParams;
+      if (params.getAll('state').length === 1 && params.get('state') === popupState) {
+        try { win.opener.postMessage({ type: 'ezik:auth:web-return', v: '1', url }, origin); win.close(); } catch (e) {}
+        return { handled: true };
+      }
+    }
     if (!keys.length) return { handled: false, url };
     observedOn = true;
     let row;

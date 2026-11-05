@@ -16,7 +16,7 @@ function fixture(options={},factory=compile()){
     btoa:s=>Buffer.from(s,'binary').toString('base64'),addEventListener:(n,f)=>{if(!handlers.has(n))handlers.set(n,new Set());handlers.get(n).add(f);},removeEventListener:(n,f)=>handlers.get(n)?.delete(f),
     open:()=>options.blockedPopup?null:popup,close:()=>{},opener:options.opener||null};
   const emit=(n,d)=>[...(handlers.get(n)||[])].forEach(f=>f(d));
-  const popup={closed:false,close(){this.closed=true;},location:{replace(url){navigations.push(url);if(options.auto!==false){const cs=new URL(url).searchParams.get('cs');queueMicrotask(()=>emit('message',{origin:'https://preview.example',source:popup,data:{type:'ezik:auth:web-return',v:'1',url:'https://preview.example/?ticket=fixture-ticket&state='+cs}}));}}}};
+  const popup={sessionStorage:storage(),closed:false,close(){this.closed=true;},location:{replace(url){navigations.push(url);if(options.auto!==false){const cs=new URL(url).searchParams.get('cs');queueMicrotask(()=>emit('message',{origin:'https://preview.example',source:popup,data:{type:'ezik:auth:web-return',v:'1',url:'https://preview.example/?ticket=fixture-ticket&state='+cs}}));}}}};
   const bridge={postMessage(raw){const m=JSON.parse(raw);messages.push(m);if(options.oldShell)return;
     if(m.op==='capabilities')queueMicrotask(()=>reply(m,{ok:true,redirect:true,nativeApple:options.nativeApple!==false,...options.capabilities}));
     else if(options.auto!==false)queueMicrotask(()=>m.op==='apple-assertion'?reply(m,{ok:true,provider:'apple',challenge:m.challenge,identityToken:['fixture','assertion'].join('-'),rawNonce:m.nonce,...options.nativeReply}):reply(m,{ok:true,url:'ezik://auth/return?ticket=fixture-ticket&state='+new URL(m.url).searchParams.get('cs')}));
