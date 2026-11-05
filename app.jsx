@@ -33257,7 +33257,7 @@ function createEzikAuthProofClient(env) {
   const secret = v => typeof v === 'string' && /^[A-Za-z0-9_-]{43}$/.test(v);
   const providerOk = v => v === 'google' || v === 'apple';
   const listeners = new Set();
-  let observedOn = false, active = null, pending = null, last = null, disposed = false;
+  let observedOn = env.observedOn === true, active = null, pending = null, last = null, disposed = false;
   const fail = (code, status = 0, uncertain = false) => Object.assign(new Error(code), { code, status, uncertain });
   const random = () => {
     const bytes = new Uint8Array(32); env.crypto.getRandomValues(bytes);
@@ -33596,9 +33596,29 @@ function createEzikAuthProofClient(env) {
 }
 
 let EZIK_AUTH_PROOF_CLIENT = null;
+let EZIK_AUTH_PROOF_OBSERVED_ON = false;
+let EZIK_AUTH_PROOF_LIFECYCLE_BOUND = false;
 function ezikAuthProofClient() {
   if (EZIK_AUTH_PROOF_CLIENT) return EZIK_AUTH_PROOF_CLIENT;
+  if (!EZIK_AUTH_PROOF_LIFECYCLE_BOUND) {
+    EZIK_AUTH_PROOF_LIFECYCLE_BOUND = true;
+    window.addEventListener('pagehide', () => {
+      const previous = EZIK_AUTH_PROOF_CLIENT;
+      if (!previous) return;
+      EZIK_AUTH_PROOF_OBSERVED_ON = !previous.acceptsLegacy();
+      previous.dispose();
+      EZIK_AUTH_PROOF_CLIENT = null; // The restored document gets a new owner.
+    });
+    window.addEventListener('pageshow', event => {
+      if (!event.persisted) return;
+      const restored = ezikAuthProofClient();
+      restored.resume().finally(() => {
+        try { window.dispatchEvent(new CustomEvent('ezik:auth:proof:restored')); } catch (e) {}
+      });
+    });
+  }
   const client = createEzikAuthProofClient({ window, crypto, fetch: (...args) => fetch(...args), now: () => Date.now(),
+    observedOn: EZIK_AUTH_PROOF_OBSERVED_ON,
     setTimeout: (fn, ms) => setTimeout(fn, ms), clearTimeout: id => clearTimeout(id),
     readSession: readAuthSession, deviceId: getDeviceId, headers: capHeaders, bridge: ezikAuthBridge,
     publishSession: got => { writeAuthSession(got); EZIK_NATIVE_AUTH_SUBS.forEach(fn => { try { fn(got); } catch (e) {} }); },
@@ -33613,7 +33633,6 @@ function ezikAuthProofClient() {
     reconcile: async () => 'unknown',
   });
   EZIK_AUTH_PROOF_CLIENT = client;
-  window.addEventListener('pagehide', () => client.dispose(), { once: true });
   return client;
 }
 // OFF keeps both legacy bridge messages and HTTP fields. Discovery has already
@@ -33667,7 +33686,12 @@ function ezikAuthProofLine(out) {
 function useEzikAuthProofStatus() {
   const client = ezikAuthProofClient();
   const [status, setStatus] = useState(() => client.state());
-  useEffect(() => client.subscribe(setStatus), [client]);
+  useEffect(() => {
+    const stop = client.subscribe(setStatus);
+    const restored = () => setStatus(ezikAuthProofClient().state());
+    window.addEventListener('ezik:auth:proof:restored', restored);
+    return () => { stop(); window.removeEventListener('ezik:auth:proof:restored', restored); };
+  }, [client]);
   return status;
 }
 function ezikAuthProofSignIn(provider, native, onDone, mode) {
