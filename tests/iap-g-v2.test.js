@@ -312,7 +312,7 @@ test('new non-renewing pass ids grant month/year access and their cancellation w
   }
 });
 
-function makeBridge({ mode = 'all', accountSession = null, balance = {}, prices = null, pathname = '/quest.html', search = '', statusError = false, balanceError = false, localState = {} } = {}) {
+function makeBridge({ mode = 'all', accountSession = null, balance = {}, prices = null, pathname = '/quest.html', search = '', statusError = false, balanceError = false, localState = {}, nativeReplyDelay = 0 } = {}) {
   const sourcePromise = readFile(new URL('../hanna-laha/assets/iap-bridge-v1.js', import.meta.url), 'utf8');
   return sourcePromise.then((source) => {
     const { document } = parseHTML('<html><body></body></html>');
@@ -340,7 +340,7 @@ function makeBridge({ mode = 'all', accountSession = null, balance = {}, prices 
           else state.subscriptionExpiresAt = Date.now() + 30 * 86400000;
           detail = { v: 1, id: message.id, type: 'iap.buy.result', status: 'purchased', productId: message.productId };
         }
-        setTimeout(() => window.dispatchEvent({ type: 'ezik-iap', detail }), 0);
+        setTimeout(() => window.dispatchEvent({ type: 'ezik-iap', detail }), nativeReplyDelay);
       } } : undefined,
       ezikIapPollPending: async () => true,
     };
@@ -436,14 +436,18 @@ test('free mode keeps games public and lists passes only for the server-authoriz
     ezik_pass_month_1: { priceString: '$2', price: 2, currencyCode: 'USD' },
     ezik_pass_year_1: { priceString: '$3', price: 3, currencyCode: 'USD' },
   };
-  const owner = await makeBridge({ mode: 'free', accountSession: { session }, balance: { enforced: false, purchaseEntry: true }, prices });
+  const owner = await makeBridge({ mode: 'free', accountSession: { session }, balance: { enforced: false, purchaseEntry: true }, prices, nativeReplyDelay: 60 });
   const updates = [];
   await owner.window.ezikIapEnterHome((notice, applicable) => updates.push({ notice, applicable }));
   assert.deepEqual(updates.at(-1), { notice: null, applicable: true });
   assert.equal(owner.calls.some((call) => call.url.endsWith('/api/iap-trial-start')), false);
 
   owner.window.ezikIapOpenPurchase();
-  await new Promise((resolve) => setTimeout(resolve, 30));
+  const deadline = Date.now() + 2000;
+  while (!owner.document.querySelector('.ezik-iap-row') && Date.now() < deadline) {
+    await new Promise(resolve => setTimeout(resolve, 10));
+  }
+  assert.ok(owner.document.querySelector('.ezik-iap-row'), 'authorized native products arrive within two seconds');
   const ownerRows = [...owner.document.querySelectorAll('.ezik-iap-row')];
   assert.equal(ownerRows.length, 3);
   assert.deepEqual(ownerRows.map((row) => row.querySelector('h3').textContent), ['أسبوع لعب غير محدود', 'شهر لعب غير محدود', 'سنة لعب غير محدودة']);
