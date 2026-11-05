@@ -35253,6 +35253,13 @@ function ezikWidgetDhikr(id, item) {
     count: item ? adhkarTarget(item) : null };
 }
 
+// O3-R1: optional v1 extension; old shell normalizers ignore it and retain their default.
+function ezikWidgetNumeralSet() {
+  try {
+    const digits = readPrayerPrefs().digits;
+    return digits === 'latn' ? 'western' : digits === 'arab' ? 'arabic-indic' : null;
+  } catch (e) { return null; }
+}
 async function ezikWidgetData(now) {
   // The root checks the shell before reaching this builder. Every text comes from these
   // existing loaders, including the morning/evening wording overrides, never a second copy.
@@ -35274,7 +35281,7 @@ async function ezikWidgetData(now) {
   return {
     version: 1,
     generatedAt: at.toISOString(),
-    prayer: { days: ezikWidgetPrayerDays(at) },
+    prayer: { days: ezikWidgetPrayerDays(at), ...(ezikWidgetNumeralSet() ? { numeralSet: ezikWidgetNumeralSet() } : {}) },
     adhkar: { favorites: favorites, sabah: door('adhkar_sabah'), masaa: door('adhkar_masaa') },
     arbaeen: book && Array.isArray(book.hadith)
       ? book.hadith.map((h) => ({ n: h.n, title: h.title, text: h.text })) : null,

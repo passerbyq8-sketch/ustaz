@@ -1260,5 +1260,10 @@
     "name": "c1countdownunits",
     "script": "guards/c1-countdown-units-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1widgetnumerals",
+    "script": "guards/c1-widget-numerals-guard.cjs",
+    "args": ""
   }
 ]
