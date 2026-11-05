@@ -3201,7 +3201,7 @@ eq('N30: ...and the chat is one of them', INDEX_SCREENS.chat.shell, 'istana');
   ok('N33: the rail title is the store\'s own, and when there is no conversation there is no title',
     /const ezcOpenChat = chatId \? chatList\.find\(\(c\) => c\.id === chatId\) : null;/.test(html)
     && /const ezcTitle = \(ezcOpenChat && ezcOpenChat\.title\) \? ezcOpenChat\.title : null;/.test(html)
-    && /\{ezcTitle \? <span className="ezc-brand-text">\{ezcTitle\}<\/span> : null\}/.test(chatSrc)
+    && /\{ezcTitle \? <span className="ezc-brand-text" dir="auto" style=\{\{ unicodeBidi: 'isolate' \}\}>\{ezcTitle\}<\/span> : null\}/.test(chatSrc)
     && chatSrc.indexOf('A2_BRAND') === -1
     && /<span className="ezc-brand-arch" aria-hidden="true" \/>/.test(chatSrc));
 }
