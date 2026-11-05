@@ -52,13 +52,20 @@ async function harness() {
   const jwk = { ...pair.publicKey.export({ format: 'jwk' }), kid: 'synthetic-key', alg: 'RS256', use: 'sig' };
   const nonce = 'synthetic-native-nonce-for-security-test';
   const logs = [];
+  const http = { idToken: null, calls: [] };
   const context = vm.createContext({
     Buffer, URL, URLSearchParams, TextEncoder, TextDecoder, AbortController, AbortSignal, setTimeout, clearTimeout,
     Date: class extends Date { static now() { return now; } },
     process: { env }, console: { log: (...a) => logs.push(a), warn: (...a) => logs.push(a), error: (...a) => logs.push(a) },
     fetch: async (url) => {
-      if (url !== 'https://appleid.apple.com/auth/keys') throw Error('unexpected outbound request');
-      return { ok: true, status: 200, json: async () => ({ keys: [jwk] }) };
+      http.calls.push(url);
+      if (['https://appleid.apple.com/auth/keys', 'https://www.googleapis.com/oauth2/v3/certs'].includes(url)) {
+        return { ok: true, status: 200, json: async () => ({ keys: [jwk] }) };
+      }
+      if (['https://appleid.apple.com/auth/token', 'https://oauth2.googleapis.com/token'].includes(url)) {
+        return { ok: true, status: 200, json: async () => ({ id_token: http.idToken }) };
+      }
+      throw Error('unexpected outbound request');
     },
   });
   const cache = new Map();
@@ -101,6 +108,6 @@ async function harness() {
     await handler({ method: 'POST', headers: { 'x-murabbi-device': 'synthetic-device' }, body }, res);
     return res;
   }
-  return { data, operations, faults, redis, env, logs, load, sign, nonce, post, now: () => now, advance(ms) { now += ms; } };
+  return { data, operations, faults, redis, env, logs, http, load, sign, nonce, post, now: () => now, advance(ms) { now += ms; } };
 }
 module.exports = { harness };

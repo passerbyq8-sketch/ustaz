@@ -49,6 +49,7 @@ const parser = require(path.join(REPO, 'node_modules', '@babel', 'parser'));
 
 const NEW_MODULES = [
   'lib/auth/store.js',
+  'lib/auth/proof.js',
   'lib/auth/oidc.js',
   'lib/auth/account.js',
   'api/auth-start.js',
@@ -1403,7 +1404,7 @@ run('the seven auth key families are exact, including persistent deletion genera
 });
 
 run('zero new store variables, and no read of process.env outside a known list', async () => {
-  const allowed = new Set(['KV_REST_API_URL', 'KV_REST_API_TOKEN',
+  const allowed = new Set(['KV_REST_API_URL', 'KV_REST_API_TOKEN', 'AUTH_PROOF_VERSION',
     'GOOGLE_OAUTH_CLIENT_ID', 'GOOGLE_OAUTH_CLIENT_SECRET',
     'APPLE_OAUTH_CLIENT_ID', 'APPLE_OAUTH_CLIENT_SECRET']);
   const seen = new Set();

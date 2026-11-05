@@ -170,6 +170,10 @@ export default async function handler(req, res) {
   if (!record || typeof record !== 'object') return toApp(res, { error: 'auth-state-invalid', state: echo }, web);
   if (!code) return toApp(res, { error: 'auth-code-missing', state: echo }, web);
 
+  if (record.proof && record.proof.expiresAt <= Date.now()) {
+    return toApp(res, { error: 'auth-challenge-invalid', state: echo }, web);
+  }
+
   const conf = providerConfig(record.provider, process.env);
   if (!conf.ok) return toApp(res, { error: conf.code, state: echo }, web);
   const cfg = conf.cfg;
@@ -214,6 +218,7 @@ export default async function handler(req, res) {
   const ticket = randomTicket();
   const written = await writeJson(ticketKey(ticket), {
     v: TICKET_RECORD_VERSION,
+    ...(record.proof ? { proof: record.proof } : {}),
     accountKey: account.key,
     generation: account.generation,
     deviceId: typeof record.deviceId === 'string' ? record.deviceId : '',

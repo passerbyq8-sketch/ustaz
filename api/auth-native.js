@@ -63,6 +63,8 @@ export const MAX_NONCE_CHARS = 512;
  * raw string is handled rather than assumed away -- a route that only works when something
  * upstream happened to parse for it is a route with an undeclared dependency.
  */
+import { consumeChallenge, verifyClientProof, sendProofFailure, proofRequired } from '../lib/auth/proof.js';
+
 function bodyOf(req) {
   const body = req.body;
   if (typeof body === 'string') {
@@ -115,6 +117,18 @@ export default async function handler(req, res) {
   const conf = nativeConfig(body.provider, process.env);
   if (!conf.ok) return res.status(conf.status).json({ ok: false, error: conf.code });
   const cfg = conf.cfg;
+  let proof = null;
+  if (body.challenge !== undefined || body.proofVersion !== undefined) {
+    if (body.proofVersion !== 1) return sendProofFailure(res, { status: 400, code: 'auth-proof-version' });
+    const challenge = await consumeChallenge(body.challenge, cfg.name, 'native');
+    if (!challenge.ok) return sendProofFailure(res, challenge);
+    proof = challenge.record;
+    const checked = verifyClientProof(proof, body);
+    if (!checked.ok) return sendProofFailure(res, checked);
+    if (rawNonce !== proof.nonce) return sendProofFailure(res, { status: 403, code: 'auth-proof-invalid' });
+  } else if (proofRequired()) {
+    return sendProofFailure(res, { status: 428, code: 'auth-proof-required' });
+  }
 
   // The provider's public keys -- the one outbound request on this path, and cached six hours in
   // the store by the same helper the web path uses. A key endpoint we cannot reach is an outage,

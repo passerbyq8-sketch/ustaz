@@ -1150,5 +1150,10 @@
     "name": "securityarticleinput",
     "script": "guards/security-article-input-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "securityauthproof",
+    "script": "guards/security-auth-proof-guard.cjs",
+    "args": ""
   }
 ]

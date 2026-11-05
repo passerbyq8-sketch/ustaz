@@ -1106,3 +1106,4 @@ tests/security-auth-harness.cjs text eol=lf
 guards/security-session-lifecycle-guard.cjs text eol=lf
 tests/article-input-security.test.cjs text eol=lf
 guards/security-article-input-guard.cjs text eol=lf
+guards/security-auth-proof-guard.cjs text eol=lf

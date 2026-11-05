@@ -349,6 +349,8 @@ every purpose and `capabilityEligible()` is false for every capability. **Regist
 
 ## K. Gates and tests
 
+C2 2026-11-05: appended `securityauthproof` (`guards/security-auth-proof-guard.cjs`); branch roster 230. Unit red/green/mutation evidence and final suite results are in REPORT-C2-ORDER-4.md in the session archive.
+
 C2 2026-11-04: appended `securityarticleinput` (`guards/security-article-input-guard.cjs`); branch roster 229. Unit red/green/mutation evidence and final suite results are in REPORT-C2-ORDER-3.md in the session archive.
 
 C2 2026-11-04: appended `securitysessionlifecycle` (`guards/security-session-lifecycle-guard.cjs`); branch roster 228. Unit red/green/mutation evidence and final suite results are in REPORT-C2-ORDER-3.md in the session archive.
@@ -365,7 +367,7 @@ C2 2026-11-04: appended `securitybuilddeps` (`tests/build-dependency-security.te
 
 C2 2026-11-04: appended `securitynativereplay` (`guards/security-native-replay-guard.cjs`); branch roster 222. Unit red/green/mutation evidence and final suite results are in REPORT-C2-ORDER-2.md in the session archive.
 
-All 229 gates run sequentially by the authorized gates-seq.cjs runner from gates.json. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
+All 230 gates run sequentially by the authorized gates-seq.cjs runner from gates.json. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -396,6 +398,7 @@ kunuznorepeat 0 · kunuzcats 0 · kunuzgroups 0 · kunuzwarengine 0 · kunuztest
 liveworldkill 0 · livenumbersrc 0 · sahihaynlink 0 · previewdaycap 0 · libmujaz 0 · libquote 0 · encycbrain 0 · widgetopen 0 · lib108 0 · speedclient 0 · prayerojeiri 0 · prayerfeatures 0 · lang 0 · speedbw2 0 · speedintegration 0 · speedpipes 0 · frontsorter 0 · impermissibleearly 0 · syncserver 0 · syncclient 0 · syncmemory 0 · ez110edges 0 · ez110override 0 · ez110names 0 · memorizer86 0 · memorizer86nospend 0 · arbaeensharh 0
 compassmath 0 · locationauto 0 · hijrievents 0 · prayerlog 0
 iaplaunch 0
+securityauthproof 0
 securityarticleinput 0
 securitysessionlifecycle 0
 securityiapenvironment 0
@@ -436,14 +439,14 @@ postship3identityframes 0
 postship3attributiontrigger 0
 postship3row7a 0
 postship3routelog 0
-TOTAL_GATES        229/229 PASS
-CURRENT_RECON PASS=322 WARN=0 FAIL=0
+TOTAL_GATES        230/230 PASS
+CURRENT_RECON PASS=323 WARN=0 FAIL=0
 PRE_REBASE_UPSTREAM_TOTAL_GATES 206/206 PASS
 PRE_REBASE_UPSTREAM_RECON PASS=299 WARN=0 FAIL=0
 PRE_REBASE_BRANCH_TOTAL_GATES 208/208 PASS
 PRE_REBASE_BRANCH_RECON PASS=301 WARN=0 FAIL=0
-MERGED_GATES 229 (calculated from gates.json)
-POST_REBUILD_FINAL_GATES 229/229 PASS
+MERGED_GATES 230 (calculated from gates.json)
+POST_REBUILD_FINAL_GATES 230/230 PASS
 DIFF_CHECK         PASS (exit 0)
 OLD_FIXTURES       9/9 drive clean (F1–F9); F6 rewritten per owner decision
 NEW_FIXTURES       rfcpolicy 125/125 · rfcruntime 96/96
