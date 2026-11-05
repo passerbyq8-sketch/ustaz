@@ -148,7 +148,9 @@ eq('A: ...and nothing was added to the row that draws them',
 // control back into that row -- these two or another -- is red here, on the row itself, whatever
 // else it does.
 // ---------------------------------------------------------------------------------------------
-const ROW_DIGEST = '7ed94d523b8a8d7a6f860f93bb3c53ac30efe6e1a0ac821d168ded5a403009ab';
+// D27 (2026-11-05): owner-only microphone adds the founder condition to disabled/opacity only.
+// The two bar actions remain outside this exact sealed row. Previous digest: 7ed94d523b8a8d7a6f860f93bb3c53ac30efe6e1a0ac821d168ded5a403009ab.
+const ROW_DIGEST = '42d987413f9f0a48fefeb8a69659f67b640a579c085c8b1de8c443cd502d3aa5';
 const rowSha = crypto.createHash('sha256').update(Buffer.from(ROW, 'utf8')).digest('hex');
 ok('B0: the composer control row is byte-for-byte the row sealed at aa497d5 (owner rule 2026-09-10)',
   rowSha === ROW_DIGEST,
