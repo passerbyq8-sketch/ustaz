@@ -1325,5 +1325,10 @@
     "name": "security-iap-receipt",
     "script": "guards/security-iap-receipt-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1questdelivery",
+    "script": "guards/c1-quest-delivery-guard.cjs",
+    "args": ""
   }
 ]

@@ -103,6 +103,7 @@
     "quest-theme/theme.css?v=20261025-kfix6": "675823ccd0c6997faef5a4cddebb2b0dbc4f26c70ef3f9e9b2dfdcda95201e69",
     "quest-theme/theme.css?v=20261025-kfix7": "c9a1e31062187ae3b9d3b9fefbeee1485231750e7ccb3da26f906740905f0c4f",
     "quest-theme/theme.css?v=20261025-kfix8": "c324f52f495439e5c1f658479b593ca13466ae0540220e457e7fee780145d480",
-    "quest-theme/theme.css?v=20261028-kfix1": "ba9656b573d133fe3096fbf171a20119e05be025d641a858b3ac6dfc9ebbce24"
+    "quest-theme/theme.css?v=20261028-kfix1": "ba9656b573d133fe3096fbf171a20119e05be025d641a858b3ac6dfc9ebbce24",
+    "quest-theme/journey.js?v=20261105-c1d3-1": "07bc86d6286061244fba85bc9b17766ba8f2a0172ff92ce93b59155943868291"
   }
 }
