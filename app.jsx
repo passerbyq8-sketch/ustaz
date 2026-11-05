@@ -12721,7 +12721,52 @@ function markTasbihDay() {
 // ONE SHORT PULSE, ASKED FOR AND NEVER ASSUMED. iOS Safari has no navigator.vibrate at all, and
 // the browsers that do have it refuse it outside a user gesture and throw on some arguments. So
 // the existence check is here, at the ONE call site, inside a try.
+// S4 haptic v1: discovery never vibrates; native pulses require a current user activation.
+function createEzikNativeHapticAdapter(win = window) {
+  let supported = false, disposed = false, sequence = 0, last = -Infinity;
+  const prefix = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2), pending = new Set();
+  const probeId = 'haptic-' + prefix + '-cap';
+  let probeOpen = true;
+  const timer = setTimeout(() => { probeOpen = false; }, 1000);
+  const onResult = event => {
+    const d = event && event.detail;
+    if (disposed || !d || d.type !== 'ezik:haptic:result' || d.v !== '1' || typeof d.id !== 'string') return;
+    if (d.id === probeId && probeOpen && d.ok === true && d.status === 'capabilities') {
+      probeOpen = false; clearTimeout(timer);
+      supported = d.capabilities?.shortPulse === true && d.capabilities.durationMs === 10;
+    } else if (pending.has(d.id)) pending.delete(d.id);
+  };
+  const clear = () => { pending.clear(); };
+  const onVisibility = () => { if (win.document?.visibilityState === 'hidden') clear(); };
+  const dispose = () => {
+    disposed = true; supported = false; probeOpen = false; clearTimeout(timer); clear();
+    win.removeEventListener('ezik:haptic:result', onResult); win.removeEventListener('pagehide', dispose);
+    win.document?.removeEventListener('visibilitychange', onVisibility);
+  };
+  win.addEventListener('ezik:haptic:result', onResult); win.addEventListener('pagehide', dispose);
+  win.document?.addEventListener('visibilitychange', onVisibility);
+  try { win.ReactNativeWebView?.postMessage(JSON.stringify({ type: 'ezik:haptic', v: '1', id: probeId, op: 'capabilities' })); } catch (e) { probeOpen = false; }
+  return { canPulse: () => supported && !disposed,
+    pulse(enabled, userInitiated) {
+      if (!supported || disposed || enabled !== true || userInitiated !== true || win.document?.visibilityState === 'hidden' || Date.now() - last < 100) return false;
+      last = Date.now(); const id = 'haptic-' + prefix + '-' + ++sequence;
+      pending.add(id); if (pending.size > 32) pending.delete(pending.values().next().value);
+      try { win.ReactNativeWebView.postMessage(JSON.stringify({ type: 'ezik:haptic', v: '1', id, op: 'pulse', enabled: true, userInitiated: true })); return true; }
+      catch (e) { pending.delete(id); return false; }
+    }, dispose };
+}
+const ezikNativeHaptic = typeof window === 'undefined' || !ezikShellBridge() ? null : createEzikNativeHapticAdapter(window);
+function ezikHapticGestureActive() {
+  try { return navigator.userActivation?.isActive === true; } catch (e) { return false; }
+}
+function ezikShortPulse(enabled, duration, userInitiated) {
+  if (enabled !== true || (typeof document !== 'undefined' && document.visibilityState === 'hidden')) return false;
+  try { if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function' && navigator.vibrate(duration) !== false) return true; } catch (e) {}
+  return !!(ezikNativeHaptic && ezikNativeHaptic.pulse(enabled, userInitiated));
+}
+
 function tasbihBuzz() {
+  if (typeof ezikNativeHaptic !== 'undefined' && ezikNativeHaptic?.canPulse()) return ezikShortPulse(true, TASBIH_VIBRATE_MS, ezikHapticGestureActive());
   try {
     if (typeof navigator === 'undefined' || !navigator) return false;
     if (typeof navigator.vibrate !== 'function') return false;
@@ -35979,7 +36024,12 @@ function QiblaPanel({ loc, onLoc, full }) {
     alignedRef.current = on;
     setAligned(on);
     // once, on entering the band, where the device offers it
-    if (on) { try { if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') navigator.vibrate(30); } catch (e) {} }
+    if (on) {
+      if (typeof ezikNativeHaptic !== 'undefined' && ezikNativeHaptic?.canPulse()) {
+        // Alignment is a sensor event: only a fresh user activation permits its native fallback.
+        if (readsRef.current.n > 1) ezikShortPulse(true, 30, ezikHapticGestureActive());
+      } else { try { if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') navigator.vibrate(30); } catch (e) {} }
+    }
   };
   const frame = () => {
     rafRef.current = null;

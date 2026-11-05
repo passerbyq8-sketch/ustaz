@@ -1280,5 +1280,10 @@
     "name": "c1nativeheading",
     "script": "guards/c1-native-heading-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1nativehaptic",
+    "script": "guards/c1-native-haptic-guard.cjs",
+    "args": ""
   }
 ]
