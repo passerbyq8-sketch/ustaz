@@ -10,6 +10,7 @@ function literal(name){for(const n of ast.program.body)if(n.type==='VariableDecl
 const dictionaries=literal('EZ_I18N'),langs=literal('EZ_LANGUAGE_TABLE');
 for(const {code:lang} of langs)if(!dictionaries[lang])dictionaries[lang]=JSON.parse(fs.readFileSync(path.join(root,'lang',lang+'.json'),'utf8'));
 function verify(body){let checks=0;
+ for(const unit of ['hour','minute','second']){assert(/[\u0600-\u06ff]/.test(dictionaries.ku['countdown.'+unit]));assert(!/[A-Za-z]/.test(dictionaries.ku['countdown.'+unit]));}
  for(const {code:lang} of langs)for(const digits of ['latn','arab']){
   const dict=dictionaries[lang];for(const unit of ['hour','minute','second'])assert(dict['countdown.'+unit]);
   const f=vm.runInNewContext(body+'\n({prayerCountdownUnits,prayerCountdownDescription,ez110Countdown,prayerCountdownUi,prayerDigits})',{
