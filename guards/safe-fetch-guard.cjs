@@ -150,6 +150,12 @@ const page = (html, { status = 200, ct = 'text/html; charset=utf-8', location = 
       sockets === 1 && got && got.ok === true, JSON.stringify({ sockets, ok: got && got.ok, reason: got && got.reason }));
     ok('3e ...and that is the shape lib/retrieve.js really sends, so this row tests the production path',
       read('lib/retrieve.js').includes('fetchImpl: options.fetchImpl || globalThis.fetch,'));
+    // MEASURED: call-mode-guard.cjs replaces globalThis.fetch BEFORE importing the handler, so an identity test against
+    // what this module captured at load time pinned a socket behind that stub and reddened four of its rows.
+    ok('3e2 the transport is recognised by its own source, not by identity against load time, so a guard that replaces the global before the import is still honoured',
+      /const RUNTIME_FETCH_SOURCE = \/\^\(\?:async/u.test(read('lib/ledger/safe-fetch.js'))
+      && read('lib/ledger/safe-fetch.js').includes('function fetch') && read('lib/ledger/safe-fetch.js').includes('Function.prototype.toString.call(doFetch)')
+      && read('call-mode-guard.cjs').includes('global.fetch = async () =>'));
     // a stub is still a stub: a caller-supplied function that is NOT the runtime's fetch opens no pinned socket
     let stubCalls = 0;
     let stubSockets = 0;
