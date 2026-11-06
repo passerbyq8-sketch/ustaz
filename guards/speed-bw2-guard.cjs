@@ -1972,6 +1972,87 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
     }
 
 
+
+    // ── brain35 A-4 (2026-11-06; DIAG 35.5) · THE ABSENCE WRITERS READ THE ANSWER ────────────────────────────────
+    // (a) «وما أقوال العلماء في ذلك» (Q15) is the same question asked of the scholars, not a part: no «لم أقف» under four
+    // quoted views; the part sentence names where the search ran; a views part answered by two named speakers draws none.
+    // (b) the library head «تخريج الحديث: X، ولم تُثبت المكتبة حكمًا عليه.» is reconciled with the first unit: the half is
+    // dropped when the unit carries the grade, replaced by «وأما الحكم عليه فانظر ما نقله المصدر أدناه» when a pinned row does,
+    // kept when nothing grades the hadith.
+    {
+      const UNITS4 = await esm('lib/bw2-units.js');
+      const Q15 = '\u0647\u0644 \u064a\u062c\u0648\u0632 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u0623\u0646 \u064a\u062c\u0645\u0639 \u0627\u0644\u0639\u0635\u0631 \u0645\u0639 \u0627\u0644\u062c\u0645\u0639\u0629 \u062c\u0645\u0639 \u062a\u0642\u062f\u064a\u0645\u061f \u0648\u0645\u0627 \u0623\u0642\u0648\u0627\u0644 \u0627\u0644\u0639\u0644\u0645\u0627\u0621 \u0641\u064a \u0630\u0644\u0643\u061f';
+      const Q13 = '\u0647\u0644 \u062d\u062f\u064a\u062b \u00ab\u062a\u0641\u062a\u0631\u0642 \u0623\u0645\u062a\u064a \u0639\u0644\u0649 \u062b\u0644\u0627\u062b \u0648\u0633\u0628\u0639\u064a\u0646 \u0641\u0631\u0642\u0629\u00bb \u0635\u062d\u064a\u062d\u061f \u0648\u0645\u0627 \u062f\u0631\u062c\u0629 \u0632\u064a\u0627\u062f\u0629 \u00ab\u0643\u0644\u0647\u0627 \u0641\u064a \u0627\u0644\u0646\u0627\u0631 \u0625\u0644\u0627 \u0648\u0627\u062d\u062f\u0629\u00bb\u061f';
+      const Q19 = '\u0645\u0646 \u0623\u0648\u0644 \u0645\u0646 \u062c\u0645\u0639 \u0627\u0644\u0642\u0631\u0622\u0646 \u0641\u064a \u0645\u0635\u062d\u0641 \u0648\u0627\u062d\u062f\u061f \u0648\u0644\u0645\u0627\u0630\u0627 \u062c\u0645\u0639\u0647 \u0639\u062b\u0645\u0627\u0646 \u0628\u0639\u062f \u0630\u0644\u0643\u061f';
+      ok('A-4 Q15 «… وما أقوال العلماء في ذلك؟» is one question (no parts), so no part sentence can follow the views', BW2.questionParts(Q15).length === 0
+        && BW2.isViewsQuestion('\u0645\u0627 \u0623\u0642\u0648\u0627\u0644 \u0627\u0644\u0639\u0644\u0645\u0627\u0621 \u0641\u064a \u0630\u0644\u0643') && BW2.isViewsQuestion('\u0648\u0645\u0627 \u0623\u0642\u0648\u0627\u0644 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645 \u0641\u064a\u0647\u0627') && BW2.isViewsQuestion('\u0645\u0627 \u0622\u0631\u0627\u0621 \u0627\u0644\u0641\u0642\u0647\u0627\u0621 \u0641\u064a \u0627\u0644\u0645\u0633\u0623\u0644\u0629'));
+      ok('A-4 ...and Q13 (two different hadith parts) and Q19 (two history parts) keep their two parts', BW2.questionParts(Q13).length === 2 && BW2.questionParts(Q19).length === 2);
+      const part = { text: '\u0647\u0644 \u0639\u0644\u064a\u0647 \u0643\u0641\u0627\u0631\u0629', title: '\u0647\u0644 \u0639\u0644\u064a\u0647 \u0643\u0641\u0627\u0631\u0629' };
+      ok('A-4 the part sentence names the searched sources: «لم أقف على نصٍّ في <title> فيما بُحث فيه (X، Y).»',
+        BW2.questionPartSentence(part, ['\u0627\u0628\u0646 \u0628\u0627\u0632', '\u0627\u0644\u0645\u0643\u062a\u0628\u0629']) === '\u0644\u0645 \u0623\u0642\u0641 \u0639\u0644\u0649 \u0646\u0635\u064d\u0651 \u0641\u064a \u0647\u0644 \u0639\u0644\u064a\u0647 \u0643\u0641\u0627\u0631\u0629 \u0641\u064a\u0645\u0627 \u0628\u064f\u062d\u062b \u0641\u064a\u0647 (\u0627\u0628\u0646 \u0628\u0627\u0632\u060c \u0627\u0644\u0645\u0643\u062a\u0628\u0629).'
+        && BW2.questionPartSentence(part) === '\u0644\u0645 \u0623\u0642\u0641 \u0639\u0644\u0649 \u0646\u0635\u064d\u0651 \u0641\u064a \u0647\u0644 \u0639\u0644\u064a\u0647 \u0643\u0641\u0627\u0631\u0629.');
+      ok('A-4 searchedSourceNames: the fatwa stores by scholar name, «المكتبة», «الموسوعة الفقهية», «الدروس», only those that answered',
+        JSON.stringify(BW2.searchedSourceNames({ fatwa: [ROW_F1, ROW_F2, { ...ROW_F1, publisher: '\u0627\u0628\u0646 \u0639\u062b\u064a\u0645\u064a\u0646' }], library: [ROW_L1], encyclopedia: [], lessons: [{}] }))
+          === JSON.stringify(['\u0627\u0628\u0646 \u0628\u0627\u0632', '\u0627\u0628\u0646 \u0639\u062b\u064a\u0645\u064a\u0646', '\u0627\u0644\u0645\u0643\u062a\u0628\u0629', '\u0627\u0644\u062f\u0631\u0648\u0633'])
+        && BW2.searchedSourceNames({ fatwa: [], library: [], encyclopedia: [], lessons: [] }).length === 0);
+      const viewsPart = { text: '\u0645\u0627 \u0623\u0642\u0648\u0627\u0644 \u0627\u0644\u0639\u0644\u0645\u0627\u0621 \u0641\u064a \u0630\u0644\u0643', title: 'x' };
+      ok('A-4 a views part answered by two named speakers draws no sentence; by one, it still does',
+        !BW2.partSentenceWanted(viewsPart, '\u0642\u0627\u0644 \u0627\u0628\u0646 \u0628\u0627\u0632: \u064a\u062c\u0648\u0632 \u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631. \u0648\u0630\u0647\u0628 \u0627\u0628\u0646 \u0639\u062b\u064a\u0645\u064a\u0646 \u0625\u0644\u0649 \u0623\u0646\u0647 \u0644\u0627 \u064a\u062c\u0648\u0632.')
+        && BW2.partSentenceWanted(viewsPart, '\u0642\u0627\u0644 \u0627\u0628\u0646 \u0628\u0627\u0632: \u064a\u062c\u0648\u0632 \u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631.'));
+      // the wiring: a real two-part turn whose second part no row answers ends on the sentence naming the sources that answered
+      const Q2 = '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0631\u0628\u061f \u0648\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u062d\u062c\u0627\u0645\u0629 \u0644\u0644\u0635\u0627\u0626\u0645\u061f';
+      // the fatwa store answers the first part's query only (the masah row), so the second part has no kept row (the z1 shape)
+      const twoDeps = makeDeps({ writerText: U.s1, judge: 'all' });
+      twoDeps.deps.runTool = (name, input, ctx) => {
+        const q = String(input && input.query || '');
+        if (name === 'search_fatawa' && /مسح|جوارب/u.test(q)) return Promise.resolve({ text: '', added: [ctx.table.add({ ...ROW_F1 })], calls: 1 });
+        return Promise.resolve({ text: '', added: [], calls: 1 });
+      };
+      const twoWire = makeWire();
+      await BW2.runBw2Turn({
+        question: Q2, messages: [{ role: 'user', content: Q2 }], mode: 'brief', band: 'adult', system: 'SYSTEM', model: 'writer-model', maxTokens: 4096,
+        providerUrl: 'https://api.anthropic.invalid/v1/messages', headers: {}, libFlagValue: '', libToken: '', lessonsToken: '', onLessonRows: null,
+        takhrijWired: false, cards, wire: twoWire.wire, requestStartedAt: Date.now(), env: { BW2_RETRIEVAL_MS: '400', BW2_JUDGE_MS: '400' }, runtime: '', deps: twoDeps.deps,
+      });
+      const twoText = deltasOf(framesOf(twoWire.target)).join('');
+      ok('A-4 wired: the empty part\'s sentence names where the search ran, once', twoText.split('\u0644\u0645 \u0623\u0642\u0641 \u0639\u0644\u0649 \u0646\u0635\u064d\u0651 \u0641\u064a').length === 2
+        && /فيما بُحث فيه \([^)]*ابن باز[^)]*\)\./u.test(twoText), ascii(twoText));
+      // (b) the head, driven on the releaser
+      const LEAD = '\u062a\u062e\u0631\u064a\u062c \u0627\u0644\u062d\u062f\u064a\u062b: \u0627\u0628\u0646 \u062d\u0628\u0627\u0646\u060c \u0648\u0644\u0645 \u062a\u064f\u062b\u0628\u062a \u0627\u0644\u0645\u0643\u062a\u0628\u0629 \u062d\u0643\u0645\u064b\u0627 \u0639\u0644\u064a\u0647.';
+      const GRADED = '\u0627\u0644\u062d\u062f\u064a\u062b \u0635\u062d\u064a\u062d \u0645\u0634\u0647\u0648\u0631 \u0641\u064a \u0627\u0644\u0633\u0646\u0646 \u0648\u0627\u0644\u0645\u0633\u0627\u0646\u064a\u062f\u060c \u0635\u062d\u062d\u0647 \u062c\u0645\u0627\u0639\u0629 \u0645\u0646 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645.';
+      const PLAIN = '\u0648\u0635\u0641 \u0627\u0644\u0641\u0631\u0642\u0629 \u0627\u0644\u0646\u0627\u062c\u064a\u0629 \u0628\u0623\u0646\u0647\u0627 \u0623\u0647\u0644 \u0627\u0644\u0633\u0646\u0629 \u0648\u0627\u0644\u062c\u0645\u0627\u0639\u0629.';
+      const rowG = { kind: 'fatwa', title: 'x', url: 'https://binbaz.org.sa/fatwas/77', publisher: IBN_BAZ, scholarId: 'binbaz', recordId: '77', text: GRADED, passage: GRADED, ref: 1 };
+      const rowP = { ...rowG, text: PLAIN, passage: PLAIN };
+      const UG = '\u0627\u0644\u062d\u062f\u064a\u062b \u0635\u062d\u064a\u062d \u0645\u0634\u0647\u0648\u0631 \u0641\u064a \u0627\u0644\u0633\u0646\u0646 \u0648\u0627\u0644\u0645\u0633\u0627\u0646\u064a\u062f [[1]].';
+      const UP = '\u0648\u0642\u062f \u0648\u0635\u0641 \u0627\u0644\u0641\u0631\u0642\u0629 \u0627\u0644\u0646\u0627\u062c\u064a\u0629 \u0628\u0623\u0646\u0647\u0627 \u0623\u0647\u0644 \u0627\u0644\u0633\u0646\u0629 \u0648\u0627\u0644\u062c\u0645\u0627\u0639\u0629 [[1]].';
+      const headOf = async (mod, unit, rows) => { const out = []; const rel = mod.createBw2Releaser({ rows, emit: (p) => { out.push(p); return true; }, leadLine: LEAD, cards: null }); rel.push(unit + '\n'); await rel.end(); return (out[0] || '').split('\n\n')[0]; };
+      const h1 = await headOf(UNITS4, UG, [rowG]);
+      ok('A-4 head: the first unit carries the grade -> the «ولم تُثبت المكتبة حكمًا عليه» half is dropped, the collector half stays', h1 === '\u062a\u062e\u0631\u064a\u062c \u0627\u0644\u062d\u062f\u064a\u062b: \u0627\u0628\u0646 \u062d\u0628\u0627\u0646.', ascii(h1));
+      const h2 = await headOf(UNITS4, UP, [rowG]);
+      ok('A-4 head: a pinned row carries the grade -> the half is replaced by «وأما الحكم عليه فانظر ما نقله المصدر أدناه»', h2 === '\u062a\u062e\u0631\u064a\u062c \u0627\u0644\u062d\u062f\u064a\u062b: \u0627\u0628\u0646 \u062d\u0628\u0627\u0646\u060c \u0648\u0623\u0645\u0627 \u0627\u0644\u062d\u0643\u0645 \u0639\u0644\u064a\u0647 \u0641\u0627\u0646\u0638\u0631 \u0645\u0627 \u0646\u0642\u0644\u0647 \u0627\u0644\u0645\u0635\u062f\u0631 \u0623\u062f\u0646\u0627\u0647.', ascii(h2));
+      const h3 = await headOf(UNITS4, UP, [rowP]);
+      ok('A-4 head: nothing grades the hadith -> the head stands as the ladder wrote it', h3 === LEAD, ascii(h3));
+      ok('A-4 carriesGradeClaim reads the writer\'s and the rows\' grade shapes', UNITS4.carriesGradeClaim(GRADED) && UNITS4.carriesGradeClaim('\u0636\u0639\u0641\u0647 \u0627\u0644\u0623\u0644\u0628\u0627\u0646\u064a \u0641\u064a \u0627\u0644\u0625\u0631\u0648\u0627\u0621.') && UNITS4.carriesGradeClaim('(\u0627\u0644\u062a\u0631\u0645\u0630\u064a \u00b7 \u0635\u062d\u064a\u062d)') && !UNITS4.carriesGradeClaim(PLAIN));
+      // mutants: the three words gone -> Q15 is two parts again; the reconciliation gone -> the head is kept over a graded unit
+      const srcW = read('lib/before-writing-v2.js');
+      const seamW = "'فقهاء', 'علماء', 'اهل', 'علم', 'فيها'";
+      ok('A-4 mutant seam (the three words) present', srcW.split(seamW).length === 2);
+      const tmpW = path.join(REPO, 'lib', '.mut-bw2-a4-words.mjs');
+      try {
+        fs.writeFileSync(tmpW, srcW.split(seamW).join("'فقهاء', 'فيها'").replace("if (!isMadhhabQuestion(seg) && !isViewsQuestion(seg)) return false;", "if (!isMadhhabQuestion(seg)) return false; // mutant"));
+        const MW = await import(pathToFileURL(tmpW).href + '?m=a4w');
+        ok('MUTANT KILLED: without the three words and the views follow-up, Q15 is two parts again', MW.questionParts(Q15).length === 2);
+      } finally { try { fs.rmSync(tmpW, { force: true }); } catch { /* nothing to clean */ } }
+      const srcH = read('lib/bw2-units.js');
+      const seamH = '    leadPending = reconcileLead(leadPending, piece); // ITEM A-4 (b): the head reads the first unit';
+      ok('A-4 mutant seam (the head reconciliation) present', srcH.split(seamH).length === 2);
+      const tmpH = path.join(REPO, 'lib', '.mut-bw2-units-a4.mjs');
+      try {
+        fs.writeFileSync(tmpH, srcH.split(seamH).join('    // mutant: the head never reads the answer'));
+        const MH = await import(pathToFileURL(tmpH).href + '?m=a4h');
+        ok('MUTANT KILLED: without the reconciliation the head keeps «ولم تُثبت المكتبة حكمًا عليه» over a unit that grades the hadith', (await headOf(MH, UG, [rowG])) === LEAD);
+      } finally { try { fs.rmSync(tmpH, { force: true }); } catch { /* nothing to clean */ } }
+    }
     // ── brain35 A-3 (b) (2026-11-06; DIAG 35.9) · A CARD IS BOUND TO THE SENTENCE IT SUPPORTS, NOT TO THE CITATION ──────
     // MEASURED (Q25 line 10, CMP:751): the Ibn Uthaymin page about delaying jam' stood under a paragraph about the length of stay
     // because the unit cited it. Now a page or book card goes out beside a unit only when the row's text supports the sentence

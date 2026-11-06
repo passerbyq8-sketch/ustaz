@@ -114,8 +114,11 @@ const Q = {
     const writerText = bodies[0] ? JSON.stringify(bodies[0].messages) : '';
     ok('the writer sees the parts: a heading for the covered one, the empty one left to the server', writerText.includes('حكم قطرة الأذن للصائم') && writerText.includes('حكم الحجامة للصائم') && writerText.includes('###'),
       ascii(writerText.slice(-600)));
-    const SENTENCE = 'لم أقف على نصٍّ في حكم الحجامة للصائم.';
-    ok('the server writes the empty part\'s sentence, once', text.split(SENTENCE).length === 2, ascii(text));
+    // brain35 A-4 (2026-11-06, owner: «لم أقف» names the missing part AND where the search ran): the sentence now closes on
+    // « فيما بُحث فيه (<the sources that answered>).»; it is still written once, for the empty part only.
+    const SENTENCE = 'لم أقف على نصٍّ في حكم الحجامة للصائم';
+    ok('the server writes the empty part\'s sentence, once, naming where the search ran', text.split(SENTENCE).length === 2
+      && /لم أقف على نصٍّ في حكم الحجامة للصائم فيما بُحث فيه \([^)]+\)\./u.test(text), ascii(text));
     ok('...the writer\'s own sentence for it is dropped', !text.includes('ولم أقف على نص في حكم الحجامة'), ascii(text));
     ok('...and the covered part is answered under its heading', text.includes('### حكم قطرة الأذن للصائم') && text.includes('قطرة الأذن لا تفطر'), ascii(text));
     ok('...the whole-answer not-covered sentence is not written (one part was covered)', !text.includes(BW2.BW2_NOT_COVERED));
