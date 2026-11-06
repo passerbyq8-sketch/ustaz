@@ -128,6 +128,54 @@ const page = (html, { status = 200, ct = 'text/html; charset=utf-8', location = 
       got && got.ok === true && got.status === 200 && Array.isArray(got.hops) && got.hops[0] === url, JSON.stringify(got && { ok: got.ok, status: got.status, hops: got.hops, reason: got.reason }));
   }
 
+  // 3d/3e the two ways this pin was nearly dead on arrival (found by review of the O-4 commit itself)
+  {
+    // lib/retrieve.js fetchAndClean passes `fetchImpl: options.fetchImpl || globalThis.fetch`, so on the production
+    // world-retrieval path an argument is ALWAYS present: a pinnability test that asked whether one was passed left that
+    // path -- the one SEC-032 is about -- unpinned. Pinnability is decided by identity instead.
+    let sockets = 0;
+    const httpsImpl = {
+      request(options, onResponse) {
+        sockets += 1;
+        const res = { statusCode: 200, headers: { 'content-type': 'text/html' }, on(ev, cb) { if (ev === 'end') Promise.resolve().then(cb); return res; }, destroy() {} };
+        Promise.resolve().then(() => onResponse(res));
+        return { on() { return this; }, end() {}, destroy() {} };
+      },
+    };
+    const got = await withResolver([{ address: '93.184.216.34', family: 4 }], () => SF.safeFetch(url, {
+      // exactly the shape fetchAndClean sends
+      fetchImpl: globalThis.fetch, httpsImpl,
+    }));
+    ok('3d a caller that hands us the runtime\'s own fetch (what fetchAndClean does) is still pinned',
+      sockets === 1 && got && got.ok === true, JSON.stringify({ sockets, ok: got && got.ok, reason: got && got.reason }));
+    ok('3e ...and that is the shape lib/retrieve.js really sends, so this row tests the production path',
+      read('lib/retrieve.js').includes('fetchImpl: options.fetchImpl || globalThis.fetch,'));
+    // a stub is still a stub: a caller-supplied function that is NOT the runtime's fetch opens no pinned socket
+    let stubCalls = 0;
+    let stubSockets = 0;
+    const stubbed = await withResolver([{ address: '93.184.216.34', family: 4 }], () => SF.safeFetch(url, {
+      fetchImpl: async () => { stubCalls += 1; return page('<html>x</html>'); },
+      httpsImpl: { request() { stubSockets += 1; return { on() { return this; }, end() {}, destroy() {} }; } },
+    }));
+    ok('3f a real stub is still used as the transport, and no pinned socket is opened behind it',
+      stubCalls === 1 && stubSockets === 0 && stubbed && stubbed.ok === true, JSON.stringify({ stubCalls, stubSockets }));
+    // the content-type gate does not soften for a pinned hop
+    let noCtSockets = 0;
+    const noCt = await withResolver([{ address: '93.184.216.34', family: 4 }], () => SF.safeFetch(url, {
+      httpsImpl: {
+        request(options, onResponse) {
+          noCtSockets += 1;
+          const res = { statusCode: 200, headers: {}, on(ev, cb) { if (ev === 'end') Promise.resolve().then(cb); return res; }, destroy() {} };
+          Promise.resolve().then(() => onResponse(res));
+          return { on() { return this; }, end() {}, destroy() {} };
+        },
+      },
+    }));
+    ok('3g a pinned hop with NO content-type is refused, not read as HTML (the test-double default is for doubles only)',
+      noCtSockets === 1 && noCt && noCt.ok === false && String(noCt.reason).startsWith('content-type:'),
+      JSON.stringify({ noCtSockets, ok: noCt && noCt.ok, reason: noCt && noCt.reason }));
+  }
+
   // 4. rebinding: a resolver that answers one public and one private address
   {
     let sockets = 0;
@@ -189,7 +237,7 @@ const page = (html, { status = 200, ct = 'text/html; charset=utf-8', location = 
       !!m1.mod && m1.mod.blockedIpReason('2002:c0a8:101::') === null
       && SF.blockedIpReason('2002:c0a8:101::') === '6to4:private-192.168/16', m1.error);
     const m2 = await twin((x) => x.replace(
-      "      const pinned = pinnable(opts.fetchImpl, doFetch) && Array.isArray(pre.addresses) && pre.addresses.length > 0 ? pre.addresses[0] : '';",
+      "      const pinned = pinnable(doFetch) && Array.isArray(pre.addresses) && pre.addresses.length > 0 ? pre.addresses[0] : '';",
       "      const pinned = ''; // mutant: the hop resolves the name again"), 'pin');
     ok('8b MUTANT pinning seam applied and loaded', m2.changed && m2.mod, m2.error);
     if (m2.mod) {
