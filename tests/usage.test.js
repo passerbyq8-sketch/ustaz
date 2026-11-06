@@ -138,7 +138,7 @@ test('daily counters and HLL membership get 400-day TTLs; ranges count returning
       assert.ok(!JSON.stringify(range).includes(anon));
     }
     assert.match(WRITE_USAGE_SCRIPT, /PFADD/);
-    assert.equal((WRITE_USAGE_SCRIPT.match(/EXPIRE/g) || []).length, 6);
+    assert.equal((WRITE_USAGE_SCRIPT.match(/EXPIRE/g) || []).length, 7);
     assert.equal(USAGE_ACTIVE_TTL_SECONDS, 691200);
     assert.equal(one.board, null);
     assert.match(READ_USAGE_SCRIPT, /PFCOUNT', unpack\(devices\)/);
@@ -335,6 +335,7 @@ test('usage list follows the existing owner gate; strangers, readers and editors
     process: { env: {} }, TEXT_CAP: 5000,
     Redis: class {}, applyCorsOrigin() {}, checkAuthLimit: async () => ({ ok: true }), clientAddress: () => 'test',
     resolveActorState: async () => ({ state: actor ? 'live' : 'absent', actor }), ROLE_OWNER: 'owner', DEVICE_HEADER: 'x-device',
+    resolvePanelViewer: async () => ({ state: 'denied' }),
     usageWindow, readUsage: async () => { reads++; if (unavailable) throw Error('offline'); return { ok: true, kind: 'usage', items: [] }; },
   });
   vm.runInContext(source + '\nglobalThis.runInbox = handler;', context);
