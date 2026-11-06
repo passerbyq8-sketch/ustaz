@@ -43,7 +43,18 @@ function ok(name, cond, detail) {
     const visible = m ? brief.slice(0, m.index) : brief;
     ok(tag + ': the brief block shows 600 characters at most', visible.length <= 600, String(visible.length));
     ok(tag + ': ...ending at a sentence\'s end, closed by «…»', /[.؟!؛]…$|\n…$|…$/u.test(visible) && visible.endsWith('…'), visible.slice(-30).replace(/[^\x20-\x7e]/g, '.'));
-    ok(tag + ': ...an excerpt of the block as served, letter for letter', today.startsWith(visible.slice(0, -1).replace(/\s+$/u, '')));
+    // ITEM B-1 (brain35, 2026-11-06) BY THE OWNER'S DECISION (DIAG B-1: the brief block must give the ANSWER): the brief
+    // block is no longer the first 600 characters of the served sheet, because those characters were the QUESTION -- it is
+    // the sheet's own heading, then «الجواب (مختصرًا):», then an excerpt of the ANSWER. So «an excerpt of the block as
+    // served» is now read in two halves, and both are still letter for letter: the heading is the served block's own
+    // opening, and the shown answer text appears verbatim inside the served block.
+    ok(tag + ': ...the heading is the served block\'s own, and the shown answer is verbatim inside it',
+      (() => {
+        const parts = visible.split(FF.BRIEF_ANSWER_HEAD);
+        if (parts.length !== 2) return false;
+        const body = parts[1].replace(/^\s+/u, '').replace(/…\s*$/u, '');
+        return today.startsWith(parts[0]) && body.length > 40 && today.includes(body);
+      })(), visible.slice(0, 40).replace(/[^\x20-\x7e]/g, '.'));
     ok(tag + ': the button carries the full text, identical to what is served today', !!m && Buffer.from(m[1], 'base64').toString('utf8') === today);
     ok(tag + ': the detailed and student depths are as they are (no brief option)', FF.serverOwnedBlock(rec, [], { band: 'adult' }) === today);
   }

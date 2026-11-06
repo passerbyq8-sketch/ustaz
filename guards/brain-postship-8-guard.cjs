@@ -75,7 +75,18 @@ const LONG = [
   const rt = (q) => { const m = [{ role: 'user', content: q }]; return RT.classifyReligiousRuntime(q, PL.planAsk(m, { policyEnabled: true }), RC.classifyRoute(m)); };
   ok('the four P2 forms are fiqh (STORED_FIQH), so the free brain gets the rule for each: 4/4', P2.filter((q) => rt(q) === 'STORED_FIQH').length === 4, P2.map(rt).join(','));
   ok('three questions that are not fiqh are not STORED_FIQH: no rule', NOT_FIQH.every((q) => rt(q) !== 'STORED_FIQH'), NOT_FIQH.map(rt).join(','));
-  ok('rule 10 is still the last of before writing\'s rules', BW.bw2RulesFor([], 'x', []).endsWith('١٠. لا تذكرْ غيابَ قولِ عالمٍ لم يسألْ عنه السائل.'));
+  // ITEMS A-3 (a) and A-5 (brain35, 2026-11-06): the order added rules 12 and 13 after rule 10 -- a collected fatwa
+  // book's compiler is not its author (rule 12) and a grade is explained in the grader's own words (rule 13), both
+  // sha-pinned in the reviewer's own guard. Rule 10 is therefore no longer the LAST rule; what this row protects is that
+  // it is still there, in its own place, with 12 and 13 behind it and no 11 invented between them.
+  ok('rule 10 is still in before writing\'s rules, in its place, with 12 and 13 after it and no 11 between',
+    (() => {
+      const rules = BW.bw2RulesFor([], 'x', []);
+      const at10 = rules.indexOf('١٠. لا تذكرْ غيابَ قولِ عالمٍ لم يسألْ عنه السائل.');
+      const at12 = rules.indexOf('\u0661\u0662. ');
+      const at13 = rules.indexOf('\u0661\u0663. ');
+      return at10 > 0 && at12 > at10 && at13 > at12 && rules.indexOf('\u0661\u0661. ') === -1;
+    })(), BW.bw2RulesFor([], 'x', []).slice(-140));
   ok('the rule says rule 10 does not forbid naming an absent school', String(BW.BW_MADHHAB_VIEWS_RULE || '').includes('ولا تمنعُ التصريحَ بغيابِ قولِ مذهب'));
 
   console.log('-- (b) what counts as a verse');

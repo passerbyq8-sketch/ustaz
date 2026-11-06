@@ -92,9 +92,12 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e\n]/g, '~').slice(0, 200);
 
   // ── 4. the encyclopedia tail at the BW2 call site ──
   const bw2Src = read('lib/before-writing-v2.js');
-  ok('4a the call site names the encyclopedia rows the answer leaned on before it writes the global line',
-    bw2Src.includes('const encycNamed = encycCited.length > 0 && encycCited.every((row) => encycMarked.includes(row)')
-    && bw2Src.includes('const encyc = encycNamed ? \'\' : encyclopediaTail('));
+  ok('4a the call site writes the global line UNLESS the in-text mark already names every encyclopedia row the answer leaned on',
+    bw2Src.includes('const encycNamedByMark = encycCited.length > 0 && encycCited.every((row) => encycMarked.includes(row));')
+    && bw2Src.includes('const encyc = encycNamedByMark ? ' + String.fromCharCode(39, 39) + ' : encyclopediaTail(')
+    // and it is the MARK that suppresses it, never the card: the suppression condition itself reads only the marks, so
+    // an answer whose encyclopedia row carries no mark keeps its line, card or no card (postship3attributiontrigger).
+    && !bw2Src.split(String.fromCharCode(10)).some((line) => line.includes("const encycNamedByMark") && line.includes("encyclopediaShown")));
   ok('4b the releaser hands it the rows its marks named', read('lib/bw2-units.js').includes('sourceMarks, markedRows: [...markedRows]'));
   const ENC = { ref: 1, kind: 'encyclopedia', title: 'الموسوعة الفقهية الكويتية — القول بلا علم', recordId: 'enc:1', text: PAGE_TEXT, passage: PAGE_TEXT, part: 1 };
   // the encyclopedia card is behind its own switch, so a turn can show cards and still show none of ITS rows: that unit
