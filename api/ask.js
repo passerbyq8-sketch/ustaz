@@ -2250,6 +2250,7 @@ export default async function handler(req, res) {
       // answers a sum from memory must not pay for loading them.
       const {
         runFreeBrainTurn, shouldAppendC3NotCovered, pickReaderCards, pickBookCards, reviewerEvidence, encyclopediaTail,
+        turnDeadlineMs, // ITEM O-3 (brain35, 2026-11-06): the turn's own deadline, read from the environment once per turn
         citedDeliveryLedger, pickEncyclopediaCards,
       } = await import('../lib/free-brain/loop.js');
       const { buildFreeBrainInstruction } = await import('../lib/free-brain/instructions.js');
@@ -2294,6 +2295,12 @@ export default async function handler(req, res) {
           providerUrl: ANTHROPIC_URL,
           headers,
           signal: freeUpstream.signal,
+          // ITEM O-3 (brain35, 2026-11-06; DIAG WEAK-CONNECTION): the whole turn's deadline, four minutes from the
+          // request's own start (TURN_DEADLINE_MS overrides it, for the guard). The platform cuts the function at 300 s
+          // (vercel.json maxDuration), and a socket cut mid-answer is what the reader reads as a weak connection: past
+          // this deadline the loop makes no further call, the answer is marked cut, and the mark below ships with it.
+          turnDeadlineMs: turnDeadlineMs(process.env),
+          turnStartedAt: requestStartedAt,
           dailyBudget: paidSearchBudget,
           // The library rides the same two conditions everywhere: a non-brief depth AND an adult
           // band. Handing down an empty flag and an empty token for anyone else means the tool is
