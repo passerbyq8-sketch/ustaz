@@ -334,7 +334,7 @@ test('usage list follows the existing owner gate; strangers, readers and editors
   const context = vm.createContext({
     process: { env: {} }, TEXT_CAP: 5000,
     Redis: class {}, applyCorsOrigin() {}, checkAuthLimit: async () => ({ ok: true }), clientAddress: () => 'test',
-    resolveActor: async () => actor, ROLE_OWNER: 'owner', DEVICE_HEADER: 'x-device',
+    resolveActorState: async () => ({ state: actor ? 'live' : 'absent', actor }), ROLE_OWNER: 'owner', DEVICE_HEADER: 'x-device',
     usageWindow, readUsage: async () => { reads++; if (unavailable) throw Error('offline'); return { ok: true, kind: 'usage', items: [] }; },
   });
   vm.runInContext(source + '\nglobalThis.runInbox = handler;', context);
@@ -360,7 +360,7 @@ test('the panel overview is one owner-only read, and each part fails alone', asy
   const context = vm.createContext({
     process: { env: {} }, TEXT_CAP: 5000, console: { error() {} },
     Redis: class {}, applyCorsOrigin() {}, checkAuthLimit: async () => ({ ok: true }), clientAddress: () => 'test',
-    resolveActor: async () => actor, ROLE_OWNER: 'owner', DEVICE_HEADER: 'x-device', usageWindow,
+    resolveActorState: async () => ({ state: actor ? 'live' : 'absent', actor }), ROLE_OWNER: 'owner', DEVICE_HEADER: 'x-device', usageWindow,
     readUsage: async () => { usageReads++; throw Error('offline'); },
     readUsageChat: async (b) => { chatDays.push(b.day); return { ok: true, read: 1 }; },
   });
