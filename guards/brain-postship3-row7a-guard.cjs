@@ -67,7 +67,9 @@ async function main() {
       entry.label + ': reviewer action changed',
     );
     if (entry.label !== 'B2') check(result.text === entry.text, entry.label + ': reviewer output changed');
-    if (entry.label === 'B2') check(Array.from(result.text).length - Array.from(entry.text).length === 49, 'B2: measured reviewer suffix length changed');
+    // brain35 A-1 (2026-11-06, owner: the khilaf warning only for a real contradiction): B2 attributes ONE view (the
+    // jumhur), so the 49-character khilaf tail the reviewer used to append is no longer written; the measured suffix is 0.
+    if (entry.label === 'B2') check(Array.from(result.text).length - Array.from(entry.text).length === 0, 'B2: measured reviewer suffix length changed');
   }
 
   if (typeof opening.cleanDanglingOpeningConnective === 'function') {

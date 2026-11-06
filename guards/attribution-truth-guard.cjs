@@ -1085,7 +1085,10 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
   {
     const REV45 = await esm('lib/output-reviewer.js');
     const TAIL45 = 'وتُراجَع المسألة مع أهل العلم لظهور الخلاف فيها.';
-    const T45 = 'والحديث الضعيف لا يعمل به في الأحكام.\nلكن لو ذكر الضعيف كما ذكره الجمهور فلا حرج';
+    // brain35 A-1 (2026-11-06, owner: the khilaf warning only for a real contradiction): the tail now needs two
+    // attributed views (anonymous here, so the reviewer leaves them whole) and a khilaf word (الجمهور alone no longer lights it); the placement under test is unchanged:
+    // the tail follows the unterminated last sentence.
+    const T45 = 'والحديث الضعيف لا يعمل به في الأحكام.\nوذهب بعضهم إلى أنه واجب، وذهب آخرون إلى أنه مكروه، وفي المسألة خلاف.\nلكن لو ذكر الضعيف كما ذكره الجمهور فلا حرج';
     const out45 = REV45.reviewAnswer({ text: T45, evidence: [], domain: 'fiqh', mode: 'chat' }).text;
     ok('b45 W · the tail follows the unterminated sentence that called it, at the end of the part',
       out45 === T45 + '\n' + TAIL45, JSON.stringify(out45));
