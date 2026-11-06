@@ -48,6 +48,7 @@ import crypto from 'node:crypto';
 import { Redis } from '@upstash/redis';
 import { applyCorsOrigin } from '../lib/ratelimit.js';
 import { DEVICE_HEADER, DAY_CAP_TTL_SECONDS, kuwaitDayStamp, safeId } from '../lib/daycap.js';
+import { saveFeedback } from '../lib/feedback-intake.js';
 import { sessionState } from '../lib/auth/account.js';
 import appVersionFile from '../config/app-version.json' with { type: 'json' };
 
@@ -150,23 +151,6 @@ function accountDayKey(accountKey) {
   return 'fb:v1:a:' + digest + ':' + kuwaitDayStamp();
 }
 
-/**
- * ONE DAY COUNTER, READ AND JUDGED. Returns 'ok', 'over' or 'unreadable'.
- *
- * FAIL CLOSED ON 'unreadable', and that is the same rule the device counter has always had here:
- * a MISSING key is zero -- the normal first message of the day -- while a key that EXISTS and will
- * not parse is a number we are holding and cannot read, and calling that zero would hand out an
- * unlimited allowance. Written once and called twice so the two counters cannot come to disagree
- * about what an unreadable number means.
- */
-async function dayCount(key, cap) {
-  const used = await redis.get(key);
-  if (used === null || used === undefined || used === '') return 'ok';
-  const n = typeof used === 'number' ? used : Number.parseInt(String(used), 10);
-  if (!Number.isFinite(n)) return 'unreadable';
-  return n >= cap ? 'over' : 'ok';
-}
-
 export default async function handler(req, res) {
   applyCorsOrigin(req, res);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -247,27 +231,6 @@ export default async function handler(req, res) {
   }
   const dayKey = 'fb:v1:d:' + device + ':' + kuwaitDayStamp();
   const acctKey = accountDayKey(accountKey);
-  try {
-    // DECISION ج٣: EITHER counter over its ceiling is a 429, so the ceiling a reader actually
-    // meets is the LOWER of the two allowances rather than their sum. Read together, judged
-    // together, and neither of them consults a role -- decision ج٤ is enforced by the ABSENCE of
-    // a branch here, which is the only way an exemption can be absent for good.
-    const [byDevice, byAccount] = await Promise.all([
-      dayCount(dayKey, DEVICE_CAP),
-      dayCount(acctKey, ACCOUNT_CAP),
-    ]);
-    if (byDevice === 'unreadable' || byAccount === 'unreadable') {
-      console.warn('[feedback] day counter unreadable, fail-CLOSED');
-      return res.status(503).json({ error: 'could not save feedback; please try again later' });
-    }
-    if (byDevice === 'over' || byAccount === 'over') {
-      return res.status(429).json({ error: 'daily feedback limit reached' });
-    }
-  } catch (e) {
-    console.warn('[feedback] day counter unreachable, fail-CLOSED:', e && e.message ? e.message : e);
-    return res.status(503).json({ error: 'could not save feedback; please try again later' });
-  }
-
   // The ONLY thing persisted. A whitelist and not a filtered copy of the body: a field the client
   // invents cannot arrive here by being spelled unexpectedly, because nothing is copied across.
   // No device, no IP, no place, no name, no address, and not one character of any conversation.
@@ -287,32 +250,14 @@ export default async function handler(req, res) {
     accountKey,
   };
 
-  // FAIL CLOSED. If the store is down, LPUSH throws, we catch, and the caller is told the truth.
-  // Telling a reader «أُرسِلَتْ» about a message that evaporated is the one answer this route is
-  // forbidden to give: they would stop typing it and nobody would ever read it.
+  // One atomic check/save/count: concurrent submissions cannot share an allowance.
   try {
-    await redis.lpush(FEEDBACK_KEY, JSON.stringify(record));
-    await redis.ltrim(FEEDBACK_KEY, 0, FEEDBACK_KEEP - 1);
-  } catch (e) {
-    console.error('[feedback] STORE FAILED — feedback NOT saved:', e && e.message ? e.message : e);
+    const saved = await saveFeedback(redis, [dayKey, acctKey, FEEDBACK_KEY], record,
+      DEVICE_CAP, ACCOUNT_CAP, DAY_CAP_TTL_SECONDS, FEEDBACK_KEEP);
+    if (saved === 0) return res.status(429).json({ error: 'daily feedback limit reached' });
+    if (saved !== 1) return res.status(503).json({ error: 'could not save feedback; please try again later' });
+  } catch {
     return res.status(503).json({ error: 'could not save feedback; please try again later' });
   }
-
-  // COUNTED ONLY AFTER IT LANDED. A message that failed to save must not spend one of the three:
-  // the reader is being asked to send it again, and a counter incremented before the write would
-  // charge them for the attempt the store lost. BOTH counters move together, for the same reason
-  // they are read together: a device counted without its account, or the reverse, is an allowance
-  // one of the two guards has silently stopped guarding.
-  try {
-    await redis.incr(dayKey);
-    await redis.expire(dayKey, DAY_CAP_TTL_SECONDS);
-    await redis.incr(acctKey);
-    await redis.expire(acctKey, DAY_CAP_TTL_SECONDS);
-  } catch (e) {
-    // The message IS saved. Saying otherwise now would be the lie this route exists to avoid, so
-    // the ceiling is what degrades here, and it degrades loudly rather than silently.
-    console.warn('[feedback] saved but NOT counted:', e && e.message ? e.message : e);
-  }
-
   return res.status(200).json({ ok: true });
 }

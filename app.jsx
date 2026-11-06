@@ -3,6 +3,114 @@ const { useState, useEffect, useRef } = React;
 
 // Track committed navigation, including drawer/widget entries and restored layers.
 // The logger is optional: a missing script or failed request cannot break a section.
+function ezPanelAvailability(doc, id) {
+  return typeof window !== 'undefined' && window.EzikPanelPolicy ? window.EzikPanelPolicy.availability(doc, id) : { state: 'visible', reason: '' };
+}
+function useEzikPanelSettings() {
+  const read = () => { try { return window.EzikPanel ? window.EzikPanel.read() : { schema: 1, revision: 0, sections: {} }; } catch (_) { return { schema: 1, revision: 0, sections: {} }; } };
+  const [doc, setDoc] = useState(read);
+  useEffect(() => { const changed = () => setDoc(read()); window.addEventListener('ezik-panel-settings', changed); changed(); return () => window.removeEventListener('ezik-panel-settings', changed); }, []);
+  return doc;
+}
+function EzPanelUnavailable({ policy, onBack }) {
+  return <EzShell title={ezT('panel.unavailable')} onBack={onBack} backLabel={ezT('common.back')}>
+    <section data-panel-unavailable="1" role="status"><p dir="auto">{policy.reason || ezT('panel.unavailable')}</p><button type="button" onClick={onBack}>{ezT('common.back')}</button></section>
+  </EzShell>;
+}
+function EzPanelCampaign({ profile, document }) {
+  const [shown, setShown] = useState(null), dialog = useRef(null);
+  const eligible = !!(window.EzikPanelPolicy && window.EzikPanelPolicy.campaignEligible(document, profile?.age, Date.now()));
+  const active = !!(shown && eligible && shown.id === document.campaign?.id);
+  useEzikBackLayer(active, () => setShown(null));
+  useEffect(() => {
+    let alive = true;
+    const attempt = () => {
+      if (!window.EzikPanel || !window.EzikPanel.claimCampaign) return;
+      window.EzikPanel.claimCampaign(profile?.age, () => alive && !window.document.querySelector('[role="dialog"], [role="alertdialog"], dialog[open], .ezc-drawer-ov, [data-tour-active]'))
+        .then(campaign => { if (alive && campaign) setShown(campaign); });
+      setShown(value => value && window.EzikPanelPolicy.campaignEligible(document, profile?.age, Date.now()) ? value : null);
+    };
+    if (!document.campaign || !document.campaign.enabled || !Number.isInteger(Number(profile?.age)) || Number(profile?.age) < 13) return;
+    attempt(); const timer = setInterval(attempt, 10000);
+    const expiry = setTimeout(() => setShown(null), Math.max(1, Math.min(document.campaign.end - Date.now(), 2147483647)));
+    return () => { alive = false; clearInterval(timer); clearTimeout(expiry); };
+  }, [document.revision, profile?.age]);
+  useEffect(() => {
+    if (!active || !dialog.current) return;
+    const previous = window.document.activeElement;
+    try { dialog.current.showModal(); } catch (_) { dialog.current.setAttribute('open', ''); }
+    return () => { try { if (previous && previous.focus) previous.focus(); } catch (_) {} };
+  }, [active]);
+  if (!active) return null;
+  return <dialog ref={dialog} data-panel-campaign={shown.id} aria-labelledby="ez-panel-message-title" onCancel={() => setShown(null)}
+    style={{ maxWidth: 'min(90vw, 480px)', padding: 24, borderRadius: 18, background: 'var(--surface)', color: 'var(--ink)' }}>
+    <h2 id="ez-panel-message-title">{ezT('panel.campaign')}</h2><p dir="auto" style={{ whiteSpace: 'pre-wrap' }}>{shown.text}</p>
+    <button type="button" autoFocus onClick={() => setShown(null)}>{ezT('common.close')}</button>
+  </dialog>;
+}
+function EzPanelCampaignEditor({ document, onChange, busy }) {
+  const c = document.campaign;
+  const change = (field, value) => onChange({ ...document, campaign: { ...c, [field]: value } });
+  const local = value => { const date = new Date(value); return Number.isFinite(value) ? new Date(value - date.getTimezoneOffset() * 60000).toISOString().slice(0,16) : ''; };
+  return <fieldset disabled={busy} data-panel-campaign-editor="1"><legend>{ezT('panel.campaign')}</legend>
+    <button type="button" className="ezcp-act" onClick={() => onChange({ ...document, campaign: { id: Date.now().toString(36) + '_' + Math.random().toString(36).slice(2), enabled: false, text: '', start: Date.now(), end: Date.now() + 86400000 } })}>{ezT('panel.campaignNew')}</button>
+    {c ? <div><label><input type="checkbox" checked={c.enabled} onChange={e => change('enabled', e.target.checked)} />{ezT('prayer.notify.on')}</label>
+      <label>{ezT('panel.campaign')}<textarea maxLength={2000} value={c.text} onChange={e => change('text', e.target.value)} /></label>
+      <label>{ezT('panel.campaignStart')}<input type="datetime-local" value={local(c.start)} onChange={e => change('start', new Date(e.target.value).getTime())} /></label>
+      <label>{ezT('panel.campaignEnd')}<input type="datetime-local" value={local(c.end)} onChange={e => change('end', new Date(e.target.value).getTime())} /></label>
+      <details><summary>{ezT('articles.preview')}</summary><p dir="auto" style={{ whiteSpace: 'pre-wrap' }}>{c.text}</p></details>
+      <button type="button" className="ezcp-act" onClick={() => onChange({ ...document, campaign: null })}>{ezT('inbox.delete')}</button>
+    </div> : null}
+  </fieldset>;
+}
+
+function EzPanelHealth() {
+  const [data,setData]=useState(null),[limit,setLimit]=useState('10'),[failed,setFailed]=useState(false);
+  const alive=useRef(true);
+  const call=async payload=>{
+    const held=readAuthSession();if(!held)return null;
+    try{const r=await fetch('/api/panel-health',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...payload,session:held.session})});return r.ok?await r.json():null;}catch{return null;}
+  };
+  const refresh=()=>call({action:'read'}).then(r=>{if(!alive.current)return;setFailed(!r?.ok);setData(r?.ok?r:null);if(r?.ok)setLimit(String(r.limitUsd));});
+  useEffect(()=>{alive.current=true;refresh();const timer=setInterval(refresh,60000);return()=>{alive.current=false;clearInterval(timer);};},[]);
+  const act=async payload=>{const r=await call(payload);if(!alive.current)return;if(!r?.ok){setFailed(true);return;}refresh();};
+  return <section className="ezub-card" data-panel-health="1"><h3>{ezT('panel.navOverview')} · UTC</h3>
+    {failed?<p role="alert">{ezT('panel.settingsError')}</p>:null}
+    <label>{ezT('panel.dailyLimit')}<input type="number" min="0.01" max="10000" step="0.01" value={limit} onChange={e=>setLimit(e.target.value)} /></label>
+    <button type="button" className="ezcp-act" onClick={()=>act({action:'limit',usd:Number(limit)})}>{ezT('common.save')}</button>
+    <p>{ezT('panel.costMissing')}</p><p>{ezT('panel.sampleCoverage')}</p>
+    {data?<><p>{data.day} · {ezT('usage.noFind')}: {ezUbNum(data.sample.noFind)} / {ezUbNum(data.sample.read)} · {ezT('usage.faults')}: {ezUbNum(data.sample.faults)}</p>
+      {data.alerts.map(a=><div key={a.id} data-panel-private-notification={a.id} role={a.acknowledged?undefined:'alert'}>
+        <strong>↑ {ezT(a.kind==='noFind'?'usage.noFind':a.kind==='faults'?'usage.faults':'panel.dailyLimit')}</strong>
+        {!a.acknowledged?<button type="button" className="ezcp-act" onClick={()=>act({action:'ack',id:a.id})}>{ezT('common.close')}</button>:null}
+      </div>)}</>:null}
+  </section>;
+}
+function EzPanelControls() {
+  const [opened, setOpened] = useState(false), [doc, setDoc] = useState(null), [busy, setBusy] = useState(false), [error, setError] = useState('');
+  const request = async (action, document) => {
+    const held = readAuthSession(); if (!held) throw Error('session');
+    const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 8000);
+    try {
+      const response = await fetch('/api/panel-settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session: held.session, action, document }), signal: controller.signal });
+      const data = await response.json(); if (!response.ok || !data.ok) throw Error(data.error || 'settings'); return data.document;
+    } finally { clearTimeout(timer); }
+  };
+  const load = async () => { setOpened(true); setBusy(true); setError(''); try { setDoc(await request('read')); } catch (_) { setError(ezT('panel.settingsError')); } finally { setBusy(false); } };
+  const save = async () => { setBusy(true); setError(''); try { const next = await request('save', doc); setDoc(next); if (window.EzikPanel) window.EzikPanel.accept(next); } catch (_) { setError(ezT('panel.settingsError')); } finally { setBusy(false); } };
+  const labels = { asmaa: EZH_ASMAA, articles: EZH_ARTICLES, memorize: EZH_MEMORIZE, adhkar: EZH_ADHKAR, 'sunan-day': EZH_SUNAN, arbaeen: EZH_ARBAEEN, mushaf: EZH_MUSHAF, treasure: EZH_TREASURE, yahimmak: EZH_YAHIMMAK, dima: EZH_DIMA, fatwa: EZH_FATWA, lessons: EZH_LESSONS, library: EZH_LIBRARY, prayer: EZH_PRAYER, women: EZH_WOMEN };
+  const edit = (id, field, value) => setDoc(prev => ({ ...prev, sections: { ...prev.sections, [id]: { ...ezPanelAvailability(prev, id), [field]: value } } }));
+  return <section className="ezcp-card" data-panel-settings="1">
+    <button type="button" className="ezcp-act" onClick={opened ? () => setOpened(false) : load}>{ezT('settings.title')}</button>
+    {error ? <p role="alert">{error}</p> : null}
+    {opened && doc ? <div>{Object.keys(labels).map(id => <fieldset key={id} data-panel-section={id} disabled={busy}>
+      <legend>{labels[id]}</legend><label>{ezT('settings.title')}<select value={ezPanelAvailability(doc,id).state} onChange={e => edit(id,'state',e.target.value)}>
+        {[['visible', ezT('panel.state.visible')], ['hidden', ezT('panel.state.hidden')], ['locked', ezT('panel.state.locked')]].map(([state, label]) => <option key={state} value={state}>{label}</option>)}
+      </select></label><label>{ezT('inbox.reportNote')}<input maxLength={160} value={ezPanelAvailability(doc,id).reason} onChange={e => edit(id,'reason',e.target.value)} /></label>
+    </fieldset>)}<EzPanelCampaignEditor document={doc} onChange={setDoc} busy={busy} /><button type="button" className="ezcp-act" disabled={busy} onClick={save}>{ezT('common.save')}</button><button type="button" className="ezcp-act" disabled={busy} onClick={load}>{ezT('panel.refresh')}</button></div> : null}
+  </section>;
+}
+
 function useUsageSection(name) {
   useEffect(() => {
     try {
@@ -400,6 +508,20 @@ function useEzLang() {
 // here and no translated string is ever handed to innerHTML. ---------------------------
 const EZ_I18N = {
   ar: {
+    'panel.dailyLimit': "الحد اليومي (USD، UTC)",
+    'panel.costMissing': "التكلفة غير متاحة: بيانات التسعير والاستهلاك غير مكتملة.",
+    'panel.sampleCoverage': "عينة لا تتجاوز 200 إجابة يوميا؛ لا تشمل كل الاستخدام.",
+    'panel.oldDevices': "أجهزة بإصدارات قديمة",
+    'panel.unknown': "غير معروف",
+    'panel.campaign': "رسالة من الإدارة",
+    'panel.campaignStart': "البداية (بالتوقيت المحلي)",
+    'panel.campaignEnd': "النهاية (بالتوقيت المحلي)",
+    'panel.campaignNew': "رسالة جديدة",
+    'panel.state.visible': "متاح",
+    'panel.state.hidden': "مخفي",
+    'panel.state.locked': "مقفل",
+    'panel.unavailable': "القسم غير متاح",
+    'panel.settingsError': "تعذر حفظ الإعدادات. حدّث الصفحة ثم حاول مجددًا.",
     'dima.repeatLabel': "\u0625\u0639\u0627\u062f\u0629 \u0645\u0646 \u0627\u0644\u0623\u064a\u0627\u0645 \u0627\u0644\u0645\u062a\u0627\u062d\u0629",
     'dima.repeatHelp': "\u0646\u0643\u0631\u0631 \u0627\u0644\u0623\u064a\u0627\u0645 \u0627\u0644\u0645\u062a\u0627\u062d\u0629 \u0645\u0639 \u062d\u0641\u0638 \u062a\u0642\u062f\u0645\u0643",
     'dima.seasonLabel': "\u0628\u0637\u0627\u0642\u0629 \u0645\u0648\u0633\u0645\u064a\u0629",
@@ -2392,6 +2514,20 @@ const EZ_I18N = {
     'tr4.machine': 'ترجمة آلية',
   },
   en: {
+    'panel.dailyLimit': "Daily limit (USD, UTC)",
+    'panel.costMissing': "Cost unavailable: pricing and usage accounting are incomplete.",
+    'panel.sampleCoverage': "Sample of at most 200 answers per day; not all traffic.",
+    'panel.oldDevices': "Devices on older versions",
+    'panel.unknown': "Unknown",
+    'panel.campaign': "Announcement",
+    'panel.campaignStart': "Starts (local time)",
+    'panel.campaignEnd': "Ends (local time)",
+    'panel.campaignNew': "New message",
+    'panel.state.visible': "Visible",
+    'panel.state.hidden': "Hidden",
+    'panel.state.locked': "Locked",
+    'panel.unavailable': "Section unavailable",
+    'panel.settingsError': "Could not save settings. Refresh and try again.",
     'dima.repeatLabel': "Repeating an available day",
     'dima.repeatHelp': "Available days repeat; your progress is kept.",
     'dima.seasonLabel': "Seasonal card",
@@ -10992,7 +11128,8 @@ function ez110BarName(id) { return ez110Name(id) || (id === 'wird' ? DW_CARD_TIT
 // While the menu is being arranged (edit) the two chosen slots are targets: a tile dropped on one takes it, or a slot
 // pressed and then a tile pressed (the way that needs no dragging, and the screen reader's).
 function Ez110Nav({ active, edit, bar, slotSel, onSlot }) {
-  const ids = bar || ez110ReadBar();
+  const panel = useEzikPanelSettings();
+  const ids = (bar || ez110ReadBar()).filter(id => ezPanelAvailability(panel, id).state !== 'hidden');
   const tabs = [
     { k: 'chat', label: ezT('ez110.nav.ezik'), go: () => ez110Go('chat') },
     { k: 'home', label: ezT('ez110.nav.menu'), go: () => ez110Go('home') },
@@ -11312,10 +11449,11 @@ function Ez110Home(v) {
   const shelf = <div className="ez110-grid">{items}</div>;
   return (
     <div className="theme-dark ezhome ez110-home" style={s.ezistContainer}>
+      {v.campaign}
       <EzistTopNav onOpenMenu={v.onOpenMenu} onOpenDima={v.onOpenDima} name={v.name} />
       <div style={s.ezistScroll}>
         <div className="ezist-wrap ez110-wrap">
-          <Ez110PrayerCard onOpen={v.onOpenPrayer} hijri={v.hijri} onQibla={v.onOpenQibla} />
+          {ezPanelAvailability(v.panel, 'prayer').state !== 'hidden' ? <Ez110PrayerCard onOpen={v.onOpenPrayer} hijri={v.hijri} onQibla={v.onOpenQibla} /> : null}
           {/* ROUND 3 §3-1 (owner): no «الأقسام» title, and «ترتيب القائمة» is the last thing on the page, under the last tile */}
           {edit ? <p className="ez110-hint" role="status">{ezT('ez110.order.hint')} {ezT(slotSel === null ? 'ez110.bar.hint' : 'ez110.bar.pick')}</p> : null}
           {shelf}
@@ -11966,7 +12104,11 @@ function ezHomeModules(v) {
     { id: 'library',  label: EZH_LIBRARY,  icon: EZH_ICON_LIBRARY,  onClick: v.onOpenLibrary,  meta: null },
     { id: 'prayer',   label: EZH_PRAYER,   icon: EZH_ICON_PRAYER,   onClick: v.onOpenPrayer,   meta: null },
     { id: 'women',    label: EZH_WOMEN,    icon: EZH_ICON_WOMEN,    onClick: v.onOpenWomen,    meta: null, fresh: !!(v.artFresh && v.artFresh.women) },
-  ].filter((m) => !(m.id === 'women' && ezWomenSectionHidden(v.gender)));
+  ].filter((m) => !(m.id === 'women' && ezWomenSectionHidden(v.gender)))
+    /* PANEL-HOME START */
+    .filter(m => ezPanelAvailability(v.panel, m.id).state !== 'hidden')
+    .map(m => { const policy = ezPanelAvailability(v.panel, m.id); return { ...m, panelState: policy.state, onClick: policy.state === 'locked' ? () => v.onPanelDenied(m.id) : m.onClick }; })
+    /* PANEL-HOME END */;
 }
 
 // ---- S101 ISTANA HOME START --------------------------------------------------------------
@@ -12339,6 +12481,7 @@ function EzikIstanaHome(v) {
   const mods = v.modules || [];   // the owner's one array, mapped once, in its own order
   return (
     <div className="theme-dark ezhome" style={s.ezistContainer}>
+      {v.campaign}
       {/* S101-home-istana */}
       <EzistTopNav onOpenMenu={v.onOpenMenu} onOpenDima={v.onOpenDima} name={v.name} />
       <div style={s.ezistScroll}>
@@ -14320,6 +14463,8 @@ function EzikHomeWidgetArrange({ widgets, onWidgets, arrangeOpen, onArrange }) {
 }
 
 function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, onOpenYahimmak, onOpenDima, onOpenArbaeen, onOpenMushaf, onOpenFatwa, onOpenLessons, onOpenAsmaa, onOpenSettings }) {
+  const panel = useEzikPanelSettings();
+  const [panelDenied, setPanelDenied] = useState('');
   const ez110 = useEz110();   // ITEM 110: the lit identity draws its own menu below
   // THE OWNER. Every prop it was handed is handed straight on, and the treasure entry resolves
   // to the same href it always did. There is no second router here and no duplicated navigation
@@ -14538,7 +14683,8 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
   // not. What arrives is a PERMUTATION applied to the finished array, at the one place that
   // array is put into the props object -- and with nothing stored the overlay hands back the
   // built array itself, so the default shelf is byte for byte the shelf that was here before.
-  const home = { ...view, modules: ezHomeOrderApply(ezHomeModules(view), readHomeOrder().order) };
+  view.panel = panel; view.onPanelDenied = setPanelDenied;
+  const home = { ...view, campaign: <EzPanelCampaign profile={profile} document={panel} />, modules: ezHomeOrderApply(ezHomeModules(view), readHomeOrder().order) };
   // S102 -- ONE DESIGN. The journey/deck presentation system is gone from the file, not
   // hidden behind a flag: its two home components, its three shared parts, its key, its
   // reader, its writer, its hook, its event and its Settings control were all removed in the
@@ -14565,6 +14711,9 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
   // section second -- and it costs the prayer sheet nothing: each layer took its own history
   // entry when it opened, so one press of back pops the compass and lands on the sheet, and the
   // next pops the sheet and lands on the home.
+  const panelDestination = panelDenied || (prayerOpen || compassOpen ? 'prayer' : artSection || '');
+  const panelPolicy = ezPanelAvailability(panel, panelDestination);
+  if (panelPolicy.state !== 'visible') return <EzPanelUnavailable policy={panelPolicy} onBack={() => { setPanelDenied(''); setPrayerOpen(false); setCompassOpen(false); setArtSection(null); }} />;
   if (compassOpen) return <CompassSheet onClose={ezikGoBack} />;
   if (prayerOpen) return <PrayerSheet onClose={ezikGoBack} onOpenCompass={() => setCompassOpen(true)} />;
   // ITEM 05-C. Same door as the device button: the visible back spends the layer's entry
@@ -21506,6 +21655,7 @@ const EZIK_REVEAL_MIN_STEP = 2;
 const EZIK_REVEAL_MAX_STEP = 11;
 
 function App() {
+  const panel = useEzikPanelSettings();
   // S100: mounted here and not only in Settings, because the 'storage' event fires in the
   // tabs that did NOT make the change -- a tab sitting on the chat has to repaint too. The
   // hook owns no screen state and renders nothing; it keeps <html> honest.
@@ -21567,6 +21717,7 @@ function App() {
   // the row exists for the owner and for nobody else. It is never read from a profile, a flag
   // or a stored role: this file does not know who the owner is and must not start guessing.
   const [inboxOpen, setInboxOpen] = useState(false);
+  const [panelViewer, setPanelViewer] = useState('');
   // ITEM 87: the day, from waking to sleeping. A FIFTH panel of exactly the same kind as the
   // four above -- one boolean, one history entry, no `screen` key -- opened from the same menu.
   const [sunanOpen, setSunanOpen] = useState(() => ezikReadResume() === 'sunan-day');
@@ -22645,6 +22796,9 @@ function App() {
   // count is computed over the route's whole window regardless of how many items travel.
   const probeInbox = () => {
     const held = readAuthSession();
+    setPanelViewer('');
+    if (held?.session) fetch('/api/panel-access', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({session:held.session,action:'self'}) })
+      .then(r => r.ok ? r.json() : null).then(r => setPanelViewer(r?.role === 'viewer' ? held.session : '')).catch(() => setPanelViewer(''));
     if (!held || typeof held.session !== 'string' || !held.session) { setInboxUnread(null); setFbUnseen(0); return; }
     ezikInbox({ session: held.session, action: 'list', kind: 'feedback', limit: 1 }).then((res) => {
       if (!res.ok || !res.data) { setInboxUnread(null); return; }
@@ -25871,13 +26025,13 @@ function App() {
                 `list` call returned 200 -- see probeInbox() above -- so there is no role, no flag
                 and no digest in this file for anybody to forge. The badge is the count of unread
                 messages in «اقتراحات وشكاوى» and never in «بلاغات», which is decision ج١٣. */}
-            {inboxUnread !== null ? (
-              <button onClick={() => closeDrawerWith(() => setInboxOpen(true))} style={s.drawerItem} className="ezik-focus" aria-label={ezT('menu.inboxAria')}>
+            {inboxUnread !== null || (panelViewer && panelViewer === readAuthSession()?.session) ? (
+              <button onClick={() => closeDrawerWith(() => setInboxOpen(true))} style={s.drawerItem} className="ezik-focus" aria-label={ezT(inboxUnread !== null ? 'menu.inboxAria' : 'inbox.tabUsage')}>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3.5 12.5h5l1.5 2.5h4l1.5-2.5h5" />
                   <path d="M5.5 5.5h13l2 7v6h-17v-6z" />
                 </svg>
-                <span style={{ flex: 1, minWidth: 0 }}>{ezT('menu.inbox')}</span>
+                <span style={{ flex: 1, minWidth: 0 }}>{ezT(inboxUnread !== null ? 'menu.inbox' : 'inbox.tabUsage')}</span>
                 {inboxUnread > 0 && <span style={s.drawerBadge}>{inboxUnread}</span>}
               </button>
             ) : null}
@@ -25902,6 +26056,9 @@ function App() {
   // ABOVE every gate below because it sends nothing: no question, no session, no route and no
   // model. A spend gate or a consent notice in front of a static sheet would be a barrier in
   // front of a door that costs nothing to walk through.
+  const panelDestination = asmaaOpen ? 'asmaa' : sunanOpen ? 'sunan-day' : yahimmakOpen ? 'yahimmak' : dimaOpen ? 'dima' : screen;
+  const panelPolicy = ezPanelAvailability(panel, panelDestination);
+  if (panelPolicy.state !== 'visible') return <EzPanelUnavailable policy={panelPolicy} onBack={ezikGoBack} />;
   if (asmaaOpen) return <EzikAsmaaSection onHome={ezikGoBack} />;
   // ITEM 92-ب -- THE MENU'S THREE PANELS, and they stand HERE for three different reasons.
   //
@@ -25960,6 +26117,7 @@ function App() {
   // sends no question to a model and spends no allowance, which is the identical argument the
   // three panels above it are placed on. Its own back control closes the opened message first
   // and the panel second, and the device button takes the same two steps.
+  if (inboxOpen && panelViewer && panelViewer === readAuthSession()?.session) return <EzPanelViewer onBack={() => setInboxOpen(false)} />;
   if (inboxOpen) return (
     <EzikInboxSheet
       onBack={() => { if (ezikHistBack()) return; setInboxOpen(false); }}
@@ -29714,6 +29872,33 @@ function EzCpPlatform({ p }) {
   );
 }
 
+function EzPanelViewer({ onBack }) {
+  const [allowed, setAllowed] = useState(false);
+  useEffect(() => {
+    let live = true;
+    const check = () => {
+      const held = readAuthSession(); if (!held) { setAllowed(false); return; }
+      fetch('/api/panel-access', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session:held.session,action:'self'})})
+        .then(r => r.ok ? r.json() : null).then(r => { if (live) setAllowed(r?.role === 'viewer'); }).catch(() => { if (live) setAllowed(false); });
+    };
+    check();window.addEventListener('focus',check);const timer=setInterval(check,60000);
+    return () => {live=false;window.removeEventListener('focus',check);clearInterval(timer);};
+  }, []);
+  return <EzShell title={ezT('inbox.tabUsage')} onBack={onBack}><div data-panel-viewer="1">{allowed ? <EzikUsageBoard /> : <p>{ezT('panel.unavailable')}</p>}</div></EzShell>;
+}
+function EzPanelVersionDevices() {
+  const [data, setData] = useState(null);
+  useEffect(() => {
+    const held = readAuthSession(); let live = true;
+    if (held) ezikInbox({ session: held.session, action: 'list', kind: 'version-devices' }).then(r => { if (live) setData(r.ok ? r.data : null); });
+    return () => { live = false; };
+  }, []);
+  return <div data-panel-version-devices="1"><h4>{ezT('panel.oldDevices')} · {ezT('usage.week')}</h4>
+    {data ? <><strong>{ezUbNum(data.old)}</strong><p>{ezT('panel.unknown')}: {ezUbNum(data.unknown + data.other)}</p>
+      {data.versions.map(v => <div className="ezub-pair" key={v.v}><bdi dir="ltr">{v.v}</bdi><span>{ezUbNum(v.n)}</span></div>)}
+      <small>{ezT('usage.note')}</small></> : <p>{ezT('usage.pending')}</p>}
+  </div>;
+}
 function EzikUsageBoard({ store }) {
   const [day, setDay] = useState(() => new Date().toISOString().slice(0, 10));
   const [days, setDays] = useState(1);
@@ -29858,9 +30043,7 @@ function EzikUsageBoard({ store }) {
             {b && (b.platforms.a || b.platforms.i || b.platforms.w) ? (
               <>
                 <EzCpPlatform p={b.platforms} />
-                {b.versions.map((v) => (
-                  <div className="ezub-pair" key={v.v}><bdi dir="ltr">{v.v}</bdi><span>{ezUbNum(v.n)}</span></div>
-                ))}
+                <EzPanelVersionDevices />
               </>
             ) : <EzUbCollecting since={since} />}
           </section>
@@ -30563,6 +30746,8 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
   const tabTitle = (EZIK_INBOX_TABS.find((t) => t.id === kind) || EZIK_INBOX_TABS[0]).k;
   return (
     <EzCpShell kind={kind} title={ezT(tabTitle)} onNav={switchKind} onBack={back} badges={badges} actions={headActions}>
+      {kind === 'overview' ? <EzPanelControls /> : null}
+      {kind === 'overview' ? <EzPanelHealth /> : null}
       {kind === 'overview' ? <EzCpOverview data={over} failed={overFailed} onGo={switchKind} onRetry={refresh} /> : null}
       {/* «المحدَّد» -- the bar that names how many are ticked and is the only way to erase them. */}
       {picking ? (

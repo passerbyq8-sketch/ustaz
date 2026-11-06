@@ -1390,5 +1390,10 @@
     "name": "c1gamesdelivery",
     "script": "guards/c1-games-delivery-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "usage",
+    "script": "tests/usage.test.js",
+    "args": ""
   }
 ]

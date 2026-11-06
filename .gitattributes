@@ -1162,3 +1162,5 @@ guards/c1-games-harness.cjs text eol=lf
 guards/c1-games-response-fixtures.json text eol=lf
 guards/c1-games-delivery-guard.cjs text eol=lf
 guards/c1-games-delivery-fixtures.json text eol=lf
+# Independent usage suite registered as a gate (Order 12).
+tests/usage.test.js text eol=lf

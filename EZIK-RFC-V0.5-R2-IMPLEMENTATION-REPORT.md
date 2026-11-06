@@ -351,9 +351,9 @@ every purpose and `capabilityEligible()` is false for every capability. **Regist
 
 BRAIN36 FIX 2026-11-05: appended `securityadmission` (`guards/security-admission-guard.cjs`); branch roster 271. The admission order of /api/ask (validation, the per-IP pair, the day cap, then the global window) and of the three audio routes (own stt family, Retry-After, the per-IP pair before the global), and the day cap counting before it judges. Before/after harness outputs and the full-run result are in REPORT-BRAIN36-FIX-2026-11-05.md in the session archive (side-brain-2026-11-05).
 
-Expected signature for the current integrated roster. CURRENT_RECON records measured 370/0/0 pre-self-check counts on 834a5eb0 from the order-11 focused audit. The restored audit adds its own pass. This expected signature is not a full-run success claim; actual evidence is recorded in REPORT-C3-ORDER-11.md.
+Expected signature for the current integrated roster. INTEG7 includes the independent usage gate. CURRENT_RECON is pending remeasurement on the merged tree before the full run. This expected signature is not a full-run success claim.
 
-All 277 gates in the current roster run sequentially through tools/run-gates.cjs. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
+All 278 gates in the current roster run sequentially through tools/run-gates.cjs. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -387,7 +387,7 @@ iaplaunch 0
 brainlineb1 0  brainlineb2 0  brainlineb3 0  brainlinec1 0  brainlinec2 0  brainlinec3 0  brainlinec4 0  brainlinec5 0  brainlinec6 0  brainlinec7 0  brainlined1a 0  brainlined1b 0  brainlined2 0  brainlined3 0  brainlined4 0  brainlined5 0  brainlinee1 0  brainlinee2 0  brainlineo1 0  brainlineo2 0  brainlineo3a 0  brainlineo3b 0  brainlinez1 0  brainlinez2 0  brainlinez3 0  brainlineh1 0  brainlineh2 0  brainlineh3 0  brainlineh4 0  brainlinet1 0  harvesttools 0  brainliner21 0  brainliner22 0  brainliner23 0  brainliner24 0  brainliner25 0  brainliner26 0  brainliner27 0  brainliner28 0
 ```
 
-Every one **PASS**, exit code `0`.
+Expected roster signature: every entry has exit code `0`. This is not a new full-run result.
 
 ```
 assetversions 0
@@ -472,7 +472,8 @@ c2authlifecycle 0
 c1legacycancel 0
 c1gamesgeneration 0
 c1gamesdelivery 0
-TOTAL_GATES        277/277 PASS
+usage 0
+TOTAL_GATES        278/278 PASS
 CURRENT_RECON PASS=370 WARN=0 FAIL=0
 PRE_REBASE_UPSTREAM_TOTAL_GATES 206/206 PASS
 PRE_REBASE_UPSTREAM_RECON PASS=299 WARN=0 FAIL=0
