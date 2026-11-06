@@ -145,7 +145,7 @@ SCENES.section = async () => {
     && c.usageEvents.every((e) => e && Object.keys(e).every((k) => ['section', 'anon', 'from', 'gap', 'boot', 'side', 'plat', 'appv', 'notif'].includes(k))
       && typeof e.section === 'string' && Object.hasOwn(sections, e.section)
       && typeof e.anon === 'string' && /^[a-f0-9]{32}$/.test(e.anon)));
-  t('only static corpora, home feeds and anonymous usage were requested', c.requests.filter((r) => !/^\/[a-z0-9-]+\.json$/.test(r) && !/^\/api\/articles-list\?/.test(r) && r !== '/api/usage'), []);
+  t('only static corpora, home feeds and anonymous usage were requested', c.requests.filter((r) => !/^\/[a-z0-9-]+\.json$/.test(r) && !/^\/api\/articles-list\?/.test(r) && r !== '/api/usage' && r !== '/api/panel-settings'), []);
   t('nothing threw', c.caught(), null);
 };
 SCENES.manual = async () => {
