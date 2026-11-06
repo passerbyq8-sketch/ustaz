@@ -145,6 +145,7 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
 
 (async () => {
   const BW2 = await esm('lib/before-writing-v2.js');
+  const REVIEW = await esm('lib/output-reviewer.js'); // brain35 A-3 (b): the binding predicate
   const SSE = await esm('lib/finalized-sse-writer.js');
   const TOOLS = await esm('lib/free-brain/tools.js');
   const ASK = await esm('api/ask.js');
@@ -405,11 +406,15 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       ok('3.4e-1 a sentence citing two rows is followed by one card, the first row\'s, right after it; the second card does not follow the first',
         twoCards.length === 1 && twoCards[0].includes('/fatwas/1234') && !two.deltas.join('').includes('/fatwas/5678') && two.out.telemetry.cardsSent === 1,
         ascii(JSON.stringify(two.deltas)));
-      const later = await run({ fatwa: [ROW_F1, ROW_F2], writerText: MASAH_RULING + ' [[1, 2]]. ' + MASAH_TERM + ' [[2]].' });
+      // brain35 A-3 (b) (2026-11-06, contract section 5: each paragraph tagged by its own source): a held card goes out under
+      // a later sentence only when that row's text supports it; the later sentence here is one ROW_F2 carries (the fasting
+      // ruling), where it used to be the masah term, which the fasting row does not carry.
+      const FASTING_RULING = 'صومه صحيح';
+      const later = await run({ fatwa: [ROW_F1, ROW_F2], writerText: MASAH_RULING + ' [[1, 2]]. ' + FASTING_RULING + ' [[2]].' });
       const iA = later.deltas.findIndex((d) => d.includes('/fatwas/1234'));
       const iB = later.deltas.findIndex((d) => d.includes('/fatwas/5678'));
       ok('3.4e-2 the held card goes out after a LATER sentence that cites that row again, and right after it: unit, card, unit, card',
-        iA > 0 && iB > iA + 1 && later.deltas[iA - 1].includes(MASAH_RULING) && later.deltas[iB - 1].includes(MASAH_TERM) && !later.deltas[iB - 1].includes('<source')
+        iA > 0 && iB > iA + 1 && later.deltas[iA - 1].includes(MASAH_RULING) && later.deltas[iB - 1].includes(FASTING_RULING) && !later.deltas[iB - 1].includes('<source')
         && later.out.telemetry.cardsSent === 2, ascii(JSON.stringify(later.deltas)));
       const mixed = await run({ fatwa: [ROW_F1], libOn: true, library: [ROW_L1], writerText: MASAH_RULING + ' [[1, 3]].' });
       ok('3.4e-3 a sentence citing a page and a book: one card after it, the first cited (the page); the book\'s card is not put behind it',
@@ -425,7 +430,9 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
           fsx.writeFileSync(tmpMod, srcU.split(seam).join('export const BW2_CARDS_PER_UNIT = 3;'));
           const MU = await import(require('url').pathToFileURL(tmpMod).href + '?m=34e');
           const out = [];
-          const rel = MU.createBw2Releaser({ rows: [{ ...ROW_F1, ref: 1 }, { ...ROW_F2, ref: 2 }], emit: (p) => { out.push(p); return true; },
+          // brain35 A-3 (b): a card is bound to the sentence its row supports, so the second row here is a second page that
+          // carries the same masah ruling (the fasting row no longer qualifies under the masah sentence)
+          const rel = MU.createBw2Releaser({ rows: [{ ...ROW_F1, ref: 1 }, { ...ROW_F1, ref: 2, url: 'https://binbaz.org.sa/fatwas/9999', recordId: '9999' }], emit: (p) => { out.push(p); return true; },
             cards: { buildSourceTag: (row) => ({ tag: '<source url="' + row.url + '">x</source>', url: row.url }), buildBookTag: () => null, max: 5 } });
           rel.push(MASAH_RULING + ' [[1, 2]].\n');
           await rel.end();
@@ -834,8 +841,12 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       const ORDER10 = 'C:/Users/passe/projects/ustaz-archive/sessions/comprehensive-2026-10-02/EZIK-ORDER-50-2026-10-03.md';
       ok('ORDER50-2b the sentence is the order file\'s own wherever the order file is present (it lives outside the repository, so a clone without it passes this one row)',
         !fs.existsSync(ORDER10) || fs.readFileSync(ORDER10, 'utf8').includes('«' + body10 + '»'));
-      ok('ORDER50-2c every turn\'s rules carry it, last (a turn about the schools carries it too)', BW2.bw2RulesFor([], 'ما درجة حديث «اختلاف أمتي رحمة»؟', []).includes(rule10)
-        && BW2.bw2RulesFor([], 'x', []).endsWith(rule10) && BW2.bw2RulesFor([], 'ما حكم الجهر بالبسملة عند المذاهب الأربعة؟', []).includes(rule10));
+      // brain35 A-3 (2026-11-06, the owner's decision): the writer's rules now carry the compiler rule (BW2_WRITE_RULES_BRAIN35,
+      // rule 12) AFTER the tenth sentence on every turn; the tenth is still carried, and the brain35 rules close the list.
+      ok('ORDER50-2c every turn\'s rules carry it, and the brain35 rules follow it, last', BW2.bw2RulesFor([], 'x', []).endsWith(BW2.BW2_WRITE_RULES_BRAIN35)
+        && BW2.bw2RulesFor([], 'x', []).indexOf(rule10) < BW2.bw2RulesFor([], 'x', []).indexOf(BW2.BW2_WRITE_RULES_BRAIN35));
+      ok('ORDER50-2c every turn\'s rules carry it (a turn about the schools carries it too)', BW2.bw2RulesFor([], 'ما درجة حديث «اختلاف أمتي رحمة»؟', []).includes(rule10)
+        && BW2.bw2RulesFor([], 'x', []).includes(rule10) && BW2.bw2RulesFor([], 'ما حكم الجهر بالبسملة عند المذاهب الأربعة؟', []).includes(rule10));
       const tmp10 = path.join(REPO, 'lib', '.mut-order50-2.mjs');
       try {
         const src10 = fs.readFileSync(path.join(REPO, 'lib/before-writing-v2.js'), 'utf8');
@@ -2019,64 +2030,6 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       }
     }
 
-    // ── brain35 A-2 (2026-11-06; DIAG 35.3 / 35.11) · THE COMPLETION LEDGER ─────────────────────────────────
-    // What the question asked is checked after release: a school asked and not named gets its scoped absence sentence
-    // once; a collector / narrator / grader asked and not answered gets its role sentence. The captured battery texts
-    // (fixtures/brain35-ledger-cases.json) are the red cases: Q07 (three named, no sentence) was the order's RED today.
-    {
-      const LED = JSON.parse(read('fixtures/brain35-ledger-cases.json'));
-      const kind = (s) => (s.includes('\u0644\u0645\u0630\u0647\u0628') ? 'school:' + ['\u0627\u0644\u062d\u0646\u0641\u064a\u0629', '\u0627\u0644\u0645\u0627\u0644\u0643\u064a\u0629', '\u0627\u0644\u0634\u0627\u0641\u0639\u064a\u0629', '\u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629'].findIndex((l) => s.includes(l))
-        : s === BW2.LEDGER_COLLECTOR_SENTENCE ? 'collector' : s === BW2.LEDGER_NARRATOR_SENTENCE ? 'narrator' : s === BW2.LEDGER_GRADER_SENTENCE ? 'grader' : 'other');
-      ok('A-2 fixture carries the eleven captured texts', Array.isArray(LED.cases) && LED.cases.length === 11);
-      for (const c of LED.cases) {
-        const got = BW2.completionLedger({ question: c.question, released: c.input.released, aboveText: c.input.aboveText, leadLine: c.input.leadLine }).map(kind);
-        ok('A-2 ' + c.id + ': ' + c.note.slice(0, 70), JSON.stringify(got) === JSON.stringify(c.expect), JSON.stringify(got));
-      }
-      const Q4 = '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0631\u0628 \u0639\u0646\u062f \u0627\u0644\u0645\u0630\u0627\u0647\u0628 \u0627\u0644\u0623\u0631\u0628\u0639\u0629\u061f';
-      const Q1 = '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0631\u0628 \u0639\u0646\u062f \u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629\u061f';
-      const THREE = '\u0630\u0647\u0628 \u0627\u0644\u0645\u0627\u0644\u0643\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632. \u0648\u0630\u0647\u0628 \u0627\u0644\u0634\u0627\u0641\u0639\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632 \u0628\u0634\u0631\u0637. \u0648\u0630\u0647\u0628 \u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632.';
-      const FOUR = '\u0630\u0647\u0628 \u0627\u0644\u0645\u0627\u0644\u0643\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632. \u0648\u0630\u0647\u0628 \u0627\u0644\u0634\u0627\u0641\u0639\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632 \u0628\u0634\u0631\u0637. \u0648\u0630\u0647\u0628 \u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632. \u0648\u0630\u0647\u0628 \u0627\u0644\u062d\u0646\u0641\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632 \u0623\u064a\u0636\u0627.';
-      const HANAFI_IMAM = '\u0630\u0647\u0628 \u0627\u0644\u0645\u0627\u0644\u0643\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632. \u0648\u0630\u0647\u0628 \u0627\u0644\u0634\u0627\u0641\u0639\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632 \u0628\u0634\u0631\u0637. \u0648\u0630\u0647\u0628 \u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632. \u0648\u0642\u0627\u0644 \u0623\u0628\u0648 \u062d\u0646\u064a\u0641\u0629 \u0628\u0627\u0644\u062c\u0648\u0627\u0632.';
-      const three = BW2.completionLedger({ question: Q4, released: THREE });
-      ok('A-2 a four-school question whose released text names three -> the fourth school\'s sentence, exactly once',
-        three.length === 1 && three[0] === BW2.ledgerSchoolSentence('\u0627\u0644\u062d\u0646\u0641\u064a\u0629'), JSON.stringify(three.map(kind)));
-      ok('A-2 the sentence is the order\'s, byte for byte', BW2.ledgerSchoolSentence('X') === '\u0644\u0645 \u0623\u0642\u0641\u0652 \u0641\u064a \u0647\u0630\u0627 \u0627\u0644\u0628\u062d\u062b\u0650 \u0639\u0644\u0649 \u0646\u0635\u064d\u0651 \u0644\u0645\u0630\u0647\u0628\u0650 X \u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0645\u0633\u0623\u0644\u0629.');
-      ok('A-2 names four -> nothing', BW2.completionLedger({ question: Q4, released: FOUR }).length === 0);
-      ok('A-2 a school written under its imam\'s name counts as named («\u0623\u0628\u0648 \u062d\u0646\u064a\u0641\u0629»)', BW2.completionLedger({ question: Q4, released: HANAFI_IMAM }).length === 0);
-      ok('A-2 a one-school question -> at most that school', JSON.stringify(BW2.completionLedger({ question: Q1, released: THREE.replace('\u0648\u0630\u0647\u0628 \u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632.', '') }).map(kind)) === JSON.stringify(['school:3'])
-        && BW2.completionLedger({ question: Q1, released: THREE }).length === 0);
-      ok('A-2 an absence sentence already covering the school is not written twice', BW2.completionLedger({ question: Q4, released: THREE + ' ' + BW2.ledgerSchoolSentence('\u0627\u0644\u062d\u0646\u0641\u064a\u0629') }).length === 0);
-      // the wiring: a real turn on a four-school question whose writer names no school ends with the four sentences, once each
-      const wired = await run({ question: Q4, writerText: U.s1, judge: 'all' });
-      const text = wired.deltas.join('');
-      const counts = ['\u0627\u0644\u062d\u0646\u0641\u064a\u0629', '\u0627\u0644\u0645\u0627\u0644\u0643\u064a\u0629', '\u0627\u0644\u0634\u0627\u0641\u0639\u064a\u0629', '\u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629'].map((l) => text.split(BW2.ledgerSchoolSentence(l)).length - 1);
-      ok('A-2 wired: a four-school turn whose writer names no school ends with the four sentences, once each', JSON.stringify(counts) === '[1,1,1,1]' && text.includes(MASAH_RULING), ascii(text));
-      const wiredNone = await run({ question: Q_MASAH, writerText: U.s1, judge: 'all' });
-      ok('A-2 wired: a question that asks no school gets no school sentence', !wiredNone.deltas.join('').includes('\u0644\u0645\u0630\u0647\u0628'));
-      // the mutant: the call site gone -> the wired row fails
-      const src = read('lib/before-writing-v2.js');
-      const seam = '  for (const sentence of completionLedger({ question, released: String(wire.sent || \'\'), aboveText: directBlock, leadLine: gradeHeadLine })) {';
-      ok('A-2 mutant seam present', src.includes(seam));
-      const mutated = src.replace(seam, '  for (const sentence of []) { // mutant: the ledger is never consulted');
-      const os2 = require('os');
-      const tmp = fs.mkdtempSync(path.join(os2.tmpdir(), 'ustaz-a2-mut-'));
-      try {
-        const file = path.join(tmp, 'before-writing-v2.mjs');
-        fs.writeFileSync(file, mutated.replace(/from\s+(['"])(\.[^'"]*)\1/gu, (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q), 'utf8');
-        const M = await import(pathToFileURL(file).href);
-        const { deps } = makeDeps({ writerText: U.s1, judge: 'all' });
-        const { target, wire } = makeWire();
-        await M.runBw2Turn({
-          question: Q4, messages: [{ role: 'user', content: Q4 }], mode: 'brief', band: 'adult', system: 'SYSTEM', model: 'writer-model', maxTokens: 4096,
-          providerUrl: 'https://api.anthropic.invalid/v1/messages', headers: {}, libFlagValue: '', libToken: '', lessonsToken: '', onLessonRows: null,
-          takhrijWired: false, cards, wire, requestStartedAt: Date.now(), env: { BW2_RETRIEVAL_MS: '400', BW2_JUDGE_MS: '400' }, runtime: '', deps,
-        });
-        const mutantText = deltasOf(framesOf(target)).join('');
-        ok('MUTANT KILLED: with the ledger unconsulted the four-school turn ends without the school sentences', !mutantText.includes('\u0644\u0645\u0630\u0647\u0628') && mutantText.includes(MASAH_RULING), ascii(mutantText));
-      } finally {
-        try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
-      }
-    }
     // ORDER 50 item 6, the real store: written LAST in this file, because loading the encyclopedia index here would end the C2g row (readiness before any build in this process) if it came earlier.
     {
       const BW5 = await esm('lib/before-writing-v2.js');

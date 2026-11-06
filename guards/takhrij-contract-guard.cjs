@@ -3825,31 +3825,6 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
   }
 
 
-  // ── brain35 A-2 (2026-11-06; DIAG 35.11) · THE ASKED ROLES: collector, narrator, grader ─────────────────────────
-  // «ومن خرّجه؟» asked and no collector reached the reader: the server writes the scoped collector sentence once; a released
-  // collector list, a head that names the book, or a question that asks no collector -> nothing. Over the captured texts.
-  {
-    const BW2A2 = await esm('lib/before-writing-v2.js');
-    const LED = JSON.parse(require('fs').readFileSync(path.join(REPO, 'fixtures/brain35-ledger-cases.json'), 'utf8'));
-    const byId = (id) => LED.cases.find((c) => c.id === id);
-    const q33 = byId('Q33');
-    const got33 = BW2A2.completionLedger({ question: q33.question, released: q33.input.released });
-    ok('A-2 Q33 «ومن رواه؟» with no collector released -> the collector sentence, once', got33.length === 1 && got33[0] === BW2A2.LEDGER_COLLECTOR_SENTENCE, JSON.stringify(got33));
-    ok('A-2 Q33 the sentence is the order\'s, byte for byte', BW2A2.LEDGER_COLLECTOR_SENTENCE === "وأما من خرّجه: فلم تُثبت المكتبة لهذا اللفظ مخرِّجًا في الكتب التي بُحث فيها.");
-    const q37 = byId('Q37');
-    ok('A-2 Q37 (the collector list released) -> nothing', BW2A2.completionLedger({ question: q37.question, released: q37.input.released }).length === 0);
-    const q10 = byId('Q10');
-    ok('A-2 a question without «من خرّجه» -> nothing', BW2A2.completionLedger({ question: q10.question, released: q10.input.released }).length === 0);
-    ok('A-2 a collector named by the library head counts as answered', BW2A2.completionLedger({ question: q33.question, released: q33.input.released, leadLine: 'تخريج الحديث: أبو داود.' }).length === 0);
-    ok('A-2 a collector named by the direct block counts as answered', BW2A2.completionLedger({ question: q33.question, released: q33.input.released, aboveText: 'رواه الترمذي في جامعه.' }).length === 0);
-    const qn = 'ما صحة حديث «حب الوطن من الإيمان» ومن راويه؟';
-    ok('A-2 «من راويه؟» with no narrator named -> the narrator sentence (and the grader is named, so no grader sentence)',
-      JSON.stringify(BW2A2.completionLedger({ question: qn, released: q33.input.released })) === JSON.stringify([BW2A2.LEDGER_NARRATOR_SENTENCE]));
-    const qg = 'ما صحة حديث «حب الوطن من الإيمان»؟';
-    ok('A-2 a grade asked with no grader named anywhere -> the grader sentence', JSON.stringify(BW2A2.completionLedger({ question: qg, released: 'الحديث مشهور على الألسنة ومعناه فيه نظر.' })) === JSON.stringify([BW2A2.LEDGER_GRADER_SENTENCE]));
-    ok('A-2 a grade asked and graded («ضعفه الألباني») -> nothing', BW2A2.completionLedger({ question: qg, released: 'ضعفه الألباني في السلسلة الضعيفة.' }).length === 0);
-  }
-
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {

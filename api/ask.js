@@ -646,7 +646,8 @@ export function buildBookTag(row) {
     .trim();
   const title = attr(row && row.bookTitle);
   if (!title) return dropCard('book-without-title', row && row.recordId);
-  const author = attr(row && row.author);
+  // ITEM A-3 (brain35, 2026-11-06; DIAG 35.1): a compiled fatwa work's chip names its compiler as such; the field is shown as is.
+  const author = attr(row && row.author ? (row.authorRole === 'compiler' ? 'جمعه: ' + row.author : row.author) : '');
   const where = attr(row && row.locator);
   const attrs = (author ? ` author="${author}"` : '') + (where ? ` ref="${where}"` : '') + bookPlaceAttrs(row);
   // ع-٤٩/د١ — THE MATN RIDES ON THE CARD, BASE64, AND THE ENCODING IS NOT DECORATION.

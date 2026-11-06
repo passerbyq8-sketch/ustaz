@@ -1,0 +1,43 @@
+{
+  "schema": "ezik.brain35.compiled-fatwa-books.v1",
+  "rule": "A fatwa-kind catalog row (lib/data/lib-catalog.js, 88 rows) is a COMPILED work when its author is not a fatwa-store scholar (lib/fatwa-contract.js FATWA_SCHOLARS) and its title names other men as the muftis or marks a collection by another hand (a generic «فتاوى» collection under one name, «بفتاوى علماء …», «مجالس مع …», «مختصر الفتاوى …», «تنقيح الفتاوى …», «فتاوى الأئمة …»). A row whose author is the mufti of every entry (the roster scholars, the classical muftis of their own fatwas, «الفتح الرباني من فتاوى الشوكاني» under al-Shawkani, FC-003888 «جامع تراث العلامة الألباني» under al-Albani) is an author. «مجموعة من المؤلفين» names nobody and is left as is.",
+  "measuredOn": "6a587927 (lib-catalog.js: 7396 books, 88 fatwa)",
+  "books": [
+    {
+      "id": "FC-004540",
+      "title": "فتاوى إسلامية",
+      "author": "محمد بن عبد العزيز المسند",
+      "why": "a generic collection under the compiler's name; the captured Q27 passage ends «اللجنة الدائمة ***» (the issuer is the Committee)"
+    },
+    {
+      "id": "FC-004514",
+      "title": "قرة العين بفتاوى علماء الحرمين",
+      "author": "حسين المغربي",
+      "why": "the title names the muftis (the scholars of the two Harams); the author gathered them"
+    },
+    {
+      "id": "FC-004536",
+      "title": "مجالس مع فضيلة الشيخ محمد الأمين الشنقيطي",
+      "author": "أحمد بن محمد الشنقيطي",
+      "why": "the sessions of one shaykh recorded by another man"
+    },
+    {
+      "id": "FC-004496",
+      "title": "مختصر الفتاوى المصرية",
+      "author": "البعلي، بدر الدين",
+      "why": "an abridgement of Ibn Taymiyya's Egyptian fatwas"
+    },
+    {
+      "id": "FC-004509",
+      "title": "العقود الدرية في تنقيح الفتاوى الحامدية",
+      "author": "ابن عابدين",
+      "why": "a revision of al-Hamid's fatwas; the rulings are al-Hamid's"
+    },
+    {
+      "id": "FC-007320",
+      "title": "فتاوى الأئمة في النوازل المدلهمة",
+      "author": "ابن سفران القحطاني",
+      "why": "the imams' fatwas gathered under one name"
+    }
+  ]
+}
