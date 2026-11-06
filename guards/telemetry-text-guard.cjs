@@ -279,7 +279,8 @@ const BW2_FIELDS = [
   // row carrying the text and every name, or the takhrij). A number.
   'unitsProvedHadith',
   // SPEED PIPES fix 3 (order EZIK-SPEED-PIPES-ORDER-2026-09-28): why the turn went on to today's path
-  // instead of the not-covered sentence -- a closed enum: '', no_rows, judge_none, marker, none_released.
+  // instead of the not-covered sentence -- a closed enum: '', no_rows, judge_none, marker, none_released, and
+  // (ITEM O-1, brain35 2026-11-06) judge_incomplete / judge_failed, which say which emptiness the judge's was.
   'continued',
 ];
 

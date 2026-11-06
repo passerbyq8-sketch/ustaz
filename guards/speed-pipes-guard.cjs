@@ -355,7 +355,7 @@ function libraryPlain(markup) {
         runTool: (name, input, ctx) => (name === 'search_library' && !(ctx.bookIds && ctx.bookIds.length) ? TOOLS.runTool(name, input, { ...ctx, fetchImpl: libFetch }) : Promise.resolve({ text: '', added: [], calls: 0 })),
         searchStoredCorpus: async () => ({ records: [] }), encyclopediaReady: () => true, warmEncyclopedia: () => true,
         ask: async ({ user }) => { listing = user; const d = {}; for (const m of user.matchAll(/^\[(\d+)\] /gmu)) d[m[1]] = 1; return JSON.stringify({ d }); },
-        callWriter: async ({ onText }) => { onText('تجوز القيمة في الزكاة للحاجة [[1]].\nوفي الفقه الميسر بيانها [[2]].'); return { stop_reason: 'end_turn', usage: {} }; },
+        callWriter: async ({ onText }) => { onText('تجوز القيمة في الزكاة للحاجة [[1]].\nوكانت السيارات معدة للبيع فتجب فيها الزكاة [[2]].'); return { stop_reason: 'end_turn', usage: {} }; }, // ITEM A-3 (b) (brain35, 2026-11-06): a card is bound to the sentence its row supports, so this fixture's second sentence now carries the second row's own words («كانت السيارات معدة للبيع»); with the old invented sentence the card was owed and never shown, and this row's card SHAPE -- the guard's own subject -- could not be read at all.
       },
     });
     const text = t.writes.join('').split('\n\n').filter((l) => l.startsWith('data: ')).map((l) => { try { return JSON.parse(l.slice(6)); } catch { return null; } })
@@ -412,6 +412,9 @@ function libraryPlain(markup) {
       BW2.madhhabTermQueries(Q1).length === 0 && BW2.madhhabTermQueries(WQ.w1.question).length === 1);
   }
 
+  // ITEM O-1 (brain35, 2026-11-06; DIAG ARBITER): an empty judge is labelled by WHICH emptiness it was --
+  // judge_none (it kept nothing of a complete reading), judge_incomplete (it read the rows as not answering the whole
+  // question) or judge_failed (it never answered). The fake judge of these rows reads the rows as incomplete.
   // ---------------------------------------------------------------- W6A A1 a school's own book names its school by «عندنا»
   // Owner, 28 Sep: «إذا قال كتابٌ من كتبِ مذهبٍ «عندنا» أو «أصحابنا» أو «مذهبنا»، يُنسَبُ القولُ إلى ذلك المذهب، بشرطين: أن يكونَ
   // الكتابُ موسومًا بمذهبِه في الفهرس، وأن تكونَ العبارةُ كلامَ مصنّفِه لا حكايةً عن غيرِه». The holder (lib/bw2-units.js) now also
@@ -1834,7 +1837,12 @@ function libraryPlain(markup) {
       const s = await r.end();
       return { text: got.join(''), s };
     };
-    const a = await rel('\u0642\u0627\u0644 \u0627\u0644\u0646\u0648\u0648\u064a: \u0631\u0648\u064a\u0646\u0627\u0647 \u0645\u0646 \u0631\u0648\u0627\u064a\u0629 \u062c\u0645\u0627\u0639\u0629 \u0645\u0646 \u0627\u0644\u0635\u062d\u0627\u0628\u0629 [[1]].\n\u0648\u0642\u0627\u0644 \u0627\u0644\u0646\u0648\u0648\u064a \u0641\u064a \u0645\u0648\u0636\u0639 \u0627\u062e\u0631: \u0637\u0631\u0642\u0647 \u0643\u0644\u0647\u0627 \u0636\u0639\u064a\u0641\u0629 \u0648\u0644\u064a\u0633 \u0647\u0648 \u0628\u062b\u0627\u0628\u062a [[1]].\n');
+    // ITEM A-6 (brain35, 2026-11-06): the row's old fullText WAS al-Nawawi's own sentence, and A-6's mediated-attribution
+    // licence now releases a unit whose credit the cited row carries -- so the antecedent went out and this row had no held
+    // unit left to depend on. The row is given a page of the same book that does not state this place, which is what the
+    // fixture always meant: an antecedent held as unsupported_attribution, and the «في موضع آخر» that leans on it held with
+    // it. P32b keeps the supported row and asserts the other half.
+    const a = await rel('\u0642\u0627\u0644 \u0627\u0644\u0646\u0648\u0648\u064a: \u0631\u0648\u064a\u0646\u0627\u0647 \u0645\u0646 \u0631\u0648\u0627\u064a\u0629 \u062c\u0645\u0627\u0639\u0629 \u0645\u0646 \u0627\u0644\u0635\u062d\u0627\u0628\u0629 [[1]].\n\u0648\u0642\u0627\u0644 \u0627\u0644\u0646\u0648\u0648\u064a \u0641\u064a \u0645\u0648\u0636\u0639 \u0627\u062e\u0631: \u0637\u0631\u0642\u0647 \u0643\u0644\u0647\u0627 \u0636\u0639\u064a\u0641\u0629 \u0648\u0644\u064a\u0633 \u0647\u0648 \u0628\u062b\u0627\u0628\u062a [[1]].\n', { fullText: '\u0648\u0627\u0644\u0645\u0633\u062d \u0639\u0644\u0649 \u0627\u0644\u062e\u0641\u064a\u0646 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645 \u0641\u064a \u0627\u0644\u062d\u0636\u0631 \u0648\u0627\u0644\u0633\u0641\u0631.' });
     ok('P32a question 19: the first place is held, so "wa-qala al-Nawawi fi mawdi akhar:" is held after it instead of opening the answer',
       !a.text.includes('\u0641\u064a \u0645\u0648\u0636\u0639 \u0627\u062e\u0631') && a.s.holds.unsupported_attribution === 1 && a.s.holds.dependent_on_held === 1, ascii(JSON.stringify({ text: a.text, holds: a.s.holds })));
     const b = await rel('\u0642\u0627\u0644 \u0627\u0644\u0646\u0648\u0648\u064a \u0641\u064a \u0627\u0644\u0645\u062c\u0645\u0648\u0639: \u00ab\u0644\u0627 \u064a\u0635\u062d \u0641\u064a \u0641\u0636\u0644 \u0630\u0644\u0643 \u062d\u062f\u064a\u062b \u0639\u0646\u062f \u0623\u0647\u0644 \u0627\u0644\u0646\u0642\u0644\u00bb [[1]].\n\u0648\u0642\u0627\u0644 \u0627\u0644\u0646\u0648\u0648\u064a \u0641\u064a \u0645\u0648\u0636\u0639 \u0627\u062e\u0631: \u0637\u0631\u0642\u0647 \u0643\u0644\u0647\u0627 \u0636\u0639\u064a\u0641\u0629 \u0648\u0644\u064a\u0633 \u0647\u0648 \u0628\u062b\u0627\u0628\u062a [[1]].\n\u0645\u0646 \u0639\u0631\u0641 \u0646\u0641\u0633\u0647 \u0628\u0627\u0644\u0636\u0639\u0641 \u0639\u0631\u0641 \u0631\u0628\u0647 \u0628\u0627\u0644\u0642\u0648\u0629 [[1]].\n', P32B_BOOK);
@@ -2424,7 +2432,7 @@ function libraryPlain(markup) {
           fatwa: fatwaAsked.filter((q) => q === WASL.w1.question).length, fatwaTitle: fatwaAsked.filter((q) => q === 'إخراج الزكاة عروضا').length };
         // At the deep depths the free-brain path prefetches no library row (the model is offered the tool), before or after.
         ok('W6A2' + (depth ? 'd' : 'b') + ' a handed-over turn at ' + (depth || 'the brief depth') + ' makes no second library, lessons or fatwa call, and its writer still receives the rows it received before as candidate evidence (' + (depth ? 'lessons, fatwa' : 'library, lessons, fatwa') + ')',
-          !h.crashed && !!bw2log && bw2log.continued === 'judge_none' && again.library === 0 && again.lessons === 0 && again.fatwa === 0 && again.fatwaTitle === 1
+          !h.crashed && !!bw2log && bw2log.continued === 'judge_incomplete' && again.library === 0 && again.lessons === 0 && again.fatwa === 0 && again.fatwaTitle === 1
           && !!first && (depth || lastUser(first).includes(WASL.w1.bookTitle)) && lastUser(first).includes(WASL.w2.lessons.hits[0].title) && lastUser(first).includes(DIRECT[0]),
           ascii(JSON.stringify({ continued: bw2log && bw2log.continued, again, libTotal: libAsked.length, crashed: h.crashed && String(h.crashed.stack) })));
       }

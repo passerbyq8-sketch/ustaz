@@ -249,6 +249,9 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       takhrijWired: !!opts.takhrij || !!opts.takhrijImpl, cards, wire, requestStartedAt: Date.now(),
       env: { BW2_RETRIEVAL_MS: String(opts.budget || 400), BW2_JUDGE_MS: '400', ...(opts.env || {}) },
       runtime: opts.runtime || '',
+      // ITEM O-1 (brain35, 2026-11-06): telemetry.continued is written only on a turn that hands over, so a row about the
+      // reason it handed over has to ask for that.
+      continueWhenNotCovered: !!opts.continueWhenNotCovered,
       deps,
     });
     const frames = framesOf(target);
@@ -1720,7 +1723,10 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       const t = r.out.telemetry;
       const ENUMS = { judgeOutcome: ['none', 'complete', 'incomplete', 'failed'], writerOutcome: ['none', 'ok', 'failed'],
         // SPEED PIPES fix 3: why the turn went on to today's path ('' when it did not).
-        continued: ['', 'no_rows', 'judge_none', 'marker', 'none_released'] };
+        // ITEM O-1 (brain35, 2026-11-06; DIAG ARBITER): an empty judge is labelled by which emptiness it was --
+        // judge_none (kept nothing of a complete reading), judge_incomplete (read the rows as not answering the whole
+        // question), judge_failed (never answered).
+        continued: ['', 'no_rows', 'judge_none', 'judge_incomplete', 'judge_failed', 'marker', 'none_released'] };
       const bad = Object.entries(t).filter(([k, v]) => {
         if (typeof v === 'number') return !Number.isFinite(v);
         if (typeof v === 'boolean' || v === null) return false;
@@ -2298,6 +2304,67 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       rows6.forEach((row, i) => { row.ref = i + 1; });
       ok('ORDER50-6 the real store: its rows reach the writer as stored passages (the letters of the stored snippet), and the long folded text is not what the writer reads',
         rows6.length > 0 && rows6.every((row) => BW5.selectPinnedText(row, 'مسافة السفر') === row.text.slice(0, BW5.BW_ROW_CHARS) && /[ً-ْ]/u.test(row.text)), JSON.stringify(rows6.map((r) => [r.fullText.length, r.text.length])));
+    }
+    // ---------------------------------------------------------------- ITEM O-1 (brain35, 2026-11-06; DIAG ARBITER)
+    // MEASURED (Q30): a question naming TWO roster scholars and asking for the ascription retrieved 0 fatwas, while Q06
+    // and Q15 retrieved 4 and 6 of those same men's. resolveFatwaScholar answers only when exactly one alias matches, so
+    // the turn asked ONE man, with queries carrying the OTHER man's name and the imperative tail: «وابن عثيمين الجمع»
+    // and «والعصر انسب صاحبه» -- and the store ANDs every token.
+    {
+      const Q30 = 'ما أقوال ابن باز وابن عثيمين في الجمع بين الجمعة والعصر؟ انسب كل قول إلى صاحبه.';
+      const QT = 'ما قول ابن باز في حديث رواه الترمدي؟';
+      const QN = 'ما حكم الوضوء من لمس المرأة؟';
+      ok('O-1a Q30 names both roster scholars, in the order it names them (the welded waw of «وابن عثيمين» read)',
+        JSON.stringify(BW2.namedScholarsIn(Q30).map((n) => n.alias)) === JSON.stringify(['ابن باز', 'ابن عثيمين']),
+        ascii(JSON.stringify(BW2.namedScholarsIn(Q30).map((n) => n.alias))));
+      ok('O-1b the imperative that asks for the ascription is cut off, and nothing else is',
+        BW2.stripImperativeTail(Q30) === Q30.replace(/\s*انسب[^.]*\.$/u, '') && BW2.stripImperativeTail(QN) === QN,
+        ascii(JSON.stringify([BW2.stripImperativeTail(Q30), BW2.stripImperativeTail(QN)])));
+      const asks30 = BW2.namedFatwaAsks(Q30);
+      ok('O-1c one ask per named scholar, each with the issue\'s own words -- no name, no imperative',
+        asks30.length === 2 && asks30[0].scholar === 'ابن باز' && asks30[1].scholar === 'ابن عثيمين'
+        && asks30.every((a) => a.query === 'الجمع الجمعة والعصر'), ascii(JSON.stringify(asks30)));
+      const asksT = BW2.namedFatwaAsks(QT);
+      ok('O-1d one named scholar is one ask, and a collector the question names is no roster scholar and stays in the words',
+        asksT.length === 1 && asksT[0].scholar === 'ابن باز' && /ترمد|ترمذ/u.test(asksT[0].query)
+        && BW2.namedScholarsIn(QT).length === 1, ascii(JSON.stringify(asksT)));
+      ok('O-1e a question naming nobody asks as it always did',
+        BW2.namedFatwaAsks(QN).length === 0 && BW2.namedScholarsIn(QN).length === 0 && JSON.stringify(BW2.fatwaQueries(QN)).length > 2);
+      // the store is really asked once per named scholar, each with the issue, through gatherBw2 itself
+      const seen = [];
+      await BW2.gatherBw2({
+        question: Q30, band: 'adult', libFlagValue: '', libToken: '', lessonsToken: '', budgetMs: 600, encycColdMs: 50,
+        now: Date.now, onSource: () => {},
+        deps: {
+          runTool: async (name, input) => { if (name === 'search_fatawa') seen.push({ query: String(input.query || ''), scholar: String(input.scholar || '') }); return { text: '', added: [], calls: 1 }; },
+          searchStoredCorpus: async () => ({ records: [] }), encyclopediaReady: () => true, warmEncyclopedia: async () => true,
+        },
+      });
+      const withScholar = seen.filter((s) => s.scholar);
+      const issueAsks = withScholar.filter((s) => s.query === 'الجمع الجمعة والعصر');
+      ok('O-1f gatherBw2 asks the store once for each named scholar, with the issue as the words -- and no query of the turn carries a name or the imperative',
+        issueAsks.length === 2 && issueAsks[0].scholar === 'ابن باز' && issueAsks[1].scholar === 'ابن عثيمين'
+        && seen.every((s) => !s.query.includes('ابن باز') && !s.query.includes('عثيمين') && !s.query.includes('انسب')),
+        ascii(JSON.stringify(seen)));
+      ok('O-1f2 ...and the narrower retry, when the store answers nothing, goes to the first named scholar with the issue\'s first two words',
+        seen.length === 3 && seen[2].scholar === 'ابن باز' && seen[2].query === 'الجمع الجمعة', ascii(JSON.stringify(seen)));
+      // the judge's three emptinesses are three labels, and the wire carries the outcome it handed over on
+      const empties = [
+        ['judge_none', { judge: 'none' }],
+        ['judge_incomplete', { judge: () => '{"d":{}}' }],
+        ['judge_failed', { judge: () => new Promise(() => {}), fatwa: [ROW_F2] }],
+      ];
+      for (const [label, opts] of empties) {
+        const e = await run({ ...opts, writerText: U.s1, continueWhenNotCovered: true });
+        const judgeFrames = e.frames.filter((f) => f.type === 'ezik_status' && f.stage === 'judge');
+        ok('O-1g an empty judge hands over as ' + label + ', and its last judge status carries that outcome',
+          e.out.telemetry.continued === label && judgeFrames.length === 2
+          && judgeFrames[1].outcome === label.replace('judge_', '').replace('none', 'complete'),
+          ascii(JSON.stringify({ continued: e.out.telemetry.continued, judgeOutcome: e.out.telemetry.judgeOutcome, frames: judgeFrames })));
+      }
+      ok('O-1h the status frame is the same shape as before otherwise, and the client reads stage/hits/titles only (app.jsx)',
+        read('app.jsx').includes('function ezikReadingStatus(evt) {')
+        && /hasOwnProperty\.call\(EZIK_READING_STAGES, evt\.stage\)/u.test(read('app.jsx')));
     }
   } catch (error) {
     ok('guard completed without exception', false, error && error.stack ? error.stack : String(error));
