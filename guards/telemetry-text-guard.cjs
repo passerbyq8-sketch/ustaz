@@ -269,6 +269,8 @@ const BW2_FIELDS = [
   'heldRemovedPerson',
   'heldUnsupportedGroup', 'heldUnsupportedConsensus',
   'heldUnsupportedSchool', 'heldUnsupportedMatn', 'heldTakhrijRefused', 'heldTakhrijEmptied',
+  // ITEM B-6 (brain35, 2026-11-06): a count of units held because the takhrij lock emptied their frame. A count, no text.
+  'heldTakhrijEmptiedFrame',
   'heldGradeRuleFailed', 'heldGradeEmptied', 'heldRepeat', 'heldDependentOnHeld',
   'heldDependentOpening', 'heldDanglingLeadIn', 'heldNotCovered', 'heldNotCoveredSentence',
   // SPEED PIPES fix 7: a heading nothing released came under (BW2_HOLD_REASONS 'empty_heading').

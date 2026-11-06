@@ -1297,7 +1297,9 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       const t = c.deltas.join('');
       const tel = c.out.telemetry;
       ok('C4a q1: the units the carrying row proves are released on it -- the opening that names Muslim and Tamim al-Dari, cited or not',
-        t.startsWith(W1) && t.includes(drop(W2(2))) && t.includes(W3) && tel.unitsProvedHadith === 3
+        // ITEM B-4 (brain35, 2026-11-06): W2's unit cites the row whose card went out above it, so it ends « — ابن باز.» --
+        // the unit's own words are all still there, with its full stop behind the mark.
+        t.startsWith(W1) && t.includes(drop(W2(2)).replace(/\.$/u, '')) && t.includes(W3.replace(/\.$/u, '')) && tel.unitsProvedHadith === 3
         && t.includes('binbaz.org.sa/audios/101'), ascii(c.deltas.join('|')) + ' ' + JSON.stringify(tel));
       ok('C4b ...no not-covered sentence and no offer; the connector after a proved unit follows it out; the rest held as today',
         !t.includes(NOT_COVERED) && !hasOffer(c) && t.includes(W4) && t.includes(W7) && tel.unitsReleased === 5 && tel.unitsHeld === 2
@@ -1386,7 +1388,10 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         && read('guards/telemetry-text-guard.cjs').includes("'unitsProvedHadith',"));
       // SPEED FIX 4: the Q1 fixture's released text, byte for byte, as 142a100 released it (SHA-256 measured there).
       ok('C6f FIX3\x27s Q1 fixture releases as before under C5 and C6: the same bytes, 5 released, 2 held, 3 proved',
-        require('crypto').createHash('sha256').update(t).digest('hex') === 'cacc99a08ac16ac782b62b29f4276f39c9d1de563952426cc03a0cb7e7dc5398'
+        // ITEM B-4 (brain35, 2026-11-06) BY THE OWNER'S DECISION (contract 5: every paragraph names its source): the unit citing
+        // the Ibn Baz row whose card already went out now ends on « — ابن باز». Measured: the released bytes are 142a100's
+        // with that one mark inserted and nothing else (was cacc99a08ac16ac782b62b29f4276f39c9d1de563952426cc03a0cb7e7dc5398).
+        require('crypto').createHash('sha256').update(t).digest('hex') === 'b4f04b76ad0ff9a8c4f2dda15ef2543e08d4a9ceb34be5ff6c556c994fbd827d'
         && tel.unitsReleased === 5 && tel.unitsHeld === 2 && tel.unitsProvedHadith === 3, JSON.stringify(tel));
     }
 
@@ -1475,7 +1480,9 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       const t2 = q2.deltas.join('');
       const tel2 = q2.out.telemetry;
       ok('C6a q2: the answering units go out on the carrying row (1:301) -- "\x27an Anas ibn Malik", "agreed upon", a nisba the row does not write, Anas as the subject -- and answer 2 follows them',
-        t2.startsWith(W_ANAS) && t2.includes(W_AGREED.replace(/\s*\[\[1\]\]/u, '')) && t2.includes(W_NISBA) && t2.includes(W_SUBJECT) && t2.includes(A2)
+        // ITEM B-4 (brain35, 2026-11-06): the «متفق عليه» unit cites the book row whose card went out above it, so it ends on
+        // « — جامع العلوم والحكم» before its full stop; its own words are unchanged.
+        t2.startsWith(W_ANAS) && t2.includes(W_AGREED.replace(/\s*\[\[1\]\]/u, '').replace(/\.$/u, '')) && t2.includes(W_NISBA) && t2.includes(W_SUBJECT) && t2.includes(A2)
         // COMPREHENSIVE 3.4c: answer 2's saying stands in STRAIGHT quotes, which findMatns now reads; the cited row (Jami' al-'Ulum, 1:301) carries it, so
         // the unit is now proved on the row too: 5 proved where it was 4 (the bytes released are the same; C7h pins them by sha256).
         && tel2.unitsProvedHadith === 5 && tel2.unitsHeld === 0 && tel2.takhrijLookups === 1, ascii(q2.deltas.join('|')) + ' ' + JSON.stringify(tel2));
@@ -1505,7 +1512,10 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       // ending on the word before, and every other byte released is the same (measured: the texts are equal with the matn taken
       // out). Was 949ade0807e77a9a1b7fd04834dc8160f4b6575b931e0676fb29b4c87043f008.
       ok('C7h FIX4\x27s Q2 fixture releases as before under C7 and C8 (a source question whose first unit is proved): the same bytes, 5 released, 5 proved (answer 2 now proved on its row: 3.4c)',
-        require('crypto').createHash('sha256').update(t2.replace(/<book([^>]*?) open="1">/gu, '<book$1>')).digest('hex') === '2d4ef79fb2ce880262dd2badd4465dee951752cf352731012ffd2640dd574118'
+        // ITEM B-4 (brain35, 2026-11-06) BY THE OWNER'S DECISION: one mark, « — جامع العلوم والحكم», on the first unit
+        // citing the book row whose card already went out; the three later units on that same row repeat nothing. Measured: every
+        // other byte is as before (was 2d4ef79fb2ce880262dd2badd4465dee951752cf352731012ffd2640dd574118).
+        require('crypto').createHash('sha256').update(t2.replace(/<book([^>]*?) open="1">/gu, '<book$1>')).digest('hex') === '994ab36e0b59506820341de2825a267fb002cebc9ddaca72cad61e17887c7e0f'
         && tel2.unitsReleased === 5 && tel2.unitsHeld === 0 && tel2.unitsProvedHadith === 5 && UNITS.asksHadithSource(Q2), JSON.stringify(tel2));
     }
 
@@ -1614,7 +1624,9 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       const fq = await run({ question: Q5, writerText: [Q5_RULING, Q5_SAYING, Q5_CHEW, Q5_MALIKI].join('\n'), takhrij: true });
       const fqt = fq.deltas.join('');
       ok('C7g a fiqh answer shaped like q5 is unchanged: the same bytes as on 4d353de',
-        !src(Q5) && require('crypto').createHash('sha256').update(fqt).digest('hex') === '75769309de0ef3c24faaeae206c59971285e4c5acef665f453634f6d182d18b7'
+        // ITEM B-4 (brain35, 2026-11-06) BY THE OWNER'S DECISION: the saying's unit cites the Ibn Baz row whose card went out under
+        // the ruling above it, so it ends on « — ابن باز» (was 75769309de0ef3c24faaeae206c59971285e4c5acef665f453634f6d182d18b7).
+        !src(Q5) && require('crypto').createHash('sha256').update(fqt).digest('hex') === '4ff4018956f3f7a997bf9642dd3620f18138b9163aed0f0fcdf3c72a44d23b6b'
         && fq.out.telemetry.unitsReleased === 3 && fq.out.telemetry.unitsHeld === 1,
         ascii(fqt) + ' ' + require('crypto').createHash('sha256').update(fqt).digest('hex') + ' ' + JSON.stringify(fq.out.telemetry));
 
@@ -2203,7 +2215,7 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       // mutant: the binding gone -> the fasting card follows the masah sentence again
       const srcB = read('lib/bw2-units.js');
       // the predicate itself is the seam: both the fresh-card test and the owed-card flush read it
-      const seamB = "    const supportsCard = (row) => !bindable(row) || sentenceSupportedByText(String(unitText || '').replace(/\\[\\[[^\\]]*\\]\\]/gu, ' '), pinnedTextOf(row) || String(row.title || ''));";
+      const seamB = '    const supportsCard = (row) => cardSupportsUnit(row, unitText);';
       ok('A-3b mutant seam present', srcB.split(seamB).length === 2);
       const tmpB = path.join(REPO, 'lib', '.mut-bw2-units-a3b.mjs');
       try {
