@@ -92,6 +92,51 @@ const esm = (rel) => import(pathToFileURL(path.join(REPO, rel)).href + '?hadithb
   ok('7b MUTANT KILLED: without it a block the takhrij pass graded is removed whole',
     !!m2.mod && (() => { const r = m2.mod.withoutUnsourcedRulings(TAG_RULED + MATN + '</hadith>', []); return r.removed === 1 && !r.text.includes(LAST); })(), m2.error);
 
+
+  // ── brain35 B-6 (2026-11-06; DIAG GEMMA-4a, VAGUE-START) · TWO SMALL ONES ON THIS SAME PATH ────────────────────
+  // (a) «لم أجد في مصادر عزك نصا يجيب عن هذه المسألة بعينها.» was appended UNDER an answer that still carried its
+  // sources: notCovered is set when every RULING sentence was removed, and a draft whose quoted material survives is
+  // not an answer we did not find. (b) the writer's instruction about a person we hold no source for forbade his name
+  // and a pronoun, not a description, and an answer opened on «المصدر المسؤول عنه»: a description and a kenning are
+  // forbidden too, and a unit that opens on one is held.
+  {
+    const R = await esm('lib/removed-sources.js');
+    const U = await esm('lib/bw2-units.js');
+    // the measured GEMMA-4a shape: the only RULING sentence cites nothing (so it goes and notCovered is set), while what
+    // survives is carded material the reader can check -- a full-looking answer that the C3 sentence used to deny.
+    const sourcedDraft = 'وقد جاء في الحديث بيان معنى الغيبة [[1]].\n<source site="binbaz.org.sa" url="https://binbaz.org.sa/fatwas/1">معنى الغيبة</source>\nولا يجوز الاغتياب بحال.';
+    const outSourced = L.withoutUnsourcedRulings(sourcedDraft, [1]);
+    ok('B-6a the measured draft: every ruling sentence is unsourced (notCovered) yet the delivered text keeps a [[n]] and a card',
+      outSourced.notCovered === true && L.deliveredCarriesSource(outSourced.text) === true, JSON.stringify({ notCovered: outSourced.notCovered, text: outSourced.text.slice(0, 60) }));
+    ok('B-6a ...so the C3 sentence is NOT appended to it',
+      L.shouldAppendC3NotCovered({ ...outSourced, streamedThisTurn: false }, '', 0) === false);
+    ok('B-6a ...and over a draft that kept nothing sourced it still is',
+      L.shouldAppendC3NotCovered({ notCovered: true, streamedThisTurn: false, text: 'الحكم جائز.' }, '', 0) === true);
+    ok('B-6a deliveredCarriesSource reads a [[n]], a card and an empty text',
+      L.deliveredCarriesSource('حكم [[2]].') === true && L.deliveredCarriesSource('<source site="x" url="y">t</source>') === true
+      && L.deliveredCarriesSource('حكم بلا مصدر.') === false && L.deliveredCarriesSource('') === false);
+    ok('B-6a a streamed turn is still exempt, and the removed-person exemption still holds',
+      L.shouldAppendC3NotCovered({ notCovered: true, streamedThisTurn: true, text: 'الحكم جائز.' }, '', 0) === false
+      && L.shouldAppendC3NotCovered({ notCovered: true, streamedThisTurn: false, text: 'الحكم جائز.' }, 'سؤال', 1) === false);
+    const attribution = R.removedPersonAttribution('ماذا قال عمر عبد الكافي عن الغيبة؟');
+    ok('B-6b the question names a person we hold no source for', !!attribution && attribution.role === 'removed_person');
+    const instruction = R.removedPersonWriterInstruction(attribution);
+    ok('B-6b the writer is told not to point at him by a description or a kenning, and to begin on the question itself',
+      instruction.includes('ولا تشرْ إليه بوصفٍ ولا بكناية («المسؤول عنه»، «صاحب الكتاب»)، وابدأْ بالمسألة نفسِها.'), instruction);
+    ok('B-6b ...and the older clauses are still in it (no name, no attribution, no pronoun)',
+      instruction.includes('فلا تذكر اسمه') && instruction.includes('ولا تنسب إليه شيئا') && instruction.includes('ولا تشر إليه بضمير'), instruction);
+    ok('B-6b a unit that opens on a demonstrative standing for a man is a vague-person opening',
+      U.subjectlessOpening('هذا المسؤول عنه يرى الجواز.') === 'vague_person'
+      && U.subjectlessOpening('وصاحب الكتاب يرى المنع.') === 'vague_person'
+      && U.subjectlessOpening('وهذا المذكور يرى الجواز.') === 'vague_person');
+    ok('B-6b ...and an opening that names somebody is not', U.subjectlessOpening('هذا المذكور عند ابن باز جائز.') === ''
+      && U.subjectlessOpening('وهذا الحكم جائز عند أهل العلم.') === '');
+    const mC3 = await twin((s) => s.replace("    && !deliveredCarriesSource(out && out.text)\n", ''), 'c3');
+    ok('B-6 MUTANT C3 seam applied and loaded', mC3.changed && mC3.mod, mC3.error);
+    ok('B-6 MUTANT KILLED: without the test the sentence is appended under a sourced answer again',
+      !!mC3.mod && mC3.mod.shouldAppendC3NotCovered({ ...outSourced, streamedThisTurn: false }, '', 0) === true, mC3.error);
+  }
+
   console.log('\n=== hadith-block: ' + (checks - failures) + '/' + checks + (failures ? ' FAIL' : ' PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error('GUARD THREW: ' + (e && e.stack ? e.stack : String(e))); process.exit(1); });
