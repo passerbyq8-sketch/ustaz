@@ -1163,6 +1163,38 @@ run('deleting takes TWO presses -- the control that deletes lives behind `armed`
   return '`armed` opens false; step one draws the sentence, step two draws the delete';
 });
 
+// The controller owns transport; the row owns the sole deletion entry point.
+run('exactly one account-deletion call path, inside confirmDelete', () => {
+  const confirm = innerConst('EzikSignInRow', 'confirmDelete').init;
+  const factory = topFunction('createEzikAuthProofClient');
+  const legacy = topFunction('ezikAuthDelete');
+  const entries = [], endpoints = [], legacyUses = [];
+  walk(ast.program, (n, parent) => {
+    if (n.type === 'CallExpression' && n.callee.type === 'MemberExpression'
+      && ((n.callee.property.name || n.callee.property.value) === 'action')
+      && n.arguments[0] && n.arguments[0].value === 'account-delete') entries.push(n);
+    if (n.type === 'StringLiteral' && n.value === '/api/auth-delete') endpoints.push(n);
+    if (n.type === 'Identifier' && n.name === 'ezikAuthDelete'
+      && !(parent === legacy && parent.id === n)) legacyUses.push(n);
+  });
+  eq(entries.length, 1, 'account-delete action call sites');
+  is(entries[0].start >= confirm.start && entries[0].end <= confirm.end,
+    'the deletion entry point must be inside confirmDelete');
+  eq(legacyUses.length, 0, 'the retired deletion helper must have no callers or aliases');
+  eq(endpoints.length, 2, 'deletion endpoint literals: controller and retired constant only');
+  eq(endpoints.filter(n => n.start >= factory.start && n.end <= factory.end).length, 1,
+    'one deletion transport inside the proof controller');
+  const constantUses = [];
+  walk(ast.program, (n, parent) => {
+    if (n.type === 'Identifier' && n.name === 'SHELL_AUTH_DELETE_PATH'
+      && !(parent.type === 'VariableDeclarator' && parent.id === n)) constantUses.push(n);
+  });
+  eq(constantUses.length, 1, 'retired endpoint constant uses');
+  is(constantUses[0].start >= legacy.start && constantUses[0].end <= legacy.end,
+    'retired endpoint is used only in the uncalled helper');
+  return 'one confirmDelete action, one controller transport, retired helper uncalled';
+});
+
 // Execute the shipped action controller AND its adapter cleanup, with a held
 // response. The storage-erasure inventory above remains independent and total.
 async function accountDeletionCases() {
@@ -1170,6 +1202,10 @@ async function accountDeletionCases() {
     const adapter = text(topFunction('ezikAuthProofClient'));
     const factory = text(topFunction('createEzikAuthProofClient'));
     const confirm = text(innerConst('EzikSignInRow', 'confirmDelete').init);
+    const failureLine = text(topFunction('ezikAuthProofLine'));
+    const row = text(topFunction('EzikSignInRow'));
+    is(/\{line\s*\?\s*<div[^>]*>\{line\}<\/div>\s*:\s*null\}/.test(row),
+      'the account row must render its nonempty failure line');
     for (const outcome of ['accepted', 'refused', 'lost', 'session-changed']) {
       let held = { session: 'delete-fixture', provider: 'google' }, answer;
       const calls = [], events = [], display = [], handlers = new Map();
@@ -1187,7 +1223,15 @@ async function accountDeletionCases() {
         busy: false, proofStatus: { busy: false }, setBusy: value => display.push(['busy', value]),
         setLine: value => display.push(['line', value]), setSession: value => display.push(['session', value]),
         setArmed: value => display.push(['armed', value]), setDone: value => display.push(['done', value]),
-        ezikAuthProofLine: out => out.ok ? '' : out.code,
+        ezT: key => {
+          const values = [];
+          walk(ast.program, n => {
+            if (n.type === 'ObjectProperty' && n.key.value === key && n.value.type === 'StringLiteral') values.push(n.value.value);
+          });
+          eq(values.length, 2, 'failure translation entries for ' + key);
+          is(values.every(value => value.trim().length > 0), 'nonempty failure translations for ' + key);
+          return values[0];
+        },
         fetch: async (url, init) => {
           calls.push({ url, init });
           if (url.endsWith('/api/auth-capabilities')) return response(url, { ok: true, proofVersion: 0 });
@@ -1197,7 +1241,7 @@ async function accountDeletionCases() {
           return new Promise((resolve, reject) => { answer = () => outcome === 'lost' ? reject(Error('lost response')) : resolve(response(url, outcome === 'refused' ? { ok: false, error: 'auth-reauth-required' } : { ok: true }, outcome === 'refused' ? 428 : 200)); });
         } };
       const names = Object.keys(env);
-      const make = new Function(...names, 'let EZIK_AUTH_PROOF_CLIENT = null; let EZIK_AUTH_PROOF_OBSERVED_ON = false; let EZIK_AUTH_PROOF_LIFECYCLE_BOUND = false;\n' + factory + '\n' + adapter + '\nreturn { client: ezikAuthProofClient(), confirm: ' + confirm + ' };');
+      const make = new Function(...names, 'let EZIK_AUTH_PROOF_CLIENT = null; let EZIK_AUTH_PROOF_OBSERVED_ON = false; let EZIK_AUTH_PROOF_LIFECYCLE_BOUND = false;\n' + factory + '\n' + failureLine + '\n' + adapter + '\nreturn { client: ezikAuthProofClient(), confirm: ' + confirm + ' };');
       const h = make(...names.map(name => env[name]));
       h.confirm();
       for (let i = 0; i < 50 && !answer; i++) await new Promise(resolve => setImmediate(resolve));
@@ -1212,6 +1256,12 @@ async function accountDeletionCases() {
       eq(display.some(row => row[0] === 'session' && row[1] === null), outcome === 'accepted', outcome + ' row session');
       eq(display.some(row => row[0] === 'done' && row[1] === true), outcome === 'accepted', outcome + ' completion UI');
       if (outcome !== 'accepted') is(!!held, outcome + ' retained the live session');
+      if (outcome === 'refused' || outcome === 'lost') {
+        const lines = display.filter(row => row[0] === 'line');
+        const last = lines.length ? lines[lines.length - 1][1] : null;
+        is(typeof last === 'string' && last.trim().length > 0,
+          outcome + ' deletion must show a nonempty failure line');
+      }
       h.client.dispose();
     }
     return 'real confirmDelete, controller and adapter: held, accepted, refused, lost and replacement-session outcomes';
