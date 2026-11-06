@@ -351,9 +351,11 @@ every purpose and `capabilityEligible()` is false for every capability. **Regist
 
 BRAIN36 FIX 2026-11-05: appended `securityadmission` (`guards/security-admission-guard.cjs`); branch roster 271. The admission order of /api/ask (validation, the per-IP pair, the day cap, then the global window) and of the three audio routes (own stt family, Retry-After, the per-IP pair before the global), and the day cap counting before it judges. Before/after harness outputs and the full-run result are in REPORT-BRAIN36-FIX-2026-11-05.md in the session archive (side-brain-2026-11-05).
 
+BRAIN35 FIX 2026-11-06: appended the seven gates of the item-35 fix batch -- `compilerrole` (`guards/compiler-role-guard.cjs`), `mediatedattribution` (`guards/mediated-attribution-guard.cjs`), `hadithblock` (`guards/hadith-block-guard.cjs`), `sourcemarks` (`guards/source-marks-guard.cjs`), `answerlogbound` (`guards/answer-log-bound-guard.cjs`), `turndeadline` (`guards/turn-deadline-guard.cjs`) and `safefetch` (`guards/safe-fetch-guard.cjs`); branch roster 278. They hold the fourteen items of EZIK-ORDER-BRAIN35-FIX-2026-11-06: the compiler role of a collected-fatwa row, the mediated-attribution licence, a hadith block as one quotation, the in-text source mark and the verse card, the answer-log flush bound, the whole turn's deadline, and safe-fetch address pinning with a parsing IPv6 test.
+
 Expected signature for the current integrated roster. CURRENT_RECON records the measured 363/0/0 pre-self-check counts from the order-7 focused recon run at 06d9b15369e229ed020b3e6e829aaaade7ae642d. The order-7 full run is pending; no green-suite result is claimed. Evidence: REPORT-C1-ORDER-7.md:
 
-All 271 gates in the current roster run sequentially through tools/run-gates.cjs. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
+All 278 gates in the current roster run sequentially through tools/run-gates.cjs. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -466,8 +468,15 @@ c1librarylook 0
 securityadmission 0
 securityauthcapabilities 0
 securityauthredirectcompletion 0
-TOTAL_GATES        271/271 PASS
-CURRENT_RECON PASS=364 WARN=0 FAIL=0
+compilerrole 0
+mediatedattribution 0
+hadithblock 0
+sourcemarks 0
+answerlogbound 0
+turndeadline 0
+safefetch 0
+TOTAL_GATES        278/278 PASS
+CURRENT_RECON PASS=370 WARN=0 FAIL=0
 PRE_REBASE_UPSTREAM_TOTAL_GATES 206/206 PASS
 PRE_REBASE_UPSTREAM_RECON PASS=299 WARN=0 FAIL=0
 PRE_REBASE_BRANCH_TOTAL_GATES 208/208 PASS

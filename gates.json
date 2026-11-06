@@ -1360,5 +1360,40 @@
     "name": "securityadmission",
     "script": "guards/security-admission-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "compilerrole",
+    "script": "guards/compiler-role-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "mediatedattribution",
+    "script": "guards/mediated-attribution-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "hadithblock",
+    "script": "guards/hadith-block-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "sourcemarks",
+    "script": "guards/source-marks-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "answerlogbound",
+    "script": "guards/answer-log-bound-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "turndeadline",
+    "script": "guards/turn-deadline-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "safefetch",
+    "script": "guards/safe-fetch-guard.cjs",
+    "args": ""
   }
 ]
