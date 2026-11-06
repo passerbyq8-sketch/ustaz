@@ -1161,7 +1161,11 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       // N section 3 N2(b): pinned asked-matn evidence opens q6 without a proving unit; q11 lacks it.
       ok('C7i pinned q6 evidence releases its three checked units without proof; q11 remains closed; explicit proof still works',
         UNITS.asksHadithSource(Q6_SOURCE) && UNITS.asksHadithSource(F.q11) && !UNITS.asksHadithSource(Q6)
-        && s6.deltas.join('') === c1.deltas.join('') && !hasOffer(s6)
+        // brain35 A-2 (2026-11-06, contract section 5: say when the wording's collector cannot be confirmed): the source
+        // question's three units go out as before, and the answer then ends on the collector sentence, once (no unit
+        // names a collector); the non-source twin (c1) gets no such sentence.
+        && s6.deltas.join('').startsWith(c1.deltas.join('')) && s6.deltas.join('').endsWith(BW2.LEDGER_COLLECTOR_SENTENCE)
+        && s6.deltas.join('').split(BW2.LEDGER_COLLECTOR_SENTENCE).length === 2 && !c1.deltas.join('').includes(BW2.LEDGER_COLLECTOR_SENTENCE) && !hasOffer(s6)
         && s6.out.telemetry.unitsReleased === 3 && s6.out.telemetry.unitsHeld === 0 && s6.out.telemetry.unitsProvedHadith === 0
         && s6.out.telemetry.heldDependentOpening === 0 && s6.out.telemetry.continued === ''
         && s11.deltas.join('') === NOT_COVERED && hasOffer(s11) && s11.out.telemetry.unitsReleased === 0
@@ -1954,6 +1958,124 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       const MALIK54 = await play54('قال الإمام مالك: «' + MATN54 + '» [[1]].', rowOf54('مالك بن أنس', 'موطأ مالك ت الأعظمي'));
       const SHAFII54 = await play54('قال الإمام الشافعي: «' + MATN54 + '» [[1]].', rowOf54('الشافعي', 'الأم للشافعي'));
       ok('ORDER54-1 sibling: «الإمام مالك» over «الموطأ» and «الإمام الشافعي» over «الأم» go out with the name', MALIK54.text.includes('الإمام مالك') && SHAFII54.text.includes('الإمام الشافعي'), JSON.stringify([MALIK54, SHAFII54]));
+    }
+
+    // ── brain35 A-2 (2026-11-06; DIAG 35.3 / 35.11) · THE COMPLETION LEDGER ─────────────────────────────────
+    // What the question asked is checked after release: a school asked and not named gets its scoped absence sentence
+    // once; a collector / narrator / grader asked and not answered gets its role sentence. The captured battery texts
+    // (fixtures/brain35-ledger-cases.json) are the red cases: Q07 (three named, no sentence) was the order's RED today.
+    {
+      const LED = JSON.parse(read('fixtures/brain35-ledger-cases.json'));
+      const kind = (s) => (s.includes('\u0644\u0645\u0630\u0647\u0628') ? 'school:' + ['\u0627\u0644\u062d\u0646\u0641\u064a\u0629', '\u0627\u0644\u0645\u0627\u0644\u0643\u064a\u0629', '\u0627\u0644\u0634\u0627\u0641\u0639\u064a\u0629', '\u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629'].findIndex((l) => s.includes(l))
+        : s === BW2.LEDGER_COLLECTOR_SENTENCE ? 'collector' : s === BW2.LEDGER_NARRATOR_SENTENCE ? 'narrator' : s === BW2.LEDGER_GRADER_SENTENCE ? 'grader' : 'other');
+      ok('A-2 fixture carries the eleven captured texts', Array.isArray(LED.cases) && LED.cases.length === 11);
+      for (const c of LED.cases) {
+        const got = BW2.completionLedger({ question: c.question, released: c.input.released, aboveText: c.input.aboveText, leadLine: c.input.leadLine }).map(kind);
+        ok('A-2 ' + c.id + ': ' + c.note.slice(0, 70), JSON.stringify(got) === JSON.stringify(c.expect), JSON.stringify(got));
+      }
+      const Q4 = '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0631\u0628 \u0639\u0646\u062f \u0627\u0644\u0645\u0630\u0627\u0647\u0628 \u0627\u0644\u0623\u0631\u0628\u0639\u0629\u061f';
+      const Q1 = '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0631\u0628 \u0639\u0646\u062f \u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629\u061f';
+      const THREE = '\u0630\u0647\u0628 \u0627\u0644\u0645\u0627\u0644\u0643\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632. \u0648\u0630\u0647\u0628 \u0627\u0644\u0634\u0627\u0641\u0639\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632 \u0628\u0634\u0631\u0637. \u0648\u0630\u0647\u0628 \u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632.';
+      const FOUR = '\u0630\u0647\u0628 \u0627\u0644\u0645\u0627\u0644\u0643\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632. \u0648\u0630\u0647\u0628 \u0627\u0644\u0634\u0627\u0641\u0639\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632 \u0628\u0634\u0631\u0637. \u0648\u0630\u0647\u0628 \u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632. \u0648\u0630\u0647\u0628 \u0627\u0644\u062d\u0646\u0641\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632 \u0623\u064a\u0636\u0627.';
+      const HANAFI_IMAM = '\u0630\u0647\u0628 \u0627\u0644\u0645\u0627\u0644\u0643\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632. \u0648\u0630\u0647\u0628 \u0627\u0644\u0634\u0627\u0641\u0639\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632 \u0628\u0634\u0631\u0637. \u0648\u0630\u0647\u0628 \u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632. \u0648\u0642\u0627\u0644 \u0623\u0628\u0648 \u062d\u0646\u064a\u0641\u0629 \u0628\u0627\u0644\u062c\u0648\u0627\u0632.';
+      const three = BW2.completionLedger({ question: Q4, released: THREE });
+      ok('A-2 a four-school question whose released text names three -> the fourth school\'s sentence, exactly once',
+        three.length === 1 && three[0] === BW2.ledgerSchoolSentence('\u0627\u0644\u062d\u0646\u0641\u064a\u0629'), JSON.stringify(three.map(kind)));
+      ok('A-2 the sentence is the order\'s, byte for byte', BW2.ledgerSchoolSentence('X') === '\u0644\u0645 \u0623\u0642\u0641\u0652 \u0641\u064a \u0647\u0630\u0627 \u0627\u0644\u0628\u062d\u062b\u0650 \u0639\u0644\u0649 \u0646\u0635\u064d\u0651 \u0644\u0645\u0630\u0647\u0628\u0650 X \u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0645\u0633\u0623\u0644\u0629.');
+      ok('A-2 names four -> nothing', BW2.completionLedger({ question: Q4, released: FOUR }).length === 0);
+      ok('A-2 a school written under its imam\'s name counts as named («\u0623\u0628\u0648 \u062d\u0646\u064a\u0641\u0629»)', BW2.completionLedger({ question: Q4, released: HANAFI_IMAM }).length === 0);
+      ok('A-2 a one-school question -> at most that school', JSON.stringify(BW2.completionLedger({ question: Q1, released: THREE.replace('\u0648\u0630\u0647\u0628 \u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632.', '') }).map(kind)) === JSON.stringify(['school:3'])
+        && BW2.completionLedger({ question: Q1, released: THREE }).length === 0);
+      ok('A-2 an absence sentence already covering the school is not written twice', BW2.completionLedger({ question: Q4, released: THREE + ' ' + BW2.ledgerSchoolSentence('\u0627\u0644\u062d\u0646\u0641\u064a\u0629') }).length === 0);
+      // the wiring: a real turn on a four-school question whose writer names no school ends with the four sentences, once each
+      const wired = await run({ question: Q4, writerText: U.s1, judge: 'all' });
+      const text = wired.deltas.join('');
+      const counts = ['\u0627\u0644\u062d\u0646\u0641\u064a\u0629', '\u0627\u0644\u0645\u0627\u0644\u0643\u064a\u0629', '\u0627\u0644\u0634\u0627\u0641\u0639\u064a\u0629', '\u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629'].map((l) => text.split(BW2.ledgerSchoolSentence(l)).length - 1);
+      ok('A-2 wired: a four-school turn whose writer names no school ends with the four sentences, once each', JSON.stringify(counts) === '[1,1,1,1]' && text.includes(MASAH_RULING), ascii(text));
+      const wiredNone = await run({ question: Q_MASAH, writerText: U.s1, judge: 'all' });
+      ok('A-2 wired: a question that asks no school gets no school sentence', !wiredNone.deltas.join('').includes('\u0644\u0645\u0630\u0647\u0628'));
+      // the mutant: the call site gone -> the wired row fails
+      const src = read('lib/before-writing-v2.js');
+      const seam = '  for (const sentence of completionLedger({ question, released: String(wire.sent || \'\'), aboveText: directBlock, leadLine: gradeHeadLine })) {';
+      ok('A-2 mutant seam present', src.includes(seam));
+      const mutated = src.replace(seam, '  for (const sentence of []) { // mutant: the ledger is never consulted');
+      const os2 = require('os');
+      const tmp = fs.mkdtempSync(path.join(os2.tmpdir(), 'ustaz-a2-mut-'));
+      try {
+        const file = path.join(tmp, 'before-writing-v2.mjs');
+        fs.writeFileSync(file, mutated.replace(/from\s+(['"])(\.[^'"]*)\1/gu, (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q), 'utf8');
+        const M = await import(pathToFileURL(file).href);
+        const { deps } = makeDeps({ writerText: U.s1, judge: 'all' });
+        const { target, wire } = makeWire();
+        await M.runBw2Turn({
+          question: Q4, messages: [{ role: 'user', content: Q4 }], mode: 'brief', band: 'adult', system: 'SYSTEM', model: 'writer-model', maxTokens: 4096,
+          providerUrl: 'https://api.anthropic.invalid/v1/messages', headers: {}, libFlagValue: '', libToken: '', lessonsToken: '', onLessonRows: null,
+          takhrijWired: false, cards, wire, requestStartedAt: Date.now(), env: { BW2_RETRIEVAL_MS: '400', BW2_JUDGE_MS: '400' }, runtime: '', deps,
+        });
+        const mutantText = deltasOf(framesOf(target)).join('');
+        ok('MUTANT KILLED: with the ledger unconsulted the four-school turn ends without the school sentences', !mutantText.includes('\u0644\u0645\u0630\u0647\u0628') && mutantText.includes(MASAH_RULING), ascii(mutantText));
+      } finally {
+        try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+
+    // ── brain35 A-2 (2026-11-06; DIAG 35.3 / 35.11) · THE COMPLETION LEDGER ─────────────────────────────────
+    // What the question asked is checked after release: a school asked and not named gets its scoped absence sentence
+    // once; a collector / narrator / grader asked and not answered gets its role sentence. The captured battery texts
+    // (fixtures/brain35-ledger-cases.json) are the red cases: Q07 (three named, no sentence) was the order's RED today.
+    {
+      const LED = JSON.parse(read('fixtures/brain35-ledger-cases.json'));
+      const kind = (s) => (s.includes('\u0644\u0645\u0630\u0647\u0628') ? 'school:' + ['\u0627\u0644\u062d\u0646\u0641\u064a\u0629', '\u0627\u0644\u0645\u0627\u0644\u0643\u064a\u0629', '\u0627\u0644\u0634\u0627\u0641\u0639\u064a\u0629', '\u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629'].findIndex((l) => s.includes(l))
+        : s === BW2.LEDGER_COLLECTOR_SENTENCE ? 'collector' : s === BW2.LEDGER_NARRATOR_SENTENCE ? 'narrator' : s === BW2.LEDGER_GRADER_SENTENCE ? 'grader' : 'other');
+      ok('A-2 fixture carries the eleven captured texts', Array.isArray(LED.cases) && LED.cases.length === 11);
+      for (const c of LED.cases) {
+        const got = BW2.completionLedger({ question: c.question, released: c.input.released, aboveText: c.input.aboveText, leadLine: c.input.leadLine }).map(kind);
+        ok('A-2 ' + c.id + ': ' + c.note.slice(0, 70), JSON.stringify(got) === JSON.stringify(c.expect), JSON.stringify(got));
+      }
+      const Q4 = '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0631\u0628 \u0639\u0646\u062f \u0627\u0644\u0645\u0630\u0627\u0647\u0628 \u0627\u0644\u0623\u0631\u0628\u0639\u0629\u061f';
+      const Q1 = '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0631\u0628 \u0639\u0646\u062f \u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629\u061f';
+      const THREE = '\u0630\u0647\u0628 \u0627\u0644\u0645\u0627\u0644\u0643\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632. \u0648\u0630\u0647\u0628 \u0627\u0644\u0634\u0627\u0641\u0639\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632 \u0628\u0634\u0631\u0637. \u0648\u0630\u0647\u0628 \u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632.';
+      const FOUR = '\u0630\u0647\u0628 \u0627\u0644\u0645\u0627\u0644\u0643\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632. \u0648\u0630\u0647\u0628 \u0627\u0644\u0634\u0627\u0641\u0639\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632 \u0628\u0634\u0631\u0637. \u0648\u0630\u0647\u0628 \u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632. \u0648\u0630\u0647\u0628 \u0627\u0644\u062d\u0646\u0641\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632 \u0623\u064a\u0636\u0627.';
+      const HANAFI_IMAM = '\u0630\u0647\u0628 \u0627\u0644\u0645\u0627\u0644\u0643\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632. \u0648\u0630\u0647\u0628 \u0627\u0644\u0634\u0627\u0641\u0639\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632 \u0628\u0634\u0631\u0637. \u0648\u0630\u0647\u0628 \u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632. \u0648\u0642\u0627\u0644 \u0623\u0628\u0648 \u062d\u0646\u064a\u0641\u0629 \u0628\u0627\u0644\u062c\u0648\u0627\u0632.';
+      const three = BW2.completionLedger({ question: Q4, released: THREE });
+      ok('A-2 a four-school question whose released text names three -> the fourth school\'s sentence, exactly once',
+        three.length === 1 && three[0] === BW2.ledgerSchoolSentence('\u0627\u0644\u062d\u0646\u0641\u064a\u0629'), JSON.stringify(three.map(kind)));
+      ok('A-2 the sentence is the order\'s, byte for byte', BW2.ledgerSchoolSentence('X') === '\u0644\u0645 \u0623\u0642\u0641\u0652 \u0641\u064a \u0647\u0630\u0627 \u0627\u0644\u0628\u062d\u062b\u0650 \u0639\u0644\u0649 \u0646\u0635\u064d\u0651 \u0644\u0645\u0630\u0647\u0628\u0650 X \u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0645\u0633\u0623\u0644\u0629.');
+      ok('A-2 names four -> nothing', BW2.completionLedger({ question: Q4, released: FOUR }).length === 0);
+      ok('A-2 a school written under its imam\'s name counts as named («\u0623\u0628\u0648 \u062d\u0646\u064a\u0641\u0629»)', BW2.completionLedger({ question: Q4, released: HANAFI_IMAM }).length === 0);
+      ok('A-2 a one-school question -> at most that school', JSON.stringify(BW2.completionLedger({ question: Q1, released: THREE.replace('\u0648\u0630\u0647\u0628 \u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632.', '') }).map(kind)) === JSON.stringify(['school:3'])
+        && BW2.completionLedger({ question: Q1, released: THREE }).length === 0);
+      ok('A-2 an absence sentence already covering the school is not written twice', BW2.completionLedger({ question: Q4, released: THREE + ' ' + BW2.ledgerSchoolSentence('\u0627\u0644\u062d\u0646\u0641\u064a\u0629') }).length === 0);
+      // the wiring: a real turn on a four-school question whose writer names no school ends with the four sentences, once each
+      const wired = await run({ question: Q4, writerText: U.s1, judge: 'all' });
+      const text = wired.deltas.join('');
+      const counts = ['\u0627\u0644\u062d\u0646\u0641\u064a\u0629', '\u0627\u0644\u0645\u0627\u0644\u0643\u064a\u0629', '\u0627\u0644\u0634\u0627\u0641\u0639\u064a\u0629', '\u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629'].map((l) => text.split(BW2.ledgerSchoolSentence(l)).length - 1);
+      ok('A-2 wired: a four-school turn whose writer names no school ends with the four sentences, once each', JSON.stringify(counts) === '[1,1,1,1]' && text.includes(MASAH_RULING), ascii(text));
+      const wiredNone = await run({ question: Q_MASAH, writerText: U.s1, judge: 'all' });
+      ok('A-2 wired: a question that asks no school gets no school sentence', !wiredNone.deltas.join('').includes('\u0644\u0645\u0630\u0647\u0628'));
+      // the mutant: the call site gone -> the wired row fails
+      const src = read('lib/before-writing-v2.js');
+      const seam = '  for (const sentence of completionLedger({ question, released: String(wire.sent || \'\'), aboveText: directBlock, leadLine: gradeHeadLine })) {';
+      ok('A-2 mutant seam present', src.includes(seam));
+      const mutated = src.replace(seam, '  for (const sentence of []) { // mutant: the ledger is never consulted');
+      const os2 = require('os');
+      const tmp = fs.mkdtempSync(path.join(os2.tmpdir(), 'ustaz-a2-mut-'));
+      try {
+        const file = path.join(tmp, 'before-writing-v2.mjs');
+        fs.writeFileSync(file, mutated.replace(/from\s+(['"])(\.[^'"]*)\1/gu, (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q), 'utf8');
+        const M = await import(pathToFileURL(file).href);
+        const { deps } = makeDeps({ writerText: U.s1, judge: 'all' });
+        const { target, wire } = makeWire();
+        await M.runBw2Turn({
+          question: Q4, messages: [{ role: 'user', content: Q4 }], mode: 'brief', band: 'adult', system: 'SYSTEM', model: 'writer-model', maxTokens: 4096,
+          providerUrl: 'https://api.anthropic.invalid/v1/messages', headers: {}, libFlagValue: '', libToken: '', lessonsToken: '', onLessonRows: null,
+          takhrijWired: false, cards, wire, requestStartedAt: Date.now(), env: { BW2_RETRIEVAL_MS: '400', BW2_JUDGE_MS: '400' }, runtime: '', deps,
+        });
+        const mutantText = deltasOf(framesOf(target)).join('');
+        ok('MUTANT KILLED: with the ledger unconsulted the four-school turn ends without the school sentences', !mutantText.includes('\u0644\u0645\u0630\u0647\u0628') && mutantText.includes(MASAH_RULING), ascii(mutantText));
+      } finally {
+        try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
     }
     // ORDER 50 item 6, the real store: written LAST in this file, because loading the encyclopedia index here would end the C2g row (readiness before any build in this process) if it came earlier.
     {
