@@ -2,7 +2,7 @@
    Ezik's existing worker sweeps other CacheStorage stores. A separate asset-only
    IndexedDB database keeps Kunuz offline without changing that worker or its data. */
 'use strict';
-const VERSION = '20261105-c1d3-1';
+const VERSION = '20261105-c1games-1';
 const DATABASE_PREFIX = 'kunuz-treasure-assets-';
 const DATABASE = DATABASE_PREFIX + VERSION;
 const CRITICAL_ASSETS = {
@@ -12,6 +12,15 @@ const CRITICAL_ASSETS = {
   '/quest-theme/assets/islands.webp': '6785069f0c9107df16bac923b9195185789497abfb300fd7400fbb8b3dfe4171'
 };
 const SHELL = [
+  '/hanna-laha/assets/HostRoomScreen-iap-v1.js',
+  '/hanna-laha/assets/JoinScreen-iap-v1.js',
+  '/hanna-laha/assets/Motif-DCkHNm8L.js',
+  '/hanna-laha/assets/Page-CJ0DuoAl.js',
+  '/hanna-laha/assets/PhoneScreen-iap-v1.js',
+  '/hanna-laha/assets/SetupScreen-iap-v1.js',
+  '/hanna-laha/assets/TerminalNotice-iap-v1.js',
+  '/hanna-laha/assets/TopBar-Bx25xykk.js',
+  '/hanna-laha/assets/index-iap-v1.js',
   '/quest.html', '/quest-board.html', '/quest-test.html', '/quest-ghaws.html', '/quest-harb.html',
   '/hanna-laha/index.html', '/hanna-laha/', '/hanna-laha/favicon.svg', '/icon.svg',
   '/quest-data/kunuz-bank-3147.js', '/quest-data/kunuz-levels-3147.js', '/quest-data/kunuz-geo-index.js',
@@ -118,6 +127,11 @@ self.addEventListener('activate', event => {
 });
 self.addEventListener('fetch', event => {
   const request = event.request, url = new URL(request.url);
+  // Public worker generation discovery must never enter an offline cache.
+  if (url.pathname === '/api/account-capabilities') {
+    event.respondWith(fetch(new Request(event.request, { cache: 'no-store', credentials: 'omit', redirect: 'error' })));
+    return;
+  }
   if (request.method !== 'GET' || url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/lang/content/')) {
     event.respondWith((async()=>{

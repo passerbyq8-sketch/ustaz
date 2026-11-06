@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test, { beforeEach } from 'node:test';
 import vm from 'node:vm';
 import { parseHTML } from 'linkedom';
+import { trackIapLifecycle } from './iap-lifecycle-fixture.js';
 
 import { handleIapTestAdjust } from '../api/iap-test-adjust.js';
 import { handleIapTrialStart } from '../api/iap-trial-start.js';
@@ -359,6 +360,7 @@ function makeBridge({ mode = 'all', accountSession = null, balance = {}, prices 
       if (String(url).endsWith('/api/iap-consume')) return { ok: true, status: 200, json: async () => ({ ok: true, mode: 'credit' }) };
       throw new Error('unexpected-fetch: ' + String(url));
     };
+    trackIapLifecycle(window, document);
     vm.runInNewContext(source, { window, document, localStorage, sessionStorage, fetch, setTimeout, clearTimeout, setInterval, clearInterval, URLSearchParams, console, Date, Math });
     return { window, document, localStorage, sessionStorage, calls, posted, state };
   });
@@ -598,6 +600,13 @@ test('all-mode signed-out join links bypass sign-in after the public rule lookup
 });
 
 test('credit confirmation occurs before local start, and product rows choose new then legacy ids by shell prices', async () => {
+  async function waitFor(condition, message) {
+    const deadline = Date.now() + 2000;
+    while (!condition()) {
+      assert.ok(Date.now() < deadline, message);
+      await new Promise(resolve => setTimeout(resolve, 5));
+    }
+  }
   const bridge = await makeBridge({ mode: 'all', accountSession: { session }, balance: { credits: 1, trial: { startedAt: 10, endsAt: 20, active: false, daysLeft: 0 } } });
   let started = 0;
   bridge.window.ezikIapStart(() => { started += 1; return true; }, 'local-id-1234567890', 'test', { cycle: '1' });
@@ -642,12 +651,15 @@ test('credit confirmation occurs before local start, and product rows choose new
   ]) {
     const purchase = await makeBridge({ mode: 'off', accountSession: { session }, balance: { credits: 0 }, prices });
     purchase.window.ezikIapOpenPurchase();
-    await new Promise((resolve) => setTimeout(resolve, 30));
+    await waitFor(() => purchase.document.querySelector('.ezik-iap-content > button.ezik-iap-button-secondary')
+      && purchase.document.querySelectorAll('.ezik-iap-row').length === expected.length, 'product panel ready before choosing rows');
     const rows = [...purchase.document.querySelectorAll('.ezik-iap-row')];
     for (const row of rows) {
       row.querySelector('input').value = '1';
+      const before = purchase.posted.filter(message => message.type === 'iap.buy').length;
       row.querySelector('button').click();
-      await new Promise((resolve) => setTimeout(resolve, 40));
+      await waitFor(() => purchase.posted.filter(message => message.type === 'iap.buy').length === before + 1
+        && !row.querySelector('button').disabled, 'purchase message and completion before next row');
     }
     const bought = purchase.posted.filter((message) => message.type === 'iap.buy').map((message) => message.productId);
     assert.deepEqual(bought, expected);

@@ -1163,27 +1163,60 @@ run('deleting takes TWO presses -- the control that deletes lives behind `armed`
   return '`armed` opens false; step one draws the sentence, step two draws the delete';
 });
 
-run('the device is signed out only AFTER the server said the account is gone', () => {
-  const calls = [];
-  walk(ast.program, (n) => {
-    if (n.type === 'CallExpression' && n.callee.type === 'Identifier'
-      && n.callee.name === 'ezikAuthDelete') calls.push(n);
+// Execute the shipped action controller AND its adapter cleanup, with a held
+// response. The storage-erasure inventory above remains independent and total.
+async function accountDeletionCases() {
+  await runAsync('the device is signed out only AFTER the server confirms the exact account deletion', async () => {
+    const adapter = text(topFunction('ezikAuthProofClient'));
+    const factory = text(topFunction('createEzikAuthProofClient'));
+    const confirm = text(innerConst('EzikSignInRow', 'confirmDelete').init);
+    for (const outcome of ['accepted', 'refused', 'lost', 'session-changed']) {
+      let held = { session: 'delete-fixture', provider: 'google' }, answer;
+      const calls = [], events = [], display = [], handlers = new Map();
+      const win = { location: { href: 'https://delete.fixture.invalid/' }, btoa: value => Buffer.from(value, 'binary').toString('base64'),
+        sessionStorage: { length: 0, key() { return null; }, removeItem() {} },
+        addEventListener: (name, fn) => handlers.set(name, fn),
+        dispatchEvent: event => events.push(event.type) };
+      const response = (url, body, status = 200) => ({ url, status, redirected: false,
+        headers: { get: () => 'application/json' }, json: async () => body });
+      const env = { window: win, crypto: require('node:crypto').webcrypto,
+        readAuthSession: () => held, getDeviceId: () => 'delete-device', capHeaders: () => ({ 'x-murabbi-device': 'delete-device' }),
+        ezikAuthBridge: () => null, ezikAuthProofLegacy: () => { throw Error('unexpected sign-in'); }, EZIK_NATIVE_AUTH_SUBS: new Set(),
+        writeAuthSession: () => { throw Error('unexpected session write'); },
+        clearAuthSession: () => { events.push('clear'); held = null; }, CustomEvent: class { constructor(type) { this.type = type; } },
+        busy: false, proofStatus: { busy: false }, setBusy: value => display.push(['busy', value]),
+        setLine: value => display.push(['line', value]), setSession: value => display.push(['session', value]),
+        setArmed: value => display.push(['armed', value]), setDone: value => display.push(['done', value]),
+        ezikAuthProofLine: out => out.ok ? '' : out.code,
+        fetch: async (url, init) => {
+          calls.push({ url, init });
+          if (url.endsWith('/api/auth-capabilities')) return response(url, { ok: true, proofVersion: 0 });
+          eq(url, 'https://delete.fixture.invalid/api/auth-delete', 'exact deletion endpoint');
+          eq(JSON.parse(init.body), { session: 'delete-fixture' }, 'exact original account');
+          eq(init.headers['x-murabbi-device'], 'delete-device', 'device binding');
+          return new Promise((resolve, reject) => { answer = () => outcome === 'lost' ? reject(Error('lost response')) : resolve(response(url, outcome === 'refused' ? { ok: false, error: 'auth-reauth-required' } : { ok: true }, outcome === 'refused' ? 428 : 200)); });
+        } };
+      const names = Object.keys(env);
+      const make = new Function(...names, 'let EZIK_AUTH_PROOF_CLIENT = null; let EZIK_AUTH_PROOF_OBSERVED_ON = false; let EZIK_AUTH_PROOF_LIFECYCLE_BOUND = false;\n' + factory + '\n' + adapter + '\nreturn { client: ezikAuthProofClient(), confirm: ' + confirm + ' };');
+      const h = make(...names.map(name => env[name]));
+      h.confirm();
+      for (let i = 0; i < 50 && !answer; i++) await new Promise(resolve => setImmediate(resolve));
+      is(!!answer, 'controller did not submit deletion');
+      eq(events, [], 'no local cleanup before the server answers');
+      is(!display.some(row => row[0] === 'done' || row[0] === 'session'), 'UI completed before confirmation');
+      if (outcome === 'session-changed') held = { session: 'replacement-fixture', provider: 'google' };
+      answer();
+      for (let i = 0; i < 50 && h.client.state().busy; i++) await new Promise(resolve => setImmediate(resolve));
+      await new Promise(resolve => setImmediate(resolve));
+      eq(events, outcome === 'accepted' ? ['clear', 'ezik:auth:signedout'] : [], outcome + ' cleanup');
+      eq(display.some(row => row[0] === 'session' && row[1] === null), outcome === 'accepted', outcome + ' row session');
+      eq(display.some(row => row[0] === 'done' && row[1] === true), outcome === 'accepted', outcome + ' completion UI');
+      if (outcome !== 'accepted') is(!!held, outcome + ' retained the live session');
+      h.client.dispose();
+    }
+    return 'real confirmDelete, controller and adapter: held, accepted, refused, lost and replacement-session outcomes';
   });
-  eq(calls.length, 1, 'call sites of ezikAuthDelete in app.jsx');
-
-  const body = text(innerConst('EzikSignInRow', 'confirmDelete').init);
-  is(body.indexOf('ezikAuthDelete(') !== -1, 'the one call site is not inside confirmDelete');
-  const refuse = body.indexOf('if (!ok)');
-  const clear = body.indexOf('clearAuthSession()');
-  is(refuse !== -1, 'confirmDelete no longer refuses a falsy answer');
-  is(clear !== -1, 'confirmDelete no longer clears the local session key');
-  is(refuse < clear,
-    'the local key is cleared before the refusal is read -- a reader whose delete FAILED would be '
-    + 'signed out of an account that is still standing, with no way back to the button');
-  is(body.indexOf('auth.deleteFailed') !== -1, 'a failed delete tells the reader nothing');
-  is(body.indexOf('setSession(null)') !== -1, 'the row does not return to the signed-out state');
-  return '1 call site, inside confirmDelete; refusal read at ' + refuse + ', key cleared at ' + clear;
-});
+}
 
 run('the six sentences exist in BOTH languages, none empty, none untranslated', () => {
   const keys = ['auth.delete', 'auth.deleteTitle', 'auth.deleteBody', 'auth.deleteConfirm',
@@ -1634,6 +1667,7 @@ process.exit(failed ? 1 : 0);
 }
 
 syncFix3Cases()
+  .then(accountDeletionCases)
   .then(serverCases)
   .then(report)
   .catch((e) => { console.log('[FAIL] the server half could not run: ' + (e && e.stack || e)); process.exit(1); });

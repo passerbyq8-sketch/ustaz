@@ -102,6 +102,7 @@ function boot(opts) {
     back: () => { if (at > 0) { at--; NODE_TICK(() => window.dispatchEvent(new window.Event('popstate')), 0); } } };
   global.window = window; global.document = window.document;
   Object.defineProperty(global, 'navigator', { configurable: true, value: window.navigator });
+  require('./helpers/auth-dom-fixture.cjs').installAuthDomFixture(window);
   const ctx = vm.createContext(window);
   for (const f of ['react.umd.js', 'react-dom.umd.js']) vm.runInContext(fs.readFileSync(path.join(REPO, 'vendor', f), 'utf8'), ctx, { filename: f });
   let caught = null;
@@ -114,7 +115,7 @@ function boot(opts) {
   const open = (route) => vm.runInContext('window.dispatchEvent(new CustomEvent("ezik-scheduler",{detail:{channel:"ezik-scheduler",v:1,op:"open",route:' + JSON.stringify(route) + ',type:null,id:null}}))', ctx);
   const q = (sel) => root.querySelector(sel);
   const qa = (sel) => Array.from(root.querySelectorAll(sel));
-  const waitFor = async (fn, cap = 6000) => { const end = Date.now() + cap; let v = fn(); while (!v && Date.now() < end) { await tick(30); v = fn(); } return fn(); };
+  const waitFor = async (fn, cap = 6000) => { const end = REAL_DATE.now() + cap; let v = fn(); while (!v && REAL_DATE.now() < end) { await tick(30); v = fn(); } return fn(); };
   const click = async (el) => { if (!el) throw new Error('missing control'); const p = props(el); if (p && p.onClick && !el.disabled) p.onClick({ preventDefault() {}, stopPropagation() {}, currentTarget: el, target: el }); await tick(80); };
   return { window, root, read, open, q, qa, waitFor, click, store: window.localStorage, caught: () => caught, ctx };
 }

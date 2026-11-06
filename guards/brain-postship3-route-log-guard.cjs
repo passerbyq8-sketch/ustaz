@@ -31,7 +31,7 @@ const roster = JSON.parse(fs.readFileSync(path.join(ROOT, 'gates.json'), 'utf8')
 ok('route log guard is registered once', roster.filter((x) => x.name === 'postship3routelog' && x.script === 'guards/brain-postship3-route-log-guard.cjs').length === 1);
 // Order 4 integration: exact count reconciled with the appended gate roster.
 // BRAIN36 FIX (2026-11-05): 270 -> 271, securityadmission.
-ok('gate inventory count is 271', roster.length === 271);
+ok('gate inventory count is 277', roster.length === 277);
 const attrs = fs.readFileSync(path.join(ROOT, '.gitattributes'), 'utf8');
 ok('route helper and guard are pinned to LF', /lib\/route-log\.js text eol=lf/.test(attrs) && /guards\/brain-postship3-route-log-guard\.cjs text eol=lf/.test(attrs));
 console.log(String.fromCharCode(10) + (checks - failures) + '/' + checks + ' checks passed');

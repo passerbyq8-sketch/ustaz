@@ -18,7 +18,7 @@
         ['Page-oyXYdFLk.css', 'index-BYf54ooy.css'].forEach(function (file) {
           var link = document.createElement('link'); link.rel = 'stylesheet'; link.href = '/hanna-laha/assets/' + file; document.head.append(link);
         });
-        var script = document.createElement('script'); script.type = 'module'; script.src = '/hanna-laha/assets/index-iap-v1.js?v=20261026-iaproom1'; document.head.append(script);
+        var script = document.createElement('script'); script.type = 'module'; script.src = '/hanna-laha/assets/index-iap-v1.js?v=20261105-c1games-1'; document.head.append(script);
       };
       if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', nativeRoom, { once: true }); else nativeRoom();
     }
@@ -59,7 +59,7 @@
 <link rel="preload" href="/quest-theme/motion-kit.js?v=20261022-roomsfix2" as="script">
 <link rel="preload" href="/quest-theme/icons.js?v=20261026-kfix6" as="script">
 <link rel="preload" href="/quest-theme/model.js?v=20261102-tr4" as="script">
-<link rel="preload" href="/quest-theme/journey.js?v=20261105-c1d3-1" as="script">
+<link rel="preload" href="/quest-theme/journey.js?v=20261105-c1games-1" as="script">
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>كنوز المعرفة — حرب الجزر</title>
@@ -407,9 +407,9 @@ textarea:focus{outline:none;border-color:var(--azraq)}
 <script src="/quest-theme/icons.js?v=20261026-kfix6"></script>
 <script src="/quest-theme/model.js?v=20261102-tr4"></script>
 <script src="/iap-pending.js?v=20261023-iapf"></script>
-<script src="/hanna-laha/assets/iap-bridge-v1.js?v=20261103-iapsignin1"></script>
+<script src="/hanna-laha/assets/iap-bridge-v1.js?v=20261105-c1games-1"></script>
 <script src="/quest-theme/room-categories.js?v=20261022-roomsfix2"></script>
-<script src="/quest-theme/journey.js?v=20261105-c1d3-1"></script>
+<script src="/quest-theme/journey.js?v=20261105-c1games-1"></script>
 <script src="/usage.js"></script>
 </head>
 <body>
@@ -1890,6 +1890,8 @@ function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&am
   var m=/[?&]war=([^&]+)/.exec(location.search||"");
   if(m&&(h==="localhost"||h==="127.0.0.1")){try{WAR_HOST=decodeURIComponent(m[1])}catch(e){}}
 })();
+var rmOnlineClient=null;
+function rmOnline(){if(!rmOnlineClient){rmOnlineClient=window.KunuzOnline.create({game:'harb',origin:WAR_HOST});rmOnlineClient.setRecovery({retry:function(){rmClose(true);rmConnect(false)},newRoom:function(){roomExit();roomCfg()}})}return rmOnlineClient}
 function rmGet(k){try{return window.localStorage.getItem(k)}catch(e){return RM.mem&&RM.mem[k]||null}}
 function rmSet(k,v){try{window.localStorage.setItem(k,v)}catch(e){RM.mem=RM.mem||{};RM.mem[k]=v}}
 function rmDel(k){try{window.localStorage.removeItem(k)}catch(e){if(RM.mem)delete RM.mem[k]}}
@@ -1916,7 +1918,8 @@ function roomMine(){return RM.on&&RM.slot>=0&&RM.snap&&RM.snap.game&&RM.snap.gam
 window.addEventListener("popstate",function(){
   if(RM.on&&(RM.view==="war"||RM.view==="win"||RM.view==="lobby"||RM.view==="join"))roomLeaveWar()});
 /* ───── الاتصال ───── */
-function rmSend(o){if(RM.ws&&RM.ws.readyState===1){try{RM.ws.send(JSON.stringify(o))}catch(e){}}}function rmRequestClose(){
+function rmSend(o){if(o.t==='start'||o.t==='rematch')return rmOnline().send(o,rmRawSend).catch(function(){return false});return rmRawSend(o)}
+function rmRawSend(o){if(RM.ws&&RM.ws.readyState===1){try{RM.ws.send(JSON.stringify(o));return true}catch(e){}}return false}function rmRequestClose(){
   var ws=RM.ws;if(!ws||ws.readyState!==1)return Promise.resolve(false);
   return new Promise(function(resolve){
     var settled=false;
@@ -1925,6 +1928,7 @@ function rmSend(o){if(RM.ws&&RM.ws.readyState===1){try{RM.ws.send(JSON.stringify
     try{ws.send(JSON.stringify({t:"close"}))}catch(e){finish(false)}
   })}
 function rmClose(keep){
+  if(rmOnlineClient)rmOnlineClient.disconnect();
   RM.closing=true;if(RM.retry){clearTimeout(RM.retry);RM.retry=null}
   if(RM.nfTimer){clearTimeout(RM.nfTimer);RM.nfTimer=null}
   if(RM.closeTimer){clearTimeout(RM.closeTimer);RM.closeTimer=null}
@@ -1932,7 +1936,11 @@ function rmClose(keep){
   if(RM.ws){try{RM.ws.close()}catch(e){}RM.ws=null}
   RM.closing=false;
   if(!keep)rmDel(RMKEY)}
-function rmConnect(first){
+async function rmConnect(first){
+  var online=rmOnline(),code=RM.code;
+  if(first)online.bind({code:RM.code,roomId:RM.roomId,existing:!!(RM.hostToken||RM.teamToken)});
+  var ticket;try{ticket=await online.open()}catch(e){roomBroken();return}
+  if(!RM.on||RM.code!==code)return;
   if(RM.ws){try{RM.closing=true;RM.ws.close()}catch(e){}RM.closing=false}
   var ws;
   try{ws=new WebSocket(rmWsUrl("/ws/war/"+RM.code+((RM.host||RM.teamToken)?"":"?j=1")))}catch(e){rmDrop("net");return}
@@ -1948,12 +1956,12 @@ function rmConnect(first){
     if(RM.host)h.hostToken=RM.hostToken;
     if(RM.teamToken)h.teamToken=RM.teamToken;
     if(RM.watch)h.watch=true;
-    rmSend(h);
+    try{online.hello(ticket,h,rmRawSend)}catch(e){ws.close();return}
     lobbyMsg("")};
   ws.onmessage=function(e){var m;try{m=JSON.parse(e.data)}catch(x){return}rmMsg(m)};
   ws.onclose=function(ev){
     kaStop();
-    if(RM.ws!==ws)return;RM.ws=null;
+    if(RM.ws!==ws)return;online.disconnect();RM.ws=null;
     if(ev&&ev.code===4000&&RM.on){/* فُتحت الغرفة من جهاز آخر بالرمز نفسه */
       rmClose(true);RM.on=false;RM.view="";quitFight();openRoomScreen();roomNote("فُتحت الغرفة من جهاز آخر بنفس الفريق");return}
     if(RM.closeAck){var pending=RM.closeAck;pending(false);return}if(!RM.closing&&RM.on)rmDrop("closed")};
@@ -1991,6 +1999,7 @@ function rmMsg(m){
   if(m.t==="note"){if(RMNOTE[m.code])stat(RMNOTE[m.code],true);return}
   if(m.t==="error"){rmError(m.code)}}
 function rmError(code){
+  rmOnline().permissionError(code);
   var txt=RMERR[code];if(code==="ROOM_CLOSED"&&RM.closeAck)RM.closeAck(true);
   /* بعد نشر الخادم قد تردّ نسخة قديمة «لا توجد غرفة»: يُعاد البحث بعد ثانية ثم بعد ثانيتين قبل عرض الخطأ */
   if(code==="NOT_FOUND"||code==="ROOM_CLOSED"||code==="BAD_TOKEN"||code==="OUTDATED"||code==="TOO_MANY"||code==="ROOM_FULL"||code==="STARTED"){
@@ -2029,7 +2038,7 @@ function roomCreate(){
   var done=function(msg){btn.disabled=false;if(msg){$("cfgErr").textContent=msg;$("cfgErr").classList.remove("hidden")}};
   $("cfgErr").classList.add("hidden");
   if(typeof fetch!=="function"){done("المتصفّح لا يدعم الغرف");return}
-  fetch(WAR_HOST+"/api/war/rooms",{method:"POST",headers:{"Content-Type":"application/json"},
+  rmOnline().createRoom(WAR_HOST+"/api/war/rooms",{method:"POST",headers:{"Content-Type":"application/json"},
     body:JSON.stringify({deviceId:rmDevice(),config:cfg})}).then(function(r){
       if(r.status===429){done("محاولات كثيرة — انتظر قليلًا ثمّ أعد");return null}
       if(r.status!==200){done("تعذّر فتح الغرفة — حاول ثانيةً");return null}
@@ -2114,7 +2123,7 @@ function notifyWarStart(s){
 $("roomStart").onclick=function(){
   if(!RM.host){rmSend({t:"start"});return}
   if(!RM.code||typeof window.ezikIapStart!=="function"){lobbyMsg("تعذّر فتح خيارات الجلسة. أعدوا تحميل الصفحة.",true);return}
-  window.ezikIapStart(function(){rmSend({t:"start"})},RM.code,"harb",{cycle:"1",roomInstanceId:RM.roomId,waitForStart:waitForWarStart});
+  window.ezikIapStart(function(){return rmSend({t:"start"})},RM.code,"harb",{online:rmOnline(),cycle:"1",roomInstanceId:RM.roomId,waitForStart:waitForWarStart});
 };
 $("roomEnd").onclick=function(){
   if(RM.host)return rmRequestClose().then(function(ack){rmClose(false);RM.on=false;RM.host=false;if(!window.KunuzJourney)roomExit(RMERR.ROOM_CLOSED);return ack});
@@ -2139,6 +2148,7 @@ function roomLeaveWar(){
 
 /* ───── اللقطة تصل: الخريطة والنزال ───── */
 function snapIn(s){
+  rmOnline().observe(s);
   RM.snap=s;
   if(s.stage==="lobby"){
     if(RM.view==="war"||RM.view==="win"){/* الغرفة عادت إلى الانتظار */RM.view=""}
