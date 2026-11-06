@@ -2054,6 +2054,49 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       } finally { try { fs.rmSync(tmpH, { force: true }); } catch { /* nothing to clean */ } }
     }
 
+
+    // ── brain35 B-3 (2026-11-06; DIAG 35.7) · THE PART'S OWN SHORT TITLE ──────────────────────────────────────────
+    // Seven battery answers opened on «### مسألة «<the question's own words>»» and the absence sentences repeated it.
+    // fixtures/brain35-part-titles.json carries what questionParts produced BEFORE this change, titles and queries both:
+    // every title is now the part's subject (five words at most, never the question text) and every QUERY is byte-equal.
+    {
+      const PT = JSON.parse(read('fixtures/brain35-part-titles.json'));
+      ok('B-3 the fixture carries the seven compound battery questions with their captured titles and queries',
+        PT.cases.length === 7 && PT.cases.every((c) => c.question && Array.isArray(c.parts)));
+      let titleWords = [];
+      for (const c of PT.cases) {
+        const now = BW2.questionParts(c.question);
+        ok('B-3 ' + c.id + ': the part count is unchanged', now.length === c.parts.length, now.length + ' vs ' + c.parts.length);
+        now.forEach((p, i) => {
+          const before = c.parts[i];
+          titleWords.push(p.title.split(' ').length);
+          ok('B-3 ' + c.id + ' part ' + (i + 1) + ': the title is at most five words and is not the question text',
+            p.title.split(' ').length <= 5 && p.title !== p.text && p.title !== c.question && !p.title.startsWith('مسألة «'), ascii(p.title));
+          ok('B-3 ' + c.id + ' part ' + (i + 1) + ': the queries are byte-equal to the captured ones',
+            !!before && p.query === before.query && p.fatwaQuery === before.fatwaQuery, ascii(p.query + ' | ' + (before && before.query)));
+          ok('B-3 ' + c.id + ' part ' + (i + 1) + ': the captured title WAS the long one (the fixture is the old behaviour)',
+            !!before && (before.titleBefore.startsWith('مسألة «') || before.titleBefore.split(' ').length > 5), ascii(before && before.titleBefore));
+        });
+      }
+      ok('B-3 every title of the seven is shorter than its part text', titleWords.length === 12 && Math.max(...titleWords) <= 5);
+      ok('B-3 the absence sentence carries the short title', BW2.questionPartSentence({ title: BW2.shortPartTitle('وهل عليه كفارة') }, []) === 'لم أقف على نصٍّ في عليه كفارة.');
+      ok('B-3 the writer is asked for the short heading', BW2.bw2PartsRule([{ title: 'ينتهي حكم السفر' }], []).includes('### ينتهي حكم السفر'));
+      ok('B-3 a quoted matn keeps its guillemets and is cut with «…»', BW2.shortPartTitle('ما درجة حديث «اقرؤوا يس على موتاكم عند الوفاة»') === 'درجة حديث «اقرؤوا يس على…»');
+      ok('B-3 two parts of one question that yield the same title keep a distinguishing clause',
+        (() => { const p = BW2.questionParts('هل عليه كفارة في الصيام؟ وهل عليه كفارة في النذر؟'); return p.length < 2 || p[0].title !== p[1].title; })());
+      const mTitle = await (async () => {
+        const src = read('lib/before-writing-v2.js');
+        const seam = '    let title = shortPartTitle(text);';
+        if (src.split(seam).length !== 2) return { ok: false };
+        const tmp = path.join(REPO, 'lib', '.mut-b3.mjs');
+        fs.writeFileSync(tmp, src.split(seam).join("    let title = 'مسألة «' + text + '»'; // mutant: the question comes back as the title")
+          .replace(/from\s+(['"])(\.[^'"]*)\1/gu, (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        try { return { ok: true, mod: await import(pathToFileURL(tmp).href + '?m=' + Date.now()) }; } finally { fs.rmSync(tmp, { force: true }); }
+      })();
+      ok('B-3 MUTANT seam applied', mTitle.ok);
+      ok('B-3 MUTANT KILLED: with the template back the title is the question text again',
+        mTitle.ok && mTitle.mod.questionParts(PT.cases[4].question)[0].title.startsWith('مسألة «'));
+    }
     // ── brain35 B-2 (2026-11-06; DIAG 35.4) · WHAT THE LOCK AND THE HOLD LEAVE BEHIND ─────────────────────────────
     // (a) the lock removed a credit and left its frame: the frame's sentence goes, unless a collector list follows it, in
     // which case the frame alone goes and the list keeps its lead («أمّا من خرّجه: أبو داود والنسائي…» -- Q37). (b) an
