@@ -2366,6 +2366,70 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         read('app.jsx').includes('function ezikReadingStatus(evt) {')
         && /hasOwnProperty\.call\(EZIK_READING_STAGES, evt\.stage\)/u.test(read('app.jsx')));
     }
+    // ---------------------------------------------------------------- ITEM O-2 (brain35, 2026-11-06; DIAG ZINA; owner: yes)
+    // MEASURED (Q34-Q36): a request for a chapter's hadiths went to the library as ONE query, and «الزينة» is not a chapter any
+    // store holds under that name, so the turn answered on whatever that query brought. The chapter is now unfolded into the
+    // senses it is written under (lib/data/chapter-meanings.json), each a part with its own queries, heading and absence.
+    {
+      const Q34 = 'أبي منك تعطيني كل الأحاديث الصحاح في باب الزينة';
+      const Q35 = 'اذكر لي ما صحّ من الأحاديث في باب التجمّل والزينة';
+      const QW = 'ما حكم الوضوء من لمس المرأة؟';
+      const req = BW2.isChapterHadithRequest(Q34);
+      ok('O-2a Q34 is read as a request for the chapter «الزينة», with the owner\'s own six senses',
+        !!req && req.chapter === 'الزينة' && req.source === 'owner' && req.meanings.length === 6 && req.meanings[0] === 'اللباس'
+        && req.meanings[5] === 'الذهب والحرير', ascii(JSON.stringify(req)));
+      ok('O-2b the chapter is found however the question writes it: «باب X», «X بأنواعها», a conjunction or the article before it',
+        !!BW2.isChapterHadithRequest(Q35) && BW2.isChapterHadithRequest(Q35).key === BW2.isChapterHadithRequest(Q34).key,
+        ascii(JSON.stringify(BW2.isChapterHadithRequest(Q35))));
+      ok('O-2c a question that is not a chapter request, and a chapter the file does not know, are read as before',
+        BW2.isChapterHadithRequest(QW) === null && BW2.isChapterHadithRequest('أعطني كل الأحاديث الصحيحة في باب الطائرات') === null);
+      const parts = BW2.chapterParts(req);
+      ok('O-2d each sense is a part: its own library and fatwa query, the chapter\'s own words beside the sense\'s, and the library\'s row cap',
+        parts.length === 6 && parts.every((pt) => pt.query && pt.fatwaQuery && pt.chapter === 'الزينة' && pt.rowCap === BW2.BW2_CAPS.library)
+        && parts[0].query.includes(BW2.libraryQuery('اللباس')), ascii(JSON.stringify(parts.map((pt) => pt.query))));
+      // the real retrieval: one member per sense, of every source that is open
+      const seen = { library: [], fatwa: [], encyclopedia: [] };
+      const chapterDeps = {
+        runTool: async (name, input) => {
+          if (name === 'search_library') seen.library.push(String(input.query || ''));
+          if (name === 'search_fatawa') seen.fatwa.push(String(input.query || ''));
+          return { text: '', added: [], calls: 1 };
+        },
+        searchStoredCorpus: async (query) => { seen.encyclopedia.push(String(query || '')); return { records: [] }; },
+        encyclopediaReady: () => true, warmEncyclopedia: async () => true,
+      };
+      const gotChapter = await BW2.gatherBw2({ question: Q34, band: 'adult', libFlagValue: 'on', libToken: 'guard-token', lessonsToken: '',
+        budgetMs: 900, encycColdMs: 50, now: Date.now, onSource: () => {}, deps: chapterDeps });
+      ok('O-2e the turn opens one library member for each of the six senses, and reports the chapter it unfolded',
+        parts.every((pt) => seen.library.includes(pt.query)) && gotChapter.chapter && gotChapter.chapter.meanings.length === 6
+        && (gotChapter.parts || []).map((pt) => pt.title).join('|') === req.meanings.join('|'), ascii(JSON.stringify(seen.library)));
+      const seenPlain = { library: [], fatwa: [] };
+      const gotPlain = await BW2.gatherBw2({ question: QW, band: 'adult', libFlagValue: 'on', libToken: 'guard-token', lessonsToken: '',
+        budgetMs: 900, encycColdMs: 50, now: Date.now, onSource: () => {},
+        deps: { ...chapterDeps, runTool: async (name, input) => { if (name === 'search_library') seenPlain.library.push(String(input.query || '')); if (name === 'search_fatawa') seenPlain.fatwa.push(String(input.query || '')); return { text: '', added: [], calls: 1 }; } } });
+      ok('O-2f a question that names no chapter asks exactly what it asked before: two library queries, two fatwa queries, no parts',
+        gotPlain.chapter === null && (gotPlain.parts || []).length === 0 && seenPlain.library.length === 2 && seenPlain.fatwa.length === 2,
+        ascii(JSON.stringify(seenPlain)));
+      // what the writer is told, and what the server says for a sense nothing proven was found in
+      const rule = BW2.bw2PartsRule(parts.slice(0, 4), parts.slice(4));
+      ok('O-2g the writer is told the chapter, a heading per sense, and one to three PROVEN hadiths under each',
+        rule.includes('«الزينة»') && rule.includes('### اللباس') && /أحاديثَ ثابتةٍ/u.test(rule)
+        && rule.split('### ').length === 6, ascii(rule)); // four answered headings + the empty-senses line that follows them
+      ok('O-2h a sense with no proven hadith is the server\'s one sentence, and it says hadith, not text',
+        BW2.questionPartSentence(parts[5], ['المكتبة']) === 'لم أقفْ على حديثٍ ثابتٍ في الذهب والحرير فيما بُحث فيه (المكتبة).'
+        && BW2.questionPartSentence({ title: 'المسح على الخفين' }, []).startsWith('لم أقف على نصٍ'),
+        ascii(BW2.questionPartSentence(parts[5], ['المكتبة'])));
+      // the file itself
+      const file = BW2.chapterMeaningsFile();
+      const entries = Object.entries(file.chapters || {});
+      ok('O-2i lib/data/chapter-meanings.json parses, every chapter has one to six senses, and the owner\'s seed is marked as his',
+        entries.length > 1000 && entries.every(([key, v]) => key && Array.isArray(v.meanings) && v.meanings.length >= 1 && v.meanings.length <= 6)
+        && entries.filter(([, v]) => v.source === 'owner').length >= 1 && file.schema === 'ezik.chapter-meanings.v1',
+        ascii(JSON.stringify(file.counts)));
+      ok('O-2j the file is what tools/build-chapter-meanings.cjs writes from the store (--check), and the builder reads no network',
+        (() => { try { require('child_process').execFileSync(process.execPath, [path.join(REPO, 'tools', 'build-chapter-meanings.cjs'), '--check'], { cwd: REPO, stdio: 'pipe' }); return true; } catch { return false; } })()
+        && !/fetch\(|https?:\/\//u.test(read('tools/build-chapter-meanings.cjs').replace(/^\/\/.*$/gmu, '')));
+    }
   } catch (error) {
     ok('guard completed without exception', false, error && error.stack ? error.stack : String(error));
   }
