@@ -1,0 +1,1273 @@
+{
+  "document": "WORKER-ACCOUNT-CONTRACT-v2-2026-11-05.md",
+  "syntheticOnly": true,
+  "endpoint": "/api/account-capabilities",
+  "signal": {
+    "field": "accountProtocol",
+    "value": "ezik-games-account-v1"
+  },
+  "responseCases": [
+    {
+      "id": "account-exact",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "{\"ok\":true,\"accountProtocol\":\"ezik-games-account-v1\",\"probe\":\"0123456789abcdef0123456789abcdef\"}"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "ACCOUNT",
+        "sessionTransport": "fresh optional header/hello/start/rematch",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "legacy-live-de6f2b6c",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 404,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store"
+        },
+        "rawBody": "{\"error\":\"NOT_FOUND\"}"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "LEGACY",
+        "sessionTransport": "omit new account fields",
+        "legacyConsume": "existing path only after acknowledged start and fresh post-check",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "legacy-fix46-4725edfd",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 404,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store"
+        },
+        "rawBody": "{\"error\":\"NOT_FOUND\"}"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "LEGACY",
+        "sessionTransport": "omit new account fields",
+        "legacyConsume": "existing path only after acknowledged start and fresh post-check",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "unknown-value",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "{\"ok\":true,\"accountProtocol\":\"ezik-games-account-v2\",\"probe\":\"0123456789abcdef0123456789abcdef\"}"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "numeric-value",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "{\"ok\":true,\"accountProtocol\":1,\"probe\":\"0123456789abcdef0123456789abcdef\"}"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "missing-field",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "{\"ok\":true,\"probe\":\"0123456789abcdef0123456789abcdef\"}"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "wrong-probe",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "{\"ok\":true,\"accountProtocol\":\"ezik-games-account-v1\",\"probe\":\"ffffffffffffffffffffffffffffffff\"}"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "missing-probe",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "{\"ok\":true,\"accountProtocol\":\"ezik-games-account-v1\"}"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "extra-key",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "{\"ok\":true,\"accountProtocol\":\"ezik-games-account-v1\",\"probe\":\"0123456789abcdef0123456789abcdef\",\"extra\":true}"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "not-ok",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "{\"ok\":false,\"accountProtocol\":\"ezik-games-account-v1\",\"probe\":\"0123456789abcdef0123456789abcdef\"}"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "timeout",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": null,
+      "delivery": "network",
+      "elapsedMs": 5001,
+      "currentOperation": true,
+      "error": "TimeoutError",
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "late-success",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "{\"ok\":true,\"accountProtocol\":\"ezik-games-account-v1\",\"probe\":\"0123456789abcdef0123456789abcdef\"}"
+      },
+      "delivery": "network",
+      "elapsedMs": 5001,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "network-error",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": null,
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "error": "network",
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "cors-error",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": null,
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "error": "cors",
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "abort-error",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": null,
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "error": "abort",
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "http-400",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 400,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "{\"error\":\"SERVER\"}"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "http-401",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 401,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "{\"error\":\"SERVER\"}"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "http-403",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 403,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "{\"error\":\"SERVER\"}"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "http-429",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 429,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "{\"error\":\"SERVER\"}"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "http-500",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 500,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "{\"error\":\"SERVER\"}"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "http-503",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 503,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "{\"error\":\"SERVER\"}"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "http-304",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 304,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "{\"error\":\"SERVER\"}"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "foreign-404",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://other.example",
+        "status": 404,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "{\"error\":\"NOT_FOUND\"}"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "html-404",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 404,
+        "headers": {
+          "content-type": "text/html",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "<html>missing</html>"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "wrong-404",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 404,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "{\"error\":\"OTHER\"}"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "redirect",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 302,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store",
+          "location": "https://worker.example/api/account-capabilities"
+        },
+        "rawBody": "{\"ok\":true,\"accountProtocol\":\"ezik-games-account-v1\",\"probe\":\"0123456789abcdef0123456789abcdef\"}"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "html-spa-fallback",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 200,
+        "headers": {
+          "content-type": "text/html",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "<html>index</html>"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "malformed-json",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "{broken"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "oversized-json",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 {\"ok\":true,\"accountProtocol\":\"ezik-games-account-v1\",\"probe\":\"0123456789abcdef0123456789abcdef\"}"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "cache-control-missing",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "{\"ok\":true,\"accountProtocol\":\"ezik-games-account-v1\",\"probe\":\"0123456789abcdef0123456789abcdef\"}"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "cache-control-stale",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "public, max-age=3600",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "{\"ok\":true,\"accountProtocol\":\"ezik-games-account-v1\",\"probe\":\"0123456789abcdef0123456789abcdef\"}"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "cached-account",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "{\"ok\":true,\"accountProtocol\":\"ezik-games-account-v1\",\"probe\":\"0123456789abcdef0123456789abcdef\"}"
+      },
+      "delivery": "cache",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "cached-legacy",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 404,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "{\"error\":\"NOT_FOUND\"}"
+      },
+      "delivery": "cache",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "stale-service-worker",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "{\"ok\":true,\"accountProtocol\":\"ezik-games-account-v1\",\"probe\":\"0123456789abcdef0123456789abcdef\"}"
+      },
+      "delivery": "stale-service-worker",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "superseded-operation",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://worker.example",
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "{\"ok\":true,\"accountProtocol\":\"ezik-games-account-v1\",\"probe\":\"0123456789abcdef0123456789abcdef\"}"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": false,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    },
+    {
+      "id": "other-origin-account",
+      "request": {
+        "origin": "https://worker.example",
+        "probe": "0123456789abcdef0123456789abcdef",
+        "credentials": "omit",
+        "cache": "no-store",
+        "redirect": "error"
+      },
+      "response": {
+        "origin": "https://other.example",
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "cdn-cache-control": "no-store"
+        },
+        "rawBody": "{\"ok\":true,\"accountProtocol\":\"ezik-games-account-v1\",\"probe\":\"0123456789abcdef0123456789abcdef\"}"
+      },
+      "delivery": "network",
+      "elapsedMs": 25,
+      "currentOperation": true,
+      "expected": {
+        "generation": "UNKNOWN",
+        "sessionTransport": "no gated operation",
+        "legacyConsume": "never",
+        "preserveAccountSession": true,
+        "preserveRoom": true
+      }
+    }
+  ],
+  "sequences": [
+    {
+      "id": "legacy-client-before-switch",
+      "roomGeneration": "LEGACY",
+      "steps": [
+        {
+          "event": "create",
+          "fixture": "legacy-live-de6f2b6c",
+          "expected": "legacy transport; no consume"
+        },
+        {
+          "event": "start-acknowledged-and-post-checked",
+          "fixture": "legacy-live-de6f2b6c",
+          "expected": "existing legacy idempotent consumption only"
+        }
+      ]
+    },
+    {
+      "id": "new-account-room",
+      "roomGeneration": "ACCOUNT",
+      "steps": [
+        {
+          "event": "create",
+          "fixture": "account-exact",
+          "expected": "fresh optional session header; no consume"
+        },
+        {
+          "event": "hello",
+          "fixture": "account-exact",
+          "expected": "fresh optional session; no consume"
+        },
+        {
+          "event": "start",
+          "fixture": "account-exact",
+          "expected": "fresh optional session; worker-only consumption"
+        },
+        {
+          "event": "rematch",
+          "fixture": "account-exact",
+          "expected": "fresh optional session and unchanged expect/rev; worker-only consumption"
+        }
+      ]
+    },
+    {
+      "id": "legacy-to-account",
+      "roomGeneration": "LEGACY",
+      "steps": [
+        {
+          "event": "reconnect",
+          "fixture": "account-exact",
+          "expected": "block hello/start/consume; explicit recreation; keep valid account session"
+        }
+      ]
+    },
+    {
+      "id": "account-to-legacy",
+      "roomGeneration": "ACCOUNT",
+      "steps": [
+        {
+          "event": "reconnect",
+          "fixture": "legacy-fix46-4725edfd",
+          "expected": "block old-room hello/start/consume; explicit new room; no retrospective legacy debit"
+        }
+      ]
+    },
+    {
+      "id": "account-reconnect-same-generation",
+      "roomGeneration": "ACCOUNT",
+      "steps": [
+        {
+          "event": "reconnect",
+          "fixture": "account-exact",
+          "expected": "original credentials and fresh optional session; snapshot; no start/debit replay"
+        }
+      ]
+    },
+    {
+      "id": "legacy-reconnect-same-generation",
+      "roomGeneration": "LEGACY",
+      "steps": [
+        {
+          "event": "reconnect",
+          "fixture": "legacy-live-de6f2b6c",
+          "expected": "original credentials without session additions; no start/debit replay"
+        }
+      ]
+    },
+    {
+      "id": "active-match-outage",
+      "roomGeneration": "ACCOUNT",
+      "steps": [
+        {
+          "event": "established-socket",
+          "fixture": "timeout",
+          "expected": "continue non-start gameplay/snapshots; no new hello/start/rematch/consume"
+        },
+        {
+          "event": "socket-closed",
+          "fixture": "timeout",
+          "expected": "preserve room/session; block reconnect"
+        },
+        {
+          "event": "explicit-retry",
+          "fixture": "account-exact",
+          "expected": "same-generation hello then reconcile snapshot"
+        }
+      ]
+    },
+    {
+      "id": "lost-account-start-reply",
+      "roomGeneration": "ACCOUNT",
+      "steps": [
+        {
+          "event": "snapshot-started",
+          "fixture": "account-exact",
+          "expected": "continue match; zero legacy consume"
+        },
+        {
+          "event": "snapshot-definitely-not-started",
+          "fixture": "account-exact",
+          "expected": "retry original valid operation with fresh session; no new transition identity"
+        },
+        {
+          "event": "snapshot-unknown",
+          "fixture": "timeout",
+          "expected": "preserve state; block replay and consume"
+        }
+      ]
+    },
+    {
+      "id": "legacy-start-switch-before-consume",
+      "roomGeneration": "LEGACY",
+      "steps": [
+        {
+          "event": "start-acknowledged-post-check",
+          "fixture": "account-exact",
+          "expected": "no legacy consume; reconcile ambiguous transition; no auto replay"
+        }
+      ]
+    },
+    {
+      "id": "legacy-start-unknown-post-check",
+      "roomGeneration": "LEGACY",
+      "steps": [
+        {
+          "event": "start-acknowledged-post-check",
+          "fixture": "timeout",
+          "expected": "no automatic legacy consume; reconcile with existing idempotent identity"
+        }
+      ]
+    },
+    {
+      "id": "no-provenance-old-room",
+      "roomGeneration": null,
+      "steps": [
+        {
+          "event": "resume",
+          "fixture": "account-exact",
+          "expected": "legacy ownership recovery/recreation; do not guess ACCOUNT ownership"
+        }
+      ]
+    },
+    {
+      "id": "authority-disabled-generation-still-account",
+      "roomGeneration": "ACCOUNT",
+      "steps": [
+        {
+          "event": "discovery",
+          "fixture": "account-exact",
+          "expected": "ACCOUNT remains selected"
+        },
+        {
+          "event": "operation-SERVER",
+          "fixture": "account-exact",
+          "expected": "preserve room/session; no legacy fallback or consume"
+        }
+      ]
+    },
+    {
+      "id": "account-forbidden",
+      "roomGeneration": "ACCOUNT",
+      "steps": [
+        {
+          "event": "operation-FORBIDDEN",
+          "fixture": "account-exact",
+          "expected": "refresh account/IAP and offer appropriate recovery; no invented success or legacy consume"
+        }
+      ]
+    },
+    {
+      "id": "suspend-change-origin-or-document",
+      "roomGeneration": "ACCOUNT",
+      "steps": [
+        {
+          "event": "pending-old-result",
+          "fixture": "superseded-operation",
+          "expected": "discard; no operation/consume; fresh discovery for exact new origin and operation"
+        }
+      ]
+    },
+    {
+      "id": "new-legacy-room-after-reverse-transition",
+      "roomGeneration": null,
+      "steps": [
+        {
+          "event": "explicit-new-room",
+          "fixture": "legacy-fix46-4725edfd",
+          "expected": "new legacy room only; old account transitions retain ACCOUNT provenance and no legacy debit"
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Fixture metadata models network/caching delivery and pending-operation ownership; C1 must test the real fetch/service-worker path.",
+    "Two probes do not make a deployment atomic; single generation and quiet-window release prerequisites remain."
+  ]
+}

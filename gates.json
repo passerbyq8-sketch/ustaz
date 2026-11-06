@@ -1375,5 +1375,15 @@
     "name": "c1legacycancel",
     "script": "guards/c1-legacy-cancel-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1gamesgeneration",
+    "script": "guards/c1-games-generation-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1gamesdelivery",
+    "script": "guards/c1-games-delivery-guard.cjs",
+    "args": ""
   }
 ]

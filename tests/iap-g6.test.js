@@ -5,6 +5,7 @@ process.env.VERCEL_ENV = 'production';
 delete process.env.IAP_REVIEW_ACCOUNTS;
 import vm from 'node:vm';
 import { parseHTML } from 'linkedom';
+import { trackIapLifecycle } from './iap-lifecycle-fixture.js';
 
 import { handleIapBalance } from '../api/iap-balance.js';
 import { handleIapWebhook } from '../api/iap-webhook.js';
@@ -151,6 +152,7 @@ function makeBridge({
       }
       throw new Error('unexpected-fetch: ' + value);
     };
+    trackIapLifecycle(window, document);
     vm.runInNewContext(source, {
       window, document, localStorage, sessionStorage: window.sessionStorage, fetch,
       setTimeout, clearTimeout, setInterval, clearInterval, URLSearchParams, console, Date, Math,

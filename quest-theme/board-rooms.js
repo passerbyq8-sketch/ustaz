@@ -6,10 +6,12 @@
     const KEY = 'kunuz_points_board_room_v1', DEVICE = 'kunuz_points_board_device_v1';
     const api = global.KUNUZ_BOARD_API_ORIGIN || 'https://hanna-laha.hl-worker.workers.dev';
     let roomCategorySlugs = new Set(), roomCategoryIndexes = new Map(), roomCatalogPromise = null, roomBankStamp = '';
+    const online = global.KunuzOnline.create({ game: 'board', origin: api });
     const digits = h.digits;
     const S = { session: null, snapshot: null, socket: null, connected: false, stopped: true, error: '', note: '', retry: null, heartbeat: null, ticks: null, closeTimer: null, retryCount: 0, slot: 0, name: '', color: 0, answer: null, text: '', returnStage: 'room-entry', busy: false };
     global.KunuzUIRoomPlayerNames = () => [S.name, ...(S.snapshot?.teams || []).map(team => team.name)];
     const startWaiters = new Set();
+    online.setRecovery({ retry: () => { stop(); connect(); }, newRoom: () => leave(true) });
     async function loadCatalog() {
       if (roomCategorySlugs.size) return [...roomCategorySlugs];
       if (!roomCatalogPromise) {
@@ -36,7 +38,7 @@
     const errors = { NOT_FOUND: 'ما لقينا غرفة بهذا الرقم.', ROOM_CLOSED: 'أُغلقت الغرفة.', BAD_TOKEN: invalidSessionMessage, BANK_MISMATCH: 'تحتاجون تحديث الصفحة لتطابق أسئلة الغرفة.', OUTDATED: 'حدّثوا الصفحة للانضمام إلى الغرفة.', CODE_TAKEN: 'هذا الرقم مستخدم؛ اختاروا رقمًا آخر.', TEAM_TAKEN: 'الفريق اختاره لاعب آخر؛ اختاروا فريقًا متاحًا.', ROOM_FULL: 'اكتمل عدد الفرق في الغرفة.', NOT_READY: 'تغيّرت الخطوة؛ انتظروا تحديث الغرفة.', STALE: 'تغيّرت الجولة؛ اختاروا من جديد.', TOO_MANY: 'انتظروا قليلًا ثم حاولوا مرة ثانية.', FORBIDDEN: 'هذا الإجراء لصاحب الدور أو صاحب الغرفة.', BAD_CONFIG: 'راجعوا الفئات والفرق والوقت ثم حاولوا.', BAD_MESSAGE: 'راجعوا الاختيار ثم حاولوا مرة ثانية.', SERVER: 'تعذّر الاتصال بالغرفة؛ حاولوا مرة ثانية.' };
     function identity() { try { let id = localStorage.getItem(DEVICE); if (!id) { id = 'board-' + crypto.randomUUID(); localStorage.setItem(DEVICE, id); } return id; } catch (_) { return S.device ||= 'board-' + crypto.randomUUID(); } }
     function save() { try { if (S.session) localStorage.setItem(KEY, JSON.stringify(S.session)); else localStorage.removeItem(KEY); } catch (_) {} }
-    function stop() { S.stopped = true; clearTimeout(S.retry); clearTimeout(S.closeTimer); S.closeTimer = null; clearInterval(S.heartbeat); clearInterval(S.ticks); startWaiters.forEach(waiter => waiter.cancel()); if (S.socket) { S.socket.onclose = null; S.socket.close(); } S.socket = null; S.connected = false; }
+    function stop() { online.disconnect(); S.stopped = true; clearTimeout(S.retry); clearTimeout(S.closeTimer); S.closeTimer = null; clearInterval(S.heartbeat); clearInterval(S.ticks); startWaiters.forEach(waiter => waiter.cancel()); if (S.socket) { S.socket.onclose = null; S.socket.close(); } S.socket = null; S.connected = false; }
     function waitForGame(targetGameNumber) {
       const roomId = S.snapshot?.roomId;
       let resolvePromise, rejectPromise;
@@ -74,7 +76,11 @@
       if (returnStage === 'room-join') M.joinError = S.error; else M.error = S.error;
       history.replaceState({ journey: true, stage: M.stage, step: M.step, room: M.settings.room }, '', '/quest-board.html'); h.render();
     }
-    function send(message) { if (!S.connected || !S.socket || S.socket.readyState !== WebSocket.OPEN) { S.error = 'ننتظر عودة الاتصال بالغرفة.'; h.render(); return false; } S.error = ''; S.socket.send(JSON.stringify(message)); return true; }
+    function send(message) {
+      if (['start', 'rematch'].includes(message.t)) return online.send(message, rawSend);
+      return rawSend(message);
+    }
+    function rawSend(message) { if (!S.connected || !S.socket || S.socket.readyState !== WebSocket.OPEN) { S.error = 'ننتظر عودة الاتصال بالغرفة.'; h.render(); return false; } S.error = ''; S.socket.send(JSON.stringify(message)); return true; }
     function requestHostClose() {
       if (!S.connected || !send({ t: 'close' })) return false;
       S.stopped = true; clearTimeout(S.retry); clearInterval(S.heartbeat); clearInterval(S.ticks);
@@ -93,6 +99,7 @@
       if (snapshot.bankStamp !== roomBankStamp) { permanent('BANK_MISMATCH'); return; }
       if (S.snapshot && snapshot.roomId === S.snapshot.roomId && snapshot.version < S.snapshot.version) return;
       const changedQuestion = snapshot.question?.qn !== S.snapshot?.question?.qn;
+      online.observe(snapshot);
       S.snapshot = snapshot; S.error = ''; S.busy = false;
       notifyGameStart(snapshot);
       if (changedQuestion) { S.answer = null; S.text = ''; }
@@ -106,19 +113,23 @@
       if (snapshot.self.role === 'candidate' && snapshot.phase === 'lobby' && !S.name) { const at = snapshot.teams.findIndex(t => !t.claimed); S.slot = at < 0 ? -1 : at; S.name = snapshot.teams[at]?.name || ''; S.color = snapshot.teams[at]?.color ?? snapshot.teams.length; }
       h.render();
     }
-    function connect() {
+    async function connect() {
       if (!S.session) return;
       if (!roomBankStamp) {
         loadCatalog().then(() => { if (S.session) connect(); }).catch(() => { S.error = errors.SERVER; h.render(); });
         return;
       }
       S.stopped = false; S.connected = false; clearInterval(S.heartbeat); clearInterval(S.ticks);
+      const bound = S.session;
+      let ticket;
+      try { ticket = await online.open(); } catch (_) { S.error = errors.SERVER; h.render(); return; }
+      if (S.session !== bound || S.stopped) return;
       const session = S.session, socket = new WebSocket(api.replace(/^http/, 'ws') + '/ws/board/' + session.code + (session.hostToken || session.teamToken ? '' : '?j=1'));
       S.socket = socket;
       socket.onopen = () => {
         if (socket !== S.socket) return;
         S.connected = true; S.retryCount = 0;
-        socket.send(JSON.stringify({ t: 'hello', v: 1, deviceId: identity(), bankStamp: roomBankStamp, ...(session.roomId ? { roomId: session.roomId } : {}), ...(session.hostToken ? { hostToken: session.hostToken } : {}), ...(session.teamToken ? { teamToken: session.teamToken } : {}) }));
+        try { online.hello(ticket, { t: 'hello', v: 1, deviceId: identity(), bankStamp: roomBankStamp, ...(session.roomId ? { roomId: session.roomId } : {}), ...(session.hostToken ? { hostToken: session.hostToken } : {}), ...(session.teamToken ? { teamToken: session.teamToken } : {}) }, rawSend); } catch (_) { socket.close(); return; }
         S.heartbeat = setInterval(() => { if (socket.readyState === WebSocket.OPEN) socket.send('ping'); }, 20000);
         S.ticks = setInterval(() => h.paintTime(), 200);
       };
@@ -128,6 +139,7 @@
         if (msg.t === 'snapshot') apply(msg.snapshot);
         else if (msg.t === 'joined') { S.session.teamToken = msg.teamToken; S.session.roomId = msg.roomId; S.session.role = 'team'; save(); }
         else if (msg.t === 'error') {
+          online.permissionError(msg.code);
           if (['ROOM_CLOSED', 'NOT_FOUND', 'BAD_TOKEN', 'BANK_MISMATCH', 'OUTDATED'].includes(msg.code)) permanent(msg.code);
           else { S.error = errors[msg.code] || errors.SERVER; S.busy = false; h.render(); }
         }
@@ -135,12 +147,12 @@
       socket.onerror = () => {};
       socket.onclose = () => {
         if (socket !== S.socket || S.stopped) return;
-        S.connected = false; clearInterval(S.heartbeat); clearInterval(S.ticks); h.render();
+        online.disconnect(); S.connected = false; clearInterval(S.heartbeat); clearInterval(S.ticks); h.render();
         S.retry = setTimeout(connect, Math.min(10000, 500 * 2 ** Math.min(5, S.retryCount++)));
       };
     }
     function enter(session, returnStage) {
-      stop(); S.session = { ...session, active: true }; S.snapshot = null; S.returnStage = returnStage; S.error = ''; save(); M.question = null; M.running = false; M.stage = 'board-room'; M.step = 0;
+      stop(); online.bind({ code: session.code, roomId: session.roomId, existing: !!(session.hostToken || session.teamToken) }); S.session = { ...session, active: true }; S.snapshot = null; S.returnStage = returnStage; S.error = ''; save(); M.question = null; M.running = false; M.stage = 'board-room'; M.step = 0;
       M.boardRoomUrl = '/quest-board.html?board=' + session.code;
       history.replaceState({ journey: true, stage: 'board-room', step: 3, rooms: true }, '', M.boardRoomUrl); h.render(); connect();
     }
@@ -156,7 +168,7 @@
       const config = { cats: M.cats.slice(), teams: M.teams.map((t, i) => ({ name: t.n.trim() || 'الفريق ' + ar(i + 1), color: Math.max(0, h.colors.indexOf(t.c)) })), timeMs: seconds * 1000, options: M.settings.options, reveals: M.settings.reveals, questionOrder: M.settings.difficulty, bankStamp: roomBankStamp, seen, ...(roomCode ? { roomCode } : {}) };
       S.busy = true; M.error = ''; h.render();
       try {
-        const response = await fetch(api + '/api/board/rooms', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ deviceId: identity(), config }), signal: AbortSignal.timeout(20000) });
+        const response = await online.createRoom(api + '/api/board/rooms', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ deviceId: identity(), config }), signal: AbortSignal.timeout(20000) });
         const data = await response.json();
         if (!response.ok) throw new Error(errors[data.error] || errors.SERVER);
         enter({ code: data.code, roomId: data.roomId, hostToken: data.hostToken, role: 'host' }, 'settings');
@@ -235,8 +247,8 @@
       else if (action === 'br-start' && s?.self.role === 'host') {
         if (typeof global.ezikIapStart === 'function') {
           const cycle = (Number(s.gameNumber) || 0) + 1;
-          global.ezikIapStart(() => { if (!send({ t: 'start', rev: s.version })) throw new Error('board-start-unavailable'); }, S.session.code, 'board', {
-            cycle: String(cycle), roomInstanceId: S.session.roomId || s.roomId, waitForStart: () => waitForGame(cycle),
+          global.ezikIapStart(async () => { if (!await send({ t: 'start', rev: s.version })) throw new Error('board-start-unavailable'); }, S.session.code, 'board', {
+            online, cycle: String(cycle), roomInstanceId: S.session.roomId || s.roomId, waitForStart: () => waitForGame(cycle),
           });
         }
         else { S.error = 'تعذّر فتح خيارات الجلسة. أعدوا تحميل الصفحة.'; h.render(); }
@@ -244,8 +256,8 @@
       else if (action === 'br-rematch' && s?.self.role === 'host') {
         if (typeof global.ezikIapStart === 'function') {
           const cycle = (Number(s.gameNumber) || 0) + 1;
-          global.ezikIapStart(() => { if (!send({ t: 'rematch', rev: s.version })) throw new Error('board-start-unavailable'); }, S.session.code, 'board', {
-            cycle: String(cycle), roomInstanceId: S.session.roomId || s.roomId, waitForStart: () => waitForGame(cycle),
+          global.ezikIapStart(async () => { if (!await send({ t: 'rematch', rev: s.version })) throw new Error('board-start-unavailable'); }, S.session.code, 'board', {
+            online, cycle: String(cycle), roomInstanceId: S.session.roomId || s.roomId, waitForStart: () => waitForGame(cycle),
           });
         }
         else { S.error = 'تعذّر فتح خيارات الجلسة. أعدوا تحميل الصفحة.'; h.render(); }
