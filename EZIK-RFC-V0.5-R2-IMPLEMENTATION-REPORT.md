@@ -349,9 +349,9 @@ every purpose and `capabilityEligible()` is false for every capability. **Regist
 
 ## K. Gates and tests
 
-Expected signature for the current integrated roster. CURRENT_RECON records measured 367/0/0 pre-self-check counts on f459bfbbba6c9b3d48d9810cfe598958eb96f35f from the order-9 focused audit. The restored audit adds its own pass. This expected signature is not a full-run success claim; actual evidence is recorded in REPORT-C1-ORDER-9.md.
+Expected signature for the current integrated roster. Order 12 adds usage after a measured 18/18 test run; only usage and recon are run for this order, not the full roster. CURRENT_RECON records re-measured 367/0/0 pre-self-check counts with the 275-entry roster in O12-RECON-MEASURE.log. The audit adds its own pass for 368/0/0. This expected signature is not a full-run success claim; Order 12 evidence is recorded in REPORT-C1-ORDER-12.md.
 
-All 274 gates in the current roster run sequentially through tools/run-gates.cjs. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
+All 275 gates in the current roster run sequentially through tools/run-gates.cjs. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -385,7 +385,7 @@ iaplaunch 0
 brainlineb1 0  brainlineb2 0  brainlineb3 0  brainlinec1 0  brainlinec2 0  brainlinec3 0  brainlinec4 0  brainlinec5 0  brainlinec6 0  brainlinec7 0  brainlined1a 0  brainlined1b 0  brainlined2 0  brainlined3 0  brainlined4 0  brainlined5 0  brainlinee1 0  brainlinee2 0  brainlineo1 0  brainlineo2 0  brainlineo3a 0  brainlineo3b 0  brainlinez1 0  brainlinez2 0  brainlinez3 0  brainlineh1 0  brainlineh2 0  brainlineh3 0  brainlineh4 0  brainlinet1 0  harvesttools 0  brainliner21 0  brainliner22 0  brainliner23 0  brainliner24 0  brainliner25 0  brainliner26 0  brainliner27 0  brainliner28 0
 ```
 
-Every one **PASS**, exit code `0`.
+Expected roster signature: every entry has exit code `0`. This is not a new full-run result.
 
 ```
 assetversions 0
@@ -467,7 +467,8 @@ c1authproofclient 0
 c1authproofwiring 0
 c2authlifecycle 0
 c1legacycancel 0
-TOTAL_GATES        274/274 PASS
+usage 0
+TOTAL_GATES        275/275 PASS
 CURRENT_RECON PASS=367 WARN=0 FAIL=0
 PRE_REBASE_UPSTREAM_TOTAL_GATES 206/206 PASS
 PRE_REBASE_UPSTREAM_RECON PASS=299 WARN=0 FAIL=0
