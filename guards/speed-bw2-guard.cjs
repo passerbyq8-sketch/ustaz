@@ -2053,6 +2053,85 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         ok('MUTANT KILLED: without the reconciliation the head keeps «ولم تُثبت المكتبة حكمًا عليه» over a unit that grades the hadith', (await headOf(MH, UG, [rowG])) === LEAD);
       } finally { try { fs.rmSync(tmpH, { force: true }); } catch { /* nothing to clean */ } }
     }
+
+    // ── brain35 B-2 (2026-11-06; DIAG 35.4) · WHAT THE LOCK AND THE HOLD LEAVE BEHIND ─────────────────────────────
+    // (a) the lock removed a credit and left its frame: the frame's sentence goes, unless a collector list follows it, in
+    // which case the frame alone goes and the list keeps its lead («أمّا من خرّجه: أبو داود والنسائي…» -- Q37). (b) an
+    // opening verb with its object pronoun («خالفه») or a plural verb with no subject («واستدلوا») is held unless the last
+    // two released sentences or the last released heading name the group or the man. (d) a «### » line welded to its
+    // paragraph is two units: the heading, then the prose.
+    {
+      const UNITS2 = await esm('lib/bw2-units.js');
+      const Q37_FRAME = 'أمّا من خرّجه، فقد، وأبو داود، والنسائي، وابن ماجه، وابن حبان، والحاكم.';
+      const Q32_FRAME = 'أما من خرجه، فقد، كلهم من حديث أبي عاتكة.';
+      const Q22_FRAME = 'فأمّا لفظ «الجنة تحت أقدام الأمهات» الذي رُوي عن أنس بن مالك رضي الله عنه، فقد.';
+      ok('B-2a the three delivered frame shapes all match EMPTIED_FRAME_RE', [Q37_FRAME, Q32_FRAME, Q22_FRAME].every((t) => UNITS2.EMPTIED_FRAME_RE.test(t)));
+      ok('B-2a Q37: the frame goes and the collector list keeps its lead, under a colon',
+        UNITS2.dropEmptiedFrameSentence(Q37_FRAME) === 'أمّا من خرّجه: أبو داود، والنسائي، وابن ماجه، وابن حبان، والحاكم.', ascii(UNITS2.dropEmptiedFrameSentence(Q37_FRAME)));
+      ok('B-2a Q32 and Q22: no collector list follows the frame, so the sentence goes whole and nothing substantive is left',
+        UNITS2.dropEmptiedFrameSentence(Q32_FRAME) === '' && UNITS2.dropEmptiedFrameSentence(Q22_FRAME) === ''
+        && UNITS2.onlyFrameWords('') === true);
+      ok('B-2a a sentence with no emptied frame is untouched', UNITS2.dropEmptiedFrameSentence('ورواه أبو داود في سننه من حديث أبي هريرة.') === 'ورواه أبو داود في سننه من حديث أبي هريرة.');
+      // wired: a unit whose credit the cited page does not carry loses it to the lock, and the frame it introduced goes with it
+      const PAGE_NO_CREDIT = { ...ROW_F1, text: MASAH_RULING + '. ' + MASAH_TERM + '.', passage: MASAH_RULING + '. ' + MASAH_TERM + '.' };
+      const framed = await run({ fatwa: [PAGE_NO_CREDIT], writerText: MASAH_RULING + ' [[1]].\nأمّا من خرّجه، فقد، ورواه الترمذي [[1]].' });
+      const framedText = framed.deltas.join('');
+      ok('B-2a wired: the lock takes the unsupported credit and the frame does not reach the reader',
+        !framedText.includes('فقد،') && !framedText.includes('الترمذي') && framedText.includes(MASAH_RULING), ascii(framedText));
+      // (b) the openings
+      ok('B-2b «خالفه X» and «ردّه X» are object-pronoun openings; «واستدلوا» and «زاد أكثرهم» are subjectless plurals',
+        UNITS2.subjectlessOpening('خالفه الملا علي القاري فرد تصحيح المعنى.') === 'object_pronoun'
+        && UNITS2.subjectlessOpening('ردّه ابن حجر في الفتح.') === 'object_pronoun'
+        && UNITS2.subjectlessOpening('واستدلوا بحديث ابن عباس.') === 'subjectless_plural'
+        && UNITS2.subjectlessOpening('زاد أكثرهم: فإن طلب العلم فريضة.') === 'subjectless_plural');
+      ok('B-2b ...and an ordinary opening is none of them',
+        UNITS2.subjectlessOpening('وذهب الحنفية إلى الجواز.') === '' && UNITS2.subjectlessOpening('والواجب عليه الاستماع والإنصات.') === ''
+        && UNITS2.subjectlessOpening('رواه أحمد بإسناد صحيح.') === '');
+      ok('B-2b namesASubject reads a school, a group and a man', UNITS2.namesASubject('المذهب المالكي') && UNITS2.namesASubject('وذهب الجمهور') && UNITS2.namesASubject('قال ابن باز') && !UNITS2.namesASubject('وهذا هو الأحوط'));
+      const opener = await run({ fatwa: [ROW_F1], writerText: 'خالفه الملا علي القاري فرد تصحيح المعنى [[1]].\n' + MASAH_RULING + ' [[1]].' });
+      ok('B-2b wired: «خالفه …» as the answer\'s first unit is held, and the unit after it opens the answer',
+        !opener.deltas.join('').includes('خالفه') && opener.deltas.join('').includes(MASAH_RULING)
+        && opener.out.telemetry.heldDependentOpening >= 1, ascii(opener.deltas.join('|')));
+      const ROW_GROUP = { ...ROW_F1, text: MASAH_RULING + '. واستدلوا بذلك على الجواز عند أهل العلم.', passage: MASAH_RULING + '. واستدلوا بذلك على الجواز عند أهل العلم.' };
+      const supplied = await run({ fatwa: [ROW_GROUP], writerText: 'وذهب أهل العلم إلى جواز المسح على الجوارب [[1]].\nواستدلوا بذلك على الجواز [[1]].' });
+      ok('B-2b wired: «واستدلوا …» after a released sentence that names the group goes out',
+        supplied.deltas.join('').includes('واستدلوا') && supplied.out.telemetry.unitsReleased === 2, ascii(supplied.deltas.join('|')) + ' ' + JSON.stringify(supplied.out.telemetry.heldDependentOpening));
+      const unsupplied = await run({ fatwa: [ROW_GROUP], writerText: 'واستدلوا بذلك على الجواز [[1]].\n' + MASAH_RULING + ' [[1]].' });
+      ok('B-2b wired: ...and with nothing named before it, it is held',
+        !unsupplied.deltas.join('').includes('واستدلوا') && unsupplied.out.telemetry.heldDependentOpening >= 1, ascii(unsupplied.deltas.join('|')));
+      // (d) the welded heading
+      const welded = await run({ fatwa: [ROW_F1], writerText: '### مسألة «حكم المسح على الجوارب» ' + MASAH_RULING + ' [[1]].' });
+      const wPieces = welded.deltas.filter((d) => d.trim() && !d.trim().startsWith('<'));
+      const wHeadAt = wPieces.findIndex((d) => d.trim().startsWith('### '));
+      const wProseAt = wPieces.findIndex((d) => d.includes(MASAH_RULING));
+      ok('B-2d wired: a «### » line welded to its paragraph reaches the reader as TWO pieces, the heading first, and neither carries the other',
+        wHeadAt >= 0 && wProseAt > wHeadAt && !wPieces[wHeadAt].includes(MASAH_RULING) && !/###/u.test(wPieces[wProseAt]),
+        ascii(JSON.stringify(wPieces)));
+      // mutants
+      const mutate = async (file, from, to, tag) => {
+        const src = read(file);
+        if (src.split(from).length !== 2) return { ok: false, reason: 'seam' };
+        const tmp = path.join(REPO, 'lib', '.mut-b2-' + tag + '.mjs');
+        fs.writeFileSync(tmp, src.split(from).join(to).replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        try { return { ok: true, mod: await import(pathToFileURL(tmp).href + '?m=' + Date.now()) }; } finally { fs.rmSync(tmp, { force: true }); }
+      };
+      const mFrame = await mutate('lib/bw2-units.js', 'export function dropEmptiedFrameSentence(text) {', 'export function dropEmptiedFrameSentence(text) {\n  return String(text == null ? \'\' : text); // mutant: the frame stays', 'frame');
+      ok('B-2 MUTANT frame seam applied', mFrame.ok, mFrame.reason);
+      ok('B-2 MUTANT KILLED: without the repair Q37\'s «فقد،» stub stays', mFrame.ok && mFrame.mod.dropEmptiedFrameSentence(Q37_FRAME).includes('فقد،'));
+      const mOpen = await mutate('lib/bw2-units.js', 'export function subjectlessOpening(text) {', 'export function subjectlessOpening() {\n  return \'\'; // mutant: no opening needs a subject\n}\nfunction subjectlessOpeningUnused(text) {', 'open');
+      ok('B-2 MUTANT opening seam applied', mOpen.ok, mOpen.reason);
+      ok('B-2 MUTANT KILLED: without the rule «خالفه …» opens the answer again', mOpen.ok && mOpen.mod.subjectlessOpening('خالفه الملا علي القاري فرد تصحيح المعنى.') === '');
+      const mWeld = await mutate('lib/bw2-units.js', "      const welded = /^(###\\s+[^\\n]*?[»”\"])\\s*(\\S[^\\n]*)$/u.exec(String((unit && unit.body) || '').trim());", '      const welded = null; // mutant: the welded heading is one unit again', 'weld');
+      ok('B-2 MUTANT weld seam applied', mWeld.ok, mWeld.reason);
+      if (mWeld.ok) {
+        const out = [];
+        const rel = mWeld.mod.createBw2Releaser({ rows: [{ ...ROW_F1, ref: 1 }], emit: (p) => { out.push(p); return true; }, cards: null });
+        rel.push('### مسألة «حكم المسح على الجوارب» ' + MASAH_RULING + ' [[1]].\n');
+        await rel.end();
+        ok('B-2 MUTANT KILLED: without the split the heading and its prose stay welded on one line', /###[^\n]*»\s+\S/u.test(out.join('')), ascii(out.join('|')));
+      }
+    }
     // ── brain35 A-3 (b) (2026-11-06; DIAG 35.9) · A CARD IS BOUND TO THE SENTENCE IT SUPPORTS, NOT TO THE CITATION ──────
     // MEASURED (Q25 line 10, CMP:751): the Ibn Uthaymin page about delaying jam' stood under a paragraph about the length of stay
     // because the unit cited it. Now a page or book card goes out beside a unit only when the row's text supports the sentence

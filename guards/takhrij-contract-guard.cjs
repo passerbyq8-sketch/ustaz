@@ -3799,6 +3799,49 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
   }
 
 
+
+  // ── brain35 B-2 (c) (2026-11-06; DIAG 35.4) · THE PARENTHESES STAND OUTSIDE THE QUOTATION ───────────────────────
+  // Measured on the delivered answers: the matched matn was one clause of a running quotation and the parentheses landed
+  // mid-dialogue (Q05 «أتُؤدّين زكاة هذا؟» (النسائي · …) قالت: لا»), mid-sentence inside the quotation (Q36), inside a du'a
+  // (Q35), and on a clause the matn does not cover (Q00 «وهو مذهب الحنفية (ابن خزيمة · صحيح)»).
+  {
+    const TK = await esm('lib/takhrij.js');
+    const q05 = 'فقال لها: «أتؤدين زكاة هذا؟ قالت: لا، قال: فيسرك أن يسورك الله بهما سوارين من نار؟»';
+    const inner = { start: q05.indexOf('أتؤدين'), end: q05.indexOf('؟') + 1, matn: 'أتؤدين زكاة هذا' };
+    const s05 = TK.parentheticalSlot(q05, inner);
+    ok('B-2c Q05: the parentheses of a matn inside a running quotation go after its CLOSING guillemet, not mid-dialogue',
+      !!s05 && s05.at === q05.lastIndexOf('»') + 1 && s05.at > inner.end, JSON.stringify(s05));
+    const q36 = 'قال صلى الله عليه وسلم: «من لبس ثوب شهرة في الدنيا ألبسه الله ثوب مذلة يوم القيامة».';
+    const m36 = { start: q36.indexOf('من لبس'), end: q36.indexOf('الدنيا') + 'الدنيا'.length, matn: 'من لبس ثوب شهرة في الدنيا' };
+    const s36 = TK.parentheticalSlot(q36, m36);
+    ok('B-2c Q36: the same, for a matn that is the opening clause of the quotation',
+      !!s36 && s36.at === q36.lastIndexOf('»') + 1, JSON.stringify(s36));
+    const whole = 'وفي الحديث: «إنما الأعمال بالنيات».';
+    const mw = { start: whole.indexOf('«'), end: whole.indexOf('»') + 1, matn: 'إنما الأعمال بالنيات' };
+    const sw = TK.parentheticalSlot(whole, mw);
+    ok('B-2c a matn that IS the whole quotation keeps today\'s place, right after it, undeferred',
+      !!sw && sw.at === mw.end && sw.deferred === false, JSON.stringify(sw));
+    const q00 = 'وقد ثبت ذلك في السنة الصحيحة، وهو مذهب الحنفية.';
+    const m00 = { start: 0, end: 'وقد ثبت ذلك'.length, matn: 'قد ثبت ذلك' };
+    const s00 = TK.parentheticalSlot(q00, m00);
+    ok('B-2c Q00: a deferred pair stops at the clause that opens a new claim («وهو مذهب الحنفية»), never on it',
+      !!s00 && s00.at <= q00.indexOf('، وهو') + 1, JSON.stringify(s00));
+    const ceiling = TK.parentheticalSlot(q05, inner, inner.end + 2);
+    ok('B-2c the next matn\'s lead-in still fences the pair: no slot when the quotation ends past the ceiling', ceiling === null, JSON.stringify(ceiling));
+    const src = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8');
+    const seam = '  const enclosing = enclosingQuotation(value, target);';
+    ok('B-2c mutant seam present', src.split(seam).length === 2);
+    const os2 = require('os');
+    const tmp = require("fs").mkdtempSync(path.join(os2.tmpdir(), 'ustaz-b2c-'));
+    try {
+      const file = path.join(tmp, 'takhrij.mjs');
+      require("fs").writeFileSync(file, src.split(seam).join('  const enclosing = null; // mutant: the quotation does not fence the pair')
+        .replace(/from\s+(['"])(\.[^'"]*)\1/gu, (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + file.replace(/\\/g, '/'));
+      const mut = mod.parentheticalSlot(q05, inner);
+      ok('B-2c MUTANT KILLED: without the enclosing quotation the pair lands mid-dialogue again', !mut || mut.at < q05.lastIndexOf('»'), JSON.stringify(mut));
+    } finally { try { require("fs").rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ } }
+  }
   // ── brain35 A-2 (2026-11-06; DIAG 35.11) · THE ASKED ROLES: collector, narrator, grader ─────────────────────────
   // «ومن خرّجه؟» asked and no collector reached the reader: the server writes the scoped collector sentence once; a released
   // collector list, a head that names the book, or a question that asks no collector -> nothing. Over the captured texts.

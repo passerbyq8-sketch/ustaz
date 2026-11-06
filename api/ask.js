@@ -2224,6 +2224,8 @@ export default async function handler(req, res) {
           heldGradeConflict: t.heldGradeConflict,
           heldUncitedAttribution: t.heldUncitedAttribution, heldUncitedRuling: t.heldUncitedRuling, heldRemovedPerson: t.heldRemovedPerson, heldUnsupportedGroup: t.heldUnsupportedGroup, heldUnsupportedConsensus: t.heldUnsupportedConsensus,
           heldUnsupportedSchool: t.heldUnsupportedSchool, heldUnsupportedMatn: t.heldUnsupportedMatn, heldTakhrijRefused: t.heldTakhrijRefused, heldTakhrijEmptied: t.heldTakhrijEmptied,
+          // ITEM B-2 (a) (brain35, 2026-11-06): a unit the lock emptied of its credit frame, with nothing substantive left.
+          heldTakhrijEmptiedFrame: t.heldTakhrijEmptiedFrame,
           heldGradeRuleFailed: t.heldGradeRuleFailed, heldGradeEmptied: t.heldGradeEmptied, heldRepeat: t.heldRepeat, heldDependentOnHeld: t.heldDependentOnHeld,
           heldDependentOpening: t.heldDependentOpening, heldDanglingLeadIn: t.heldDanglingLeadIn, heldNotCovered: t.heldNotCovered, heldNotCoveredSentence: t.heldNotCoveredSentence,
           heldEmptyHeading: t.heldEmptyHeading,
