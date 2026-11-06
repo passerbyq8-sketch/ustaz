@@ -49,7 +49,9 @@ const Q = {
     ok(id + ' -> ' + n + ' parts', parts.length === n, ascii(JSON.stringify(parts.map((p) => p.text))));
   }
   const a = qp(Q.Q130a);
-  ok('each part is its own question, with a short title and its own query', a.length === 3 && a[0].title === 'حكم سحب الدم للتحليل وهو صائم'
+  // brain35 B-3 (2026-11-06, owner: the answer opens on a short heading, not on the question): the title is now the part's
+  // own subject noun phrase (five words at most, no dangling pronoun), so this pin is the short form of the same title.
+  ok('each part is its own question, with a short title and its own query', a.length === 3 && a[0].title === 'حكم سحب الدم للتحليل'
     && a.every((p) => p.text && p.title && p.query) && a[2].query.includes('الصيام'), ascii(JSON.stringify(a)));
   for (const [id, n] of [['x4', 4], ['x2', 2], ['x0a', 0], ['x0b', 0]]) {
     ok('control ' + id + ': issueParts -> ' + n + ' as in t130.md', BW2.issueParts(Q[id]).length === n);
