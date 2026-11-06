@@ -11449,6 +11449,7 @@ function Ez110Home(v) {
   const shelf = <div className="ez110-grid">{items}</div>;
   return (
     <div className="theme-dark ezhome ez110-home" style={s.ezistContainer}>
+      {v.campaign}
       <EzistTopNav onOpenMenu={v.onOpenMenu} onOpenDima={v.onOpenDima} name={v.name} />
       <div style={s.ezistScroll}>
         <div className="ezist-wrap ez110-wrap">
@@ -12480,6 +12481,7 @@ function EzikIstanaHome(v) {
   const mods = v.modules || [];   // the owner's one array, mapped once, in its own order
   return (
     <div className="theme-dark ezhome" style={s.ezistContainer}>
+      {v.campaign}
       {/* S101-home-istana */}
       <EzistTopNav onOpenMenu={v.onOpenMenu} onOpenDima={v.onOpenDima} name={v.name} />
       <div style={s.ezistScroll}>
@@ -14682,7 +14684,7 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
   // array is put into the props object -- and with nothing stored the overlay hands back the
   // built array itself, so the default shelf is byte for byte the shelf that was here before.
   view.panel = panel; view.onPanelDenied = setPanelDenied;
-  const home = { ...view, modules: ezHomeOrderApply(ezHomeModules(view), readHomeOrder().order) };
+  const home = { ...view, campaign: <EzPanelCampaign profile={profile} document={panel} />, modules: ezHomeOrderApply(ezHomeModules(view), readHomeOrder().order) };
   // S102 -- ONE DESIGN. The journey/deck presentation system is gone from the file, not
   // hidden behind a flag: its two home components, its three shared parts, its key, its
   // reader, its writer, its hook, its event and its Settings control were all removed in the
@@ -14762,8 +14764,8 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
       />
     );
   }
-  if (ez110.id) return <><Ez110Home {...home} /><EzPanelCampaign profile={profile} document={panel} /></>;
-  return <><EzikIstanaHome {...home} /><EzPanelCampaign profile={profile} document={panel} /></>;
+  if (ez110.id) return <Ez110Home {...home} />;
+  return <EzikIstanaHome {...home} />;
 }
 
 // ============================================================
