@@ -26025,14 +26025,13 @@ function App() {
                 `list` call returned 200 -- see probeInbox() above -- so there is no role, no flag
                 and no digest in this file for anybody to forge. The badge is the count of unread
                 messages in «اقتراحات وشكاوى» and never in «بلاغات», which is decision ج١٣. */}
-            {panelViewer && panelViewer === readAuthSession()?.session && inboxUnread === null ? <button type="button" style={s.drawerItem} onClick={() => closeDrawerWith(() => setInboxOpen(true))}>{ezT('inbox.tabUsage')}</button> : null}
-            {inboxUnread !== null ? (
-              <button onClick={() => closeDrawerWith(() => setInboxOpen(true))} style={s.drawerItem} className="ezik-focus" aria-label={ezT('menu.inboxAria')}>
+            {inboxUnread !== null || (panelViewer && panelViewer === readAuthSession()?.session) ? (
+              <button onClick={() => closeDrawerWith(() => setInboxOpen(true))} style={s.drawerItem} className="ezik-focus" aria-label={ezT(inboxUnread !== null ? 'menu.inboxAria' : 'inbox.tabUsage')}>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3.5 12.5h5l1.5 2.5h4l1.5-2.5h5" />
                   <path d="M5.5 5.5h13l2 7v6h-17v-6z" />
                 </svg>
-                <span style={{ flex: 1, minWidth: 0 }}>{ezT('menu.inbox')}</span>
+                <span style={{ flex: 1, minWidth: 0 }}>{ezT(inboxUnread !== null ? 'menu.inbox' : 'inbox.tabUsage')}</span>
                 {inboxUnread > 0 && <span style={s.drawerBadge}>{inboxUnread}</span>}
               </button>
             ) : null}
