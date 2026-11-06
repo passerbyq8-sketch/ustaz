@@ -51,6 +51,36 @@ function verify(source,missing){
  assert.deepEqual([...rail.matchAll(/data-ezik-topbar="([^"]+)"/g)].map(m=>m[1]),['menu','home','tour']);
  assert.ok(rail.includes('onClick={introTour.open}')&&rail.includes("aria-label={ezT('tour.info')}"),'manual reopening and label');
  assert.ok(hook.includes('ezNum(tour.steps.indexOf(step) + 1)')&&hook.includes('ezNum(tour.steps.length)'),'native counters');
+ assert.ok(source.includes('data-ezik-tour-entry={t.k}'),'customized bottom-nav targets stay discoverable');
+ // Execute the shipped hook, with deterministic React hook storage and timers.
+ const hookSource=source.slice(source.indexOf('function useEzikIntroTour('),source.indexOf('function EzikIntroTour('));
+ const compiled=require('@babel/core').transformSync(hookSource,{presets:[[require('@babel/preset-react'),{runtime:'classic'}]],configFile:false,babelrc:false}).code;
+ function fixture({held=false,blocked=false,auth=false,seen=false}={}){
+  let cursor=0,slots=[],effects=[],timers=new Map(),serial=0,screen='loading',policy={sections:{}},node;
+  ctx.window.location={pathname:'/',search:held?'?shortcut=chat':'',hash:''};ctx.window.sessionStorage.getItem=()=>null;ctx.window.history={};
+  store.clear();if(seen)store.set('ezik.tour.v1.seen','1');ctx.window.localStorage={getItem:k=>store.get(k),setItem:(k,v)=>store.set(k,v)};
+  vm.runInContext('ezTourSeenMemory=false;',ctx);
+  ctx.document={activeElement:{focus(){}},querySelector:()=>blocked?{}:null};ctx.EZIK_AUTH_PROOF_CLIENT={state:()=>({busy:auth})};ctx.ezikBackLayers=[];
+  ctx.React={createElement:(type,props)=>({type,props})};ctx.EzikIntroTour=function(){};
+  ctx.useState=initial=>{const i=cursor++;if(!(i in slots))slots[i]=typeof initial==='function'?initial():initial;return [slots[i],value=>{slots[i]=typeof value==='function'?value(slots[i]):value;}];};
+  ctx.useRef=initial=>{const i=cursor++;return slots[i]||(slots[i]={current:initial});};
+  ctx.useEffect=(fn,deps)=>{const i=cursor++,old=slots[i];if(!old||deps.some((v,j)=>v!==old.deps[j])){old?.clean?.();slots[i]={deps};effects.push(()=>{slots[i].clean=fn();});}};
+  ctx.setTimeout=fn=>{timers.set(++serial,fn);return serial;};ctx.clearTimeout=id=>timers.delete(id);
+  vm.runInContext(compiled,ctx);
+  const render=()=>{cursor=0;node=ctx.useEzikIntroTour(screen,s=>{screen=s;},policy);const q=effects.splice(0);q.forEach(f=>f());return node;};
+  const tick=()=>{const q=[...timers.values()];timers.clear();q.forEach(f=>f());return render();};
+  render();return {render,tick,screen:s=>{screen=s;return render();},policy:p=>{policy=p;return render();},get screenNow(){return screen;}};
+ }
+ let f=fixture();f.screen('chat');let n=f.tick();assert.equal(n.node.props.tour.id,'welcome');
+ const visited=['welcome'];for(let i=0;i<9;i++){n.node.props.onMove(1);n=f.render();visited.push(n.node.props.tour.id);}
+ assert.deepEqual(visited,['welcome','chat','worship','mushaf','hifz','kunuz','dima','library','profile','finish']);
+ n.node.props.onClose();assert.equal(f.render().node,null);assert.equal(store.get('ezik.tour.v1.seen'),'1');assert.equal(f.tick().node,null);
+ n=f.render();n.open();n=f.render();assert.equal(n.node.props.tour.id,'welcome');n.node.props.onMove(1);n=f.render();n.node.props.onMove(-1);assert.equal(f.render().node.props.tour.id,'welcome');
+ f.render().node.props.onClose();assert.equal(store.get('ezik.tour.v1.seen'),'1');
+ for(const options of [{held:true},{blocked:true},{auth:true},{seen:true}]){f=fixture(options);f.screen('chat');assert.equal(f.tick().node,null,'suppressed '+JSON.stringify(options));}
+ f=fixture({held:true});f.screen('chat');f.tick();f.screen('home');f.screen('chat');assert.equal(f.tick().node.props.tour.id,'welcome','deferred until next start screen');
+ f=fixture();f.screen('home');n=f.render();n.open();n=f.render();n.node.props.onMove(1);n=f.render();assert.equal(f.screenNow,'chat');n.node.props.onClose();assert.equal(f.screenNow,'home','manual tour restores origin');
+ f=fixture();f.screen('chat');n=f.tick();n=f.policy({sections:{mushaf:{state:'hidden'}}});n.node.props.onMove(1);n=f.render();assert.equal(n.node.props.tour.steps.length,7,'live policy recount');
  return {languages:table.length,keys:Object.keys(keys).length};
 }
 const source=read('app.jsx');const result=verify(source);

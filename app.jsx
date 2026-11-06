@@ -11199,7 +11199,7 @@ function Ez110Nav({ active, edit, bar, slotSel, onSlot }) {
         </button>
       ) : (
         <button key={t.k} type="button" className={'ez110-tab' + (active === t.k ? ' is-on' : '')} disabled={edit ? true : undefined}
-          aria-current={active === t.k ? 'page' : undefined} onClick={active === t.k || edit ? undefined : t.go}>
+          data-ezik-tour-entry={t.k} aria-current={active === t.k ? 'page' : undefined} onClick={active === t.k || edit ? undefined : t.go}>
           <span className="ez110-tab-pill">{ez110BarIcon(t.k)}</span>
           <span className="ez110-tab-label">{t.label}</span>
         </button>
@@ -21745,8 +21745,7 @@ function ezTourSelector(id) {
   if (id === 'chat') return '.ezc-dock';
   if (id === 'profile') return '[data-ezik-topbar="menu"]';
   if (id === 'info') return '[data-ezik-topbar="tour"]';
-  if (id === 'wird') return '[data-ezik-tour-entry="wird"]';
-  return '[data-ezik-home-module="' + id + '"], [data-ez110-tile="' + id + '"]';
+  return '[data-ezik-home-module="' + id + '"], [data-ez110-tile="' + id + '"], [data-ezik-tour-entry="' + id + '"]';
 }
 function useEzikIntroTour(screen, setScreen, policy) {
   const [tour, setTour] = useState(null);
