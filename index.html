@@ -1846,6 +1846,18 @@
   .ezlang-fail{margin-top:6px;font-size:12px;opacity:.85}
 
 
+
+/* Intro tour: its overlay owns all input while existing entries remain inert. */
+.ez-tour{position:fixed;inset:0;z-index:2147483000;color:#14211F;isolation:isolate}
+.ez-tour-shade{position:absolute;inset:0;pointer-events:auto}
+.ez-tour-bubble{position:absolute;box-sizing:border-box;width:min(380px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;padding:22px;background:#F4EDE0;color:#14211F;border:1px solid #D6B25E;border-radius:18px;font-size:16px;line-height:1.65;box-shadow:0 8px 32px #0006}
+.ez-tour-bubble h2{font-size:21px;margin:8px 0}.ez-tour-bubble p{margin:8px 0 18px}
+.ez-tour-actions{display:flex;flex-wrap:wrap;gap:8px}.ez-tour-actions button{min-height:44px;min-width:44px;padding:8px 14px;background:#F4EDE0;color:#14211F;border:1px solid #14211F;border-radius:10px;font:inherit;cursor:pointer}.ez-tour-actions button:last-child{background:#D6B25E}
+.ez-tour-actions button:focus-visible{outline:3px solid #14211F;outline-offset:3px}
+.ez-tour-dots{display:flex;gap:7px;margin-top:8px}.ez-tour-dots span{width:7px;height:7px;border:1px solid #14211F;border-radius:50%}.ez-tour-dots .active{background:#D6B25E}
+.ez-tour-arrow{position:absolute;width:14px;height:14px;background:#F4EDE0;transform:rotate(45deg);border:1px solid #D6B25E}.ez-tour-arrow.above{top:-8px}.ez-tour-arrow.below{bottom:-8px}
+.ez-tour-info{min-width:44px;min-height:44px;font-size:25px}
+@media(prefers-reduced-motion:reduce){.ez-tour *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 </style>
 <style id="dima-home-layout">
 /* Item 5-a: home sentences occupy their own rows; the garden has reserved space below. */

@@ -508,6 +508,33 @@ function useEzLang() {
 // here and no translated string is ever handed to innerHTML. ---------------------------
 const EZ_I18N = {
   ar: {
+    "tour.info": "جولة تعريفية بأقسام التطبيق",
+    "tour.counter": "{n} من {total}",
+    "tour.start": "ابدأ الجولة",
+    "tour.skip": "تخطي",
+    "tour.prev": "السابق",
+    "tour.next": "التالي",
+    "tour.finish": "ابدأ باستخدام عزك",
+    "tour.welcome.title": "أهلًا بك في عزك",
+    "tour.welcome.text": "جولة سريعة، دقيقة واحدة، تعرّفك بأقسام التطبيق. تقدر تتخطاها الآن، وترجع لها متى شئت من علامة ⓘ.",
+    "tour.chat.title": "المحادثة",
+    "tour.chat.text": "اسأل أي سؤال في دينك، ويجيبك عزك مع ذكر المصادر.",
+    "tour.worship.title": "عباداتك اليومية",
+    "tour.worship.text": "الأذكار ومواقيت الصلاة والقبلة وتنبيهات وِردي، تنظّم بها عبادتك كل يوم.",
+    "tour.mushaf.title": "المصحف",
+    "tour.mushaf.text": "اقرأ المصحف وتنقّل بين سوره وصفحاته بسهولة.",
+    "tour.hifz.title": "المحفّظ",
+    "tour.hifz.text": "أداة تعينك على الحفظ والمراجعة خطوة بخطوة.",
+    "tour.kunuz.title": "كنوز المعرفة",
+    "tour.kunuz.text": "مسابقات وألعاب معرفية تتعلّم منها وتلعبها مع أهلك وأصحابك.",
+    "tour.dima.title": "ديمة",
+    "tour.dima.text": "أعمال خفيفة تداوم عليها كل يوم؛ «أحبّ الأعمال إلى الله أدومها وإن قلّ».",
+    "tour.library.title": "المكتبة والفتاوى والدروس",
+    "tour.library.text": "كتب وفتاوى ودروس لأهل العلم، تقرأ فيها وتبحث.",
+    "tour.profile.title": "ملفك ورأيك",
+    "tour.profile.text": "من القائمة الجانبية تجد ملفك وإعداداتك وزر «الاقتراحات والشكاوى»؛ رأيك يهمّنا.",
+    "tour.finish.title": "انتهت الجولة",
+    "tour.finish.text": "تقدر تعيدها في أي وقت من علامة ⓘ هنا بجانب أيقونة البيت.",
     'panel.dailyLimit': "الحد اليومي (USD، UTC)",
     'panel.costMissing': "التكلفة غير متاحة: بيانات التسعير والاستهلاك غير مكتملة.",
     'panel.sampleCoverage': "عينة لا تتجاوز 200 إجابة يوميا؛ لا تشمل كل الاستخدام.",
@@ -2514,6 +2541,33 @@ const EZ_I18N = {
     'tr4.machine': 'ترجمة آلية',
   },
   en: {
+    "tour.info": "Tour of the app sections",
+    "tour.counter": "{n} of {total}",
+    "tour.start": "Start tour",
+    "tour.skip": "Skip",
+    "tour.prev": "Previous",
+    "tour.next": "Next",
+    "tour.finish": "Start using Ezik",
+    "tour.welcome.title": "Welcome to Ezik",
+    "tour.welcome.text": "A quick one-minute tour introduces the app sections. Skip now and return anytime with ⓘ.",
+    "tour.chat.title": "Chat",
+    "tour.chat.text": "Ask about your religion; Ezik answers with sources.",
+    "tour.worship.title": "Daily worship",
+    "tour.worship.text": "Adhkar, prayer times, qibla and Wird reminders help organize daily worship.",
+    "tour.mushaf.title": "Mushaf",
+    "tour.mushaf.text": "Read the Quran and move easily between surahs and pages.",
+    "tour.hifz.title": "Memorizer",
+    "tour.hifz.text": "An aid for memorization and revision, step by step.",
+    "tour.kunuz.title": "Treasures of knowledge",
+    "tour.kunuz.text": "Learn through quizzes and knowledge games with family and friends.",
+    "tour.dima.title": "Dima",
+    "tour.dima.text": "Small deeds to keep doing every day; «The deeds most beloved to Allah are those done most consistently, even if small.».",
+    "tour.library.title": "Library, fatwas and lessons",
+    "tour.library.text": "Read and search scholars' books, fatwas and lessons.",
+    "tour.profile.title": "Your profile and feedback",
+    "tour.profile.text": "The side menu holds your profile, settings, and Suggestions and complaints. Your opinion matters.",
+    "tour.finish.title": "Tour complete",
+    "tour.finish.text": "Repeat the tour anytime with ⓘ here beside the home icon.",
     'panel.dailyLimit': "Daily limit (USD, UTC)",
     'panel.costMissing': "Cost unavailable: pricing and usage accounting are incomplete.",
     'panel.sampleCoverage': "Sample of at most 200 answers per day; not all traffic.",
@@ -12467,7 +12521,7 @@ function EzikHomeCardRow({ cards }) {
   return (
     <div style={{ ...s.ezHomeCardRow, gridTemplateColumns: 'repeat(' + list.length + ', minmax(0, 1fr))' }}>
       {list.map((c) => (
-        <div key={c.id} style={s.ezHomeCardCell}>
+        <div key={c.id} data-ezik-tour-entry={c.id} style={s.ezHomeCardCell}>
           <button type="button" className="ezhome-focus" onClick={c.onOpen} style={s.ezHomeCardOpen}>
             {c.title}
           </button>
@@ -21654,6 +21708,127 @@ const EZIK_REVEAL_DIVISOR = 8;
 const EZIK_REVEAL_MIN_STEP = 2;
 const EZIK_REVEAL_MAX_STEP = 11;
 
+// INTRO TOUR V1 START
+const EZ_TOUR_SEEN = 'ezik.tour.v1.seen';
+const EZ_TOUR_STEPS = [
+  { id: 'chat', screen: 'chat', sections: ['chat'] },
+  { id: 'worship', screen: 'home', sections: ['adhkar', 'prayer', 'wird'] },
+  { id: 'mushaf', screen: 'home', sections: ['mushaf'] },
+  { id: 'hifz', screen: 'home', sections: ['memorize'] },
+  { id: 'kunuz', screen: 'home', sections: ['treasure'] },
+  { id: 'dima', screen: 'home', sections: ['dima'] },
+  { id: 'library', screen: 'home', sections: ['library', 'fatwa', 'lessons'] },
+  { id: 'profile', screen: 'chat', sections: ['profile'] },
+];
+let ezTourSeenMemory = false;
+function ezTourSeen() {
+  try { return ezTourSeenMemory || window.localStorage.getItem(EZ_TOUR_SEEN) === '1'; } catch (_) { return ezTourSeenMemory; }
+}
+function ezTourMarkSeen() {
+  ezTourSeenMemory = true;
+  try { window.localStorage.setItem(EZ_TOUR_SEEN, '1'); } catch (_) {}
+}
+function ezTourStations(policy) {
+  return EZ_TOUR_STEPS.map(step => ({ ...step, sections: step.sections.filter(id => ezPanelAvailability(policy, id).state !== 'hidden') })).filter(step => step.sections.length);
+}
+function ezTourBootHeld() {
+  try {
+    return !!(window.location.search || window.location.hash || !['/', '/index.html'].includes(window.location.pathname) ||
+      ['ezik_resume_section_v1', 'ezik_resume_thread_v1', 'ezik_ask_prefill_v1'].some(key => window.sessionStorage.getItem(key)) ||
+      window.history.state?.screen);
+  } catch (_) { return true; }
+}
+function ezTourCanAuto(screen, held, seen, blocked) {
+  return screen === 'chat' && !held && !seen && !blocked;
+}
+function ezTourSelector(id) {
+  if (id === 'chat') return '.ezc-dock';
+  if (id === 'profile') return '[data-ezik-topbar="menu"]';
+  if (id === 'info') return '[data-ezik-topbar="tour"]';
+  if (id === 'wird') return '[data-ezik-tour-entry="wird"]';
+  return '[data-ezik-home-module="' + id + '"], [data-ez110-tile="' + id + '"]';
+}
+function useEzikIntroTour(screen, setScreen, policy) {
+  const [tour, setTour] = useState(null);
+  const boot = useRef(null), origin = useRef('chat'), focus = useRef(null);
+  if (!boot.current) boot.current = { held: ezTourBootHeld(), previous: screen, left: false };
+  const close = () => { ezTourMarkSeen(); setTour(null); setScreen(origin.current); setTimeout(() => { try { focus.current?.focus(); } catch (_) {} }, 0); };
+  const open = () => { origin.current = screen; focus.current = document.activeElement; setTour({ id: 'welcome', steps: ezTourStations(policy) }); };
+  useEffect(() => {
+    const b = boot.current;
+    if (screen !== 'loading' && screen !== 'onboarding' && screen !== 'chat') b.left = true;
+    if (screen === 'chat' && b.previous !== 'chat' && b.left) b.held = false;
+    b.previous = screen;
+    if (tour || screen !== 'chat') return;
+    const attempt = () => {
+      const auth = EZIK_AUTH_PROOF_CLIENT?.state();
+      const blocked = ezikBackLayers.length > 0 || auth?.busy || auth?.pending ||
+        document.querySelector('[role="dialog"], [role="alertdialog"], dialog[open], [data-panel-unavailable]');
+      if (ezTourCanAuto(screen, b.held, ezTourSeen(), blocked)) open();
+    };
+    const timer = setTimeout(attempt, 700);
+    return () => clearTimeout(timer);
+  }, [screen, tour, policy.revision]);
+  const move = delta => {
+    const steps = ezTourStations(policy), order = ['welcome', ...steps.map(s => s.id), 'finish'];
+    let at = order.indexOf(tour.id);
+    if (at < 0) {
+      const old = EZ_TOUR_STEPS.findIndex(s => s.id === tour.id);
+      at = delta > 0 ? order.findIndex(id => id === 'finish' || EZ_TOUR_STEPS.findIndex(s => s.id === id) > old) - 1 :
+        order.filter(id => id === 'welcome' || (id !== 'finish' && EZ_TOUR_STEPS.findIndex(s => s.id === id) < old)).length;
+    }
+    const id = order[Math.max(0, Math.min(order.length - 1, at + delta))];
+    const step = steps.find(s => s.id === id);
+    setScreen(step ? step.screen : id === 'finish' ? 'chat' : origin.current);
+    setTour({ id, steps });
+  };
+  return { open, node: tour ? <EzikIntroTour tour={tour} onMove={move} onClose={close} /> : null };
+}
+function EzikIntroTour({ tour, onMove, onClose }) {
+  const box = useRef(null), [rects, setRects] = useState([]), [bubbleHeight, setBubbleHeight] = useState(300);
+  const step = tour.steps.find(s => s.id === tour.id);
+  const ids = step ? step.sections : tour.id === 'finish' ? ['info'] : [];
+  const titleKey = 'tour.' + tour.id + '.title', textKey = 'tour.' + tour.id + '.text';
+  useEffect(() => {
+    const targets = ids.map(id => document.querySelector(ezTourSelector(id))).filter(Boolean);
+    targets[0]?.scrollIntoView?.({ block: 'center', behavior: 'instant' });
+    const measure = () => { setBubbleHeight(box.current?.getBoundingClientRect().height || 300); setRects(targets.map(el => { const r = el.getBoundingClientRect(); return { x: r.left - 4, y: r.top - 4, width: r.width + 8, height: r.height + 8 }; }).filter(r => r.width > 8 && r.height > 8)); };
+    measure(); window.addEventListener('resize', measure); window.addEventListener('scroll', measure, true);
+    const timer = setTimeout(measure, 50);
+    box.current?.querySelector('button')?.focus();
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure); window.removeEventListener('scroll', measure, true); };
+  }, [tour]);
+  const first = rects[0], h = window.innerHeight, w = window.innerWidth;
+  const below = first && first.y + first.height + bubbleHeight + 30 < h;
+  const top = first ? Math.max(12, Math.min(h - bubbleHeight - 12, below ? first.y + first.height + 18 : first.y - bubbleHeight - 18)) : Math.max(12, (h - bubbleHeight) / 2);
+  const left = Math.max(12, Math.min(w - Math.min(380, w - 24) - 12, first ? first.x : (w - Math.min(380, w - 24)) / 2));
+  const keyboard = event => {
+    if (event.key === 'Escape') { event.preventDefault(); onClose(); }
+    if (event.key === 'Tab') {
+      const buttons = [...box.current.querySelectorAll('button')], at = buttons.indexOf(document.activeElement);
+      event.preventDefault(); buttons[(at + (event.shiftKey ? -1 : 1) + buttons.length) % buttons.length].focus();
+    }
+  };
+  return ReactDOM.createPortal(<div data-tour-active="1" className="ez-tour" onKeyDown={keyboard} dir={EZ_LANG_DIR[EZ_LANG] || 'ltr'}>
+    <svg className="ez-tour-shade" aria-hidden="true" width="100%" height="100%">
+      <defs><mask id="ez-tour-cutout"><rect width="100%" height="100%" fill="white" />{rects.map((r, i) => <rect key={i} {...r} rx="12" fill="black" />)}</mask></defs>
+      <rect width="100%" height="100%" fill="rgba(5,11,13,0.82)" mask="url(#ez-tour-cutout)" />
+      {rects.map((r, i) => <rect key={i} {...r} rx="12" fill="none" stroke="#D6B25E" strokeWidth="3" />)}
+    </svg>
+    {first ? <span className="ez-tour-arrow" style={{ top: below ? top - 7 : top + bubbleHeight - 7, left: left + Math.max(18, Math.min(Math.min(380, w - 24) - 28, first.x + first.width / 2 - left)) }} aria-hidden="true" /> : null}
+    <section ref={box} role="dialog" aria-modal="true" aria-labelledby="ez-tour-title" aria-describedby="ez-tour-text" className="ez-tour-bubble" style={{ top, left }}>
+      {step ? <><div>{ezT('tour.counter', { n: ezNum(tour.steps.indexOf(step) + 1), total: ezNum(tour.steps.length) })}</div><div className="ez-tour-dots" aria-hidden="true">{tour.steps.map(s => <span key={s.id} className={s.id === tour.id ? 'active' : ''} />)}</div></> : null}
+      <h2 id="ez-tour-title">{ezT(titleKey)}</h2><p id="ez-tour-text">{ezT(textKey)}</p>
+      <div className="ez-tour-actions">
+        {tour.id !== 'finish' ? <button type="button" onClick={onClose}>{ezT('tour.skip')}</button> : null}
+        {tour.id !== 'welcome' ? <button type="button" onClick={() => onMove(-1)}>{ezT('tour.prev')}</button> : null}
+        <button type="button" onClick={tour.id === 'finish' ? onClose : () => onMove(1)}>{ezT('tour.' + (tour.id === 'welcome' ? 'start' : tour.id === 'finish' ? 'finish' : 'next'))}</button>
+      </div>
+    </section>
+  </div>, document.body);
+}
+// INTRO TOUR V1 END
+
 function App() {
   const panel = useEzikPanelSettings();
   // S100: mounted here and not only in Settings, because the 'storage' event fires in the
@@ -21677,6 +21852,7 @@ function App() {
   useEzikVisualTheme();
   const ez110 = useEz110();   // ITEM 110: the switch; with it dark this is inert
   const [screen, setScreen] = useState('loading');
+  const introTour = useEzikIntroTour(screen, setScreen, panel);
   useEzikWidgetDataRoot(screen !== 'loading');
   const [selectedSurah, setSelectedSurah] = useState(null); // خطأ ٤٦: سورة المصحف المفتوحة، مرفوعة إلى App كي يقشرها زر الرجوع طبقةً طبقة
   const [profile, setProfile] = useState(null);
@@ -26158,6 +26334,7 @@ function App() {
   // an onOpenChat: the chat is entered from that menu's «محادثة جديدة» row.
   if (screen === 'home') return (
     <>
+      {introTour.node}
       <Home profile={profile} onOpenMenu={openDrawer} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenSunan={() => setSunanOpen(true)} onOpenYahimmak={() => setYahimmakOpen(true)} onOpenDima={() => setDimaOpen(true)} onOpenArbaeen={() => setScreen('arbaeen')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenLessons={() => setScreen('lessons')} onOpenAsmaa={() => setAsmaaOpen(true)} onOpenSettings={() => openEzikSheet('settings')} key={homeEpoch} />
       {ezikDrawer()}
     </>
@@ -26266,6 +26443,7 @@ function App() {
 
   return (
     <div className="theme-dark ezhome ezc" style={s.chatContainer}>
+      {introTour.node}
       {/* THE WATERMARK. One element, behind everything, reachable by nothing: aria-hidden so no
           reader is told about it, pointer-events:none so no tap can land on it, and z-index:-1
           inside this root's stacking context so it paints over the page colour and under every
@@ -26286,7 +26464,7 @@ function App() {
           a title, and the title is the real one -- see ezcTitle above. */}
       <div className="ezc-rail">
         <div className="ezc-rail-inner">
-          <button onClick={openDrawer} className="ezc-icon" aria-label={'\u0641\u062a\u062d \u0627\u0644\u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u062c\u0627\u0646\u0628\u064a\u0629'}
+          <button data-ezik-topbar="menu" onClick={openDrawer} className="ezc-icon" aria-label={'\u0641\u062a\u062d \u0627\u0644\u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u062c\u0627\u0646\u0628\u064a\u0629'}
             {...(uiLang === 'ar' ? null : { 'aria-label': ezT('navigation.openMenu') })}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="3" y1="6" x2="21" y2="6" />
@@ -26311,13 +26489,14 @@ function App() {
               'chat' is a ROOT screen (app.jsx:9492) and ezikBackTarget returns null from it
               (9497-9498). className='ezc-icon' is mandatory -- the 40x40 paint and the 44x44
               touch overlay are pinned to that class, not to this element. */}
-          <button onClick={() => setScreen('home')} className="ezc-icon" aria-label={'\u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629'}
+          <button data-ezik-topbar="home" onClick={() => setScreen('home')} className="ezc-icon" aria-label={'\u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629'}
             {...(uiLang === 'ar' ? null : { 'aria-label': ezT('navigation.home') })}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 10.5 12 3l9 7.5" />
               <path d="M5 9.5V21h14V9.5" />
             </svg>
           </button>
+          <button type="button" data-ezik-topbar="tour" className="ezc-icon ez-tour-info" onClick={introTour.open} aria-label={ezT('tour.info')}><span aria-hidden="true">ⓘ</span></button>
         </div>
       </div>
 
