@@ -158,6 +158,7 @@ function buildContext(opts) {
   } catch (e) {}
   global.navigator = window.navigator; global.window = window; global.document = window.document;
 
+  require('./guards/helpers/auth-dom-fixture.cjs').installAuthDomFixture(window, {  });
   const ctx = vm.createContext(window);
   const loadUMD = (f) => vm.runInContext(fs.readFileSync(path.join(__dirname, 'vendor', f), 'utf8'), ctx, { filename: f });
   loadUMD('react.umd.js'); loadUMD('react-dom.umd.js');

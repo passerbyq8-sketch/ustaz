@@ -100,6 +100,7 @@ function boot(opts) {
     back: () => { if (at > 0) { at--; NODE_TICK(() => window.dispatchEvent(new window.Event('popstate')), 0); } } };
   global.window = window; global.document = window.document;
   Object.defineProperty(global, 'navigator', { configurable: true, value: window.navigator });
+  require('./helpers/auth-dom-fixture.cjs').installAuthDomFixture(window, {  });
   const ctx = vm.createContext(window);
   for (const f of ['react.umd.js', 'react-dom.umd.js']) vm.runInContext(fs.readFileSync(path.join(REPO, 'vendor', f), 'utf8'), ctx, { filename: f });
   let caught = null;

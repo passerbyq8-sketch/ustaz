@@ -122,6 +122,7 @@ function boot(opts) {
     back: () => { if (at > 0) { at--; NODE_TICK(() => window.dispatchEvent(new window.Event('popstate')), 0); } } };
   global.window = window; global.document = window.document;
   Object.defineProperty(global, 'navigator', { configurable: true, value: window.navigator });
+  require('./helpers/auth-dom-fixture.cjs').installAuthDomFixture(window, { sessionStorage: window.sessionStorage });
   const ctx = vm.createContext(window);
   for (const f of ['react.umd.js', 'react-dom.umd.js']) vm.runInContext(fs.readFileSync(path.join(REPO, 'vendor', f), 'utf8'), ctx, { filename: f });
   let caught = null;
@@ -145,8 +146,8 @@ function boot(opts) {
   const titlesB = {};
   if (LIT_B) for (const key of Object.keys(titleExpr)) { const n = read('ez110Name(' + JSON.stringify(key) + ')'); if (n) titlesB[key] = n; }
   const where = () => {
-    if (window.location.href === '/quest.html') return 'treasure';
-    if (window.location.href === '/library.html') return 'library';
+    if (window.location.href === 'https://app.fixture.invalid/quest.html') return 'treasure';
+    if (window.location.href === 'https://app.fixture.invalid/library.html') return 'library';
     const top = root.firstElementChild;
     const cls = top ? String(top.getAttribute('class') || '') : '';
     if (/\bezonb\b/.test(cls)) return 'onboarding';
