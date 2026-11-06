@@ -1971,6 +1971,49 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       ok('ORDER54-1 sibling: «الإمام مالك» over «الموطأ» and «الإمام الشافعي» over «الأم» go out with the name', MALIK54.text.includes('الإمام مالك') && SHAFII54.text.includes('الإمام الشافعي'), JSON.stringify([MALIK54, SHAFII54]));
     }
 
+
+    // ── brain35 A-3 (b) (2026-11-06; DIAG 35.9) · A CARD IS BOUND TO THE SENTENCE IT SUPPORTS, NOT TO THE CITATION ──────
+    // MEASURED (Q25 line 10, CMP:751): the Ibn Uthaymin page about delaying jam' stood under a paragraph about the length of stay
+    // because the unit cited it. Now a page or book card goes out beside a unit only when the row's text supports the sentence
+    // (the encyclopedia test); an unsupported row is owed and shown under a later unit it supports; never supported, never shown;
+    // the cited row still counts as a source (no withdrawal for a deferred card).
+    {
+      const CC = JSON.parse(read('fixtures/brain35-card-cases.json'));
+      ok('A-3b the captured Q25 unit is not supported by the jam\' page\'s title (the only captured text of that <source> card)',
+        CC.q25.unit.length > 100 && CC.q25.cardTitle.length > 40 && !REVIEW.sentenceSupportedByText(CC.q25.unit, CC.q25.cardTitle));
+      // end to end: a fatwa page whose text is about fasting, cited by a masah sentence -> no card under it; cited again by a fasting
+      // sentence -> the card follows THAT unit; the masah sentence keeps its own supporting page's card
+      const FASTING_RULING_A3 = '\u0635\u0648\u0645\u0647 \u0635\u062d\u064a\u062d';
+      const bound = await run({ fatwa: [ROW_F1, ROW_F2], writerText: MASAH_RULING + ' [[1, 2]]. ' + FASTING_RULING_A3 + ' [[2]].' });
+      const dB = bound.deltas;
+      const jA = dB.findIndex((d) => d.includes('/fatwas/1234'));
+      const jB = dB.findIndex((d) => d.includes('/fatwas/5678'));
+      ok('A-3b wired: the masah page\'s card follows the masah sentence; the fasting page\'s card waits for the fasting sentence and follows it',
+        jA > 0 && jB > jA + 1 && dB[jA - 1].includes(MASAH_RULING) && dB[jB - 1].includes(FASTING_RULING_A3) && bound.out.telemetry.cardsSent === 2, ascii(JSON.stringify(dB)));
+      const never = await run({ fatwa: [ROW_F1, ROW_F2], writerText: MASAH_RULING + ' [[1, 2]]. ' + MASAH_TERM + ' [[2]].' });
+      const dN = never.deltas;
+      ok('A-3b wired: a row never supported by a sentence that cites it is never shown, and the answer is not withdrawn (the masah page stands)',
+        dN.join('').includes('/fatwas/1234') && !dN.join('').includes('/fatwas/5678') && never.out.telemetry.cardsSent === 1 && !dN.join('').includes(NOT_COVERED) && never.out.telemetry.unitsReleased === 2, ascii(JSON.stringify(dN)));
+      const onlyUnsupported = await run({ fatwa: [ROW_F2], writerText: MASAH_RULING + ' [[1]].' });
+      ok('A-3b wired: a unit whose only cited row does not support it keeps its row as evidence (no not-covered replace) and shows no card',
+        onlyUnsupported.deltas.join('').includes(MASAH_RULING) && !onlyUnsupported.deltas.join('').includes('<source') && !onlyUnsupported.deltas.join('').includes(NOT_COVERED) && onlyUnsupported.out.telemetry.readerSourceCount >= 1, ascii(JSON.stringify(onlyUnsupported.deltas)) + ' ' + JSON.stringify(onlyUnsupported.out.telemetry));
+      // mutant: the binding gone -> the fasting card follows the masah sentence again
+      const srcB = read('lib/bw2-units.js');
+      // the predicate itself is the seam: both the fresh-card test and the owed-card flush read it
+      const seamB = "    const supportsCard = (row) => !bindable(row) || sentenceSupportedByText(String(unitText || '').replace(/\\[\\[[^\\]]*\\]\\]/gu, ' '), pinnedTextOf(row) || String(row.title || ''));";
+      ok('A-3b mutant seam present', srcB.split(seamB).length === 2);
+      const tmpB = path.join(REPO, 'lib', '.mut-bw2-units-a3b.mjs');
+      try {
+        fs.writeFileSync(tmpB, srcB.split(seamB).join('    const supportsCard = () => true; // mutant: every card follows its citation again'));
+        const MB = await import(pathToFileURL(tmpB).href + '?m=a3b');
+        const outB = [];
+        const relB = MB.createBw2Releaser({ rows: [{ ...ROW_F1, ref: 1 }, { ...ROW_F2, ref: 2 }], emit: (p) => { outB.push(p); return true; },
+          cards: { buildSourceTag: (row) => ({ tag: '<source url="' + row.url + '">x</source>', url: row.url }), buildBookTag: () => null, max: 5 } });
+        relB.push(MASAH_RULING + ' [[1, 2]].\n' + MASAH_TERM + ' [[2]].\n');
+        await relB.end();
+        ok('MUTANT KILLED: without the binding the fasting page\'s card follows the masah term again', outB.join('').includes('/fatwas/5678'), ascii(outB.join('|')));
+      } finally { try { fs.rmSync(tmpB, { force: true }); } catch { /* nothing to clean */ } }
+    }
     // ── brain35 A-2 (2026-11-06; DIAG 35.3 / 35.11) · THE COMPLETION LEDGER ─────────────────────────────────
     // What the question asked is checked after release: a school asked and not named gets its scoped absence sentence
     // once; a collector / narrator / grader asked and not answered gets its role sentence. The captured battery texts
