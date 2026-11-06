@@ -111,8 +111,9 @@ const clean = (t) => { try { if (t && t.tmp) fs.rmSync(t.tmp, { recursive: true,
   // the sentence of EZIK-ORDER-BRAIN35-FIX-2026-11-06.md (A-3, writer rule), under its number: taken from the order file by code, never retyped
   const RULE12_SHA = '10dd55ce7fd7ae1a39dfa74b14babc01840cb36b7cb73562c656619da752a812';
   const rules = String(BW2.BW2_WRITE_RULES_BRAIN35 || '');
-  ok('4b the writer\'s rules carry rule 12 (the order\'s sentence) on every turn, after the tenth', rules.startsWith('١٢. ') && rules.includes('ولا يُنسَبُ إلى جامعِه') && BW2.bw2RulesFor([], 'x', []).endsWith(rules) && BW2.bw2RulesFor([], 'ما حكم المسح على الجوارب عند المذاهب الأربعة؟', []).includes(rules));
-  ok('4c rule 12 is pinned by sha256 (the order\'s sentence, byte for byte)', sha(rules) === RULE12_SHA, sha(rules));
+  const rule12 = rules.split('\n')[0]; // the brain35 rules: 12 (A-3), 13 (A-5) -- each line pinned by its own guard
+  ok('4b the writer\'s rules carry rule 12 (the order\'s sentence) on every turn, after the tenth', rule12.startsWith('١٢. ') && rule12.includes('ولا يُنسَبُ إلى جامعِه') && BW2.bw2RulesFor([], 'x', []).endsWith(rules) && BW2.bw2RulesFor([], 'ما حكم المسح على الجوارب عند المذاهب الأربعة؟', []).includes(rules));
+  ok('4c rule 12 is pinned by sha256 (the order\'s sentence, byte for byte)', sha(rule12) === RULE12_SHA, sha(rule12));
 
   // ── mutants ──
   const m1 = await twin('lib/free-brain/compiled-fatwa-books.js', (s) => s.replace("return COMPILED_FATWA_BOOK_IDS.has(bookIdOf(recordId)) ? 'compiler' : 'author';", "return 'author'; // mutant: nobody is a compiler"), 'role');

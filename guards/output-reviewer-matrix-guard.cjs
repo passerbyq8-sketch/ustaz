@@ -1011,6 +1011,64 @@ function quantityContradiction(parts) {
     ok('A-1 topic-gate mutant seam applied and module loaded', topicGateMutant.changed && topicGateMutant.loaded, topicGateMutant.error);
     ok('MUTANT KILLED: a hadith-grade answer cannot draw the khilaf tail', topicGateMutant.loaded && topicGateMutant.survived === false, JSON.stringify(topicGateMutant));
 
+
+    // ── brain35 A-5 (2026-11-06; DIAG 35.6, GEMMA-4b, NOTE-4, NOTE-9): GRADE MEANING, PRIOR TEXT, THE SAME-CASE PAIRS ──
+    // The grade frame compares FAMILIES (جيد/حسن are one; the CMP:483 frame was a false warning) and reads a grader's verb
+    // («جزم الألباني بضعف هذا الطريق» against the head's «موضوع»: Q22 never reached the frame); the self-contradiction check
+    // knows three same-case pairs, read only when both parts name the pair's subject (Q07: the fatwa's «وجوب قراءة المأموم
+    // الفاتحة» against the unit's «الواجب عليه الاستماع»); «عند X … وعند Y …» (rule 13's shape) names two speakers and is no
+    // contradiction; a view a licensed row attributes to a named man is a differentiated case.
+    {
+      const Q17 = 'ما درجة حديث «من صلى الغداة في جماعة ثم قعد يذكر الله حتى تطلع الشمس ثم صلى ركعتين»؟';
+      const P17 = 'حديث «من صلى الغداة في جماعة ثم قعد يذكر الله حتى تطلع الشمس ثم صلى ركعتين» حديث جيد رواه الترمذي.';
+      const framed = (mod, value, question, priorText) => mod.frameHadithGradeDisagreement(value, { question, priorText }) !== value;
+      ok('A-5 (jayyid, hasan) -> no frame: one family', !framed(module, 'وهذا الحديث حسن عند الألباني.', Q17, P17));
+      ok('A-5 (sahih, daif) -> frame: two families', framed(module, 'وهذا الحديث ضعيف عند غيره.', Q17, P17.replace('جيد', 'صحيح')));
+      const Q22 = 'ما درجة حديث «الجنة تحت أقدام الأمهات»؟ ومن خرّجه؟';
+      const H22 = 'الحديث لا يثبت مرفوعا إلى النبي صلى الله عليه وسلم، والحكم عليه في السلسلة الضعيفة: موضوع.';
+      ok('A-5 (موضوع in the head, «جزم الألباني بضعف هذا الطريق» in the unit) -> frame: the grader\'s verb is a claim', framed(module, 'وقد جزم الألباني بضعف هذا الطريق، ونقل عن ابن طاهر قوله فيه.', Q22, H22));
+      ok('A-5 («ضعفه الترمذي» after a head that says صحيح) -> frame; («صححه ابن حبان» after it) -> none', framed(module, 'وضعفه الترمذي بقوله: غريب.', Q22, H22.replace('موضوع', 'صحيح')) && !framed(module, 'وصححه ابن حبان في صحيحه.', Q22, H22.replace('موضوع', 'صحيح')));
+      const BLOCK07 = 'القول الصحيح في هذه المسألة هو وجوب قراءة المأموم الفاتحة في الصلاة السرية والجهرية، وتقرأ في سكتة الإمام بعد الفاتحة.';
+      const UNIT07 = 'والواجب عليه الاستماع والإنصات لقراءة الإمام، سواء في الجهرية أو السرية، واستدلوا بحديث ابن عباس.';
+      const sc = (mod, text, priorText, evidence = []) => mod.reviewAnswer({ text, evidence, domain: 'fiqh', mode: 'brief', priorText }).verdict.selfContradiction;
+      ok('A-5 Q07: the shown fatwa (وجوب القراءة) as prior text + the unit (الواجب عليه الاستماع) -> contradiction detected', sc(module, UNIT07, BLOCK07).detected === true && sc(module, UNIT07, BLOCK07).shape === 'polarity');
+      ok('A-5 ...and the unit alone (no prior text) is no contradiction', sc(module, UNIT07, '').detected === false);
+      ok('A-5 «فعند الحنفية يجب القضاء دون الكفارة، وعند الشافعية لا يجب القضاء.» -> no contradiction (two named speakers)', sc(module, 'فعند الحنفية يجب القضاء دون الكفارة، وعند الشافعية لا يجب القضاء.', '').detected === false);
+      const Q16A = 'ولو أفطر على شكه دون أن يتبين الحال بعد ذلك فعليه القضاء اتفاقا.';
+      const Q16B = 'وقد نص أبو بكر الحدادي على أنه إذا كان شاكا في الغروب فأفطر فعليه الكفارة.';
+      const ROW16 = { id: 'lib:FC-000001:0001', kind: 'lib_book', bookTitle: 'الجوهرة النيرة', title: 'الجوهرة النيرة · ج1 · ص140', author: 'أبو بكر الحدادي', authorRole: 'author', snippet: 'وإن أفطر وهو شاك في الغروب فعليه الكفارة، لأن الأصل بقاء النهار.', url: '' };
+      ok('A-5 Q16: «فعليه القضاء اتفاقا» then al-Haddadi\'s «فعليه الكفارة» on a row that licenses him -> his view, no contradiction', sc(module, Q16B, Q16A, [ROW16]).detected === false);
+      ok('A-5 Q16: the same kaffara sentence with no speaker -> contradiction (the qada / kaffara pair on the doubtful sunset)', sc(module, 'أما إذا كان شاكا في الغروب فأفطر فعليه الكفارة.', Q16A).detected === true);
+      ok('A-5 the pair reads nothing without its subject noun («عليه القضاء» about a prayer vs «عليه الكفارة» about an oath)', sc(module, 'ومن حنث في يمينه فعليه الكفارة.', 'ومن نام عن الصلاة فعليه القضاء.').detected === false);
+      const BW2A5 = await import(pathToFileURL(path.join(ROOT, 'lib', 'before-writing-v2.js')).href + '?a5=' + Date.now());
+      const rule13 = String(BW2A5.BW2_WRITE_RULES_BRAIN35 || '').split('\n')[1] || '';
+      ok('A-5 writer rule 13 (the order\'s sentence) follows rule 12 on every turn, pinned by sha256', rule13.startsWith('١٣. ') && require('crypto').createHash('sha256').update(rule13, 'utf8').digest('hex') === '255b767864eeb095100c723db5b04ecf416e7834f31d1be6fbe05882b621fef8' && BW2A5.bw2RulesFor([], 'x', []).includes(rule13));
+      const familyMutant = await runMutant({
+        sourceFile: REVIEWER,
+        name: 'grade-families-are-words-again',
+        transform: (source) => source.replace("export const gradeFamilyOf = (word) => GRADE_FAMILY[String(word || '')] || String(word || '');", "export const gradeFamilyOf = (word) => String(word || ''); // mutant: every word its own family"),
+        survives: (mutantModule) => !framed(mutantModule, 'وهذا الحديث حسن عند الألباني.', Q17, P17),
+      });
+      ok('A-5 family mutant seam applied and loaded', familyMutant.changed && familyMutant.loaded, familyMutant.error);
+      ok('MUTANT KILLED: with every grade word its own family, جيد vs حسن draws the frame again', familyMutant.loaded && familyMutant.survived === false, JSON.stringify(familyMutant));
+      const verbMutant = await runMutant({
+        sourceFile: REVIEWER,
+        name: 'grade-verb-is-no-claim',
+        transform: (source) => source.replace("      const byVerb = verbGradeIn(folded);", "      const byVerb = ''; // mutant: a grader's verb says nothing"),
+        survives: (mutantModule) => framed(mutantModule, 'وقد جزم الألباني بضعف هذا الطريق، ونقل عن ابن طاهر قوله فيه.', Q22, H22),
+      });
+      ok('A-5 verb mutant seam applied and loaded', verbMutant.changed && verbMutant.loaded, verbMutant.error);
+      ok('MUTANT KILLED: without the grader\'s verb Q22\'s «جزم بضعف» never reaches the frame', verbMutant.loaded && verbMutant.survived === false, JSON.stringify(verbMutant));
+      const pairMutant = await runMutant({
+        sourceFile: REVIEWER,
+        name: 'reading-pair-gone',
+        // the pair's own subject list is the seam: a second `subjects` key in the same object literal would be overridden by it
+        transform: (source) => source.replace("Object.freeze(['فاتحه', 'ماموم', 'امام', 'قراءه', 'لقراءه', 'جهريه', 'سريه'])", "Object.freeze(['nothing']) /* mutant: the reading pair reads nothing */"),
+        survives: (mutantModule) => sc(mutantModule, UNIT07, BLOCK07).detected === true,
+      });
+      ok('A-5 pair mutant seam applied and loaded', pairMutant.changed && pairMutant.loaded, pairMutant.error);
+      ok('MUTANT KILLED: without the reading/listening pair Q07\'s two obligations pass as one', pairMutant.loaded && pairMutant.survived === false, JSON.stringify(pairMutant));
+    }
     ok('the pure reviewer made zero network calls', wireCalls === 0, String(wireCalls));
   } catch (error) {
     fail++;
