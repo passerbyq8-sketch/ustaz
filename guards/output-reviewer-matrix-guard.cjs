@@ -354,8 +354,9 @@ function verbatimMarkerCopies(files, markerSets) {
         JSON.stringify(result.verdict));
     }
 
-    ok('B-2c fixture carries four trigger-priority witnesses, three restored words, and one boundary control',
-      Array.isArray(fixture.b2b?.cases) && fixture.b2b.cases.length === 8);
+    // brain35 A-1: the three restored words are retired (null), and a ninth row carries the new vocabulary
+    ok('B-2c fixture carries four trigger-priority witnesses, three retired words, one boundary control and one new-vocabulary witness',
+      Array.isArray(fixture.b2b?.cases) && fixture.b2b.cases.length === 9);
     const b2bCasePasses = (mod, test) => {
       const result = mod.reviewAnswer(test.input);
       return occurrences(result.text, fixture.c2.tail) === test.expect.tailCount
@@ -388,25 +389,27 @@ function verbatimMarkerCopies(files, markerSets) {
       return observations.filter(Boolean).length === exportedMarkerCorpus.expectedBoundedHits
         && observations.every((actual, index) => actual === exportedMarkerCases[index].expect);
     };
+    // brain35 A-1 (2026-11-06, owner: the khilaf warning only for a real contradiction): the prose vocabulary lost
+    // الراجح / الجمهور / بعض أهل العلم; the twenty deposited answers now carry 3 bounded hits (07, 08, 15) and 4 raw (+20 «بخلاف»).
     ok('D-1 exported-marker witness carries all twenty deposited X-Ray answers',
       exportedMarkerCases.length === 20
-        && exportedMarkerCorpus.expectedRawHits === 11
-        && exportedMarkerCorpus.expectedBoundedHits === 10);
-    ok('D-1 importer receives the bounded detector and observes ten hits, not eleven',
+        && exportedMarkerCorpus.expectedRawHits === 4
+        && exportedMarkerCorpus.expectedBoundedHits === 3);
+    ok('D-1 importer receives the bounded detector and observes three hits, not four',
       exportedMarkerCorpusPasses(module));
     ok('D-1 optional conjunction is accepted while Arabic-letter adhesion is rejected',
-      exportedMarkerCases[12]?.expect === true
-        && exportedMarkerCases[19]?.expect === false
-        && module.KHILAF_PROSE_MARKERS.test(withoutArabicDiacritics(exportedMarkerCases[12]?.text))
+      exportedMarkerCases[19]?.expect === false
+        && module.KHILAF_PROSE_MARKERS.test(withoutArabicDiacritics('فخلاف أهل العلم'))
+        && module.KHILAF_PROSE_MARKERS.test(withoutArabicDiacritics('وأقوال الفقهاء'))
         && !module.KHILAF_PROSE_MARKERS.test(withoutArabicDiacritics(exportedMarkerCases[19]?.text)));
 
     const d1 = fixture.d1;
     const d1Test = (mod, text) => mod.KHILAF_PROSE_MARKERS.test(withoutArabicDiacritics(text));
-    ok('D-1 records the measured 8-to-10 corpus delta and exactly two new deposited hits',
-      d1?.beforeHits === 8 && d1.afterHits === 10
+    ok('D-1 records the measured 1-to-3 corpus delta and exactly two new deposited hits',
+      d1?.beforeHits === 1 && d1.afterHits === 3
         && Array.isArray(d1.newHits) && d1.newHits.length === 2
         && JSON.stringify(d1.newHits.map((test) => test.id))
-          === JSON.stringify(['xray-answer-04', 'xray-answer-17']));
+          === JSON.stringify(['xray-answer-07', 'xray-answer-08']));
     ok('D-1 deposits the exact text of both newly detected answer-level witnesses',
       d1.newHits.every((test) => d1Test(module, test.text))
         && d1.newHits.every((test) => exportedMarkerCases
@@ -425,8 +428,8 @@ function verbatimMarkerCopies(files, markerSets) {
       sourceFile: REVIEWER,
       name: 'idafa-requires-definite-article-again',
       transform: (source) => source.replace(
-        '(?:ال)?راجح|(?:ال)?جمهور',
-        'الراجح|الجمهور'),
+        'خلاف|اختلف|قولان|أقوال|',
+        'الخلاف|اختلف|قولان|الأقوال|'),
       survives: (mutantModule) => {
         priorHitCount = exportedMarkerCases.filter((test) =>
           d1Test(mutantModule, test.text)).length;
@@ -435,7 +438,7 @@ function verbatimMarkerCopies(files, markerSets) {
     });
     ok('D-1 prior-article mutant seam applied and module loaded',
       priorArticleMutant.changed && priorArticleMutant.loaded, priorArticleMutant.error);
-    ok('D-1 prior-article mutant reproduces the measured eight-hit baseline',
+    ok('D-1 prior-article mutant reproduces the measured one-hit baseline',
       priorHitCount === d1.beforeHits, String(priorHitCount));
     ok('MUTANT KILLED: construct-state khilaf nouns cannot require the article again',
       priorArticleMutant.loaded && priorArticleMutant.survived === false,
@@ -470,7 +473,7 @@ function verbatimMarkerCopies(files, markerSets) {
     });
     ok('D-1 raw-export mutant seam applied and module loaded',
       rawExportMutant.changed && rawExportMutant.loaded, rawExportMutant.error);
-    ok('D-1 raw-export mutant reproduces the measured eleventh hit',
+    ok('D-1 raw-export mutant reproduces the measured fourth hit',
       rawExportHitCount === exportedMarkerCorpus.expectedRawHits, String(rawExportHitCount));
     ok('MUTANT KILLED: exported khilaf prose surface cannot regress to raw vocabulary',
       rawExportMutant.loaded && rawExportMutant.survived === false,
@@ -962,6 +965,51 @@ function quantityContradiction(parts) {
         text: module.reviewAnswer(tailInput).text,
         sentences: module.reviewAnswer(tailInput).verdict.sentences,
       }));
+
+    // ── brain35 A-1 (2026-11-06; DIAG 35.8 / PKG-2): ONE SCOPED GATE FOR THE THREE TRIGGERS ──
+    // The captured battery texts (fixtures/brain35-khilaf-cases.json, UTF-8 copies of Qnn.text.md fed as H3-khilaf.mjs fed
+    // them) and four hand-written controls: the tail only under a topic that allows it and only when the released text
+    // sets out two attributed views whose stances differ.
+    const khilafCases = JSON.parse(fs.readFileSync(path.join(ROOT, 'fixtures', 'brain35-khilaf-cases.json'), 'utf8'));
+    ok('A-1 fixture carries Q39, Q19, Q13, Q08 and the four controls', Array.isArray(khilafCases.cases) && khilafCases.cases.length === 8
+      && ['Q39', 'Q19', 'Q13', 'Q08'].every((id) => khilafCases.cases.some((c) => c.id === id)));
+    const { classifyTopic } = await import(pathToFileURL(path.join(ROOT, 'lib', 'policy', 'core.js')).href);
+    const khilafCasePasses = (mod, test) => {
+      const input = { ...test.input, topic: test.input.topic || classifyTopic(String(test.question || '')), question: test.question || '' };
+      const result = mod.reviewAnswer(input);
+      return result.verdict.khilafTrigger === test.expect.trigger
+        && occurrences(result.text, fixture.c2.tail) === (test.expect.trigger ? 1 : 0);
+    };
+    for (const test of khilafCases.cases) {
+      const input = { ...test.input, topic: test.input.topic || classifyTopic(String(test.question || '')), question: test.question || '' };
+      const result = module.reviewAnswer(input);
+      ok('A-1 ' + test.id + ': khilaf trigger is ' + JSON.stringify(test.expect.trigger) + ' (' + test.note.slice(0, 60) + ')',
+        khilafCasePasses(module, test), JSON.stringify({ trigger: result.verdict.khilafTrigger, releasedViews: result.verdict.releasedViews, topic: input.topic }));
+    }
+    ok('A-1 releasedViewsIn counts three school sections on Q08 and none on Q39/Q19',
+      module.releasedViewsIn([khilafCases.cases.find((c) => c.id === 'Q08').input.text]) >= 3
+        && module.releasedViewsIn([khilafCases.cases.find((c) => c.id === 'Q39').input.text]) < 2
+        && module.releasedViewsIn([khilafCases.cases.find((c) => c.id === 'Q19').input.text]) < 2);
+    const viewGateMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'khilaf-gate-ignores-released-views',
+      transform: (source) => source.replace(
+        '  if (!(Number(releasedViews) >= 2)) return null;',
+        '  if (false && !(Number(releasedViews) >= 2)) return null; // mutant: one view is enough again'),
+      survives: (mutantModule) => khilafCases.cases.every((test) => khilafCasePasses(mutantModule, test)),
+    });
+    ok('A-1 view-gate mutant seam applied and module loaded', viewGateMutant.changed && viewGateMutant.loaded, viewGateMutant.error);
+    ok('MUTANT KILLED: the khilaf tail cannot return on a one-view answer', viewGateMutant.loaded && viewGateMutant.survived === false, JSON.stringify(viewGateMutant));
+    const topicGateMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'khilaf-gate-ignores-hadith-topic',
+      transform: (source) => source.replace(
+        "const KHILAF_NO_TAIL_TOPICS_EXTRA = new Set(['hadith']);",
+        "const KHILAF_NO_TAIL_TOPICS_EXTRA = new Set([]); // mutant: a hadith grade may draw the tail again"),
+      survives: (mutantModule) => khilafCases.cases.every((test) => khilafCasePasses(mutantModule, test)),
+    });
+    ok('A-1 topic-gate mutant seam applied and module loaded', topicGateMutant.changed && topicGateMutant.loaded, topicGateMutant.error);
+    ok('MUTANT KILLED: a hadith-grade answer cannot draw the khilaf tail', topicGateMutant.loaded && topicGateMutant.survived === false, JSON.stringify(topicGateMutant));
 
     ok('the pure reviewer made zero network calls', wireCalls === 0, String(wireCalls));
   } catch (error) {

@@ -189,7 +189,7 @@
       {
         "id": "c1-truncated-suppresses-answer-footer",
         "input": {
-          "text": "في هذه المسألة خلاف بين أهل العلم",
+          "text": "في هذه المسألة خلاف بين أهل العلم وذهب الحنفية إلى أن ذلك واجب، وذهب الشافعية إلى أنه مكروه.",
           "evidence": [],
           "domain": "fiqh",
           "mode": "audit",
@@ -205,7 +205,7 @@
       {
         "id": "c1-complete-keeps-answer-footer",
         "input": {
-          "text": "في هذه المسألة خلاف بين أهل العلم",
+          "text": "في هذه المسألة خلاف بين أهل العلم وذهب الحنفية إلى أن ذلك واجب، وذهب الشافعية إلى أنه مكروه.",
           "evidence": [],
           "domain": "fiqh",
           "mode": "audit",
@@ -221,7 +221,7 @@
       {
         "id": "c1-unknown-keeps-answer-footer",
         "input": {
-          "text": "في هذه المسألة خلاف بين أهل العلم",
+          "text": "في هذه المسألة خلاف بين أهل العلم وذهب الحنفية إلى أن ذلك واجب، وذهب الشافعية إلى أنه مكروه.",
           "evidence": [],
           "domain": "fiqh",
           "mode": "audit",
@@ -344,7 +344,7 @@
         "id": "c2-colon-before-hadith",
         "input": {
           "khilafFromOpinions": true,
-          "text": "المسألة فيها خلاف، لعموم قوله صلى الله عليه وسلم:\n<hadith>لَا صَلَاةَ لِمَنْ لَمْ يَقْرَأْ بِفَاتِحَةِ الْكِتَابِ</hadith>",
+          "text": "المسألة فيها خلاف، لعموم قوله صلى الله عليه وسلم:\n<hadith>لَا صَلَاةَ لِمَنْ لَمْ يَقْرَأْ بِفَاتِحَةِ الْكِتَابِ</hadith> وذهب الحنفية إلى أن ذلك واجب، وذهب الشافعية إلى أنه مكروه.",
           "evidence": [],
           "domain": "fiqh",
           "mode": "عادي"
@@ -375,7 +375,7 @@
         "id": "c2-open-quotation-across-card",
         "input": {
           "khilafFromOpinions": true,
-          "text": "المسألة فيها خلاف، ونصها: \"إن كان المقصود إلزامه بالأخذ\n<source site=\"example.test\" url=\"https://example.test/fatwa\">نص المصدر</source>\nفلا يقع الطلاق\".",
+          "text": "المسألة فيها خلاف، ونصها: \"إن كان المقصود إلزامه بالأخذ\n<source site=\"example.test\" url=\"https://example.test/fatwa\">نص المصدر</source>\nفلا يقع الطلاق\". وذهب الحنفية إلى أن ذلك واجب، وذهب الشافعية إلى أنه مكروه.",
           "evidence": [],
           "domain": "fiqh",
           "mode": "عادي"
@@ -405,7 +405,7 @@
     ],
     "tailFlood": {
       "khilafFromOpinions": true,
-      "text": "في المسألة خلاف. وللعلماء قولان. واختلف الفقهاء في التفصيل.",
+      "text": "في المسألة خلاف. وللعلماء قولان. واختلف الفقهاء في التفصيل. وذهب الحنفية إلى أن ذلك واجب، وذهب الشافعية إلى أنه مكروه.",
       "evidence": [],
       "domain": "fiqh",
       "mode": "عادي"
@@ -416,7 +416,7 @@
       {
         "id": "b2-source-when-opinions-absent",
         "input": {
-          "text": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629.",
+          "text": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629. وذهب الحنفية إلى أن ذلك واجب، وذهب الشافعية إلى أنه مكروه.",
           "evidence": [{
             "id": "b2-source-explicit",
             "snippet": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629\u060c \u0648\u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0645\u0633\u0623\u0644\u0629 \u062e\u0644\u0627\u0641 \u0628\u064a\u0646 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645."
@@ -429,7 +429,7 @@
       {
         "id": "b2-opinions-with-silent-source",
         "input": {
-          "text": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629.",
+          "text": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629. وذهب الحنفية إلى أن ذلك واجب، وذهب الشافعية إلى أنه مكروه.",
           "evidence": [{ "id": "b2-source-silent", "snippet": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629." }],
           "domain": "fiqh",
           "mode": "\u0639\u0627\u062f\u064a",
@@ -441,7 +441,7 @@
       {
         "id": "b2-both-signals-one-tail",
         "input": {
-          "text": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629.",
+          "text": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629. وذهب الحنفية إلى أن ذلك واجب، وذهب الشافعية إلى أنه مكروه.",
           "evidence": [{
             "id": "b2-source-and-opinions",
             "snippet": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629\u060c \u0648\u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0645\u0633\u0623\u0644\u0629 \u062e\u0644\u0627\u0641 \u0628\u064a\u0646 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645."
@@ -456,7 +456,7 @@
       {
         "id": "b2b-model-prose-restored",
         "input": {
-          "text": "\u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0645\u0633\u0623\u0644\u0629 \u062e\u0644\u0627\u0641 \u0628\u064a\u0646 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645\u060c \u0648\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629.",
+          "text": "\u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0645\u0633\u0623\u0644\u0629 \u062e\u0644\u0627\u0641 \u0628\u064a\u0646 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645\u060c \u0648\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629. وذهب الحنفية إلى أن ذلك واجب، وذهب الشافعية إلى أنه مكروه.",
           "evidence": [{ "id": "b2-model-only-source", "snippet": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629." }],
           "domain": "fiqh",
           "mode": "\u0639\u0627\u062f\u064a"
@@ -507,26 +507,26 @@
       "source": "sessions/EZIK-XRAY-CC-ANSWERS-2026-08-17.txt",
       "sourceSha256Prefix": "FC1198A6",
       "representation": "one marker-bearing excerpt, or an empty string, for each deposited answer",
-      "expectedRawHits": 11,
-      "expectedBoundedHits": 10,
+      "expectedRawHits": 4,
+      "expectedBoundedHits": 3,
       "cases": [
         { "id": "xray-answer-01", "text": "نعم، ترثه؛ فالمطلقة طلاقا رجعيا لا تزال", "expect": false },
         { "id": "xray-answer-02", "text": "ترثه، نعم — وهذا هو الحكم الفقهي المقرر", "expect": false },
-        { "id": "xray-answer-03", "text": "الراجح", "expect": true },
-        { "id": "xray-answer-04", "text": "إدراكُ الركعةِ عند جمهور أهل العلم إنما يكون بإدراك الركوع مع الإمام، فمن أدرك الإمام راكعًا وركع معه قبل أن يرفع الإمامُ رأسَه، فقد أدرك تلك الركعة كاملة، كما في حديث أبي بكرة رضي الله عنه حين دخل والنبي صلى الله عليه وسلم راكع فركع دون الصف ثم دبّ إلى الصف، فقال له النبي صلى الله عليه وسلم: «زادك الله حرصًا ولا تعد» ولم يأمره بقضاء تلك الركعة.", "expect": true },
+        { "id": "xray-answer-03", "text": "الراجح", "expect": false },
+        { "id": "xray-answer-04", "text": "إدراكُ الركعةِ عند جمهور أهل العلم إنما يكون بإدراك الركوع مع الإمام، فمن أدرك الإمام راكعًا وركع معه قبل أن يرفع الإمامُ رأسَه، فقد أدرك تلك الركعة كاملة، كما في حديث أبي بكرة رضي الله عنه حين دخل والنبي صلى الله عليه وسلم راكع فركع دون الصف ثم دبّ إلى الصف، فقال له النبي صلى الله عليه وسلم: «زادك الله حرصًا ولا تعد» ولم يأمره بقضاء تلك الركعة.", "expect": false },
         { "id": "xray-answer-05", "text": "لا ينتقض وضوؤك، ولا يجب عليك إعادته", "expect": false },
         { "id": "xray-answer-06", "text": "لا ينتقض وضوؤك في هذه الحال، ولا يجب عليك إعادته", "expect": false },
         { "id": "xray-answer-07", "text": "خلاف", "expect": true },
         { "id": "xray-answer-08", "text": "خلاف", "expect": true },
         { "id": "xray-answer-09", "text": "سأبحث لك في فتاوى العلماء عن هذه المسألة", "expect": false },
-        { "id": "xray-answer-10", "text": "الراجح", "expect": true },
+        { "id": "xray-answer-10", "text": "الراجح", "expect": false },
         { "id": "xray-answer-11", "text": "", "expect": false },
         { "id": "xray-answer-12", "text": "", "expect": false },
-        { "id": "xray-answer-13", "text": "فالراجح", "expect": true },
-        { "id": "xray-answer-14", "text": "الراجح", "expect": true },
+        { "id": "xray-answer-13", "text": "فالراجح", "expect": false },
+        { "id": "xray-answer-14", "text": "الراجح", "expect": false },
         { "id": "xray-answer-15", "text": "اختلف", "expect": true },
-        { "id": "xray-answer-16", "text": "بعض أهل العلم", "expect": true },
-        { "id": "xray-answer-17", "text": "في مثل هذه الحال، لا يجوزُ له المسحُ عليهما في الوضوءِ القادم؛ لأنّ الشرطَ المتّفقَ عليه عند جمهور أهل العلم هو كمالُ الطهارة قبل لبسِ كلا الخفّين، ولم يتحقّقْ ذلك هنا.", "expect": true },
+        { "id": "xray-answer-16", "text": "بعض أهل العلم", "expect": false },
+        { "id": "xray-answer-17", "text": "في مثل هذه الحال، لا يجوزُ له المسحُ عليهما في الوضوءِ القادم؛ لأنّ الشرطَ المتّفقَ عليه عند جمهور أهل العلم هو كمالُ الطهارة قبل لبسِ كلا الخفّين، ولم يتحقّقْ ذلك هنا.", "expect": false },
         { "id": "xray-answer-18", "text": "سأتحقق من هذه المسألة الدقيقة", "expect": false },
         { "id": "xray-answer-19", "text": "يقطعها فورا يا مساعد، ولا يجوز له أن يكمل", "expect": false },
         { "id": "xray-answer-20", "text": "بخلاف", "expect": false }
@@ -536,7 +536,7 @@
       {
         "id": "b2b-prose-only-explicit",
         "input": {
-          "text": "في هذه المسألة خلاف بين أهل العلم، والجمع للمسافر جائز عند الحاجة.",
+          "text": "في هذه المسألة خلاف بين أهل العلم، والجمع للمسافر جائز عند الحاجة. وذهب الحنفية إلى أن ذلك واجب، وذهب الشافعية إلى أنه مكروه.",
           "evidence": [{ "id": "b2b-silent-source", "snippet": "الجمع للمسافر جائز عند الحاجة." }],
           "domain": "fiqh",
           "mode": "عادي"
@@ -546,7 +546,7 @@
       {
         "id": "b2b-source-over-prose",
         "input": {
-          "text": "في هذه المسألة خلاف بين أهل العلم، والجمع للمسافر جائز عند الحاجة.",
+          "text": "في هذه المسألة خلاف بين أهل العلم، والجمع للمسافر جائز عند الحاجة. وذهب الحنفية إلى أن ذلك واجب، وذهب الشافعية إلى أنه مكروه.",
           "evidence": [{ "id": "b2b-explicit-source", "snippet": "في هذه المسألة خلاف بين أهل العلم، والجمع للمسافر جائز عند الحاجة." }],
           "domain": "fiqh",
           "mode": "عادي"
@@ -556,7 +556,7 @@
       {
         "id": "b2b-opinions-over-prose",
         "input": {
-          "text": "في هذه المسألة خلاف بين أهل العلم، والجمع للمسافر جائز عند الحاجة.",
+          "text": "في هذه المسألة خلاف بين أهل العلم، والجمع للمسافر جائز عند الحاجة. وذهب الحنفية إلى أن ذلك واجب، وذهب الشافعية إلى أنه مكروه.",
           "evidence": [{ "id": "b2b-opinions-silent-source", "snippet": "الجمع للمسافر جائز عند الحاجة." }],
           "domain": "fiqh",
           "mode": "عادي",
@@ -568,7 +568,7 @@
       {
         "id": "b2b-all-three-one-tail",
         "input": {
-          "text": "في هذه المسألة خلاف بين أهل العلم، والجمع للمسافر جائز عند الحاجة.",
+          "text": "في هذه المسألة خلاف بين أهل العلم، والجمع للمسافر جائز عند الحاجة. وذهب الحنفية إلى أن ذلك واجب، وذهب الشافعية إلى أنه مكروه.",
           "evidence": [{ "id": "b2b-all-three-source", "snippet": "في هذه المسألة خلاف بين أهل العلم، والجمع للمسافر جائز عند الحاجة." }],
           "domain": "fiqh",
           "mode": "عادي",
@@ -580,32 +580,32 @@
       {
         "id": "b2c-conjoined-preferred-view",
         "input": {
-          "text": "فالراجح أن الجمع للمسافر جائز عند الحاجة.",
+          "text": "فالراجح أن الجمع للمسافر جائز عند الحاجة. وذهب الحنفية إلى أن ذلك واجب، وذهب الشافعية إلى أنه مكروه.",
           "evidence": [],
           "domain": "fiqh",
           "mode": "عادي"
         },
-        "expect": { "tailCount": 1, "trigger": "prose", "fromSource": false, "fromOpinions": null, "fromModelProse": true, "opinionCount": null }
+        "expect": { "tailCount": 0, "trigger": null, "fromSource": false, "fromOpinions": null, "fromModelProse": false, "opinionCount": null }
       },
       {
         "id": "b2b-loose-majority",
         "input": {
-          "text": "الجمهور على أن الجمع للمسافر جائز عند الحاجة.",
+          "text": "الجمهور على أن الجمع للمسافر جائز عند الحاجة. وذهب الحنفية إلى أن ذلك واجب، وذهب الشافعية إلى أنه مكروه.",
           "evidence": [],
           "domain": "fiqh",
           "mode": "عادي"
         },
-        "expect": { "tailCount": 1, "trigger": "prose", "fromSource": false, "fromOpinions": null, "fromModelProse": true, "opinionCount": null }
+        "expect": { "tailCount": 0, "trigger": null, "fromSource": false, "fromOpinions": null, "fromModelProse": false, "opinionCount": null }
       },
       {
         "id": "b2b-loose-some-scholars",
         "input": {
-          "text": "قال بعض أهل العلم إن الجمع للمسافر جائز عند الحاجة.",
+          "text": "قال بعض أهل العلم إن الجمع للمسافر جائز عند الحاجة. وذهب الحنفية إلى أن ذلك واجب، وذهب الشافعية إلى أنه مكروه.",
           "evidence": [],
           "domain": "fiqh",
           "mode": "عادي"
         },
-        "expect": { "tailCount": 1, "trigger": "prose", "fromSource": false, "fromOpinions": null, "fromModelProse": true, "opinionCount": null }
+        "expect": { "tailCount": 0, "trigger": null, "fromSource": false, "fromOpinions": null, "fromModelProse": false, "opinionCount": null }
       },
       {
         "id": "b2b-lexical-contrast-only",
@@ -616,36 +616,39 @@
           "mode": "عادي"
         },
         "expect": { "tailCount": 0, "trigger": null, "fromSource": false, "fromOpinions": null, "fromModelProse": false, "opinionCount": null }
+      },
+      {
+        "id": "b2b-others-went-new-vocabulary",
+        "input": {
+          "text": "ذهب الحنفية إلى أن ذلك واجب، وذهب آخرون إلى أنه مكروه.",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": { "tailCount": 1, "trigger": "prose", "fromSource": false, "fromOpinions": null, "fromModelProse": true, "opinionCount": null }
       }
     ]
   },
   "d1": {
     "source": "sessions/EZIK-XRAY-CC-ANSWERS-2026-08-17.txt",
     "sourceSha256Prefix": "FC1198A6",
-    "beforeHits": 8,
-    "afterHits": 10,
+    "remeasured": "brain35 A-1 2026-11-06: the prose vocabulary narrowed to خلاف / اختلف / قولان / أقوال / على قولين / وذهب آخرون / والقول الثاني",
+    "beforeHits": 1,
+    "afterHits": 3,
     "newHits": [
-      {
-        "id": "xray-answer-04",
-        "run": "Q12/run-2",
-        "text": "إدراكُ الركعةِ عند جمهور أهل العلم إنما يكون بإدراك الركوع مع الإمام، فمن أدرك الإمام راكعًا وركع معه قبل أن يرفع الإمامُ رأسَه، فقد أدرك تلك الركعة كاملة، كما في حديث أبي بكرة رضي الله عنه حين دخل والنبي صلى الله عليه وسلم راكع فركع دون الصف ثم دبّ إلى الصف، فقال له النبي صلى الله عليه وسلم: «زادك الله حرصًا ولا تعد» ولم يأمره بقضاء تلك الركعة."
-      },
-      {
-        "id": "xray-answer-17",
-        "run": "Q19/run-1",
-        "text": "في مثل هذه الحال، لا يجوزُ له المسحُ عليهما في الوضوءِ القادم؛ لأنّ الشرطَ المتّفقَ عليه عند جمهور أهل العلم هو كمالُ الطهارة قبل لبسِ كلا الخفّين، ولم يتحقّقْ ذلك هنا."
-      }
+      { "id": "xray-answer-07", "text": "خلاف" },
+      { "id": "xray-answer-08", "text": "خلاف" }
     ],
     "positive": [
-      { "id": "idafa-majority", "text": "جمهور الفقهاء" },
-      { "id": "idafa-preferred", "text": "راجح القولين" },
-      { "id": "waw-idafa", "text": "وجمهور الفقهاء" },
-      { "id": "fa-idafa", "text": "فجمهور الفقهاء" }
+      { "id": "idafa-khilaf", "text": "خلاف أهل العلم" },
+      { "id": "idafa-opinions", "text": "أقوال الفقهاء" },
+      { "id": "waw-idafa", "text": "وخلاف أهل العلم" },
+      { "id": "fa-idafa", "text": "فأقوال الفقهاء" }
     ],
     "negative": [
       { "id": "republic", "text": "جمهورية" },
       { "id": "the-republic", "text": "الجمهورية" },
-      { "id": "other-attached-letter", "text": "بجمهور الفقهاء" },
+      { "id": "other-attached-letter", "text": "بخلاف المقيم" },
       { "id": "lexical-contrast", "text": "بخلاف المقيم" }
     ]
   },
