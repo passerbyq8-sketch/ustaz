@@ -603,6 +603,90 @@ async function main() {
   ok('MUTANT killed: forcing a ruling onto a no-explicit-ruling fixture is refused',
     FF.unsupportedMajorityClaims('والراجح عند عامة أهل العلم أنه لا يجوز.', [noRuling]).length === 1);
 
+
+  // ── brain35 B-1 (2026-11-06; DIAG 35.2; the owner's decision, contract section 5) · THE BRIEF BLOCK ───────────
+  // MEASURED on the delivered blocks (H2): a 523-character reader's letter left ZERO answer characters inside the
+  // 600-character budget (Q01, Q04, Q28). The answer now gets the budget, the question rides in the expansion, and a
+  // record whose answer says nothing («والله ما أذكر، ما أدري»: Q22) opens no block at all.
+  console.log('\n--- brain35 B-1 · THE BRIEF BLOCK: THE ANSWER FIRST ---');
+  {
+    const UNITS = await esm('lib/bw2-units.js');
+    const longQuestion = 'سؤال طويل من قارئ يحكي حاله: ' + 'وقد كنت أعمل في بلد بعيد ثم رجعت إلى أهلي وقد تغيرت أحوالي كثيرا وصار عندي من المسائل ما يحتاج إلى بيان، '.repeat(4);
+    const answerBody = 'الواجب عليك أن تتوب إلى الله توبة صادقة وتكثر من العمل الصالح. وليس عليك قضاء ما تركت من الصلوات على القول الراجح عند أهل العلم. وأما الصيام فعليك أن تقضي ما أفطرته في رمضان بعدد الأيام التي أفطرتها إن كنت تعلمها.';
+    const record = (answer) => ({
+      question: longQuestion.trim(), answer, displayPolicy: 'full', contentMode: 'written_fatwa', fullTextComplete: true,
+      truncated: false, omittedChars: 0, supportText: longQuestion + ' ' + answer, url: 'https://example.invalid/b1',
+      publisher: 'ابن باز', scholar: { id: 'binbaz', name: 'ابن باز' },
+    });
+    const long = record(answerBody);
+    ok('B-1 the fixture is the measured shape: a question of 448 characters and an answer of its own, the whole block over the budget',
+      long.question.length === 448 && long.answer.length > 200 && (long.question.length + long.answer.length) > FF.BRIEF_FATWA_MAX);
+    const brief = FF.serverOwnedBlock(long, [], { band: 'adult', brief: true });
+    const shown = brief.split('<fatwafull')[0];
+    ok('B-1 the brief block opens on «## نص الفتوى» and «الجواب (مختصرًا):», not on the question',
+      shown.startsWith('## ' + FF.HEADING_TEXT) && shown.includes(FF.BRIEF_ANSWER_HEAD) && !shown.includes('السؤال:'), shown.slice(0, 120));
+    ok('B-1 it carries at least one COMPLETE answer sentence and no question text',
+      shown.includes('الواجب عليك أن تتوب إلى الله توبة صادقة وتكثر من العمل الصالح.') && !shown.includes(long.question.slice(0, 24)), shown.slice(0, 200));
+    ok('B-1 it closes on «…» and stays inside the budget', shown.includes('…') && shown.length <= FF.BRIEF_FATWA_MAX + 2, String(shown.length));
+    const expansion = /matn="([A-Za-z0-9+/=]+)"/u.exec(brief);
+    const expanded = expansion ? Buffer.from(expansion[1], 'base64').toString('utf8') : '';
+    ok('B-1 the expansion keeps the original question and answer, byte for byte',
+      expanded.includes('السؤال:') && expanded.includes(long.question.slice(0, 40)) && expanded.includes(long.answer));
+    ok('B-1 the other depths are untouched: the whole block, question first',
+      FF.serverOwnedBlock(long, [], { band: 'adult' }).startsWith('## ' + FF.HEADING_TEXT + '\n\nالسؤال:'));
+    // a record with nothing to say
+    const nothing = record('والله ما أذكر، ما أدري.');
+    ok('B-1 «والله ما أذكر، ما أدري» is no answer: substantiveFatwaAnswer false, and the brief block is empty',
+      FF.substantiveFatwaAnswer(nothing) === false && FF.serverOwnedBlock(nothing, [], { band: 'adult', brief: true }) === '');
+    ok('B-1 ...and a short but real answer is substantive', FF.substantiveFatwaAnswer(record('نعم يجوز لك أن تجمع بين الصلاتين في السفر إذا احتجت إلى ذلك.')) === true
+      && FF.substantiveFatwaAnswer(record('لا أعلم')) === false && FF.MIN_ANSWER_WORDS === 12);
+    ok('B-1 the direct-row selection asks the same question (lib/before-writing-v2.js skips a record with no answer)',
+      fs.readFileSync(path.join(REPO, 'lib/before-writing-v2.js'), 'utf8').includes('if (rec && !substantiveFatwaAnswer(rec)) continue;'));
+    // Q09's shape: a unit that RETELLS the shown block is held
+    const block = FF.serverOwnedBlock(long, [], { band: 'adult', brief: true });
+    const retell = 'وأما الفتوى المعروضة، فجاء فيها أن الواجب عليه أن يتوب إلى الله توبة صادقة وأن يكثر من العمل الصالح، وأنه ليس عليه قضاء ما ترك من الصلوات على القول الراجح عند أهل العلم [[1]].';
+    // the unit cites the row the block came from, so nothing but the retelling rule can hold it
+    const blockRow = { ref: 1, kind: 'fatwa', title: 'حكم قضاء الصلوات المتروكة', url: 'https://example.invalid/b1', publisher: 'ابن باز', scholarId: 'binbaz', recordId: 'b1', text: answerBody, passage: answerBody };
+    const drive = async (mod, unit) => {
+      const out = [];
+      const rel = mod.createBw2Releaser({ rows: [blockRow], emit: (p) => { out.push(p); return true; }, aboveText: block, cards: null });
+      rel.push(unit + '\n');
+      const sum = await rel.end();
+      return { text: out.join(''), released: sum.released, holds: sum.holds };
+    };
+    const held = await drive(UNITS, retell);
+    ok('B-1 a unit that opens on «وأما الفتوى المعروضة» and retells the shown block is held as a repeat',
+      held.released === 0 && held.holds.repeat === 1 && !held.text.includes('الفتوى المعروضة'), JSON.stringify(held.holds));
+    const fresh = await drive(UNITS, 'ومن أراد التفصيل في النذور والكفارات فليسأل أهل العلم في بلده عما يلزمه منها [[1]].');
+    ok('B-1 ...and a unit that says something else is released', fresh.released === 1 && !fresh.holds.repeat, JSON.stringify(fresh.holds));
+    ok('B-1 REPEAT_SHARE is the measured 0.6', UNITS.REPEAT_SHARE === 0.6);
+    // mutants
+    const mutate = async (file, from, to, tag) => {
+      const src = fs.readFileSync(path.join(REPO, file), 'utf8');
+      if (src.split(from).length !== 2) return { ok: false, reason: 'seam' };
+      const tmp = path.join(REPO, 'lib', '.mut-b1-' + tag + '.mjs');
+      fs.writeFileSync(tmp, src.split(from).join(to).replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + require('url').pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+      try { return { ok: true, mod: await import(require('url').pathToFileURL(tmp).href + '?m=' + Date.now()) }; } finally { fs.rmSync(tmp, { force: true }); }
+    };
+    const m1 = await mutate('lib/full-fatwa.js', "        const answerOnly = briefExcerpt(printed.answer, Math.max(1, BRIEF_FATWA_MAX - head.length));",
+      "        const answerOnly = briefExcerpt(whole, Math.max(1, BRIEF_FATWA_MAX - head.length)); // mutant: the question is back in the budget", 'budget');
+    ok('B-1 MUTANT budget seam applied', m1.ok, m1.reason);
+    ok('B-1 MUTANT KILLED: with the question back in the budget the reader sees no answer sentence',
+      m1.ok && !m1.mod.serverOwnedBlock(long, [], { band: 'adult', brief: true }).split('<fatwafull')[0].includes('الواجب عليك أن تتوب إلى الله توبة صادقة.'));
+    const m2 = await mutate('lib/full-fatwa.js', '      if (!substantiveFatwaAnswer(record)) return \'\';',
+      '      if (false) return \'\'; // mutant: a record with nothing to say still opens the answer', 'nothing');
+    ok('B-1 MUTANT no-answer seam applied', m2.ok, m2.reason);
+    ok('B-1 MUTANT KILLED: without the test «ما أدري» opens the answer again',
+      m2.ok && m2.mod.serverOwnedBlock(nothing, [], { band: 'adult', brief: true }) !== '');
+    const m3 = await mutate('lib/bw2-units.js', 'export const REPEAT_SHARE = 0.6;', 'export const REPEAT_SHARE = 1.1; // mutant: no retelling ever reaches the share', 'share');
+    ok('B-1 MUTANT share seam applied', m3.ok, m3.reason);
+    if (m3.ok) {
+      const loose = await drive(m3.mod, retell);
+      ok('B-1 MUTANT KILLED: with an unreachable share the retelling is released again', loose.released === 1, JSON.stringify(loose.holds));
+    }
+  }
+
   console.log('\n=== full-fatwa-contract: ' + (checks - failures) + '/' + checks
     + ' — ' + (failures ? 'FAIL' : 'PASS') + ' ===');
   process.exit(failures ? 1 : 0);
