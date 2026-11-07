@@ -836,7 +836,16 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         upstreamSignalAbortedEver, framesDelivered,
       };
     };
+    // ── brain35-4 Y4 (2026-11-07; FIX3 FOUND 5; owner: "yes to the four") · THE ENDPOINT SECTION OFFLINE END TO END ──────────
+    // X16 refused name resolution for the F-008 block only; outside it this section still preflight-resolved its fixture hosts and
+    // any row reaching the identity probe would have gone to the network. The same refusal (safe-fetch's own test seam) now stands
+    // around the whole section -- every row that drives api/ask.js -- and is reset in the section's finally. Row Y4 asserts it at
+    // the first and at the last row; the X16 row keeps asserting it inside the F-008 block. No product code.
+    let SAFE_FETCH = null;
     try {
+      SAFE_FETCH = await esm('lib/ledger/safe-fetch.js');
+      SAFE_FETCH.__setResolverForTest(async (host) => { throw new Error('offline gate: no resolution for ' + host); });
+      const refusedAtFirstRow = await SAFE_FETCH.checkHostAddresses('islamqa.info');
       ok('A1 endpoint assertions execute the handleEvent parser shipped in index.html', typeof clientVisibleFromRaw === 'function');
       /* Split out of A1: bare-hadith claim detection remains open.
       const h1 = '\u0625\u0646\u0645\u0627 \u0627\u0644\u0623\u0639\u0645\u0627\u0644 \u0628\u0627\u0644\u0646\u064a\u0627\u062a';
@@ -937,8 +946,7 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       // 'wikipedia' }» -> no problems). The row's subject is the MISS. For this block the gate refuses every name
       // resolution through safe-fetch's own test seam: preflight fails, the probe misses deterministically, and the gate
       // sends nothing to the network here. Restored after the block.
-      const SAFE_FETCH = await esm('lib/ledger/safe-fetch.js');
-      SAFE_FETCH.__setResolverForTest(async (host) => { throw new Error('offline gate: no resolution for ' + host); });
+      // brain35-4 Y4: the refusal is the section's (set above its first row); the X16 row below keeps asserting it here
       const wikiPreflight = await SAFE_FETCH.checkHostAddresses('ar.wikipedia.org');
       ok('X16 the name resolution is refused for the F-008 block (the identity probe cannot reach ar.wikipedia.org)', wikiPreflight && wikiPreflight.ok === false, JSON.stringify(wikiPreflight));
       const presenceBad = await drive({ question: presenceQuestion, draft: contradiction, evidence: '' });
@@ -960,9 +968,11 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       const expectedPresenceLead = (await esm('lib/policy/name-presence.js'))
         .nameUnknownLine('\u062e\u0627\u0644\u062f \u0639\u0628\u062f\u0627\u0644\u0631\u062d\u0645\u0646');
       ok('F-008 endpoint fixture has namedEntity empty and a real structured presence lead', presencePlan.namedEntity === '' && presenceGood.text.startsWith(expectedPresenceLead + '\n\n'), JSON.stringify({ namedEntity: presencePlan.namedEntity, text: presenceGood.text }));
-      SAFE_FETCH.__resetResolver(); // brain35-3 X16: the real resolver back for the rows after this block
       ok('F-008 endpoint green: composed text is finalized before first target write/end', rawContract(presenceGood) && presenceGood.res.textWritesBeforeFinalizer === 0 && presenceGood.res.endsBeforeFinalizer === 0 && presenceGood.finalizerProblems.length === 0 && presenceGood.text === expectedPresenceLead + '\n\n' + presenceBody, presenceGood.text);
-    } finally { globalThis.fetch = originalFetch; }
+      const refusedAtLastRow = await SAFE_FETCH.checkHostAddresses('ar.wikipedia.org');
+      ok('Y4 the name resolution is refused at the first and at the last row of the endpoint section (the gate sends nothing to the network)',
+        refusedAtFirstRow && refusedAtFirstRow.ok === false && refusedAtLastRow && refusedAtLastRow.ok === false, JSON.stringify({ refusedAtFirstRow, refusedAtLastRow }));
+    } finally { globalThis.fetch = originalFetch; if (SAFE_FETCH) SAFE_FETCH.__resetResolver(); /* brain35-4 Y4: the real resolver back after the section */ }
   }
 
   // ── 12. THE LEAD-IN GOES WITH THE BLOCK THE SEAL DROPS ─────────────────────
