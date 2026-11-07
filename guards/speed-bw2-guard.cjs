@@ -2607,6 +2607,35 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
           !!MI && (await play12(MI, IMAM_12)).holds.unsupported_school === 1, MI ? JSON.stringify((await play12(MI, IMAM_12)).holds) : 'no module');
       }
     }
+    // ---------------------------------------------------------------- ITEM 35-D3 D6 (i) (brain35-3 X9, 2026-11-07; owner: (iii) with (ii) first): A DEMONSTRATIVE AFTER A BARE VERB IS A BACK-REFERENCE
+    // MEASURED (DIAG3 H6 (b), preview Q12 / Q6): «استدل هؤلاء بحديث: …» and «يكون هذا أشد وأعظم…» were released with nothing naming
+    // «هؤلاء» / «هذا» before them: «استدل» is a bare five-letter verb in no set, and «هؤلاء» / «هذا» as the second word is in
+    // none of the pointer sets (POINTER_OBJECT_SET is distal only). A verb of three to five letters + one of
+    // هؤلاء / هذا / هذه / ذلك / تلك / أولئك as the second word is now 'backref'; a demonstrative as the FIRST word is unchanged.
+    {
+      const UNITS_X9 = await esm('lib/bw2-units.js');
+      const k9 = (t) => UNITS_X9.dependentKind(t);
+      ok('X9a «استدل هؤلاء بحديث…» -> backref', k9('استدل هؤلاء بحديث: من ملك زادا وراحلة تبلغه إلى بيت الله ولم يحج فلا عليه أن يموت يهوديا أو نصرانيا.') === 'backref', k9('استدل هؤلاء بحديث: من ملك زادا وراحلة.'));
+      ok('X9b «يكون هذا أشد» -> backref', k9('يكون هذا أشد وأعظم، لأن ولاة الأمور إذا اغتيبوا ترتب على ذلك مفاسد.') === 'backref', k9('يكون هذا أشد وأعظم.'));
+      ok('X9c «واستدل هؤلاء بأن الأمر…» (behind wa) and «قال هذا الشيخ» -> backref too', k9('واستدل هؤلاء بأن الأمر بالحج مطلق.') === 'backref' && k9('قال هذا الشيخ في موضع آخر: يجوز.') === 'backref', JSON.stringify([k9('واستدل هؤلاء بأن الأمر بالحج مطلق.'), k9('قال هذا الشيخ في موضع آخر: يجوز.')]));
+      ok('X9d «هذا الحديث ضعيف» unchanged (the demonstrative is the FIRST word: pronoun, as before)', k9('هذا الحديث ضعيف.') === 'pronoun', k9('هذا الحديث ضعيف.'));
+      ok('X9e «استدل العلماء بحديث» unchanged (no demonstrative), and «قيل هذا» (an impersonal verb) unchanged', k9('استدل العلماء بحديث ابن عباس.') === '' && k9('قيل هذا في غير موضع.') === '', JSON.stringify([k9('استدل العلماء بحديث ابن عباس.'), k9('قيل هذا في غير موضع.')]));
+      // DEVIATION from the DIAG3 diff, measured on this guard's C1c2 / C1e rows: «معنى هذا الحديث» after a held unit is independent
+      // (the proximal demonstrative + the hadith word names the question's own subject, POINTER_OBJECT_SET's own rule).
+      ok('X9f a demonstrative followed by the hadith word names the question\'s own hadith: «معنى هذا الحديث», «ورد هذا الحديث» unchanged', k9('معنى هذا الحديث أن الإيمان يزيد وينقص.') === '' && k9('ورد هذا الحديث في صحيح البخاري.') === '', JSON.stringify([k9('معنى هذا الحديث أن الإيمان يزيد وينقص.'), k9('ورد هذا الحديث في صحيح البخاري.')]));
+      {
+        const srcD = read('lib/bw2-units.js');
+        const seamD = "const DEMONSTRATIVE_AFTER_VERB_SET = foldSet(['هؤلاء', 'هذا', 'هذه', 'ذلك', 'تلك', 'أولئك']);";
+        ok('X9 mutant seam present once', srcD.split(seamD).length === 2);
+        const tmpD = path.join(REPO, 'lib', '.mut-x9-demonstrative.mjs');
+        fs.writeFileSync(tmpD, srcD.split(seamD).join("const DEMONSTRATIVE_AFTER_VERB_SET = foldSet([]); // mutant: no demonstrative points back after a verb").replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MD = null;
+        try { MD = await import(pathToFileURL(tmpD).href + '?m=' + Date.now()); } catch (e) { MD = null; } finally { fs.rmSync(tmpD, { force: true }); }
+        ok('X9 mutant loads', !!MD);
+        ok('X9 MUTANT KILLED: with the set emptied «استدل هؤلاء بحديث…» is no back-reference again', !!MD && MD.dependentKind('استدل هؤلاء بحديث: من ملك زادا وراحلة.') === '', MD ? MD.dependentKind('استدل هؤلاء بحديث: من ملك زادا وراحلة.') : 'no module');
+      }
+    }
     // ---------------------------------------------------------------- ITEM 35-D2 R2 (brain35-2 F1, 2026-11-07): THE ENUMERATION LABEL IS RELEASED WITH ITS SUBJECT
     // MEASURED (DIAG2 HB2 V10 / V17 on the real turn): «الشرط الأول: الإسلام، <clause>» was held whole when its clause failed (an
     // unproven quoted matn, an uncited group view), and the answer opened on «الشرط الثاني». The label with its subject now goes
