@@ -131,12 +131,12 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e\n]/g, '~').slice(0, 200);
 
   // ── 4. the encyclopedia tail at the BW2 call site ──
   const bw2Src = read('lib/before-writing-v2.js');
-  ok('4a the call site writes the global line UNLESS the in-text mark already names every encyclopedia row the answer leaned on',
-    bw2Src.includes('const encycNamedByMark = encycCited.length > 0 && encycCited.every((row) => encycMarked.includes(row));')
-    && bw2Src.includes('const encyc = encycNamedByMark ? ' + String.fromCharCode(39, 39) + ' : encyclopediaTail(')
-    // and it is the MARK that suppresses it, never the card: the suppression condition itself reads only the marks, so
-    // an answer whose encyclopedia row carries no mark keeps its line, card or no card (postship3attributiontrigger).
-    && !bw2Src.split(String.fromCharCode(10)).some((line) => line.includes("const encycNamedByMark") && line.includes("encyclopediaShown")));
+  // re-cut 2026-11-07 (brain35-2 F9; owner decision R6, DIAG2): a SHOWN card names the row as a mark does; the line is written
+  // only when some cited encyclopedia row is named by neither, and it is handed the unnamed rows only (never a shown one).
+  ok('4a the call site writes the global line only for a cited encyclopedia row named by neither a mark nor a shown card, and hands it the unnamed rows only (re-cut 2026-11-07, owner decision R6)',
+    bw2Src.includes("const encycUnnamed = encycCited.filter((row) => !encycMarked.includes(row) && !encycShown.includes(row));")
+    && bw2Src.includes("const encyc = encycCited.length > 0 && !encycUnnamed.length ? '' : encyclopediaTail(encycUnnamed, String(wire.sent || ''), null)")
+    && !bw2Src.includes('const encycNamedByMark'));
   ok('4b the releaser hands it the rows its marks named', read('lib/bw2-units.js').includes('sourceMarks, markedRows: [...markedRows]'));
   const ENC = { ref: 1, kind: 'encyclopedia', title: 'الموسوعة الفقهية الكويتية — القول بلا علم', recordId: 'enc:1', text: PAGE_TEXT, passage: PAGE_TEXT, part: 1 };
   // the encyclopedia card is behind its own switch, so a turn can show cards and still show none of ITS rows: that unit
@@ -149,6 +149,79 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e\n]/g, '~').slice(0, 200);
   ok('4c an encyclopedia-cited unit with no card of its own carries a mark, and the rows it named are reported',
     encRun.sum.sourceMarks >= 1 && encRun.sum.markedRows.some((row) => row && row.kind === 'encyclopedia'), ascii(encRun.text));
 
+  // ── brain35-2 F9 (2026-11-07; DIAG2 R6) · A SHOWN CARD NAMES THE ROW; THE ENCYCLOPEDIA LINE ONLY FOR UNNAMED ROWS ──
+  // MEASURED (DIAG2 R6, P18, HB2 round two): a row cited by ONE unit with its card under that unit got no mark (the card
+  // was about to follow), so it was never in markedRows and the global line named what the card beside it had named; and
+  // two articles under one repeated mark left the second unmarked, so the line came back. Now a row named by a shown card
+  // or by a mark (a repeated mark names its rows too) draws no line; the line is written only when some cited encyclopedia
+  // row is named by neither, and it is handed the unnamed rows only. Driven on the real turn (runBw2Turn), as DIAG2 HB2 did.
+  {
+    const BW2F9 = await esm('lib/before-writing-v2.js');
+    const SSEF9 = await esm('lib/finalized-sse-writer.js');
+    const TOOLSF9 = await esm('lib/free-brain/tools.js');
+    const GLOBAL_LINE = /المصدر: الموسوعة الفقهية الكويتية\./u;
+    const MASAH = 'يجوز المسح على الجوربين إذا لبسهما على طهارة، ومدته يوم وليلة للمقيم وثلاثة أيام بلياليها للمسافر، وهذا مذهب الحنابلة.';
+    const ROW_A = { id: 'F99901', part: 37, term: 'مسح على الخفين', snippet: MASAH };
+    const ROW_B = { id: 'F99902', part: 37, term: 'جورب', snippet: 'الجورب ما يلبس على القدم من صوف أو قطن، والمسح عليه كالمسح على الخف عند من أجازه من أهل العلم.' };
+    const Q_F9 = 'ما حكم المسح على الجوارب؟';
+    const framesOf = (target) => target.writes.join('').split('\n\n').filter((f) => f.startsWith('data: ')).map((f) => { try { return JSON.parse(f.slice(6)); } catch { return null; } }).filter(Boolean);
+    const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delta').map((f) => f.delta.text);
+    const chunk = (text) => { const o = []; let x = 7932; for (let i = 0; i < text.length;) { x = (x * 1103515245 + 12345) % 2147483648; const n = 1 + (x % 17); o.push(text.slice(i, i + n)); i += n; } return o; };
+    const driveTurn = async (mod, { writerText, encyclopedia, encyclopediaCards }) => {
+      const target = { writes: [], ended: 0, write(c) { this.writes.push(String(c)); return true; }, end(cb) { this.ended += 1; if (typeof cb === 'function') cb(); return this; }, status() { return this; }, setHeader() { return this; }, once() { return this; }, on() { return this; }, removeListener() { return this; } };
+      const facade = SSEF9.createFinalizedSseResponse(target, { finalize: (i) => ({ ok: true, text: String(i.text || ''), problems: [], replaced: false, drops: [], degraded: [] }), context: () => ({ allowWireOwnedCards: true, sourceCards: [], readerCards: [], readerPrefix: '', readerSuffix: '' }), failureText: 'F9-FAILURE' });
+      const wire = mod.createBw2Wire(facade);
+      const deps = {
+        runTool: async () => ({ text: '', added: [], calls: 1 }),
+        searchStoredCorpus: async () => ({ records: encyclopedia }), warmEncyclopedia: async () => true, encyclopediaReady: () => true, encyclopediaRow: TOOLSF9.encyclopediaRow,
+        ask: async ({ user }) => { const count = (user.match(/^\[\d+\] /gmu) || []).length; return JSON.stringify({ d: Object.fromEntries(Array.from({ length: count }, (_, i) => [String(i + 1), 1])) }); },
+        callWriter: async ({ onText }) => { for (const piece of chunk(writerText)) onText(piece); return { usage: { input_tokens: 1, output_tokens: 1 }, stop_reason: 'end_turn', content: [] }; },
+        runnerLookup: () => async () => [],
+      };
+      const out = await mod.runBw2Turn({ question: Q_F9, messages: [{ role: 'user', content: Q_F9 }], mode: 'brief', band: 'adult', system: 'SYSTEM', model: 'writer-model', maxTokens: 4096, providerUrl: 'https://api.anthropic.invalid/v1/messages', headers: {}, libFlagValue: '', libToken: '', lessonsToken: '', onLessonRows: null, takhrijWired: false, wire, requestStartedAt: Date.now(), env: { BW2_RETRIEVAL_MS: '400', BW2_JUDGE_MS: '400' }, runtime: '', continueWhenNotCovered: false, deps,
+        cards: { buildSourceTag: () => ({ tag: '<source url="https://example.invalid/f9"></source>' }), buildBookTag: (row) => ({ tag: '<book book="' + row.recordId + '">' + row.bookTitle + '</book>' }), encyclopediaCards, max: 3 } });
+      const text = deltasOf(framesOf(target)).join('');
+      return { out, text, cards: (text.match(/<(?:book|source)\b[^>]*>/gu) || []).length, line: GLOBAL_LINE.test(text), mark: / — الموسوعة الفقهية الكويتية/u.test(text) };
+    };
+    const one = await driveTurn(BW2F9, { writerText: 'يجوز المسح على الجوربين إذا لبسهما على طهارة [[1]].', encyclopedia: [ROW_A], encyclopediaCards: true });
+    ok('4d one unit cites the encyclopedia row and its card follows it: the card names the row, no mark, NO global line',
+      one.cards === 1 && !one.mark && !one.line && one.out.telemetry.unitsReleased === 1, ascii(one.text));
+    const two = await driveTurn(BW2F9, { writerText: 'يجوز المسح على الجوربين إذا لبسهما على طهارة [[1]].\n\nومدته يوم وليلة للمقيم وثلاثة أيام بلياليها للمسافر [[1]].', encyclopedia: [ROW_A], encyclopediaCards: true });
+    ok('4e two units cite it, the second marked (the card went out under the first): no global line (unchanged)', two.cards === 1 && two.mark && !two.line, ascii(two.text));
+    // MEASURED here: with the encyclopedia card switch off, a row's FIRST citing unit gets neither a card (the switch blocks it)
+    // nor a mark (cardEligible is a per-ref map, so the card is predicted); the row is unnamed and the line is right. (A
+    // heading's citation never enters `cited`: the heading path registers no citation, so a heading cannot draw the line.)
+    const unnamed = await driveTurn(BW2F9, { writerText: 'يجوز المسح على الجوربين إذا لبسهما على طهارة [[1]].', encyclopedia: [ROW_A], encyclopediaCards: false });
+    ok('4f a cited encyclopedia row with no card (the switch off) and no mark: the line, once',
+      unnamed.cards === 0 && !unnamed.mark && unnamed.line && (unnamed.text.match(GLOBAL_LINE) || []).length === 1, ascii(unnamed.text));
+    const TWO_ARTICLES = 'يجوز المسح على الجوربين إذا لبسهما على طهارة [[1, 2]].\n\nومدته يوم وليلة للمقيم وثلاثة أيام بلياليها للمسافر [[1]].\n\nوالجورب ما يلبس على القدم من صوف أو قطن [[2]].';
+    const twoArticles = await driveTurn(BW2F9, { writerText: TWO_ARTICLES, encyclopedia: [ROW_A, ROW_B], encyclopediaCards: false });
+    ok('4g two articles under one mark (the switch off; both rows cited once before, so the second and third units reach the mark): the repeated mark names the second article too, no global line',
+      twoArticles.cards === 0 && twoArticles.mark && !twoArticles.line && twoArticles.out.telemetry.unitsReleased === 3, ascii(twoArticles.text));
+    // the mutants, on twins of the two modules (the before-writing twin imports the bw2-units twin for the repeated-mark seam)
+    const twinPair = async (unitsFrom, unitsTo, bw2From, bw2To, tag) => {
+      const unitsSrc = read('lib/bw2-units.js');
+      const bw2Src = read('lib/before-writing-v2.js');
+      if (unitsFrom && unitsSrc.split(unitsFrom).length !== 2) return { ok: false, reason: 'units seam' };
+      if (bw2From && bw2Src.split(bw2From).length !== 2) return { ok: false, reason: 'bw2 seam' };
+      const abs = (src, dir) => src.replace(/from\s+(['"])(\.[^'"]*)\1/gu, (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, dir, spec)).href + q);
+      const unitsTmp = path.join(REPO, 'lib', '.mut-f9-units-' + tag + '.mjs');
+      const bw2Tmp = path.join(REPO, 'lib', '.mut-f9-bw2-' + tag + '.mjs');
+      fs.writeFileSync(unitsTmp, abs(unitsFrom ? unitsSrc.split(unitsFrom).join(unitsTo) : unitsSrc, 'lib'));
+      fs.writeFileSync(bw2Tmp, abs(bw2From ? bw2Src.split(bw2From).join(bw2To) : bw2Src, 'lib').split(pathToFileURL(path.join(REPO, 'lib', 'bw2-units.js')).href).join(pathToFileURL(unitsTmp).href));
+      try { return { ok: true, mod: await import(pathToFileURL(bw2Tmp).href + '?m=' + Date.now()) }; } catch (e) { return { ok: false, reason: String(e && e.message) }; } finally { fs.rmSync(unitsTmp, { force: true }); fs.rmSync(bw2Tmp, { force: true }); }
+    };
+    const m5 = await twinPair("        if (mark && mark === lastMark) { markedRows.push(...verdict.cited); /* ITEM 35-D2 R6 (brain35-2 F9): the paragraph above named the same source: these rows are named too */ } else if (mark) {",
+      "        if (mark && mark === lastMark) { /* mutant: a repeated mark names nothing */ } else if (mark) {", null, null, 'repeat');
+    ok('F9 MUTANT repeated-mark seam applied and loaded', m5.ok, m5.reason);
+    ok('F9 MUTANT KILLED: without the repeated-mark push the second article is unnamed and the line comes back',
+      m5.ok && (await driveTurn(m5.mod, { writerText: TWO_ARTICLES, encyclopedia: [ROW_A, ROW_B], encyclopediaCards: false })).line === true, m5.reason);
+    const m6 = await twinPair(null, null, "  const encycUnnamed = encycCited.filter((row) => !encycMarked.includes(row) && !encycShown.includes(row)); // ITEM 35-D2 R6 (brain35-2 F9): named by a mark or by a shown card",
+      "  const encycUnnamed = encycCited.filter((row) => !encycMarked.includes(row)); // mutant: a shown card names nothing", 'shown');
+    ok('F9 MUTANT shown-card seam applied and loaded', m6.ok, m6.reason);
+    ok('F9 MUTANT KILLED: with the shown card not counted as a name the one-unit answer carries the line beside its card again',
+      m6.ok && (await driveTurn(m6.mod, { writerText: 'يجوز المسح على الجوربين إذا لبسهما على طهارة [[1]].', encyclopedia: [ROW_A], encyclopediaCards: true })).line === true, m6.reason);
+  }
   // ── 5. the verse card ──
   const AYAH = 'وَلَوْ أَنَّا كَتَبْنَا عَلَيْهِمْ أَنِ اقْتُلُوا أَنفُسَكُمْ';
   const VERSE = '<verse surah_num="4" ayah="66"></verse>';

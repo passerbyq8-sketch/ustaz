@@ -241,9 +241,10 @@ const questions = [
   // one row, so it releases one attributed view and the khilaf tail is no longer written for it (the tail now needs a
   // narrowed disagreement marker AND two released views). The encyclopedia line and the order of the tails are what this
   // row was protecting, and both are unchanged; the khilaf half is now asserted as the absence it has become.
-  ok('B4 BW2 the encyclopedia line precedes one final long note, and a one-view answer carries no khilaf tail',
-    bw2.shown.endsWith(longNote) && occurrences(bw2.shown, longNote) === 1 && bw2.shown.includes(encyc)
-    && bw2.shown.indexOf(encyc) < bw2.shown.indexOf(longNote)
+  // re-cut 2026-11-07 (brain35-2 F9; owner decision R6, DIAG2 P18): the encyclopedia card under the one unit names the row, so
+  // the global line no longer stands beside it; the long note is the one final tail. The no-card case below keeps its line.
+  ok('B4 BW2 with the card shown: no encyclopedia line beside it, one final long note, and a one-view answer carries no khilaf tail (re-cut 2026-11-07, owner decision R6)',
+    bw2.shown.endsWith(longNote) && occurrences(bw2.shown, longNote) === 1 && !bw2.shown.includes(encyc)
     && !!khilaf && !bw2.shown.includes(khilaf), [bw2.shown.includes(encyc), bw2.shown.includes(khilaf)].join('/'));
   ok('B4 BW2 final answer equals the released deltas byte-for-byte', bw2.shown === bw2.pieces
     && bw2.out.text === bw2.pieces && bw2.ended === 1);
