@@ -39610,8 +39610,12 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   const PF_UNSPECIFIED = null;
   const [pfName, setPfName] = useState(() => String((profile && profile.name) || ''));
   const [pfGender, setPfGender] = useState(() => (profile && profile.gender) || null);
-  const [pfYear, setPfYear] = useState(() => (profile && profile.birthYear != null ? String(profile.birthYear) : ''));
+  const [pfYear, setPfYearRaw] = useState(() => (profile && profile.birthYear != null ? String(profile.birthYear) : ''));
   const pfYearProvided = useRef(profile?.birthYearProvided === true);
+  const setPfYear = (value) => {
+    setPfYearRaw(value);
+    pfYearProvided.current = true;
+  };
   const [pfMsg, setPfMsg] = useState('');
   // D16 SETTINGS PROFILE START
   useEffect(() => {
@@ -39771,7 +39775,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
               is not focusable, and it claims nothing about him. */}
           {/* ROUND 4 (phone round N7): «ب» offers two answers, so its line names two (a new key; the old one, read dark, is untouched) */}
           <div style={s.a11ySwitchHint}>{ezT(ez.id ? 'ez110.set.womenRule' : 'settings.womenCornerRule')}</div>
-          <input value={pfYear} onChange={(e) => { setPfYear(e.target.value); pfYearProvided.current = true; setPfMsg(''); }}
+          <input value={pfYear} onChange={(e) => { setPfYear(e.target.value); setPfMsg(''); }}
             placeholder={ezT('onboarding.birthYear')} aria-label={ezT('onboarding.birthYear')}
             type="text" inputMode="numeric" pattern="[0-9]*" maxLength={4} style={EZ_LANG_DIR[EZ_LANG] === 'ltr' ? { ...s.welcomeInput, direction: 'ltr' } : s.welcomeInput} />
           {pfYear.trim() && !pfYearOk && <div className="ezgate-err">{ezT('onboarding.yearError')}</div>}
