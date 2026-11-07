@@ -35,7 +35,15 @@ function ok(name, cond, detail) {
     const brief = FF.serverOwnedBlock(rec, [], { brief: true });
     const tag = (r.id + ' (' + today.length + ' chars)').replace(/[^\x20-\x7e]/g, '.');
     if (today.length <= 600) {
-      ok(tag + ': a block of 600 or fewer is shown whole in the brief answer too', brief === today);
+      // re-cut 2026-11-07 (brain35-2 F8; owner decision R8, DIAG2): ONE brief shape whatever the length -- the heading, «الجواب (مختصرًا):»,
+      // the whole answer (it fits the budget, so no «…»), and the button carrying the whole block as served today.
+      const m0 = TAG_RE.exec(brief);
+      const shown0 = m0 ? brief.slice(0, m0.index) : brief;
+      const printed0 = FF.printedFatwaPair(rec);
+      ok(tag + ': a block of 600 or fewer is the answer-first shape too: the whole answer, no «…», the whole block in the button (re-cut 2026-11-07, owner decision R8)',
+        shown0 === '## ' + FF.HEADING_TEXT + '\n\n' + FF.BRIEF_ANSWER_HEAD + '\n' + printed0.answer && !!m0 && Buffer.from(m0[1], 'base64').toString('utf8') === today,
+        shown0.slice(0, 60).replace(/[^\x20-\x7e]/g, '.'));
+      ok(tag + ': ...and the detailed depth is still the whole block', FF.serverOwnedBlock(rec, [], { band: 'adult' }) === today);
       continue;
     }
     long += 1;

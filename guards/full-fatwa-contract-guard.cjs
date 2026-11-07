@@ -627,7 +627,8 @@ async function main() {
       shown.startsWith('## ' + FF.HEADING_TEXT) && shown.includes(FF.BRIEF_ANSWER_HEAD) && !shown.includes('السؤال:'), shown.slice(0, 120));
     ok('B-1 it carries at least one COMPLETE answer sentence and no question text',
       shown.includes('الواجب عليك أن تتوب إلى الله توبة صادقة وتكثر من العمل الصالح.') && !shown.includes(long.question.slice(0, 24)), shown.slice(0, 200));
-    ok('B-1 it closes on «…» and stays inside the budget', shown.includes('…') && shown.length <= FF.BRIEF_FATWA_MAX + 2, String(shown.length));
+    // re-cut 2026-11-07 (brain35-2 F8, owner decision R8): «…» only when the ANSWER exceeds the budget; this 213-character answer fits, so it stands whole
+    ok('B-1 the answer fits the budget: it stands whole, no «…», inside the budget (re-cut 2026-11-07, owner decision R8)', !shown.includes('…') && shown.endsWith(long.answer + '\n') && shown.length <= FF.BRIEF_FATWA_MAX + 2, String(shown.length));
     const expansion = /matn="([A-Za-z0-9+/=]+)"/u.exec(brief);
     const expanded = expansion ? Buffer.from(expansion[1], 'base64').toString('utf8') : '';
     ok('B-1 the expansion keeps the original question and answer, byte for byte',
@@ -669,8 +670,8 @@ async function main() {
         (_a, q, spec) => 'from ' + q + require('url').pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
       try { return { ok: true, mod: await import(require('url').pathToFileURL(tmp).href + '?m=' + Date.now()) }; } finally { fs.rmSync(tmp, { force: true }); }
     };
-    const m1 = await mutate('lib/full-fatwa.js', "        const answerOnly = briefExcerpt(printed.answer, Math.max(1, BRIEF_FATWA_MAX - head.length));",
-      "        const answerOnly = briefExcerpt(whole, Math.max(1, BRIEF_FATWA_MAX - head.length)); // mutant: the question is back in the budget", 'budget');
+    const m1 = await mutate('lib/full-fatwa.js', "      const answerOnly = cut ? briefExcerpt(printed.answer, budget) : printed.answer;",
+      "      const answerOnly = briefExcerpt(whole, budget); // mutant: the question is back in the budget", 'budget'); // seam moved with brain35-2 F8 (one brief shape)
     ok('B-1 MUTANT budget seam applied', m1.ok, m1.reason);
     ok('B-1 MUTANT KILLED: with the question back in the budget the reader sees no answer sentence',
       m1.ok && !m1.mod.serverOwnedBlock(long, [], { band: 'adult', brief: true }).split('<fatwafull')[0].includes('الواجب عليك أن تتوب إلى الله توبة صادقة.'));
@@ -684,7 +685,55 @@ async function main() {
     if (m3.ok) {
       const loose = await drive(m3.mod, retell);
       ok('B-1 MUTANT KILLED: with an unreachable share the retelling is released again', loose.released === 1, JSON.stringify(loose.holds));
+    }    // ── brain35-2 F8 (2026-11-07; DIAG2 R8) · ONE BRIEF SHAPE WHATEVER THE RECORD'S LENGTH ──────────────────────────
+    // MEASURED (DIAG2 R8, P5 / P9): a stored fatwa whose whole block is 600 characters or fewer kept the old question-first
+    // «السؤال: … / الجواب: …» on the brief tier (the answer-first shape was built only past the cap): two shapes on one tier,
+    // and four of the sixteen DIAG-1 direct blocks. The brief tier is now always head + the answer (cut to the budget, «…»
+    // only when it exceeds it) + the «النص الكامل» expansion holding the whole block; the detailed tier unchanged.
+    const SHEET_Q = 'السائل م س يقول قبل عشر سنوات أو أقل من ذلك كنت لا أواظب على الصلاة حيث أنني أصلي يوما وأقطع آخر وذلك تهاونا مني في ذلك ولا أعلم عدد الأوقات التي لم أصلها أو عدد الأيام التي لم أصل بها فما العمل في ذلك؟';
+    const SHEET_A = 'الظاهر من سؤاله أن الرجل استقام وصار يصلي، والواجب عليه التوبة إلى الله والاستقامة على دينه، ولا قضاء عليه على الصحيح من أقوال أهل العلم.';
+    const shortRec = { ...record(SHEET_A), question: SHEET_Q, supportText: SHEET_Q + ' ' + SHEET_A };
+    const shortWhole = FF.serverOwnedBlock(shortRec, [], { band: 'adult' });
+    ok('F8 the short fixture is the DIAG2 shape: a whole block of 371 characters, under the cap', shortWhole.length === 371 && shortWhole.length <= FF.BRIEF_FATWA_MAX, String(shortWhole.length));
+    const shortBrief = FF.serverOwnedBlock(shortRec, [], { band: 'adult', brief: true });
+    const shortShown = shortBrief.split('<fatwafull')[0];
+    ok('F8a a 371-character record on the brief tier: head, «الجواب (مختصرًا):», the WHOLE answer, no «…», no «السؤال:» above the fold, then the expansion',
+      shortShown === '## ' + FF.HEADING_TEXT + '\n\n' + FF.BRIEF_ANSWER_HEAD + '\n' + SHEET_A + '\n' && !shortShown.includes('السؤال:') && !shortShown.includes('…') && shortBrief.includes('<fatwafull matn="'),
+      shortBrief.slice(0, 160));
+    const shortExp = /matn="([A-Za-z0-9+/=]+)"/u.exec(shortBrief);
+    ok('F8a ...and its expansion is the whole block, byte for byte', !!shortExp && Buffer.from(shortExp[1], 'base64').toString('utf8') === shortWhole);
+    // a record whose ANSWER exceeds the budget keeps the excerpt shape exactly as B-1 cut it
+    const longAnswer = Array.from({ length: 8 }, (_v, i) => 'الجملة رقم ' + (i + 1) + ' من جواب المفتي تذكر حكما من الأحكام الشرعية مع دليله من الكتاب والسنة وكلام أهل العلم فيه.').join(' ');
+    const longRec = record(longAnswer);
+    const longWhole = FF.serverOwnedBlock(longRec, [], { band: 'adult' });
+    ok('F8 the long fixture exceeds the budget by its answer alone', longAnswer.length > FF.BRIEF_FATWA_MAX && longWhole.length > FF.BRIEF_FATWA_MAX, String(longAnswer.length));
+    const longBrief = FF.serverOwnedBlock(longRec, [], { band: 'adult', brief: true });
+    const longHead = '## ' + FF.HEADING_TEXT + '\n\n' + FF.BRIEF_ANSWER_HEAD + '\n';
+    ok('F8b a record whose answer exceeds the budget is unchanged: head + the excerpt to a sentence\'s end + «…» + the expansion',
+      longBrief === longHead + FF.briefExcerpt(longAnswer, Math.max(1, FF.BRIEF_FATWA_MAX - longHead.length)) + '…\n' + '<fatwafull matn="' + Buffer.from(longWhole, 'utf8').toString('base64') + '">' + FF.FATWA_FULL_LABEL + '</fatwafull>'
+      && longBrief.split('<fatwafull')[0].length <= FF.BRIEF_FATWA_MAX + 2, longBrief.slice(0, 120));
+    ok('F8c the detailed tier gives the whole block for both', FF.serverOwnedBlock(shortRec, [], { band: 'adult' }) === shortWhole && FF.serverOwnedBlock(longRec, [], { band: 'adult' }) === longWhole
+      && shortWhole.startsWith('## ' + FF.HEADING_TEXT + '\n\nالسؤال:'));
+    const longExp = /matn="([A-Za-z0-9+/=]+)"/u.exec(longBrief);
+    ok('F8d the expansion equals the whole block byte for byte in both', !!longExp && Buffer.from(longExp[1], 'base64').toString('utf8') === longWhole && !!shortExp && Buffer.from(shortExp[1], 'base64').toString('utf8') === shortWhole);
+    ok('F8e an answer that fits the budget exactly carries no «…»; one character over does',
+      (() => { const S = 'نعم يجوز ذلك عند أهل العلم بلا خلاف بينهم في هذه المسألة المشهورة عندهم.'; const fit = record(S + ' ' + S + ' ' + S + ' ' + S + ' ' + S + ' ' + S); const over = record(Array.from({ length: 9 }, () => S).join(' '));
+        if (!(fit.answer.length <= FF.BRIEF_FATWA_MAX - longHead.length && over.answer.length > FF.BRIEF_FATWA_MAX - longHead.length)) return false;
+        const f = FF.serverOwnedBlock(fit, [], { band: 'adult', brief: true }).split('<fatwafull')[0]; const o = FF.serverOwnedBlock(over, [], { band: 'adult', brief: true }).split('<fatwafull')[0];
+        return !f.includes('…') && o.includes('…'); })());
+    // the hybrid path: the flag is passed through when its caller gives one (api/ask.js's `shared` carries depth, not brief: see the report)
+    ok('F8f lib/hybrid-deen.js passes brief through to serverOwnedBlock', /serverOwnedBlock\(record, \[\.\.\.spansFor\(entry\), \.\.\.carryingParagraphs\(record\)\],\n\s*\{ band: options\.band, brief: options\.brief === true \}\)/u.test(fs.readFileSync(path.join(REPO, 'lib/hybrid-deen.js'), 'utf8')));
+    // (a hybrid turn given brief: true is not driven here: the gold fixture is a spans-policy record, and the brief shape is
+    // the displayPolicy 'full' branch's; api/ask.js builds the hybrid caller's options with depth, not brief -- the report)
+    ok('F8f ...and a hybrid turn with no brief flag shows the whole block as before', !gold.text.includes(FF.BRIEF_ANSWER_HEAD) && !gold.text.includes('<fatwafull'));
+    {
+      const mF8 = await mutate('lib/full-fatwa.js', "      const cut = printed.answer.length > budget; // ITEM 35-D2 R8 (brain35-2 F8): the answer alone against the budget",
+        "      if (whole.length <= BRIEF_FATWA_MAX) return whole; // mutant: the length test restored\n      const cut = printed.answer.length > budget;", 'length');
+      ok('F8 MUTANT length-test seam applied', mF8.ok, mF8.reason);
+      ok('F8 MUTANT KILLED: with the length test restored the short record is the old question-first block again',
+        mF8.ok && mF8.mod.serverOwnedBlock(shortRec, [], { band: 'adult', brief: true }) === shortWhole);
     }
+
   }
 
   console.log('\n=== full-fatwa-contract: ' + (checks - failures) + '/' + checks

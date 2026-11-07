@@ -859,8 +859,13 @@ function libraryPlain(markup) {
       ok('3.4d-5 the real BW2 turn: the question without its day, the judge marks 1567 a direct match, the floor refuses: no «نص الفتوى», no direct fatwa; the writer answers as before',
         !general.text.includes('نص الفتوى') && general.out.telemetry.directFatwa !== true && general.text.includes('تبيّن الفتوى'), ascii(general.text.slice(0, 80)));
       const same = await turnD('ما حكم الجمع بين الظهر والعصر للمسافر يوم الجمعة؟', R1567.title);
-      ok('3.4d-6 control: the reader who asks it with the day gets the stored fatwa letter for letter (its question and answer) opening the answer, then the explanation',
-        same.text.startsWith('## نص الفتوى') && same.text.replace(/\s+/gu, '').includes(R1567.question.replace(/\s+/gu, '')) && same.text.replace(/\s+/gu, '').includes(R1567.answer.replace(/\s+/gu, ''))
+      // re-cut 2026-11-07 (brain35-2 F8; owner decision R8, DIAG2): one brief shape whatever the record's length -- the answer
+      // opens the block letter for letter, the question and the answer ride letter for letter inside the «النص الكامل» expansion
+      const sameExp = /matn="([A-Za-z0-9+/=]+)"/u.exec(same.text);
+      const sameWhole = sameExp ? Buffer.from(sameExp[1], 'base64').toString('utf8') : '';
+      ok('3.4d-6 control: the reader who asks it with the day gets the stored fatwa opening the answer letter for letter -- the answer above the fold, its question and answer in the expansion -- then the explanation (re-cut 2026-11-07, owner decision R8)',
+        same.text.startsWith('## نص الفتوى') && same.text.includes('الجواب (مختصرًا):') && same.text.replace(/\s+/gu, '').includes(R1567.answer.replace(/\s+/gu, ''))
+        && sameWhole.replace(/\s+/gu, '').includes(R1567.question.replace(/\s+/gu, '')) && sameWhole.replace(/\s+/gu, '').includes(R1567.answer.replace(/\s+/gu, ''))
         && same.out.telemetry.directFatwa === true, ascii(same.text.slice(0, 80)));
       // FIX 48 item 7 (the owner's decision 8): the real record of the 2 Oct preview's answer 1, binbaz 14896, read from the local fatwa index (read only)
       const R14896 = {
