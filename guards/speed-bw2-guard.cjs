@@ -2731,6 +2731,43 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         }
       }
     }
+    // ---------------------------------------------------------------- brain35-4 Y3 (2026-11-07; FIX3 FOUND 2; owner: "yes to the four"): THE NEGATION IS SOUGHT IN THE REST OF THE ROW'S SENTENCE
+    // MEASURED (FIX3 H6.AFTER-X8.out.txt, live Q12): the full live stance sentence «ذهب الشافعي، والإمام محمد بن الحسن، إلى أنه يجب على
+    // التراخي، فلا يأثم المستطيع بتأخيره» stayed held unsupported_school after X8: its tail «فلا يأثم» is a negation and the row carries it in
+    // the clause AFTER the one naming the imam, inside the same sentence («… عَلَى التَّرَاخِي، فَلاَ يَأْثَمُ الْمُسْتَطِيعُ بِتَأْخِيرِهِ.»). sameStanceOnSchool
+    // now seeks the negation in the clause naming the school and the following clauses of that same sentence, up to the first
+    // sentence end («.», «؟», «!» or the row's end), never past it; what it matches is unchanged. The row is the live card's passage
+    // as the X8 rows carry it (MAWSUA12: BRAIN35-DIAG3-evidence/L12.book-matn.txt up to the stance sentence; the text after it names
+    // the imam again with a negation of its own, «… سنة عند الشافعي ما لم يمت», which releases by the rule whatever the window).
+    {
+      const UNITS_Y3 = await esm('lib/bw2-units.js');
+      const LIVE12 = "وُجُوبُ الْحَجِّ عَلَى الْفَوْرِ أَوِ التَّرَاخِي: 5 - اخْتَلَفُوا فِي وُجُوبِ الْحَجِّ عِنْدَ تَحَقُّقِ الشُّرُوطِ هَل هُوَ عَلَى الْفَوْرِ أَوْ عَلَى التَّرَاخِي؟ . ذَهَبَ أَبُو حَنِيفَةَ فِي أَصَحِّ الرِّوَايَتَيْنِ عَنْهُ وَأَبُو يُوسُفَ وَمَالِكٌ فِي الرَّاجِحِ عَنْهُ وَأَحْمَدُ (1) إِلَى أَنَّهُ يَجِبُ عَلَى الْفَوْرِ، فَمَنْ تَحَقَّقَ فَرْضُ الْحَجِّ عَلَيْهِ فِي عَامٍ فَأَخَّرَهُ يَكُونُ آثِمًا، وَإِذَا أَدَّاهُ بَعْدَ ذَلِكَ كَانَ أَدَاءً لاَ قَضَاءً، وَارْتَفَعَ الإِْثْمُ. وَذَهَبَ الشَّافِعِيُّ وَالإِْمَامُ مُحَمَّدُ بْنُ الْحَسَنِ إِلَى أَنَّهُ يَجِبُ عَلَى التَّرَاخِي، فَلاَ يَأْثَمُ الْمُسْتَطِيعُ بِتَأْخِيرِهِ."; // the X8 rows' MAWSUA12, the same literal
+      const NEG_CLAUSE = "، فَلاَ يَأْثَمُ الْمُسْتَطِيعُ بِتَأْخِيرِهِ";
+      const FULL_U1 = "ذهب الشافعي، والإمام محمد بن الحسن، إلى أنه يجب على التراخي، فلا يأثم المستطيع بتأخيره [[1]].";
+      const rowsY3 = (text) => [{ ref: 1, kind: 'lib_book', title: 'الموسوعة الفقهية الكويتية · ج17 · ص24-25', bookTitle: 'الموسوعة الفقهية الكويتية', author: 'مجموعة من المؤلفين', locator: 'ج17 · ص24-25', recordId: 'FC-003910', fullText: text, text, passage: text }];
+      const playY3 = async (mod, rowText, writer) => { const out = []; const r = mod.createBw2Releaser({ rows: rowsY3(rowText), emit: (p) => { out.push(p); return true; } }); r.push(writer + '\n'); const sum = await r.end(); return { text: out.join(''), holds: sum.holds }; };
+      const bare = (s) => s.replace(/\p{M}/gu, '');
+      ok('Y3 the passage is the X8 rows\' live card text (the same literal in this guard) and carries the negation clause once, after the clause naming the imam', /const MAWSUA12 = '([^']+)';/u.exec(read('guards/speed-bw2-guard.cjs'))[1] === LIVE12 && LIVE12.split(NEG_CLAUSE).length === 2 && bare(LIVE12).indexOf('الشافعي') < bare(LIVE12).indexOf('فلا يأثم'));
+      const a3 = await playY3(UNITS_Y3, LIVE12, FULL_U1);
+      ok('Y3a the full live stance sentence («… على التراخي، فلا يأثم المستطيع بتأخيره») against the live Q12 row -> released, school evidence found', a3.text.includes('فلا يأثم المستطيع بتأخيره') && !a3.holds.unsupported_school, JSON.stringify(a3.holds));
+      const b3 = await playY3(UNITS_Y3, LIVE12.replace(NEG_CLAUSE, '.' + NEG_CLAUSE.slice(1)), FULL_U1);
+      ok('Y3b the same unit against the row re-cut so the negation clause stands after a «.» (the next sentence) -> held unsupported_school', b3.holds.unsupported_school === 1 && !b3.text.includes('فلا يأثم'), JSON.stringify(b3.holds));
+      const c3 = await playY3(UNITS_Y3, LIVE12.replace(NEG_CLAUSE, ''), FULL_U1);
+      ok('Y3c the same unit against the row with its negation clause removed -> held unsupported_school', c3.holds.unsupported_school === 1 && !c3.text.includes('فلا يأثم'), JSON.stringify(c3.holds));
+      {
+        const srcY = read('lib/bw2-units.js');
+        const seamY = "clauses.slice(i).some((rest) => negatedTokens(rest.split(/\\s+/u)))";
+        ok('Y3 mutant seam present once', srcY.split(seamY).length === 2);
+        const tmpY = path.join(REPO, 'lib', '.mut-y3-window.mjs');
+        fs.writeFileSync(tmpY, srcY.split(seamY).join("clauses.slice(i, i + 1).some((rest) => negatedTokens(rest.split(/\\s+/u))) /* mutant: the window narrowed back to the school clause */").replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MY = null;
+        try { MY = await import(pathToFileURL(tmpY).href + '?m=' + Date.now()); } catch (e) { MY = null; } finally { fs.rmSync(tmpY, { force: true }); }
+        ok('Y3 mutant loads', !!MY);
+        ok('Y3 MUTANT KILLED: with the window narrowed back to the school clause the full live sentence is held unsupported_school again',
+          !!MY && (await playY3(MY, LIVE12, FULL_U1)).holds.unsupported_school === 1, MY ? JSON.stringify((await playY3(MY, LIVE12, FULL_U1)).holds) : 'no module');
+      }
+    }
   } catch (error) {
     ok('guard completed without exception', false, error && error.stack ? error.stack : String(error));
   }
