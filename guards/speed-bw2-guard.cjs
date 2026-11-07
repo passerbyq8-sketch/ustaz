@@ -2430,6 +2430,76 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         (() => { try { require('child_process').execFileSync(process.execPath, [path.join(REPO, 'tools', 'build-chapter-meanings.cjs'), '--check'], { cwd: REPO, stdio: 'pipe' }); return true; } catch { return false; } })()
         && !/fetch\(|https?:\/\//u.test(read('tools/build-chapter-meanings.cjs').replace(/^\/\/.*$/gmu, '')));
     }
+    // ---------------------------------------------------------------- ITEM 35-D2 R2 (brain35-2 F1, 2026-11-07): THE ENUMERATION LABEL IS RELEASED WITH ITS SUBJECT
+    // MEASURED (DIAG2 HB2 V10 / V17 on the real turn): «الشرط الأول: الإسلام، <clause>» was held whole when its clause failed (an
+    // unproven quoted matn, an uncited group view), and the answer opened on «الشرط الثاني». The label with its subject now goes
+    // out on its own («الشرط الأول: الإسلام.») when the clause after the comma is held; when the clause passes, the unit goes out
+    // byte for byte as before (the split is not visible). Never on a retry. A label line with nothing after its subject is unchanged.
+    {
+      const UNITS_F1 = await esm('lib/bw2-units.js');
+      const BOOK_F1 = { kind: 'lib_book', ref: 1, title: 'شرح كتاب الجامع لأحكام العمرة و الحج و الزيارة - حطيبة · ج1 · ص12', url: '',
+        bookTitle: 'شرح كتاب الجامع لأحكام العمرة و الحج و الزيارة - حطيبة', author: 'محمد حسن عبد الغفار', publisher: 'محمد حسن عبد الغفار',
+        recordId: 'FC-004377:0012', locator: 'ج1 · ص12', authorRole: 'author',
+        text: 'شروط وجوب الحج خمسة: الإسلام والعقل والبلوغ والحرية والاستطاعة، فلا يجب الحج على الكافر ولا على المجنون ولا على الصبي ولا على العبد ولا على غير المستطيع.' };
+      const C1 = 'الشرط الأول: الإسلام، فلا يجب الحج على الكافر ولا يصح منه [[1]].';
+      const C2 = 'الشرط الثاني: العقل، فلا يجب الحج على المجنون [[1]].';
+      const C3 = 'الشرط الثالث: البلوغ، فلا يجب على الصبي [[1]].';
+      const C4 = 'الشرط الرابع: الحرية، فلا يجب على العبد [[1]].';
+      const C5 = 'الشرط الخامس: الاستطاعة، فلا يجب على غير المستطيع [[1]].';
+      const V1 = [C1, C2, C3, C4, C5].join('\n\n');
+      const V17 = ['الشرط الأول: الإسلام، وقال جمهور الفقهاء: لا يصح الحج من الكافر ولا يجب عليه.', C2, C3, C4, C5].join('\n\n');
+      const V10 = ['الشرط الأول: الإسلام، لقوله ﷺ: «بني الإسلام على خمس: شهادة أن لا إله إلا الله وأن محمدا رسول الله، وإقام الصلاة، وإيتاء الزكاة، وحج البيت، وصوم رمضان» [[1]].', C2, C3, C4, C5].join('\n\n');
+      const LONE = ['الشرط الأول: الإسلام.', C2, C3].join('\n\n');
+      const LABEL1 = 'الشرط الأول: الإسلام.';
+      const silentTakhrij = async (text) => ({ text, entries: [] });
+      const deliver = async (mod, draft, takhrij = null) => {
+        const out = [];
+        const rel = mod.createBw2Releaser({ rows: [BOOK_F1], emit: (p) => { out.push(p); return true; }, cards: null, takhrij });
+        rel.push(draft);
+        const st = await rel.end();
+        return { text: out.join(''), st };
+      };
+      const plain = (t) => String(t).replace(/<[^>]+>/gu, '').trim();
+      // wired: the real turn, the library row pinned, V17's first clause uncited
+      const w17 = await run({ fatwa: [], library: [BOOK_F1], libOn: true, writerText: V17, question: 'ما هي شروط وجوب الحج؟' });
+      const t17 = plain(w17.deltas.join(''));
+      ok('F1a wired V17: the answer opens on «الشرط الأول: الإسلام.», the uncited group view does not go out, and the second condition follows',
+        t17.startsWith(LABEL1) && !t17.includes('جمهور الفقهاء') && t17.includes('الشرط الثاني: العقل، فلا يجب الحج على المجنون')
+        && w17.out.telemetry.unitsHeld === 1, ascii(t17) + ' ' + JSON.stringify(w17.out.telemetry.unitsHeld));
+      const r10 = await deliver(UNITS_F1, V10, silentTakhrij);
+      ok('F1b V10 (a quoted matn no row carries, the takhrij proving nothing): the label opens the answer, the matn clause is held',
+        plain(r10.text).startsWith(LABEL1) && !r10.text.includes('بني الإسلام على خمس') && r10.st.holds.unsupported_matn === 1
+        && r10.text.includes('الشرط الثاني: العقل، فلا يجب الحج على المجنون'), ascii(r10.text) + ' ' + JSON.stringify(r10.st.holds));
+      const r1 = await deliver(UNITS_F1, V1);
+      ok('F1c V1 (every clause cited): nothing is held and the first unit goes out whole, label and clause on one line',
+        r1.st.held === 0 && r1.text.startsWith('الشرط الأول: الإسلام، فلا يجب الحج على الكافر ولا يصح منه.') && !r1.text.includes(LABEL1), ascii(r1.text));
+      ok('F1e the shape: a label, an ordinal, a colon, a subject of two to forty letters, then a comma and a clause; a subject that quotes or attributes is refused',
+        UNITS_F1.LABELLED_UNIT_RE.test('الشرط الأول: الإسلام، فلا يجب الحج على الكافر.') && UNITS_F1.LABELLED_UNIT_RE.test('الركن الثالث: الركوع، وهو واجب.')
+        && !UNITS_F1.LABELLED_UNIT_RE.test('الشرط الأول: ما قاله الجمهور، وهو الإسلام.') && !UNITS_F1.LABELLED_UNIT_RE.test('الشرط الأول: الإسلام عند الجمهور، فلا يجب.')
+        && !UNITS_F1.LABELLED_UNIT_RE.test('الشرط الأول: الإسلام.') && !UNITS_F1.LABELLED_UNIT_RE.test('الشرط الأول: «الإسلام»، فلا يجب.')
+        && !UNITS_F1.LABELLED_UNIT_RE.test('الشرط الأول: الإسلام [[1]]، فلا يجب.'));
+      // the mutant: the split gone -> V17 opens on the second condition again; V1 and the lone label are the same bytes with and without it
+      const seamF1 = "      const labelled = retryAsked ? null : LABELLED_UNIT_RE.exec(String(current.body || '').trim());";
+      const srcF1 = read('lib/bw2-units.js');
+      ok('F1 mutant seam present once', srcF1.split(seamF1).length === 2);
+      {
+        const tmpF1 = path.join(REPO, 'lib', '.mut-f1-label.mjs');
+        fs.writeFileSync(tmpF1, srcF1.split(seamF1).join('      const labelled = null; // mutant: the labelled unit is one unit again').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MF1 = null;
+        try { MF1 = await import(pathToFileURL(tmpF1).href + '?m=' + Date.now()); } catch (e) { MF1 = null; } finally { fs.rmSync(tmpF1, { force: true }); }
+        ok('F1 mutant loads', !!MF1);
+        if (MF1) {
+          const m17 = await deliver(MF1, V17);
+          ok('F1 MUTANT KILLED: without the split V17 opens on «الشرط الثاني» and the first condition is lost', plain(m17.text).startsWith('الشرط الثاني') && !m17.text.includes('الإسلام'), ascii(m17.text));
+          const m1 = await deliver(MF1, V1);
+          ok('F1c V1 is byte-identical with and without the split', m1.text === r1.text && m1.st.released === r1.st.released, ascii(r1.text));
+          const rl = await deliver(UNITS_F1, LONE);
+          const ml = await deliver(MF1, LONE);
+          ok('F1d a label line with nothing after its subject is unchanged, byte for byte', rl.text === ml.text && rl.st.held === ml.st.held && rl.text.includes(LABEL1), ascii(rl.text));
+        }
+      }
+    }
   } catch (error) {
     ok('guard completed without exception', false, error && error.stack ? error.stack : String(error));
   }
