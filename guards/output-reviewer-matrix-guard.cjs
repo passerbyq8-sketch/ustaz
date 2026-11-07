@@ -1227,6 +1227,32 @@ function quantityContradiction(parts) {
       ok('Y1 attribution-lookahead mutant seam applied and module loaded', attributionMutant.changed && attributionMutant.loaded, attributionMutant.error);
       ok('MUTANT KILLED: without the lookahead «لا يصح أن ينسب …» is the family ضعيف again and Q7\'s second unit frames', attributionMutant.loaded && attributionMutant.survived === false, JSON.stringify(attributionMutant));
     }
+    // ── brain35-4 Y2 (2026-11-07; FIX3 FOUND 3; owner: "yes to the four") · «اختلفوا في <matter>» IS A DECLARED KHILAF ──
+    // MEASURED (FIX3 H6c.AFTER.out.txt, live Q12): after X10 the two stance sentences are two views (releasedViewsIn=2) and the
+    // trigger on the LIVE Mawsu'a row is still null: KHILAF_SOURCE_MARKERS read «في هذه المسألة خلاف», «خلاف بين أهل العلم»,
+    // «اختلف(وا) (فيها) أهل العلم / العلماء / الفقهاء», «قولان» … and not the row's «اخْتَلَفُوا فِي وُجُوبِ الْحَجِّ …» (the verb + «في» + a
+    // matter). One more marker: اختلف / اختلفوا / اختلفت (with or without a leading و / ف) + «في» + a matter word; the trigger still
+    // needs two released views on the subject beside it (X10, X12). The row is the live card's text (BRAIN35-DIAG3-evidence/L12.book-matn.txt).
+    {
+      const S8y = khilafCases.cases.find((c) => c.id === 'S8-timing-dispute-two-stances');
+      const LIVE12 = "وُجُوبُ الْحَجِّ عَلَى الْفَوْرِ أَوِ التَّرَاخِي: 5 - اخْتَلَفُوا فِي وُجُوبِ الْحَجِّ عِنْدَ تَحَقُّقِ الشُّرُوطِ هَل هُوَ عَلَى الْفَوْرِ أَوْ عَلَى التَّرَاخِي؟ . ذَهَبَ أَبُو حَنِيفَةَ فِي أَصَحِّ الرِّوَايَتَيْنِ عَنْهُ وَأَبُو يُوسُفَ وَمَالِكٌ فِي الرَّاجِحِ عَنْهُ وَأَحْمَدُ (1) إِلَى أَنَّهُ يَجِبُ عَلَى الْفَوْرِ، فَمَنْ تَحَقَّقَ فَرْضُ الْحَجِّ عَلَيْهِ فِي عَامٍ فَأَخَّرَهُ يَكُونُ آثِمًا، وَإِذَا أَدَّاهُ بَعْدَ ذَلِكَ كَانَ أَدَاءً لاَ قَضَاءً، وَارْتَفَعَ الإِْثْمُ. وَذَهَبَ الشَّافِعِيُّ وَالإِْمَامُ مُحَمَّدُ بْنُ الْحَسَنِ إِلَى أَنَّهُ يَجِبُ عَلَى التَّرَاخِي، فَلاَ يَأْثَمُ الْمُسْتَطِيعُ بِتَأْخِيرِهِ. وَالتَّأْخِيرُ إِنَّمَا يَجُوزُ بِشَرْطِ الْعَزْمِ عَلَى الْفِعْل فِي الْمُسْتَقْبَل، فَلَوْ خَشِيَ الْعَجْزَ أَوْ خَشِيَ هَلاَكَ مَالِهِ حَرُمَ التَّأْخِيرُ، أَمَّا التَّعْجِيل بِالْحَجِّ لِمَنْ وَجَبَ عَلَيْهِ فَهُوَ سُنَّةٌ عِنْدَ الشَّافِعِيِّ مَا لَمْ يَمُتْ، فَإِذَا مَاتَ تَبَيَّنَ أَنَّهُ كَانَ عَاصِيًا مِنْ آخِرِ سَنَوَاتِ الاِسْتِطَاعَةِ (2) . اسْتَدَل الْجُمْهُورُ عَلَى الْوُجُوبِ الْفَوْرِيِّ بِالآْتِي: أ - الْحَدِيثُ: مَنْ مَلَكَ زَادًا. وَرَاحِلَةً تُبَلِّغُهُ إِلَى بَيْتِ اللَّهِ، وَلَمْ يَحُجَّ فَلاَ عَلَيْهِ أَنْ يَمُوتَ يَهُودِيًّا أَوْ";
+      const ONE_STANCE = "ذهب الجمهور إلى أن الحج يجب على الفور."; // the first S8 stance sentence alone
+      const RC = await import(pathToFileURL(path.join(ROOT, 'lib', 'route-classify.js')).href);
+      const triggerY2 = (mod, text) => mod.reviewAnswer({ ...S8y.input, text, evidence: [{ id: S8y.input.evidence[0].id, snippet: LIVE12 }], topic: S8y.input.topic, question: S8y.question, subjectTerms: QT.subjectTermsOf(S8y.question) }).verdict.khilafTrigger;
+      ok('Y2a the live Q12 row («اخْتَلَفُوا فِي وُجُوبِ الْحَجِّ …») + the two S8 stance sentences -> the trigger is source', triggerY2(module, S8y.input.text) === 'source', String(triggerY2(module, S8y.input.text)));
+      ok('Y2b the same row + ONE stance sentence -> null (the marker alone never fires the tail)', triggerY2(module, ONE_STANCE) === null, String(triggerY2(module, ONE_STANCE)));
+      ok('Y2c «اختلفت الرواية عنه» (the verb with no «في» after it) -> no marker', !module.KHILAF_SOURCE_MARKERS.test(RC.normalizeArabic('اختلفت الرواية عنه.')));
+      ok('Y2 the fixture keeps its 12 cases and every case its expected trigger (law 4: no re-cut)', khilafCases.cases.length === 12 && khilafCases.cases.every((t) => khilafCasePasses(module, t)));
+      const MARKER_Y2 = "|\\u0627\\u062e\\u062a\\u0644\\u0641(?:\\u0648\\u0627|\\u062a)?\\s+\\u0641\\u064a\\s+\\p{L}{2,}"; // the alternative as it stands in the source line (\u-escaped)
+      const markerMutant = await runMutant({
+        sourceFile: REVIEWER,
+        name: 'ikhtalafu-fi-is-no-marker',
+        transform: (source) => source.replace(MARKER_Y2, ''),
+        survives: (mutantModule) => triggerY2(mutantModule, S8y.input.text) === 'source',
+      });
+      ok('Y2 marker mutant seam applied and module loaded', markerMutant.changed && markerMutant.loaded, markerMutant.error);
+      ok('MUTANT KILLED: without the marker the live Q12 row declares no khilaf and the trigger is null again', markerMutant.loaded && markerMutant.survived === false, JSON.stringify(markerMutant));
+    }
     ok('the pure reviewer made zero network calls', wireCalls === 0, String(wireCalls));
   } catch (error) {
     fail++;
