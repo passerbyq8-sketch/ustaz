@@ -7,6 +7,9 @@ for(const [k,v] of Object.entries(approved.buttons))keys['tour.'+k]=v;
 for(const s of [{id:'welcome',...approved.welcome},...approved.steps,{id:'finish',...approved.finish}]){keys['tour.'+s.id+'.title']=s.title;keys['tour.'+s.id+'.text']=s.text;}
 const normalize=s=>String(s).replace(/[\u064b-\u065f\u0670]/g,'').replace(/[^\u0621-\u064a]/g,'');
 function verify(source,missing){
+ const hookStart=source.indexOf('function useEzikIntroTour(');
+ const hook=hookStart<0?'':source.slice(hookStart,source.indexOf('// INTRO TOUR V1 END'));
+ assert.ok(hook.length > 0 && !/\.click\(|window\.location\s*=|\.href\s*=/.test(hook),'never activates section');
  const a=source.indexOf('const EZ_I18N = {'),b=source.indexOf('\n};',a)+3;
  const dictionaries=vm.runInNewContext(source.slice(a,b)+'\nEZ_I18N');
  for(const f of fs.readdirSync(path.join(root,'lang')).filter(f=>f.endsWith('.json')))dictionaries[f.slice(0,-5)]=JSON.parse(read('lang/'+f));
@@ -40,13 +43,11 @@ function verify(source,missing){
  ctx.window.sessionStorage.getItem=()=>null;ctx.window.location.pathname='/library.html';assert.equal(ctx.ezTourBootHeld(),true);
  ctx.ezTourMarkSeen();assert.equal(store.get('ezik.tour.v1.seen'),'1');assert.equal(ctx.ezTourCanAuto('chat',false,ctx.ezTourSeen(),false),false);
  ctx.window.localStorage={getItem(){throw Error('denied');},setItem(){throw Error('denied');}};ctx.ezTourMarkSeen();assert.equal(ctx.ezTourSeen(),true);
- const hook=source.slice(source.indexOf('function useEzikIntroTour('),source.indexOf('// INTRO TOUR V1 END'));
  assert.ok(hook.includes('origin.current = screen')&&hook.includes('setScreen(origin.current)'),'return to origin');
  assert.ok(hook.includes('const steps = ezTourStations(policy)'),'policy recounted on transition');
  assert.ok(hook.includes("id === 'welcome' ? 'start'"));
  assert.ok(hook.includes("tour.id === 'finish' ? onClose"));assert.ok(hook.includes('onClick={onClose}'),'skip and finish share seen writer');
  assert.ok(hook.includes('auth?.busy || auth?.pending')&&hook.includes('ezikBackLayers.length > 0'),'auth and dialog suppression');
- assert.ok(!/\.click\(|window\.location\s*=|\.href\s*=/.test(hook),'never activates section');
  const rail=source.slice(source.indexOf('<div className="ezc-rail">'),source.indexOf('<div ref={messagesAreaRef}'));
  assert.deepEqual([...rail.matchAll(/data-ezik-topbar="([^"]+)"/g)].map(m=>m[1]),['menu','home','tour']);
  assert.ok(rail.includes('onClick={introTour.open}')&&rail.includes("aria-label={ezT('tour.info')}"),'manual reopening and label');
@@ -109,6 +110,7 @@ for(const [name,mutant,missing] of [
  ['opening scroll changed',source.replace('scroll.current = chat.area.current?.scrollTop ?? null;','scroll.current = 0;'),false],
  ['return scroll lost',source.replace('chat.area.current.scrollTop = scroll.current;',"chat.area.current.scrollTop = tour?.id === 'welcome' ? scroll.current : 0;"),false],
  ['close scroll lost',source.replace('restoring.current = true;', 'restoring.current = false;'),false],
- ['origin lost',source.replace('setScreen(origin.current);',"setScreen('home');"),false]
+ ['origin lost',source.replace('setScreen(origin.current);',"setScreen('home');"),false],
+ ['hook anchor lost',source.replace('function useEzikIntroTour(', 'function lostIntroTour('),false]
 ]){assert.throws(()=>verify(mutant,missing),undefined,name+' must be killed');}
 console.log('PASS intro tour: '+JSON.stringify(result)+'; four original and added repair mutants killed');
