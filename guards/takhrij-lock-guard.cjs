@@ -928,6 +928,19 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       // would now violate F-081 by reviving a lexical capture vetoed by the entity IR.
       const presenceQuestion = '\u0645\u0646 \u0647\u0648 \u062e\u0627\u0644\u062f \u0639\u0628\u062f\u0627\u0644\u0631\u062d\u0645\u0646\u061f';
       const contradiction = '\u062e\u0627\u0644\u062f \u0639\u0628\u062f\u0627\u0644\u0631\u062d\u0645\u0646 \u0645\u0637\u0631\u0628 \u0643\u0648\u064a\u062a\u064a \u0645\u0639\u0631\u0648\u0641.';
+      // ── brain35-3 X16 (2026-11-07; owner: ship item) · THE F-008 RACE REMOVED ──────────────────────────────────────
+      // MEASURED (BRAIN35-FIX-evidence/takhrij-F008-flake, five runs of this gate: three pass, two fail, no code change):
+      // the identity probe (api/ask.js -> lib/identity/wikipedia.js -> safeFetch) reaches the REAL ar.wikipedia.org -- the
+      // stubbed globalThis.fetch is bypassed by safe-fetch's pinned hop (node:https on the preflighted address) -- so this
+      // row passed only when that lookup timed out («[identity] wikipedia miss { reason: 'timeout' }» -> unknown -> the
+      // three problems) and failed when Wikipedia answered in time («[identity] { kind: 'public_figure', source:
+      // 'wikipedia' }» -> no problems). The row's subject is the MISS. For this block the gate refuses every name
+      // resolution through safe-fetch's own test seam: preflight fails, the probe misses deterministically, and the gate
+      // sends nothing to the network here. Restored after the block.
+      const SAFE_FETCH = await esm('lib/ledger/safe-fetch.js');
+      SAFE_FETCH.__setResolverForTest(async (host) => { throw new Error('offline gate: no resolution for ' + host); });
+      const wikiPreflight = await SAFE_FETCH.checkHostAddresses('ar.wikipedia.org');
+      ok('X16 the name resolution is refused for the F-008 block (the identity probe cannot reach ar.wikipedia.org)', wikiPreflight && wikiPreflight.ok === false, JSON.stringify(wikiPreflight));
       const presenceBad = await drive({ question: presenceQuestion, draft: contradiction, evidence: '' });
       ok('F-008 endpoint negative: consistency removes the composed contradiction before first text write/end',
         rawContract(presenceBad)
@@ -947,6 +960,7 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       const expectedPresenceLead = (await esm('lib/policy/name-presence.js'))
         .nameUnknownLine('\u062e\u0627\u0644\u062f \u0639\u0628\u062f\u0627\u0644\u0631\u062d\u0645\u0646');
       ok('F-008 endpoint fixture has namedEntity empty and a real structured presence lead', presencePlan.namedEntity === '' && presenceGood.text.startsWith(expectedPresenceLead + '\n\n'), JSON.stringify({ namedEntity: presencePlan.namedEntity, text: presenceGood.text }));
+      SAFE_FETCH.__resetResolver(); // brain35-3 X16: the real resolver back for the rows after this block
       ok('F-008 endpoint green: composed text is finalized before first target write/end', rawContract(presenceGood) && presenceGood.res.textWritesBeforeFinalizer === 0 && presenceGood.res.endsBeforeFinalizer === 0 && presenceGood.finalizerProblems.length === 0 && presenceGood.text === expectedPresenceLead + '\n\n' + presenceBody, presenceGood.text);
     } finally { globalThis.fetch = originalFetch; }
   }
