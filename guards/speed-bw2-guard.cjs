@@ -2571,6 +2571,42 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
           !!MH && (await run7(MH, HEAD7 + '\n\n' + HELD7 + ' ' + OUT7)).text.includes(HEAD7 + ' و'), MH ? JSON.stringify((await run7(MH, HEAD7 + '\n\n' + HELD7 + ' ' + OUT7)).text.slice(0, 80)) : 'no module');
       }
     }
+    // ---------------------------------------------------------------- ITEM 35-D3 D6 (ii) (brain35-3 X8, 2026-11-07; owner: (iii) with (ii) first): THE IMAM'S NAME IN THE ROW COUNTS FOR HIS SCHOOL WHEN THE UNIT NAMES THE IMAM
+    // MEASURED (DIAG3 H6 / H6b, live Q12): the Mawsu'a row writes «ذَهَبَ الشَّافِعِيُّ وَالإِْمَامُ مُحَمَّدُ بْنُ الْحَسَنِ …» -- the imam, never
+    // the plural -- so the live stance sentence «ذهب الشافعي، والإمام محمد بن الحسن، إلى أنه يجب على التراخي…» was held
+    // unsupported_school (ROW_SCHOOL_KEYS.shafii is ['شافعيه'] only). The imam's name in the row now counts for his school when
+    // the UNIT names the imam the same way (a whole word); a unit naming the SCHOOL is still held on that row. The passage is
+    // the live card's text (BRAIN35-DIAG3-evidence/L12.book-matn.txt), copied.
+    {
+      const UNITS_X8 = await esm('lib/bw2-units.js');
+      const MAWSUA12 = 'وُجُوبُ الْحَجِّ عَلَى الْفَوْرِ أَوِ التَّرَاخِي: 5 - اخْتَلَفُوا فِي وُجُوبِ الْحَجِّ عِنْدَ تَحَقُّقِ الشُّرُوطِ هَل هُوَ عَلَى الْفَوْرِ أَوْ عَلَى التَّرَاخِي؟ . ذَهَبَ أَبُو حَنِيفَةَ فِي أَصَحِّ الرِّوَايَتَيْنِ عَنْهُ وَأَبُو يُوسُفَ وَمَالِكٌ فِي الرَّاجِحِ عَنْهُ وَأَحْمَدُ (1) إِلَى أَنَّهُ يَجِبُ عَلَى الْفَوْرِ، فَمَنْ تَحَقَّقَ فَرْضُ الْحَجِّ عَلَيْهِ فِي عَامٍ فَأَخَّرَهُ يَكُونُ آثِمًا، وَإِذَا أَدَّاهُ بَعْدَ ذَلِكَ كَانَ أَدَاءً لاَ قَضَاءً، وَارْتَفَعَ الإِْثْمُ. وَذَهَبَ الشَّافِعِيُّ وَالإِْمَامُ مُحَمَّدُ بْنُ الْحَسَنِ إِلَى أَنَّهُ يَجِبُ عَلَى التَّرَاخِي، فَلاَ يَأْثَمُ الْمُسْتَطِيعُ بِتَأْخِيرِهِ.';
+      const rows12 = [{ ref: 1, kind: 'lib_book', title: 'الموسوعة الفقهية الكويتية · ج17 · ص24-25', bookTitle: 'الموسوعة الفقهية الكويتية', author: 'مجموعة من المؤلفين', locator: 'ج17 · ص24-25', recordId: 'FC-003910', fullText: MAWSUA12, text: MAWSUA12, passage: MAWSUA12 }];
+      const play12 = async (mod, writer) => { const out = []; const r = mod.createBw2Releaser({ rows: rows12, emit: (p) => { out.push(p); return true; } }); r.push(writer + '\n'); const sum = await r.end(); return { text: out.join(''), holds: sum.holds }; };
+      // the order's row, cut at «التراخي…»: the live unit's tail «فلا يأثم المستطيع بتأخيره» carries a negation the row's school clause does not (it stands in the
+      // row's NEXT clause, after «،»), so the unchanged sameStanceOnSchool still holds the full live unit (MEASURED; recorded under FOUND)
+      const IMAM_12 = 'ذهب الشافعي، والإمام محمد بن الحسن، إلى أنه يجب على التراخي [[1]].';
+      const SCHOOL_12 = 'ذهب الشافعية إلى أنه يجب على التراخي [[1]].';
+      const imam12 = await play12(UNITS_X8, IMAM_12);
+      ok('X8a the Q12 row + the live unit naming the imam («ذهب الشافعي، والإمام محمد بن الحسن، …») -> released', imam12.text.includes('ذهب الشافعي، والإمام محمد بن الحسن') && !imam12.holds.unsupported_school, JSON.stringify(imam12.holds));
+      const school12 = await play12(UNITS_X8, SCHOOL_12);
+      ok('X8b the same row + a unit naming the SCHOOL («ذهب الشافعية إلى …») -> still held unsupported_school', school12.holds.unsupported_school === 1 && !school12.text.includes('الشافعية'), JSON.stringify(school12.holds));
+      ok('X8c the plural in the row still names the school for a unit naming the school (ROW_SCHOOL_KEYS unchanged)',
+        (await play12(UNITS_X8, 'ذهب الشافعية إلى أنه يجب على التراخي [[1]].'.replace('[[1]]', '[[1]]'))).holds.unsupported_school === 1
+        && !(await (async () => { const out = []; const r = UNITS_X8.createBw2Releaser({ rows: [{ ...rows12[0], fullText: 'وذهب الشافعية إلى أنه يجب على التراخي.', text: 'وذهب الشافعية إلى أنه يجب على التراخي.', passage: 'وذهب الشافعية إلى أنه يجب على التراخي.' }], emit: (p) => { out.push(p); return true; } }); r.push(SCHOOL_12 + '\n'); return r.end(); })()).holds.unsupported_school);
+      {
+        const srcI = read('lib/bw2-units.js');
+        const seamI = "shafii: ['الشافعي'], hanbali: ['الامام احمد', 'قال احمد', 'ذهب احمد'] });";
+        ok('X8 mutant seam present once', srcI.split(seamI).length === 2);
+        const tmpI = path.join(REPO, 'lib', '.mut-x8-imam.mjs');
+        fs.writeFileSync(tmpI, srcI.split(seamI).join("shafii: [], hanbali: ['الامام احمد', 'قال احمد', 'ذهب احمد'] }); // mutant: the Shafi'i imam names no school").replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MI = null;
+        try { MI = await import(pathToFileURL(tmpI).href + '?m=' + Date.now()); } catch (e) { MI = null; } finally { fs.rmSync(tmpI, { force: true }); }
+        ok('X8 mutant loads', !!MI);
+        ok('X8 MUTANT KILLED: with the Shafi\'i imam key emptied the live unit is held unsupported_school again',
+          !!MI && (await play12(MI, IMAM_12)).holds.unsupported_school === 1, MI ? JSON.stringify((await play12(MI, IMAM_12)).holds) : 'no module');
+      }
+    }
     // ---------------------------------------------------------------- ITEM 35-D2 R2 (brain35-2 F1, 2026-11-07): THE ENUMERATION LABEL IS RELEASED WITH ITS SUBJECT
     // MEASURED (DIAG2 HB2 V10 / V17 on the real turn): «الشرط الأول: الإسلام، <clause>» was held whole when its clause failed (an
     // unproven quoted matn, an uncited group view), and the answer opened on «الشرط الثاني». The label with its subject now goes
