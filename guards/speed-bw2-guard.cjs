@@ -2017,6 +2017,38 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       ok('A-4 a views part answered by two named speakers draws no sentence; by one, it still does',
         !BW2.partSentenceWanted(viewsPart, '\u0642\u0627\u0644 \u0627\u0628\u0646 \u0628\u0627\u0632: \u064a\u062c\u0648\u0632 \u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631. \u0648\u0630\u0647\u0628 \u0627\u0628\u0646 \u0639\u062b\u064a\u0645\u064a\u0646 \u0625\u0644\u0649 \u0623\u0646\u0647 \u0644\u0627 \u064a\u062c\u0648\u0632.')
         && BW2.partSentenceWanted(viewsPart, '\u0642\u0627\u0644 \u0627\u0628\u0646 \u0628\u0627\u0632: \u064a\u062c\u0648\u0632 \u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631.'));
+      // ── brain35-2 F4 (2026-11-07; DIAG2 R4) · THE GRADE-PART VALVE ──────────────────────────────────────────────────────
+      // MEASURED (DIAG2 R4): P12 «… ومن رواه وما حكمه عند أهل الحديث؟» ended on «لم أقف على نصٍّ في حكمه عند أهل الحديث» under
+      // «ضعّفه ابن باز وابن عثيمين»: the part is not a views question, two agreeing graders are one view, and the part's stemmed
+      // terms met no delivered sentence twice. A part that asks the grade (حكمه / درجته / صحته / حكم / درجة / صحة) is now
+      // answered by a grade attributed to a named grader anywhere in the delivered text. Side defect seen on the way: the
+      // PARTS_JOIN cut doubled the waw («…صحيح، وومن رواه»); the follow-up's own conjunction is dropped before the join's.
+      const P12 = 'هل حديث «اقرؤوا على موتاكم يس» صحيح؟ ومن رواه وما حكمه عند أهل الحديث؟';
+      const parts12 = BW2.questionParts(P12);
+      const P12_SHAPE = 'الحديث ضعيف، ضعّفه ابن باز وابن عثيمين، وقال ابن باز: هذا الحديث ضعيف عند أهل العلم.';
+      ok('F4a P12 is two parts, the second «ما حكمه عند أهل الحديث», and over a text naming two graders it draws no sentence',
+        parts12.length === 2 && parts12[1].text === 'ما حكمه عند أهل الحديث' && BW2.partSentenceWanted(parts12[1], P12_SHAPE) === false,
+        ascii(JSON.stringify(parts12.map((p) => p.text))));
+      ok('F4b the same part over a text with no grader still draws it, and so does a text whose only grade names nobody',
+        parts12.length === 2 && BW2.partSentenceWanted(parts12[1], 'الحديث ضعيف عند أهل الحديث.') === true
+        && BW2.partSentenceWanted({ text: 'ما درجته', title: 'x' }, 'هذا الحديث لا يصح.') === true);
+      ok('F4c a part that asks no grade is read by today\'s valves, unchanged',
+        BW2.partSentenceWanted({ text: 'ما شروط الحج', title: 'x' }, P12_SHAPE) === true
+        && BW2.partSentenceWanted({ text: 'ما شروط الحج', title: 'x' }, 'شروط الحج خمسة: الإسلام والعقل والبلوغ والحرية والاستطاعة.') === false);
+      ok('F4d the first part reads «…صحيح، ومن رواه», not «وومن»', parts12.length === 2 && parts12[0].text === 'هل حديث «اقرؤوا على موتاكم يس» صحيح، ومن رواه' && !parts12[0].text.includes('وومن'), ascii(parts12[0] && parts12[0].text));
+      {
+        const srcV = read('lib/before-writing-v2.js');
+        const seamV = "  if (GRADE_PART_RE.test(normalizeArabic(String(part && part.text || ''))) && graderNamed(text)) return false; // ITEM 35-D2 R4 (brain35-2 F4): the grade-part valve";
+        ok('F4 mutant seam present once', srcV.split(seamV).length === 2);
+        const tmpV = path.join(REPO, 'lib', '.mut-f4-valve.mjs');
+        fs.writeFileSync(tmpV, srcV.split(seamV).join('  // mutant: no grade-part valve').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MV = null;
+        try { MV = await import(pathToFileURL(tmpV).href + '?m=' + Date.now()); } catch (e) { MV = null; } finally { fs.rmSync(tmpV, { force: true }); }
+        ok('F4 mutant loads', !!MV);
+        ok('F4 MUTANT KILLED: without the valve the grade part draws its sentence under two named graders again',
+          !!MV && parts12.length === 2 && MV.partSentenceWanted(parts12[1], P12_SHAPE) === true);
+      }
       // the wiring: a real two-part turn whose second part no row answers ends on the sentence naming the sources that answered
       const Q2 = '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0631\u0628\u061f \u0648\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u062d\u062c\u0627\u0645\u0629 \u0644\u0644\u0635\u0627\u0626\u0645\u061f';
       // the fatwa store answers the first part's query only (the masah row), so the second part has no kept row (the z1 shape)
