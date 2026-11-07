@@ -241,6 +241,7 @@ function build() {
   }
   const sharh = { source: 'alnawawiforty.com', source_url: SITE, fetched_at: probe.fetched_at, audio_credit, items, cleanups };
 
+  require('./item33-corrections.cjs').apply('arbaeen-sharh.json', sharh);
   auditStrings(main, 'arbaeen');
   auditStrings({ ...sharh, cleanups: undefined }, 'arbaeen-sharh');   // cleanups carry '' and null by design (a deletion)
 

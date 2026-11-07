@@ -114,7 +114,7 @@ const SEALED = {
   // of JavaScript, no newline, so no line-ending conversion can move it; pinned -text anyway.
   // and again 2026-10-19 (KUNUZ-LEVELS-POETRY, B): 217 poets' private-life questions retired in place and 101 verse questions
   // appended (EA0F7962, 5412585 bytes, 11036 rows, 10819 live).
-  'quest-data/kunuz-bank-3147.js': '73835acc3ff7d7ee3cd3e9a043452bf07ba2531c891cc10d43092788044d87d3',
+  'quest-data/kunuz-bank-3147.js': '28a209a0c869bd925844cf2ab7e5f7d41a0f03bebf7c8335a0c38033ca362522',
   'quran-uthmani.json': 'd4fd1a1507f70a4261789eaec8380750cd0f65f4d641f6df2ef6334b18c6877b',
   'adhkar.json': '19ef96b9ecc275376d46a667a86297261ea5991749ffe46dd35448196cb4c9c3',
   'mushaf-layout.json': 'ea9223ef7f18b5d933ce1c87cbebabc5d78f1ec0e8ac9714260f9dee6d571351',
@@ -2102,7 +2102,7 @@ const SEALED = {
   // 2026-11-04 QAF-GAP-N2: ezik-v136; rebuild and CORE measurement, then LF worker seal.
   // 2026-11-04 INTEG1 preview: reserved ezik-v137; rebuilt app.js, measured CORE, LF worker seal.
   // 2026-11-06 BRAIN36 ship: reserved ezik-v139; app.js rebuilt at the same byte length; CORE unchanged; LF worker seal remeasured from the guard's printed digest.
-  'sw.js': '8327daa15565911230067fabd898ccaec3a90068f8c80d972f59ba8e0d13506e',
+  'sw.js': '0408c7ffdeadfdb01db7a4e08ab7efc3a5edd6e97c0f723a4d0a06359bf86ed8',
 };
 
 // ---------------------------------------------------------------------------
@@ -3278,7 +3278,7 @@ async function compare(bankPath) {
     //  { n, sum: [a, b] }  n is the byte sum of those files on disk
     //  { n, dir: 'count' | 'sum' | 'mean' }   n is that statistic over the mushaf page scans
     const SW_PROSE = [
-      { n: 190520, of: 'index.html' },
+      { n: 190532, of: 'index.html' },
       // ITEM 85. The two CORE entries the self-hosted faces added, stated in the worker's byte
       // table beside the rest and re-derived here from the files they name. They are the arabic
       // and latin cuts of Noto Naskh Arabic, which is what the first screen is painted in.
@@ -3291,7 +3291,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2685847, of: 'app.js' },
+      { n: 2685896, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
@@ -3305,7 +3305,7 @@ async function compare(bankPath) {
       // ITEM 89 (2026-10-13). The forty-two's explanation, warmed last in IDLE and out of CORE; its
       // size is stated in the IDLE note and re-derived here from the file it names. (Item 4's
       // footnotes left CORE with the fifty they belonged to.)
-      { n: 272517, of: 'arbaeen-sharh.json' },
+      { n: 272449, of: 'arbaeen-sharh.json' },
       // ITEM 87. The day from waking to sleeping, the sixth corpus in CORE, stated in the
       // worker's byte table and re-derived here from the file it names.
       { n: 84759, of: 'sunan-day.json' },
@@ -4210,3 +4210,5 @@ else {
   console.error('usage: node quest-bank-integrity-guard.cjs --compare quest-data/kunuz-bank-3147.js');
   process.exit(2);
 }
+
+require('./tools/item33-corrections.cjs').assertCurrent(__dirname);

@@ -1,0 +1,2018 @@
+{
+  "changes": [
+    {
+      "case": "case_1",
+      "file": "arbaeen-sharh.json",
+      "pointer": "/items/21/rawi/1",
+      "old": "كان أبو سفيان من أكثر الناس عداءً وبغضاً للنبي محمد ﷺ حينما جاءته الدعوة الإسلامية، حتى أنّه هجاه، وهجا صحابته، علماً أنه كان شاعراً مطبوعاً، ولا بدّ من الإشارة إلى أنّه لم يتخلف عن أي معركة خاضها المشركون لقتال الرسول محمد ﷺ، ولقتال المسلمين، خاصةً بعد هجرة النبي محمد إلى يثرب. حجّ أبو سفيان بعد وفاة النبي محمد ﷺ، وقد حلق له الحلاق في منى، وقطع له ثألولاً في رأسه، وقد قدم إلى المدينة المنورة عام 15هـ، وحفر له قبراً في البقيع، وقد أصابه مرض الثألول الذي قطعه الحلاق فمات بعد وفاة أخيه نوفل بأربعة أشهر، ولا بدّ من الإشارة إلى أنّ الخليفة عمر بن الخطاب قد صلّى عليه بعد موته، ودفنوه في قبره.",
+      "new": null,
+      "oldId": "h:de7b75755770",
+      "newId": null,
+      "translations": [
+        "lang/content/am/sections/arbaeen.json",
+        "lang/content/en/sections/arbaeen.json",
+        "lang/content/fa/sections/arbaeen.json",
+        "lang/content/om/sections/arbaeen.json"
+      ]
+    },
+    {
+      "case": "case_2",
+      "file": "arbaeen-sharh.json",
+      "pointer": "/items/30/sharh/6",
+      "old": "ولكن الصواب الأول،أن المراد بالحدود في الحديث محارم الله عزّ وجل الواجبات والمحرمات، لكن الواجب نقول:لا تعتده أي لاتتجاوزه، والمحرم نقول: لا تقربه، هكذا في القرآن الكريم لما ذكر الله تعالى تحريم الأكل والشرب على الصائم قال: (تِلْكَ حُدُودُ اللَّهِ فَلا تَعْتَدُوهَا) ولما ذكر العدة وما يجب فيها قال: (تِلْكَ حُدُودُ اللَّهِ فَلا تَقرَبُوهَا).",
+      "new": "ولكن الصواب الأول،أن المراد بالحدود في الحديث محارم الله عزّ وجل الواجبات والمحرمات، لكن الواجب نقول:لا تعتده أي لاتتجاوزه، والمحرم نقول: لا تقربه، هكذا في القرآن الكريم لما ذكر الله تعالى تحريم الأكل والشرب على الصائم قال: (تِلْكَ حُدُودُ اللَّهِ فَلا تَعْتَدُوهَا) ولما ذكر العدة وما يجب فيها قال: (تِلْكَ حُدُودُ اللَّهِ فَلا تَقرَبُوهَا). [تنبيه: كذا في المطبوع، والذي في المصحف أن آية الصيام (البقرة: ١٨٧) خُتمت بقوله تعالى: ﴿تِلْكَ حُدُودُ ٱللَّهِ فَلَا تَقْرَبُوهَا﴾، وآية الطلاق (البقرة: ٢٢٩) خُتمت بقوله تعالى: ﴿تِلْكَ حُدُودُ ٱللَّهِ فَلَا تَعْتَدُوهَا﴾، وهو الموافق لتقرير الشيخ رحمه الله.]",
+      "oldId": "h:5293aa08ae1e",
+      "newId": "h:0e1cf9edf377",
+      "translations": [
+        "lang/content/am/sections/arbaeen.json",
+        "lang/content/en/sections/arbaeen.json",
+        "lang/content/fa/sections/arbaeen.json",
+        "lang/content/om/sections/arbaeen.json"
+      ]
+    },
+    {
+      "case": "case_3",
+      "file": "arbaeen-sharh.json",
+      "pointer": "/items/40/sharh/7",
+      "old": "أو المعنى: إِذَا أَمْسَيْتَ فَلا تَنْتَظِرِ الصَّبَاح لأنك قد تموت قبل أن تصبح. وَإِذَا أَمْسَيْتَ فَلا تَنْتَظِرِ المَسَاء لأنك قد تموت قبل أن تمسي. وفي هذا يقول بعضهم: (اعمل لدنياك كأنك تعيش أبداً، واعمل لآخرتك كأنك تموت غداً) والمعنى: الدنيا لاتهمّك، الذي لا تدركه اليوم تدركه غداً فاعمل كأنك تعيش أبداً، والآخرة اعمل لها كأنك تموت غداً، بمعنى: لا تؤخر العمل.",
+      "new": "أو المعنى: إِذَا أَمْسَيْتَ فَلا تَنْتَظِرِ الصَّبَاح لأنك قد تموت قبل أن تصبح. وَإِذَا أَمْسَيْتَ فَلا تَنْتَظِرِ المَسَاء لأنك قد تموت قبل أن تمسي. [تنبيه: كذا في المطبوع، والصواب في الأثر: «وَإِذَا أَصْبَحْتَ فَلَا تَنْتَظِرِ الْمَسَاءَ»، كما في صحيح البخاري.] وفي هذا يقول بعضهم: (اعمل لدنياك كأنك تعيش أبداً، واعمل لآخرتك كأنك تموت غداً) والمعنى: الدنيا لاتهمّك، الذي لا تدركه اليوم تدركه غداً فاعمل كأنك تعيش أبداً، والآخرة اعمل لها كأنك تموت غداً، بمعنى: لا تؤخر العمل.",
+      "oldId": "h:8ab2a18861a6",
+      "newId": "h:31000ba64d67",
+      "translations": [
+        "lang/content/am/sections/arbaeen.json",
+        "lang/content/en/sections/arbaeen.json",
+        "lang/content/fa/sections/arbaeen.json",
+        "lang/content/om/sections/arbaeen.json"
+      ]
+    },
+    {
+      "case": "case_4",
+      "file": "quest-data/kunuz-pack-historical-events.js",
+      "pointer": "why",
+      "old": "يذكر المرجع تاريخ تحرير القدس على يد صلاح الدين في ١١٨٧م. تحرير القدس على يد صلاح الدين: يمثل استعادة الكويت سيادتها بعد الاحتلال، وهي محطة وطنية راسخة في تاريخ الخليج.",
+      "new": "يذكر المرجع تاريخ تحرير القدس على يد صلاح الدين في ١١٨٧م.",
+      "oldId": "h:3e198727b875",
+      "newId": "h:e3635e4cd4f4",
+      "translations": [
+        "lang/content/am/packs/kunuz-pack-historical-events.json",
+        "lang/content/en/packs/kunuz-pack-historical-events.json",
+        "lang/content/fa/packs/kunuz-pack-historical-events.json",
+        "lang/content/om/packs/kunuz-pack-historical-events.json"
+      ]
+    },
+    {
+      "case": "case_5",
+      "file": "quest-data/kunuz-bank-3147.js",
+      "pointer": "record[4][2] (the third choice)",
+      "old": "الخلايا الصارية",
+      "new": "الخلايا العضلية",
+      "oldId": "h:fcc9fa17043f",
+      "newId": "h:11dbb5d3c1b0",
+      "translations": [
+        "lang/content/am/core.json",
+        "lang/content/am/room-text.json",
+        "lang/content/en/core.json",
+        "lang/content/en/room-text.json",
+        "lang/content/fa/core.json",
+        "lang/content/fa/room-text.json",
+        "lang/content/om/core.json",
+        "lang/content/om/room-text.json"
+      ]
+    },
+    {
+      "case": "case_6",
+      "file": "quest-data/kunuz-bank-3147.js",
+      "pointer": "record[6] (the explanation)",
+      "old": "نظم الشاطبي القراءات السبع المتواترة في ثلاثة وسبعين وألف بيت.",
+      "new": "نظم الشاطبي القراءات السبع المتواترة في ثلاثة وسبعين ومائة وألف بيت.",
+      "oldId": "h:dc65401354d1",
+      "newId": "h:8889e12ec4e4",
+      "translations": [
+        "lang/content/am/core.json",
+        "lang/content/am/room-text.json",
+        "lang/content/en/core.json",
+        "lang/content/en/room-text.json",
+        "lang/content/fa/core.json",
+        "lang/content/fa/room-text.json",
+        "lang/content/om/core.json",
+        "lang/content/om/room-text.json"
+      ]
+    },
+    {
+      "case": "case_7",
+      "file": "arbaeen-sharh.json",
+      "pointer": "/items/1/rawi/0",
+      "old": "هو عمر بن الخطاب بن نفيل بن عبدالعزى بن رباح بن عبدالله بن قرط بن رزاح بن عدي بن كعب بن لؤي القرشي العدوي، وهو أحد الصحابة الكبار والذي ولد في عام الفيل، كان كافراً في بداية الدعوة إلى الاسلام، كان من أسياد قريش وكان الرسول دوماً يدعو \" اللهم أعز الاسلام بأحد العمرين \"، حتى كان عز الاسلام بعمر بن الخطاب. كان المسلمون قبل إسلام عمر بن الخطاب يكتمون إسلامهم خوفاً من كبار قريش، ولكن بعد إسلام عمر بن الخطاب أصبح المسلمون أقوى، وأصبحوا يجهرون إسلامهم، كما أنهم خرجوا للطواف حول الكعبة والتكبير بعد إسلام عمر بن الخطاب وايضاً كان عمر بن الخطاب قوي البديهة، وكان شديد الذكاء، كما أنه كان معروفاً بقوته ورباطة جأشه، وكان الكل يخاف مواجهته، وكان رجل ذو مواقف خالدة و عظيمة. تُوفّي رضي الله عنه بعد أن اغتيل على يد أبي لؤلؤة المجوسي لعنه الله في سنة 24 للهجرة بعد حياة حافلةٍ بالعطاء والبذل والتّضحية.",
+      "new": "هو عمر بن الخطاب بن نفيل بن عبدالعزى بن رباح بن عبدالله بن قرط بن رزاح بن عدي بن كعب بن لؤي القرشي العدوي، وهو أحد الصحابة الكبار والذي ولد بعد عام الفيل بثلاث عشرة سنة، كما في أسد الغابة، كان كافراً في بداية الدعوة إلى الاسلام، كان من أسياد قريش وكان الرسول دوماً يدعو \" اللهم أعز الاسلام بأحد العمرين \"، حتى كان عز الاسلام بعمر بن الخطاب. كان المسلمون قبل إسلام عمر بن الخطاب يكتمون إسلامهم خوفاً من كبار قريش، ولكن بعد إسلام عمر بن الخطاب أصبح المسلمون أقوى، وأصبحوا يجهرون إسلامهم، كما أنهم خرجوا للطواف حول الكعبة والتكبير بعد إسلام عمر بن الخطاب وايضاً كان عمر بن الخطاب قوي البديهة، وكان شديد الذكاء، كما أنه كان معروفاً بقوته ورباطة جأشه، وكان الكل يخاف مواجهته، وكان رجل ذو مواقف خالدة و عظيمة. تُوفّي رضي الله عنه بعد حياة حافلةٍ بالعطاء والبذل والتّضحية، إذ اغتاله أبو لؤلؤة المجوسي لعنه الله في أواخر سنة 23 للهجرة، ونُقل أن دفنه كان في أول المحرم سنة 24، وفي تفاصيل التأريخ خلاف.",
+      "oldId": "h:193c3b698c5f",
+      "newId": "h:f569a8a95d01",
+      "translations": [
+        "lang/content/am/sections/arbaeen.json",
+        "lang/content/en/sections/arbaeen.json",
+        "lang/content/fa/sections/arbaeen.json",
+        "lang/content/om/sections/arbaeen.json"
+      ]
+    },
+    {
+      "case": "case_7",
+      "file": "arbaeen-sharh.json",
+      "pointer": "/items/2/rawi/0",
+      "old": "هو عمر بن الخطاب بن نفيل بن عبدالعزى بن رباح بن عبدالله بن قرط بن رزاح بن عدي بن كعب بن لؤي القرشي العدوي، وهو أحد الصحابة الكبار والذي ولد في عام الفيل، كان كافراً في بداية الدعوة إلى الاسلام، كان من أسياد قريش وكان الرسول دوماً يدعو \" اللهم أعز الاسلام بأحد العمرين \"، حتى كان عز الاسلام بعمر بن الخطاب. كان المسلمون قبل إسلام عمر بن الخطاب يكتمون إسلامهم خوفاً من كبار قريش، ولكن بعد إسلام عمر بن الخطاب أصبح المسلمون أقوى، وأصبحوا يجهرون إسلامهم، كما أنهم خرجوا للطواف حول الكعبة والتكبير بعد إسلام عمر بن الخطاب وايضاً كان عمر بن الخطاب قوي البديهة، وكان شديد الذكاء، كما أنه كان معروفاً بقوته ورباطة جأشه، وكان الكل يخاف مواجهته، وكان رجل ذو مواقف خالدة و عظيمة. تُوفّي رضي الله عنه بعد أن اغتيل على يد أبي لؤلؤة المجوسي لعنه الله في سنة 24 للهجرة بعد حياة حافلةٍ بالعطاء والبذل والتّضحية.",
+      "new": "هو عمر بن الخطاب بن نفيل بن عبدالعزى بن رباح بن عبدالله بن قرط بن رزاح بن عدي بن كعب بن لؤي القرشي العدوي، وهو أحد الصحابة الكبار والذي ولد بعد عام الفيل بثلاث عشرة سنة، كما في أسد الغابة، كان كافراً في بداية الدعوة إلى الاسلام، كان من أسياد قريش وكان الرسول دوماً يدعو \" اللهم أعز الاسلام بأحد العمرين \"، حتى كان عز الاسلام بعمر بن الخطاب. كان المسلمون قبل إسلام عمر بن الخطاب يكتمون إسلامهم خوفاً من كبار قريش، ولكن بعد إسلام عمر بن الخطاب أصبح المسلمون أقوى، وأصبحوا يجهرون إسلامهم، كما أنهم خرجوا للطواف حول الكعبة والتكبير بعد إسلام عمر بن الخطاب وايضاً كان عمر بن الخطاب قوي البديهة، وكان شديد الذكاء، كما أنه كان معروفاً بقوته ورباطة جأشه، وكان الكل يخاف مواجهته، وكان رجل ذو مواقف خالدة و عظيمة. تُوفّي رضي الله عنه بعد حياة حافلةٍ بالعطاء والبذل والتّضحية، إذ اغتاله أبو لؤلؤة المجوسي لعنه الله في أواخر سنة 23 للهجرة، ونُقل أن دفنه كان في أول المحرم سنة 24، وفي تفاصيل التأريخ خلاف.",
+      "oldId": "h:193c3b698c5f",
+      "newId": "h:f569a8a95d01",
+      "translations": []
+    },
+    {
+      "case": "case_8",
+      "file": "arbaeen-sharh.json",
+      "pointer": "/items/31/rawi/0",
+      "old": "هو أبو العباس سهل بن سعد بن مالك بن خالد بن ثعلبة بن حارثة بن عمرو بن الخزرج بن ساعد بن كعب بن الخزرج الأنصاري الساعدي‏. وهناك من قال إن كنيته هي \"أبا يحيى\"، ولد قبل الهجرة بخمس سنين. ويذكر أنه اسمه في الأصل كان \"حزنًا\" ولكن الرسول - ﷺ - قام بتغيير ذلك الاسم إلى اسم سهل؛ وذلك لأنّ الرسول - ﷺ - كان يحب الأسماء الطيبة الحسنة والإيجابية، وكان يغير كل الأسماء القبيحة أو التي تحتوي على شرك بالله تعالى، مثل عبد الشمس، وغيرها. لقد أمدّ الله في عمر الصحابي سهل بن سعد، وعاش طويلًا، حتى أنّه أدرك الحجاج في حياته، ويذكر أنّ الحجاج أرسل له ذات يوم، وسأله: لما لم تنصر أمير المؤمنين عثمان؟، فقال له سعد: فعلت، قال له: كذبت، وأمر بأن يختم على عنقه؛ إذلالًا منه له، حتى يبتعد عنه الناس ولا يسمعوا منه. يقول سهل بن سعد الساعدي: خرجت إلى بيت المقدس حتى أتيت دمشق، فوجدت أهله يعلقون الديباج والحجب، والنساء يلعبون في الدف، فقلت: ألأهل الشام عيد لا نعرفه؟ فوجد قومًا يتحدثون، فسألهم ألكم عيد لا نعرفه؟، فقالوا له: يا شيخ نراك غريبًا، فقال: فقال أنا سهل بن سعد، رأيت رسول الله - ﷺ -، وأحمل حديثًا، فقالوا: ما أعجب السماء لم لا تمطر دمًا، والأرض لم تخسف، فقال: ولم هذا؟، قالوا: هذا رأس الحسين يهدى من العراق.",
+      "new": "هو أبو العباس سهل بن سعد بن مالك بن خالد بن ثعلبة بن حارثة بن عمرو بن الخزرج بن ساعد بن كعب بن الخزرج الأنصاري الساعدي‏. وهناك من قال إن كنيته هي \"أبا يحيى\"، ولد قبل الهجرة بخمس سنين. ويذكر أنه اسمه في الأصل كان \"حزنًا\" ولكن الرسول - ﷺ - قام بتغيير ذلك الاسم إلى اسم سهل؛ وذلك لأنّ الرسول - ﷺ - كان يحب الأسماء الطيبة الحسنة والإيجابية، وكان يغير كل الأسماء القبيحة أو التي تحتوي على شرك بالله تعالى، مثل عبد الشمس، وغيرها. لقد أمدّ الله في عمر الصحابي سهل بن سعد، وعاش طويلًا، حتى أنّه أدرك الحجاج في حياته، ويذكر أنّ الحجاج أرسل له ذات يوم، وسأله: لما لم تنصر أمير المؤمنين عثمان؟، فقال له سهل: فعلت، قال له: كذبت، وأمر بأن يختم على عنقه؛ إذلالًا منه له، حتى يبتعد عنه الناس ولا يسمعوا منه. يقول سهل بن سعد الساعدي: خرجت إلى بيت المقدس حتى أتيت دمشق، فوجدت أهله يعلقون الديباج والحجب، والنساء يلعبون في الدف، فقلت: ألأهل الشام عيد لا نعرفه؟ فوجد قومًا يتحدثون، فسألهم ألكم عيد لا نعرفه؟، فقالوا له: يا شيخ نراك غريبًا، فقال: أنا سهل بن سعد، رأيت رسول الله - ﷺ -، وأحمل حديثًا، فقالوا: ما أعجب السماء لم لا تمطر دمًا، والأرض لم تخسف، فقال: ولم هذا؟، قالوا: هذا رأس الحسين يهدى من العراق.",
+      "oldId": "h:9ac2924f1146",
+      "newId": "h:3ffe233f89ab",
+      "translations": [
+        "lang/content/am/sections/arbaeen.json",
+        "lang/content/en/sections/arbaeen.json",
+        "lang/content/fa/sections/arbaeen.json",
+        "lang/content/om/sections/arbaeen.json"
+      ]
+    },
+    {
+      "case": "case_11",
+      "file": "dima/dima-v1.json",
+      "pointer": "/lisan/11/fadl",
+      "old": "نْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+      "new": "إِنْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+      "oldId": "h:99e5b6f32eaf",
+      "newId": "h:31cd8643827b",
+      "translations": [
+        "lang/content/am/sections/dima.json",
+        "lang/content/de/sections/dima.json",
+        "lang/content/dima-inventory-v1.json",
+        "lang/content/en/sections/dima.json",
+        "lang/content/fa/sections/dima.json",
+        "lang/content/fr/sections/dima.json",
+        "lang/content/ha/sections/dima.json",
+        "lang/content/hi/sections/dima.json",
+        "lang/content/id/sections/dima.json",
+        "lang/content/om/sections/dima.json",
+        "lang/content/ps/sections/dima.json",
+        "lang/content/sw/sections/dima.json",
+        "lang/content/ur/sections/dima.json",
+        "lang/content/uz/sections/dima.json",
+        "lang/content/zh/sections/dima.json"
+      ]
+    },
+    {
+      "case": "case_6_source",
+      "file": "quest-data/kunuz-bank-3147.js",
+      "pointer": "record[7]",
+      "old": "قواعد التجويد على رواية حفص عن عاصم، عبد العزيز القارئ، ص 16 — https://shamela.ws/book/11301/9",
+      "new": "متن الشاطبية = حرز الأماني ووجه التهاني في القراءات السبع، الشاطبي، أبو محمد، 1/93-94 (FC-000263:0064:002; 1173) ؛ إبراز المعاني من حرز الأماني، المقدسي، أبو شامة، 1/755 (FC-000276:0081:029)",
+      "oldId": "h:2979572cdd22",
+      "newId": "h:3177e7c9bb99",
+      "translations": []
+    }
+  ],
+  "patches": [
+    {
+      "file": "arbaeen-sharh.json",
+      "path": [
+        "items",
+        "21",
+        "rawi",
+        "1"
+      ],
+      "old": "كان أبو سفيان من أكثر الناس عداءً وبغضاً للنبي محمد ﷺ حينما جاءته الدعوة الإسلامية، حتى أنّه هجاه، وهجا صحابته، علماً أنه كان شاعراً مطبوعاً، ولا بدّ من الإشارة إلى أنّه لم يتخلف عن أي معركة خاضها المشركون لقتال الرسول محمد ﷺ، ولقتال المسلمين، خاصةً بعد هجرة النبي محمد إلى يثرب. حجّ أبو سفيان بعد وفاة النبي محمد ﷺ، وقد حلق له الحلاق في منى، وقطع له ثألولاً في رأسه، وقد قدم إلى المدينة المنورة عام 15هـ، وحفر له قبراً في البقيع، وقد أصابه مرض الثألول الذي قطعه الحلاق فمات بعد وفاة أخيه نوفل بأربعة أشهر، ولا بدّ من الإشارة إلى أنّ الخليفة عمر بن الخطاب قد صلّى عليه بعد موته، ودفنوه في قبره.",
+      "new": null,
+      "remove": true
+    },
+    {
+      "file": "lang/content/am/sections/arbaeen.json",
+      "path": [
+        "items",
+        464
+      ],
+      "old": {
+        "id": "h:de7b75755770",
+        "kind": "text",
+        "ar": "كان أبو سفيان من أكثر الناس عداءً وبغضاً للنبي محمد ﷺ حينما جاءته الدعوة الإسلامية، حتى أنّه هجاه، وهجا صحابته، علماً أنه كان شاعراً مطبوعاً، ولا بدّ من الإشارة إلى أنّه لم يتخلف عن أي معركة خاضها المشركون لقتال الرسول محمد ﷺ، ولقتال المسلمين، خاصةً بعد هجرة النبي محمد إلى يثرب. حجّ أبو سفيان بعد وفاة النبي محمد ﷺ، وقد حلق له الحلاق في منى، وقطع له ثألولاً في رأسه، وقد قدم إلى المدينة المنورة عام 15هـ، وحفر له قبراً في البقيع، وقد أصابه مرض الثألول الذي قطعه الحلاق فمات بعد وفاة أخيه نوفل بأربعة أشهر، ولا بدّ من الإشارة إلى أنّ الخليفة عمر بن الخطاب قد صلّى عليه بعد موته، ودفنوه في قبره.",
+        "tr": "አቡ ሱፍያን የኢስላም ጥሪ ሲመጣለት፣ ለነቢዩ ሙሐመድ ﷺ እጅግ ጠላትነትና ጥላቻ ካሳዩ ሰዎች አንዱ ነበር። እርሳቸውንና ባልደረቦቻቸውን በቅኔ እስከመሳደብ ደርሷል፤ በተፈጥሮ ባለቅኔ ነበር። ሙሽሪኮች (በአላህ ላይ አጋሪዎች) መልእክተኛውን ሙሐመድ ﷺ እና ሙስሊሞችን ለመዋጋት ካደረጉት ማንኛውም ጦርነት አልቀረም፣ በተለይ ነቢዩ ሙሐመድ ወደ የሥሪብ ከተሰደዱ በኋላ። አቡ ሱፍያን ነቢዩ ሙሐመድ ﷺ ካረፉ በኋላ ሐጅ (የመካን የሃይማኖት ጉዞ) አደረገ። ፀጉር አስተካካዩ በሚና ራሱን ሲላጭለት፣ በራሱ ላይ ያለን ኪንታሮት ቆረጠበት። በ15 የሂጅራ ዓመት ወደ መዲና አልሙነወራ መጣ፣ በአልበቂዕም ለራሱ መቃብር ቆፈረ። ፀጉር አስተካካዩ የቆረጠው ኪንታሮት በሽታ አመጣበት፣ ወንድሙ ነውፈል ከሞተ ከአራት ወራት በኋላም ሞተ። ኸሊፋው ዑመር ኢብን አልኸጣብ የጀናዛ (የሟች ስንብት) ሰላት ሰገደበት፣ በመቃብሩም ቀበሩት።",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": null,
+        "kind": "text",
+        "ar": null,
+        "tr": "አቡ ሱፍያን የኢስላም ጥሪ ሲመጣለት፣ ለነቢዩ ሙሐመድ ﷺ እጅግ ጠላትነትና ጥላቻ ካሳዩ ሰዎች አንዱ ነበር። እርሳቸውንና ባልደረቦቻቸውን በቅኔ እስከመሳደብ ደርሷል፤ በተፈጥሮ ባለቅኔ ነበር። ሙሽሪኮች (በአላህ ላይ አጋሪዎች) መልእክተኛውን ሙሐመድ ﷺ እና ሙስሊሞችን ለመዋጋት ካደረጉት ማንኛውም ጦርነት አልቀረም፣ በተለይ ነቢዩ ሙሐመድ ወደ የሥሪብ ከተሰደዱ በኋላ። አቡ ሱፍያን ነቢዩ ሙሐመድ ﷺ ካረፉ በኋላ ሐጅ (የመካን የሃይማኖት ጉዞ) አደረገ። ፀጉር አስተካካዩ በሚና ራሱን ሲላጭለት፣ በራሱ ላይ ያለን ኪንታሮት ቆረጠበት። በ15 የሂጅራ ዓመት ወደ መዲና አልሙነወራ መጣ፣ በአልበቂዕም ለራሱ መቃብር ቆፈረ። ፀጉር አስተካካዩ የቆረጠው ኪንታሮት በሽታ አመጣበት፣ ወንድሙ ነውፈል ከሞተ ከአራት ወራት በኋላም ሞተ። ኸሊፋው ዑመር ኢብን አልኸጣብ የጀናዛ (የሟች ስንብት) ሰላት ሰገደበት፣ በመቃብሩም ቀበሩት።",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": true
+    },
+    {
+      "file": "lang/content/en/sections/arbaeen.json",
+      "path": [
+        "items",
+        465
+      ],
+      "old": {
+        "id": "h:de7b75755770",
+        "kind": "text",
+        "ar": "كان أبو سفيان من أكثر الناس عداءً وبغضاً للنبي محمد ﷺ حينما جاءته الدعوة الإسلامية، حتى أنّه هجاه، وهجا صحابته، علماً أنه كان شاعراً مطبوعاً، ولا بدّ من الإشارة إلى أنّه لم يتخلف عن أي معركة خاضها المشركون لقتال الرسول محمد ﷺ، ولقتال المسلمين، خاصةً بعد هجرة النبي محمد إلى يثرب. حجّ أبو سفيان بعد وفاة النبي محمد ﷺ، وقد حلق له الحلاق في منى، وقطع له ثألولاً في رأسه، وقد قدم إلى المدينة المنورة عام 15هـ، وحفر له قبراً في البقيع، وقد أصابه مرض الثألول الذي قطعه الحلاق فمات بعد وفاة أخيه نوفل بأربعة أشهر، ولا بدّ من الإشارة إلى أنّ الخليفة عمر بن الخطاب قد صلّى عليه بعد موته، ودفنوه في قبره.",
+        "tr": "Abu Sufyan was among the Prophet Muhammad's fiercest enemies when the Islamic call reached him, peace and blessings be upon him. A naturally gifted poet, he satirized him and his Companions. He missed no battle in which the polytheists fought the Messenger and Muslims, especially after the Prophet emigrated to Yathrib. Abu Sufyan performed Hajj after the Prophet's death. A barber shaved him in Mina and removed a wart from his head. He came to Madinah in 15 AH and dug himself a grave in Al-Baqi. The removed wart caused an illness from which he died four months after his brother Nawfal. Caliph Umar ibn al-Khattab prayed over him, and they buried him in his grave.",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": null,
+        "kind": "text",
+        "ar": null,
+        "tr": "Abu Sufyan was among the Prophet Muhammad's fiercest enemies when the Islamic call reached him, peace and blessings be upon him. A naturally gifted poet, he satirized him and his Companions. He missed no battle in which the polytheists fought the Messenger and Muslims, especially after the Prophet emigrated to Yathrib. Abu Sufyan performed Hajj after the Prophet's death. A barber shaved him in Mina and removed a wart from his head. He came to Madinah in 15 AH and dug himself a grave in Al-Baqi. The removed wart caused an illness from which he died four months after his brother Nawfal. Caliph Umar ibn al-Khattab prayed over him, and they buried him in his grave.",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": true
+    },
+    {
+      "file": "lang/content/fa/sections/arbaeen.json",
+      "path": [
+        "items",
+        461
+      ],
+      "old": {
+        "id": "h:de7b75755770",
+        "kind": "text",
+        "ar": "كان أبو سفيان من أكثر الناس عداءً وبغضاً للنبي محمد ﷺ حينما جاءته الدعوة الإسلامية، حتى أنّه هجاه، وهجا صحابته، علماً أنه كان شاعراً مطبوعاً، ولا بدّ من الإشارة إلى أنّه لم يتخلف عن أي معركة خاضها المشركون لقتال الرسول محمد ﷺ، ولقتال المسلمين، خاصةً بعد هجرة النبي محمد إلى يثرب. حجّ أبو سفيان بعد وفاة النبي محمد ﷺ، وقد حلق له الحلاق في منى، وقطع له ثألولاً في رأسه، وقد قدم إلى المدينة المنورة عام 15هـ، وحفر له قبراً في البقيع، وقد أصابه مرض الثألول الذي قطعه الحلاق فمات بعد وفاة أخيه نوفل بأربعة أشهر، ولا بدّ من الإشارة إلى أنّ الخليفة عمر بن الخطاب قد صلّى عليه بعد موته، ودفنوه في قبره.",
+        "tr": "ابوسفیان هنگام رسیدن دعوت اسلامی، از دشمن‌ترین و کینه‌ورزترین مردم نسبت به پیامبر محمد، درود و سلام خدا بر او باد، بود؛ حتی او و یارانش را هجو کرد، زیرا شاعری قریحه‌مند بود. باید اشاره کرد که از هیچ نبرد مشرکان با رسول محمد و مسلمانان، به‌ویژه پس از هجرت پیامبر به یثرب، بازنماند. پس از وفات پیامبر حج کرد. در منا، سلمانی سرش را تراشید و زگیلی را از سرش برید. در سال 15هـ به مدینه منوره آمد و در بقیع برای خود قبری کند. زگیلی که سلمانی بریده بود بیمار شد و چهار ماه پس از مرگ برادرش نوفل درگذشت. باید اشاره کرد که خلیفه عمر بن خطاب پس از مرگش بر او نماز خواند و او را در قبرش دفن کردند.",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": null,
+        "kind": "text",
+        "ar": null,
+        "tr": "ابوسفیان هنگام رسیدن دعوت اسلامی، از دشمن‌ترین و کینه‌ورزترین مردم نسبت به پیامبر محمد، درود و سلام خدا بر او باد، بود؛ حتی او و یارانش را هجو کرد، زیرا شاعری قریحه‌مند بود. باید اشاره کرد که از هیچ نبرد مشرکان با رسول محمد و مسلمانان، به‌ویژه پس از هجرت پیامبر به یثرب، بازنماند. پس از وفات پیامبر حج کرد. در منا، سلمانی سرش را تراشید و زگیلی را از سرش برید. در سال 15هـ به مدینه منوره آمد و در بقیع برای خود قبری کند. زگیلی که سلمانی بریده بود بیمار شد و چهار ماه پس از مرگ برادرش نوفل درگذشت. باید اشاره کرد که خلیفه عمر بن خطاب پس از مرگش بر او نماز خواند و او را در قبرش دفن کردند.",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": true
+    },
+    {
+      "file": "lang/content/om/sections/arbaeen.json",
+      "path": [
+        "items",
+        484
+      ],
+      "old": {
+        "id": "h:de7b75755770",
+        "kind": "text",
+        "ar": "كان أبو سفيان من أكثر الناس عداءً وبغضاً للنبي محمد ﷺ حينما جاءته الدعوة الإسلامية، حتى أنّه هجاه، وهجا صحابته، علماً أنه كان شاعراً مطبوعاً، ولا بدّ من الإشارة إلى أنّه لم يتخلف عن أي معركة خاضها المشركون لقتال الرسول محمد ﷺ، ولقتال المسلمين، خاصةً بعد هجرة النبي محمد إلى يثرب. حجّ أبو سفيان بعد وفاة النبي محمد ﷺ، وقد حلق له الحلاق في منى، وقطع له ثألولاً في رأسه، وقد قدم إلى المدينة المنورة عام 15هـ، وحفر له قبراً في البقيع، وقد أصابه مرض الثألول الذي قطعه الحلاق فمات بعد وفاة أخيه نوفل بأربعة أشهر، ولا بدّ من الإشارة إلى أنّ الخليفة عمر بن الخطاب قد صلّى عليه بعد موته، ودفنوه في قبره.",
+        "translit": "",
+        "tr": "Abuu Sufyaan yeroo waamichi Islaamaa isa dhaqqabe namoota Nabiiyyii Muhammad, nagaa fi rahmanni Rabbii isaan irratti haa jiraatu, diinomfatanii fi jibban keessaa isa cimaa ture. Isaanii fi sahaabota isaanii walaloon arrabse; inni walaleessaa uumamaan dandeettii qabu ture. Keessumaa Nabiiyyiin gara Yathrib erga godaananii booda, duula mushrikoonni Ergamaa Rabbii fi Muslimoota loluu keessatti hirmaatan keessaa tokko irraa illee duubatti hin hafne. Abuu Sufyaan Nabiiyyii Muhammad booda hajjii godhe. Miinaatti haaddaan isa haadee finniisa mataa isaa irratti ture mure. Bara 15 H Madiinaa dhufee Al-Baqii' keessatti awwaala ofiif qote. Finniisni haaddaan mure dhukkuba itti uume; obboleessi isaa Nawfal erga du'ee ji'a afur booda du'e. Khaliifaan Umar ibn Al-Khaxxaab erga inni du'ee booda irratti salaate; awwaala isaa keessattis isa awwaalan.",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        },
+        "source_paths": [
+          {
+            "file": "arbaeen-sharh.json",
+            "pointer": "/items/21/rawi/1"
+          }
+        ],
+        "reopen_batch": "reopen-arbaeen-014.json"
+      },
+      "new": {
+        "id": null,
+        "kind": "text",
+        "ar": null,
+        "translit": "",
+        "tr": "Abuu Sufyaan yeroo waamichi Islaamaa isa dhaqqabe namoota Nabiiyyii Muhammad, nagaa fi rahmanni Rabbii isaan irratti haa jiraatu, diinomfatanii fi jibban keessaa isa cimaa ture. Isaanii fi sahaabota isaanii walaloon arrabse; inni walaleessaa uumamaan dandeettii qabu ture. Keessumaa Nabiiyyiin gara Yathrib erga godaananii booda, duula mushrikoonni Ergamaa Rabbii fi Muslimoota loluu keessatti hirmaatan keessaa tokko irraa illee duubatti hin hafne. Abuu Sufyaan Nabiiyyii Muhammad booda hajjii godhe. Miinaatti haaddaan isa haadee finniisa mataa isaa irratti ture mure. Bara 15 H Madiinaa dhufee Al-Baqii' keessatti awwaala ofiif qote. Finniisni haaddaan mure dhukkuba itti uume; obboleessi isaa Nawfal erga du'ee ji'a afur booda du'e. Khaliifaan Umar ibn Al-Khaxxaab erga inni du'ee booda irratti salaate; awwaala isaa keessattis isa awwaalan.",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        },
+        "source_paths": [
+          {
+            "file": "arbaeen-sharh.json",
+            "pointer": "/items/21/rawi/1"
+          }
+        ],
+        "reopen_batch": "reopen-arbaeen-014.json"
+      },
+      "remove": true
+    },
+    {
+      "file": "arbaeen-sharh.json",
+      "path": [
+        "items",
+        "30",
+        "sharh",
+        "6"
+      ],
+      "old": "ولكن الصواب الأول،أن المراد بالحدود في الحديث محارم الله عزّ وجل الواجبات والمحرمات، لكن الواجب نقول:لا تعتده أي لاتتجاوزه، والمحرم نقول: لا تقربه، هكذا في القرآن الكريم لما ذكر الله تعالى تحريم الأكل والشرب على الصائم قال: (تِلْكَ حُدُودُ اللَّهِ فَلا تَعْتَدُوهَا) ولما ذكر العدة وما يجب فيها قال: (تِلْكَ حُدُودُ اللَّهِ فَلا تَقرَبُوهَا).",
+      "new": "ولكن الصواب الأول،أن المراد بالحدود في الحديث محارم الله عزّ وجل الواجبات والمحرمات، لكن الواجب نقول:لا تعتده أي لاتتجاوزه، والمحرم نقول: لا تقربه، هكذا في القرآن الكريم لما ذكر الله تعالى تحريم الأكل والشرب على الصائم قال: (تِلْكَ حُدُودُ اللَّهِ فَلا تَعْتَدُوهَا) ولما ذكر العدة وما يجب فيها قال: (تِلْكَ حُدُودُ اللَّهِ فَلا تَقرَبُوهَا). [تنبيه: كذا في المطبوع، والذي في المصحف أن آية الصيام (البقرة: ١٨٧) خُتمت بقوله تعالى: ﴿تِلْكَ حُدُودُ ٱللَّهِ فَلَا تَقْرَبُوهَا﴾، وآية الطلاق (البقرة: ٢٢٩) خُتمت بقوله تعالى: ﴿تِلْكَ حُدُودُ ٱللَّهِ فَلَا تَعْتَدُوهَا﴾، وهو الموافق لتقرير الشيخ رحمه الله.]",
+      "remove": false
+    },
+    {
+      "file": "lang/content/am/sections/arbaeen.json",
+      "path": [
+        "items",
+        668
+      ],
+      "old": {
+        "id": "h:5293aa08ae1e",
+        "kind": "text",
+        "ar": "ولكن الصواب الأول،أن المراد بالحدود في الحديث محارم الله عزّ وجل الواجبات والمحرمات، لكن الواجب نقول:لا تعتده أي لاتتجاوزه، والمحرم نقول: لا تقربه، هكذا في القرآن الكريم لما ذكر الله تعالى تحريم الأكل والشرب على الصائم قال: (تِلْكَ حُدُودُ اللَّهِ فَلا تَعْتَدُوهَا) ولما ذكر العدة وما يجب فيها قال: (تِلْكَ حُدُودُ اللَّهِ فَلا تَقرَبُوهَا).",
+        "tr": "ግን ትክክለኛው መጀመሪያው ነው። በሐዲሡ (በነቢዩ ንግግር) ውስጥ ሑዱድ (ድንበሮች) ማለት የኃያሉ አላህ ድንጋጌዎች፣ ግዴታዎችና ክልክሎች ናቸው። ስለ ግዴታው፦ አትተላለፈው፣ ማለትም አታልፈው፣ እንላለን። ስለ ክልክሉም፦ አትቅረበው እንላለን። በቁርአንም እንዲሁ ነው፤ የላቀው አላህ በጾመኛ ላይ መብላትና መጠጣት መከልከሉን ሲጠቅስ፦ «تِلْكَ حُدُودُ اللَّهِ فَلا تَعْتَدُوهَا» [እኒህ የአላህ ሕግጋት ናቸው:: አትተላለፏቸው::] አለ። ዒዳን (ከፍቺ ወይም ከባል ሞት በኋላ ያለውን የጥበቃ ጊዜ) እና በእርሱ ውስጥ ያሉትን ግዴታዎች ሲጠቅስም፦ «تِلْكَ حُدُودُ اللَّهِ فَلا تَقرَبُوهَا» [ይህች የአላህ ህግጋት ናትና ለመተላለፍ አትቅረቧት::] አለ።",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": "h:0e1cf9edf377",
+        "kind": "text",
+        "ar": "ولكن الصواب الأول،أن المراد بالحدود في الحديث محارم الله عزّ وجل الواجبات والمحرمات، لكن الواجب نقول:لا تعتده أي لاتتجاوزه، والمحرم نقول: لا تقربه، هكذا في القرآن الكريم لما ذكر الله تعالى تحريم الأكل والشرب على الصائم قال: (تِلْكَ حُدُودُ اللَّهِ فَلا تَعْتَدُوهَا) ولما ذكر العدة وما يجب فيها قال: (تِلْكَ حُدُودُ اللَّهِ فَلا تَقرَبُوهَا). [تنبيه: كذا في المطبوع، والذي في المصحف أن آية الصيام (البقرة: ١٨٧) خُتمت بقوله تعالى: ﴿تِلْكَ حُدُودُ ٱللَّهِ فَلَا تَقْرَبُوهَا﴾، وآية الطلاق (البقرة: ٢٢٩) خُتمت بقوله تعالى: ﴿تِلْكَ حُدُودُ ٱللَّهِ فَلَا تَعْتَدُوهَا﴾، وهو الموافق لتقرير الشيخ رحمه الله.]",
+        "tr": "ግን ትክክለኛው መጀመሪያው ነው። በሐዲሡ (በነቢዩ ንግግር) ውስጥ ሑዱድ (ድንበሮች) ማለት የኃያሉ አላህ ድንጋጌዎች፣ ግዴታዎችና ክልክሎች ናቸው። ስለ ግዴታው፦ አትተላለፈው፣ ማለትም አታልፈው፣ እንላለን። ስለ ክልክሉም፦ አትቅረበው እንላለን። በቁርአንም እንዲሁ ነው፤ የላቀው አላህ በጾመኛ ላይ መብላትና መጠጣት መከልከሉን ሲጠቅስ፦ «تِلْكَ حُدُودُ اللَّهِ فَلا تَعْتَدُوهَا» [እኒህ የአላህ ሕግጋት ናቸው:: አትተላለፏቸው::] አለ። ዒዳን (ከፍቺ ወይም ከባል ሞት በኋላ ያለውን የጥበቃ ጊዜ) እና በእርሱ ውስጥ ያሉትን ግዴታዎች ሲጠቅስም፦ «تِلْكَ حُدُودُ اللَّهِ فَلا تَقرَبُوهَا» [ይህች የአላህ ህግጋት ናትና ለመተላለፍ አትቅረቧት::] አለ። [ማስታወሻ፦ በታተመው ጽሑፍ እንዲህ ነው፤ በሙስሐፉ ግን የጾም አንቀጽ (አልበቀራ፦ 187) በየላቀው አላህ ቃል፦ تِلْكَ حُدُودُ ٱللَّهِ فَلَا تَقْرَبُوهَا [ይህች የአላህ ህግጋት ናትና ለመተላለፍ አትቅረቧት::] ይደመደማል። የፍቺ አንቀጽም (አልበቀራ፦ 229) በቃሉ፦ تِلْكَ حُدُودُ ٱللَّهِ فَلَا تَعْتَدُوهَا [እኒህ የአላህ ሕግጋት ናቸው:: አትተላለፏቸው::] ይደመደማል። ይህም አላህ ይማራቸውና ከሸይኹ ማብራሪያ ጋር ይስማማል።]",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": false
+    },
+    {
+      "file": "lang/content/en/sections/arbaeen.json",
+      "path": [
+        "items",
+        669
+      ],
+      "old": {
+        "id": "h:5293aa08ae1e",
+        "kind": "text",
+        "ar": "ولكن الصواب الأول،أن المراد بالحدود في الحديث محارم الله عزّ وجل الواجبات والمحرمات، لكن الواجب نقول:لا تعتده أي لاتتجاوزه، والمحرم نقول: لا تقربه، هكذا في القرآن الكريم لما ذكر الله تعالى تحريم الأكل والشرب على الصائم قال: (تِلْكَ حُدُودُ اللَّهِ فَلا تَعْتَدُوهَا) ولما ذكر العدة وما يجب فيها قال: (تِلْكَ حُدُودُ اللَّهِ فَلا تَقرَبُوهَا).",
+        "tr": "The first view, however, is correct: the limits in the hadith mean Allah's inviolable bounds, mighty and majestic, encompassing obligations and prohibitions. Regarding an obligation, we say: do not transgress it, meaning do not go beyond it. Regarding a prohibition, we say: do not approach it. This is how it occurs in the Noble Quran: when Allah Most High mentioned the prohibition on eating and drinking for a fasting person, He said: تِلْكَ حُدُودُ اللَّهِ فَلا تَعْتَدُوهَا [Full-verse context (2:229):\nDivorce is twice. Then [after that], either keep [her] in an acceptable manner or release [her] with good treatment. And it is not lawful for you to take anything of what you have given them unless both fear that they will not be able to keep [within] the limits of Allāh.[89] But if you fear that they will not keep [within] the limits of Allāh, then there is no blame upon either of them concerning that by which she ransoms herself. These are the limits of Allāh, so do not transgress them. And whoever transgresses the limits of Allāh - it is those who are the wrongdoers [i.e., the unjust].\n[89] i.e., deal fairly with each other.], and when He mentioned the iddah (waiting period) and its obligations, He said: تِلْكَ حُدُودُ اللَّهِ فَلا تَقرَبُوهَا [Full-verse context (2:187):\nIt has been made permissible for you the night preceding fasting to go to your wives [for sexual relations]. They are a clothing for you and you are a clothing[67] for them. Allāh knows that you used to deceive yourselves,[68] so He accepted your repentance and forgave you. So now, have relations with them and seek that which Allāh has decreed for you [i.e., offspring]. And eat and drink until the white thread of dawn becomes distinct to you from the black thread [of night]. Then complete the fast until the night [i.e., sunset]. And do not have relations with them as long as you are staying for worship in the mosques. These are the limits [set by] Allāh, so do not approach them. Thus does Allāh make clear His verses [i.e., ordinances] to the people that they may become righteous.\n[67] Also a source of tranquility and rest.\n[68] Prior to this revelation, marital relations were unlawful during nights preceding fasting. Some were unable to refrain and secretly disobeyed, but they did not deceive Allāh.].",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": "h:0e1cf9edf377",
+        "kind": "text",
+        "ar": "ولكن الصواب الأول،أن المراد بالحدود في الحديث محارم الله عزّ وجل الواجبات والمحرمات، لكن الواجب نقول:لا تعتده أي لاتتجاوزه، والمحرم نقول: لا تقربه، هكذا في القرآن الكريم لما ذكر الله تعالى تحريم الأكل والشرب على الصائم قال: (تِلْكَ حُدُودُ اللَّهِ فَلا تَعْتَدُوهَا) ولما ذكر العدة وما يجب فيها قال: (تِلْكَ حُدُودُ اللَّهِ فَلا تَقرَبُوهَا). [تنبيه: كذا في المطبوع، والذي في المصحف أن آية الصيام (البقرة: ١٨٧) خُتمت بقوله تعالى: ﴿تِلْكَ حُدُودُ ٱللَّهِ فَلَا تَقْرَبُوهَا﴾، وآية الطلاق (البقرة: ٢٢٩) خُتمت بقوله تعالى: ﴿تِلْكَ حُدُودُ ٱللَّهِ فَلَا تَعْتَدُوهَا﴾، وهو الموافق لتقرير الشيخ رحمه الله.]",
+        "tr": "The first view, however, is correct: the limits in the hadith mean Allah's inviolable bounds, mighty and majestic, encompassing obligations and prohibitions. Regarding an obligation, we say: do not transgress it, meaning do not go beyond it. Regarding a prohibition, we say: do not approach it. This is how it occurs in the Noble Quran: when Allah Most High mentioned the prohibition on eating and drinking for a fasting person, He said: تِلْكَ حُدُودُ اللَّهِ فَلا تَعْتَدُوهَا [Full-verse context (2:229):\nDivorce is twice. Then [after that], either keep [her] in an acceptable manner or release [her] with good treatment. And it is not lawful for you to take anything of what you have given them unless both fear that they will not be able to keep [within] the limits of Allāh.[89] But if you fear that they will not keep [within] the limits of Allāh, then there is no blame upon either of them concerning that by which she ransoms herself. These are the limits of Allāh, so do not transgress them. And whoever transgresses the limits of Allāh - it is those who are the wrongdoers [i.e., the unjust].\n[89] i.e., deal fairly with each other.], and when He mentioned the iddah (waiting period) and its obligations, He said: تِلْكَ حُدُودُ اللَّهِ فَلا تَقرَبُوهَا [Full-verse context (2:187):\nIt has been made permissible for you the night preceding fasting to go to your wives [for sexual relations]. They are a clothing for you and you are a clothing[67] for them. Allāh knows that you used to deceive yourselves,[68] so He accepted your repentance and forgave you. So now, have relations with them and seek that which Allāh has decreed for you [i.e., offspring]. And eat and drink until the white thread of dawn becomes distinct to you from the black thread [of night]. Then complete the fast until the night [i.e., sunset]. And do not have relations with them as long as you are staying for worship in the mosques. These are the limits [set by] Allāh, so do not approach them. Thus does Allāh make clear His verses [i.e., ordinances] to the people that they may become righteous.\n[67] Also a source of tranquility and rest.\n[68] Prior to this revelation, marital relations were unlawful during nights preceding fasting. Some were unable to refrain and secretly disobeyed, but they did not deceive Allāh.]. [Editor's note: This is how the printed text reads. In the Quran, the fasting verse (al-Baqarah 2:187) concludes with Allah's words: تِلْكَ حُدُودُ ٱللَّهِ فَلَا تَقْرَبُوهَا [Full-verse context (2:187):\nIt has been made permissible for you the night preceding fasting to go to your wives [for sexual relations]. They are a clothing for you and you are a clothing[67] for them. Allāh knows that you used to deceive yourselves,[68] so He accepted your repentance and forgave you. So now, have relations with them and seek that which Allāh has decreed for you [i.e., offspring]. And eat and drink until the white thread of dawn becomes distinct to you from the black thread [of night]. Then complete the fast until the night [i.e., sunset]. And do not have relations with them as long as you are staying for worship in the mosques. These are the limits [set by] Allāh, so do not approach them. Thus does Allāh make clear His verses [i.e., ordinances] to the people that they may become righteous.\n[67] Also a source of tranquility and rest.\n[68] Prior to this revelation, marital relations were unlawful during nights preceding fasting. Some were unable to refrain and secretly disobeyed, but they did not deceive Allāh.], and the divorce verse (al-Baqarah 2:229) concludes with His words: تِلْكَ حُدُودُ ٱللَّهِ فَلَا تَعْتَدُوهَا [Full-verse context (2:229):\nDivorce is twice. Then [after that], either keep [her] in an acceptable manner or release [her] with good treatment. And it is not lawful for you to take anything of what you have given them unless both fear that they will not be able to keep [within] the limits of Allāh.[89] But if you fear that they will not keep [within] the limits of Allāh, then there is no blame upon either of them concerning that by which she ransoms herself. These are the limits of Allāh, so do not transgress them. And whoever transgresses the limits of Allāh - it is those who are the wrongdoers [i.e., the unjust].\n[89] i.e., deal fairly with each other.]. This agrees with the Sheikh's explanation, may Allah have mercy on him.]",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": false
+    },
+    {
+      "file": "lang/content/fa/sections/arbaeen.json",
+      "path": [
+        "items",
+        665
+      ],
+      "old": {
+        "id": "h:5293aa08ae1e",
+        "kind": "text",
+        "ar": "ولكن الصواب الأول،أن المراد بالحدود في الحديث محارم الله عزّ وجل الواجبات والمحرمات، لكن الواجب نقول:لا تعتده أي لاتتجاوزه، والمحرم نقول: لا تقربه، هكذا في القرآن الكريم لما ذكر الله تعالى تحريم الأكل والشرب على الصائم قال: (تِلْكَ حُدُودُ اللَّهِ فَلا تَعْتَدُوهَا) ولما ذكر العدة وما يجب فيها قال: (تِلْكَ حُدُودُ اللَّهِ فَلا تَقرَبُوهَا).",
+        "tr": "اما قول نخست درست است: مقصود از حدود در حدیث، احکام الله عزوجل، یعنی واجبات و محرمات، است. درباره واجب می‌گوییم از آن تجاوز نکن، یعنی از مرزش فراتر نرو؛ و درباره حرام می‌گوییم به آن نزدیک نشو. در قرآن کریم نیز چنین است: وقتی الله متعال ممنوع بودن خوردن و نوشیدن برای روزه‌دار را یاد کرد، فرمود: «تِلْكَ حُدُودُ اللَّهِ فَلا تَعْتَدُوهَا» [اینها حدودِ [احکامِ] الهی است؛ پس از آنها تجاوز نکنید؛] و وقتی عده (مدت انتظار شرعی زن) و واجبات آن را بیان کرد، فرمود: «تِلْكَ حُدُودُ اللَّهِ فَلا تَقرَبُوهَا» [این مرزهای [احکامِ] الهی است؛ پس به آنها نزدیک نشوید.].",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        },
+        "quran_quotes": [
+          {
+            "ref": "2:229",
+            "tr": "اینها حدودِ [احکامِ] الهی است؛ پس از آنها تجاوز نکنید؛"
+          },
+          {
+            "ref": "2:187",
+            "tr": "این مرزهای [احکامِ] الهی است؛ پس به آنها نزدیک نشوید."
+          }
+        ]
+      },
+      "new": {
+        "id": "h:0e1cf9edf377",
+        "kind": "text",
+        "ar": "ولكن الصواب الأول،أن المراد بالحدود في الحديث محارم الله عزّ وجل الواجبات والمحرمات، لكن الواجب نقول:لا تعتده أي لاتتجاوزه، والمحرم نقول: لا تقربه، هكذا في القرآن الكريم لما ذكر الله تعالى تحريم الأكل والشرب على الصائم قال: (تِلْكَ حُدُودُ اللَّهِ فَلا تَعْتَدُوهَا) ولما ذكر العدة وما يجب فيها قال: (تِلْكَ حُدُودُ اللَّهِ فَلا تَقرَبُوهَا). [تنبيه: كذا في المطبوع، والذي في المصحف أن آية الصيام (البقرة: ١٨٧) خُتمت بقوله تعالى: ﴿تِلْكَ حُدُودُ ٱللَّهِ فَلَا تَقْرَبُوهَا﴾، وآية الطلاق (البقرة: ٢٢٩) خُتمت بقوله تعالى: ﴿تِلْكَ حُدُودُ ٱللَّهِ فَلَا تَعْتَدُوهَا﴾، وهو الموافق لتقرير الشيخ رحمه الله.]",
+        "tr": "اما قول نخست درست است: مقصود از حدود در حدیث، احکام الله عزوجل، یعنی واجبات و محرمات، است. درباره واجب می‌گوییم از آن تجاوز نکن، یعنی از مرزش فراتر نرو؛ و درباره حرام می‌گوییم به آن نزدیک نشو. در قرآن کریم نیز چنین است: وقتی الله متعال ممنوع بودن خوردن و نوشیدن برای روزه‌دار را یاد کرد، فرمود: «تِلْكَ حُدُودُ اللَّهِ فَلا تَعْتَدُوهَا» [اینها حدودِ [احکامِ] الهی است؛ پس از آنها تجاوز نکنید؛] و وقتی عده (مدت انتظار شرعی زن) و واجبات آن را بیان کرد، فرمود: «تِلْكَ حُدُودُ اللَّهِ فَلا تَقرَبُوهَا» [این مرزهای [احکامِ] الهی است؛ پس به آنها نزدیک نشوید.]. [یادداشت ویراستار: در متن چاپی چنین آمده است؛ در مصحف، آیهٔ روزه (بقره: ۱۸۷) با این سخن الله متعال پایان یافته است: تِلْكَ حُدُودُ ٱللَّهِ فَلَا تَقْرَبُوهَا [این مرزهای [احکامِ] الهی است؛ پس به آنها نزدیک نشوید.]؛ و آیهٔ طلاق (بقره: ۲۲۹) با این سخن او: تِلْكَ حُدُودُ ٱللَّهِ فَلَا تَعْتَدُوهَا [اینها حدودِ [احکامِ] الهی است؛ پس از آنها تجاوز نکنید؛]؛ و این با توضیح شیخ، رحمه الله، سازگار است.]",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        },
+        "quran_quotes": [
+          {
+            "ref": "2:229",
+            "tr": "اینها حدودِ [احکامِ] الهی است؛ پس از آنها تجاوز نکنید؛"
+          },
+          {
+            "ref": "2:187",
+            "tr": "این مرزهای [احکامِ] الهی است؛ پس به آنها نزدیک نشوید."
+          }
+        ]
+      },
+      "remove": false
+    },
+    {
+      "file": "lang/content/om/sections/arbaeen.json",
+      "path": [
+        "items",
+        688
+      ],
+      "old": {
+        "id": "h:5293aa08ae1e",
+        "kind": "text",
+        "ar": "ولكن الصواب الأول،أن المراد بالحدود في الحديث محارم الله عزّ وجل الواجبات والمحرمات، لكن الواجب نقول:لا تعتده أي لاتتجاوزه، والمحرم نقول: لا تقربه، هكذا في القرآن الكريم لما ذكر الله تعالى تحريم الأكل والشرب على الصائم قال: (تِلْكَ حُدُودُ اللَّهِ فَلا تَعْتَدُوهَا) ولما ذكر العدة وما يجب فيها قال: (تِلْكَ حُدُودُ اللَّهِ فَلا تَقرَبُوهَا).",
+        "translit": "",
+        "tr": "Garuu sirriin inni jalqabaa: Huduud (daangaawwan) hadiisicha keessatti jedhame wantoota Rabbiin Injifataa fi Ol Ta'e kabajaa godhe, waajiboota (dirqamoota) fi haraamota (wantoota dhorkaman), dha. Waajibaaf hin darbin, jechuun isa hin ce'in, jenna; haraamaaf immoo itti hin dhihaatin jenna. Qur'aana Kabajamaa keessatti akkasitti dhufe: Rabbiin Ol Ta'e nama soomu irratti nyaataafi dhugaatii dhorkuu yeroo dubbate تِلْكَ حُدُودُ اللَّهِ فَلا تَعْتَدُوهَا [Hiikkaan (eega isaatii deebifatamu) yeroo lama. Sana booda haala gaariin qabachuu yookiin bifa tolaan gadi lakkisuudha. Isin (dhiironni) waan isaaniif kennitan (mahrii) irraa isaan lamaanuu daangawwan Rabbii sirreessuu dhabuu yoo sodaatan malee homaa fudhachuun isiniif hin hayyamamu. Yoo isaan lamaan daangawwan Rabbii hin sirreessanu jechuu sodaattan, waan isheen ittiin of baafte fudhachuu keessatti isaan lamaan irra badiin hin jiru. Kun daangawwan Rabbiitii isaan hin dabrinaa; namni daangaawwan Rabbii dabre, isaan sun isaanumatu miidhaa hojjatoodha.] jedhe. Iddah (yeroo dubartiin hiikamte yookiin abbaan manaa irraa du'e eeggattu) fi wanta keessatti dirqama ta'u yeroo dubbate تِلْكَ حُدُودُ اللَّهِ فَلا تَقرَبُوهَا [Halkan soomaa gara dubartoota (niitiwwan) keessanii dhaquun (qunnamtii saalaa gochuun) isiniif hayyamameera. Isaan isiniif uffata; isiniis isaaniif uffata. Rabbiin akka isin lubbuu keessan ganaa turtan beekee tawbaa keessan isin irraa qeebalee, dhiifamas isiniif godhe. Amma isaan waliin qunnamtii saalaa godhaa; (ilmaan irraa) waan Rabbiin isiniif katabe barbaaddadhaa. Hanga barraaqa irraa jibriin adiin (bariisaa) jibrii gurraacha (dukkana halkanii) irraa adda bahutti nyaadhaa dhugaa, Ergasii hanga halkaniitti sooma guutaa. Odoo masjiidoota keessa i’itikaafa taa’aa jirtanuu isaan waliin qunnamtii saalaa hin raawwatinaa. Sun daangaawwan Rabbiitii isheetti hin dhihaatinaa.akka kanatti Rabbiin keeyyattoota Isaa namootaaf ibsa Akka isaan Isa sodaataniif jecha .] jedhe.",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        },
+        "source_paths": [
+          {
+            "file": "arbaeen-sharh.json",
+            "pointer": "/items/30/sharh/6"
+          }
+        ],
+        "reopen_batch": "reopen-arbaeen-022.json",
+        "quotes": [
+          {
+            "kind": "quran",
+            "ar": "تِلْكَ حُدُودُ اللَّهِ فَلا تَعْتَدُوهَا",
+            "tr": "Hiikkaan (eega isaatii deebifatamu) yeroo lama. Sana booda haala gaariin qabachuu yookiin bifa tolaan gadi lakkisuudha. Isin (dhiironni) waan isaaniif kennitan (mahrii) irraa isaan lamaanuu daangawwan Rabbii sirreessuu dhabuu yoo sodaatan malee homaa fudhachuun isiniif hin hayyamamu. Yoo isaan lamaan daangawwan Rabbii hin sirreessanu jechuu sodaattan, waan isheen ittiin of baafte fudhachuu keessatti isaan lamaan irra badiin hin jiru. Kun daangawwan Rabbiitii isaan hin dabrinaa; namni daangaawwan Rabbii dabre, isaan sun isaanumatu miidhaa hojjatoodha.",
+            "rendered": "تِلْكَ حُدُودُ اللَّهِ فَلا تَعْتَدُوهَا [Hiikkaan (eega isaatii deebifatamu) yeroo lama. Sana booda haala gaariin qabachuu yookiin bifa tolaan gadi lakkisuudha. Isin (dhiironni) waan isaaniif kennitan (mahrii) irraa isaan lamaanuu daangawwan Rabbii sirreessuu dhabuu yoo sodaatan malee homaa fudhachuun isiniif hin hayyamamu. Yoo isaan lamaan daangawwan Rabbii hin sirreessanu jechuu sodaattan, waan isheen ittiin of baafte fudhachuu keessatti isaan lamaan irra badiin hin jiru. Kun daangawwan Rabbiitii isaan hin dabrinaa; namni daangaawwan Rabbii dabre, isaan sun isaanumatu miidhaa hojjatoodha.]",
+            "footnotes": "",
+            "src": {
+              "name": "Oromo Translation - Gali Ababor (Gali Ababor Abaghona), oromo_ababor v1.0.3; QuranEnc.com",
+              "url": "https://quranenc.com/en/browse/oromo_ababor/2/229",
+              "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions:",
+              "date": "2026-11-01"
+            },
+            "scope": "complete published verse; Arabic quote may be an excerpt"
+          },
+          {
+            "kind": "quran",
+            "ar": "تِلْكَ حُدُودُ اللَّهِ فَلا تَقرَبُوهَا",
+            "tr": "Halkan soomaa gara dubartoota (niitiwwan) keessanii dhaquun (qunnamtii saalaa gochuun) isiniif hayyamameera. Isaan isiniif uffata; isiniis isaaniif uffata. Rabbiin akka isin lubbuu keessan ganaa turtan beekee tawbaa keessan isin irraa qeebalee, dhiifamas isiniif godhe. Amma isaan waliin qunnamtii saalaa godhaa; (ilmaan irraa) waan Rabbiin isiniif katabe barbaaddadhaa. Hanga barraaqa irraa jibriin adiin (bariisaa) jibrii gurraacha (dukkana halkanii) irraa adda bahutti nyaadhaa dhugaa, Ergasii hanga halkaniitti sooma guutaa. Odoo masjiidoota keessa i’itikaafa taa’aa jirtanuu isaan waliin qunnamtii saalaa hin raawwatinaa. Sun daangaawwan Rabbiitii isheetti hin dhihaatinaa.akka kanatti Rabbiin keeyyattoota Isaa namootaaf ibsa Akka isaan Isa sodaataniif jecha .",
+            "rendered": "تِلْكَ حُدُودُ اللَّهِ فَلا تَقرَبُوهَا [Halkan soomaa gara dubartoota (niitiwwan) keessanii dhaquun (qunnamtii saalaa gochuun) isiniif hayyamameera. Isaan isiniif uffata; isiniis isaaniif uffata. Rabbiin akka isin lubbuu keessan ganaa turtan beekee tawbaa keessan isin irraa qeebalee, dhiifamas isiniif godhe. Amma isaan waliin qunnamtii saalaa godhaa; (ilmaan irraa) waan Rabbiin isiniif katabe barbaaddadhaa. Hanga barraaqa irraa jibriin adiin (bariisaa) jibrii gurraacha (dukkana halkanii) irraa adda bahutti nyaadhaa dhugaa, Ergasii hanga halkaniitti sooma guutaa. Odoo masjiidoota keessa i’itikaafa taa’aa jirtanuu isaan waliin qunnamtii saalaa hin raawwatinaa. Sun daangaawwan Rabbiitii isheetti hin dhihaatinaa.akka kanatti Rabbiin keeyyattoota Isaa namootaaf ibsa Akka isaan Isa sodaataniif jecha .]",
+            "footnotes": "",
+            "src": {
+              "name": "Oromo Translation - Gali Ababor (Gali Ababor Abaghona), oromo_ababor v1.0.3; QuranEnc.com",
+              "url": "https://quranenc.com/en/browse/oromo_ababor/2/187",
+              "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions:",
+              "date": "2026-11-01"
+            },
+            "scope": "complete published verse; Arabic quote may be an excerpt"
+          }
+        ]
+      },
+      "new": {
+        "id": "h:0e1cf9edf377",
+        "kind": "text",
+        "ar": "ولكن الصواب الأول،أن المراد بالحدود في الحديث محارم الله عزّ وجل الواجبات والمحرمات، لكن الواجب نقول:لا تعتده أي لاتتجاوزه، والمحرم نقول: لا تقربه، هكذا في القرآن الكريم لما ذكر الله تعالى تحريم الأكل والشرب على الصائم قال: (تِلْكَ حُدُودُ اللَّهِ فَلا تَعْتَدُوهَا) ولما ذكر العدة وما يجب فيها قال: (تِلْكَ حُدُودُ اللَّهِ فَلا تَقرَبُوهَا). [تنبيه: كذا في المطبوع، والذي في المصحف أن آية الصيام (البقرة: ١٨٧) خُتمت بقوله تعالى: ﴿تِلْكَ حُدُودُ ٱللَّهِ فَلَا تَقْرَبُوهَا﴾، وآية الطلاق (البقرة: ٢٢٩) خُتمت بقوله تعالى: ﴿تِلْكَ حُدُودُ ٱللَّهِ فَلَا تَعْتَدُوهَا﴾، وهو الموافق لتقرير الشيخ رحمه الله.]",
+        "translit": "",
+        "tr": "Garuu sirriin inni jalqabaa: Huduud (daangaawwan) hadiisicha keessatti jedhame wantoota Rabbiin Injifataa fi Ol Ta'e kabajaa godhe, waajiboota (dirqamoota) fi haraamota (wantoota dhorkaman), dha. Waajibaaf hin darbin, jechuun isa hin ce'in, jenna; haraamaaf immoo itti hin dhihaatin jenna. Qur'aana Kabajamaa keessatti akkasitti dhufe: Rabbiin Ol Ta'e nama soomu irratti nyaataafi dhugaatii dhorkuu yeroo dubbate تِلْكَ حُدُودُ اللَّهِ فَلا تَعْتَدُوهَا [Hiikkaan (eega isaatii deebifatamu) yeroo lama. Sana booda haala gaariin qabachuu yookiin bifa tolaan gadi lakkisuudha. Isin (dhiironni) waan isaaniif kennitan (mahrii) irraa isaan lamaanuu daangawwan Rabbii sirreessuu dhabuu yoo sodaatan malee homaa fudhachuun isiniif hin hayyamamu. Yoo isaan lamaan daangawwan Rabbii hin sirreessanu jechuu sodaattan, waan isheen ittiin of baafte fudhachuu keessatti isaan lamaan irra badiin hin jiru. Kun daangawwan Rabbiitii isaan hin dabrinaa; namni daangaawwan Rabbii dabre, isaan sun isaanumatu miidhaa hojjatoodha.] jedhe. Iddah (yeroo dubartiin hiikamte yookiin abbaan manaa irraa du'e eeggattu) fi wanta keessatti dirqama ta'u yeroo dubbate تِلْكَ حُدُودُ اللَّهِ فَلا تَقرَبُوهَا [Halkan soomaa gara dubartoota (niitiwwan) keessanii dhaquun (qunnamtii saalaa gochuun) isiniif hayyamameera. Isaan isiniif uffata; isiniis isaaniif uffata. Rabbiin akka isin lubbuu keessan ganaa turtan beekee tawbaa keessan isin irraa qeebalee, dhiifamas isiniif godhe. Amma isaan waliin qunnamtii saalaa godhaa; (ilmaan irraa) waan Rabbiin isiniif katabe barbaaddadhaa. Hanga barraaqa irraa jibriin adiin (bariisaa) jibrii gurraacha (dukkana halkanii) irraa adda bahutti nyaadhaa dhugaa, Ergasii hanga halkaniitti sooma guutaa. Odoo masjiidoota keessa i’itikaafa taa’aa jirtanuu isaan waliin qunnamtii saalaa hin raawwatinaa. Sun daangaawwan Rabbiitii isheetti hin dhihaatinaa.akka kanatti Rabbiin keeyyattoota Isaa namootaaf ibsa Akka isaan Isa sodaataniif jecha .] jedhe. [Hubachiisa: Barruu maxxanfame keessatti akkasitti dhufe. Mus'hafa keessatti aayaan soomaa (Al-Baqarah: 187) jecha Rabbii Ol Ta'e kanaan xumuramti: تِلْكَ حُدُودُ ٱللَّهِ فَلَا تَقْرَبُوهَا [Halkan soomaa gara dubartoota (niitiwwan) keessanii dhaquun (qunnamtii saalaa gochuun) isiniif hayyamameera. Isaan isiniif uffata; isiniis isaaniif uffata. Rabbiin akka isin lubbuu keessan ganaa turtan beekee tawbaa keessan isin irraa qeebalee, dhiifamas isiniif godhe. Amma isaan waliin qunnamtii saalaa godhaa; (ilmaan irraa) waan Rabbiin isiniif katabe barbaaddadhaa. Hanga barraaqa irraa jibriin adiin (bariisaa) jibrii gurraacha (dukkana halkanii) irraa adda bahutti nyaadhaa dhugaa, Ergasii hanga halkaniitti sooma guutaa. Odoo masjiidoota keessa i’itikaafa taa’aa jirtanuu isaan waliin qunnamtii saalaa hin raawwatinaa. Sun daangaawwan Rabbiitii isheetti hin dhihaatinaa.akka kanatti Rabbiin keeyyattoota Isaa namootaaf ibsa Akka isaan Isa sodaataniif jecha .]; aayaan hiikkaa (Al-Baqarah: 229) immoo jecha Isaa kanaan xumuramti: تِلْكَ حُدُودُ ٱللَّهِ فَلَا تَعْتَدُوهَا [Hiikkaan (eega isaatii deebifatamu) yeroo lama. Sana booda haala gaariin qabachuu yookiin bifa tolaan gadi lakkisuudha. Isin (dhiironni) waan isaaniif kennitan (mahrii) irraa isaan lamaanuu daangawwan Rabbii sirreessuu dhabuu yoo sodaatan malee homaa fudhachuun isiniif hin hayyamamu. Yoo isaan lamaan daangawwan Rabbii hin sirreessanu jechuu sodaattan, waan isheen ittiin of baafte fudhachuu keessatti isaan lamaan irra badiin hin jiru. Kun daangawwan Rabbiitii isaan hin dabrinaa; namni daangaawwan Rabbii dabre, isaan sun isaanumatu miidhaa hojjatoodha.]. Kun ibsa Sheekhaa, Rabbiin isa haa araaramu, wajjin walii gala.]",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        },
+        "source_paths": [
+          {
+            "file": "arbaeen-sharh.json",
+            "pointer": "/items/30/sharh/6"
+          }
+        ],
+        "reopen_batch": "reopen-arbaeen-022.json",
+        "quotes": [
+          {
+            "kind": "quran",
+            "ar": "تِلْكَ حُدُودُ اللَّهِ فَلا تَعْتَدُوهَا",
+            "tr": "Hiikkaan (eega isaatii deebifatamu) yeroo lama. Sana booda haala gaariin qabachuu yookiin bifa tolaan gadi lakkisuudha. Isin (dhiironni) waan isaaniif kennitan (mahrii) irraa isaan lamaanuu daangawwan Rabbii sirreessuu dhabuu yoo sodaatan malee homaa fudhachuun isiniif hin hayyamamu. Yoo isaan lamaan daangawwan Rabbii hin sirreessanu jechuu sodaattan, waan isheen ittiin of baafte fudhachuu keessatti isaan lamaan irra badiin hin jiru. Kun daangawwan Rabbiitii isaan hin dabrinaa; namni daangaawwan Rabbii dabre, isaan sun isaanumatu miidhaa hojjatoodha.",
+            "rendered": "تِلْكَ حُدُودُ اللَّهِ فَلا تَعْتَدُوهَا [Hiikkaan (eega isaatii deebifatamu) yeroo lama. Sana booda haala gaariin qabachuu yookiin bifa tolaan gadi lakkisuudha. Isin (dhiironni) waan isaaniif kennitan (mahrii) irraa isaan lamaanuu daangawwan Rabbii sirreessuu dhabuu yoo sodaatan malee homaa fudhachuun isiniif hin hayyamamu. Yoo isaan lamaan daangawwan Rabbii hin sirreessanu jechuu sodaattan, waan isheen ittiin of baafte fudhachuu keessatti isaan lamaan irra badiin hin jiru. Kun daangawwan Rabbiitii isaan hin dabrinaa; namni daangaawwan Rabbii dabre, isaan sun isaanumatu miidhaa hojjatoodha.]",
+            "footnotes": "",
+            "src": {
+              "name": "Oromo Translation - Gali Ababor (Gali Ababor Abaghona), oromo_ababor v1.0.3; QuranEnc.com",
+              "url": "https://quranenc.com/en/browse/oromo_ababor/2/229",
+              "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions:",
+              "date": "2026-11-01"
+            },
+            "scope": "complete published verse; Arabic quote may be an excerpt"
+          },
+          {
+            "kind": "quran",
+            "ar": "تِلْكَ حُدُودُ اللَّهِ فَلا تَقرَبُوهَا",
+            "tr": "Halkan soomaa gara dubartoota (niitiwwan) keessanii dhaquun (qunnamtii saalaa gochuun) isiniif hayyamameera. Isaan isiniif uffata; isiniis isaaniif uffata. Rabbiin akka isin lubbuu keessan ganaa turtan beekee tawbaa keessan isin irraa qeebalee, dhiifamas isiniif godhe. Amma isaan waliin qunnamtii saalaa godhaa; (ilmaan irraa) waan Rabbiin isiniif katabe barbaaddadhaa. Hanga barraaqa irraa jibriin adiin (bariisaa) jibrii gurraacha (dukkana halkanii) irraa adda bahutti nyaadhaa dhugaa, Ergasii hanga halkaniitti sooma guutaa. Odoo masjiidoota keessa i’itikaafa taa’aa jirtanuu isaan waliin qunnamtii saalaa hin raawwatinaa. Sun daangaawwan Rabbiitii isheetti hin dhihaatinaa.akka kanatti Rabbiin keeyyattoota Isaa namootaaf ibsa Akka isaan Isa sodaataniif jecha .",
+            "rendered": "تِلْكَ حُدُودُ اللَّهِ فَلا تَقرَبُوهَا [Halkan soomaa gara dubartoota (niitiwwan) keessanii dhaquun (qunnamtii saalaa gochuun) isiniif hayyamameera. Isaan isiniif uffata; isiniis isaaniif uffata. Rabbiin akka isin lubbuu keessan ganaa turtan beekee tawbaa keessan isin irraa qeebalee, dhiifamas isiniif godhe. Amma isaan waliin qunnamtii saalaa godhaa; (ilmaan irraa) waan Rabbiin isiniif katabe barbaaddadhaa. Hanga barraaqa irraa jibriin adiin (bariisaa) jibrii gurraacha (dukkana halkanii) irraa adda bahutti nyaadhaa dhugaa, Ergasii hanga halkaniitti sooma guutaa. Odoo masjiidoota keessa i’itikaafa taa’aa jirtanuu isaan waliin qunnamtii saalaa hin raawwatinaa. Sun daangaawwan Rabbiitii isheetti hin dhihaatinaa.akka kanatti Rabbiin keeyyattoota Isaa namootaaf ibsa Akka isaan Isa sodaataniif jecha .]",
+            "footnotes": "",
+            "src": {
+              "name": "Oromo Translation - Gali Ababor (Gali Ababor Abaghona), oromo_ababor v1.0.3; QuranEnc.com",
+              "url": "https://quranenc.com/en/browse/oromo_ababor/2/187",
+              "rights": "Contents of the translations can be downloaded and re-published, with the following terms and conditions:",
+              "date": "2026-11-01"
+            },
+            "scope": "complete published verse; Arabic quote may be an excerpt"
+          }
+        ]
+      },
+      "remove": false
+    },
+    {
+      "file": "arbaeen-sharh.json",
+      "path": [
+        "items",
+        "40",
+        "sharh",
+        "7"
+      ],
+      "old": "أو المعنى: إِذَا أَمْسَيْتَ فَلا تَنْتَظِرِ الصَّبَاح لأنك قد تموت قبل أن تصبح. وَإِذَا أَمْسَيْتَ فَلا تَنْتَظِرِ المَسَاء لأنك قد تموت قبل أن تمسي. وفي هذا يقول بعضهم: (اعمل لدنياك كأنك تعيش أبداً، واعمل لآخرتك كأنك تموت غداً) والمعنى: الدنيا لاتهمّك، الذي لا تدركه اليوم تدركه غداً فاعمل كأنك تعيش أبداً، والآخرة اعمل لها كأنك تموت غداً، بمعنى: لا تؤخر العمل.",
+      "new": "أو المعنى: إِذَا أَمْسَيْتَ فَلا تَنْتَظِرِ الصَّبَاح لأنك قد تموت قبل أن تصبح. وَإِذَا أَمْسَيْتَ فَلا تَنْتَظِرِ المَسَاء لأنك قد تموت قبل أن تمسي. [تنبيه: كذا في المطبوع، والصواب في الأثر: «وَإِذَا أَصْبَحْتَ فَلَا تَنْتَظِرِ الْمَسَاءَ»، كما في صحيح البخاري.] وفي هذا يقول بعضهم: (اعمل لدنياك كأنك تعيش أبداً، واعمل لآخرتك كأنك تموت غداً) والمعنى: الدنيا لاتهمّك، الذي لا تدركه اليوم تدركه غداً فاعمل كأنك تعيش أبداً، والآخرة اعمل لها كأنك تموت غداً، بمعنى: لا تؤخر العمل.",
+      "remove": false
+    },
+    {
+      "file": "lang/content/am/sections/arbaeen.json",
+      "path": [
+        "items",
+        812
+      ],
+      "old": {
+        "id": "h:8ab2a18861a6",
+        "kind": "text",
+        "ar": "أو المعنى: إِذَا أَمْسَيْتَ فَلا تَنْتَظِرِ الصَّبَاح لأنك قد تموت قبل أن تصبح. وَإِذَا أَمْسَيْتَ فَلا تَنْتَظِرِ المَسَاء لأنك قد تموت قبل أن تمسي. وفي هذا يقول بعضهم: (اعمل لدنياك كأنك تعيش أبداً، واعمل لآخرتك كأنك تموت غداً) والمعنى: الدنيا لاتهمّك، الذي لا تدركه اليوم تدركه غداً فاعمل كأنك تعيش أبداً، والآخرة اعمل لها كأنك تموت غداً، بمعنى: لا تؤخر العمل.",
+        "tr": "ወይም ትርጉሙ፣ ስታመሽ ጠዋትን አትጠብቅ፣ ምክንያቱም ከመንጋቱ በፊት ልትሞት ትችላለህ። ስታመሽም ምሽትን አትጠብቅ፣ ምክንያቱም ከማምሸቱ በፊት ልትሞት ትችላለህ። አንዳንዶች በዚህ ላይ «اعمل لدنياك كأنك تعيش أبداً، واعمل لآخرتك كأنك تموت غداً» [ለዱንያህ ዘላለም እንደምትኖር ሥራ፣ ለአኺራህም ነገ እንደምትሞት ሥራ] ይላሉ። ትርጉሙ፣ ዱንያ (የዚህ ዓለም ጉዳይ) አያስጨንቅህ፤ ዛሬ ያላገኘኸውን ነገ ታገኘዋለህ። ስለዚህ ዘላለም እንደምትኖር ሥራ። ለአኺራ (ለመጨረሻው ሕይወት) ግን ነገ እንደምትሞት ሥራ፤ ማለትም ሥራውን አታዘግይ ማለት ነው።",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": "h:31000ba64d67",
+        "kind": "text",
+        "ar": "أو المعنى: إِذَا أَمْسَيْتَ فَلا تَنْتَظِرِ الصَّبَاح لأنك قد تموت قبل أن تصبح. وَإِذَا أَمْسَيْتَ فَلا تَنْتَظِرِ المَسَاء لأنك قد تموت قبل أن تمسي. [تنبيه: كذا في المطبوع، والصواب في الأثر: «وَإِذَا أَصْبَحْتَ فَلَا تَنْتَظِرِ الْمَسَاءَ»، كما في صحيح البخاري.] وفي هذا يقول بعضهم: (اعمل لدنياك كأنك تعيش أبداً، واعمل لآخرتك كأنك تموت غداً) والمعنى: الدنيا لاتهمّك، الذي لا تدركه اليوم تدركه غداً فاعمل كأنك تعيش أبداً، والآخرة اعمل لها كأنك تموت غداً، بمعنى: لا تؤخر العمل.",
+        "tr": "ወይም ትርጉሙ፣ ስታመሽ ጠዋትን አትጠብቅ፣ ምክንያቱም ከመንጋቱ በፊት ልትሞት ትችላለህ። ስታመሽም ምሽትን አትጠብቅ፣ ምክንያቱም ከማምሸቱ በፊት ልትሞት ትችላለህ። [ማስታወሻ፦ በታተመው ጽሑፍ እንዲህ ነው፤ በዘገባው ያለው ትክክለኛ ቃል፦ «ስታነጋ ምሽትን አትጠብቅ» የሚለው ነው፣ በሰሒሕ አልቡኻሪ እንደተጠቀሰው።] አንዳንዶች በዚህ ላይ «اعمل لدنياك كأنك تعيش أبداً، واعمل لآخرتك كأنك تموت غداً» [ለዱንያህ ዘላለም እንደምትኖር ሥራ፣ ለአኺራህም ነገ እንደምትሞት ሥራ] ይላሉ። ትርጉሙ፣ ዱንያ (የዚህ ዓለም ጉዳይ) አያስጨንቅህ፤ ዛሬ ያላገኘኸውን ነገ ታገኘዋለህ። ስለዚህ ዘላለም እንደምትኖር ሥራ። ለአኺራ (ለመጨረሻው ሕይወት) ግን ነገ እንደምትሞት ሥራ፤ ማለትም ሥራውን አታዘግይ ማለት ነው።",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": false
+    },
+    {
+      "file": "lang/content/en/sections/arbaeen.json",
+      "path": [
+        "items",
+        813
+      ],
+      "old": {
+        "id": "h:8ab2a18861a6",
+        "kind": "text",
+        "ar": "أو المعنى: إِذَا أَمْسَيْتَ فَلا تَنْتَظِرِ الصَّبَاح لأنك قد تموت قبل أن تصبح. وَإِذَا أَمْسَيْتَ فَلا تَنْتَظِرِ المَسَاء لأنك قد تموت قبل أن تمسي. وفي هذا يقول بعضهم: (اعمل لدنياك كأنك تعيش أبداً، واعمل لآخرتك كأنك تموت غداً) والمعنى: الدنيا لاتهمّك، الذي لا تدركه اليوم تدركه غداً فاعمل كأنك تعيش أبداً، والآخرة اعمل لها كأنك تموت غداً، بمعنى: لا تؤخر العمل.",
+        "tr": "Alternatively, the meaning is: 'When evening comes, do not expect the morning,' because you may die before morning; and 'When evening comes, do not expect the evening,' because you may die before evening. Concerning this, some say: 'Work for this world as though you will live forever, and work for your Hereafter as though you will die tomorrow.' This means: do not be preoccupied with this world; what you miss today you can obtain tomorrow, so work as though you will live forever. Work for the Hereafter as though you will die tomorrow, meaning do not postpone the deed.",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": "h:31000ba64d67",
+        "kind": "text",
+        "ar": "أو المعنى: إِذَا أَمْسَيْتَ فَلا تَنْتَظِرِ الصَّبَاح لأنك قد تموت قبل أن تصبح. وَإِذَا أَمْسَيْتَ فَلا تَنْتَظِرِ المَسَاء لأنك قد تموت قبل أن تمسي. [تنبيه: كذا في المطبوع، والصواب في الأثر: «وَإِذَا أَصْبَحْتَ فَلَا تَنْتَظِرِ الْمَسَاءَ»، كما في صحيح البخاري.] وفي هذا يقول بعضهم: (اعمل لدنياك كأنك تعيش أبداً، واعمل لآخرتك كأنك تموت غداً) والمعنى: الدنيا لاتهمّك، الذي لا تدركه اليوم تدركه غداً فاعمل كأنك تعيش أبداً، والآخرة اعمل لها كأنك تموت غداً، بمعنى: لا تؤخر العمل.",
+        "tr": "Alternatively, the meaning is: 'When evening comes, do not expect the morning,' because you may die before morning; and 'When evening comes, do not expect the evening,' because you may die before evening. [Editor's note: This is how the printed text reads. The correct wording of the report is: 'When morning comes, do not expect the evening,' as in Sahih al-Bukhari.] Concerning this, some say: 'Work for this world as though you will live forever, and work for your Hereafter as though you will die tomorrow.' This means: do not be preoccupied with this world; what you miss today you can obtain tomorrow, so work as though you will live forever. Work for the Hereafter as though you will die tomorrow, meaning do not postpone the deed.",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": false
+    },
+    {
+      "file": "lang/content/fa/sections/arbaeen.json",
+      "path": [
+        "items",
+        809
+      ],
+      "old": {
+        "id": "h:8ab2a18861a6",
+        "kind": "text",
+        "ar": "أو المعنى: إِذَا أَمْسَيْتَ فَلا تَنْتَظِرِ الصَّبَاح لأنك قد تموت قبل أن تصبح. وَإِذَا أَمْسَيْتَ فَلا تَنْتَظِرِ المَسَاء لأنك قد تموت قبل أن تمسي. وفي هذا يقول بعضهم: (اعمل لدنياك كأنك تعيش أبداً، واعمل لآخرتك كأنك تموت غداً) والمعنى: الدنيا لاتهمّك، الذي لا تدركه اليوم تدركه غداً فاعمل كأنك تعيش أبداً، والآخرة اعمل لها كأنك تموت غداً، بمعنى: لا تؤخر العمل.",
+        "tr": "یا معنا این است: چون شام کردی، منتظر صبح نباش، زیرا شاید پیش از صبح بمیری؛ و چون شام کردی، منتظر شام نباش، زیرا شاید پیش از شام بمیری. برخی در این باره گفته‌اند: «برای دنیایت چنان کار کن که گویی همیشه زنده‌ای، و برای آخرتت چنان که گویی فردا می‌میری». یعنی دنیا نگرانت نکند؛ آنچه امروز به دست نمی‌آوری فردا می‌یابی، پس چنان کار کن که گویی جاودانه‌ای؛ اما برای آخرت چنان کار کن که گویی فردا می‌میری، یعنی کار را عقب نینداز.",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": "h:31000ba64d67",
+        "kind": "text",
+        "ar": "أو المعنى: إِذَا أَمْسَيْتَ فَلا تَنْتَظِرِ الصَّبَاح لأنك قد تموت قبل أن تصبح. وَإِذَا أَمْسَيْتَ فَلا تَنْتَظِرِ المَسَاء لأنك قد تموت قبل أن تمسي. [تنبيه: كذا في المطبوع، والصواب في الأثر: «وَإِذَا أَصْبَحْتَ فَلَا تَنْتَظِرِ الْمَسَاءَ»، كما في صحيح البخاري.] وفي هذا يقول بعضهم: (اعمل لدنياك كأنك تعيش أبداً، واعمل لآخرتك كأنك تموت غداً) والمعنى: الدنيا لاتهمّك، الذي لا تدركه اليوم تدركه غداً فاعمل كأنك تعيش أبداً، والآخرة اعمل لها كأنك تموت غداً، بمعنى: لا تؤخر العمل.",
+        "tr": "یا معنا این است: چون شام کردی، منتظر صبح نباش، زیرا شاید پیش از صبح بمیری؛ و چون شام کردی، منتظر شام نباش، زیرا شاید پیش از شام بمیری. [یادداشت ویراستار: در متن چاپی چنین آمده است؛ عبارت درست در اثر این است: «و چون صبح کردی، منتظر شام نباش»، چنان‌که در صحیح بخاری آمده است.] برخی در این باره گفته‌اند: «برای دنیایت چنان کار کن که گویی همیشه زنده‌ای، و برای آخرتت چنان که گویی فردا می‌میری». یعنی دنیا نگرانت نکند؛ آنچه امروز به دست نمی‌آوری فردا می‌یابی، پس چنان کار کن که گویی جاودانه‌ای؛ اما برای آخرت چنان کار کن که گویی فردا می‌میری، یعنی کار را عقب نینداز.",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": false
+    },
+    {
+      "file": "lang/content/om/sections/arbaeen.json",
+      "path": [
+        "items",
+        832
+      ],
+      "old": {
+        "id": "h:8ab2a18861a6",
+        "kind": "text",
+        "ar": "أو المعنى: إِذَا أَمْسَيْتَ فَلا تَنْتَظِرِ الصَّبَاح لأنك قد تموت قبل أن تصبح. وَإِذَا أَمْسَيْتَ فَلا تَنْتَظِرِ المَسَاء لأنك قد تموت قبل أن تمسي. وفي هذا يقول بعضهم: (اعمل لدنياك كأنك تعيش أبداً، واعمل لآخرتك كأنك تموت غداً) والمعنى: الدنيا لاتهمّك، الذي لا تدركه اليوم تدركه غداً فاعمل كأنك تعيش أبداً، والآخرة اعمل لها كأنك تموت غداً، بمعنى: لا تؤخر العمل.",
+        "translit": "",
+        "tr": "Yookiin hiikni: Yeroo galgaleeffatte ganama hin eegin; osoo hin ganamiin du'uu waan dandeessuuf. Yeroo galgaleeffatte galgala hin eegin; osoo hin galgaleeffatin du'uu waan dandeessuuf. Waa'ee kanaa namoonni tokko tokko: Addunyaa keetiif akka bara baraan jiraattutti hojjadhu; Aakhiraa keetiif akka bor duututti hojjadhu, jedhu. Hiikni: Addunyaan si hin yaaddessin; waan har'a hin arganne bor argatta. Kanaaf akka bara baraan jiraattutti hojjadhu. Aakhiraaf immoo akka bor duututti hojjadhu; kana jechuun hojii hin tursiisin.",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        },
+        "source_paths": [
+          {
+            "file": "arbaeen-sharh.json",
+            "pointer": "/items/40/sharh/7"
+          }
+        ],
+        "reopen_batch": "reopen-arbaeen-026.json"
+      },
+      "new": {
+        "id": "h:31000ba64d67",
+        "kind": "text",
+        "ar": "أو المعنى: إِذَا أَمْسَيْتَ فَلا تَنْتَظِرِ الصَّبَاح لأنك قد تموت قبل أن تصبح. وَإِذَا أَمْسَيْتَ فَلا تَنْتَظِرِ المَسَاء لأنك قد تموت قبل أن تمسي. [تنبيه: كذا في المطبوع، والصواب في الأثر: «وَإِذَا أَصْبَحْتَ فَلَا تَنْتَظِرِ الْمَسَاءَ»، كما في صحيح البخاري.] وفي هذا يقول بعضهم: (اعمل لدنياك كأنك تعيش أبداً، واعمل لآخرتك كأنك تموت غداً) والمعنى: الدنيا لاتهمّك، الذي لا تدركه اليوم تدركه غداً فاعمل كأنك تعيش أبداً، والآخرة اعمل لها كأنك تموت غداً، بمعنى: لا تؤخر العمل.",
+        "translit": "",
+        "tr": "Yookiin hiikni: Yeroo galgaleeffatte ganama hin eegin; osoo hin ganamiin du'uu waan dandeessuuf. Yeroo galgaleeffatte galgala hin eegin; osoo hin galgaleeffatin du'uu waan dandeessuuf. [Hubachiisa: Barruu maxxanfame keessatti akkasitti dhufe. Jechi sirrii gabaasicha keessatti: 'Yeroo ganameeffatte galgala hin eegin' kan jedhuudha, akkuma Sahiih Al-Bukhaarii keessatti dhufetti.] Waa'ee kanaa namoonni tokko tokko: Addunyaa keetiif akka bara baraan jiraattutti hojjadhu; Aakhiraa keetiif akka bor duututti hojjadhu, jedhu. Hiikni: Addunyaan si hin yaaddessin; waan har'a hin arganne bor argatta. Kanaaf akka bara baraan jiraattutti hojjadhu. Aakhiraaf immoo akka bor duututti hojjadhu; kana jechuun hojii hin tursiisin.",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        },
+        "source_paths": [
+          {
+            "file": "arbaeen-sharh.json",
+            "pointer": "/items/40/sharh/7"
+          }
+        ],
+        "reopen_batch": "reopen-arbaeen-026.json"
+      },
+      "remove": false
+    },
+    {
+      "file": "quest-data/kunuz-pack-historical-events.js",
+      "path": [
+        "qs",
+        68,
+        "why"
+      ],
+      "old": "يذكر المرجع تاريخ تحرير القدس على يد صلاح الدين في ١١٨٧م. تحرير القدس على يد صلاح الدين: يمثل استعادة الكويت سيادتها بعد الاحتلال، وهي محطة وطنية راسخة في تاريخ الخليج.",
+      "new": "يذكر المرجع تاريخ تحرير القدس على يد صلاح الدين في ١١٨٧م.",
+      "remove": false
+    },
+    {
+      "file": "lang/content/am/packs/kunuz-pack-historical-events.json",
+      "path": [
+        "qs",
+        68,
+        "why"
+      ],
+      "old": "ምንጩ አልቁድስ በሰላሐዲን ነጻ መውጣቷ በ١١٨٧ እ.ኤ.አ. እንደተከሰተ ይጠቅሳል። አልቁድስ በሰላሐዲን ነጻ መውጣቷ፦ ኩዌት ከወረራ በኋላ ሉዓላዊነቷን መመለሷን ይወክላል፤ በባሕረ ሰላጤው ታሪክ የጸና ብሔራዊ ምዕራፍ ነው።",
+      "new": "ምንጩ አልቁድስ በሰላሐዲን ነጻ መውጣቷ በ١١٨٧ እ.ኤ.አ. እንደተከሰተ ይጠቅሳል።",
+      "remove": false
+    },
+    {
+      "file": "lang/content/en/packs/kunuz-pack-historical-events.json",
+      "path": [
+        "qs",
+        68,
+        "why"
+      ],
+      "old": "The reference dates Liberation of Jerusalem by Salah al-Din to ١١٨٧ CE. Liberation of Jerusalem by Salah al-Din: It represents Kuwait's restoration of sovereignty after occupation, an established national milestone in Gulf history.",
+      "new": "The reference dates Liberation of Jerusalem by Salah al-Din to ١١٨٧ CE.",
+      "remove": false
+    },
+    {
+      "file": "lang/content/fa/packs/kunuz-pack-historical-events.json",
+      "path": [
+        "qs",
+        68,
+        "why"
+      ],
+      "old": "منبع، تاریخ این رویداد را ذکر می‌کند: آزادسازی قدس به دست صلاح‌الدین در ١١٨٧میلادی. آزادسازی قدس به دست صلاح‌الدین: نشان‌دهندهٔ بازیابی حاکمیت کویت پس از اشغال و نقطه‌ای ملی و ماندگار در تاریخ خلیج است.",
+      "new": "منبع، تاریخ این رویداد را ذکر می‌کند: آزادسازی قدس به دست صلاح‌الدین در ١١٨٧میلادی.",
+      "remove": false
+    },
+    {
+      "file": "lang/content/om/packs/kunuz-pack-historical-events.json",
+      "path": [
+        "qs",
+        68,
+        "why"
+      ],
+      "old": "Wabiin bara ١١٨٧ Dh.K. keessa Salaahuddiin Al-Qudsiin bilisoomsuu ta'uu galmeessa. Salaahuddiin Al-Qudsiin bilisoomsuu: Kun weerara booda Kuweeyt aangoo ishee deebifachuu agarsiisa; seenaa Galoo Garbaa keessatti sadarkaa biyyaalessaa jabaa dha.",
+      "new": "Wabiin bara ١١٨٧ Dh.K. keessa Salaahuddiin Al-Qudsiin bilisoomsuu ta'uu galmeessa.",
+      "remove": false
+    },
+    {
+      "file": "quest-data/kunuz-bank-3147.js",
+      "path": [
+        "qs",
+        6306,
+        4,
+        2
+      ],
+      "old": "الخلايا الصارية",
+      "new": "الخلايا العضلية",
+      "remove": false
+    },
+    {
+      "file": "lang/content/am/core.json",
+      "path": [
+        "items",
+        "human-body-0185",
+        1,
+        2
+      ],
+      "old": "ማስት ሕዋሳት",
+      "new": "የጡንቻ ሕዋሳት",
+      "remove": false
+    },
+    {
+      "file": "lang/content/am/room-text.json",
+      "path": [
+        "keys",
+        "h:fcc9fa17043f"
+      ],
+      "old": "ማስት ሕዋሳት",
+      "new": null,
+      "remove": true
+    },
+    {
+      "file": "lang/content/am/room-text.json",
+      "path": [
+        "keys",
+        "h:11dbb5d3c1b0"
+      ],
+      "new": "የጡንቻ ሕዋሳት",
+      "remove": false
+    },
+    {
+      "file": "lang/content/en/core.json",
+      "path": [
+        "items",
+        "human-body-0185",
+        1,
+        2
+      ],
+      "old": "Mast cells (al-sariya)",
+      "new": "Muscle cells",
+      "remove": false
+    },
+    {
+      "file": "lang/content/en/room-text.json",
+      "path": [
+        "keys",
+        "h:fcc9fa17043f"
+      ],
+      "old": "Mast cells (al-sariya)",
+      "new": null,
+      "remove": true
+    },
+    {
+      "file": "lang/content/en/room-text.json",
+      "path": [
+        "keys",
+        "h:11dbb5d3c1b0"
+      ],
+      "new": "Muscle cells",
+      "remove": false
+    },
+    {
+      "file": "lang/content/fa/core.json",
+      "path": [
+        "items",
+        "human-body-0185",
+        1,
+        2
+      ],
+      "old": "ماستوسیت‌ها",
+      "new": "سلول‌های عضلانی",
+      "remove": false
+    },
+    {
+      "file": "lang/content/fa/room-text.json",
+      "path": [
+        "keys",
+        "h:fcc9fa17043f"
+      ],
+      "old": "ماستوسیت‌ها",
+      "new": null,
+      "remove": true
+    },
+    {
+      "file": "lang/content/fa/room-text.json",
+      "path": [
+        "keys",
+        "h:11dbb5d3c1b0"
+      ],
+      "new": "سلول‌های عضلانی",
+      "remove": false
+    },
+    {
+      "file": "lang/content/om/core.json",
+      "path": [
+        "items",
+        "human-body-0185",
+        1,
+        2
+      ],
+      "old": "Seelota saariyaatii",
+      "new": "Seelota maashaa",
+      "remove": false
+    },
+    {
+      "file": "lang/content/om/room-text.json",
+      "path": [
+        "keys",
+        "h:fcc9fa17043f"
+      ],
+      "old": "Seelota saariyaatii",
+      "new": null,
+      "remove": true
+    },
+    {
+      "file": "lang/content/om/room-text.json",
+      "path": [
+        "keys",
+        "h:11dbb5d3c1b0"
+      ],
+      "new": "Seelota maashaa",
+      "remove": false
+    },
+    {
+      "file": "quest-data/kunuz-bank-3147.js",
+      "path": [
+        "qs",
+        10237,
+        6
+      ],
+      "old": "نظم الشاطبي القراءات السبع المتواترة في ثلاثة وسبعين وألف بيت.",
+      "new": "نظم الشاطبي القراءات السبع المتواترة في ثلاثة وسبعين ومائة وألف بيت.",
+      "remove": false
+    },
+    {
+      "file": "lang/content/am/core.json",
+      "path": [
+        "items",
+        "tajweed-0215",
+        2
+      ],
+      "old": "አሽሻጢቢ ሰባቱን ሙተዋቲር ቂራኣቶች (በብዙ ሰዎች የተላለፉ የቁርኣን ንባብ መንገዶች) በአንድ ሺህ ሰባ ሦስት ስንኞች አስቀምጧል።",
+      "new": "አሽሻጢቢ ሰባቱን ሙተዋቲር ቂራኣቶች (በብዙ ሰዎች የተላለፉ የቁርኣን ንባብ መንገዶች) በአንድ ሺህ አንድ መቶ ሰባ ሦስት ስንኞች አስቀምጧል።",
+      "remove": false
+    },
+    {
+      "file": "lang/content/am/room-text.json",
+      "path": [
+        "keys",
+        "h:dc65401354d1"
+      ],
+      "old": "አሽሻጢቢ ሰባቱን ሙተዋቲር ቂራኣቶች (በብዙ ሰዎች የተላለፉ የቁርኣን ንባብ መንገዶች) በአንድ ሺህ ሰባ ሦስት ስንኞች አስቀምጧል።",
+      "new": null,
+      "remove": true
+    },
+    {
+      "file": "lang/content/am/room-text.json",
+      "path": [
+        "keys",
+        "h:8889e12ec4e4"
+      ],
+      "new": "አሽሻጢቢ ሰባቱን ሙተዋቲር ቂራኣቶች (በብዙ ሰዎች የተላለፉ የቁርኣን ንባብ መንገዶች) በአንድ ሺህ አንድ መቶ ሰባ ሦስት ስንኞች አስቀምጧል።",
+      "remove": false
+    },
+    {
+      "file": "lang/content/en/core.json",
+      "path": [
+        "items",
+        "tajweed-0215",
+        2
+      ],
+      "old": "Ash-Shatibi versified the seven mass-transmitted readings in one thousand and seventy-three verses.",
+      "new": "Ash-Shatibi versified the seven mass-transmitted readings in one thousand one hundred and seventy-three verses.",
+      "remove": false
+    },
+    {
+      "file": "lang/content/en/room-text.json",
+      "path": [
+        "keys",
+        "h:dc65401354d1"
+      ],
+      "old": "Ash-Shatibi versified the seven mass-transmitted readings in one thousand and seventy-three verses.",
+      "new": null,
+      "remove": true
+    },
+    {
+      "file": "lang/content/en/room-text.json",
+      "path": [
+        "keys",
+        "h:8889e12ec4e4"
+      ],
+      "new": "Ash-Shatibi versified the seven mass-transmitted readings in one thousand one hundred and seventy-three verses.",
+      "remove": false
+    },
+    {
+      "file": "lang/content/fa/room-text.json",
+      "path": [
+        "keys",
+        "h:dc65401354d1"
+      ],
+      "old": "شاطبی قرائت‌های هفت‌گانهٔ متواتر را در هزار و صد و هفتادوسه بیت به نظم درآورده است.",
+      "new": null,
+      "remove": true
+    },
+    {
+      "file": "lang/content/fa/room-text.json",
+      "path": [
+        "keys",
+        "h:8889e12ec4e4"
+      ],
+      "new": "شاطبی قرائت‌های هفت‌گانهٔ متواتر را در هزار و صد و هفتادوسه بیت به نظم درآورده است.",
+      "remove": false
+    },
+    {
+      "file": "lang/content/om/room-text.json",
+      "path": [
+        "keys",
+        "h:dc65401354d1"
+      ],
+      "old": "Ash-Shaatibiin qiraa'aat torba mutawaatir ta'an bayt kuma tokkoo fi dhibba tokkoo fi torbaatamii sadii keessatti walaleesse.",
+      "new": null,
+      "remove": true
+    },
+    {
+      "file": "lang/content/om/room-text.json",
+      "path": [
+        "keys",
+        "h:8889e12ec4e4"
+      ],
+      "new": "Ash-Shaatibiin qiraa'aat torba mutawaatir ta'an bayt kuma tokkoo fi dhibba tokkoo fi torbaatamii sadii keessatti walaleesse.",
+      "remove": false
+    },
+    {
+      "file": "arbaeen-sharh.json",
+      "path": [
+        "items",
+        "1",
+        "rawi",
+        "0"
+      ],
+      "old": "هو عمر بن الخطاب بن نفيل بن عبدالعزى بن رباح بن عبدالله بن قرط بن رزاح بن عدي بن كعب بن لؤي القرشي العدوي، وهو أحد الصحابة الكبار والذي ولد في عام الفيل، كان كافراً في بداية الدعوة إلى الاسلام، كان من أسياد قريش وكان الرسول دوماً يدعو \" اللهم أعز الاسلام بأحد العمرين \"، حتى كان عز الاسلام بعمر بن الخطاب. كان المسلمون قبل إسلام عمر بن الخطاب يكتمون إسلامهم خوفاً من كبار قريش، ولكن بعد إسلام عمر بن الخطاب أصبح المسلمون أقوى، وأصبحوا يجهرون إسلامهم، كما أنهم خرجوا للطواف حول الكعبة والتكبير بعد إسلام عمر بن الخطاب وايضاً كان عمر بن الخطاب قوي البديهة، وكان شديد الذكاء، كما أنه كان معروفاً بقوته ورباطة جأشه، وكان الكل يخاف مواجهته، وكان رجل ذو مواقف خالدة و عظيمة. تُوفّي رضي الله عنه بعد أن اغتيل على يد أبي لؤلؤة المجوسي لعنه الله في سنة 24 للهجرة بعد حياة حافلةٍ بالعطاء والبذل والتّضحية.",
+      "new": "هو عمر بن الخطاب بن نفيل بن عبدالعزى بن رباح بن عبدالله بن قرط بن رزاح بن عدي بن كعب بن لؤي القرشي العدوي، وهو أحد الصحابة الكبار والذي ولد بعد عام الفيل بثلاث عشرة سنة، كما في أسد الغابة، كان كافراً في بداية الدعوة إلى الاسلام، كان من أسياد قريش وكان الرسول دوماً يدعو \" اللهم أعز الاسلام بأحد العمرين \"، حتى كان عز الاسلام بعمر بن الخطاب. كان المسلمون قبل إسلام عمر بن الخطاب يكتمون إسلامهم خوفاً من كبار قريش، ولكن بعد إسلام عمر بن الخطاب أصبح المسلمون أقوى، وأصبحوا يجهرون إسلامهم، كما أنهم خرجوا للطواف حول الكعبة والتكبير بعد إسلام عمر بن الخطاب وايضاً كان عمر بن الخطاب قوي البديهة، وكان شديد الذكاء، كما أنه كان معروفاً بقوته ورباطة جأشه، وكان الكل يخاف مواجهته، وكان رجل ذو مواقف خالدة و عظيمة. تُوفّي رضي الله عنه بعد حياة حافلةٍ بالعطاء والبذل والتّضحية، إذ اغتاله أبو لؤلؤة المجوسي لعنه الله في أواخر سنة 23 للهجرة، ونُقل أن دفنه كان في أول المحرم سنة 24، وفي تفاصيل التأريخ خلاف.",
+      "remove": false
+    },
+    {
+      "file": "lang/content/am/sections/arbaeen.json",
+      "path": [
+        "items",
+        136
+      ],
+      "old": {
+        "id": "h:193c3b698c5f",
+        "kind": "text",
+        "ar": "هو عمر بن الخطاب بن نفيل بن عبدالعزى بن رباح بن عبدالله بن قرط بن رزاح بن عدي بن كعب بن لؤي القرشي العدوي، وهو أحد الصحابة الكبار والذي ولد في عام الفيل، كان كافراً في بداية الدعوة إلى الاسلام، كان من أسياد قريش وكان الرسول دوماً يدعو \" اللهم أعز الاسلام بأحد العمرين \"، حتى كان عز الاسلام بعمر بن الخطاب. كان المسلمون قبل إسلام عمر بن الخطاب يكتمون إسلامهم خوفاً من كبار قريش، ولكن بعد إسلام عمر بن الخطاب أصبح المسلمون أقوى، وأصبحوا يجهرون إسلامهم، كما أنهم خرجوا للطواف حول الكعبة والتكبير بعد إسلام عمر بن الخطاب وايضاً كان عمر بن الخطاب قوي البديهة، وكان شديد الذكاء، كما أنه كان معروفاً بقوته ورباطة جأشه، وكان الكل يخاف مواجهته، وكان رجل ذو مواقف خالدة و عظيمة. تُوفّي رضي الله عنه بعد أن اغتيل على يد أبي لؤلؤة المجوسي لعنه الله في سنة 24 للهجرة بعد حياة حافلةٍ بالعطاء والبذل والتّضحية.",
+        "tr": "እርሱ ዑመር ኢብን አልኸጣብ ኢብን ኑፈይል ኢብን ዐብዱልዑዛ ኢብን ሪባሕ ኢብን ዐብዱላህ ኢብን ቁርጥ ኢብን ረዛሕ ኢብን ዐዲይ ኢብን ከዕብ ኢብን ሉአይ አልቁረሺ አልዐደዊ ነው። ከታላላቅ ሰሓቦች (የነቢዩ ባልደረቦች) አንዱ ሲሆን በዝሆኑ ዓመት ተወለደ። ወደ ኢስላም ጥሪ መጀመሪያ ካፊር (ከሓዲ) ነበር። ከቁረይሽ መሪዎችም ነበር። መልእክተኛው ሁልጊዜ፦ አላህ ሆይ፣ ከሁለቱ ዑመሮች በአንዱ ኢስላምን አጠናክር ይሉ ነበር። ኢስላምም በዑመር ኢብን አልኸጣብ ተጠናከረ። ዑመር ከመስለሙ በፊት ሙስሊሞች የቁረይሽን ታላላቆች በመፍራት ኢስላማቸውን ይደብቁ ነበር። ከመስለሙ በኋላ ግን በረቱ፣ ኢስላማቸውንም በግልጽ አሳወቁ። በከዕባ ዙሪያ ጠዋፍ (ዙረት) ለማድረግና ተክቢር (አላህ ታላቅ ነው ማለት) ለማድረግ ወጡ። ዑመር ፈጣን አስተዋይና እጅግ ብልህ ነበር። በጥንካሬና በጽናት ይታወቅ ነበር፤ ሁሉም ሊጋፈጡት ይፈሩ ነበር። የማይረሱና ታላቅ አቋሞች ባለቤት ነበር። አላህ ይውደደውና፣ በመስጠት፣ በመለገስና በመሥዋዕትነት ከተሞላ ሕይወት በኋላ፣ በ24 ሂጅራ ዓመት አላህ የረገመው አቡ ሉእሉአ አልመጁሲ በመግደሉ አረፈ።",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": "h:f569a8a95d01",
+        "kind": "text",
+        "ar": "هو عمر بن الخطاب بن نفيل بن عبدالعزى بن رباح بن عبدالله بن قرط بن رزاح بن عدي بن كعب بن لؤي القرشي العدوي، وهو أحد الصحابة الكبار والذي ولد بعد عام الفيل بثلاث عشرة سنة، كما في أسد الغابة، كان كافراً في بداية الدعوة إلى الاسلام، كان من أسياد قريش وكان الرسول دوماً يدعو \" اللهم أعز الاسلام بأحد العمرين \"، حتى كان عز الاسلام بعمر بن الخطاب. كان المسلمون قبل إسلام عمر بن الخطاب يكتمون إسلامهم خوفاً من كبار قريش، ولكن بعد إسلام عمر بن الخطاب أصبح المسلمون أقوى، وأصبحوا يجهرون إسلامهم، كما أنهم خرجوا للطواف حول الكعبة والتكبير بعد إسلام عمر بن الخطاب وايضاً كان عمر بن الخطاب قوي البديهة، وكان شديد الذكاء، كما أنه كان معروفاً بقوته ورباطة جأشه، وكان الكل يخاف مواجهته، وكان رجل ذو مواقف خالدة و عظيمة. تُوفّي رضي الله عنه بعد حياة حافلةٍ بالعطاء والبذل والتّضحية، إذ اغتاله أبو لؤلؤة المجوسي لعنه الله في أواخر سنة 23 للهجرة، ونُقل أن دفنه كان في أول المحرم سنة 24، وفي تفاصيل التأريخ خلاف.",
+        "tr": "እርሱ ዑመር ኢብን አልኸጣብ ኢብን ኑፈይል ኢብን ዐብዱልዑዛ ኢብን ሪባሕ ኢብን ዐብዱላህ ኢብን ቁርጥ ኢብን ረዛሕ ኢብን ዐዲይ ኢብን ከዕብ ኢብን ሉአይ አልቁረሺ አልዐደዊ ነው። ከታላላቅ ሰሓቦች (የነቢዩ ባልደረቦች) አንዱ ሲሆን በኡስድ አልጋባ እንደተጠቀሰው፣ ከዝሆኑ ዓመት ከአሥራ ሦስት ዓመታት በኋላ ተወለደ። ወደ ኢስላም ጥሪ መጀመሪያ ካፊር (ከሓዲ) ነበር። ከቁረይሽ መሪዎችም ነበር። መልእክተኛው ሁልጊዜ፦ አላህ ሆይ፣ ከሁለቱ ዑመሮች በአንዱ ኢስላምን አጠናክር ይሉ ነበር። ኢስላምም በዑመር ኢብን አልኸጣብ ተጠናከረ። ዑመር ከመስለሙ በፊት ሙስሊሞች የቁረይሽን ታላላቆች በመፍራት ኢስላማቸውን ይደብቁ ነበር። ከመስለሙ በኋላ ግን በረቱ፣ ኢስላማቸውንም በግልጽ አሳወቁ። በከዕባ ዙሪያ ጠዋፍ (ዙረት) ለማድረግና ተክቢር (አላህ ታላቅ ነው ማለት) ለማድረግ ወጡ። ዑመር ፈጣን አስተዋይና እጅግ ብልህ ነበር። በጥንካሬና በጽናት ይታወቅ ነበር፤ ሁሉም ሊጋፈጡት ይፈሩ ነበር። የማይረሱና ታላቅ አቋሞች ባለቤት ነበር። አላህ ይውደደውና፣ በመስጠት፣ በመለገስና በመሥዋዕትነት ከተሞላ ሕይወት በኋላ፣ በ23 ሂጅራ ዓመት መጨረሻ አላህ የረገመው አቡ ሉእሉአ አልመጁሲ በመግደሉ አረፈ። በ24 ሂጅራ ዓመት ሙሐረም መጀመሪያ እንደተቀበረ ተዘግቧል፤ በቀኑ ዝርዝር ላይ ልዩነት አለ።",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": false
+    },
+    {
+      "file": "lang/content/en/sections/arbaeen.json",
+      "path": [
+        "items",
+        137
+      ],
+      "old": {
+        "id": "h:193c3b698c5f",
+        "kind": "text",
+        "ar": "هو عمر بن الخطاب بن نفيل بن عبدالعزى بن رباح بن عبدالله بن قرط بن رزاح بن عدي بن كعب بن لؤي القرشي العدوي، وهو أحد الصحابة الكبار والذي ولد في عام الفيل، كان كافراً في بداية الدعوة إلى الاسلام، كان من أسياد قريش وكان الرسول دوماً يدعو \" اللهم أعز الاسلام بأحد العمرين \"، حتى كان عز الاسلام بعمر بن الخطاب. كان المسلمون قبل إسلام عمر بن الخطاب يكتمون إسلامهم خوفاً من كبار قريش، ولكن بعد إسلام عمر بن الخطاب أصبح المسلمون أقوى، وأصبحوا يجهرون إسلامهم، كما أنهم خرجوا للطواف حول الكعبة والتكبير بعد إسلام عمر بن الخطاب وايضاً كان عمر بن الخطاب قوي البديهة، وكان شديد الذكاء، كما أنه كان معروفاً بقوته ورباطة جأشه، وكان الكل يخاف مواجهته، وكان رجل ذو مواقف خالدة و عظيمة. تُوفّي رضي الله عنه بعد أن اغتيل على يد أبي لؤلؤة المجوسي لعنه الله في سنة 24 للهجرة بعد حياة حافلةٍ بالعطاء والبذل والتّضحية.",
+        "tr": "He is Umar ibn al-Khattab ibn Nufayl ibn Abd al-Uzza ibn Riyah ibn Abdullah ibn Qurt ibn Razah ibn Adi ibn Kab ibn Luayy al-Qurashi al-Adawi, one of the senior Companions, born in the Year of the Elephant. He was a disbeliever at the beginning of the call to Islam and a leading man of Quraysh. The Messenger repeatedly prayed: 'O Allah, strengthen Islam through one of the two Umars,' until Islam was strengthened through Umar ibn al-Khattab. Before Umar accepted Islam, Muslims concealed their faith out of fear of Quraysh's leaders. After he accepted Islam, they became stronger and openly professed it. They also went out to circle the Kabah and declare Allah's greatness after his conversion. Umar was quick-witted, highly intelligent, known for strength and composure, and everyone feared confronting him. He was a man of great and enduring deeds. He died, may Allah be pleased with him, after being assassinated by Abu Luluah al-Majusi, may Allah curse him, in 24 AH, following a life full of giving, dedication and sacrifice.",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": "h:f569a8a95d01",
+        "kind": "text",
+        "ar": "هو عمر بن الخطاب بن نفيل بن عبدالعزى بن رباح بن عبدالله بن قرط بن رزاح بن عدي بن كعب بن لؤي القرشي العدوي، وهو أحد الصحابة الكبار والذي ولد بعد عام الفيل بثلاث عشرة سنة، كما في أسد الغابة، كان كافراً في بداية الدعوة إلى الاسلام، كان من أسياد قريش وكان الرسول دوماً يدعو \" اللهم أعز الاسلام بأحد العمرين \"، حتى كان عز الاسلام بعمر بن الخطاب. كان المسلمون قبل إسلام عمر بن الخطاب يكتمون إسلامهم خوفاً من كبار قريش، ولكن بعد إسلام عمر بن الخطاب أصبح المسلمون أقوى، وأصبحوا يجهرون إسلامهم، كما أنهم خرجوا للطواف حول الكعبة والتكبير بعد إسلام عمر بن الخطاب وايضاً كان عمر بن الخطاب قوي البديهة، وكان شديد الذكاء، كما أنه كان معروفاً بقوته ورباطة جأشه، وكان الكل يخاف مواجهته، وكان رجل ذو مواقف خالدة و عظيمة. تُوفّي رضي الله عنه بعد حياة حافلةٍ بالعطاء والبذل والتّضحية، إذ اغتاله أبو لؤلؤة المجوسي لعنه الله في أواخر سنة 23 للهجرة، ونُقل أن دفنه كان في أول المحرم سنة 24، وفي تفاصيل التأريخ خلاف.",
+        "tr": "He is Umar ibn al-Khattab ibn Nufayl ibn Abd al-Uzza ibn Riyah ibn Abdullah ibn Qurt ibn Razah ibn Adi ibn Kab ibn Luayy al-Qurashi al-Adawi, one of the senior Companions, born thirteen years after the Year of the Elephant, as stated in Usd al-Ghabah. He was a disbeliever at the beginning of the call to Islam and a leading man of Quraysh. The Messenger repeatedly prayed: 'O Allah, strengthen Islam through one of the two Umars,' until Islam was strengthened through Umar ibn al-Khattab. Before Umar accepted Islam, Muslims concealed their faith out of fear of Quraysh's leaders. After he accepted Islam, they became stronger and openly professed it. They also went out to circle the Kabah and declare Allah's greatness after his conversion. Umar was quick-witted, highly intelligent, known for strength and composure, and everyone feared confronting him. He was a man of great and enduring deeds. He died, may Allah be pleased with him, following a life full of giving, dedication and sacrifice, when Abu Luluah al-Majusi, may Allah curse him, assassinated him late in 23 AH. It is reported that he was buried at the beginning of Muharram in 24 AH; the details of the dating are disputed.",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": false
+    },
+    {
+      "file": "lang/content/fa/sections/arbaeen.json",
+      "path": [
+        "items",
+        134
+      ],
+      "old": {
+        "id": "h:193c3b698c5f",
+        "kind": "text",
+        "ar": "هو عمر بن الخطاب بن نفيل بن عبدالعزى بن رباح بن عبدالله بن قرط بن رزاح بن عدي بن كعب بن لؤي القرشي العدوي، وهو أحد الصحابة الكبار والذي ولد في عام الفيل، كان كافراً في بداية الدعوة إلى الاسلام، كان من أسياد قريش وكان الرسول دوماً يدعو \" اللهم أعز الاسلام بأحد العمرين \"، حتى كان عز الاسلام بعمر بن الخطاب. كان المسلمون قبل إسلام عمر بن الخطاب يكتمون إسلامهم خوفاً من كبار قريش، ولكن بعد إسلام عمر بن الخطاب أصبح المسلمون أقوى، وأصبحوا يجهرون إسلامهم، كما أنهم خرجوا للطواف حول الكعبة والتكبير بعد إسلام عمر بن الخطاب وايضاً كان عمر بن الخطاب قوي البديهة، وكان شديد الذكاء، كما أنه كان معروفاً بقوته ورباطة جأشه، وكان الكل يخاف مواجهته، وكان رجل ذو مواقف خالدة و عظيمة. تُوفّي رضي الله عنه بعد أن اغتيل على يد أبي لؤلؤة المجوسي لعنه الله في سنة 24 للهجرة بعد حياة حافلةٍ بالعطاء والبذل والتّضحية.",
+        "tr": "او عمر بن خطاب بن نفیل بن عبدالعزی بن رباح بن عبدالله بن قرط بن رزاح بن عدی بن کعب بن لؤی قرشی عدوی، یکی از بزرگان صحابه (یاران پیامبر) است که در عام‌الفیل (سال فیل) متولد شد. در آغاز دعوت به اسلام کافر و از سران قریش بود. پیامبر پیوسته دعا می‌کرد: « اللهم أعز الاسلام بأحد العمرين » [خدایا، اسلام را با یکی از دو عمر عزت بخش]، تا اینکه اسلام به عمر بن خطاب عزت یافت. پیش از اسلام آوردن عمر، مسلمانان از ترس بزرگان قریش اسلام خود را پنهان می‌کردند؛ اما پس از اسلام آوردنش نیرومندتر شدند، اسلامشان را آشکار کردند و برای طواف کعبه و تکبیر گفتن بیرون آمدند. عمر بن خطاب همچنین حاضرذهن و بسیار باهوش بود و به قدرت و استواری دل شناخته می‌شد. همه از رویارویی با او می‌ترسیدند. مردی با مواضع ماندگار و بزرگ بود. پس از عمری سرشار از بخشش، تلاش و فداکاری، در سال 24 هجری به دست ابولؤلؤه مجوسی، که لعنت خدا بر او باد، ترور شد و وفات یافت؛ خدا از عمر خشنود باد.",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": "h:f569a8a95d01",
+        "kind": "text",
+        "ar": "هو عمر بن الخطاب بن نفيل بن عبدالعزى بن رباح بن عبدالله بن قرط بن رزاح بن عدي بن كعب بن لؤي القرشي العدوي، وهو أحد الصحابة الكبار والذي ولد بعد عام الفيل بثلاث عشرة سنة، كما في أسد الغابة، كان كافراً في بداية الدعوة إلى الاسلام، كان من أسياد قريش وكان الرسول دوماً يدعو \" اللهم أعز الاسلام بأحد العمرين \"، حتى كان عز الاسلام بعمر بن الخطاب. كان المسلمون قبل إسلام عمر بن الخطاب يكتمون إسلامهم خوفاً من كبار قريش، ولكن بعد إسلام عمر بن الخطاب أصبح المسلمون أقوى، وأصبحوا يجهرون إسلامهم، كما أنهم خرجوا للطواف حول الكعبة والتكبير بعد إسلام عمر بن الخطاب وايضاً كان عمر بن الخطاب قوي البديهة، وكان شديد الذكاء، كما أنه كان معروفاً بقوته ورباطة جأشه، وكان الكل يخاف مواجهته، وكان رجل ذو مواقف خالدة و عظيمة. تُوفّي رضي الله عنه بعد حياة حافلةٍ بالعطاء والبذل والتّضحية، إذ اغتاله أبو لؤلؤة المجوسي لعنه الله في أواخر سنة 23 للهجرة، ونُقل أن دفنه كان في أول المحرم سنة 24، وفي تفاصيل التأريخ خلاف.",
+        "tr": "او عمر بن خطاب بن نفیل بن عبدالعزی بن رباح بن عبدالله بن قرط بن رزاح بن عدی بن کعب بن لؤی قرشی عدوی، یکی از بزرگان صحابه (یاران پیامبر) است که سیزده سال پس از عام‌الفیل (سال فیل)، چنان‌که در اسد الغابه آمده، متولد شد. در آغاز دعوت به اسلام کافر و از سران قریش بود. پیامبر پیوسته دعا می‌کرد: « اللهم أعز الاسلام بأحد العمرين » [خدایا، اسلام را با یکی از دو عمر عزت بخش]، تا اینکه اسلام به عمر بن خطاب عزت یافت. پیش از اسلام آوردن عمر، مسلمانان از ترس بزرگان قریش اسلام خود را پنهان می‌کردند؛ اما پس از اسلام آوردنش نیرومندتر شدند، اسلامشان را آشکار کردند و برای طواف کعبه و تکبیر گفتن بیرون آمدند. عمر بن خطاب همچنین حاضرذهن و بسیار باهوش بود و به قدرت و استواری دل شناخته می‌شد. همه از رویارویی با او می‌ترسیدند. مردی با مواضع ماندگار و بزرگ بود. پس از عمری سرشار از بخشش، تلاش و فداکاری، در اواخر سال 23 هجری به دست ابولؤلؤه مجوسی، که لعنت خدا بر او باد، ترور شد و وفات یافت؛ خدا از عمر خشنود باد. نقل شده که دفنش در آغاز محرم سال 24 بوده است و در جزئیات تاریخ اختلاف وجود دارد.",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": false
+    },
+    {
+      "file": "lang/content/om/sections/arbaeen.json",
+      "path": [
+        "items",
+        156
+      ],
+      "old": {
+        "id": "h:193c3b698c5f",
+        "kind": "text",
+        "ar": "هو عمر بن الخطاب بن نفيل بن عبدالعزى بن رباح بن عبدالله بن قرط بن رزاح بن عدي بن كعب بن لؤي القرشي العدوي، وهو أحد الصحابة الكبار والذي ولد في عام الفيل، كان كافراً في بداية الدعوة إلى الاسلام، كان من أسياد قريش وكان الرسول دوماً يدعو \" اللهم أعز الاسلام بأحد العمرين \"، حتى كان عز الاسلام بعمر بن الخطاب. كان المسلمون قبل إسلام عمر بن الخطاب يكتمون إسلامهم خوفاً من كبار قريش، ولكن بعد إسلام عمر بن الخطاب أصبح المسلمون أقوى، وأصبحوا يجهرون إسلامهم، كما أنهم خرجوا للطواف حول الكعبة والتكبير بعد إسلام عمر بن الخطاب وايضاً كان عمر بن الخطاب قوي البديهة، وكان شديد الذكاء، كما أنه كان معروفاً بقوته ورباطة جأشه، وكان الكل يخاف مواجهته، وكان رجل ذو مواقف خالدة و عظيمة. تُوفّي رضي الله عنه بعد أن اغتيل على يد أبي لؤلؤة المجوسي لعنه الله في سنة 24 للهجرة بعد حياة حافلةٍ بالعطاء والبذل والتّضحية.",
+        "translit": "",
+        "tr": "Inni Umar ibn Al-Khattaab ibn Nufayl ibn Abdil-Uzzaa ibn Rabaah ibn Abdillaah ibn Qurt ibn Razaah ibn Adiyy ibn Ka'b ibn Lu'ayy Al-Qurashii Al-Adawii dha. Sahaabaa (hiriyoota Nabiyyii) gurguddoo keessaa tokko; bara Arbaa dhalate. Waamichi Islaamaa yeroo jalqabetti kaafira ture. Gurguddoo Quraysh keessaa ture. Ergamaan yeroo hunda  اللهم أعز الاسلام بأحد العمرين  [Yaa Rabbi, Umar lamaan keessaa tokkoon Islaama jabeessi] jechuun kadhataa ture; jabinni Islaamaa Umar ibn Al-Khattaabiin dhufe. Umar Islaama seenuu dura Muslimoonni gurguddoo Quraysh sodaatanii Islaama isaanii dhoksaa turan. Umar Islaama erga seenee booda Muslimoonni jabaatanii Islaama isaanii ifatti beeksisuu jalqaban. Akkasumas Umar Islaama seenuu isaatiin booda Ka'abaa naanna'anii tawaafa gochuu fi takbiira jechuu ba'an. Umar ibn Al-Khattaab hubannaa ariifataa cimaa fi qaroomina guddaa qaba ture. Jabina isaa fi tasgabbii onnee isaatiinis beekamaa ture; hundinuu isa dura dhaabbachuu sodaata ture. Namicha ejjennoowwan gurguddoo bara baraan yaadataman qabu ture. Rabbiin isa irraa haa jaallatu; bara hijraa 24 keessatti Abu Lu'lu'aa Al-Majuusiin, Rabbiin isa haa abaaru, erga ajjeefamee booda du'e. Jireenya kennuu, arjoomuu fi aarsaa kaffaluun guutame jiraate.",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        },
+        "source_paths": [
+          {
+            "file": "arbaeen-sharh.json",
+            "pointer": "/items/1/rawi/0"
+          },
+          {
+            "file": "arbaeen-sharh.json",
+            "pointer": "/items/2/rawi/0"
+          }
+        ],
+        "reopen_batch": "reopen-arbaeen-001.json",
+        "quotes": [
+          {
+            "kind": "hadith",
+            "ar": " اللهم أعز الاسلام بأحد العمرين ",
+            "tr": "Yaa Rabbi, Umar lamaan keessaa tokkoon Islaama jabeessi",
+            "rendered": " اللهم أعز الاسلام بأحد العمرين  [Yaa Rabbi, Umar lamaan keessaa tokkoon Islaama jabeessi]",
+            "src": {
+              "name": "machine",
+              "url": "",
+              "rights": "",
+              "date": ""
+            }
+          }
+        ]
+      },
+      "new": {
+        "id": "h:f569a8a95d01",
+        "kind": "text",
+        "ar": "هو عمر بن الخطاب بن نفيل بن عبدالعزى بن رباح بن عبدالله بن قرط بن رزاح بن عدي بن كعب بن لؤي القرشي العدوي، وهو أحد الصحابة الكبار والذي ولد بعد عام الفيل بثلاث عشرة سنة، كما في أسد الغابة، كان كافراً في بداية الدعوة إلى الاسلام، كان من أسياد قريش وكان الرسول دوماً يدعو \" اللهم أعز الاسلام بأحد العمرين \"، حتى كان عز الاسلام بعمر بن الخطاب. كان المسلمون قبل إسلام عمر بن الخطاب يكتمون إسلامهم خوفاً من كبار قريش، ولكن بعد إسلام عمر بن الخطاب أصبح المسلمون أقوى، وأصبحوا يجهرون إسلامهم، كما أنهم خرجوا للطواف حول الكعبة والتكبير بعد إسلام عمر بن الخطاب وايضاً كان عمر بن الخطاب قوي البديهة، وكان شديد الذكاء، كما أنه كان معروفاً بقوته ورباطة جأشه، وكان الكل يخاف مواجهته، وكان رجل ذو مواقف خالدة و عظيمة. تُوفّي رضي الله عنه بعد حياة حافلةٍ بالعطاء والبذل والتّضحية، إذ اغتاله أبو لؤلؤة المجوسي لعنه الله في أواخر سنة 23 للهجرة، ونُقل أن دفنه كان في أول المحرم سنة 24، وفي تفاصيل التأريخ خلاف.",
+        "translit": "",
+        "tr": "Inni Umar ibn Al-Khattaab ibn Nufayl ibn Abdil-Uzzaa ibn Rabaah ibn Abdillaah ibn Qurt ibn Razaah ibn Adiyy ibn Ka'b ibn Lu'ayy Al-Qurashii Al-Adawii dha. Sahaabaa (hiriyoota Nabiyyii) gurguddoo keessaa tokko; akka Usd al-Ghaabah keessatti dhufetti, bara Arbaa waggaa kudha sadii booda dhalate. Waamichi Islaamaa yeroo jalqabetti kaafira ture. Gurguddoo Quraysh keessaa ture. Ergamaan yeroo hunda  اللهم أعز الاسلام بأحد العمرين  [Yaa Rabbi, Umar lamaan keessaa tokkoon Islaama jabeessi] jechuun kadhataa ture; jabinni Islaamaa Umar ibn Al-Khattaabiin dhufe. Umar Islaama seenuu dura Muslimoonni gurguddoo Quraysh sodaatanii Islaama isaanii dhoksaa turan. Umar Islaama erga seenee booda Muslimoonni jabaatanii Islaama isaanii ifatti beeksisuu jalqaban. Akkasumas Umar Islaama seenuu isaatiin booda Ka'abaa naanna'anii tawaafa gochuu fi takbiira jechuu ba'an. Umar ibn Al-Khattaab hubannaa ariifataa cimaa fi qaroomina guddaa qaba ture. Jabina isaa fi tasgabbii onnee isaatiinis beekamaa ture; hundinuu isa dura dhaabbachuu sodaata ture. Namicha ejjennoowwan gurguddoo bara baraan yaadataman qabu ture. Rabbiin isa irraa haa jaallatu; jireenya kennuu, arjoomuu fi aarsaa kaffaluun guutame booda, dhuma bara hijraa 23 keessatti Abu Lu'lu'aa Al-Majuusiin, Rabbiin isa haa abaaru, ajjeefamee du'e. Jalqaba Muharram bara 24 keessa awwaalamuun isaa gabaafameera; bal'ina guyyaa sanaa irratti garaagarummaan jira.",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        },
+        "source_paths": [
+          {
+            "file": "arbaeen-sharh.json",
+            "pointer": "/items/1/rawi/0"
+          },
+          {
+            "file": "arbaeen-sharh.json",
+            "pointer": "/items/2/rawi/0"
+          }
+        ],
+        "reopen_batch": "reopen-arbaeen-001.json",
+        "quotes": [
+          {
+            "kind": "hadith",
+            "ar": " اللهم أعز الاسلام بأحد العمرين ",
+            "tr": "Yaa Rabbi, Umar lamaan keessaa tokkoon Islaama jabeessi",
+            "rendered": " اللهم أعز الاسلام بأحد العمرين  [Yaa Rabbi, Umar lamaan keessaa tokkoon Islaama jabeessi]",
+            "src": {
+              "name": "machine",
+              "url": "",
+              "rights": "",
+              "date": ""
+            }
+          }
+        ]
+      },
+      "remove": false
+    },
+    {
+      "file": "arbaeen-sharh.json",
+      "path": [
+        "items",
+        "2",
+        "rawi",
+        "0"
+      ],
+      "old": "هو عمر بن الخطاب بن نفيل بن عبدالعزى بن رباح بن عبدالله بن قرط بن رزاح بن عدي بن كعب بن لؤي القرشي العدوي، وهو أحد الصحابة الكبار والذي ولد في عام الفيل، كان كافراً في بداية الدعوة إلى الاسلام، كان من أسياد قريش وكان الرسول دوماً يدعو \" اللهم أعز الاسلام بأحد العمرين \"، حتى كان عز الاسلام بعمر بن الخطاب. كان المسلمون قبل إسلام عمر بن الخطاب يكتمون إسلامهم خوفاً من كبار قريش، ولكن بعد إسلام عمر بن الخطاب أصبح المسلمون أقوى، وأصبحوا يجهرون إسلامهم، كما أنهم خرجوا للطواف حول الكعبة والتكبير بعد إسلام عمر بن الخطاب وايضاً كان عمر بن الخطاب قوي البديهة، وكان شديد الذكاء، كما أنه كان معروفاً بقوته ورباطة جأشه، وكان الكل يخاف مواجهته، وكان رجل ذو مواقف خالدة و عظيمة. تُوفّي رضي الله عنه بعد أن اغتيل على يد أبي لؤلؤة المجوسي لعنه الله في سنة 24 للهجرة بعد حياة حافلةٍ بالعطاء والبذل والتّضحية.",
+      "new": "هو عمر بن الخطاب بن نفيل بن عبدالعزى بن رباح بن عبدالله بن قرط بن رزاح بن عدي بن كعب بن لؤي القرشي العدوي، وهو أحد الصحابة الكبار والذي ولد بعد عام الفيل بثلاث عشرة سنة، كما في أسد الغابة، كان كافراً في بداية الدعوة إلى الاسلام، كان من أسياد قريش وكان الرسول دوماً يدعو \" اللهم أعز الاسلام بأحد العمرين \"، حتى كان عز الاسلام بعمر بن الخطاب. كان المسلمون قبل إسلام عمر بن الخطاب يكتمون إسلامهم خوفاً من كبار قريش، ولكن بعد إسلام عمر بن الخطاب أصبح المسلمون أقوى، وأصبحوا يجهرون إسلامهم، كما أنهم خرجوا للطواف حول الكعبة والتكبير بعد إسلام عمر بن الخطاب وايضاً كان عمر بن الخطاب قوي البديهة، وكان شديد الذكاء، كما أنه كان معروفاً بقوته ورباطة جأشه، وكان الكل يخاف مواجهته، وكان رجل ذو مواقف خالدة و عظيمة. تُوفّي رضي الله عنه بعد حياة حافلةٍ بالعطاء والبذل والتّضحية، إذ اغتاله أبو لؤلؤة المجوسي لعنه الله في أواخر سنة 23 للهجرة، ونُقل أن دفنه كان في أول المحرم سنة 24، وفي تفاصيل التأريخ خلاف.",
+      "remove": false
+    },
+    {
+      "file": "arbaeen-sharh.json",
+      "path": [
+        "items",
+        "31",
+        "rawi",
+        "0"
+      ],
+      "old": "هو أبو العباس سهل بن سعد بن مالك بن خالد بن ثعلبة بن حارثة بن عمرو بن الخزرج بن ساعد بن كعب بن الخزرج الأنصاري الساعدي‏. وهناك من قال إن كنيته هي \"أبا يحيى\"، ولد قبل الهجرة بخمس سنين. ويذكر أنه اسمه في الأصل كان \"حزنًا\" ولكن الرسول - ﷺ - قام بتغيير ذلك الاسم إلى اسم سهل؛ وذلك لأنّ الرسول - ﷺ - كان يحب الأسماء الطيبة الحسنة والإيجابية، وكان يغير كل الأسماء القبيحة أو التي تحتوي على شرك بالله تعالى، مثل عبد الشمس، وغيرها. لقد أمدّ الله في عمر الصحابي سهل بن سعد، وعاش طويلًا، حتى أنّه أدرك الحجاج في حياته، ويذكر أنّ الحجاج أرسل له ذات يوم، وسأله: لما لم تنصر أمير المؤمنين عثمان؟، فقال له سعد: فعلت، قال له: كذبت، وأمر بأن يختم على عنقه؛ إذلالًا منه له، حتى يبتعد عنه الناس ولا يسمعوا منه. يقول سهل بن سعد الساعدي: خرجت إلى بيت المقدس حتى أتيت دمشق، فوجدت أهله يعلقون الديباج والحجب، والنساء يلعبون في الدف، فقلت: ألأهل الشام عيد لا نعرفه؟ فوجد قومًا يتحدثون، فسألهم ألكم عيد لا نعرفه؟، فقالوا له: يا شيخ نراك غريبًا، فقال: فقال أنا سهل بن سعد، رأيت رسول الله - ﷺ -، وأحمل حديثًا، فقالوا: ما أعجب السماء لم لا تمطر دمًا، والأرض لم تخسف، فقال: ولم هذا؟، قالوا: هذا رأس الحسين يهدى من العراق.",
+      "new": "هو أبو العباس سهل بن سعد بن مالك بن خالد بن ثعلبة بن حارثة بن عمرو بن الخزرج بن ساعد بن كعب بن الخزرج الأنصاري الساعدي‏. وهناك من قال إن كنيته هي \"أبا يحيى\"، ولد قبل الهجرة بخمس سنين. ويذكر أنه اسمه في الأصل كان \"حزنًا\" ولكن الرسول - ﷺ - قام بتغيير ذلك الاسم إلى اسم سهل؛ وذلك لأنّ الرسول - ﷺ - كان يحب الأسماء الطيبة الحسنة والإيجابية، وكان يغير كل الأسماء القبيحة أو التي تحتوي على شرك بالله تعالى، مثل عبد الشمس، وغيرها. لقد أمدّ الله في عمر الصحابي سهل بن سعد، وعاش طويلًا، حتى أنّه أدرك الحجاج في حياته، ويذكر أنّ الحجاج أرسل له ذات يوم، وسأله: لما لم تنصر أمير المؤمنين عثمان؟، فقال له سهل: فعلت، قال له: كذبت، وأمر بأن يختم على عنقه؛ إذلالًا منه له، حتى يبتعد عنه الناس ولا يسمعوا منه. يقول سهل بن سعد الساعدي: خرجت إلى بيت المقدس حتى أتيت دمشق، فوجدت أهله يعلقون الديباج والحجب، والنساء يلعبون في الدف، فقلت: ألأهل الشام عيد لا نعرفه؟ فوجد قومًا يتحدثون، فسألهم ألكم عيد لا نعرفه؟، فقالوا له: يا شيخ نراك غريبًا، فقال: أنا سهل بن سعد، رأيت رسول الله - ﷺ -، وأحمل حديثًا، فقالوا: ما أعجب السماء لم لا تمطر دمًا، والأرض لم تخسف، فقال: ولم هذا؟، قالوا: هذا رأس الحسين يهدى من العراق.",
+      "remove": false
+    },
+    {
+      "file": "lang/content/am/sections/arbaeen.json",
+      "path": [
+        "items",
+        685
+      ],
+      "old": {
+        "id": "h:9ac2924f1146",
+        "kind": "text",
+        "ar": "هو أبو العباس سهل بن سعد بن مالك بن خالد بن ثعلبة بن حارثة بن عمرو بن الخزرج بن ساعد بن كعب بن الخزرج الأنصاري الساعدي‏. وهناك من قال إن كنيته هي \"أبا يحيى\"، ولد قبل الهجرة بخمس سنين. ويذكر أنه اسمه في الأصل كان \"حزنًا\" ولكن الرسول - ﷺ - قام بتغيير ذلك الاسم إلى اسم سهل؛ وذلك لأنّ الرسول - ﷺ - كان يحب الأسماء الطيبة الحسنة والإيجابية، وكان يغير كل الأسماء القبيحة أو التي تحتوي على شرك بالله تعالى، مثل عبد الشمس، وغيرها. لقد أمدّ الله في عمر الصحابي سهل بن سعد، وعاش طويلًا، حتى أنّه أدرك الحجاج في حياته، ويذكر أنّ الحجاج أرسل له ذات يوم، وسأله: لما لم تنصر أمير المؤمنين عثمان؟، فقال له سعد: فعلت، قال له: كذبت، وأمر بأن يختم على عنقه؛ إذلالًا منه له، حتى يبتعد عنه الناس ولا يسمعوا منه. يقول سهل بن سعد الساعدي: خرجت إلى بيت المقدس حتى أتيت دمشق، فوجدت أهله يعلقون الديباج والحجب، والنساء يلعبون في الدف، فقلت: ألأهل الشام عيد لا نعرفه؟ فوجد قومًا يتحدثون، فسألهم ألكم عيد لا نعرفه؟، فقالوا له: يا شيخ نراك غريبًا، فقال: فقال أنا سهل بن سعد، رأيت رسول الله - ﷺ -، وأحمل حديثًا، فقالوا: ما أعجب السماء لم لا تمطر دمًا، والأرض لم تخسف، فقال: ولم هذا؟، قالوا: هذا رأس الحسين يهدى من العراق.",
+        "tr": "እርሱ አቡ አልዐባስ ሰህል ኢብን ሰዕድ ኢብን ማሊክ ኢብን ኻሊድ ኢብን ሠዕለባ ኢብን ሓሪሣ ኢብን ዐምር ኢብን አልኸዝረጅ ኢብን ሳዒድ ኢብን ከዕብ ኢብን አልኸዝረጅ አልአንሷሪ አስሳዒዲ ነው። ኩንያው (የክብር መጠሪያው) አቡ የሕያ ነው ያሉም አሉ። ከሂጅራ (ከነቢዩ ፍልሰት) ከአምስት ዓመታት በፊት ተወለደ። ስሙ መጀመሪያ ሐዝን እንደነበር፣ መልእክተኛው ﷺ ግን ወደ ሰህል እንደለወጡት ይነገራል። ይህም መልእክተኛው ﷺ ጥሩ፣ መልካምና በጎ ስሞችን ይወዱ ስለነበር ነው። ሁሉንም መጥፎ ስሞችና እንደ ዐብዱሸምስ ያሉ በአላህ ላይ ሺርክ (ማጋራት) ያካተቱ ስሞችን ይቀይሩ ነበር። አላህ የሰሓቢውን (የነቢዩ ባልደረባውን) ሰህል ኢብን ሰዕድ ዕድሜ አረዘመ፤ አልሐጃጅን በሕይወቱ እስኪያገኝ ድረስ ረጅም ጊዜ ኖረ። አልሐጃጅ አንድ ቀን አስጠርቶ፦ የአማኞችን መሪ ዑሥማንን ለምን አልረዳህም? እንዳለው ይነገራል። ሰዕድ፦ ረድቻለሁ አለው። አንተ ዋሽተሃል አለው፣ ሰዎች እንዲርቁትና እንዳያዳምጡት ለማዋረድ በአንገቱ ላይ ማኅተም እንዲደረግ አዘዘ። ሰህል ኢብን ሰዕድ አስሳዒዲ እንዲህ ይላል፦ ወደ በይት አልመቅዲስ ተነሥቼ ደማስቆ ደረስሁ። ሰዎቹ የሐር ጨርቆችንና መጋረጃዎችን ሲሰቅሉ፣ ሴቶችም ደፍ (ከበሮ) ሲመቱ አገኘሁ። የሻም ሰዎች የማናውቀው በዓል አላቸውን? አልሁ። እየተነጋገሩ ያሉ ሰዎችን አግኝቼ፦ እኛ የማናውቀው በዓል አላችሁን? ብዬ ጠየቅሁ። ሽማግሌ ሆይ፣ እንግዳ ትመስላለህ አሉት። እኔ ሰህል ኢብን ሰዕድ ነኝ፣ የአላህን መልእክተኛ ﷺ አይቻለሁ፣ ሐዲሥም አውቃለሁ አለ። ሰማይ እንዴት ደም አያዘንብም፣ ምድርስ ለምን አትሰምጥም፣ ይገርማል! አሉ። ይህ ለምንድን ነው? አለ። ይህ ከዒራቅ በስጦታ የሚላከው የአልሑሰይን ራስ ነው አሉ።",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": "h:3ffe233f89ab",
+        "kind": "text",
+        "ar": "هو أبو العباس سهل بن سعد بن مالك بن خالد بن ثعلبة بن حارثة بن عمرو بن الخزرج بن ساعد بن كعب بن الخزرج الأنصاري الساعدي‏. وهناك من قال إن كنيته هي \"أبا يحيى\"، ولد قبل الهجرة بخمس سنين. ويذكر أنه اسمه في الأصل كان \"حزنًا\" ولكن الرسول - ﷺ - قام بتغيير ذلك الاسم إلى اسم سهل؛ وذلك لأنّ الرسول - ﷺ - كان يحب الأسماء الطيبة الحسنة والإيجابية، وكان يغير كل الأسماء القبيحة أو التي تحتوي على شرك بالله تعالى، مثل عبد الشمس، وغيرها. لقد أمدّ الله في عمر الصحابي سهل بن سعد، وعاش طويلًا، حتى أنّه أدرك الحجاج في حياته، ويذكر أنّ الحجاج أرسل له ذات يوم، وسأله: لما لم تنصر أمير المؤمنين عثمان؟، فقال له سهل: فعلت، قال له: كذبت، وأمر بأن يختم على عنقه؛ إذلالًا منه له، حتى يبتعد عنه الناس ولا يسمعوا منه. يقول سهل بن سعد الساعدي: خرجت إلى بيت المقدس حتى أتيت دمشق، فوجدت أهله يعلقون الديباج والحجب، والنساء يلعبون في الدف، فقلت: ألأهل الشام عيد لا نعرفه؟ فوجد قومًا يتحدثون، فسألهم ألكم عيد لا نعرفه؟، فقالوا له: يا شيخ نراك غريبًا، فقال: أنا سهل بن سعد، رأيت رسول الله - ﷺ -، وأحمل حديثًا، فقالوا: ما أعجب السماء لم لا تمطر دمًا، والأرض لم تخسف، فقال: ولم هذا؟، قالوا: هذا رأس الحسين يهدى من العراق.",
+        "tr": "እርሱ አቡ አልዐባስ ሰህል ኢብን ሰዕድ ኢብን ማሊክ ኢብን ኻሊድ ኢብን ሠዕለባ ኢብን ሓሪሣ ኢብን ዐምር ኢብን አልኸዝረጅ ኢብን ሳዒድ ኢብን ከዕብ ኢብን አልኸዝረጅ አልአንሷሪ አስሳዒዲ ነው። ኩንያው (የክብር መጠሪያው) አቡ የሕያ ነው ያሉም አሉ። ከሂጅራ (ከነቢዩ ፍልሰት) ከአምስት ዓመታት በፊት ተወለደ። ስሙ መጀመሪያ ሐዝን እንደነበር፣ መልእክተኛው ﷺ ግን ወደ ሰህል እንደለወጡት ይነገራል። ይህም መልእክተኛው ﷺ ጥሩ፣ መልካምና በጎ ስሞችን ይወዱ ስለነበር ነው። ሁሉንም መጥፎ ስሞችና እንደ ዐብዱሸምስ ያሉ በአላህ ላይ ሺርክ (ማጋራት) ያካተቱ ስሞችን ይቀይሩ ነበር። አላህ የሰሓቢውን (የነቢዩ ባልደረባውን) ሰህል ኢብን ሰዕድ ዕድሜ አረዘመ፤ አልሐጃጅን በሕይወቱ እስኪያገኝ ድረስ ረጅም ጊዜ ኖረ። አልሐጃጅ አንድ ቀን አስጠርቶ፦ የአማኞችን መሪ ዑሥማንን ለምን አልረዳህም? እንዳለው ይነገራል። ሰህል፦ ረድቻለሁ አለው። አንተ ዋሽተሃል አለው፣ ሰዎች እንዲርቁትና እንዳያዳምጡት ለማዋረድ በአንገቱ ላይ ማኅተም እንዲደረግ አዘዘ። ሰህል ኢብን ሰዕድ አስሳዒዲ እንዲህ ይላል፦ ወደ በይት አልመቅዲስ ተነሥቼ ደማስቆ ደረስሁ። ሰዎቹ የሐር ጨርቆችንና መጋረጃዎችን ሲሰቅሉ፣ ሴቶችም ደፍ (ከበሮ) ሲመቱ አገኘሁ። የሻም ሰዎች የማናውቀው በዓል አላቸውን? አልሁ። እየተነጋገሩ ያሉ ሰዎችን አግኝቼ፦ እኛ የማናውቀው በዓል አላችሁን? ብዬ ጠየቅሁ። ሽማግሌ ሆይ፣ እንግዳ ትመስላለህ አሉት። እኔ ሰህል ኢብን ሰዕድ ነኝ፣ የአላህን መልእክተኛ ﷺ አይቻለሁ፣ ሐዲሥም አውቃለሁ አለ። ሰማይ እንዴት ደም አያዘንብም፣ ምድርስ ለምን አትሰምጥም፣ ይገርማል! አሉ። ይህ ለምንድን ነው? አለ። ይህ ከዒራቅ በስጦታ የሚላከው የአልሑሰይን ራስ ነው አሉ።",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": false
+    },
+    {
+      "file": "lang/content/en/sections/arbaeen.json",
+      "path": [
+        "items",
+        686
+      ],
+      "old": {
+        "id": "h:9ac2924f1146",
+        "kind": "text",
+        "ar": "هو أبو العباس سهل بن سعد بن مالك بن خالد بن ثعلبة بن حارثة بن عمرو بن الخزرج بن ساعد بن كعب بن الخزرج الأنصاري الساعدي‏. وهناك من قال إن كنيته هي \"أبا يحيى\"، ولد قبل الهجرة بخمس سنين. ويذكر أنه اسمه في الأصل كان \"حزنًا\" ولكن الرسول - ﷺ - قام بتغيير ذلك الاسم إلى اسم سهل؛ وذلك لأنّ الرسول - ﷺ - كان يحب الأسماء الطيبة الحسنة والإيجابية، وكان يغير كل الأسماء القبيحة أو التي تحتوي على شرك بالله تعالى، مثل عبد الشمس، وغيرها. لقد أمدّ الله في عمر الصحابي سهل بن سعد، وعاش طويلًا، حتى أنّه أدرك الحجاج في حياته، ويذكر أنّ الحجاج أرسل له ذات يوم، وسأله: لما لم تنصر أمير المؤمنين عثمان؟، فقال له سعد: فعلت، قال له: كذبت، وأمر بأن يختم على عنقه؛ إذلالًا منه له، حتى يبتعد عنه الناس ولا يسمعوا منه. يقول سهل بن سعد الساعدي: خرجت إلى بيت المقدس حتى أتيت دمشق، فوجدت أهله يعلقون الديباج والحجب، والنساء يلعبون في الدف، فقلت: ألأهل الشام عيد لا نعرفه؟ فوجد قومًا يتحدثون، فسألهم ألكم عيد لا نعرفه؟، فقالوا له: يا شيخ نراك غريبًا، فقال: فقال أنا سهل بن سعد، رأيت رسول الله - ﷺ -، وأحمل حديثًا، فقالوا: ما أعجب السماء لم لا تمطر دمًا، والأرض لم تخسف، فقال: ولم هذا؟، قالوا: هذا رأس الحسين يهدى من العراق.",
+        "tr": "He was Abu al-Abbas Sahl ibn Sad ibn Malik ibn Khalid ibn Thalabah ibn Harithah ibn Amr ibn al-Khazraj ibn Said ibn Kab ibn al-Khazraj al-Ansari al-Saidi. Some have said his kunyah (name beginning with Abu) was Abu Yahya. He was born five years before the Hijrah. It is reported that his original name was Hazn, but the Messenger, peace and blessings be upon him, changed it to Sahl because he liked good, pleasant, positive names and changed ugly names or those involving shirk (associating partners with Allah), such as Abd al-Shams and others. Allah extended Sahl ibn Sad's life, and he lived long enough to encounter al-Hajjaj. It is reported that al-Hajjaj once summoned him and asked: 'Why did you not support the Commander of the Believers, Uthman?' Sad told him: 'I did.' He replied: 'You lie,' and ordered that a seal be put on his neck to humiliate him, so people would avoid him and not listen to him. Sahl ibn Sad al-Saidi said: 'I set out for Bayt al-Maqdis and reached Damascus. I found its people hanging silk fabrics and curtains, and women playing frame drums. I asked: Do the people of al-Sham have a festival we do not know? I found some people talking and asked them: Do you have a festival we do not know? They said: Old man, you seem a stranger. I said: I am Sahl ibn Sad. I saw the Messenger of Allah, peace and blessings be upon him, and transmit hadith. They said: How astonishing that the sky does not rain blood and the earth does not swallow its people! I asked: Why is that? They said: This is al-Husayn's head, being brought as a gift from Iraq.'",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": "h:3ffe233f89ab",
+        "kind": "text",
+        "ar": "هو أبو العباس سهل بن سعد بن مالك بن خالد بن ثعلبة بن حارثة بن عمرو بن الخزرج بن ساعد بن كعب بن الخزرج الأنصاري الساعدي‏. وهناك من قال إن كنيته هي \"أبا يحيى\"، ولد قبل الهجرة بخمس سنين. ويذكر أنه اسمه في الأصل كان \"حزنًا\" ولكن الرسول - ﷺ - قام بتغيير ذلك الاسم إلى اسم سهل؛ وذلك لأنّ الرسول - ﷺ - كان يحب الأسماء الطيبة الحسنة والإيجابية، وكان يغير كل الأسماء القبيحة أو التي تحتوي على شرك بالله تعالى، مثل عبد الشمس، وغيرها. لقد أمدّ الله في عمر الصحابي سهل بن سعد، وعاش طويلًا، حتى أنّه أدرك الحجاج في حياته، ويذكر أنّ الحجاج أرسل له ذات يوم، وسأله: لما لم تنصر أمير المؤمنين عثمان؟، فقال له سهل: فعلت، قال له: كذبت، وأمر بأن يختم على عنقه؛ إذلالًا منه له، حتى يبتعد عنه الناس ولا يسمعوا منه. يقول سهل بن سعد الساعدي: خرجت إلى بيت المقدس حتى أتيت دمشق، فوجدت أهله يعلقون الديباج والحجب، والنساء يلعبون في الدف، فقلت: ألأهل الشام عيد لا نعرفه؟ فوجد قومًا يتحدثون، فسألهم ألكم عيد لا نعرفه؟، فقالوا له: يا شيخ نراك غريبًا، فقال: أنا سهل بن سعد، رأيت رسول الله - ﷺ -، وأحمل حديثًا، فقالوا: ما أعجب السماء لم لا تمطر دمًا، والأرض لم تخسف، فقال: ولم هذا؟، قالوا: هذا رأس الحسين يهدى من العراق.",
+        "tr": "He was Abu al-Abbas Sahl ibn Sad ibn Malik ibn Khalid ibn Thalabah ibn Harithah ibn Amr ibn al-Khazraj ibn Said ibn Kab ibn al-Khazraj al-Ansari al-Saidi. Some have said his kunyah (name beginning with Abu) was Abu Yahya. He was born five years before the Hijrah. It is reported that his original name was Hazn, but the Messenger, peace and blessings be upon him, changed it to Sahl because he liked good, pleasant, positive names and changed ugly names or those involving shirk (associating partners with Allah), such as Abd al-Shams and others. Allah extended Sahl ibn Sad's life, and he lived long enough to encounter al-Hajjaj. It is reported that al-Hajjaj once summoned him and asked: 'Why did you not support the Commander of the Believers, Uthman?' Sahl told him: 'I did.' He replied: 'You lie,' and ordered that a seal be put on his neck to humiliate him, so people would avoid him and not listen to him. Sahl ibn Sad al-Saidi said: 'I set out for Bayt al-Maqdis and reached Damascus. I found its people hanging silk fabrics and curtains, and women playing frame drums. I asked: Do the people of al-Sham have a festival we do not know? I found some people talking and asked them: Do you have a festival we do not know? They said: Old man, you seem a stranger. I said: I am Sahl ibn Sad. I saw the Messenger of Allah, peace and blessings be upon him, and transmit hadith. They said: How astonishing that the sky does not rain blood and the earth does not swallow its people! I asked: Why is that? They said: This is al-Husayn's head, being brought as a gift from Iraq.'",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": false
+    },
+    {
+      "file": "lang/content/fa/sections/arbaeen.json",
+      "path": [
+        "items",
+        682
+      ],
+      "old": {
+        "id": "h:9ac2924f1146",
+        "kind": "text",
+        "ar": "هو أبو العباس سهل بن سعد بن مالك بن خالد بن ثعلبة بن حارثة بن عمرو بن الخزرج بن ساعد بن كعب بن الخزرج الأنصاري الساعدي‏. وهناك من قال إن كنيته هي \"أبا يحيى\"، ولد قبل الهجرة بخمس سنين. ويذكر أنه اسمه في الأصل كان \"حزنًا\" ولكن الرسول - ﷺ - قام بتغيير ذلك الاسم إلى اسم سهل؛ وذلك لأنّ الرسول - ﷺ - كان يحب الأسماء الطيبة الحسنة والإيجابية، وكان يغير كل الأسماء القبيحة أو التي تحتوي على شرك بالله تعالى، مثل عبد الشمس، وغيرها. لقد أمدّ الله في عمر الصحابي سهل بن سعد، وعاش طويلًا، حتى أنّه أدرك الحجاج في حياته، ويذكر أنّ الحجاج أرسل له ذات يوم، وسأله: لما لم تنصر أمير المؤمنين عثمان؟، فقال له سعد: فعلت، قال له: كذبت، وأمر بأن يختم على عنقه؛ إذلالًا منه له، حتى يبتعد عنه الناس ولا يسمعوا منه. يقول سهل بن سعد الساعدي: خرجت إلى بيت المقدس حتى أتيت دمشق، فوجدت أهله يعلقون الديباج والحجب، والنساء يلعبون في الدف، فقلت: ألأهل الشام عيد لا نعرفه؟ فوجد قومًا يتحدثون، فسألهم ألكم عيد لا نعرفه؟، فقالوا له: يا شيخ نراك غريبًا، فقال: فقال أنا سهل بن سعد، رأيت رسول الله - ﷺ -، وأحمل حديثًا، فقالوا: ما أعجب السماء لم لا تمطر دمًا، والأرض لم تخسف، فقال: ولم هذا؟، قالوا: هذا رأس الحسين يهدى من العراق.",
+        "tr": "او ابوالعباس سهل بن سعد بن مالک بن خالد بن ثعلبه بن حارثه بن عمرو بن خزرج بن ساعد بن کعب بن خزرج انصاری ساعدی است. برخی کنیه‌اش را ابویحیی گفته‌اند. پنج سال پیش از هجرت متولد شد. نقل شده نامش در اصل حزن بود و رسول خدا، درود و سلام خدا بر او باد، آن را به سهل تغییر داد؛ زیرا نام‌های پاک، نیک و مثبت را دوست داشت و نام‌های زشت یا دارای شرک (شریک قرار دادن برای خدا)، مانند عبدالشمس، را تغییر می‌داد. خدا عمر سهل بن سعد را طولانی کرد و حجاج را دید. نقل شده حجاج روزی او را احضار کرد و پرسید: چرا امیرالمؤمنین عثمان را یاری نکردی؟ سعد گفت: یاری کردم. گفت: دروغ گفتی؛ و برای خوار کردنش فرمان داد گردنش را مهر کنند تا مردم از او دور شوند و از او نشنوند. سهل بن سعد ساعدی می‌گوید: به سوی بیت‌المقدس بیرون رفتم و به دمشق رسیدم. دیدم مردم دیبا و پرده آویخته‌اند و زنان دف می‌زنند. گفتم: آیا شامیان عیدی دارند که نمی‌شناسیم؟ گروهی را دید که گفت‌وگو می‌کردند؛ پرسید عیدی دارید که نمی‌شناسیم؟ گفتند: ای پیر، تو را غریبه می‌بینیم. گفت: من سهل بن سعدم، رسول خدا را دیده‌ام و حدیث نقل می‌کنم. گفتند: شگفتا، چرا آسمان خون نمی‌بارد و زمین فرو نمی‌رود؟ پرسید: چرا؟ گفتند: این سر حسین است که از عراق به هدیه آورده می‌شود.",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": "h:3ffe233f89ab",
+        "kind": "text",
+        "ar": "هو أبو العباس سهل بن سعد بن مالك بن خالد بن ثعلبة بن حارثة بن عمرو بن الخزرج بن ساعد بن كعب بن الخزرج الأنصاري الساعدي‏. وهناك من قال إن كنيته هي \"أبا يحيى\"، ولد قبل الهجرة بخمس سنين. ويذكر أنه اسمه في الأصل كان \"حزنًا\" ولكن الرسول - ﷺ - قام بتغيير ذلك الاسم إلى اسم سهل؛ وذلك لأنّ الرسول - ﷺ - كان يحب الأسماء الطيبة الحسنة والإيجابية، وكان يغير كل الأسماء القبيحة أو التي تحتوي على شرك بالله تعالى، مثل عبد الشمس، وغيرها. لقد أمدّ الله في عمر الصحابي سهل بن سعد، وعاش طويلًا، حتى أنّه أدرك الحجاج في حياته، ويذكر أنّ الحجاج أرسل له ذات يوم، وسأله: لما لم تنصر أمير المؤمنين عثمان؟، فقال له سهل: فعلت، قال له: كذبت، وأمر بأن يختم على عنقه؛ إذلالًا منه له، حتى يبتعد عنه الناس ولا يسمعوا منه. يقول سهل بن سعد الساعدي: خرجت إلى بيت المقدس حتى أتيت دمشق، فوجدت أهله يعلقون الديباج والحجب، والنساء يلعبون في الدف، فقلت: ألأهل الشام عيد لا نعرفه؟ فوجد قومًا يتحدثون، فسألهم ألكم عيد لا نعرفه؟، فقالوا له: يا شيخ نراك غريبًا، فقال: أنا سهل بن سعد، رأيت رسول الله - ﷺ -، وأحمل حديثًا، فقالوا: ما أعجب السماء لم لا تمطر دمًا، والأرض لم تخسف، فقال: ولم هذا؟، قالوا: هذا رأس الحسين يهدى من العراق.",
+        "tr": "او ابوالعباس سهل بن سعد بن مالک بن خالد بن ثعلبه بن حارثه بن عمرو بن خزرج بن ساعد بن کعب بن خزرج انصاری ساعدی است. برخی کنیه‌اش را ابویحیی گفته‌اند. پنج سال پیش از هجرت متولد شد. نقل شده نامش در اصل حزن بود و رسول خدا، درود و سلام خدا بر او باد، آن را به سهل تغییر داد؛ زیرا نام‌های پاک، نیک و مثبت را دوست داشت و نام‌های زشت یا دارای شرک (شریک قرار دادن برای خدا)، مانند عبدالشمس، را تغییر می‌داد. خدا عمر سهل بن سعد را طولانی کرد و حجاج را دید. نقل شده حجاج روزی او را احضار کرد و پرسید: چرا امیرالمؤمنین عثمان را یاری نکردی؟ سهل گفت: یاری کردم. گفت: دروغ گفتی؛ و برای خوار کردنش فرمان داد گردنش را مهر کنند تا مردم از او دور شوند و از او نشنوند. سهل بن سعد ساعدی می‌گوید: به سوی بیت‌المقدس بیرون رفتم و به دمشق رسیدم. دیدم مردم دیبا و پرده آویخته‌اند و زنان دف می‌زنند. گفتم: آیا شامیان عیدی دارند که نمی‌شناسیم؟ گروهی را دید که گفت‌وگو می‌کردند؛ پرسید عیدی دارید که نمی‌شناسیم؟ گفتند: ای پیر، تو را غریبه می‌بینیم. گفت: من سهل بن سعدم، رسول خدا را دیده‌ام و حدیث نقل می‌کنم. گفتند: شگفتا، چرا آسمان خون نمی‌بارد و زمین فرو نمی‌رود؟ پرسید: چرا؟ گفتند: این سر حسین است که از عراق به هدیه آورده می‌شود.",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": false
+    },
+    {
+      "file": "lang/content/om/sections/arbaeen.json",
+      "path": [
+        "items",
+        705
+      ],
+      "old": {
+        "id": "h:9ac2924f1146",
+        "kind": "text",
+        "ar": "هو أبو العباس سهل بن سعد بن مالك بن خالد بن ثعلبة بن حارثة بن عمرو بن الخزرج بن ساعد بن كعب بن الخزرج الأنصاري الساعدي‏. وهناك من قال إن كنيته هي \"أبا يحيى\"، ولد قبل الهجرة بخمس سنين. ويذكر أنه اسمه في الأصل كان \"حزنًا\" ولكن الرسول - ﷺ - قام بتغيير ذلك الاسم إلى اسم سهل؛ وذلك لأنّ الرسول - ﷺ - كان يحب الأسماء الطيبة الحسنة والإيجابية، وكان يغير كل الأسماء القبيحة أو التي تحتوي على شرك بالله تعالى، مثل عبد الشمس، وغيرها. لقد أمدّ الله في عمر الصحابي سهل بن سعد، وعاش طويلًا، حتى أنّه أدرك الحجاج في حياته، ويذكر أنّ الحجاج أرسل له ذات يوم، وسأله: لما لم تنصر أمير المؤمنين عثمان؟، فقال له سعد: فعلت، قال له: كذبت، وأمر بأن يختم على عنقه؛ إذلالًا منه له، حتى يبتعد عنه الناس ولا يسمعوا منه. يقول سهل بن سعد الساعدي: خرجت إلى بيت المقدس حتى أتيت دمشق، فوجدت أهله يعلقون الديباج والحجب، والنساء يلعبون في الدف، فقلت: ألأهل الشام عيد لا نعرفه؟ فوجد قومًا يتحدثون، فسألهم ألكم عيد لا نعرفه؟، فقالوا له: يا شيخ نراك غريبًا، فقال: فقال أنا سهل بن سعد، رأيت رسول الله - ﷺ -، وأحمل حديثًا، فقالوا: ما أعجب السماء لم لا تمطر دمًا، والأرض لم تخسف، فقال: ولم هذا؟، قالوا: هذا رأس الحسين يهدى من العراق.",
+        "translit": "",
+        "tr": "Inni Abuu Al-Abbaas Sahl ibn Sa'd ibn Maalik ibn Khaalid ibn Tha'labah ibn Haarithah ibn Amr ibn Al-Khazraj ibn Saa'id ibn Ka'b ibn Al-Khazraj Al-Ansaarii As-Saa'idii dha. Kunyaan (maqaan Abuu jedhuun jalqabu) isaa Abuu Yahyaa dha warri jedhanis jiru. Hijraa waggaa shan dura dhalate. Maqaan isaa jalqabatti Hazn ture; Ergamaan Rabbii garuu Sahl jedhanii jijjiiran jedhamee himama. Ergamaan Rabbii maqaa gaarii, bareedaa fi abdii kennu jaallatu; maqaa fokkuu yookiin shirk (Rabbitti qindeessuu) qabu, akka Abd Ash-Shams fi kan biraa, jijjiiru turan. Rabbiin umrii sahaabaa (hiriyaa Nabiyyii) Sahl ibn Sa'd dheereesse. Dheeraa jiraatee Al-Hajjaaj illee arge. Al-Hajjaaj guyyaa tokko isa waamee: Amiir al-mu'uminiin (bulchaa warra amananii) Uthmaan maaliif hin tumsine? jedhee isa gaafate jedhama. Sa'd immoo: Godheera, jedheen. Inni: Sobde, jedhee, isa salphisuuf akka morma isaa irratti chaappaan kaa'amu ajaje; namoonni akka isa irraa fagaataniifi isa irraa hin dhageenyeef. Sahl ibn Sa'd As-Saa'idiin akkana jedha: Gara Bayt Al-Maqdis ba'ee Dimaashq ga'e. Jiraattonni isaa harrii miidhagaa fi golgaawwan fannisaa, dubartoonnis duff (dibbee) taphachaa jiran arge. Warra Shaamiif ayyaana nuti hin beeknetu jiraa? jedhe. Namoota haasa'an argatee: Ayyaana nuti hin beekne qabduu? jedhee gaafate. Isaanis: Yaa jaarsa, nama ormaa si argina, jedhaniin. Innis: Ani Sahl ibn Sa'd; Ergamaa Rabbii argeera; hadiisas nan baadha, jedhe. Isaanis: Samii maaliif dhiiga hin roobsine; dachiinis maaliif hin liqimfamne, dinqiidha! jedhan. Innis: Kun maaliif? jedhe. Isaanis: Mataa Al-Husayn kan Iraaq irraa kennaa ta'ee fidamaa jiru kana, jedhan.",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        },
+        "source_paths": [
+          {
+            "file": "arbaeen-sharh.json",
+            "pointer": "/items/31/rawi/0"
+          }
+        ],
+        "reopen_batch": "reopen-arbaeen-022.json"
+      },
+      "new": {
+        "id": "h:3ffe233f89ab",
+        "kind": "text",
+        "ar": "هو أبو العباس سهل بن سعد بن مالك بن خالد بن ثعلبة بن حارثة بن عمرو بن الخزرج بن ساعد بن كعب بن الخزرج الأنصاري الساعدي‏. وهناك من قال إن كنيته هي \"أبا يحيى\"، ولد قبل الهجرة بخمس سنين. ويذكر أنه اسمه في الأصل كان \"حزنًا\" ولكن الرسول - ﷺ - قام بتغيير ذلك الاسم إلى اسم سهل؛ وذلك لأنّ الرسول - ﷺ - كان يحب الأسماء الطيبة الحسنة والإيجابية، وكان يغير كل الأسماء القبيحة أو التي تحتوي على شرك بالله تعالى، مثل عبد الشمس، وغيرها. لقد أمدّ الله في عمر الصحابي سهل بن سعد، وعاش طويلًا، حتى أنّه أدرك الحجاج في حياته، ويذكر أنّ الحجاج أرسل له ذات يوم، وسأله: لما لم تنصر أمير المؤمنين عثمان؟، فقال له سهل: فعلت، قال له: كذبت، وأمر بأن يختم على عنقه؛ إذلالًا منه له، حتى يبتعد عنه الناس ولا يسمعوا منه. يقول سهل بن سعد الساعدي: خرجت إلى بيت المقدس حتى أتيت دمشق، فوجدت أهله يعلقون الديباج والحجب، والنساء يلعبون في الدف، فقلت: ألأهل الشام عيد لا نعرفه؟ فوجد قومًا يتحدثون، فسألهم ألكم عيد لا نعرفه؟، فقالوا له: يا شيخ نراك غريبًا، فقال: أنا سهل بن سعد، رأيت رسول الله - ﷺ -، وأحمل حديثًا، فقالوا: ما أعجب السماء لم لا تمطر دمًا، والأرض لم تخسف، فقال: ولم هذا؟، قالوا: هذا رأس الحسين يهدى من العراق.",
+        "translit": "",
+        "tr": "Inni Abuu Al-Abbaas Sahl ibn Sa'd ibn Maalik ibn Khaalid ibn Tha'labah ibn Haarithah ibn Amr ibn Al-Khazraj ibn Saa'id ibn Ka'b ibn Al-Khazraj Al-Ansaarii As-Saa'idii dha. Kunyaan (maqaan Abuu jedhuun jalqabu) isaa Abuu Yahyaa dha warri jedhanis jiru. Hijraa waggaa shan dura dhalate. Maqaan isaa jalqabatti Hazn ture; Ergamaan Rabbii garuu Sahl jedhanii jijjiiran jedhamee himama. Ergamaan Rabbii maqaa gaarii, bareedaa fi abdii kennu jaallatu; maqaa fokkuu yookiin shirk (Rabbitti qindeessuu) qabu, akka Abd Ash-Shams fi kan biraa, jijjiiru turan. Rabbiin umrii sahaabaa (hiriyaa Nabiyyii) Sahl ibn Sa'd dheereesse. Dheeraa jiraatee Al-Hajjaaj illee arge. Al-Hajjaaj guyyaa tokko isa waamee: Amiir al-mu'uminiin (bulchaa warra amananii) Uthmaan maaliif hin tumsine? jedhee isa gaafate jedhama. Sahl immoo: Godheera, jedheen. Inni: Sobde, jedhee, isa salphisuuf akka morma isaa irratti chaappaan kaa'amu ajaje; namoonni akka isa irraa fagaataniifi isa irraa hin dhageenyeef. Sahl ibn Sa'd As-Saa'idiin akkana jedha: Gara Bayt Al-Maqdis ba'ee Dimaashq ga'e. Jiraattonni isaa harrii miidhagaa fi golgaawwan fannisaa, dubartoonnis duff (dibbee) taphachaa jiran arge. Warra Shaamiif ayyaana nuti hin beeknetu jiraa? jedhe. Namoota haasa'an argatee: Ayyaana nuti hin beekne qabduu? jedhee gaafate. Isaanis: Yaa jaarsa, nama ormaa si argina, jedhaniin. Innis: Ani Sahl ibn Sa'd; Ergamaa Rabbii argeera; hadiisas nan baadha, jedhe. Isaanis: Samii maaliif dhiiga hin roobsine; dachiinis maaliif hin liqimfamne, dinqiidha! jedhan. Innis: Kun maaliif? jedhe. Isaanis: Mataa Al-Husayn kan Iraaq irraa kennaa ta'ee fidamaa jiru kana, jedhan.",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        },
+        "source_paths": [
+          {
+            "file": "arbaeen-sharh.json",
+            "pointer": "/items/31/rawi/0"
+          }
+        ],
+        "reopen_batch": "reopen-arbaeen-022.json"
+      },
+      "remove": false
+    },
+    {
+      "file": "dima/dima-v1.json",
+      "path": [
+        "lisan",
+        "11",
+        "fadl"
+      ],
+      "old": "نْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+      "new": "إِنْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+      "remove": false
+    },
+    {
+      "file": "lang/content/am/sections/dima.json",
+      "path": [
+        "items",
+        128
+      ],
+      "old": {
+        "id": "h:99e5b6f32eaf",
+        "kind": "hadith",
+        "ar": "نْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "tr": "የአላህ መልእክተኛ፣ የአላህ ሰላምና በረከት በእርሳቸው ላይ ይሁንና፣ በአንድ መቀመጫ፦ ጌታዬ ሆይ፣ ይቅር በለኝ፣ ተውባዬንም ተቀበል፤ አንተ በእርግጥ አትተዋብ፣ አርረሒም ነህ ሲሉ መቶ ጊዜ እንቆጥርላቸው ነበር።",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": "h:31cd8643827b",
+        "kind": "hadith",
+        "ar": "إِنْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "tr": "የአላህ መልእክተኛ፣ የአላህ ሰላምና በረከት በእርሳቸው ላይ ይሁንና፣ በአንድ መቀመጫ፦ ጌታዬ ሆይ፣ ይቅር በለኝ፣ ተውባዬንም ተቀበል፤ አንተ በእርግጥ አትተዋብ፣ አርረሒም ነህ ሲሉ መቶ ጊዜ እንቆጥርላቸው ነበር።",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": false
+    },
+    {
+      "file": "lang/content/de/sections/dima.json",
+      "path": [
+        "items",
+        31
+      ],
+      "old": {
+        "id": "h:99e5b6f32eaf",
+        "kind": "hadith",
+        "ar": "نْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "tr": "Wir zählten, dass der Gesandte Allahs, Allahs Segen und Frieden auf ihm, während einer Zusammenkunft hundertmal sagte: „Mein Herr, vergib mir und nimm meine Reue an. Du bist der Reue-Annehmende, der Barmherzige.“",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": "h:31cd8643827b",
+        "kind": "hadith",
+        "ar": "إِنْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "tr": "Wir zählten, dass der Gesandte Allahs, Allahs Segen und Frieden auf ihm, während einer Zusammenkunft hundertmal sagte: „Mein Herr, vergib mir und nimm meine Reue an. Du bist der Reue-Annehmende, der Barmherzige.“",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": false
+    },
+    {
+      "file": "lang/content/dima-inventory-v1.json",
+      "path": [
+        "items",
+        31
+      ],
+      "old": {
+        "id": "h:99e5b6f32eaf",
+        "kind": "hadith",
+        "ar": "نْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "index": 31
+      },
+      "new": {
+        "id": "h:31cd8643827b",
+        "kind": "hadith",
+        "ar": "إِنْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "index": 31
+      },
+      "remove": false
+    },
+    {
+      "file": "lang/content/en/sections/dima.json",
+      "path": [
+        "items",
+        31
+      ],
+      "old": {
+        "id": "h:99e5b6f32eaf",
+        "kind": "hadith",
+        "ar": "نْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "tr": "In a single gathering, we would count Allah's Messenger, peace and blessings be upon him, saying one hundred times: 'My Lord, forgive me and accept my repentance. You alone are At-Tawwab (the One who accepts repentance), Ar-Rahim (the Especially Merciful).'",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": "h:31cd8643827b",
+        "kind": "hadith",
+        "ar": "إِنْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "tr": "In a single gathering, we would count Allah's Messenger, peace and blessings be upon him, saying one hundred times: 'My Lord, forgive me and accept my repentance. You alone are At-Tawwab (the One who accepts repentance), Ar-Rahim (the Especially Merciful).'",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": false
+    },
+    {
+      "file": "lang/content/fa/sections/dima.json",
+      "path": [
+        "items",
+        31
+      ],
+      "old": {
+        "id": "h:99e5b6f32eaf",
+        "kind": "hadith",
+        "ar": "نْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "tr": "ما در یک مجلس برای رسول الله صلی الله علیه وسلم صد بار می‌شمردیم که می‌گفت: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» [پروردگارا، مرا بیامرز و توبه‌ام را بپذیر؛ تو همان التّواب (بسیار توبه‌پذیر) و الرّحیم (مهربان) هستی.]",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": "h:31cd8643827b",
+        "kind": "hadith",
+        "ar": "إِنْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "tr": "ما در یک مجلس برای رسول الله صلی الله علیه وسلم صد بار می‌شمردیم که می‌گفت: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» [پروردگارا، مرا بیامرز و توبه‌ام را بپذیر؛ تو همان التّواب (بسیار توبه‌پذیر) و الرّحیم (مهربان) هستی.]",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": false
+    },
+    {
+      "file": "lang/content/fr/sections/dima.json",
+      "path": [
+        "items",
+        31
+      ],
+      "old": {
+        "id": "h:99e5b6f32eaf",
+        "kind": "hadith",
+        "ar": "نْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "tr": "Nous comptions que le Messager d’Allah, qu’Allah le couvre d’éloges et le préserve, disait cent fois au cours d’une réunion : « Seigneur, pardonne-moi et accepte mon repentir. Tu es Celui qui accueille le repentir, le Très Miséricordieux. »",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": "h:31cd8643827b",
+        "kind": "hadith",
+        "ar": "إِنْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "tr": "Nous comptions que le Messager d’Allah, qu’Allah le couvre d’éloges et le préserve, disait cent fois au cours d’une réunion : « Seigneur, pardonne-moi et accepte mon repentir. Tu es Celui qui accueille le repentir, le Très Miséricordieux. »",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": false
+    },
+    {
+      "file": "lang/content/ha/sections/dima.json",
+      "path": [
+        "items",
+        31
+      ],
+      "old": {
+        "id": "h:99e5b6f32eaf",
+        "kind": "hadith",
+        "ar": "نْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "tr": "Mun kasance muna ƙirga Manzon Allah, tsira da amincin Allah su tabbata a gare shi, yana faɗa sau ɗari a zama ɗaya: “Ya Ubangijina, Ka gafarta mini, Ka karɓi tubata. Lallai Kai ne Mai karɓar tuba, Mai jin ƙai.”",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": "h:31cd8643827b",
+        "kind": "hadith",
+        "ar": "إِنْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "tr": "Mun kasance muna ƙirga Manzon Allah, tsira da amincin Allah su tabbata a gare shi, yana faɗa sau ɗari a zama ɗaya: “Ya Ubangijina, Ka gafarta mini, Ka karɓi tubata. Lallai Kai ne Mai karɓar tuba, Mai jin ƙai.”",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": false
+    },
+    {
+      "file": "lang/content/hi/sections/dima.json",
+      "path": [
+        "items",
+        31
+      ],
+      "old": {
+        "id": "h:99e5b6f32eaf",
+        "kind": "hadith",
+        "ar": "نْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "tr": "हम एक बैठक में अल्लाह के रसूल, उन पर अल्लाह की रहमत और सलाम हो, को सौ बार यह कहते गिनते थे: “मेरे पालनहार, मुझे क्षमा कर और मेरी तौबा स्वीकार कर। निश्चय ही तू बार-बार तौबा स्वीकार करने वाला, अत्यंत दयालु है।”",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": "h:31cd8643827b",
+        "kind": "hadith",
+        "ar": "إِنْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "tr": "हम एक बैठक में अल्लाह के रसूल, उन पर अल्लाह की रहमत और सलाम हो, को सौ बार यह कहते गिनते थे: “मेरे पालनहार, मुझे क्षमा कर और मेरी तौबा स्वीकार कर। निश्चय ही तू बार-बार तौबा स्वीकार करने वाला, अत्यंत दयालु है।”",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": false
+    },
+    {
+      "file": "lang/content/id/sections/dima.json",
+      "path": [
+        "items",
+        31
+      ],
+      "old": {
+        "id": "h:99e5b6f32eaf",
+        "kind": "hadith",
+        "ar": "نْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "tr": "Kami menghitung Rasulullah, semoga selawat dan salam Allah tercurah kepada beliau, mengucapkan dalam satu majelis: “Tuhanku, ampunilah aku dan terimalah tobatku. Sungguh, Engkaulah Yang Maha Penerima Tobat lagi Maha Penyayang,” sebanyak seratus kali.",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": "h:31cd8643827b",
+        "kind": "hadith",
+        "ar": "إِنْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "tr": "Kami menghitung Rasulullah, semoga selawat dan salam Allah tercurah kepada beliau, mengucapkan dalam satu majelis: “Tuhanku, ampunilah aku dan terimalah tobatku. Sungguh, Engkaulah Yang Maha Penerima Tobat lagi Maha Penyayang,” sebanyak seratus kali.",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": false
+    },
+    {
+      "file": "lang/content/om/sections/dima.json",
+      "path": [
+        "items",
+        31
+      ],
+      "old": {
+        "id": "h:99e5b6f32eaf",
+        "kind": "hadith",
+        "ar": "نْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "translit": "",
+        "tr": "Walgahii tokko keessatti Ergamaan Rabbii, Rabbiin rahmataa fi nageenya isaan irratti haa buusu, 'Gooftaa koo, naaf araarami; tawbah (cubbuu irraa deebi'uu) koos naaf qeebali. Dhugumaan Ati At-Tawwaab (Tawbah qeebalaa), Ar-Rahiim (Rahmata godhaa) dha' jechuu isaanii yeroo dhibba tokko lakkaa'aa turre.",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        },
+        "source_paths": [
+          {
+            "file": "dima/dima-v1.json",
+            "pointer": "/lisan/11/fadl"
+          }
+        ],
+        "reopen_batch": "reopen-dima-001.json"
+      },
+      "new": {
+        "id": "h:31cd8643827b",
+        "kind": "hadith",
+        "ar": "إِنْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "translit": "",
+        "tr": "Walgahii tokko keessatti Ergamaan Rabbii, Rabbiin rahmataa fi nageenya isaan irratti haa buusu, 'Gooftaa koo, naaf araarami; tawbah (cubbuu irraa deebi'uu) koos naaf qeebali. Dhugumaan Ati At-Tawwaab (Tawbah qeebalaa), Ar-Rahiim (Rahmata godhaa) dha' jechuu isaanii yeroo dhibba tokko lakkaa'aa turre.",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        },
+        "source_paths": [
+          {
+            "file": "dima/dima-v1.json",
+            "pointer": "/lisan/11/fadl"
+          }
+        ],
+        "reopen_batch": "reopen-dima-001.json"
+      },
+      "remove": false
+    },
+    {
+      "file": "lang/content/ps/sections/dima.json",
+      "path": [
+        "items",
+        31
+      ],
+      "old": {
+        "id": "h:99e5b6f32eaf",
+        "kind": "hadith",
+        "ar": "نْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "tr": "موږ به په یوه ناسته کې د رسول الله صلی الله علیه وسلم دا وینا سل ځله شمېرله: «زما ربه، ما وبښه او زما توبه قبوله کړه؛ بېشکه ته ډېر توبه قبلوونکی او مهربان یې».",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": "h:31cd8643827b",
+        "kind": "hadith",
+        "ar": "إِنْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "tr": "موږ به په یوه ناسته کې د رسول الله صلی الله علیه وسلم دا وینا سل ځله شمېرله: «زما ربه، ما وبښه او زما توبه قبوله کړه؛ بېشکه ته ډېر توبه قبلوونکی او مهربان یې».",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": false
+    },
+    {
+      "file": "lang/content/sw/sections/dima.json",
+      "path": [
+        "items",
+        31
+      ],
+      "old": {
+        "id": "h:99e5b6f32eaf",
+        "kind": "hadith",
+        "ar": "نْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "tr": "Tulikuwa tukimhesabia Mtume wa Allah, rehema na amani ziwe juu yake, akisema katika kikao kimoja mara mia moja: “Mola wangu, nisamehe na ukubali toba yangu. Hakika Wewe ndiye Mwenye kupokea toba, Mwenye kurehemu.”",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": "h:31cd8643827b",
+        "kind": "hadith",
+        "ar": "إِنْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "tr": "Tulikuwa tukimhesabia Mtume wa Allah, rehema na amani ziwe juu yake, akisema katika kikao kimoja mara mia moja: “Mola wangu, nisamehe na ukubali toba yangu. Hakika Wewe ndiye Mwenye kupokea toba, Mwenye kurehemu.”",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": false
+    },
+    {
+      "file": "lang/content/ur/sections/dima.json",
+      "path": [
+        "items",
+        31
+      ],
+      "old": {
+        "id": "h:99e5b6f32eaf",
+        "kind": "hadith",
+        "ar": "نْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "tr": "ہم ایک مجلس میں رسول اللہ صلی اللہ علیہ وسلم کو سو بار یہ کہتے شمار کرتے تھے: «میرے رب، مجھے بخش دے اور میری توبہ قبول فرما۔ بے شک تو ہی بہت توبہ قبول کرنے والا، نہایت رحم والا ہے»۔",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": "h:31cd8643827b",
+        "kind": "hadith",
+        "ar": "إِنْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "tr": "ہم ایک مجلس میں رسول اللہ صلی اللہ علیہ وسلم کو سو بار یہ کہتے شمار کرتے تھے: «میرے رب، مجھے بخش دے اور میری توبہ قبول فرما۔ بے شک تو ہی بہت توبہ قبول کرنے والا، نہایت رحم والا ہے»۔",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": false
+    },
+    {
+      "file": "lang/content/uz/sections/dima.json",
+      "path": [
+        "items",
+        31
+      ],
+      "old": {
+        "id": "h:99e5b6f32eaf",
+        "kind": "hadith",
+        "ar": "نْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "tr": "Расулуллоҳ соллаллоҳу алайҳи ва салламнинг бир мажлисда «Раббим, мени мағфират қилгин ва тавбамни қабул этгин. Албатта, Сен тавбаларни қабул қилувчи, раҳмли Зотсан» деб юз марта айтганларини санардик.",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": "h:31cd8643827b",
+        "kind": "hadith",
+        "ar": "إِنْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "tr": "Расулуллоҳ соллаллоҳу алайҳи ва салламнинг бир мажлисда «Раббим, мени мағфират қилгин ва тавбамни қабул этгин. Албатта, Сен тавбаларни қабул қилувчи, раҳмли Зотсан» деб юз марта айтганларини санардик.",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": false
+    },
+    {
+      "file": "lang/content/zh/sections/dima.json",
+      "path": [
+        "items",
+        31
+      ],
+      "old": {
+        "id": "h:99e5b6f32eaf",
+        "kind": "hadith",
+        "ar": "نْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "tr": "我们曾计算安拉的使者——愿安拉赐他福安——在一次聚会中说了一百遍：“我的主啊，求你饶恕我，接受我的忏悔。你确是至宥的，至慈的。”",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "new": {
+        "id": "h:31cd8643827b",
+        "kind": "hadith",
+        "ar": "إِنْ كُنَّا لَنَعُدُّ لِرَسُولِ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فِي الْمَجْلِسِ يَقُولُ: «رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ» ، مِائَةَ مَرَّةٍ",
+        "tr": "我们曾计算安拉的使者——愿安拉赐他福安——在一次聚会中说了一百遍：“我的主啊，求你饶恕我，接受我的忏悔。你确是至宥的，至慈的。”",
+        "translit": "",
+        "tag": "machine",
+        "src": {
+          "name": "machine",
+          "url": "",
+          "rights": "",
+          "date": ""
+        }
+      },
+      "remove": false
+    },
+    {
+      "file": "quest-data/kunuz-bank-3147.js",
+      "path": [
+        "qs",
+        10237,
+        7
+      ],
+      "old": "قواعد التجويد على رواية حفص عن عاصم، عبد العزيز القارئ، ص 16 — https://shamela.ws/book/11301/9",
+      "new": "متن الشاطبية = حرز الأماني ووجه التهاني في القراءات السبع، الشاطبي، أبو محمد، 1/93-94 (FC-000263:0064:002; 1173) ؛ إبراز المعاني من حرز الأماني، المقدسي، أبو شامة، 1/755 (FC-000276:0081:029)",
+      "remove": false
+    }
+  ]
+}

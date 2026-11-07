@@ -114,3 +114,25 @@ for(const [name,mutant,missing] of [
  ['hook anchor lost',source.replace('function useEzikIntroTour(', 'function lostIntroTour('),false]
 ]){assert.throws(()=>verify(mutant,missing),undefined,name+' must be killed');}
 console.log('PASS intro tour: '+JSON.stringify(result)+'; four original and added repair mutants killed');
+
+// U1: run the actual stylesheet cascade, including dark-theme overrides.
+(async function focusContrast(){
+ let chromium;
+ for(const p of [process.env.EZIK_PLAYWRIGHT,'playwright','C:/Users/passe/projects/ustaz-check88/check88/node_modules/playwright'].filter(Boolean)){try{chromium=require(p).chromium;break;}catch(_){}}
+ assert.ok(chromium,'tour focus proof requires Chromium');
+ let browser;try{browser=await chromium.launch({headless:true,channel:'msedge'});}catch(_){browser=await chromium.launch({headless:true});}
+ try{
+  const ctx=await browser.newContext({serviceWorkers:'block'});await ctx.route('**/*',r=>r.abort());const page=await ctx.newPage();
+  const styles=[...read('index.html').replace(/<!--[\s\S]*?-->/g,'').matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map(m=>m[0]).join('\n');
+  await page.setContent(styles+'<style>'+read('ez110/ez110.css')+'</style><div class="ez-tour"><section class="ez-tour-bubble"><div class="ez-tour-actions"><button>Previous</button><button>Next</button></div></section></div>');
+  function lum(rgb){const c=rgb.match(/[\d.]+/g).slice(0,3).map(x=>{const n=+x/255;return n<=.04045?n/12.92:((n+.055)/1.055)**2.4;});return .2126*c[0]+.7152*c[1]+.0722*c[2];}
+  const contrast=(a,b)=>(Math.max(lum(a),lum(b))+.05)/(Math.min(lum(a),lum(b))+.05);
+  for(const theme of ['light','dark'])for(const identity of ['', 'istana_33','qibla_13']){
+   await page.evaluate(({theme,identity})=>{document.documentElement.setAttribute('data-ez110','');document.documentElement.setAttribute('data-theme',theme);if(identity)document.documentElement.setAttribute('data-ezik-visual-theme',identity);else document.documentElement.removeAttribute('data-ezik-visual-theme');},{theme,identity});
+   await page.keyboard.press('Tab');
+   for(const button of await page.locator('button').all()){await button.focus();const s=await button.evaluate(el=>({ring:getComputedStyle(el).outlineColor,width:parseFloat(getComputedStyle(el).outlineWidth),background:getComputedStyle(el.closest('.ez-tour-bubble')).backgroundColor}));assert(s.width>=3&&contrast(s.ring,s.background)>=3,'tour focus below 3:1 '+JSON.stringify({theme,identity,s}));}
+  }
+  assert(contrast('rgb(157,187,255)','rgb(244,237,224)')<3,'original pale-blue regression is rejected');
+  console.log('PASS tour focus contrast >=3:1 in light/dark and both identities');await ctx.close();
+ }finally{await browser.close();}
+})().catch(e=>{console.error(e);process.exitCode=1;});

@@ -51,7 +51,7 @@ async function verify(code){let n=0;const f=fixture(code);const get=async p=>JSO
  const dates=fixture(code);for(const off of [-2,0,2]){dates.disk.set('ezik_hijri_offset_v1',String(off));const h=dates.read('hijriForCivilDay(2026,3,18,readHijriOffset())');assert.equal(h.offset,off);assert.equal(h.by,'islamic-umalqura');n++;}
  dates.scope.Intl={};assert.equal(dates.read('hijriForCivilDay(2026,3,18,0).by'),'tabular-civil-IIa');n++;
  assert.equal(dates.read('dimaIndexForDate("2026-03-07",new Date(2026,2,9,12))'),3);assert.equal(dates.read('dimaIndexForDate("2026-10-31",new Date(2026,10,2,12))'),3);assert.equal(dates.read('dimaDateKey(dimaCivilDate(new Date("2026-11-05T02:00:00Z")))'),'2026-11-04');assert.equal(dates.read('dimaValidDayKey("2026-02-30")'),false);n++;
- assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'dima/dima-v1.json'))).digest('hex'),'09554894aeef74616a9e030f74f4542b83dc4a1aadf6220d427167c064dae15c');return n;
+ assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'dima/dima-v1.json'))).digest('hex'),'93eae353c596799d82a7df576fc2632102f86198f7290c3f3c092d67a70cb8a6');return n;
 }
 const mutant=core.replace('if (dimaPresentationValid(frozen, key)) return frozen;','if (false) return frozen;');assert.notEqual(mutant,core);
 (async()=>{if(process.argv.includes('--mutant')){await verify(mutant);return;}const n=await verify(core);await assert.rejects(()=>verify(mutant),assert.AssertionError);console.log('PASS B10 resolver: '+n+' cases; 30/60/90 days, seasons, Friday, frozen snapshots, v1/v2 migration, offline/storage faults, UTC civil progress, prayer timezone and shared Hijri calendar.');})().catch(e=>{console.error(e);process.exitCode=1;});

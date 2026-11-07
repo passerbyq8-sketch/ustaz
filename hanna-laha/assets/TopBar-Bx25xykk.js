@@ -1,1 +1,1 @@
-import{_ as e}from"./Page-CJ0DuoAl.js?v=20261105-c1games-1";var t={topBar:`_topBar_1ur04_1`,title:`_title_1ur04_14`},n=e();function r({start:e,title:r,end:i}){return(0,n.jsxs)(`header`,{className:t.topBar,children:[e,(0,n.jsx)(`h1`,{className:t.title,children:r}),i]})}export{r as t};
+import{_ as e}from"./Page-CJ0DuoAl.js?v=20261107-c1item33-1";var t={topBar:`_topBar_1ur04_1`,title:`_title_1ur04_14`},n=e();function r({start:e,title:r,end:i}){return(0,n.jsxs)(`header`,{className:t.topBar,children:[e,(0,n.jsx)(`h1`,{className:t.title,children:r}),i]})}export{r as t};

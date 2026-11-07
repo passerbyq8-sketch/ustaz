@@ -143,8 +143,8 @@
       if ((hasRooms || game === 'test') && M.offlineReady) {
         // These two entry pages version their new screens independently. Cache
         // them after the first worker takes control, including a first visit.
-        const screenAssets = ['theme.css?v=20261028-kfix1', 'journey.js?v=20261105-c1games-1', 'room-categories.js?v=20261022-roomsfix2', 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
-        if (game === 'board') screenAssets.push('board-rooms.js?v=20261105-c1games-1');
+        const screenAssets = ['theme.css?v=20261028-kfix1', 'journey.js?v=20261107-c1item33-1', 'room-categories.js?v=20261022-roomsfix2', 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
+        if (game === 'board') screenAssets.push('board-rooms.js?v=20261107-c1item33-1');
         if (navigator.serviceWorker.controller) await Promise.all(screenAssets.map(async file => {
           const response = await fetch('/quest-theme/' + file);
           if (!response.ok) throw new Error('Screen cache unavailable');
@@ -1317,7 +1317,7 @@
       // remains completely offline. It owns its credentials, reconnect and protocol.
       const css = ['Page-oyXYdFLk.css', 'index-BYf54ooy.css'];
       for (const file of css) { const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = '/hanna-laha/assets/' + file; document.head.append(link); }
-      const module = document.createElement('script'); module.type = 'module'; module.src = '/hanna-laha/assets/index-iap-v1.js?v=20261105-c1games-1';
+      const module = document.createElement('script'); module.type = 'module'; module.src = '/hanna-laha/assets/index-iap-v1.js?v=20261107-c1item33-1';
       try { localStorage.setItem('hl-ezik.sound', 'false'); } catch (_) {}
       if (!join) {
         const roomColors = ['blue','orange','purple','green','gold','pink','teal','brown','navy','olive','red','maroon'];

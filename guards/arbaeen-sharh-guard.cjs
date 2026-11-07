@@ -32,7 +32,7 @@ const sha = (f) => crypto.createHash('sha256').update(fs.readFileSync(path.join(
 // Re-cut with the files, by tools/arbaeen-sharh-build.cjs, and never by hand.
 const PIN = {
   'arbaeen.json': 'f0f10f465a2fc59e4b9b2513c37d9ea502866a020d66f2c4781a87519c82bcad',
-  'arbaeen-sharh.json': 'a92d9825092f476a6363e7e991f37683aa6a3873a7dbf5cd7515668441552c8f',
+  'arbaeen-sharh.json': '6957d9d1def11daead299428bcba3d02f9631fb74cfe75540004a1d2c865dd71',
 };
 const COUNT = 42;
 const SITE = 'https://alnawawiforty.com/';
@@ -272,4 +272,5 @@ ok(auditSw(sw.replace("const CORE = [\n  '/',", "const CORE = [\n  '/',\n  '/arb
 ok(auditSw(sw.replace("  '/arbaeen-sharh.json',\n];", '];')).length > 0, 'MUTANT KILLED: arbaeen-sharh.json out of IDLE');
 
 console.log((fail ? 'FAIL' : 'OK') + ': arbaeensharh ' + pass + '/' + (pass + fail) + ' checks passed.');
+require('../tools/item33-corrections.cjs').assertCurrent(require('path').resolve(__dirname, '..'));
 process.exit(fail ? 1 : 0);

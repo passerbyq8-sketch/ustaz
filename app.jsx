@@ -17126,7 +17126,7 @@ function dimaPackValid(pack, entry, seasonal) {
   if (!dimaObject(pack) || pack.schema !== 'ezik-dima-pack/1' || pack.language !== 'ar' || pack.audience !== 'all-ages' ||
       pack.id !== (seasonal ? entry.packId : entry.id) || !Number.isInteger(pack.version) || pack.version < 1 || pack.version !== entry.version ||
       pack.kind !== (seasonal ? 'seasonal' : 'regular') || !dimaObject(pack.sourceBase) || pack.sourceBase.path !== 'dima/dima-v1.json' ||
-      pack.sourceBase.sha256 !== '09554894aeef74616a9e030f74f4542b83dc4a1aadf6220d427167c064dae15c' ||
+      pack.sourceBase.sha256 !== '93eae353c596799d82a7df576fc2632102f86198f7290c3f3c092d67a70cb8a6' ||
       !Array.isArray(pack.days) || pack.days.length !== entry.lastDay - entry.firstDay + 1) return false;
   if (seasonal) {
     if (!pack.season || pack.season.id !== entry.id || pack.season.hijriMonth !== entry.hijriMonth ||
@@ -17147,7 +17147,7 @@ function dimaPackValid(pack, entry, seasonal) {
 }
 function dimaManifestValid(manifest) {
   return manifest && manifest.schema === 'ezik-dima-manifest/1' && Number.isInteger(manifest.version) && manifest.version > 0 &&
-    manifest.legacy?.path === DIMA_URL && manifest.legacy.sha256 === '09554894aeef74616a9e030f74f4542b83dc4a1aadf6220d427167c064dae15c' &&
+    manifest.legacy?.path === DIMA_URL && manifest.legacy.sha256 === '93eae353c596799d82a7df576fc2632102f86198f7290c3f3c092d67a70cb8a6' &&
     Array.isArray(manifest.regular) && manifest.regular[0]?.id === 'dima-regular-001' && manifest.regular[0].legacy === true &&
     manifest.regular[0].firstDay === 1 && manifest.regular[0].lastDay === 30 && Array.isArray(manifest.seasonal);
 }
@@ -46500,7 +46500,7 @@ const s = {
   // ITEM 05-F: THE FIELD ROW, and the field is the only thing in it. The send button that used
   // to be glued to its side moved down into the control row, at the end the owner named.
   inputBar: { display: 'flex', alignItems: 'flex-end', gap: 10 },
-  input: { resize: 'none', maxHeight: 200, overflowY: 'auto', lineHeight: 1.55, fontFamily: 'inherit', flex: 1, minWidth: 0, /* 13.4-b */ padding: '11px 16px', fontSize: 15, borderRadius: 16, border: '1px solid var(--a3-line)', background: 'var(--a3-ice)', color: 'var(--a3-ink)', fontFamily: 'var(--ez-ui-font)', direction: 'rtl', boxSizing: 'border-box' },
+  input: { resize: 'none', maxHeight: 200, overflowY: 'auto', lineHeight: 1.55, fontFamily: 'inherit', flex: 1, minWidth: 0, /* 13.4-b */ padding: '12px 17px 10px', height: 'calc(1lh + 24px)', fontSize: 15, borderRadius: 16, border: 0, boxShadow: 'inset 0 0 0 1px var(--a3-line)', background: 'var(--a3-ice)', color: 'var(--a3-ink)', fontFamily: 'var(--ez-ui-font)', direction: 'rtl', boxSizing: 'border-box' },
   // ITEM 05-F: ONE ROUND SIZE FOR EVERY ICON BUTTON IN THE ROW. The three of them were 46, 46
   // and 44 in two different shapes, which is what made the row read as scattered rather than as
   // one line. They are 44x44 circles now -- 44 is the touch floor item 44-ج established, so the

@@ -25,6 +25,9 @@ function write(rel, data) {
 const box = {}; vm.createContext(box);
 vm.runInContext(fs.readFileSync(path.join(ROOT, 'quest-data/kunuz-bank-3147.js'), 'utf8').replace('var DATA', 'this.DATA'), box);
 const bank = box.DATA.qs, sha8 = crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'quest-data/kunuz-bank-3147.js'))).digest('hex').slice(0, 8);
+// Historical translation branches are pinned to the original bank; only the approved
+// correction layer connects them to this measured current bank.
+require('assert/strict').equal(sha8, '28a209a0', 'current corrected bank');
 const rows = new Map(bank.map((q) => [q[8], q]));
 const manifest = fs.readFileSync(path.join(ROOT, 'quest-data/kunuz-packs-manifest.js'), 'utf8');
 const report = {};
@@ -38,7 +41,9 @@ for (const lang of Object.keys(SOURCES)) {
       const data = show(src.sections, dir + '/' + name);
       if (!data.items || !data.items.length) continue;
       fs.mkdirSync(path.join(ROOT, dir), { recursive: true });
-      fs.writeFileSync(path.join(ROOT, dir, name), git(['show', src.sections + ':' + dir + '/' + name]));
+      const body = git(['show', src.sections + ':' + dir + '/' + name]).toString();
+      const corrected = require('./item33-corrections.cjs').apply(dir + '/' + name, JSON.parse(body));
+      fs.writeFileSync(path.join(ROOT, dir, name), JSON.stringify(corrected, null, body.startsWith('{\n  ') ? 2 : undefined) + '\n');
       out.sections++;
     }
   }
@@ -60,7 +65,7 @@ for (const lang of Object.keys(SOURCES)) {
       if (name === 'categories.json') { Object.entries(show(branch, dir + '/' + name).cats).forEach(([k, v]) => { if (v.tr) cats[k] = v.tr; }); continue; }
       if (!/^core-p\d-\d+\.json$/.test(name)) continue;
       const part = show(branch, dir + '/' + name);
-      if (part.source_sha8 !== sha8) throw new Error(name + ' is for another bank');
+      if (part.source_sha8 !== '73835acc') throw new Error(name + ' is for another bank');
       for (const [id, t] of Object.entries(part.items)) {
         const q = rows.get(id);
         if (!q || q[2] === 0 || t.tag === 'arabic-only') continue;
