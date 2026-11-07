@@ -183,7 +183,7 @@ const esm = (rel) => import(pathToFileURL(path.join(REPO, rel)).href + '?hadithb
       } catch (e) { return rel + ':THREW ' + String(e && e.message); }
     });
     ok('F2e the import cycle is call-time only: loop.js, before-writing-v2.js, bw2-units.js and api/ask.js each load first in a fresh process', loads.every((l) => /:ok$/u.test(l)), loads.join(' | '));
-    const mLedger = await twin((s) => s.replace("  const finalText = await appendCompletionLedger(deliveredText, ctx.question); // ITEM 35-D2 R5 (brain35-2 F2)", '  const finalText = deliveredText; // mutant: the ledger is not consulted on this path'), 'ledger');
+    const mLedger = await twin((s) => s.replace("  reviewed = { ...reviewed, text: appendCompletionLedger(reviewed.text, ctx.question) }; // ITEM 35-D2 R5 (brain35-2 F2)", '  // mutant: the ledger is not consulted on this path'), 'ledger');
     ok('F2 MUTANT seam applied and loaded', mLedger.changed && mLedger.mod, mLedger.error);
     const mutantText = mLedger.mod ? (await driveLegacy(mLedger.mod, P11, GRADED)).text : '';
     ok('F2 MUTANT KILLED: with the call removed the P11 answer ends with no collector sentence again', !!mLedger.mod && mutantText === GRADED, mutantText);
