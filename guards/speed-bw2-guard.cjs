@@ -2636,6 +2636,31 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         ok('X9 MUTANT KILLED: with the set emptied «استدل هؤلاء بحديث…» is no back-reference again', !!MD && MD.dependentKind('استدل هؤلاء بحديث: من ملك زادا وراحلة.') === '', MD ? MD.dependentKind('استدل هؤلاء بحديث: من ملك زادا وراحلة.') : 'no module');
       }
     }
+    // ---------------------------------------------------------------- brain35-3 X13 (2026-11-07; FIX-2 F4 risk): «حكم» IS A GRADE PART ONLY WHEN BOUND TO THE HADITH
+    // brain35-2 F4 put the bare «حكم» in GRADE_PART_RE, so a fiqh part «وما حكم العمل به» was silenced whenever a grader was named
+    // for the matn. The folded forms are now «حكمه», «درجته», «صحته», «حكم (هذا )?الحديث», «درجه (هذا )?الحديث», «صحه (هذا )?الحديث»;
+    // a bare «حكم» no longer matches.
+    {
+      const P12x = 'هل حديث «اقرؤوا على موتاكم يس» صحيح؟ ومن رواه وما حكمه عند أهل الحديث؟';
+      const parts12x = BW2.questionParts(P12x);
+      const SHAPE12 = 'الحديث ضعيف، ضعّفه ابن باز وابن عثيمين، وقال ابن باز: هذا الحديث ضعيف عند أهل العلم.';
+      ok('X13a P12\'s «وما حكمه عند أهل الحديث» is still silenced under a named grader', parts12x.length === 2 && BW2.partSentenceWanted(parts12x[1], SHAPE12) === false, ascii(JSON.stringify(parts12x.map((p) => p.text))));
+      ok('X13b a fiqh part «وما حكم العمل به» is NOT silenced by a grader named for the matn (the bare «حكم» no longer matches)', BW2.partSentenceWanted({ text: 'ما حكم العمل به', title: 'x' }, SHAPE12) === true);
+      ok('X13c «ما حكم هذا الحديث», «ما درجة الحديث», «ما صحة الحديث» are grade parts (bound to the hadith) and are silenced',
+        [{ text: 'ما حكم هذا الحديث', title: 'x' }, { text: 'ما درجة الحديث', title: 'x' }, { text: 'ما صحة الحديث', title: 'x' }].every((pt) => BW2.partSentenceWanted(pt, SHAPE12) === false));
+      {
+        const srcG = read('lib/before-writing-v2.js');
+        const seamG = "const GRADE_PART_RE = /(?:^|\\s)(?:حكمه|درجته|صحته|(?:حكم|درجه|صحه)\\s+(?:هذا\\s+)?الحديث)(?=\\s|$)/u;";
+        ok('X13 mutant seam present once', srcG.split(seamG).length === 2);
+        const tmpG = path.join(REPO, 'lib', '.mut-x13-bare-hukm.mjs');
+        fs.writeFileSync(tmpG, srcG.split(seamG).join("const GRADE_PART_RE = /(?:^|\\s)(?:حكمه|درجته|صحته|حكم|درجه|صحه)(?=\\s|$)/u; // mutant: the bare «حكم» restored").replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MG = null;
+        try { MG = await import(pathToFileURL(tmpG).href + '?m=' + Date.now()); } catch (e) { MG = null; } finally { fs.rmSync(tmpG, { force: true }); }
+        ok('X13 mutant loads', !!MG);
+        ok('X13 MUTANT KILLED: with the bare «حكم» restored the fiqh part «وما حكم العمل به» is silenced again', !!MG && MG.partSentenceWanted({ text: 'ما حكم العمل به', title: 'x' }, SHAPE12) === false);
+      }
+    }
     // ---------------------------------------------------------------- ITEM 35-D2 R2 (brain35-2 F1, 2026-11-07): THE ENUMERATION LABEL IS RELEASED WITH ITS SUBJECT
     // MEASURED (DIAG2 HB2 V10 / V17 on the real turn): «الشرط الأول: الإسلام، <clause>» was held whole when its clause failed (an
     // unproven quoted matn, an uncited group view), and the answer opened on «الشرط الثاني». The label with its subject now goes
