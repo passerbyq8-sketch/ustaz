@@ -194,9 +194,14 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e\n]/g, '~').slice(0, 200);
     // MEASURED here: with the encyclopedia card switch off, a row's FIRST citing unit gets neither a card (the switch blocks it)
     // nor a mark (cardEligible is a per-ref map, so the card is predicted); the row is unnamed and the line is right. (A
     // heading's citation never enters `cited`: the heading path registers no citation, so a heading cannot draw the line.)
-    const unnamed = await driveTurn(BW2F9, { writerText: 'يجوز المسح على الجوربين إذا لبسهما على طهارة [[1]].', encyclopedia: [ROW_A], encyclopediaCards: false });
-    ok('4f a cited encyclopedia row with no card (the switch off) and no mark: the line, once',
+    // re-cut 2026-11-07 (brain35-3 X6; owner: yes): the card the switch refuses is a refused card, so the citing unit now carries
+    // the mark (4f2); the one-unnamed-row shape is a unit that already ends on a dash tail of its own (the mark site writes none).
+    const unnamed = await driveTurn(BW2F9, { writerText: 'يجوز المسح على الجوربين إذا لبسهما على طهارة — كما في الموسوعة [[1]].', encyclopedia: [ROW_A], encyclopediaCards: false });
+    ok('4f a cited encyclopedia row with no card (the switch off) and no mark (the unit ends on its own dash tail): the line, once',
       unnamed.cards === 0 && !unnamed.mark && unnamed.line && (unnamed.text.match(GLOBAL_LINE) || []).length === 1, ascii(unnamed.text));
+    const refused = await driveTurn(BW2F9, { writerText: 'يجوز المسح على الجوربين إذا لبسهما على طهارة [[1]].', encyclopedia: [ROW_A], encyclopediaCards: false });
+    ok('4f2 the same unit with the switch off: the card is refused, so the unit carries the mark and no line is written (X6 + D4)',
+      refused.cards === 0 && refused.mark && !refused.line, ascii(refused.text));
     const TWO_ARTICLES = 'يجوز المسح على الجوربين إذا لبسهما على طهارة [[1, 2]].\n\nومدته يوم وليلة للمقيم وثلاثة أيام بلياليها للمسافر [[1]].\n\nوالجورب ما يلبس على القدم من صوف أو قطن [[2]].';
     const twoArticles = await driveTurn(BW2F9, { writerText: TWO_ARTICLES, encyclopedia: [ROW_A, ROW_B], encyclopediaCards: false });
     ok('4g two articles under one mark (the switch off; both rows cited once before, so the second and third units reach the mark): the repeated mark names the second article too, no global line',
@@ -227,7 +232,8 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e\n]/g, '~').slice(0, 200);
       const EA = { ref: 1, kind: 'encyclopedia', title: 'الموسوعة الفقهية الكويتية — مسح على الخفين', recordId: 'enc:A', text: MASAH, passage: MASAH, part: 37 };
       const EB = { ref: 2, kind: 'encyclopedia', title: 'الموسوعة الفقهية الكويتية — جورب', recordId: 'enc:B', text: ROW_B.snippet, passage: ROW_B.snippet, part: 37 };
       const rel = U2.createBw2Releaser({ rows: [EA, EB], emit: () => true, cards });
-      rel.push(TWO_ARTICLES + '\n');
+      // re-cut 2026-11-07 (brain35-3 X6): the second article is first cited by the SECOND unit (a unit citing both would mark both)
+      rel.push('يجوز المسح على الجوربين إذا لبسهما على طهارة [[1]].\n\nوالجورب ما يلبس على القدم من صوف أو قطن [[2]].\n');
       const sum = await rel.end();
       return { a: sum.markedRows.includes(EA), b: sum.markedRows.includes(EB), marks: sum.sourceMarks };
     };
@@ -257,13 +263,54 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e\n]/g, '~').slice(0, 200);
     const ROW_B2 = { id: 'F99903', part: 37, term: 'جورب', snippet: 'الجورب ما يلبس على القدم من صوف أو قطن، ويجوز المسح على الجوربين إذا لبسهما على طهارة عند من أجازه من أهل العلم.' };
     const CARDED_PLUS_UNNAMED = 'يجوز المسح على الجوربين إذا لبسهما على طهارة [[1]].\n\nوهذا الحكم مبني على التيسير ورفع الحرج [[2]].';
     const named = await driveTurn(BW2F9, { writerText: CARDED_PLUS_UNNAMED, encyclopedia: [ROW_A, ROW_B2], encyclopediaCards: true });
-    ok('4h row A carded under the first unit, row B cited by the second (released, its card refused by the support test, no mark): NO global line (the card names the encyclopedia)',
-      named.cards === 1 && !named.mark && !named.line && named.out.telemetry.unitsReleased === 2, ascii(named.text));
+    // re-cut 2026-11-07 (brain35-3 X6): the second unit, its card refused, now carries the mark; the line stays away either way
+    ok('4h row A carded under the first unit, row B cited by the second (released, its card refused by the support test -> its mark): NO global line',
+      named.cards === 1 && named.mark && !named.line && named.out.telemetry.unitsReleased === 2, ascii(named.text));
     const m7 = await twinPair(null, null, "  const encyc = encycNamedSomewhere || !encycUnnamed.length ? '' : encyclopediaTail(encycUnnamed, String(wire.sent || ''), null)",
       "  const encyc = !encycUnnamed.length ? '' : encyclopediaTail(encycUnnamed, String(wire.sent || ''), null) /* mutant: a named encyclopedia does not stop the line */", 'named');
     ok('X5 MUTANT named-somewhere seam applied and loaded', m7.ok, m7.reason);
-    ok('X5 MUTANT KILLED: without encycNamedSomewhere the carded answer draws the line for its second row again',
-      m7.ok && (await driveTurn(m7.mod, { writerText: CARDED_PLUS_UNNAMED, encyclopedia: [ROW_A, ROW_B2], encyclopediaCards: true })).line === true, m7.reason);
+    // re-cut 2026-11-07 (brain35-3 X6): a refused card now draws a mark, so the unnamed row is one OWED over the per-unit cap (a
+    // unit citing two rows that both carry its sentence: the first card goes out, the second is owed and, cited no more, unnamed)
+    const ROW_A2 = { id: 'F99904', part: 37, term: 'خف', snippet: MASAH };
+    const TWO_SUPPORTING = 'يجوز المسح على الجوربين إذا لبسهما على طهارة [[1, 2]].';
+    const owedShape = await driveTurn(BW2F9, { writerText: TWO_SUPPORTING, encyclopedia: [ROW_A, ROW_A2], encyclopediaCards: true });
+    ok('4i a unit citing two supporting encyclopedia rows: one card (the cap), the other row owed and unnamed, no mark, NO line (a card names the encyclopedia)',
+      owedShape.cards === 1 && !owedShape.mark && !owedShape.line, ascii(owedShape.text));
+    ok('X5 MUTANT KILLED: without encycNamedSomewhere the owed second row draws the line beside the shown card again',
+      m7.ok && (await driveTurn(m7.mod, { writerText: TWO_SUPPORTING, encyclopedia: [ROW_A, ROW_A2], encyclopediaCards: true })).line === true, m7.reason);
+
+    // ── brain35-3 X6 (2026-11-07; DIAG3 D4 companion; owner: yes) · THE MARK SITE PREDICTS WHAT THE EMITTER WILL DO ──────
+    // MEASURED (DIAG3 H4b, preview Q3): the Hanbali paragraph cited a fresh encyclopedia row; the mark site skipped its mark
+    // (a card predicted) and the emitter refused the card (support) -- the paragraph carried nothing. One card plan per unit
+    // (planCards) is computed before the unit is sent and read by both sites: a refused card (support, dedup, the switch, the
+    // per-unit cap) leaves the mark and the rows in markedRows; a card that goes out leaves no mark, as before.
+    const relX6 = async (U2, rows, text, cardsOpt) => { const out = []; const rel = U2.createBw2Releaser({ rows, emit: (p) => { out.push(p); return true; }, cards: cardsOpt }); rel.push(text + '\n'); const sum = await rel.end(); return { text: out.join(''), sum }; };
+    const EA6 = { ref: 1, kind: 'encyclopedia', title: 'الموسوعة الفقهية الكويتية — مسح على الخفين', recordId: 'enc:A6', publisher: ENC.title.split(' — ')[0], text: MASAH, passage: MASAH, part: 37 };
+    const encycOn = { ...cards, encyclopediaCards: true };
+    const ENC_MARK = ' — الموسوعة الفقهية الكويتية.';
+    const UNSUPPORTED_ENC = 'والأحوط أن يخلع الجورب عند الشك [[1]].'; // no content word of the row: the card test fails, the unit is released (MEASURED: x6-probe)
+    const x6a = await relX6(U, [EA6], UNSUPPORTED_ENC, encycOn);
+    ok('X6a a unit citing a fresh encyclopedia row whose card fails the support test: the mark and the row in markedRows, no card',
+      x6a.text.includes(ENC_MARK) && x6a.sum.markedRows.includes(EA6) && !x6a.text.includes('<book'), ascii(x6a.text));
+    const x6b = await relX6(U, [EA6], 'يجوز المسح على الجوربين إذا لبسهما على طهارة [[1]].', encycOn);
+    ok('X6b a unit whose encyclopedia card passes: the card, no mark, the row not in markedRows',
+      x6b.text.includes('<book') && !x6b.text.includes(' — الموسوعة') && !x6b.sum.markedRows.includes(EA6), ascii(x6b.text));
+    const x6c = await relX6(U, [PAGE], 'والظن لا يغني من الحق شيئا [[1]].', cards);
+    ok('X6c a page row the same way: its card refused (A-3 b: owed, unsupported) -> the mark « — ابن باز.» and the row in markedRows, no card',
+      x6c.text.includes(' — ' + IBN_BAZ + '.') && x6c.sum.markedRows.includes(PAGE) && !x6c.text.includes('<source'), ascii(x6c.text));
+    const x6d = await relX6(U, [PAGE], PAGE_TEXT + ' [[1]].', cards);
+    ok('X6d ...and supported: the card, no mark', x6d.text.includes('<source') && !x6d.text.includes(' — ' + IBN_BAZ), ascii(x6d.text));
+    const x6e = await relX6(U, [EA6], UNSUPPORTED_ENC + '\n\nيجوز المسح على الجوربين إذا لبسهما على طهارة [[1]].', encycOn);
+    ok('X6e the row cited again by a later unit its card would support: no card (the row is not fresh, and an encyclopedia row is never owed), the second unit under the first\'s mark (repeated, written once), the row pushed twice',
+      x6e.text.includes(ENC_MARK) && !x6e.text.includes('<book') && (x6e.text.match(/الموسوعة الفقهية الكويتية/gu) || []).length === 1 && x6e.sum.markedRows.filter((row) => row === EA6).length === 2, ascii(x6e.text));
+    ok('X6 the emitter is sent the plan, not a second evaluation: emitCards takes the plan and the support test is read in planCards only',
+      read('lib/bw2-units.js').includes('const emitCards = (plan) => {') && read('lib/bw2-units.js').includes('emitCards(cardPlan);')
+      && read('lib/bw2-units.js').includes('const willShowCard = cardPlan.sending.length > 0;') && !read('lib/bw2-units.js').includes('const owedWillShow'));
+    const m8 = await twinPair("      const willShowCard = cardPlan.sending.length > 0;",
+      "      const willShowCard = (cards && verdict.cited.some((row) => !citedSet.has(row) && (!cards.isEligible || cards.isEligible(row)))) || cardPlan.sending.length > 0; // mutant: the old prediction (a fresh eligible row is a card)", null, null, 'predict');
+    ok('X6 MUTANT old-prediction seam applied and loaded', m8.ok, m8.reason);
+    ok('X6 MUTANT KILLED: with the old prediction the refused encyclopedia card leaves the unit unmarked again',
+      m8.ok && !(await relX6(m8.units, [EA6], UNSUPPORTED_ENC, encycOn)).text.includes(ENC_MARK), m8.reason);
   }
   // ── 5. the verse card ──
   const AYAH = 'وَلَوْ أَنَّا كَتَبْنَا عَلَيْهِمْ أَنِ اقْتُلُوا أَنفُسَكُمْ';
@@ -299,10 +346,14 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e\n]/g, '~').slice(0, 200);
   ok('6a MUTANT mark seam applied and loaded', m1.changed && m1.mod, m1.error);
   ok('6a MUTANT KILLED: without the mark the second paragraph names nothing',
     !!m1.mod && (await drive(m1.mod, PAGE_TEXT + ' [[1]].\nوهي تنهى كذلك عن اتباع الظن [[1]].', [PAGE])).sum.sourceMarks === 0, m1.error);
-  const m2 = await twin((s) => s.replace('      const owedWillShow = verdict.cited.some((row) => owedCards.has(row) && cardSupportsUnit(row, value));', '      const owedWillShow = false; // mutant: an owed card does not count as one that follows'), 'owed');
+  // re-cut 2026-11-07 (brain35-3 X6): the mark site and the emitter read ONE plan, so a mark and the card it stands in for can no
+  // longer both go out; the owed path now lives in the plan (an owed card comes back under the unit that supports it).
+  const owedBack = await drive(U, PAGE_TEXT + ' [[1, 2]].\n' + BOOK_TEXT + ' [[2]].', [PAGE, BOOK]);
+  ok('6b the owed book card comes back under the unit that supports it: the card, no mark', owedBack.sum.sourceMarks === 0 && owedBack.text.includes('<book'), ascii(owedBack.text));
+  const m2 = await twin((s) => s.replace('      if (owedCards.has(row) && supportsCard(row)) { pieces.push({ tag: owedCards.get(row), row }); owedCards.delete(row); }', '      if (false) { /* mutant: an owed card never comes back */ }'), 'owed');
   ok('6b MUTANT owed seam applied and loaded', m2.changed && m2.mod, m2.error);
-  ok('6b MUTANT KILLED: without it a unit gets a mark AND the card it stands in for',
-    !!m2.mod && (await drive(m2.mod, PAGE_TEXT + ' [[1, 2]].\n' + BOOK_TEXT + ' [[2]].', [PAGE, BOOK])).sum.sourceMarks === 1, m2.error);
+  ok('6b MUTANT KILLED: with no owed card coming back the second unit carries a mark and no book card',
+    !!m2.mod && (await drive(m2.mod, PAGE_TEXT + ' [[1, 2]].\n' + BOOK_TEXT + ' [[2]].', [PAGE, BOOK])).sum.sourceMarks === 1 && !(await drive(m2.mod, PAGE_TEXT + ' [[1, 2]].\n' + BOOK_TEXT + ' [[2]].', [PAGE, BOOK])).text.includes('<book'), m2.error);
   const m3 = await twin((s) => s.replace('      if (ref && !textQuotesVerse(text, ref)) {', '      if (false) { // mutant: the verse card never waits'), 'verse');
   ok('6c MUTANT verse seam applied and loaded', m3.changed && m3.mod, m3.error);
   ok('6c MUTANT KILLED: without the wait the verse card goes out before the sentence that quotes it',

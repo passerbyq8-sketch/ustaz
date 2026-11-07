@@ -249,10 +249,14 @@ const questions = [
   ok('B4 BW2 final answer equals the released deltas byte-for-byte', bw2.shown === bw2.pieces
     && bw2.out.text === bw2.pieces && bw2.ended === 1);
   const bw2NoCard = await deliverBw2(false);
-  ok('B4 BW2 opinion without a reader card ends in one short note after the encyclopedia',
+  // re-cut 2026-11-07 (brain35-3 X5 + X6; owner decision D4): the card the switch refuses is a refused card, so the unit now
+  // carries the encyclopedia's mark in its own line, and the global line (named nowhere) is no longer written; the short note
+  // is still the one final tail.
+  ok('B4 BW2 opinion without a reader card: the unit carries the encyclopedia mark, no global line, and ends in one short note (re-cut 2026-11-07, owner decision D4)',
     bw2NoCard.out.telemetry.cardsSent === 0 && bw2NoCard.shown.endsWith(shortNote)
       && occurrences(bw2NoCard.shown, shortNote) === 1 && !bw2NoCard.shown.includes(longNote)
-      && bw2NoCard.shown.indexOf(encyc) >= 0 && bw2NoCard.shown.indexOf(encyc) < bw2NoCard.shown.indexOf(shortNote));
+      && !bw2NoCard.shown.includes(encyc) && bw2NoCard.shown.includes(' — ' + encyc.slice(encyc.indexOf(':') + 2)) && bw2NoCard.shown.indexOf(' — ') < bw2NoCard.shown.indexOf(shortNote),
+    bw2NoCard.shown);
   ok('B4 BW2 no-card answer also preserves released bytes', bw2NoCard.shown === bw2NoCard.pieces
     && bw2NoCard.out.text === bw2NoCard.pieces && bw2NoCard.ended === 1);
   console.log('\n' + (checks - failures) + '/' + checks + ' checks passed');

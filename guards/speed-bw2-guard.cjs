@@ -1468,8 +1468,10 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       // SPEED FIX 5: C7 answers a question about a hadith's source first or not at all, and this
       // fixture pins R5 / C1 / C5, not the question's class: its runs ask about the same hadith's meaning.
       const plain = await run({ question: '\u0645\u0627 \u0645\u0639\u0646\u0649 \u062d\u062f\u064a\u062b: ' + MATN + '\u061f', fatwa: [], libOn: true, library: [R301, R303, RENC], writerText: [W_PLAIN, A2C].join('\n'), takhrijImpl: byLibrary });
-      ok('C5d ...and goes out after a released unit; after a released sentence that is not substantive it is still held as an opening',
-        after.deltas.join('').startsWith(W_ANAS) && after.deltas.join('').includes(A2) && after.out.telemetry.unitsHeld === 0
+      // re-cut 2026-11-07 (brain35-3 X6; owner: yes): answer 2's row card is refused (A-3 b: unsupported, owed), so the unit now
+      // carries its source mark before its final period; the bytes before the mark are answer 2's, as before.
+      ok('C5d ...and goes out after a released unit (now with its source mark: its card is refused); after a released sentence that is not substantive it is still held as an opening',
+        after.deltas.join('').startsWith(W_ANAS) && after.deltas.join('').includes(A2.replace(/\.$/u, '')) && / — [^\n]{2,40}\.\s*$/mu.test(after.deltas.join('')) && after.out.telemetry.unitsHeld === 0
         && plain.deltas.join('').startsWith(W_PLAIN) && !plain.deltas.join('').includes(A2.slice(0, 20)) && plain.out.telemetry.heldDependentOpening === 1,
         ascii(after.deltas.join('|') + ' || ' + plain.deltas.join('|')));
       const own = await lib(W_OWN);
