@@ -1196,6 +1196,37 @@ function quantityContradiction(parts) {
       ok('X1 within-unit mutant seam applied and module loaded', withinUnitMutant.changed && withinUnitMutant.loaded, withinUnitMutant.error);
       ok('MUTANT KILLED: with the unit\'s own words compared again, Q7\'s first unit frames itself', withinUnitMutant.loaded && withinUnitMutant.survived === false, JSON.stringify(withinUnitMutant));
     }
+    // ── brain35-4 Y1 (2026-11-07; FIX3 FOUND 1; owner: "yes to the four") · «لا يصح أن …» IS AN ATTRIBUTION, NOT A GRADE ──
+    // MEASURED (FIX3 H2.AFTER.out.txt (b), preview Q7): once X1 made the frame need a released statement, the frame moved to the
+    // SECOND unit «ولذلك لا يصح أن ينسب إلى الرسول صلى الله عليه وسلم أنه قال هذا الكلام»: A-5's verb reader (verbGradeIn) read its
+    // «لا يصح» as the family ضعيف against the head's «موضوع». «لا يصح / لا يثبت» + «أن» + a verb of attribution or speech (ينسب،
+    // يُنسب، تنسب، نسبته، يقال، يُقال، يضاف، يُضاف، يروى، يُروى، يعزى، يُعزى، قال، يقول; folded as the reader folds, the salutation
+    // allowed between) is a statement about the ATTRIBUTION, not a grade: one more negative lookahead beside `(?!\s+مرفوع)`. The
+    // bare «لا يصح» and «لا يصح أن يُحتج به» (a grading judgement) stay the family ضعيف. The head and the units are the H2 strings.
+    {
+      const Q7y = "ما درجة حديث «حب الوطن من الإيمان»؟ ومن أخرجه؟";
+      const HEAD7 = "حديث «حب الوطن من الإيمان» لا يصح عن النبي صلى الله عليه وسلم، فهو حديث موضوع.";
+      const U2y = "ولذلك لا يصح أن ينسب إلى الرسول صلى الله عليه وسلم أنه قال هذا الكلام";
+      const U3y = "ومعناه أيضا غير مستقيم من حيث المضمون، إذ إن حب الوطن كحب النفس والمال ونحوه، وكل ذلك غريزي في الإنسان لا يمدح بحبه ولا هو من لوازم الإيمان. والدليل على ذلك أن الناس كلهم مشتركون في هذا الحب، فلا فرق في ذلك بين مؤمنهم وكافرهم.";
+      const U4y = "وحب الوطن أمر غريزي في الناس، مثل حب الحياة وكراهية الموت، فالإنسان الذي يحب الحياة لا يمدح ولا يذم على هذا الحب في ذاته، وإنما يمدح ويذم باعتبار ما يتعلق بحياته.";
+      const framedY1 = (mod, value, priorText) => mod.frameHadithGradeDisagreement(value, { question: Q7y, priorText }) !== value;
+      ok('Y1a the FIX3 FOUND-1 sentence «ولذلك لا يصح أن ينسب إلى الرسول …» after the released «موضوع» head -> no claim (no frame)', !framedY1(module, U2y + '.', HEAD7));
+      ok('Y1b «لا يثبت أن النبي صلى الله عليه وسلم قال ذلك» after the head -> no claim (no frame)', !framedY1(module, 'لا يثبت أن النبي صلى الله عليه وسلم قال ذلك.', HEAD7));
+      ok('Y1c the bare «هذا الحديث لا يصح» -> a claim of the family ضعيف (today\'s reading, pinned): the frame after the «موضوع» head', framedY1(module, 'هذا الحديث لا يصح.', HEAD7));
+      ok('Y1d «لا يصح أن يُحتج به» -> a claim (today\'s reading, pinned): the frame after the «موضوع» head', framedY1(module, 'لا يصح أن يُحتج به.', HEAD7));
+      const TURN7 = [HEAD7, U2y + '.', U3y, U4y];
+      const framedUnits = TURN7.map((u, i) => framedY1(module, u, TURN7.slice(0, i).join('\n')));
+      ok('Y1e the whole Q7 reviewer turn (the released «موضوع» head, the FOUND-1 second unit, the two meaning units) -> the frame on no unit', framedUnits.every((f) => !f), JSON.stringify(framedUnits));
+      const LOOKAHEAD_Y1 = "(?!\\s+ان\\s+(?:\\S+\\s+){0,2}?(?:صلي الله عليه وسلم\\s+)?(?:ينسب|تنسب|نسبته|يقال|يضاف|يروي|يعزي|قال|قاله|قالها|يقول)(?=\\s|$))";
+      const attributionMutant = await runMutant({
+        sourceFile: REVIEWER,
+        name: 'la-yasihhu-an-is-a-grade-again',
+        transform: (source) => source.replace(LOOKAHEAD_Y1, ''),
+        survives: (mutantModule) => !framedY1(mutantModule, U2y + '.', HEAD7),
+      });
+      ok('Y1 attribution-lookahead mutant seam applied and module loaded', attributionMutant.changed && attributionMutant.loaded, attributionMutant.error);
+      ok('MUTANT KILLED: without the lookahead «لا يصح أن ينسب …» is the family ضعيف again and Q7\'s second unit frames', attributionMutant.loaded && attributionMutant.survived === false, JSON.stringify(attributionMutant));
+    }
     ok('the pure reviewer made zero network calls', wireCalls === 0, String(wireCalls));
   } catch (error) {
     fail++;
