@@ -1164,3 +1164,7 @@ guards/c1-games-delivery-guard.cjs text eol=lf
 guards/c1-games-delivery-fixtures.json text eol=lf
 # Independent usage suite registered as a gate (Order 12).
 tests/usage.test.js text eol=lf
+
+# Intro tour proof extends the existing home gate.
+guards/intro-tour-proof.cjs text eol=lf
+guards/intro-tour-approved.json text eol=lf

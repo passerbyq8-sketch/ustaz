@@ -42,3 +42,5 @@ for(const row of table)for(const count of [0,1,2,3])for(const slot of ['fajr30',
 }
 assert.equal((fs.readFileSync(path.join(root,'index.html'),'utf8').match(/(?<!\r)\n/g)||[]).length,0,'index.html remains pure CRLF');
 console.log('PASS item 5-a: '+checks+' home render cases, 24 dictionaries, counters, reminders and directions');
+
+require('./intro-tour-proof.cjs');
