@@ -2506,6 +2506,31 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         ok('F3 MUTANT KILLED: without the alias lookup P24 finds no chapter again, while «الزينة» (a key) still does',
           !!MR && MR.isChapterHadithRequest(P24) === null && !!MR.isChapterHadithRequest(Q34), MR ? ascii(JSON.stringify(MR.isChapterHadithRequest(P24))) : 'no module');
       }
+      // ── brain35-2 F11 (2026-11-07; DIAG2 R15; owner: yes) · AN EMPTY SENSE OF A CHAPTER REQUEST ALWAYS GETS ITS SENTENCE ──
+      // MEASURED (DIAG2 R15, HE): on a reconstructed zina answer whose ring section says «نهى عن خاتم الذهب … ولبس الحرير حرام»
+      // the sentence for the empty «الذهب والحرير» sense was withheld by the two-term valve. A chapter sense is a heading the
+      // reader was promised: its absence sentence is written whatever the other sections carry; a plain part keeps today's valves.
+      const partsZ = BW2.chapterParts(BW2.isChapterHadithRequest(Q34));
+      const RING = 'نهى النبي ﷺ عن خاتم الذهب للرجال، ولبس الحرير حرام على الرجال حلال للنساء.';
+      ok('F11a the «الذهب والحرير» sense over a text whose ring section mentions gold and silk still draws its sentence, byte for byte',
+        partsZ.length === 6 && partsZ[5].chapter === 'الزينة' && partsZ[5].title === 'الذهب والحرير' && BW2.partSentenceWanted(partsZ[5], RING) === true
+        && BW2.questionPartSentence(partsZ[5], ['المكتبة']) === 'لم أقفْ على حديثٍ ثابتٍ في الذهب والحرير فيما بُحث فيه (المكتبة).'
+        && partsZ.every((pt) => BW2.partSentenceWanted(pt, RING) === true), ascii(JSON.stringify(partsZ.map((pt) => BW2.partSentenceWanted(pt, RING)))));
+      ok('F11b a plain part (no chapter) is read by today\'s valves: the same text silences a part on gold and silk',
+        BW2.partSentenceWanted({ text: 'الذهب والحرير', title: 'الذهب والحرير' }, RING) === false);
+      {
+        const srcZ = read('lib/before-writing-v2.js');
+        const seamZ = "  if (part && part.chapter) return true; // ITEM 35-D2 R15 (brain35-2 F11): a chapter sense always gets its sentence";
+        ok('F11 mutant seam present once', srcZ.split(seamZ).length === 2);
+        const tmpZ = path.join(REPO, 'lib', '.mut-f11-chapter.mjs');
+        fs.writeFileSync(tmpZ, srcZ.split(seamZ).join('  // mutant: a chapter sense is read like any part').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MZ = null;
+        try { MZ = await import(pathToFileURL(tmpZ).href + '?m=' + Date.now()); } catch (e) { MZ = null; } finally { fs.rmSync(tmpZ, { force: true }); }
+        ok('F11 mutant loads', !!MZ);
+        ok('F11 MUTANT KILLED: without the line the gold-and-silk sense loses its sentence under the ring section again',
+          !!MZ && MZ.partSentenceWanted(partsZ[5], RING) === false);
+      }
     }
     // ---------------------------------------------------------------- ITEM 35-D2 R2 (brain35-2 F1, 2026-11-07): THE ENUMERATION LABEL IS RELEASED WITH ITS SUBJECT
     // MEASURED (DIAG2 HB2 V10 / V17 on the real turn): «الشرط الأول: الإسلام، <clause>» was held whole when its clause failed (an
