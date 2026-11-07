@@ -673,8 +673,12 @@ async function main() {
     const m1 = await mutate('lib/full-fatwa.js', "      const answerOnly = cut ? briefExcerpt(printed.answer, budget) : printed.answer;",
       "      const answerOnly = briefExcerpt(whole, budget); // mutant: the question is back in the budget", 'budget'); // seam moved with brain35-2 F8 (one brief shape)
     ok('B-1 MUTANT budget seam applied', m1.ok, m1.reason);
-    ok('B-1 MUTANT KILLED: with the question back in the budget the reader sees no answer sentence',
-      m1.ok && !m1.mod.serverOwnedBlock(long, [], { band: 'adult', brief: true }).split('<fatwafull')[0].includes('الواجب عليك أن تتوب إلى الله توبة صادقة.'));
+    // re-cut 2026-11-07 (brain35-3 X15): the needle «…توبة صادقة.» (with a stop) never occurs in the fixture's answer («…توبة صادقة
+    // وتكثر…»), so the row was vacuous. MEASURED (x15 probe): under the budget mutant the 448-character question is back above the
+    // fold (575 of 600 characters shown, the question's head inside); on HEAD the fold shows the answer alone (173 characters).
+    ok('B-1 MUTANT KILLED: with the question back in the budget the reader sees the question\'s head above the fold again (re-cut 2026-11-07)',
+      m1.ok && m1.mod.serverOwnedBlock(long, [], { band: 'adult', brief: true }).split('<fatwafull')[0].includes(long.question.slice(0, 24))
+      && !FF.serverOwnedBlock(long, [], { band: 'adult', brief: true }).split('<fatwafull')[0].includes(long.question.slice(0, 24)));
     const m2 = await mutate('lib/full-fatwa.js', '      if (!substantiveFatwaAnswer(record)) return \'\';',
       '      if (false) return \'\'; // mutant: a record with nothing to say still opens the answer', 'nothing');
     ok('B-1 MUTANT no-answer seam applied', m2.ok, m2.reason);
