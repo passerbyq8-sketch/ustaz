@@ -971,7 +971,7 @@ function quantityContradiction(parts) {
     // them) and four hand-written controls: the tail only under a topic that allows it and only when the released text
     // sets out two attributed views whose stances differ.
     const khilafCases = JSON.parse(fs.readFileSync(path.join(ROOT, 'fixtures', 'brain35-khilaf-cases.json'), 'utf8'));
-    ok('A-1 fixture carries Q39, Q19, Q13, Q08, the four controls and F6 three (re-cut 2026-11-07, owner decision R7: three cases added)', Array.isArray(khilafCases.cases) && khilafCases.cases.length === 11
+    ok('A-1 fixture carries Q39, Q19, Q13, Q08, the four controls, F6 three and X10 one (re-cut 2026-11-07 twice: owner decision R7, three cases; brain35-3 X10, one case)', Array.isArray(khilafCases.cases) && khilafCases.cases.length === 12
       && ['Q39', 'Q19', 'Q13', 'Q08'].every((id) => khilafCases.cases.some((c) => c.id === id)));
     const { classifyTopic } = await import(pathToFileURL(path.join(ROOT, 'lib', 'policy', 'core.js')).href);
     const QT = await import(pathToFileURL(path.join(ROOT, 'lib', 'question-terms.js')).href); // brain35-2 F6: the subject the caller passes
@@ -1030,6 +1030,30 @@ function quantityContradiction(parts) {
       });
       ok('F6 party-filter mutant seam applied and module loaded', partyFilterMutant.changed && partyFilterMutant.loaded, partyFilterMutant.error);
       ok('MUTANT KILLED: without the party filter the P13 shape draws the khilaf tail again', partyFilterMutant.loaded && partyFilterMutant.survived === false, JSON.stringify(partyFilterMutant));
+    }
+
+    // ── brain35-3 X10 (2026-11-07; DIAG3 FOUND 4) · A TIMING DISPUTE IS TWO STANCES ─────────────────────────────────
+    // MEASURED (DIAG3 H6 (c), live Q12): with both stance sentences released («ذهب الجمهور إلى أن الحج يجب على الفور.» /
+    // «وذهب الشافعية ومحمد بن الحسن إلى أنه يجب على التراخي.») releasedViewsIn = 1 and khilafTrigger = null: the stance
+    // vocabulary read «يجب» in both and no timing word, so the two parties folded into one view. «على الفور» and «على التراخي»
+    // (with the «يجب / واجب / الوجوب» before them consumed) are now two opposed stances. Fixture +1 (S8), the count row 11 -> 12.
+    {
+      const S8 = khilafCases.cases.find((c) => c.id === 'S8-timing-dispute-two-stances');
+      const S5x = khilafCases.cases.find((c) => c.id === 'S5-p13-side-issue-parties');
+      ok('X10 the S8 case is in the fixture with its question', !!S8 && !!S8.question);
+      const subj8 = QT.subjectTermsOf(S8.question);
+      ok('X10a S8: two views on the subject (one party on «على الفور», one on «على التراخي»)', module.releasedViewsIn([S8.input.text], null, { subjectTerms: subj8 }) === 2, String(module.releasedViewsIn([S8.input.text], null, { subjectTerms: subj8 })));
+      ok('X10b S8 draws the trigger (source), and S5 (the P13 shape) stays null', khilafCasePasses(module, S8) && khilafCasePasses(module, S5x));
+      const timingMutant = await runMutant({
+        sourceFile: REVIEWER,
+        name: 'timing-pair-is-no-stance',
+        transform: (source) => source.replace(
+          "  take(/(?:(?:يجب|واجب|وجوب|الوجوب)\\s+)?علي\\s+الفور|(?:ال)?فوريه|فورا/gu, 'immediate');\n  take(/(?:(?:يجب|واجب|وجوب|الوجوب)\\s+)?علي\\s+التراخي|(?:ال)?تراخي/gu, 'deferred');\n",
+          "  // mutant: the timing pair is no stance\n"),
+        survives: (mutantModule) => khilafCasePasses(mutantModule, S8),
+      });
+      ok('X10 timing-pair mutant seam applied and module loaded', timingMutant.changed && timingMutant.loaded, timingMutant.error);
+      ok('MUTANT KILLED: with the timing pair removed S8 folds into one view and draws no tail', timingMutant.loaded && timingMutant.survived === false, JSON.stringify(timingMutant));
     }
     const viewGateMutant = await runMutant({
       sourceFile: REVIEWER,

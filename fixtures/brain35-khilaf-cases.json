@@ -321,6 +321,27 @@
       "expect": {
         "trigger": "source"
       }
+    },
+    {
+      "id": "S8-timing-dispute-two-stances",
+      "question": "هل الحج واجب على الفور أم على التراخي؟",
+      "note": "brain35-3 X10 (DIAG3 FOUND 4, live Q12): two parties, one on «يجب على الفور» and one on «يجب على التراخي», both on the question's subject, the source declaring the khilaf -> source (the timing pair is two opposed stances; before X10 the shared «يجب» folded them into one view)",
+      "input": {
+        "text": "ذهب الجمهور إلى أن الحج يجب على الفور. وذهب الشافعية ومحمد بن الحسن إلى أنه يجب على التراخي.",
+        "evidence": [
+          {
+            "id": "s8",
+            "snippet": "اختلفوا في وجوب الحج عند تحقق الشروط هل هو على الفور أو على التراخي. ذهب أبو حنيفة في أصح الروايتين عنه وأبو يوسف ومالك في الراجح عنه وأحمد إلى أنه يجب على الفور. وذهب الشافعي والإمام محمد بن الحسن إلى أنه يجب على التراخي، فلا يأثم المستطيع بتأخيره. وفي هذه المسألة خلاف بين أهل العلم."
+          }
+        ],
+        "domain": "fiqh",
+        "mode": "brief",
+        "truncated": false,
+        "topic": "sharia_ruling"
+      },
+      "expect": {
+        "trigger": "source"
+      }
     }
   ]
 }
