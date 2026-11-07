@@ -137,6 +137,57 @@ const esm = (rel) => import(pathToFileURL(path.join(REPO, rel)).href + '?hadithb
       !!mC3.mod && mC3.mod.shouldAppendC3NotCovered({ ...outSourced, streamedThisTurn: false }, '', 0) === true, mC3.error);
   }
 
+
+  // ── brain35-2 F2 (2026-11-07; DIAG2 R5) · THE COMPLETION LEDGER RUNS ON THIS PATH TOO ─────────────────────────────────
+  // MEASURED (DIAG2 R5): completionLedger (lib/before-writing-v2.js, pure) had one call site, the before-writing path's; a
+  // turn that path handed over (P11: no book card, a prose answer) ended with no collector named and no sentence saying so.
+  // The legacy turn's delivered text now goes through the same ledger before it is returned: each sentence the ledger
+  // returns that the text does not already carry is appended, once. The question is the turn's own (ctx.question).
+  {
+    const BW2 = await esm('lib/before-writing-v2.js');
+    const P11 = 'ما صحة حديث «من صلى الفجر في جماعة ثم جلس يذكر الله حتى تطلع الشمس ثم صلى ركعتين»؟ ومن أخرجه؟';
+    const PROVIDER = 'https://stub.invalid/v1/messages';
+    // the legacy turn driven offline, as guards/no-empty-answer-guard.cjs drives it: the provider is a scripted stub keyed on
+    // its own URL, every other host throws, the model writes the prose it is handed
+    const driveLegacy = async (mod, question, text) => {
+      const realFetch = globalThis.fetch;
+      globalThis.fetch = async (input) => {
+        const url = String(input?.url || input);
+        if (!url.startsWith('https://stub.invalid/')) throw new Error('offline: ' + url);
+        return { ok: true, status: 200, json: async () => ({ stop_reason: 'end_turn', content: [{ type: 'text', text }] }) };
+      };
+      try { return await mod.runFreeBrainTurn({ messages: [{ role: 'user', content: question }], system: 'أنت أستاذ.', model: 'stub', maxTokens: 1024, mode: 'عادي', lexicalRoute: 'DEEN', providerUrl: PROVIDER, headers: {} }); }
+      finally { globalThis.fetch = realFetch; }
+    };
+    const COLLECTOR = BW2.LEDGER_COLLECTOR_SENTENCE;
+    const count = (text, needle) => String(text).split(needle).length - 1;
+    const GRADED = 'هذا الحديث حسّنه الألباني وابن باز بمجموع طرقه.';
+    const legacy = await driveLegacy(L, P11, GRADED);
+    ok('F2a wired: a legacy-path answer to P11 that names no collection ends on the collector sentence, once',
+      legacy.text.endsWith('\n\n' + COLLECTOR) && count(legacy.text, COLLECTOR) === 1 && legacy.text.startsWith(GRADED), JSON.stringify(legacy.text));
+    ok('F2a ...and the grader sentence is not added beside it (two graders are named)', !legacy.text.includes(BW2.LEDGER_GRADER_SENTENCE), legacy.text);
+    const named = await L.appendCompletionLedger('رواه الترمذي وقال: حسن غريب، وحسّنه الألباني.', P11);
+    ok('F2b the same answer naming its collection («رواه الترمذي») gets no collector sentence',
+      named === 'رواه الترمذي وقال: حسن غريب، وحسّنه الألباني.' && !named.includes(COLLECTOR), named);
+    const fiqh = await driveLegacy(L, 'ما حكم الجمع للمسافر؟', 'الجمع للمسافر جائز عند الحاجة.');
+    ok('F2c a non-hadith question gets nothing from the ledger', fiqh.text === 'الجمع للمسافر جائز عند الحاجة.', fiqh.text);
+    const twice = await L.appendCompletionLedger(GRADED + '\n\n' + COLLECTOR, P11);
+    ok('F2d a text that already carries the sentence is left as it is (the byte-level includes test)', count(twice, COLLECTOR) === 1 && twice === GRADED + '\n\n' + COLLECTOR, twice);
+    ok('F2d an empty text stays empty', (await L.appendCompletionLedger('', P11)) === '' && (await L.appendCompletionLedger('   ', P11)) === '   ');
+    // the import: lib/before-writing-v2.js imports this module, so the ledger's binding closes a cycle that is read at call
+    // time only -- every entry order loads in a fresh process (loop first, as api/ask.js enters it; the two others; the handler)
+    const loads = ['lib/free-brain/loop.js', 'lib/before-writing-v2.js', 'lib/bw2-units.js', 'api/ask.js'].map((rel) => {
+      try {
+        const r = require('child_process').spawnSync(process.execPath, ['--input-type=module', '-e', 'await import(' + JSON.stringify(pathToFileURL(path.join(REPO, rel)).href) + '); console.log("LOADED")'], { cwd: REPO, encoding: 'utf8', timeout: 60000 });
+        return rel + ':' + (/LOADED/.test(r.stdout) ? 'ok' : 'FAIL ' + String(r.stderr).slice(0, 200));
+      } catch (e) { return rel + ':THREW ' + String(e && e.message); }
+    });
+    ok('F2e the import cycle is call-time only: loop.js, before-writing-v2.js, bw2-units.js and api/ask.js each load first in a fresh process', loads.every((l) => /:ok$/u.test(l)), loads.join(' | '));
+    const mLedger = await twin((s) => s.replace("  const finalText = await appendCompletionLedger(deliveredText, ctx.question); // ITEM 35-D2 R5 (brain35-2 F2)", '  const finalText = deliveredText; // mutant: the ledger is not consulted on this path'), 'ledger');
+    ok('F2 MUTANT seam applied and loaded', mLedger.changed && mLedger.mod, mLedger.error);
+    const mutantText = mLedger.mod ? (await driveLegacy(mLedger.mod, P11, GRADED)).text : '';
+    ok('F2 MUTANT KILLED: with the call removed the P11 answer ends with no collector sentence again', !!mLedger.mod && mutantText === GRADED, mutantText);
+  }
   console.log('\n=== hadith-block: ' + (checks - failures) + '/' + checks + (failures ? ' FAIL' : ' PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error('GUARD THREW: ' + (e && e.stack ? e.stack : String(e))); process.exit(1); });
