@@ -68,7 +68,12 @@ const SUPPORTED = 'وينقض الوضوء مس الذكر عند الحنابل
     ok('the encyclopedia card went out', r.sent.includes('<book'), ascii(r.sent.slice(0, 200)));
     ok('...and its tail with it (A2/D2)', r.tail.includes('المصدر: الموسوعة الفقهية الكويتية'), ascii(r.tail));
   }
-  ok('before writing asks the tail with the shown cards', /encyclopediaTail\(summary\.cited, String\(wire\.sent \|\| ''\), summary\.encyclopediaShown\)/.test(bwSrc));
+  // re-cut 2026-11-07 (brain35-2 F9; owner decision R6, DIAG2 P18): a SHOWN card names the row as a mark does, so before writing now
+  // hands the tail the UNNAMED rows only (cited, in neither markedRows nor encyclopediaShown) with no shown-cards filter -- the
+  // tail can never name a shown row. Rows 1-3 above are the function's own and stand; this row pins the new call site.
+  ok('before writing hands the tail the unnamed rows only: cited, in neither markedRows nor encyclopediaShown (re-cut 2026-11-07, owner decision R6)',
+    /const encycUnnamed = encycCited\.filter\(\(row\) => !encycMarked\.includes\(row\) && !encycShown\.includes\(row\)\);/.test(bwSrc)
+    && /encyclopediaTail\(encycUnnamed, String\(wire\.sent \|\| ''\), null\)/.test(bwSrc) && !/encyclopediaTail\(summary\.cited,/.test(bwSrc));
   console.log('-- 3. the free brain');
   {
     // api/ask.js, the switch on: pickEncyclopediaCards(out.cited, …) and then encyclopediaTail(out.cited) -- in that order
