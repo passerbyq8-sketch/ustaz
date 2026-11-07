@@ -133,9 +133,12 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e\n]/g, '~').slice(0, 200);
   const bw2Src = read('lib/before-writing-v2.js');
   // re-cut 2026-11-07 (brain35-2 F9; owner decision R6, DIAG2): a SHOWN card names the row as a mark does; the line is written
   // only when some cited encyclopedia row is named by neither, and it is handed the unnamed rows only (never a shown one).
-  ok('4a the call site writes the global line only for a cited encyclopedia row named by neither a mark nor a shown card, and hands it the unnamed rows only (re-cut 2026-11-07, owner decision R6)',
+  // re-cut again 2026-11-07 (brain35-3 X5; owner decision D4, DIAG3): the reader sees a NAME, not a row -- the line only when the
+  // encyclopedia is named NOWHERE (no marked row, no shown card, no released paragraph ending on its mark).
+  ok('4a the call site writes the global line only when the encyclopedia is named nowhere (no marked row, no shown card, no mark in the text), and hands it the unnamed rows only (re-cut 2026-11-07 twice: owner decisions R6 and D4)',
     bw2Src.includes("const encycUnnamed = encycCited.filter((row) => !encycMarked.includes(row) && !encycShown.includes(row));")
-    && bw2Src.includes("const encyc = encycCited.length > 0 && !encycUnnamed.length ? '' : encyclopediaTail(encycUnnamed, String(wire.sent || ''), null)")
+    && bw2Src.includes("const encycNamedSomewhere = encycMarked.length > 0 || encycShown.length > 0 || / — الموسوعة الفقهية الكويتية\\.\\s*$/mu.test(String(wire.sent || ''));")
+    && bw2Src.includes("const encyc = encycNamedSomewhere || !encycUnnamed.length ? '' : encyclopediaTail(encycUnnamed, String(wire.sent || ''), null)")
     && !bw2Src.includes('const encycNamedByMark'));
   ok('4b the releaser hands it the rows its marks named', read('lib/bw2-units.js').includes('sourceMarks, markedRows: [...markedRows]'));
   const ENC = { ref: 1, kind: 'encyclopedia', title: 'الموسوعة الفقهية الكويتية — القول بلا علم', recordId: 'enc:1', text: PAGE_TEXT, passage: PAGE_TEXT, part: 1 };
@@ -202,25 +205,65 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e\n]/g, '~').slice(0, 200);
     const twinPair = async (unitsFrom, unitsTo, bw2From, bw2To, tag) => {
       const unitsSrc = read('lib/bw2-units.js');
       const bw2Src = read('lib/before-writing-v2.js');
-      if (unitsFrom && unitsSrc.split(unitsFrom).length !== 2) return { ok: false, reason: 'units seam' };
-      if (bw2From && bw2Src.split(bw2From).length !== 2) return { ok: false, reason: 'bw2 seam' };
+      // brain35-3 X5: a seam may be a list (one mutant that disarms the same fact in two places), and the units twin is handed back
+      const list = (x) => x == null ? [] : Array.isArray(x) ? x : [x];
+      const seams = (src, from) => list(from).every((one) => src.split(one).length === 2);
+      const apply = (src, from, to) => list(from).reduce((acc, one, i) => acc.split(one).join(list(to)[i]), src);
+      if (unitsFrom && !seams(unitsSrc, unitsFrom)) return { ok: false, reason: 'units seam' };
+      if (bw2From && !seams(bw2Src, bw2From)) return { ok: false, reason: 'bw2 seam' };
       const abs = (src, dir) => src.replace(/from\s+(['"])(\.[^'"]*)\1/gu, (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, dir, spec)).href + q);
       const unitsTmp = path.join(REPO, 'lib', '.mut-f9-units-' + tag + '.mjs');
       const bw2Tmp = path.join(REPO, 'lib', '.mut-f9-bw2-' + tag + '.mjs');
-      fs.writeFileSync(unitsTmp, abs(unitsFrom ? unitsSrc.split(unitsFrom).join(unitsTo) : unitsSrc, 'lib'));
-      fs.writeFileSync(bw2Tmp, abs(bw2From ? bw2Src.split(bw2From).join(bw2To) : bw2Src, 'lib').split(pathToFileURL(path.join(REPO, 'lib', 'bw2-units.js')).href).join(pathToFileURL(unitsTmp).href));
-      try { return { ok: true, mod: await import(pathToFileURL(bw2Tmp).href + '?m=' + Date.now()) }; } catch (e) { return { ok: false, reason: String(e && e.message) }; } finally { fs.rmSync(unitsTmp, { force: true }); fs.rmSync(bw2Tmp, { force: true }); }
+      fs.writeFileSync(unitsTmp, abs(unitsFrom ? apply(unitsSrc, unitsFrom, unitsTo) : unitsSrc, 'lib'));
+      fs.writeFileSync(bw2Tmp, abs(bw2From ? apply(bw2Src, bw2From, bw2To) : bw2Src, 'lib').split(pathToFileURL(path.join(REPO, 'lib', 'bw2-units.js')).href).join(pathToFileURL(unitsTmp).href));
+      try { const units = await import(pathToFileURL(unitsTmp).href); return { ok: true, units, mod: await import(pathToFileURL(bw2Tmp).href + '?m=' + Date.now()) }; } catch (e) { return { ok: false, reason: String(e && e.message) }; } finally { fs.rmSync(unitsTmp, { force: true }); fs.rmSync(bw2Tmp, { force: true }); }
     };
     const m5 = await twinPair("        if (mark && mark === lastMark) { markedRows.push(...verdict.cited); /* ITEM 35-D2 R6 (brain35-2 F9): the paragraph above named the same source: these rows are named too */ } else if (mark) {",
       "        if (mark && mark === lastMark) { /* mutant: a repeated mark names nothing */ } else if (mark) {", null, null, 'repeat');
     ok('F9 MUTANT repeated-mark seam applied and loaded', m5.ok, m5.reason);
-    ok('F9 MUTANT KILLED: without the repeated-mark push the second article is unnamed and the line comes back',
-      m5.ok && (await driveTurn(m5.mod, { writerText: TWO_ARTICLES, encyclopedia: [ROW_A, ROW_B], encyclopediaCards: false })).line === true, m5.reason);
-    const m6 = await twinPair(null, null, "  const encycUnnamed = encycCited.filter((row) => !encycMarked.includes(row) && !encycShown.includes(row)); // ITEM 35-D2 R6 (brain35-2 F9): named by a mark or by a shown card",
-      "  const encycUnnamed = encycCited.filter((row) => !encycMarked.includes(row)); // mutant: a shown card names nothing", 'shown');
+    // re-cut 2026-11-07 (brain35-3 X5; owner decision D4, DIAG3): the line no longer stands on WHICH rows are marked (one marked
+    // row names the encyclopedia for the whole answer), so the push is read where it is made: the releaser's markedRows.
+    const markedByRepeat = async (U2) => {
+      const EA = { ref: 1, kind: 'encyclopedia', title: 'الموسوعة الفقهية الكويتية — مسح على الخفين', recordId: 'enc:A', text: MASAH, passage: MASAH, part: 37 };
+      const EB = { ref: 2, kind: 'encyclopedia', title: 'الموسوعة الفقهية الكويتية — جورب', recordId: 'enc:B', text: ROW_B.snippet, passage: ROW_B.snippet, part: 37 };
+      const rel = U2.createBw2Releaser({ rows: [EA, EB], emit: () => true, cards });
+      rel.push(TWO_ARTICLES + '\n');
+      const sum = await rel.end();
+      return { a: sum.markedRows.includes(EA), b: sum.markedRows.includes(EB), marks: sum.sourceMarks };
+    };
+    const headMarked = await markedByRepeat(U);
+    ok('F9 the repeated mark names the second article too: both rows in the releaser\'s markedRows under one mark (re-cut 2026-11-07, owner decision D4)', headMarked.a && headMarked.b && headMarked.marks === 1, JSON.stringify(headMarked));
+    ok('F9 MUTANT KILLED: without the repeated-mark push the second article is not in markedRows',
+      m5.ok && (await markedByRepeat(m5.units)).b === false, m5.ok ? JSON.stringify(await markedByRepeat(m5.units)) : m5.reason);
+    // re-cut 2026-11-07 (brain35-3 X5; owner decision D4): a shown card is read in two places now (the F9 filter and the
+    // named-somewhere test); one mutant disarms both, or the other keeps the line away and the row is vacuous.
+    const m6 = await twinPair(null, null, [
+      "  const encycUnnamed = encycCited.filter((row) => !encycMarked.includes(row) && !encycShown.includes(row)); // ITEM 35-D2 R6 (brain35-2 F9): named by a mark or by a shown card",
+      "  const encycNamedSomewhere = encycMarked.length > 0 || encycShown.length > 0 || "], [
+      "  const encycUnnamed = encycCited.filter((row) => !encycMarked.includes(row)); // mutant: a shown card names nothing",
+      "  const encycNamedSomewhere = encycMarked.length > 0 || /* mutant: a shown card names nothing */ "], 'shown');
     ok('F9 MUTANT shown-card seam applied and loaded', m6.ok, m6.reason);
     ok('F9 MUTANT KILLED: with the shown card not counted as a name the one-unit answer carries the line beside its card again',
       m6.ok && (await driveTurn(m6.mod, { writerText: 'يجوز المسح على الجوربين إذا لبسهما على طهارة [[1]].', encyclopedia: [ROW_A], encyclopediaCards: true })).line === true, m6.reason);
+
+    // ── brain35-3 X5 (2026-11-07; DIAG3 D4; owner decision 2026-11-07: yes) · THE LINE ONLY WHEN THE ENCYCLOPEDIA IS NAMED NOWHERE ──
+    // MEASURED (DIAG3 H4b, preview Q3/Q6): a SECOND encyclopedia row cited by a released unit whose card the emitter refused
+    // (its support test) and whose mark the mark site skipped (a card predicted) was in neither markedRows nor
+    // encyclopediaShown, so the line was written under an answer that already carried a Mawsu'a card and a Mawsu'a mark.
+    // The reader sees a NAME, not a row: the line is written only when no encyclopedia row is marked, none is shown and no
+    // released paragraph ends on the mark. 4f (one unnamed row, nothing named) keeps its line; 4g (a marked row) keeps none.
+    // Row B here supports the FIRST unit (so the tail test, which reads the whole answer, would name it) while the second
+    // unit, which cites it, shares no word with it (so its card is refused) -- the Q3 Hanbali shape in miniature.
+    const ROW_B2 = { id: 'F99903', part: 37, term: 'جورب', snippet: 'الجورب ما يلبس على القدم من صوف أو قطن، ويجوز المسح على الجوربين إذا لبسهما على طهارة عند من أجازه من أهل العلم.' };
+    const CARDED_PLUS_UNNAMED = 'يجوز المسح على الجوربين إذا لبسهما على طهارة [[1]].\n\nوهذا الحكم مبني على التيسير ورفع الحرج [[2]].';
+    const named = await driveTurn(BW2F9, { writerText: CARDED_PLUS_UNNAMED, encyclopedia: [ROW_A, ROW_B2], encyclopediaCards: true });
+    ok('4h row A carded under the first unit, row B cited by the second (released, its card refused by the support test, no mark): NO global line (the card names the encyclopedia)',
+      named.cards === 1 && !named.mark && !named.line && named.out.telemetry.unitsReleased === 2, ascii(named.text));
+    const m7 = await twinPair(null, null, "  const encyc = encycNamedSomewhere || !encycUnnamed.length ? '' : encyclopediaTail(encycUnnamed, String(wire.sent || ''), null)",
+      "  const encyc = !encycUnnamed.length ? '' : encyclopediaTail(encycUnnamed, String(wire.sent || ''), null) /* mutant: a named encyclopedia does not stop the line */", 'named');
+    ok('X5 MUTANT named-somewhere seam applied and loaded', m7.ok, m7.reason);
+    ok('X5 MUTANT KILLED: without encycNamedSomewhere the carded answer draws the line for its second row again',
+      m7.ok && (await driveTurn(m7.mod, { writerText: CARDED_PLUS_UNNAMED, encyclopedia: [ROW_A, ROW_B2], encyclopediaCards: true })).line === true, m7.reason);
   }
   // ── 5. the verse card ──
   const AYAH = 'وَلَوْ أَنَّا كَتَبْنَا عَلَيْهِمْ أَنِ اقْتُلُوا أَنفُسَكُمْ';
