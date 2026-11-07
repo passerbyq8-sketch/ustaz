@@ -2534,6 +2534,43 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
           !!MZ && MZ.partSentenceWanted(partsZ[5], RING) === false);
       }
     }
+    // ---------------------------------------------------------------- ITEM 35-D3 D5 (b) (brain35-3 X7, 2026-11-07): THE UNIT UNDER A HEADING STARTS A LINE
+    // MEASURED (DIAG3 H5 (b), preview Q14): «### التطيب لصلاه الجمعه» went out on ONE line with «وعن سلمان الفارسي…» -- the heading is
+    // released with the first unit that goes out under it, and that unit's own separator was a SPACE (the sentence before it in
+    // the same paragraph was held); the heading-release block cleared forceNewline before the unit's separator was computed.
+    // forceNewline is now set after a pending heading goes out, so sepFor gives «\n» when the unit's own sep carries none.
+    {
+      const UNITS_X7 = await esm('lib/bw2-units.js');
+      const MASAH7 = 'يجوز المسح على الجوربين إذا لبسهما على طهارة، ومدته يوم وليلة للمقيم وثلاثة أيام بلياليها للمسافر، وهذا مذهب الحنابلة.';
+      const EA7 = { ref: 1, kind: 'encyclopedia', title: 'الموسوعة الفقهية الكويتية — مسح على الخفين', recordId: 'enc:A7', publisher: 'الموسوعة الفقهية الكويتية', text: MASAH7, passage: MASAH7, part: 37 };
+      const cards7 = { buildSourceTag: (row) => ({ tag: '<source url="' + row.url + '"></source>', url: row.url }), buildBookTag: (row) => ({ tag: '<book book="' + row.recordId + '">' + row.bookTitle + '</book>' }), max: 3, encyclopediaCards: true };
+      const run7 = async (mod, text) => { const out = []; const rel = mod.createBw2Releaser({ rows: [EA7], emit: (p) => { out.push(p); return true; }, cards: cards7 }); rel.push(text + '\n'); const sum = await rel.end(); return { text: out.join(''), sum }; };
+      const HEAD7 = '### المسح على الجوربين';
+      const HELD7 = 'قال الشافعية: لا يجوز المسح على الجورب الرقيق.'; // an uncited attribution: held
+      const OUT7 = 'ويجوز المسح على الجوربين إذا لبسهما على طهارة [[1]].';
+      const glued = await run7(UNITS_X7, HEAD7 + '\n\n' + HELD7 + ' ' + OUT7);
+      ok('X7a a heading, its paragraph\'s first sentence held, the second released: a line break stands between the heading and the sentence',
+        glued.sum.holds.unsupported_attribution === 1 && glued.text.startsWith(HEAD7 + '\n') && !glued.text.includes(HEAD7 + ' و'), JSON.stringify(glued.text.slice(0, 80)));
+      const plain7 = await run7(UNITS_X7, HEAD7 + '\n\n' + OUT7);
+      ok('X7b a heading whose first sentence is released: the bytes unchanged (the paragraph break the writer wrote)',
+        plain7.text.startsWith(HEAD7 + '\n\n' + OUT7.replace(' [[1]]', '')), JSON.stringify(plain7.text.slice(0, 80)));
+      const paras7 = await run7(UNITS_X7, HEAD7 + '\n\n' + HELD7 + '\n\n' + OUT7);
+      ok('X7c a heading, a held paragraph, a released paragraph: unchanged (the unit\'s own separator already breaks the line)',
+        paras7.text.startsWith(HEAD7 + '\n\n' + OUT7.replace(' [[1]]', '')), JSON.stringify(paras7.text.slice(0, 80)));
+      {
+        const srcH = read('lib/bw2-units.js');
+        const seamH = "      pendingSep = '';\n      // ITEM 35-D3 D5 (b) (brain35-3 X7): the unit under a heading starts a line, whatever separator it carried after a held\n      // sentence of its own paragraph (MEASURED, preview Q14: «التطيب لصلاه الجمعه وعن سلمان الفارسي…» on one line).\n      forceNewline = true;";
+        ok('X7 mutant seam present once', srcH.split(seamH).length === 2);
+        const tmpH = path.join(REPO, 'lib', '.mut-x7-heading.mjs');
+        fs.writeFileSync(tmpH, srcH.split(seamH).join("      pendingSep = '';\n      forceNewline = false; // mutant: the heading leaves the unit its own separator").replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MH = null;
+        try { MH = await import(pathToFileURL(tmpH).href + '?m=' + Date.now()); } catch (e) { MH = null; } finally { fs.rmSync(tmpH, { force: true }); }
+        ok('X7 mutant loads', !!MH);
+        ok('X7 MUTANT KILLED: with forceNewline cleared the heading and the sentence are glued on one line again',
+          !!MH && (await run7(MH, HEAD7 + '\n\n' + HELD7 + ' ' + OUT7)).text.includes(HEAD7 + ' و'), MH ? JSON.stringify((await run7(MH, HEAD7 + '\n\n' + HELD7 + ' ' + OUT7)).text.slice(0, 80)) : 'no module');
+      }
+    }
     // ---------------------------------------------------------------- ITEM 35-D2 R2 (brain35-2 F1, 2026-11-07): THE ENUMERATION LABEL IS RELEASED WITH ITS SUBJECT
     // MEASURED (DIAG2 HB2 V10 / V17 on the real turn): «الشرط الأول: الإسلام، <clause>» was held whole when its clause failed (an
     // unproven quoted matn, an uncited group view), and the answer opened on «الشرط الثاني». The label with its subject now goes
