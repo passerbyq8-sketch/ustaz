@@ -2892,6 +2892,8 @@ export default async function handler(req, res) {
           context: storedContext,
           band,
           depth: band === 'adult' ? effectiveDepth : 'brief',
+          // ITEM 35-D3 M1 (brain35-3 X11): the stored-deen hybrid block takes the one brief shape (lib/full-fatwa.js serverOwnedBlock, F8) on the brief tier
+          brief: (band === 'adult' ? effectiveDepth : 'brief') === 'brief',
           model,
           maxTokens,
           usePremium,
