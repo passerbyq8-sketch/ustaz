@@ -99,6 +99,7 @@ for(const [name,mutant,missing] of [
  ['station removed',source.replace("{ id: 'mushaf', screen: 'home', sections: ['mushaf'] },",''),false],
  ['key missing',source,true],
  ['Arabic changed',source.replace(JSON.stringify(approved.info_button_label),JSON.stringify(approved.info_button_label+'!')),false],
+ ['worship Arabic changed',source.replace(JSON.stringify(approved.steps.find(s=>s.id==='worship').text),JSON.stringify(approved.steps.find(s=>s.id==='worship').text+'!')),false],
  ['hidden retained',source.replace("ezPanelAvailability(policy, id).state !== 'hidden'",'true'),false],
  ['activity never released',source.replace("if (b.previous === 'chat' && screen !== 'chat') b.deferred = false;",''),false],
  ['late welcome',source.replace('blocked || active','true'),false],
