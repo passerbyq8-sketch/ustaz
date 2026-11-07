@@ -27289,8 +27289,8 @@ const EzikMarkdown = React.memo(function EzikMarkdown({ text }) {
 
 // POSTSHIP FIX3 ITEM 1 -- 2026-10-25: the brief answer's fatwa block is an excerpt closed by «…» and then the <fatwafull>
 // tag carrying the whole block (lib/full-fatwa.js serverOwnedBlock), so the excerpt is the end of the text segment right
-// before the tag. It is recognised only when that text ends with a beginning of the whole block (from its heading line)
-// and «…»; the text with the whole block in the excerpt's place is then what «النص الكامل» shows. Anything else: null.
+// before the tag. Adjacency and the closing ellipsis pair it, even when the brief puts the answer before the question.
+// Keep prose before the heading; replace the excerpt in place with the decoded full block.
 function ezikFatwaBriefAt(segments, i) {
   const seg = segments && segments[i];
   const next = segments && segments[i + 1];
@@ -27298,8 +27298,7 @@ function ezikFatwaBriefAt(segments, i) {
   const body = String(seg.content || '').replace(/\s+$/u, '');
   if (!body.endsWith('…')) return null;
   const head = next.text.split('\n')[0];
-  const at = head ? body.lastIndexOf(head) : -1;
-  if (at < 0 || !next.text.startsWith(body.slice(at, -1))) return null;
+  const at = Math.max(0, head ? body.lastIndexOf(head) : -1);
   // POSTSHIP FIX4: `at` is where the excerpt begins in the text, for the fold that keeps it whole (ezikFoldSegments).
   return { label: next.label, content: body.slice(0, at) + next.text, at };
 }
