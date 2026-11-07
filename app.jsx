@@ -18,6 +18,8 @@ function EzPanelUnavailable({ policy, onBack }) {
   </EzShell>;
 }
 function EzPanelCampaign({ profile, document }) {
+  // Campaigns alone require a disclosed year; the rest of the app retains its adult default.
+  profile = { ...profile, age: profile?.birthYearProvided === true ? profile?.age : undefined };
   const [shown, setShown] = useState(null), dialog = useRef(null);
   const eligible = !!(window.EzikPanelPolicy && window.EzikPanelPolicy.campaignEligible(document, profile?.age, Date.now()));
   const active = !!(shown && eligible && shown.id === document.campaign?.id);
@@ -24561,7 +24563,7 @@ function App() {
     // S92: pid is the identity this profile's saved conversations are filed under. It is minted
     // here, once, so a NEW profile on a device that already carries one starts with an empty
     // menu and can never be shown the previous child's history.
-    const p = { name, age, gender, birthYear, pid: ezikMintId(), createdAt: new Date().toISOString() };
+    const p = { name, age, gender, birthYear, birthYearProvided: false, pid: ezikMintId(), createdAt: new Date().toISOString() };
     profileRef.current = p;
     voiceProfileRef.current = p;                // غ‑٣: مرآةُ حاجزِ الصوت — قبل أيّ نطقٍ أو تحيّة
     setProfile(p);
@@ -24591,7 +24593,7 @@ function App() {
   //
   // It answers TRUE only when something was actually written, so the sheet can say so rather
   // than claim a save that a full store refused.
-  const saveProfileFields = (name, gender, birthYear) => {
+  const saveProfileFields = (name, gender, birthYear, yearProvided) => {
     const base = profileRef.current;
     if (!base) return false;
     const raw = ezikLatinDigits(birthYear).trim();
@@ -24603,7 +24605,7 @@ function App() {
     }
     const year = typed ? yr : (new Date().getFullYear() - ONBOARDING_DEFAULT_AGE);
     const p = { ...base, name: String(name || '').trim(), gender: gender || null,
-      birthYear: year, age: new Date().getFullYear() - year };
+      birthYear: year, age: new Date().getFullYear() - year, birthYearProvided: typed && /^\d{4}$/.test(raw) && yearProvided !== false };
     profileRef.current = p;
     voiceProfileRef.current = p;               // غ‑٣: مرآةُ حاجزِ الصوت — تُكتب مع profileRef دائماً
     setProfile(p);
@@ -24614,7 +24616,7 @@ function App() {
   const ez110SaveGender = (g) => {
     const p = profileRef.current;
     if (!ez110GenderWritable(p) || (g !== 'male' && g !== 'female')) return false;
-    return saveProfileFields(p.name, g, String(p.birthYear));
+    return saveProfileFields(p.name, g, String(p.birthYear), p.birthYearProvided === true);
   };
   EZ110_SAVE_GENDER = ez110SaveGender;
   // ROUND 3 §3-8: a run that showed the entry card (a sign-in or a guest entry) asks no gender
@@ -39609,6 +39611,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   const [pfName, setPfName] = useState(() => String((profile && profile.name) || ''));
   const [pfGender, setPfGender] = useState(() => (profile && profile.gender) || null);
   const [pfYear, setPfYear] = useState(() => (profile && profile.birthYear != null ? String(profile.birthYear) : ''));
+  const pfYearProvided = useRef(profile?.birthYearProvided === true);
   const [pfMsg, setPfMsg] = useState('');
   // D16 SETTINGS PROFILE START
   useEffect(() => {
@@ -39622,7 +39625,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   const pfYearOk = !(pfYear.trim() && !(Number.isInteger(pfYearNum) && pfDerived >= 4 && pfDerived <= 99));
   const savePf = () => {
     if (!pfYearOk) return;
-    setPfMsg(onSaveProfile(pfName, pfGender, pfYear) ? ezT('settings.profileSaved') : ezT('settings.profileSaveFailed'));
+    setPfMsg(onSaveProfile(pfName, pfGender, pfYear, pfYearProvided.current) ? ezT('settings.profileSaved') : ezT('settings.profileSaveFailed'));
   };
   const [pin1, setPin1] = useState('');
   const [pin2, setPin2] = useState('');
@@ -39768,7 +39771,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
               is not focusable, and it claims nothing about him. */}
           {/* ROUND 4 (phone round N7): «ب» offers two answers, so its line names two (a new key; the old one, read dark, is untouched) */}
           <div style={s.a11ySwitchHint}>{ezT(ez.id ? 'ez110.set.womenRule' : 'settings.womenCornerRule')}</div>
-          <input value={pfYear} onChange={(e) => { setPfYear(e.target.value); setPfMsg(''); }}
+          <input value={pfYear} onChange={(e) => { setPfYear(e.target.value); pfYearProvided.current = true; setPfMsg(''); }}
             placeholder={ezT('onboarding.birthYear')} aria-label={ezT('onboarding.birthYear')}
             type="text" inputMode="numeric" pattern="[0-9]*" maxLength={4} style={EZ_LANG_DIR[EZ_LANG] === 'ltr' ? { ...s.welcomeInput, direction: 'ltr' } : s.welcomeInput} />
           {pfYear.trim() && !pfYearOk && <div className="ezgate-err">{ezT('onboarding.yearError')}</div>}
