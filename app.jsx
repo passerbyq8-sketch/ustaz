@@ -21756,7 +21756,7 @@ function useEzikIntroTour(screen, setScreen, policy) {
   useEffect(() => {
     const b = boot.current;
     if (screen !== 'loading' && screen !== 'onboarding' && screen !== 'chat') b.left = true;
-    if (screen === 'chat' && b.previous !== 'chat' && b.left) b.held = false;
+    if (b.left && b.previous !== 'chat' && screen === 'chat') b.held = false;
     b.previous = screen;
     if (tour || screen !== 'chat') return;
     const attempt = () => {
