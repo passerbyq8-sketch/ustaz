@@ -732,7 +732,32 @@ async function main() {
       ok('F8 MUTANT length-test seam applied', mF8.ok, mF8.reason);
       ok('F8 MUTANT KILLED: with the length test restored the short record is the old question-first block again',
         mF8.ok && mF8.mod.serverOwnedBlock(shortRec, [], { band: 'adult', brief: true }) === shortWhole);
+    }    // ── brain35-2 F10 (2026-11-07; DIAG2 R13 a) · THE «فأجاب …:» SPLIT AS A SAFETY FOR ONE-FIELD RECORDS ────────────
+    // MEASURED (DIAG2 R13): the sheet the extension opened («السائل م س يقول … فأجاب رحمه الله تعالى: …») as a store record
+    // with one text field was refused by recordUsableAsFatwa before the brief block was reached; printedFatwaPair knew only
+    // «الجواب:» / «السؤال:». A record whose answer is empty and whose question carries the answering formula is now split on it,
+    // and recordUsableAsFatwa judges the record AFTER the split. The title floor (lib/fatwa-title.js) is not changed.
+    const ONE_FIELD = (formula) => ({ ...record(''), question: SHEET_Q + ' ' + formula + ' ' + SHEET_A, answer: '', supportText: SHEET_Q + ' ' + SHEET_A });
+    const sheet = ONE_FIELD('فأجاب رحمه الله تعالى:');
+    const sheetPair = FF.printedFatwaPair(sheet);
+    ok('F10a the sheet as one `question` field is usable: question ' + SHEET_Q.length + ' chars, answer ' + SHEET_A.length + ', substantive, and the brief block opens on the answer',
+      FF.recordUsableAsFatwa(sheet) === true && sheetPair.question === SHEET_Q && sheetPair.answer === SHEET_A && FF.substantiveFatwaAnswer(sheet) === true
+      && FF.serverOwnedBlock(sheet, [], { band: 'adult', brief: true }).startsWith('## ' + FF.HEADING_TEXT + '\n\n' + FF.BRIEF_ANSWER_HEAD + '\n' + SHEET_A),
+      JSON.stringify({ usable: FF.recordUsableAsFatwa(sheet), q: sheetPair.question.length, a: sheetPair.answer.length }));
+    ok('F10b «ج:» and «فأجابه:» and «فالجواب:» and «فأجاب فضيلته:» split the same way',
+      ['ج:', 'فأجابه:', 'فالجواب:', 'فأجاب فضيلته:', 'فأجاب الشيخ:'].every((f) => { const p = FF.printedFatwaPair(ONE_FIELD(f)); return p.question === SHEET_Q && p.answer === SHEET_A && FF.recordUsableAsFatwa(ONE_FIELD(f)); }));
+    ok('F10c a «ج:» inside a word («الحج:») does not split, and a one-field record with no formula stays unusable',
+      FF.recordUsableAsFatwa({ ...record(''), question: 'ما حكم الحج: هل هو واجب على الفور؟', answer: '' }) === false
+      && FF.recordUsableAsFatwa({ ...record(''), question: SHEET_Q + ' ' + SHEET_A, answer: '' }) === false);
+    ok('F10d a record with both fields is unchanged byte for byte, even when its question carries the formula',
+      JSON.stringify(FF.printedFatwaPair(long)) === JSON.stringify({ question: long.question, answer: long.answer }) && FF.recordUsableAsFatwa(long) === true
+      && (() => { const both = { ...record(SHEET_A), question: SHEET_Q + ' فأجاب رحمه الله تعالى: ' + SHEET_A }; const p = FF.printedFatwaPair(both); return p.question === SHEET_Q + ' فأجاب رحمه الله تعالى: ' + SHEET_A && p.answer === SHEET_A; })());
+    {
+      const mF10 = await mutate('lib/full-fatwa.js', "  if (!answer.trim()) {\n    const formula = FA_AJABA_RE.exec(question);", "  if (false) { // mutant: no one-field sheet is split\n    const formula = FA_AJABA_RE.exec(question);", 'split');
+      ok('F10 MUTANT split seam applied', mF10.ok, mF10.reason);
+      ok('F10 MUTANT KILLED: without the split the one-field sheet is refused again', mF10.ok && mF10.mod.recordUsableAsFatwa(sheet) === false && mF10.mod.printedFatwaPair(sheet).answer === '');
     }
+
 
   }
 
