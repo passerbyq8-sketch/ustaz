@@ -3948,6 +3948,40 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       }
     }
 
+    // ── brain35-3 X3 (2026-11-07; DIAG3 D3 (a); owner D3: (a) and (b)) · THE LEDGER READS WHAT THE READER READS ────────
+    // MEASURED (DIAG3 H3, preview Q8): the collector was judged named by the `<hadith narrator="…">` attribute of the card,
+    // which app.jsx HadithCard never prints (label, matn, ruling only), so no collector sentence went out while the reader saw
+    // no collector. The tag's attributes are stripped before collectionsNamed; the leadLine branch is unchanged.
+    {
+      const LEDGER = await esm('lib/completion-ledger.js');
+      const Q8 = 'ما صحة حديث «من قرأ آية الكرسي دبر كل صلاة مكتوبة لم يمنعه من دخول الجنة إلا أن يموت»؟ ومن أخرجه؟';
+      const H1 = 'الحديث ورد بلفظ: «من قرأ آية الكرسي في دبر كل صلاة مكتوبة لم يمنعه من دخول الجنة إلا أن يموت».';
+      const MATN = 'مَنْ قَرَأَ آيَةَ الْكُرْسِيِّ فِي دُبُرِ كُلِّ صَلَاةٍ مَكْتُوبَةٍ لَمْ يَمْنَعْهُ مِنْ دُخُولِ الْجَنَّةِ إِلَّا أَنْ يَمُوتَ';
+      const COMPANION = 'وهو من حديث أبي أمامة رضي الله عنه.';
+      const tagWith = (narrator, ruling) => '<hadith narrator="' + narrator + '" ruling="' + ruling + '">' + MATN + '</hadith>';
+      const CARDED = [H1, tagWith('أخرجه النسائي في الكبرى والطبراني', 'حسن (وإسناده جيد)'), COMPANION].join('\n');
+      const ledgerX3 = (released) => LEDGER.completionLedger({ question: Q8, released });
+      ok('X3a a released text whose only collector stands in narrator="…" -> the collector sentence IS appended', ledgerX3(CARDED).includes(LEDGER.LEDGER_COLLECTOR_SENTENCE), JSON.stringify(ledgerX3(CARDED)));
+      ok('X3b the same collector in prose («رواه النسائي») -> not appended', !ledgerX3([H1, 'رواه النسائي في الكبرى.', COMPANION].join('\n')).includes(LEDGER.LEDGER_COLLECTOR_SENTENCE));
+      ok('X3c «وهو من حديث أبي أمامة» alone -> appended (the companion is no collector)', ledgerX3(COMPANION).includes(LEDGER.LEDGER_COLLECTOR_SENTENCE));
+      ok('X3d the lead-line branch unchanged: a library head naming the collector -> not appended', !LEDGER.completionLedger({ question: Q8, released: COMPANION, leadLine: 'أخرجه النسائي في الكبرى والطبراني في الكبير.' }).includes(LEDGER.LEDGER_COLLECTOR_SENTENCE));
+      // the mutant: the attribute strip removed -> X3a red
+      {
+        const fsM = require('fs'); const { pathToFileURL } = require('url');
+        const srcG = fsM.readFileSync(path.join(REPO, 'lib/completion-ledger.js'), 'utf8').replace(/\r\n/g, '\n');
+        const seamV = "    const visible = everywhere.replace(/<hadith\\b[^>]*>/gu, '<hadith>');";
+        ok('X3 mutant seam present once', srcG.split(seamV).length === 2);
+        const tmpV = path.join(REPO, 'lib', '.mut-x3-visible.mjs');
+        fsM.writeFileSync(tmpV, srcG.split(seamV).join('    const visible = everywhere; // mutant: the tag attributes are read again').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MV = null;
+        try { MV = await import(pathToFileURL(tmpV).href + '?m=' + Date.now()); } catch (e) { MV = null; } finally { fsM.rmSync(tmpV, { force: true }); }
+        ok('X3 mutant loads', !!MV);
+        ok('X3 MUTANT KILLED: with the narrator attribute read again the carded Q8 text draws no collector sentence',
+          !!MV && !MV.completionLedger({ question: Q8, released: CARDED }).includes(MV.LEDGER_COLLECTOR_SENTENCE), MV ? JSON.stringify(MV.completionLedger({ question: Q8, released: CARDED })) : 'no module');
+      }
+    }
+
   }
 
 
