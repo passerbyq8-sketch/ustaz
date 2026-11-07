@@ -34,6 +34,29 @@ const t = (name, got, want) => {
   if (a === b) { passed++; say('  PASS  ' + name); } else { failed++; say('  FAIL  ' + name + '\n        got  ' + a + '\n        want ' + b); }
 };
 const ok = (name, cond, detail) => t(name + (cond || !detail ? '' : ' [' + detail + ']'), !!cond, true);
+// The public settings exception is a request shape, not a URL-only exemption.
+function unexpectedRequest({ url, init = {} }) {
+  if (url === '/api/panel-settings') {
+    return (init.method === undefined ? 'GET' : String(init.method).toUpperCase()) !== 'GET'
+      || init.credentials !== 'omit' || init.body != null
+      || (init.headers != null && Array.from(new Headers(init.headers)).length !== 0);
+  }
+  return !/^\/[a-z0-9-]+\.json$/.test(url) && !/^\/api\/articles-list\?/.test(url) && url !== '/api/usage';
+}
+function checkRequestControls() {
+  const publicRead = { url: '/api/panel-settings', init: { credentials: 'omit' } };
+  t('public settings default GET is allowed', [publicRead].filter(unexpectedRequest), []);
+  t('public settings explicit GET is allowed', [{ ...publicRead, init: { ...publicRead.init, method: 'GET' } }].filter(unexpectedRequest), []);
+  for (const [name, change] of [
+    ['POST', { method: 'POST' }], ['credentials', { credentials: 'include' }],
+    ['body', { body: 'private' }], ['custom header', { headers: { 'x-private': 'private' } }],
+  ]) {
+    const request = { ...publicRead, init: { ...publicRead.init, ...change } };
+    t('request assertion rejects panel settings ' + name, [request].filter(unexpectedRequest), [request]);
+  }
+  const unrelated = { url: '/api/unrelated', init: { credentials: 'omit' } };
+  t('request assertion rejects unrelated URLs', [unrelated].filter(unexpectedRequest), [unrelated]);
+}
 function memStore(seed) {
   const m = new Map(Object.entries(seed || {}));
   return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => { m.set(k, String(v)); },
@@ -83,7 +106,7 @@ function boot(opts) {
   if (opts.permission) Object.defineProperty(NP, 'permissions', { configurable: true, get: () => ({ query: () => Promise.resolve({ state: opts.permission }) }) });
   const FIX = new Set(['/places.json', '/adhkar.json', '/adhkar-split-27.json', '/arbaeen.json']);
   window.fetch = (url, init) => {
-    const key = String(url); requests.push(key);
+    const key = String(url); requests.push({ url: key, init: { ...init, headers: init && init.headers != null ? Array.from(new Headers(init.headers)) : undefined } });
     if (key === '/api/usage') {
       let event = null;
       try { event = JSON.parse(init && init.body); } catch (_) {}
@@ -145,7 +168,7 @@ SCENES.section = async () => {
     && c.usageEvents.every((e) => e && Object.keys(e).every((k) => ['section', 'anon', 'from', 'gap', 'boot', 'side', 'plat', 'appv', 'notif'].includes(k))
       && typeof e.section === 'string' && Object.hasOwn(sections, e.section)
       && typeof e.anon === 'string' && /^[a-f0-9]{32}$/.test(e.anon)));
-  t('only static corpora, home feeds and anonymous usage were requested', c.requests.filter((r) => !/^\/[a-z0-9-]+\.json$/.test(r) && !/^\/api\/articles-list\?/.test(r) && r !== '/api/usage' && r !== '/api/panel-settings'), []);
+  t('only static corpora, home feeds and anonymous usage were requested', c.requests.filter(unexpectedRequest), []);
   t('nothing threw', c.caught(), null);
 };
 SCENES.manual = async () => {
@@ -221,6 +244,7 @@ SCENES.shell = async () => {
 };
 
 async function main() {
+  checkRequestControls();
   const which = process.argv[2];
   if (which && which !== '--all') {
     if (!SCENES[which]) throw new Error('no scene ' + which);
