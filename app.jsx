@@ -21741,11 +21741,12 @@ function ezTourBootHeld() {
 function ezTourCanAuto(screen, held, seen, blocked) {
   return screen === 'chat' && !held && !seen && !blocked;
 }
-function ezTourSelector(id) {
-  if (id === 'chat') return '.ezc-dock';
-  if (id === 'profile') return '[data-ezik-topbar="menu"]';
-  if (id === 'info') return '[data-ezik-topbar="tour"]';
-  return '[data-ezik-home-module="' + id + '"], [data-ez110-tile="' + id + '"], [data-ezik-tour-entry="' + id + '"]';
+function ezTourTarget(id) {
+  if (id === 'chat') return document.querySelector('.ezc-dock');
+  if (id === 'profile') return document.querySelector('[data-ezik-topbar="menu"]');
+  if (id === 'info') return document.querySelector('[data-ezik-topbar="tour"]');
+  return [...document.querySelectorAll('[data-ezik-home-module], [data-ez110-tile], [data-ezik-tour-entry]')]
+    .find(el => el.dataset.ezikHomeModule === id || el.dataset.ez110Tile === id || el.dataset.ezikTourEntry === id);
 }
 function useEzikIntroTour(screen, setScreen, policy, chat) {
   const [tour, setTour] = useState(null);
@@ -21802,7 +21803,7 @@ function EzikIntroTour({ tour, onMove, onClose }) {
   const ids = step ? step.sections : tour.id === 'finish' ? ['info'] : [];
   const titleKey = 'tour.' + tour.id + '.title', textKey = 'tour.' + tour.id + '.text';
   useEffect(() => {
-    const targets = ids.map(id => document.querySelector(ezTourSelector(id))).filter(Boolean);
+    const targets = ids.map(id => ezTourTarget(id)).filter(Boolean);
     targets[0]?.scrollIntoView?.({ block: 'center', behavior: 'instant' });
     const measure = () => { setBubbleHeight(box.current?.getBoundingClientRect().height || 300); setRects(targets.map(el => { const r = el.getBoundingClientRect(); return { x: r.left - 4, y: r.top - 4, width: r.width + 8, height: r.height + 8 }; }).filter(r => r.width > 8 && r.height > 8)); };
     measure(); window.addEventListener('resize', measure); window.addEventListener('scroll', measure, true);
