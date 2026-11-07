@@ -258,6 +258,69 @@
       "expect": {
         "trigger": null
       }
+    },
+    {
+      "id": "S5-p13-side-issue-parties",
+      "question": "ما حكم الزكاة في الإسلام وهل هي فرض؟",
+      "note": "brain35-2 F6 (DIAG2 R7, P13): one agreed ruling, then two parties on WHEN zakah was made obligatory (no stance word, no stem of the question) and a source that declares a khilaf on the timing -> no tail: the parties are not views on the question",
+      "input": {
+        "text": "الزكاة فرض وركن من أركان الإسلام، دل على ذلك الكتاب والسنة والإجماع. وذهب الأكثرون إلى أن ذلك كان في السنة الثانية من الهجرة، وذهب ابن خزيمة إلى أنه كان قبل الهجرة.",
+        "evidence": [
+          {
+            "id": "s5",
+            "snippet": "الزكاة فرض بإجماع المسلمين، واختلف أهل العلم في وقت فرضها: فذهب الأكثرون إلى السنة الثانية من الهجرة، وذهب ابن خزيمة إلى أنها كانت قبل الهجرة، وفي هذه المسألة خلاف بين أهل العلم."
+          }
+        ],
+        "domain": "fiqh",
+        "mode": "brief",
+        "truncated": false,
+        "topic": "sharia_ruling"
+      },
+      "expect": {
+        "trigger": null
+      }
+    },
+    {
+      "id": "S6-two-parties-on-subject-party-level",
+      "question": "هل ينقض الوضوء لمس المرأة؟",
+      "note": "brain35-2 F6 (DIAG2 R7): two parties, the second naming the subject in one of its two sentences only -> source (the match is party-level: one clause on the subject keeps the party)",
+      "input": {
+        "text": "ذهب الشافعية إلى أن لمس المرأة ينقض الوضوء. وذهب الحنفية إلى خلاف ذلك، وقال الحنفية: لا ينقض الوضوء لمس المرأة بحال.",
+        "evidence": [
+          {
+            "id": "s6",
+            "snippet": "لمس المرأة ينقض الوضوء عند الشافعية ولا ينقضه عند الحنفية، وفي هذه المسألة خلاف بين أهل العلم."
+          }
+        ],
+        "domain": "fiqh",
+        "mode": "brief",
+        "truncated": false,
+        "topic": "sharia_ruling"
+      },
+      "expect": {
+        "trigger": "source"
+      }
+    },
+    {
+      "id": "S7-generic-question-filter-off",
+      "question": "ما الحكم؟",
+      "note": "brain35-2 F6 (DIAG2 R7): a question with fewer than two issue terms turns the subject filter off -> the P13 text counts its two parties as before -> source",
+      "input": {
+        "text": "الزكاة فرض وركن من أركان الإسلام، دل على ذلك الكتاب والسنة والإجماع. وذهب الأكثرون إلى أن ذلك كان في السنة الثانية من الهجرة، وذهب ابن خزيمة إلى أنه كان قبل الهجرة.",
+        "evidence": [
+          {
+            "id": "s7",
+            "snippet": "الزكاة فرض بإجماع المسلمين، واختلف أهل العلم في وقت فرضها، وفي هذه المسألة خلاف بين أهل العلم."
+          }
+        ],
+        "domain": "fiqh",
+        "mode": "brief",
+        "truncated": false,
+        "topic": "sharia_ruling"
+      },
+      "expect": {
+        "trigger": "source"
+      }
     }
   ]
 }

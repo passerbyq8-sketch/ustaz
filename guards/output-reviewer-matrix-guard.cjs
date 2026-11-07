@@ -971,17 +971,18 @@ function quantityContradiction(parts) {
     // them) and four hand-written controls: the tail only under a topic that allows it and only when the released text
     // sets out two attributed views whose stances differ.
     const khilafCases = JSON.parse(fs.readFileSync(path.join(ROOT, 'fixtures', 'brain35-khilaf-cases.json'), 'utf8'));
-    ok('A-1 fixture carries Q39, Q19, Q13, Q08 and the four controls', Array.isArray(khilafCases.cases) && khilafCases.cases.length === 8
+    ok('A-1 fixture carries Q39, Q19, Q13, Q08, the four controls and F6 three (re-cut 2026-11-07, owner decision R7: three cases added)', Array.isArray(khilafCases.cases) && khilafCases.cases.length === 11
       && ['Q39', 'Q19', 'Q13', 'Q08'].every((id) => khilafCases.cases.some((c) => c.id === id)));
     const { classifyTopic } = await import(pathToFileURL(path.join(ROOT, 'lib', 'policy', 'core.js')).href);
+    const QT = await import(pathToFileURL(path.join(ROOT, 'lib', 'question-terms.js')).href); // brain35-2 F6: the subject the caller passes
     const khilafCasePasses = (mod, test) => {
-      const input = { ...test.input, topic: test.input.topic || classifyTopic(String(test.question || '')), question: test.question || '' };
+      const input = { ...test.input, topic: test.input.topic || classifyTopic(String(test.question || '')), question: test.question || '', subjectTerms: QT.subjectTermsOf(test.question || '') };
       const result = mod.reviewAnswer(input);
       return result.verdict.khilafTrigger === test.expect.trigger
         && occurrences(result.text, fixture.c2.tail) === (test.expect.trigger ? 1 : 0);
     };
     for (const test of khilafCases.cases) {
-      const input = { ...test.input, topic: test.input.topic || classifyTopic(String(test.question || '')), question: test.question || '' };
+      const input = { ...test.input, topic: test.input.topic || classifyTopic(String(test.question || '')), question: test.question || '', subjectTerms: QT.subjectTermsOf(test.question || '') };
       const result = module.reviewAnswer(input);
       ok('A-1 ' + test.id + ': khilaf trigger is ' + JSON.stringify(test.expect.trigger) + ' (' + test.note.slice(0, 60) + ')',
         khilafCasePasses(module, test), JSON.stringify({ trigger: result.verdict.khilafTrigger, releasedViews: result.verdict.releasedViews, topic: input.topic }));
@@ -990,6 +991,46 @@ function quantityContradiction(parts) {
       module.releasedViewsIn([khilafCases.cases.find((c) => c.id === 'Q08').input.text]) >= 3
         && module.releasedViewsIn([khilafCases.cases.find((c) => c.id === 'Q39').input.text]) < 2
         && module.releasedViewsIn([khilafCases.cases.find((c) => c.id === 'Q19').input.text]) < 2);
+    // ── brain35-2 F6 (2026-11-07; DIAG2 R7; owner: yes) · THE KHILAF VIEW COUNT IS PARTY-LEVEL ON THE QUESTION'S SUBJECT ──
+    // MEASURED (DIAG2 R7, P13 «ما حكم الزكاة في الإسلام وهل هي فرض؟»): the tail stood under an agreed ruling, lit by two
+    // attributed parties on WHEN zakah was made obligatory. releasedViewsIn now takes the question's stemmed issue terms
+    // (subjectTermsOf: lib/question-terms.js issueTerms + stemWord) and counts a party only when at least one of its clauses
+    // shares a term with the question -- party-level, never clause-level (clause-level loses Q11's tail, measured in DIAG2
+    // HC); with fewer than two issue terms the filter is off. Both call sites pass the question. Fixture re-cut: three cases
+    // added (S5 the P13 shape -> null, S6 two parties on the subject in one sentence each -> source, S7 a generic question
+    // -> the filter off -> source), so the fixture-count row above reads eleven.
+    {
+      const S5 = khilafCases.cases.find((c) => c.id === 'S5-p13-side-issue-parties');
+      const S6 = khilafCases.cases.find((c) => c.id === 'S6-two-parties-on-subject-party-level');
+      const S7 = khilafCases.cases.find((c) => c.id === 'S7-generic-question-filter-off');
+      ok('F6 the three cases are in the fixture with their questions', !!S5 && !!S6 && !!S7 && S5.question && S6.question && S7.question);
+      ok('F6 wiring: the before-writing path\'s whole-answer review passes the subject (subjectTerms: subjectTermsOf(question)); the reviewer imports nothing',
+        /subjectTerms: subjectTermsOf\(question\),\n\s*\}\);\n\s*const tail = String\(REVIEW_KHILAF_TAIL/u.test(fs.readFileSync(path.join(ROOT, 'lib', 'before-writing-v2.js'), 'utf8'))
+        && !/(\bfrom\s*')(\.\.?\/)/u.test(fs.readFileSync(REVIEWER, 'utf8')));
+      ok('F6 the reviewer\'s own stem equals question-terms.js stemWord on the words the subject test meets',
+        ['والزكاه', 'للصلاه', 'بالوضوء', 'الفرض', 'فرضت', 'لمس', 'ال', 'ينقض'].every((w) => QT.stemWord(w) === w.replace(/^[وفب](?=...)/u, '').replace(/^(?:لل|ال|ل)(?=..)/u, ''))
+        && /const subjectStem = \(w\) => w\.replace\(\/\^\[وفب\]\(\?=\.\.\.\)\/u, ''\)\.replace\(\/\^\(\?:لل\|ال\|ل\)\(\?=\.\.\)\/u, ''\);/u.test(fs.readFileSync(REVIEWER, 'utf8')));
+      const subj5 = QT.subjectTermsOf(S5.question);
+      ok('F6a subjectTermsOf(P13) is the two stemmed issue terms «زكاه», «فرض»; a generic question gives null (the filter off)',
+        subj5 instanceof Set && subj5.has('زكاه') && subj5.has('فرض') && subj5.size === 2 && QT.subjectTermsOf('ما الحكم؟') === null && QT.subjectTermsOf('') === null,
+        JSON.stringify(subj5 ? [...subj5] : null));
+      ok('F6b the P13 text counts two parties with no subject and none on the question\'s subject (both parties speak of the timing only)',
+        module.releasedViewsIn([S5.input.text]) === 2 && module.releasedViewsIn([S5.input.text], null, { subjectTerms: subj5 }) === 0,
+        JSON.stringify([module.releasedViewsIn([S5.input.text]), module.releasedViewsIn([S5.input.text], null, { subjectTerms: subj5 })]));
+      ok('F6c the party-level match: the Hanafi party names the subject in one of its two sentences only, and still counts',
+        module.releasedViewsIn([S6.input.text], null, { subjectTerms: QT.subjectTermsOf(S6.question) }) === 2, String(module.releasedViewsIn([S6.input.text], null, { subjectTerms: QT.subjectTermsOf(S6.question) })));
+      ok('F6d Q08 keeps its count on its own question (party-level): at least three views', module.releasedViewsIn([khilafCases.cases.find((c) => c.id === 'Q08').input.text], null, { subjectTerms: QT.subjectTermsOf(khilafCases.cases.find((c) => c.id === 'Q08').question) }) >= 3);
+      const partyFilterMutant = await runMutant({
+        sourceFile: REVIEWER,
+        name: 'khilaf-party-filter-dropped',
+        transform: (source) => source.replace(
+          '    if (!partySubject.get(key)) continue; // ITEM 35-D2 R7 (brain35-2 F6): a party whose every clause is on a side point is not a view on the question',
+          '    // mutant: every party counts, on the subject or not'),
+        survives: (mutantModule) => khilafCases.cases.every((test) => khilafCasePasses(mutantModule, test)),
+      });
+      ok('F6 party-filter mutant seam applied and module loaded', partyFilterMutant.changed && partyFilterMutant.loaded, partyFilterMutant.error);
+      ok('MUTANT KILLED: without the party filter the P13 shape draws the khilaf tail again', partyFilterMutant.loaded && partyFilterMutant.survived === false, JSON.stringify(partyFilterMutant));
+    }
     const viewGateMutant = await runMutant({
       sourceFile: REVIEWER,
       name: 'khilaf-gate-ignores-released-views',
