@@ -3864,7 +3864,51 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       JSON.stringify(BW2A2.completionLedger({ question: qn, released: q33.input.released })) === JSON.stringify([BW2A2.LEDGER_NARRATOR_SENTENCE]));
     const qg = 'ما صحة حديث «حب الوطن من الإيمان»؟';
     ok('A-2 a grade asked with no grader named anywhere -> the grader sentence', JSON.stringify(BW2A2.completionLedger({ question: qg, released: 'الحديث مشهور على الألسنة ومعناه فيه نظر.' })) === JSON.stringify([BW2A2.LEDGER_GRADER_SENTENCE]));
-    ok('A-2 a grade asked and graded («ضعفه الألباني») -> nothing', BW2A2.completionLedger({ question: qg, released: 'ضعفه الألباني في السلسلة الضعيفة.' }).length === 0);
+    ok('A-2 a grade asked and graded («ضعفه الألباني») -> nothing', BW2A2.completionLedger({ question: qg, released: 'ضعفه الألباني في السلسلة الضعيفة.' }).length === 0);    // ── brain35-2 F5 (2026-11-07; DIAG2 R3) · A GRADE STATED AT THE HEAD COUNTS AS ANSWERED ───────────────────────────
+    // MEASURED (DIAG2 R3, P10): the writer's first unit «ليس صحيحا بل موضوع.» names no grader, so the ledger wrote «وأما الحكم
+    // عليه فلم أقف على من حكم عليه بعينه» under a head that had already graded the hadith. A grade the answer states in its own
+    // voice on its first line (within 80 characters, no heading) now counts as answered: the grader sentence is withheld, the
+    // collector sentence stays. graderNamed also reads the grader's verb shapes («جزم X بضعفه», «حكم X بالوضع»), and its grade
+    // vocabulary gains «لا أصل له», «باطل», «منكر», «ضعيف جدا», «حسن لغيره», «صحيح لغيره» in every place it is read.
+    {
+      const LEDGER = await esm('lib/completion-ledger.js');
+      const P10 = 'ما درجة حديث «اطلبوا العلم من المهد إلى اللحد»؟ ومن أخرجه؟';
+      const P10_HEAD = 'ليس صحيحا بل موضوع.';
+      const P10_SHAPE = P10_HEAD + ' هذا اللفظ لا يثبت عن النبي صلى الله عليه وسلم، وإنما هو من كلام بعض الناس.';
+      const got10 = BW2A2.completionLedger({ question: P10, released: P10_SHAPE });
+      ok('F5a the P10 shape (a «موضوع» head, no lead line, no grader) -> the collector sentence only', got10.length === 1 && got10[0] === BW2A2.LEDGER_COLLECTOR_SENTENCE, JSON.stringify(got10));
+      ok('F5a ...and the collector sentence is byte-equal to A-2\'s', BW2A2.LEDGER_COLLECTOR_SENTENCE === "وأما من خرّجه: فلم تُثبت المكتبة لهذا اللفظ مخرِّجًا في الكتب التي بُحث فيها." && LEDGER.LEDGER_COLLECTOR_SENTENCE === BW2A2.LEDGER_COLLECTOR_SENTENCE);
+      ok('F5b «هذا الحديث لا أصل له.» at the head -> no grader sentence', BW2A2.completionLedger({ question: qg, released: 'هذا الحديث لا أصل له. وقد بحثت عنه في الكتب المسندة فلم أجده.' }).length === 0);
+      ok('F5c a grade stated only in the third paragraph -> the sentence stays (the head test reads the head)',
+        JSON.stringify(BW2A2.completionLedger({ question: qg, released: 'الحديث مشهور على الألسنة ومعناه فيه نظر.\n\nوقد بُحث عنه في الكتب المسندة.\n\nوالحديث ضعيف.' })) === JSON.stringify([BW2A2.LEDGER_GRADER_SENTENCE]));
+      ok('F5d «وضعه ابن الجوزي» / «حكم عليه الألباني بالوضع» -> nothing (unchanged), and «جزم الألباني بضعفه» names a grader too',
+        BW2A2.completionLedger({ question: qg, released: 'وقد بحث عنه أهل العلم. وضعه ابن الجوزي في الموضوعات.' }).length === 0
+        && BW2A2.completionLedger({ question: qg, released: 'وقد بحث عنه أهل العلم. حكم عليه الألباني بالوضع.' }).length === 0
+        && BW2A2.completionLedger({ question: qg, released: 'وقد بحث عنه أهل العلم. جزم الألباني بضعفه في الضعيفة.' }).length === 0
+        && BW2A2.graderNamed('جزم الألباني بضعفه') === true && BW2A2.graderNamed('قال الذهبي: حسن لغيره') === true && BW2A2.graderNamed('قال الألباني: ضعيف جدا') === true);
+      ok('F5e gradeStatedAtHead reads the first non-heading line within 80 characters, and nothing beyond',
+        LEDGER.gradeStatedAtHead(P10_SHAPE) === true && LEDGER.gradeStatedAtHead('### تخريج الحديث\nهذا الحديث لا أصل له.') === true
+        && LEDGER.gradeStatedAtHead('الحديث مشهور على الألسنة.\n\nوالحديث ضعيف.') === false
+        && LEDGER.gradeStatedAtHead('هذا الحديث مما يتداوله الناس في المجالس والخطب والكتب المدرسية وفي المواعظ المنتشرة على الألسنة في كل مكان من غير بحث، وهو ضعيف.') === false
+        && LEDGER.gradeStatedAtHead('') === false && LEDGER.gradeStatedAtHead('ضعيف') === true);
+      ok('F5e ...and a negated head («ليس بصحيح», «لا يصح») is a grade stated too', LEDGER.gradeStatedAtHead('هذا الحديث ليس بصحيح.') === true && LEDGER.gradeStatedAtHead('لا يصح هذا اللفظ عن النبي ﷺ.') === true);
+      // the mutant: gradeStatedAtHead false -> the P10 row red
+      {
+        const fsM = require('fs'); const { pathToFileURL } = require('url');
+        const srcG = fsM.readFileSync(path.join(REPO, 'lib/completion-ledger.js'), 'utf8').replace(/\r\n/g, '\n');
+        const seamG = 'export function gradeStatedAtHead(text) {';
+        ok('F5 mutant seam present once', srcG.split(seamG).length === 2);
+        const tmpG = path.join(REPO, 'lib', '.mut-f5-head.mjs');
+        fsM.writeFileSync(tmpG, srcG.split(seamG).join('export function gradeStatedAtHead(text) {\n  return false; // mutant: no head states a grade').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MG = null;
+        try { MG = await import(pathToFileURL(tmpG).href + '?m=' + Date.now()); } catch (e) { MG = null; } finally { fsM.rmSync(tmpG, { force: true }); }
+        ok('F5 mutant loads', !!MG);
+        ok('F5 MUTANT KILLED: with the head test false the P10 shape draws the grader sentence again',
+          !!MG && MG.completionLedger({ question: P10, released: P10_SHAPE }).length === 2, MG ? JSON.stringify(MG.completionLedger({ question: P10, released: P10_SHAPE })) : 'no module');
+      }
+    }
+
   }
 
 
