@@ -64,7 +64,44 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e\n]/g, '~').slice(0, 200);
     U.shortSourceMark(PAGE) === IBN_BAZ && U.shortSourceMark(BOOK) === 'أحكام القرآن');
   ok('1b a row with no name at all is silent', U.shortSourceMark({ kind: 'fatwa' }) === '' && U.shortSourceMark(null) === '');
   const longName = U.shortSourceMark({ kind: 'fatwa', publisher: 'اللجنة الدائمة للبحوث العلمية والإفتاء بالمملكة العربية السعودية' });
-  ok('1c a long name is cut at a word and closed with «…»', longName.length <= 44 && longName.endsWith('…'), longName);
+  ok('1c a long name is cut at a word and closed with «…»', longName.length <= 44 && longName.endsWith('…'), longName);  // ── brain35-2 F7 (2026-11-07; DIAG2 R1; owner: yes) · SOURCE MARKS: THE SCHOLAR'S NAME, EDITION TAILS, A SAFE CUT ──
+  // MEASURED (DIAG2 R1): P5's paragraph ended «بعناية….» (FC-004526's catalogue title «فتاوى نور على الدرب لابن باز بعناية
+  // الشويعر» cut at 40) and P19's «و….» (FC-004377's «… و الحج و الزيارة - حطيبة» cut after a bare conjunction). A fatwa /
+  // page / source row is named by its publisher or scholar; a library book of the catalogue's fatwa kind whose author is a
+  // roster scholar by the scholar; otherwise by its title with the edition tail stripped (« ت X», « بعناية X», « تحقيق X»,
+  // « إعداد X», « جمع X», « جمعه X», « ترتيب X», « اعتنى به X», « - X»); the cut lands on a word and drops a trailing
+  // connector; no mark at all under three letters, on a conjunction, or when the cut still carries بعناية / تحقيق / إعداد.
+  const FC4526 = { kind: 'lib_book', title: 'فتاوى نور على الدرب لابن باز بعناية الشويعر · ج1 · ص12', bookTitle: 'فتاوى نور على الدرب لابن باز بعناية الشويعر', author: 'ابن باز', recordId: 'FC-004526:0012', authorRole: 'author' };
+  const FC4377 = { kind: 'lib_book', title: 'شرح كتاب الجامع لأحكام العمرة و الحج و الزيارة - حطيبة · ج1 · ص12', bookTitle: 'شرح كتاب الجامع لأحكام العمرة و الحج و الزيارة - حطيبة', author: 'أحمد حطيبة', recordId: 'FC-004377:0012', authorRole: 'author' };
+  const CONNECTOR_TAIL = /\s(?:و|ف|أو|في|على|عن|من|إلى|ل|ب|ك)…$/u;
+  ok('F7a FC-004526 (the catalogue\'s fatwa kind, author «ابن باز», a roster scholar) is named by the scholar, never by its edition title',
+    U.shortSourceMark(FC4526) === 'ابن باز', ascii(U.shortSourceMark(FC4526)));
+  const m4377 = U.shortSourceMark(FC4377);
+  ok('F7b FC-004377: the « - حطيبة» tail is stripped, the cut lands on a word and never ends on a connector',
+    m4377 === 'شرح كتاب الجامع لأحكام العمرة و الحج…' && !CONNECTOR_TAIL.test(m4377) && !/[وف]\s*…$/u.test(m4377), ascii(m4377));
+  ok('F7c a non-fatwa book «X بعناية Y» is named «X», and so are « تحقيق Y», « إعداد Y», « جمعه Y», « اعتنى به Y»',
+    U.shortSourceMark({ kind: 'lib_book', bookTitle: 'جامع العلوم والحكم بعناية الأرنؤوط', author: 'ابن رجب', recordId: 'FC-000002:0001' }) === 'جامع العلوم والحكم'
+    && U.shortSourceMark({ kind: 'lib_book', bookTitle: 'جامع العلوم والحكم تحقيق الأرنؤوط', author: 'ابن رجب', recordId: 'FC-000002:0001' }) === 'جامع العلوم والحكم'
+    && U.shortSourceMark({ kind: 'lib_book', bookTitle: 'الفتاوى الكبرى إعداد عامر الجزار', author: 'ابن تيمية', recordId: 'FC-000002:0001' }) === 'الفتاوى الكبرى'
+    && U.shortSourceMark({ kind: 'lib_book', bookTitle: 'مجموع الفتاوى جمعه ابن قاسم', author: 'ابن تيمية', recordId: 'FC-000002:0001' }) === 'مجموع الفتاوى'
+    && U.shortSourceMark({ kind: 'lib_book', bookTitle: 'الأم اعتنى به رفعت فوزي', author: 'الشافعي', recordId: 'FC-000002:0001' }) === 'الأم');
+  ok('F7c ...and a title that only STARTS with such a word keeps it («جمع الجوامع», «تخريج أحاديث الإحياء»)',
+    U.shortSourceMark({ kind: 'lib_book', bookTitle: 'جمع الجوامع', author: 'السيوطي', recordId: 'FC-000002:0001' }) === 'جمع الجوامع'
+    && U.shortSourceMark({ kind: 'lib_book', bookTitle: 'تخريج أحاديث الإحياء', author: 'العراقي', recordId: 'FC-000002:0001' }) === 'تخريج أحاديث الإحياء');
+  ok('F7d a mark that would be under three letters is no mark; one that opens on a conjunction is none',
+    U.shortSourceMark({ kind: 'lib_book', bookTitle: 'في', author: '', recordId: 'FC-000002:0001' }) === ''
+    && U.shortSourceMark({ kind: 'fatwa', publisher: 'و' }) === '' && U.shortSourceMark({ kind: 'lib_book', bookTitle: 'و كتاب', author: '', recordId: 'FC-000002:0001' }) === '');
+  const keptEditorial = U.shortSourceMark({ kind: 'lib_book', bookTitle: 'فتاوى الشيخ بعناية محمد بن عبد الرحمن بن قاسم وآخرين من طلابه', author: 'الشيخ', recordId: 'FC-000002:0001' });
+  ok('F7e a cut that still carries «بعناية» is no mark rather than a wrong one', keptEditorial === '', ascii(keptEditorial));
+  ok('F7f a page row is named by its publisher, or by its scholar when it has no publisher; a long publisher is still cut',
+    U.shortSourceMark(PAGE) === IBN_BAZ && U.shortSourceMark({ kind: 'fatwa', scholar: 'ابن عثيمين' }) === 'ابن عثيمين'
+    && U.shortSourceMark({ kind: 'fatwa', publisher: 'اللجنة الدائمة للبحوث العلمية والإفتاء بالمملكة العربية السعودية' }).endsWith('…'));
+  ok('F7g the catalogue kind is read by the record id: FC-004526 is the fatwa kind, FC-004377 is not, an unknown id is nothing',
+    (await esm('lib/free-brain/compiled-fatwa-books.js')).isFatwaKindBook(FC4526) === true && (await esm('lib/free-brain/compiled-fatwa-books.js')).isFatwaKindBook(FC4377) === false
+    && (await esm('lib/free-brain/compiled-fatwa-books.js')).catalogKindOf('FC-999999:0001') === '' && (await esm('lib/free-brain/compiled-fatwa-books.js')).catalogKindOf('') === '');
+  ok('F7h a fatwa-kind book whose author is NOT a roster scholar keeps its title',
+    U.shortSourceMark({ ...FC4526, author: 'لجنة الإفتاء' }) === 'فتاوى نور على الدرب لابن باز', ascii(U.shortSourceMark({ ...FC4526, author: 'لجنة الإفتاء' })));
+
 
   // ── 2. where the mark goes ──
   const first = await drive(U, PAGE_TEXT + ' [[1]].', [PAGE]);
@@ -152,6 +189,12 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e\n]/g, '~').slice(0, 200);
   ok('6c MUTANT verse seam applied and loaded', m3.changed && m3.mod, m3.error);
   ok('6c MUTANT KILLED: without the wait the verse card goes out before the sentence that quotes it',
     !!m3.mod && (await drive(m3.mod, VERSE + '\n' + QUOTING + ' [[1]].', [VROW], false)).pieces.map((p) => (p.includes('<verse') ? 'VERSE' : 'PROSE')).join(',') === 'VERSE,PROSE', m3.error);
+
+  // brain35-2 F7: the connector strip removed -> FC-004377's mark ends on «و…» again
+  const m4 = await twin((s) => s.replace(".replace(/\\s+\\S*$/u, '').replace(CONNECTOR_END_RE, '') + '\\u2026' : mark;", ".replace(/\\s+\\S*$/u, '') + '\\u2026' : mark; // mutant: the connector stays"), 'connector');
+  ok('F7 MUTANT connector seam applied and loaded', m4.changed && m4.mod, m4.error);
+  ok('F7 MUTANT KILLED: without the connector strip FC-004377\'s mark ends on a bare «و» again',
+    !!m4.mod && /\sو…$/u.test(m4.mod.shortSourceMark(FC4377)), m4.mod ? ascii(m4.mod.shortSourceMark(FC4377)) : m4.error);
 
   console.log('\n=== source-marks: ' + (checks - failures) + '/' + checks + (failures ? ' FAIL' : ' PASS') + ' ===');
   process.exit(failures ? 1 : 0);
