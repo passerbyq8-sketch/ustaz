@@ -3982,6 +3982,51 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       }
     }
 
+    // ── brain35-3 X4 (2026-11-07; DIAG3 D3 (b); owner: choice 1, withhold) · THE GRADER SENTENCE UNDER A STATED DISPUTE OR A CARDED GRADE ──
+    // MEASURED (DIAG3 H3, preview Q8): «والعلماء اختلفوا في درجته: …» and a card whose ruling="حسن (وإسناده جيد)" told the
+    // reader the grade, and the ledger still wrote «وأما الحكم عليه فلم أقف على من حكم عليه بعينه.» (graderNamed false by the
+    // letter, no head grade). gradeDisputeStated and cardCarriesGrade join graderNamed and gradeStatedAtHead in gradeTold;
+    // the sentence is withheld, never reworded. RISK accepted: a dispute sentence about another hadith silences it too.
+    {
+      const LEDGER = await esm('lib/completion-ledger.js');
+      const Q8 = 'ما صحة حديث «من قرأ آية الكرسي دبر كل صلاة مكتوبة لم يمنعه من دخول الجنة إلا أن يموت»؟ ومن أخرجه؟';
+      const H1 = 'الحديث ورد بلفظ: «من قرأ آية الكرسي في دبر كل صلاة مكتوبة لم يمنعه من دخول الجنة إلا أن يموت».';
+      const MATN = 'مَنْ قَرَأَ آيَةَ الْكُرْسِيِّ فِي دُبُرِ كُلِّ صَلَاةٍ مَكْتُوبَةٍ لَمْ يَمْنَعْهُ مِنْ دُخُولِ الْجَنَّةِ إِلَّا أَنْ يَمُوتَ';
+      const DISPUTE = 'والعلماء اختلفوا في درجته: فذهب بعضهم إلى تحسينه وأن إسناده جيد، بينما رأى آخرون أنه ضعيف، لكنهم مع ذلك أجازوا العمل به لأنه من باب فضائل الأعمال، والحديث الضعيف يعمل به في الفضائل عند جمهور العلماء.';
+      const CARD = '<hadith narrator="" ruling="حسن (وإسناده جيد)">' + MATN + '</hadith>';
+      const grader = (released) => LEDGER.completionLedger({ question: Q8, released }).includes(LEDGER.LEDGER_GRADER_SENTENCE);
+      ok('X4a the Q8 shape (card ruling + dispute sentence) -> no grader sentence', !grader([H1, CARD, DISPUTE].join('\n')), JSON.stringify(LEDGER.completionLedger({ question: Q8, released: [H1, CARD, DISPUTE].join('\n') })));
+      ok('X4b the dispute sentence alone -> none', !grader([H1, DISPUTE].join('\n')));
+      ok('X4c the card ruling alone -> none', !grader([H1, CARD].join('\n')));
+      ok('X4d a fiqh dispute «اختلف الفقهاء في وجوب الزكاة» + no grade -> the sentence', grader([H1, 'اختلف الفقهاء في وجوب الزكاة على من ملك النصاب.'].join('\n')));
+      ok('X4e the predicates: gradeDisputeStated on the dispute sentence and «اختلف أهل العلم في حكمه» true, on the fiqh dispute false; cardCarriesGrade on the card true, on ruling="" false',
+        LEDGER.gradeDisputeStated(DISPUTE) === true && LEDGER.gradeDisputeStated('اختلف أهل العلم في حكمه.') === true && LEDGER.gradeDisputeStated('اختلف الفقهاء في وجوب الزكاة') === false
+        && LEDGER.cardCarriesGrade(CARD) === true && LEDGER.cardCarriesGrade('<hadith narrator="" ruling="">' + MATN + '</hadith>') === false);
+      // the mutants: gradeDisputeStated always false -> X4b red; cardCarriesGrade always false -> X4c red
+      {
+        const fsM = require('fs'); const { pathToFileURL } = require('url');
+        const srcG = fsM.readFileSync(path.join(REPO, 'lib/completion-ledger.js'), 'utf8').replace(/\r\n/g, '\n');
+        const seamD = 'export function gradeDisputeStated(text) {';
+        const seamC = 'export function cardCarriesGrade(text) {';
+        ok('X4 mutant seams present once each', srcG.split(seamD).length === 2 && srcG.split(seamC).length === 2);
+        const load = async (name, seam, repl) => {
+          const tmp = path.join(REPO, 'lib', '.mut-x4-' + name + '.mjs');
+          fsM.writeFileSync(tmp, srcG.split(seam).join(seam + '\n  return false; // mutant: ' + repl).replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+            (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+          let M = null;
+          try { M = await import(pathToFileURL(tmp).href + '?m=' + Date.now()); } catch (e) { M = null; } finally { fsM.rmSync(tmp, { force: true }); }
+          return M;
+        };
+        const MD = await load('dispute', seamD, 'no dispute is stated');
+        const MC = await load('card', seamC, 'no card carries a grade');
+        ok('X4 mutants load', !!MD && !!MC);
+        ok('X4 MUTANT KILLED: with gradeDisputeStated false the dispute-alone shape draws the grader sentence again',
+          !!MD && MD.completionLedger({ question: Q8, released: [H1, DISPUTE].join('\n') }).includes(MD.LEDGER_GRADER_SENTENCE));
+        ok('X4 MUTANT KILLED: with cardCarriesGrade false the card-alone shape draws the grader sentence again',
+          !!MC && MC.completionLedger({ question: Q8, released: [H1, CARD].join('\n') }).includes(MC.LEDGER_GRADER_SENTENCE));
+      }
+    }
+
   }
 
 
