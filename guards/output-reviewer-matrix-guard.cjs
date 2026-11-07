@@ -1055,6 +1055,40 @@ function quantityContradiction(parts) {
       ok('X10 timing-pair mutant seam applied and module loaded', timingMutant.changed && timingMutant.loaded, timingMutant.error);
       ok('MUTANT KILLED: with the timing pair removed S8 folds into one view and draws no tail', timingMutant.loaded && timingMutant.survived === false, JSON.stringify(timingMutant));
     }
+
+    // ── brain35-3 X12 (2026-11-07; FIX-2 request 1) · THE LEGACY PATH COUNTS KHILAF PARTIES ON THE SUBJECT TOO ──────
+    // brain35-2 F6 wired the subject into the before-writing path only: lib/free-brain/review.js forwards named fields alone,
+    // so the legacy path kept the old count. review.js now forwards `subjectTerms` (a Set, or null: the filter off) and
+    // lib/free-brain/loop.js passes subjectTermsOf(ctx.question) from the leaf lib/question-terms.js.
+    {
+      const reviewSrc = fs.readFileSync(path.join(ROOT, 'lib', 'free-brain', 'review.js'), 'utf8');
+      const loopSrc = fs.readFileSync(path.join(ROOT, 'lib', 'free-brain', 'loop.js'), 'utf8');
+      ok('X12 wiring: review.js forwards the Set (or null) and loop.js passes subjectTermsOf(ctx.question), imported from the leaf lib/question-terms.js',
+        reviewSrc.includes("      subjectTerms: input.subjectTerms instanceof Set ? input.subjectTerms : null,") && loopSrc.includes("    subjectTerms: subjectTermsOf(ctx.question),")
+        && /import \{ subjectTermsOf \} from '\.\.\/question-terms\.js';/u.test(loopSrc));
+      const LEGACY = await import(pathToFileURL(path.join(ROOT, 'lib', 'free-brain', 'review.js')).href + '?x12=' + Date.now());
+      const S5y = khilafCases.cases.find((c) => c.id === 'S5-p13-side-issue-parties');
+      const legacyRun = async (mod, subjectTerms) => (await mod.reviewAnswer({ text: S5y.input.text, evidence: S5y.input.evidence, domain: S5y.input.domain, mode: S5y.input.mode, topic: S5y.input.topic || classifyTopic(String(S5y.question || '')), subjectTerms })).verdict.khilafTrigger;
+      const withSubject = await legacyRun(LEGACY, QT.subjectTermsOf(S5y.question));
+      const withoutSubject = await legacyRun(LEGACY, null);
+      ok('X12a the P13 shape through the legacy path with the subject -> null; with no subject -> source (the old count, the filter off)', withSubject === null && withoutSubject === 'source', JSON.stringify([withSubject, withoutSubject]));
+      const loadsX12 = ['lib/free-brain/loop.js', 'lib/free-brain/review.js', 'lib/before-writing-v2.js', 'lib/bw2-units.js', 'lib/question-terms.js', 'api/ask.js'].map((rel) => {
+        try {
+          const r = require('child_process').spawnSync(process.execPath, ['--input-type=module', '-e', 'await import(' + JSON.stringify(pathToFileURL(path.join(ROOT, rel)).href) + '); console.log("LOADED")'], { cwd: ROOT, encoding: 'utf8', timeout: 60000 });
+          return rel + ':' + (/LOADED/.test(r.stdout) ? 'ok' : 'FAIL ' + String(r.stderr).slice(0, 200));
+        } catch (e) { return rel + ':THREW ' + String(e && e.message); }
+      });
+      ok('X12b every entry order still loads in a fresh process (loop, review, before-writing, bw2-units, question-terms, the handler)', loadsX12.every((l) => /:ok$/u.test(l)), loadsX12.join(' | '));
+      // the mutant: the forwarding line removed from a twin of review.js
+      const seamR = "      subjectTerms: input.subjectTerms instanceof Set ? input.subjectTerms : null,\n";
+      ok('X12 mutant seam present once', reviewSrc.split(seamR).length === 2);
+      const tmpR = path.join(ROOT, 'lib', 'free-brain', '.mut-x12-review.mjs');
+      fs.writeFileSync(tmpR, reviewSrc.split(seamR).join('').replace(/from\s+(['"])(\.[^'"]*)\1/gu, (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(ROOT, 'lib', 'free-brain', spec)).href + q));
+      let MR = null;
+      try { MR = await import(pathToFileURL(tmpR).href + '?m=' + Date.now()); } catch (e) { MR = null; } finally { fs.rmSync(tmpR, { force: true }); }
+      ok('X12 mutant loads', !!MR);
+      ok('X12 MUTANT KILLED: with the forwarding line removed the legacy path draws the tail on the P13 shape again', !!MR && (await legacyRun(MR, QT.subjectTermsOf(S5y.question))) === 'source', MR ? JSON.stringify(await legacyRun(MR, QT.subjectTermsOf(S5y.question))) : 'no module');
+    }
     const viewGateMutant = await runMutant({
       sourceFile: REVIEWER,
       name: 'khilaf-gate-ignores-released-views',
