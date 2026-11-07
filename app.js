@@ -7713,9 +7713,9 @@ const blockTags=new Set(['div','p','pre','blockquote','li','th','td']);const bid
 // on every streaming delta and a settled reply must not be re-parsed for each one.
 const EzikMarkdown=React.memo(function EzikMarkdown({text}){const t=String(text==null?'':text);if(!t.trim())return null;const blocks=ezMdBlocks(t);if(!blocks.length)return null;return React.createElement(React.Fragment,null,blocks);});// POSTSHIP FIX3 ITEM 1 -- 2026-10-25: the brief answer's fatwa block is an excerpt closed by «…» and then the <fatwafull>
 // tag carrying the whole block (lib/full-fatwa.js serverOwnedBlock), so the excerpt is the end of the text segment right
-// before the tag. It is recognised only when that text ends with a beginning of the whole block (from its heading line)
-// and «…»; the text with the whole block in the excerpt's place is then what «النص الكامل» shows. Anything else: null.
-function ezikFatwaBriefAt(segments,i){const seg=segments&&segments[i];const next=segments&&segments[i+1];if(!seg||seg.type!=='text'||!next||next.type!=='fatwafull'||!next.text||!next.label)return null;const body=String(seg.content||'').replace(/\s+$/u,'');if(!body.endsWith('…'))return null;const head=next.text.split('\n')[0];const at=head?body.lastIndexOf(head):-1;if(at<0||!next.text.startsWith(body.slice(at,-1)))return null;// POSTSHIP FIX4: `at` is where the excerpt begins in the text, for the fold that keeps it whole (ezikFoldSegments).
+// before the tag. Adjacency and the closing ellipsis pair it, even when the brief puts the answer before the question.
+// Keep prose before the heading; replace the excerpt in place with the decoded full block.
+function ezikFatwaBriefAt(segments,i){const seg=segments&&segments[i];const next=segments&&segments[i+1];if(!seg||seg.type!=='text'||!next||next.type!=='fatwafull'||!next.text||!next.label)return null;const body=String(seg.content||'').replace(/\s+$/u,'');if(!body.endsWith('…'))return null;const head=next.text.split('\n')[0];const at=Math.max(0,head?body.lastIndexOf(head):-1);// POSTSHIP FIX4: `at` is where the excerpt begins in the text, for the fold that keeps it whole (ezikFoldSegments).
 return{label:next.label,content:body.slice(0,at)+next.text,at};}// THE ONE PLACE A SEGMENT BECOMES AN ELEMENT.
 // Lifted out of MessageBubble in S98 so the favourites screen can show a saved reply through the
 // EXACT renderer the chat uses. A second, parallel renderer there is what would eventually leak a
