@@ -55,7 +55,7 @@ function verify(source,missing){
  // Execute the shipped hook, with deterministic React hook storage and timers.
  const hookSource=source.slice(source.indexOf('function useEzikIntroTour('),source.indexOf('function EzikIntroTour('));
  const compiled=require('@babel/core').transformSync(hookSource,{presets:[[require('@babel/preset-react'),{runtime:'classic'}]],configFile:false,babelrc:false}).code;
- function fixture({held=false,blocked=false,auth=false,seen=false}={}){
+ function fixture({held=false,blocked=false,auth=false,seen=false,input='',opened=false}={}){
   let cursor=0,slots=[],effects=[],timers=new Map(),serial=0,screen='loading',policy={sections:{}},node;
   ctx.window.location={pathname:'/',search:held?'?shortcut=chat':'',hash:''};ctx.window.sessionStorage.getItem=()=>null;ctx.window.history={};
   store.clear();if(seen)store.set('ezik.tour.v1.seen','1');ctx.window.localStorage={getItem:k=>store.get(k),setItem:(k,v)=>store.set(k,v)};
@@ -65,11 +65,13 @@ function verify(source,missing){
   ctx.useState=initial=>{const i=cursor++;if(!(i in slots))slots[i]=typeof initial==='function'?initial():initial;return [slots[i],value=>{slots[i]=typeof value==='function'?value(slots[i]):value;}];};
   ctx.useRef=initial=>{const i=cursor++;return slots[i]||(slots[i]={current:initial});};
   ctx.useEffect=(fn,deps)=>{const i=cursor++,old=slots[i];if(!old||deps.some((v,j)=>v!==old.deps[j])){old?.clean?.();slots[i]={deps};effects.push(()=>{slots[i].clean=fn();});}};
+  ctx.React.useLayoutEffect=(fn,deps)=>{const i=cursor++,old=slots[i];if(!old||!deps||deps.some((v,j)=>v!==old.deps?.[j])){slots[i]={deps};effects.push(fn);}};
   ctx.setTimeout=fn=>{timers.set(++serial,fn);return serial;};ctx.clearTimeout=id=>timers.delete(id);
   vm.runInContext(compiled,ctx);
-  const render=()=>{cursor=0;node=ctx.useEzikIntroTour(screen,s=>{screen=s;},policy);const q=effects.splice(0);q.forEach(f=>f());return node;};
+  const chat={input,area:{current:{scrollTop:137}},pin:{current:opened}};
+  const render=()=>{cursor=0;node=ctx.useEzikIntroTour(screen,s=>{screen=s;},policy,chat);const q=effects.splice(0);q.forEach(f=>f());return node;};
   const tick=()=>{const q=[...timers.values()];timers.clear();q.forEach(f=>f());return render();};
-  render();return {render,tick,screen:s=>{screen=s;return render();},policy:p=>{policy=p;return render();},get screenNow(){return screen;}};
+  render();return {render,tick,chat,screen:s=>{screen=s;return render();},policy:p=>{policy=p;return render();},get screenNow(){return screen;}};
  }
  let f=fixture();f.screen('chat');let n=f.tick();assert.equal(n.node.props.tour.id,'welcome');
  const visited=['welcome'];for(let i=0;i<9;i++){n.node.props.onMove(1);n=f.render();visited.push(n.node.props.tour.id);}
@@ -81,6 +83,15 @@ function verify(source,missing){
  f=fixture({held:true});f.screen('chat');f.tick();f.screen('home');f.screen('chat');assert.equal(f.tick().node.props.tour.id,'welcome','deferred until next start screen');
  f=fixture();f.screen('home');n=f.render();n.open();n=f.render();n.node.props.onMove(1);n=f.render();assert.equal(f.screenNow,'chat');n.node.props.onClose();assert.equal(f.screenNow,'home','manual tour restores origin');
  f=fixture();f.screen('chat');n=f.tick();n=f.policy({sections:{mushaf:{state:'hidden'}}});n.node.props.onMove(1);n=f.render();assert.equal(n.node.props.tour.steps.length,7,'live policy recount');
+ f=fixture();f.screen('chat');n=f.render();assert.equal(n.node?.props.tour.id,'welcome','first paint welcome without timer');
+ assert.equal(f.chat.area.current.scrollTop,137,'opening preserves scroll');
+ n.node.props.onMove(1);n=f.render();n.node.props.onMove(1);n=f.render();assert.equal(f.screenNow,'home');
+ f.chat.area.current={scrollTop:0};n.node.props.onMove(-1);n=f.render();assert.equal(f.chat.area.current.scrollTop,137,'returning step restores scroll');
+ n.node.props.onMove(1);n=f.render();f.chat.area.current={scrollTop:0};n.node.props.onClose();f.render();
+ assert.equal(f.screenNow,'chat','close restores starting chat');assert.equal(f.chat.area.current.scrollTop,137,'close restores starting scroll');
+ for(const options of [{input:'typing'},{opened:true}]){f=fixture(options);f.screen('chat');assert.equal(f.render().node,null,'active chat defers '+JSON.stringify(options));assert.equal(store.has('ezik.tour.v1.seen'),false);assert.equal(f.tick().node,null,'no late timer opening');}
+ f=fixture();f.render().defer();f.screen('chat');assert.equal(f.render().node,null,'scrolled conversation defers');assert.equal(store.has('ezik.tour.v1.seen'),false);
+ f=fixture({held:true});f.screen('chat');f.render().defer();f.screen('home');f.screen('chat');assert.equal(f.render().node?.props.tour.id,'welcome','activity defers only the current start');
  return {languages:table.length,keys:Object.keys(keys).length};
 }
 const source=read('app.jsx');const result=verify(source);
@@ -88,6 +99,15 @@ for(const [name,mutant,missing] of [
  ['station removed',source.replace("{ id: 'mushaf', screen: 'home', sections: ['mushaf'] },",''),false],
  ['key missing',source,true],
  ['Arabic changed',source.replace(JSON.stringify(approved.info_button_label),JSON.stringify(approved.info_button_label+'!')),false],
- ['hidden retained',source.replace("ezPanelAvailability(policy, id).state !== 'hidden'",'true'),false]
+ ['hidden retained',source.replace("ezPanelAvailability(policy, id).state !== 'hidden'",'true'),false],
+ ['activity never released',source.replace("if (b.previous === 'chat' && screen !== 'chat') b.deferred = false;",''),false],
+ ['late welcome',source.replace('blocked || active','true'),false],
+ ['typing ignored',source.replace('chat.input.trim().length > 0','false'),false],
+ ['opened ignored',source.replace('|| chat.pin.current','|| false'),false],
+ ['scroll activity ignored',source.replace('const active = b.deferred','const active = false'),false],
+ ['opening scroll changed',source.replace('scroll.current = chat.area.current?.scrollTop ?? null;','scroll.current = 0;'),false],
+ ['return scroll lost',source.replace('chat.area.current.scrollTop = scroll.current;',"chat.area.current.scrollTop = tour?.id === 'welcome' ? scroll.current : 0;"),false],
+ ['close scroll lost',source.replace('restoring.current = true;', 'restoring.current = false;'),false],
+ ['origin lost',source.replace('setScreen(origin.current);',"setScreen('home');"),false]
 ]){assert.throws(()=>verify(mutant,missing),undefined,name+' must be killed');}
-console.log('PASS intro tour: '+JSON.stringify(result)+'; four required mutants killed');
+console.log('PASS intro tour: '+JSON.stringify(result)+'; four original and added repair mutants killed');

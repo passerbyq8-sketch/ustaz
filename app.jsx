@@ -21747,27 +21747,40 @@ function ezTourSelector(id) {
   if (id === 'info') return '[data-ezik-topbar="tour"]';
   return '[data-ezik-home-module="' + id + '"], [data-ez110-tile="' + id + '"], [data-ezik-tour-entry="' + id + '"]';
 }
-function useEzikIntroTour(screen, setScreen, policy) {
+function useEzikIntroTour(screen, setScreen, policy, chat) {
   const [tour, setTour] = useState(null);
   const boot = useRef(null), origin = useRef('chat'), focus = useRef(null);
+  const scroll = useRef(null), restoring = useRef(false);
   if (!boot.current) boot.current = { held: ezTourBootHeld(), previous: screen, left: false };
-  const close = () => { ezTourMarkSeen(); setTour(null); setScreen(origin.current); setTimeout(() => { try { focus.current?.focus(); } catch (_) {} }, 0); };
-  const open = () => { origin.current = screen; focus.current = document.activeElement; setTour({ id: 'welcome', steps: ezTourStations(policy) }); };
-  useEffect(() => {
+  const close = () => { ezTourMarkSeen(); restoring.current = true; setTour(null); setScreen(origin.current); setTimeout(() => { try { focus.current?.focus({ preventScroll: true }); } catch (_) {} }, 0); };
+  const open = () => {
+    origin.current = screen; focus.current = document.activeElement;
+    scroll.current = chat.area.current?.scrollTop ?? null;
+    chat.pin.current = false;
+    setTour({ id: 'welcome', steps: ezTourStations(policy) });
+  };
+  const defer = () => { boot.current.deferred = true; };
+  React.useLayoutEffect(() => {
     const b = boot.current;
+    const entering = b.previous !== 'chat' && screen === 'chat';
+    if (b.previous === 'chat' && screen !== 'chat') b.deferred = false;
     if (screen !== 'loading' && screen !== 'onboarding' && screen !== 'chat') b.left = true;
     if (b.left && b.previous !== 'chat' && screen === 'chat') b.held = false;
     b.previous = screen;
-    if (tour || screen !== 'chat') return;
-    const attempt = () => {
+    if (tour || !entering) return;
       const auth = EZIK_AUTH_PROOF_CLIENT?.state();
       const blocked = ezikBackLayers.length > 0 || auth?.busy || auth?.pending ||
         document.querySelector('[role="dialog"], [role="alertdialog"], dialog[open], [data-panel-unavailable]');
-      if (ezTourCanAuto(screen, b.held, ezTourSeen(), blocked)) open();
-    };
-    const timer = setTimeout(attempt, 700);
-    return () => clearTimeout(timer);
-  }, [screen, tour, policy.revision]);
+      const active = b.deferred || chat.input.trim().length > 0 || chat.pin.current;
+      if (ezTourCanAuto(screen, b.held, ezTourSeen(), blocked || active)) open();
+      b.deferred = false;
+  }, [screen]);
+  React.useLayoutEffect(() => {
+    if ((tour || restoring.current) && screen === 'chat' && scroll.current != null && chat.area.current) {
+      chat.area.current.scrollTop = scroll.current;
+    }
+    restoring.current = false;
+  });
   const move = delta => {
     const steps = ezTourStations(policy), order = ['welcome', ...steps.map(s => s.id), 'finish'];
     let at = order.indexOf(tour.id);
@@ -21781,7 +21794,7 @@ function useEzikIntroTour(screen, setScreen, policy) {
     setScreen(step ? step.screen : id === 'finish' ? 'chat' : origin.current);
     setTour({ id, steps });
   };
-  return { open, node: tour ? <EzikIntroTour tour={tour} onMove={move} onClose={close} /> : null };
+  return { open, defer, node: tour ? <EzikIntroTour tour={tour} onMove={move} onClose={close} /> : null };
 }
 function EzikIntroTour({ tour, onMove, onClose }) {
   const box = useRef(null), [rects, setRects] = useState([]), [bubbleHeight, setBubbleHeight] = useState(300);
@@ -21794,7 +21807,7 @@ function EzikIntroTour({ tour, onMove, onClose }) {
     const measure = () => { setBubbleHeight(box.current?.getBoundingClientRect().height || 300); setRects(targets.map(el => { const r = el.getBoundingClientRect(); return { x: r.left - 4, y: r.top - 4, width: r.width + 8, height: r.height + 8 }; }).filter(r => r.width > 8 && r.height > 8)); };
     measure(); window.addEventListener('resize', measure); window.addEventListener('scroll', measure, true);
     const timer = setTimeout(measure, 50);
-    box.current?.querySelector('button')?.focus();
+    box.current?.querySelector('button')?.focus({ preventScroll: true });
     return () => { clearTimeout(timer); window.removeEventListener('resize', measure); window.removeEventListener('scroll', measure, true); };
   }, [tour]);
   const first = rects[0], h = window.innerHeight, w = window.innerWidth;
@@ -21851,7 +21864,6 @@ function App() {
   useEzikVisualTheme();
   const ez110 = useEz110();   // ITEM 110: the switch; with it dark this is inert
   const [screen, setScreen] = useState('loading');
-  const introTour = useEzikIntroTour(screen, setScreen, panel);
   useEzikWidgetDataRoot(screen !== 'loading');
   const [selectedSurah, setSelectedSurah] = useState(null); // خطأ ٤٦: سورة المصحف المفتوحة، مرفوعة إلى App كي يقشرها زر الرجوع طبقةً طبقة
   const [profile, setProfile] = useState(null);
@@ -22052,6 +22064,7 @@ function App() {
   // true the container is pinned to its own end before every paint, so the last reply is the first
   // thing on screen and there is no descent to watch.
   const jumpToEndRef = useRef(false);
+  const introTour = useEzikIntroTour(screen, setScreen, panel, { input, area: messagesAreaRef, pin: jumpToEndRef });
   // false while the user has deliberately scrolled up to read something older. Nothing may drag
   // them back down while it is false.
   const stickToEndRef = useRef(true);
@@ -23369,6 +23382,7 @@ function App() {
 
   // Who is in charge of the scroll: recomputed on every scroll event, cheap, no state churn.
   const onMessagesScroll = () => {
+    introTour.defer();
     const el = messagesAreaRef.current;
     if (!el) return;
     stickToEndRef.current = (el.scrollHeight - el.scrollTop - el.clientHeight) < 80;
@@ -23698,6 +23712,7 @@ function App() {
   // NOTHING IS CLEARED AND NO NEW CONVERSATION IS OPENED: resetThread and newChat are untouched,
   // and «محادثة جديدة» keeps its own route, character for character.
   const openSavedChat = (id) => {
+    introTour.defer();
     try { if (window.logSection) window.logSection('chat'); } catch (_) {}
     try { abortRef.current?.abort(); } catch (e) {}
     abortRef.current = null;
