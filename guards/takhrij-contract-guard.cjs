@@ -3909,6 +3909,45 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       }
     }
 
+    // ── brain35-3 X2 (2026-11-07; DIAG3 D2 fix 2; owner D2: both fixes) · A LEAD LINE IS NOT THE HEAD ─────────────────
+    // MEASURED (DIAG3 H2 (c), preview Q7): the first non-heading line was the disagreement frame («اختلفت الأقوال المنقولة …
+    // والقول الآتي يخالف ما سبق:»), which ends on «:» and carries no grade word, so gradeStatedAtHead read it, found no grade
+    // and the ledger wrote «وأما الحكم عليه فلم أقف على من حكم عليه بعينه.» under a unit that had graded the hadith. A line
+    // ending on «:» (or «：») with no GRADE_VOCAB word is a lead line; the first non-lead line is the head. NOT (d): the
+    // source-mark predicate is not added (owner decision D2).
+    {
+      const LEDGER = await esm('lib/completion-ledger.js');
+      const FRAME = 'اختلفت الأقوال المنقولة في الحكم على هذا الحديث، والقول الآتي يخالف ما سبق:';
+      const Q7 = 'ما درجة حديث «حب الوطن من الإيمان»؟ ومن أخرجه؟';
+      const U1 = 'حديث «حب الوطن من الإيمان» لا يصح عن النبي صلى الله عليه وسلم، فهو حديث موضوع.';
+      ok('X2a FRAME + «\\n\\n» + «…فهو حديث موضوع.» -> the head is the unit: true', LEDGER.gradeStatedAtHead(FRAME + '\n\n' + U1) === true);
+      ok('X2b «الجواب:\\nالحديث ضعيف.» -> true (the lead line skipped)', LEDGER.gradeStatedAtHead('الجواب:\nالحديث ضعيف.') === true);
+      ok('X2c a lead line alone -> false', LEDGER.gradeStatedAtHead(FRAME) === false && LEDGER.gradeStatedAtHead('الجواب:') === false);
+      ok('X2d «الحديث ضعيف:\\n…» (a grade word on the lead) -> true (it is the head)', LEDGER.gradeStatedAtHead('الحديث ضعيف:\nوقد بحثت عنه في الكتب المسندة.') === true);
+      ok('X2e the ledger on Q7 under the frame -> the collector sentence only (no grader sentence)',
+        JSON.stringify(LEDGER.completionLedger({ question: Q7, released: FRAME + '\n\n' + U1 })) === JSON.stringify([LEDGER.LEDGER_COLLECTOR_SENTENCE]),
+        JSON.stringify(LEDGER.completionLedger({ question: Q7, released: FRAME + '\n\n' + U1 })));
+      ok('X2f the F5 heads unchanged: P10, a «###» heading, a grade in the third paragraph, the empty text',
+        LEDGER.gradeStatedAtHead('ليس صحيحا بل موضوع. هذا اللفظ لا يثبت عن النبي صلى الله عليه وسلم.') === true && LEDGER.gradeStatedAtHead('### تخريج الحديث\nهذا الحديث لا أصل له.') === true
+        && LEDGER.gradeStatedAtHead('الحديث مشهور على الألسنة.\n\nوالحديث ضعيف.') === false && LEDGER.gradeStatedAtHead('') === false);
+      // the mutant: isLead always false -> X2a red
+      {
+        const fsM = require('fs'); const { pathToFileURL } = require('url');
+        const srcG = fsM.readFileSync(path.join(REPO, 'lib/completion-ledger.js'), 'utf8').replace(/\r\n/g, '\n');
+        const seamL = "  const isLead = (l) => /[:：]$/u.test(l) && !new RegExp(GRADE_VOCAB, 'u').test(l);";
+        ok('X2 mutant seam present once', srcG.split(seamL).length === 2);
+        const tmpL = path.join(REPO, 'lib', '.mut-x2-lead.mjs');
+        fsM.writeFileSync(tmpL, srcG.split(seamL).join('  const isLead = () => false; // mutant: no line is a lead line').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let ML = null;
+        try { ML = await import(pathToFileURL(tmpL).href + '?m=' + Date.now()); } catch (e) { ML = null; } finally { fsM.rmSync(tmpL, { force: true }); }
+        ok('X2 mutant loads', !!ML);
+        ok('X2 MUTANT KILLED: with no lead line skipped the frame is the head again and Q7 draws the grader sentence',
+          !!ML && ML.gradeStatedAtHead(FRAME + '\n\n' + U1) === false && ML.completionLedger({ question: Q7, released: FRAME + '\n\n' + U1 }).length === 2,
+          ML ? JSON.stringify(ML.completionLedger({ question: Q7, released: FRAME + '\n\n' + U1 })) : 'no module');
+      }
+    }
+
   }
 
 
