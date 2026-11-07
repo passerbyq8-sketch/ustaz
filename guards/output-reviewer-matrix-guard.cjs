@@ -1110,6 +1110,34 @@ function quantityContradiction(parts) {
       ok('A-5 pair mutant seam applied and loaded', pairMutant.changed && pairMutant.loaded, pairMutant.error);
       ok('MUTANT KILLED: without the reading/listening pair Q07\'s two obligations pass as one', pairMutant.loaded && pairMutant.survived === false, JSON.stringify(pairMutant));
     }
+
+    // ── brain35-3 X1 (2026-11-07; DIAG3 D2 fix 1; owner D2: both fixes) · THE FRAME NEEDS A RELEASED GRADE STATEMENT BEFORE IT ──
+    // MEASURED (DIAG3 H2 (a), preview Q7): the first unit «حديث «حب الوطن من الإيمان» لا يصح عن النبي صلى الله عليه وسلم، فهو حديث
+    // موضوع.» drew the frame ON ITSELF: A-5's verb reader makes «لا يصح» the family ضعيف and «موضوع» the family موضوع, and the
+    // rule compared a claim with the earlier claims OF THE SAME UNIT. One grader's two words in one sentence are not two reports.
+    // The frame now needs a claim in priorText (a released grade statement) whose family differs from a claim of the unit.
+    {
+      const Q7 = 'ما درجة حديث «حب الوطن من الإيمان»؟ ومن أخرجه؟';
+      const U1 = 'حديث «حب الوطن من الإيمان» لا يصح عن النبي صلى الله عليه وسلم، فهو حديث موضوع.';
+      const framedX1 = (mod, value, priorText) => mod.frameHadithGradeDisagreement(value, { question: Q7, priorText }) !== value;
+      ok('X1a «لا يصح … فهو حديث موضوع» in ONE unit, empty prior text -> no frame (one grader\'s sentence)', !framedX1(module, U1, ''));
+      ok('X1b prior «ضعفه الترمذي» + unit «صححه ابن حبان» -> frame (two released reports, two families)',
+        framedX1(module, 'وصححه ابن حبان في صحيحه.', 'حديث «حب الوطن من الإيمان» ضعفه الترمذي.'));
+      ok('X1c prior «جيد» + unit «حسن» -> no frame (one family, unchanged)',
+        !framedX1(module, 'وهذا الحديث حسن عند الألباني.', 'حديث «حب الوطن من الإيمان» حديث جيد رواه الترمذي.'));
+      ok('X1d the unit\'s second half with the first half as PRIOR text -> frame (the released statement differs)',
+        framedX1(module, 'فهو حديث موضوع.', 'حديث «حب الوطن من الإيمان» لا يصح عن النبي صلى الله عليه وسلم.'));
+      const withinUnitMutant = await runMutant({
+        sourceFile: REVIEWER,
+        name: 'frame-compares-within-the-unit-again',
+        transform: (source) => source.replace(
+          '  if (!before.length || !current.some((claim) => before',
+          '  if (!current.some((claim, i) => [...before, ...current.slice(0, i)] // mutant: the unit\'s own earlier words count again'),
+        survives: (mutantModule) => !framedX1(mutantModule, U1, ''),
+      });
+      ok('X1 within-unit mutant seam applied and module loaded', withinUnitMutant.changed && withinUnitMutant.loaded, withinUnitMutant.error);
+      ok('MUTANT KILLED: with the unit\'s own words compared again, Q7\'s first unit frames itself', withinUnitMutant.loaded && withinUnitMutant.survived === false, JSON.stringify(withinUnitMutant));
+    }
     ok('the pure reviewer made zero network calls', wireCalls === 0, String(wireCalls));
   } catch (error) {
     fail++;
