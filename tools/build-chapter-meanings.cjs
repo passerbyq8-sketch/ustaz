@@ -16,6 +16,20 @@
 // The owner's own seed is written FIRST and is never overwritten by the store: «الزينة» is not an article, and its six
 // senses are the owner's (source: owner).
 //
+// ITEM 35-D2 R9 (brain35-2 F3, 2026-11-07): ALIASES. MEASURED: «… في باب السواك» (P24) found no chapter, because the article is
+// «اسْتِيَاك» (key «استياك») and «اللباس» missed «أَلْبِسَةٌ» (key «البسه») the same way: the reader types the plain noun, the key
+// is the article's own term. The file now carries "aliases" (folded form -> key), written from the article's own words:
+//   (a) the definition head of a plural title names its singular («الألبسة: جمع لباس» -> لباس);
+//   (b) the definition head says «ولفظ الX …» («ولفظ السواك يطلق …» -> سواك);
+//   (c) a single-word related term («الألفاظ ذات الصلة») the article calls a synonym (مرادف) («المسامتة … مرادفة للاستقبال»);
+//   plus ALIAS_SEED, the owner's hand-written block, written first and never overwritten by the store.
+// MEASURED and REJECTED (BRAIN35-FIX2-evidence/F3-rules-probe.out.txt): the bare form of a «ت…» title found as a word of the
+// definition (24 pairs, «علي -> تعلي», «قوم -> تقوم») and multi-word synonyms (fragments) -- both wrong more often than right.
+// An alias never shadows a key (the key wins in the reader; such a pair is dropped here), and a form claimed by two articles
+// keeps the first. The structural filter (meaningsOf) also drops a heading opening on «حكمه» / «حكمها» (the store's «الحكم
+// التكليفي» welded to the next words, or a «حكمة» the reader cannot search as a chapter sense), on «حكم / الحكم» + a structural
+// word, and a heading that is the article's own name with or without the article.
+//
 // OFFLINE. No network, no model. Run: node tools/build-chapter-meanings.cjs [--check]
 //   --check  writes nothing; exits 1 when the file on disk is not what this builder would write.
 'use strict';
@@ -52,6 +66,18 @@ const PARTICLES = new Set(['في', 'من', 'علي', 'الي', 'ثم', 'او', '
 const SEED = {
   'الزينة': ['اللباس', 'الترجل والشعر', 'خصال الفطرة', 'الخاتم والطيب', 'زينة المرأة', 'الذهب والحرير'],
 };
+// THE OWNER'S ALIASES (source: owner): the plain noun a reader types -> the article's key. Written first, never overwritten.
+const ALIAS_SEED = {
+  'سواك': 'استياك', 'السواك': 'استياك',
+  'لباس': 'البسه', 'اللباس': 'البسه', 'ثياب': 'البسه', 'الثياب': 'البسه',
+  'طيب': 'تطيب',
+};
+// the words «جمع X» names when X is not the singular itself («جمع مفرده كذا»)
+const NOT_A_SINGULAR = new Set(['مفرده', 'مفردها', 'مفرد', 'واحده', 'واحدها', 'واحد'].map(fold));
+// a heading opening on one of these is the store's «الحكم التكليفي» welded to the next words, or a wisdom, not a sense
+const RULING_HEAD = new Set(['حكمه', 'حكمها'].map(fold));
+const RULING_WORD = new Set(['حكم', 'الحكم'].map(fold));
+const STRUCTURAL_WORD = new Set(['التكليفي', 'الاجمالي', 'الشرعي'].map(fold));
 
 function meaningsOf(record) {
   const text = String((record && (record.search || record.snippet || record.text)) || '');
@@ -65,6 +91,13 @@ function meaningsOf(record) {
     while (head.startsWith(term + ' ')) head = head.slice(term.length + 1).trim();
     if (!head || head === term || head.length < 4) continue;
     if (STRUCTURAL.has(head)) continue;
+    // ITEM 35-D2 R9 (brain35-2 F3): the article's own name with or without the article, a «حكمه …» head, «حكم + التكليفي …»
+    if (head === 'ال' + term || 'ال' + head === term) continue;
+    {
+      const w = head.split(' ');
+      if (RULING_HEAD.has(w[0])) continue;
+      if (RULING_WORD.has(w[0]) && w.length > 1 && STRUCTURAL_WORD.has(w[1])) continue;
+    }
     // MEASURED: the flattened article also yields FRAGMENTS of a heading -- «والتحلي», «في الاحداد», «وبعده» -- because the
     // text keeps no newline to open it. A sense begins with its own noun: a leading particle, or a single word welded to a
     // conjunction, is a piece of the sentence before it, not a sense of the chapter.
@@ -76,6 +109,36 @@ function meaningsOf(record) {
     out.push(head);
   }
   return out;
+}
+
+// ITEM 35-D2 R9 (brain35-2 F3): the plain forms an article's own words give for its key (see the header: rules a, b, c).
+function aliasesOf(record) {
+  const key = fold(record && record.term);
+  const text = String((record && (record.search || record.snippet || record.text)) || '');
+  if (!key || !text) return [];
+  const out = [];
+  const bare = (w) => { const x = fold(w).replace(/[،.:؛)(]+$/gu, '').replace(/^[وف]/u, ''); return x.replace(/^ال(?=\S{3,})/u, ''); };
+  const at = text.indexOf('التعريف');
+  const head = at >= 0 ? text.slice(at, at + 400) : text.slice(0, 400);
+  // (a) a plural title: «ال<key>: جمع X»
+  const plural = /(?:^|\s)(?:ال)?(\S+)\s*:\s*جمع\s+(\S+)/u.exec(head);
+  if (plural && fold(plural[1]).replace(/^ال/u, '') === key.replace(/^ال/u, '')) {
+    const x = bare(plural[2]);
+    if (x.length >= 3 && !NOT_A_SINGULAR.has(x)) out.push(x);
+  }
+  // (b) «ولفظ الX»
+  const lafz = /ولفظ\s+ال(\S+)/u.exec(head);
+  if (lafz) { const x = bare(lafz[1]); if (x.length >= 3) out.push(x); }
+  // (c) a single-word related term the article calls a synonym
+  const rel = text.indexOf('الالفاظ ذات الصله');
+  if (rel >= 0) {
+    const section = text.slice(rel, rel + 1200);
+    for (const m of section.matchAll(/(?:^|\s)(?:[ابجد]\s*-\s*)?(?:ال)?([ء-ي]+)\s*:\s*\d{1,3}\s*-\s*([^.]{0,200})/gu)) {
+      const x = bare(m[1]);
+      if (x.length >= 3 && /مرادف|مترادف|بمعني واحد/u.test(m[2])) out.push(x);
+    }
+  }
+  return out.filter((x) => x !== key);
 }
 
 function build() {
@@ -93,12 +156,38 @@ function build() {
     chapters[key] = { source: 'encyclopedia', written: String(record.term || '').trim(), meanings: meanings.slice(0, MEANINGS_MAX) };
     added += 1;
   }
+  // ITEM 35-D2 R9 (brain35-2 F3): the aliases -- the owner's first, then the store's; never a key, never a second claim
+  const aliases = {};
+  let aliasesOwner = 0;
+  let aliasesStore = 0;
+  let aliasesShadowed = 0;
+  for (const [form, key] of Object.entries(ALIAS_SEED)) {
+    const f = fold(form);
+    if (!chapters[key]) throw new Error('ALIAS_SEED points at an unknown chapter: ' + key);
+    if (chapters[f]) { aliasesShadowed += 1; continue; }
+    aliases[f] = key;
+    aliasesOwner += 1;
+  }
+  for (const record of Array.isArray(rows) ? rows : []) {
+    const key = fold(record && record.term);
+    if (!key || !chapters[key]) continue;
+    for (const form of aliasesOf(record)) {
+      if (chapters[form]) { aliasesShadowed += 1; continue; }
+      if (aliases[form]) continue;
+      aliases[form] = key;
+      aliasesStore += 1;
+    }
+  }
+  const aliasesSorted = Object.fromEntries(Object.keys(aliases).sort().map((k) => [k, aliases[k]]));
   return {
     schema: 'ezik.chapter-meanings.v1',
     built: 'tools/build-chapter-meanings.cjs',
     // the rule, written where the data is, so the next reader need not measure the store again
     rule: 'A chapter is an article of the Kuwaiti encyclopedia; its meanings are the first six topical sub-sections the stored article keeps («<heading>: N -»), with the structural headings and the article\'s own name dropped. Keys are folded (normalizeArabic). source=owner entries are written by hand and are never overwritten.',
-    counts: { chapters: Object.keys(chapters).length, owner: Object.keys(SEED).length, encyclopedia: added },
+    counts: { chapters: Object.keys(chapters).length, owner: Object.keys(SEED).length, encyclopedia: added,
+      aliases: Object.keys(aliasesSorted).length, aliasesOwner, aliasesStore, aliasesShadowed },
+    aliasRule: 'An alias is a folded form the reader may type for a chapter whose key is the article\'s own term: the owner\'s block first (never overwritten), then from each article\'s definition head (a plural title\'s singular «جمع X», «ولفظ الX») and its related-terms head (a single-word term the article calls مرادف). An alias never shadows a key; the reader tries the key forms, then the aliases.',
+    aliases: aliasesSorted,
     chapters,
   };
 }

@@ -2429,6 +2429,51 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       ok('O-2j the file is what tools/build-chapter-meanings.cjs writes from the store (--check), and the builder reads no network',
         (() => { try { require('child_process').execFileSync(process.execPath, [path.join(REPO, 'tools', 'build-chapter-meanings.cjs'), '--check'], { cwd: REPO, stdio: 'pipe' }); return true; } catch { return false; } })()
         && !/fetch\(|https?:\/\//u.test(read('tools/build-chapter-meanings.cjs').replace(/^\/\/.*$/gmu, '')));
+      // ── brain35-2 F3 (2026-11-07; DIAG2 R9) · CHAPTER ALIASES, AND THE BUILDER'S STRUCTURAL FILTER ───────────────────
+      // MEASURED (DIAG2 R9): P24 «… في باب السواك» found no chapter: the encyclopedia's article is «اسْتِيَاك» (key «استياك»)
+      // and the file knew no plain form; «اللباس» missed «أَلْبِسَةٌ» (key «البسه») the same way. The file now carries
+      // "aliases" (folded form -> key), written by the builder from the definition head (a plural title's singular «جمع X»,
+      // the definition's «ولفظ الX») and the related-terms head (a single-word term the article calls a synonym), plus the
+      // owner's hand-written block that the builder never overwrites; the reader tries the key forms, then the aliases. The
+      // builder's structural filter also drops a heading opening on «حكمه» / «حكمها» or on «حكم» + a structural word, and
+      // a heading that is the article's own name.
+      const P24 = 'اذكر لي ما صح من الأحاديث في باب السواك';
+      const r24 = BW2.isChapterHadithRequest(P24);
+      ok('F3a P24 («… في باب السواك») is read as a request for the chapter «اسْتِيَاك» through its alias, with the article\'s senses',
+        !!r24 && r24.key === 'استياك' && r24.chapter === 'اسْتِيَاك' && r24.source === 'encyclopedia' && r24.meanings.length >= 3
+        && r24.meanings.includes('تخليل الاسنان'), ascii(JSON.stringify(r24)));
+      const rLibas = BW2.isChapterHadithRequest('أبي أحاديث صحيحة في باب اللباس');
+      ok('F3b «… في باب اللباس» reaches «أَلْبِسَةٌ» (key «البسه»), and «الثياب» reaches it too',
+        !!rLibas && rLibas.key === 'البسه' && rLibas.meanings.length >= 3
+        && !!BW2.isChapterHadithRequest('أبي أحاديث صحيحة في باب الثياب') && BW2.isChapterHadithRequest('أبي أحاديث صحيحة في باب الثياب').key === 'البسه',
+        ascii(JSON.stringify(rLibas)));
+      ok('F3c a chapter the file does not know is still null, with or without a near miss',
+        BW2.isChapterHadithRequest('أعطني كل الأحاديث الصحيحة في باب الطائرات') === null && BW2.isChapterHadithRequest('اذكر لي ما صح من الأحاديث في باب السواكات') === null);
+      const fileA = BW2.chapterMeaningsFile();
+      ok('F3d the file carries the alias block: the owner\'s hand-written pairs stand, every alias points at a known chapter, and no alias shadows a key',
+        fileA.aliases && typeof fileA.aliases === 'object' && fileA.aliases['سواك'] === 'استياك' && fileA.aliases['لباس'] === 'البسه' && fileA.aliases['ثياب'] === 'البسه'
+        && Object.entries(fileA.aliases).every(([form, key]) => fileA.chapters[key] && !fileA.chapters[form])
+        && Number.isInteger(fileA.counts.aliases) && fileA.counts.aliases >= 8 && Number.isInteger(fileA.counts.aliasesOwner) && fileA.counts.aliasesOwner >= 5,
+        ascii(JSON.stringify(fileA.counts)));
+      ok('F3e no sense in the whole file opens on «حكمه» / «حكمها», none is «حكم / الحكم» + a structural word, and none is its own article\'s name',
+        Object.entries(fileA.chapters).every(([key, v]) => v.meanings.every((m) => !/^(?:حكمه|حكمها)(?:\s|$)/u.test(m)
+          && !/^(?:حكم|الحكم)\s+(?:التكليفي|الاجمالي|الشرعي)(?:\s|$)/u.test(m) && m !== key && m !== 'ال' + key && 'ال' + m !== key)),
+        ascii(JSON.stringify(Object.entries(fileA.chapters).flatMap(([key, v]) => v.meanings.filter((m) => /^(?:حكمه|حكمها)(?:\s|$)/u.test(m) || m === key || m === 'ال' + key).map((m) => key + ':' + m)).slice(0, 8))));
+      ok('F3e ...and the owner\'s seed «الزينة» is unchanged', fileA.chapters['الزينه'].source === 'owner' && fileA.chapters['الزينه'].meanings.join('|') === 'اللباس|الترجل والشعر|خصال الفطرة|الخاتم والطيب|زينة المرأة|الذهب والحرير');
+      // the mutant: the alias lookup removed from the reader -> P24 is null again (the file itself is unchanged)
+      {
+        const srcR = read('lib/before-writing-v2.js');
+        const seamR = "        const entry = chapters[key] || chapters[aliases[key]]; // ITEM 35-D2 R9 (brain35-2 F3): the key forms, then the aliases";
+        ok('F3 mutant seam present once', srcR.split(seamR).length === 2);
+        const tmpR = path.join(REPO, 'lib', '.mut-f3-alias.mjs');
+        fs.writeFileSync(tmpR, srcR.split(seamR).join('        const entry = chapters[key]; // mutant: no alias is consulted').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MR = null;
+        try { MR = await import(pathToFileURL(tmpR).href + '?m=' + Date.now()); } catch (e) { MR = null; } finally { fs.rmSync(tmpR, { force: true }); }
+        ok('F3 mutant loads', !!MR);
+        ok('F3 MUTANT KILLED: without the alias lookup P24 finds no chapter again, while «الزينة» (a key) still does',
+          !!MR && MR.isChapterHadithRequest(P24) === null && !!MR.isChapterHadithRequest(Q34), MR ? ascii(JSON.stringify(MR.isChapterHadithRequest(P24))) : 'no module');
+      }
     }
     // ---------------------------------------------------------------- ITEM 35-D2 R2 (brain35-2 F1, 2026-11-07): THE ENUMERATION LABEL IS RELEASED WITH ITS SUBJECT
     // MEASURED (DIAG2 HB2 V10 / V17 on the real turn): «الشرط الأول: الإسلام، <clause>» was held whole when its clause failed (an
