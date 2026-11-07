@@ -21825,8 +21825,8 @@ function EzikIntroTour({ tour, onMove, onClose }) {
   return ReactDOM.createPortal(<div data-tour-active="1" className="ez-tour" onKeyDown={keyboard} dir={EZ_LANG_DIR[EZ_LANG] || 'ltr'}>
     <svg className="ez-tour-shade" aria-hidden="true" width="100%" height="100%">
       <defs><mask id="ez-tour-cutout"><rect width="100%" height="100%" fill="white" />{rects.map((r, i) => <rect key={i} {...r} rx="12" fill="black" />)}</mask></defs>
-      <rect width="100%" height="100%" fill="rgba(5,11,13,0.82)" mask="url(#ez-tour-cutout)" />
-      {rects.map((r, i) => <rect key={i} {...r} rx="12" fill="none" stroke="#D6B25E" strokeWidth="3" />)}
+      <rect width="100%" height="100%" fill="var(--ez-tour-dim)" mask="url(#ez-tour-cutout)" />
+      {rects.map((r, i) => <rect key={i} {...r} rx="12" fill="none" stroke="var(--ez-tour-gold)" strokeWidth="3" />)}
     </svg>
     {first ? <span className="ez-tour-arrow" style={{ top: below ? top - 7 : top + bubbleHeight - 7, left: left + Math.max(18, Math.min(Math.min(380, w - 24) - 28, first.x + first.width / 2 - left)) }} aria-hidden="true" /> : null}
     <section ref={box} role="dialog" aria-modal="true" aria-labelledby="ez-tour-title" aria-describedby="ez-tour-text" className="ez-tour-bubble" style={{ top, left }}>
