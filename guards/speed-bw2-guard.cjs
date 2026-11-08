@@ -2705,6 +2705,49 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
           !!MK && (await playZ3(MK, GEN_Z3)).holds.unsupported_school === 1, MK ? JSON.stringify((await playZ3(MK, GEN_Z3)).holds) : 'no module');
       }
     }
+    // ── brain35-5 Z9 (2026-11-08; DIAG4 C8, the gap C3 met on the way) · THE ASKED MATN ENDS BEFORE THE NEXT QUESTION PART ─────
+    // MEASURED (DIAG4 H3 §3, preview Q1b «ما درجة حديث حب الوطن من الإيمان ومن أخرجه؟»): askedHadithOf read the matn as «حب الوطن من
+    // الإيمان ومن أخرجه» (no guillemets to stop it), so asksHadithSource found no source word in the rest and the collector sentence
+    // the guillemet form gets never came. With no guillemets the matn now stops before a second part opened by «ومن», «وما», «وهل»,
+    // «وكيف», «ومتى» or «وأين» (a «؟» already ends it); with guillemets nothing changes. The strings are DIAG4 H3's.
+    {
+      const UNITS_Z9 = await esm('lib/bw2-units.js');
+      const LEDGER_Z9 = await esm('lib/completion-ledger.js');
+      const Q1b = 'ما درجة حديث حب الوطن من الإيمان ومن أخرجه؟';
+      const Q1b_QUOTED = 'ما درجة حديث «حب الوطن من الإيمان» ومن أخرجه؟';
+      const HUBB = 'حب الوطن من الإيمان';
+      ok('Z9a Q1b (no guillemets) -> the matn is «حب الوطن من الإيمان» and the question asks the collector (asksHadithSource, asksCollectorName)',
+        UNITS_Z9.askedHadithOf(Q1b) === HUBB && UNITS_Z9.asksHadithSource(Q1b) === true && LEDGER_Z9.asksCollectorName(Q1b) === true,
+        ascii(JSON.stringify([UNITS_Z9.askedHadithOf(Q1b), UNITS_Z9.asksHadithSource(Q1b), LEDGER_Z9.asksCollectorName(Q1b)])));
+      ok('Z9b the same question with guillemets -> unchanged: the same matn, the collector asked',
+        UNITS_Z9.askedHadithOf(Q1b_QUOTED) === HUBB && UNITS_Z9.asksHadithSource(Q1b_QUOTED) === true);
+      const MUNKAR = 'من رأى منكم منكرا فليغيره بيده ومن لم يستطع فبلسانه';
+      ok('Z9c a matn that itself carries «ومن» inside guillemets («من رأى منكم منكرا … ومن لم يستطع …») -> unchanged, whole',
+        UNITS_Z9.askedHadithOf('ما درجة حديث «' + MUNKAR + '» ومن أخرجه؟') === MUNKAR && UNITS_Z9.asksHadithSource('ما درجة حديث «' + MUNKAR + '» ومن أخرجه؟') === true);
+      ok('Z9d the other openers, no guillemets: «وما معناه», «وهل», «وكيف», «ومتى», «وأين» end the matn too',
+        UNITS_Z9.askedHadithOf('ما درجة حديث حب الوطن من الإيمان وما معناه؟') === HUBB
+        && UNITS_Z9.askedHadithOf('ما درجة حديث حب الوطن من الإيمان وهل له أصل؟') === HUBB
+        && UNITS_Z9.askedHadithOf('ما درجة حديث حب الوطن من الإيمان وكيف نفهمه؟') === HUBB
+        && UNITS_Z9.askedHadithOf('ما درجة حديث حب الوطن من الإيمان ومتى قيل؟') === HUBB
+        && UNITS_Z9.askedHadithOf('ما درجة حديث حب الوطن من الإيمان وأين ورد؟') === HUBB,
+        ascii(JSON.stringify([UNITS_Z9.askedHadithOf('ما درجة حديث حب الوطن من الإيمان وما معناه؟'), UNITS_Z9.askedHadithOf('ما درجة حديث حب الوطن من الإيمان وأين ورد؟')])));
+      ok('Z9e a single-part unquoted question is unchanged: «ما درجة حديث حب الوطن من الإيمان؟» -> the same matn; «ما صحة حديث «حب الوطن من الإيمان»؟» -> the same',
+        UNITS_Z9.askedHadithOf('ما درجة حديث حب الوطن من الإيمان؟') === HUBB && UNITS_Z9.askedHadithOf('ما صحة حديث «حب الوطن من الإيمان»؟') === HUBB);
+      // the mutant: the cut removed -> Q1b's matn swallows «ومن أخرجه» again and no collector is asked
+      {
+        const srcQ = read('lib/bw2-units.js');
+        const seamQ = '    if (next && next.index > 0) m = m.slice(0, next.index);';
+        ok('Z9 mutant seam present once', srcQ.split(seamQ).length === 2);
+        const tmpQ = path.join(REPO, 'lib', '.mut-z9-cut.mjs');
+        fs.writeFileSync(tmpQ, srcQ.split(seamQ).join('    // mutant: the unquoted matn runs on').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MQ = null;
+        try { MQ = await import(pathToFileURL(tmpQ).href + '?m=' + Date.now()); } catch (e) { MQ = null; } finally { fs.rmSync(tmpQ, { force: true }); }
+        ok('Z9 mutant loads', !!MQ);
+        ok('Z9 MUTANT KILLED: without the cut Q1b\'s matn is «حب الوطن من الإيمان ومن أخرجه» again and asksHadithSource is false',
+          !!MQ && MQ.askedHadithOf(Q1b) === 'حب الوطن من الإيمان ومن أخرجه' && MQ.asksHadithSource(Q1b) === false, MQ ? ascii(MQ.askedHadithOf(Q1b)) : 'no module');
+      }
+    }
     // ---------------------------------------------------------------- ITEM 35-D3 D6 (i) (brain35-3 X9, 2026-11-07; owner: (iii) with (ii) first): A DEMONSTRATIVE AFTER A BARE VERB IS A BACK-REFERENCE
     // MEASURED (DIAG3 H6 (b), preview Q12 / Q6): «استدل هؤلاء بحديث: …» and «يكون هذا أشد وأعظم…» were released with nothing naming
     // «هؤلاء» / «هذا» before them: «استدل» is a bare five-letter verb in no set, and «هؤلاء» / «هذا» as the second word is in
