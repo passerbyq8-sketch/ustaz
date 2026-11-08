@@ -2170,7 +2170,6 @@ const EZ_I18N = {
     'ez110.set.parents': '\u0627\u0644\u0648\u0627\u0644\u062F\u0627\u0646',
     'ez110.set.about': '\u0639\u0646 \u0639\u0632\u0643 \u0648\u0627\u0644\u062F\u0639\u0645',
     'ez110.set.identity': '\u0647\u0648\u064A\u0629 \u0627\u0644\u062A\u0635\u0645\u064A\u0645',
-    'ez110.set.identityHint': '\u062A\u064F\u062D\u0641\u0638 \u0639\u0644\u0649 \u0647\u0630\u0627 \u0627\u0644\u062C\u0647\u0627\u0632 \u0648\u062D\u062F\u0647.',
     'ez110.set.digits': '\u0634\u0643\u0644 \u0627\u0644\u0623\u0631\u0642\u0627\u0645',
     'ez110.set.digits.auto': '\u062D\u0633\u0628 \u0627\u0644\u0644\u063A\u0629',
     'ez110.set.digits.arab': '\u0623\u0631\u0642\u0627\u0645 \u0639\u0631\u0628\u064A\u0629 \u0660\u0661\u0662\u0663',
@@ -4181,7 +4180,6 @@ const EZ_I18N = {
     'ez110.set.parents': 'Parents',
     'ez110.set.about': 'About Ezik and support',
     'ez110.set.identity': 'Design',
-    'ez110.set.identityHint': 'Saved on this device only.',
     'ez110.set.digits': 'Numerals',
     'ez110.set.digits.auto': 'Follow the language',
     'ez110.set.digits.arab': 'Arabic-Indic numerals \u0660\u0661\u0662\u0663',
@@ -11714,7 +11712,7 @@ function Ez110SettingsExtras({ onOpenPrivacy }) {
       {/* ROUND 4 §3-1-5 (owner): the chooser shows only what this reader may choose -- with «ب» alone there is nothing to
           choose, so the row is not drawn; the owner, who has the four, sees the four */}
       {ids.length > 1 ? (
-      <EzShellGroup title={ezT('ez110.set.identity')} hint={ezT('ez110.set.identityHint')} grp="appearance-id">
+      <EzShellGroup title={ezT('ez110.set.identity')} grp="appearance-id">
         <Ez110Radio label={ezT('ez110.set.identity')} value={ez.id} onPick={ez110WriteIdentity}
           options={ids.map((id) => ({ v: id, label: ezT('ez110.id.' + id), preview: <Ez110Preview id={id} /> }))} />
       </EzShellGroup>
