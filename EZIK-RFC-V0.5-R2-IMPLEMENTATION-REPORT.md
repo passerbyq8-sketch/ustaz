@@ -351,9 +351,9 @@ every purpose and `capabilityEligible()` is false for every capability. **Regist
 
 BRAIN36 FIX 2026-11-05: appended `securityadmission` (`guards/security-admission-guard.cjs`); branch roster 271. The admission order of /api/ask (validation, the per-IP pair, the day cap, then the global window) and of the three audio routes (own stt family, Retry-After, the per-IP pair before the global), and the day cap counting before it judges. Before/after harness outputs and the full-run result are in REPORT-BRAIN36-FIX-2026-11-05.md in the session archive (side-brain-2026-11-05).
 
-Expected signature for the current integrated roster. INTEG7 includes the independent usage gate. CURRENT_RECON records measured 371/0/0 pre-self-check counts from the INTEG7 Order 13 focused audit. The audit adds its own pass after this record matches. This expected signature is not a full-run success claim.
+Expected signature for the current integrated roster. INTEG7 includes the independent usage gate. CURRENT_RECON records measured 375/0/0 pre-self-check counts from the clean-tree Order T1B focused audit. The audit adds its own pass after this record matches. This expected signature is not a full-run success claim.
 
-All 278 gates in the current roster run sequentially through tools/run-gates.cjs. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
+All 282 gates in the current roster run sequentially through tools/run-gates.cjs. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -473,8 +473,12 @@ c1legacycancel 0
 c1gamesgeneration 0
 c1gamesdelivery 0
 usage 0
-TOTAL_GATES        278/278 PASS
-CURRENT_RECON PASS=371 WARN=0 FAIL=0
+trialfixcontent 0
+trialfixui 0
+trialfixsync 0
+trialfixmerges 0
+TOTAL_GATES        282/282 PASS
+CURRENT_RECON PASS=375 WARN=0 FAIL=0
 PRE_REBASE_UPSTREAM_TOTAL_GATES 206/206 PASS
 PRE_REBASE_UPSTREAM_RECON PASS=299 WARN=0 FAIL=0
 PRE_REBASE_BRANCH_TOTAL_GATES 208/208 PASS
@@ -666,6 +670,13 @@ None of the above has been executed.
 Roster: 282 gates. Added trialfixcontent, trialfixui, trialfixsync and trialfixmerges.
 Cache reservation: ezik-v146. Quest assets: 20261108-trialfix-1.
 The historical all-pass table above is not a certification of this branch.
-The current order prohibits browser execution, so chatux and lang cannot be run.
+Order T1 prohibited browser execution; its final run passed 278/282, with chatux, lang and c1dimahome blocked and recon reporting drift.
 Do not publish an all-pass current-head claim until the permitted follow-up audit completes.
 See REPORT-C1-ORDER-T1.md in the session archive for the final measured result.
+
+## ORDER T1B validation measurements (2026-11-08)
+
+The stock chatux, lang and c1dimahome invocations passed on the T1 head using the existing headless browser tooling. The four trialfix groups passed in the follow-up checks.
+The current roster contains 282 entries. Clean-tree recon measured 375/0/0 before its report-facts check; that check was the sole failure before this report update. Section K records the expected complete signature, not an unmeasured full-suite success.
+The device-only design hint was removed in all 24 dictionaries; it contained no other clause. The standard app build and localization/UI/asset checks passed.
+See REPORT-C1-ORDER-T1B.md in the session archive for the final committed-head stock suite result and evidence paths.
