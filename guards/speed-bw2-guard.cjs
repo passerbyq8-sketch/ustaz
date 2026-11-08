@@ -2534,6 +2534,62 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
           !!MZ && MZ.partSentenceWanted(partsZ[5], RING) === false);
       }
     }
+      // ── brain35-5 Z2 (2026-11-08; DIAG4 C1 (a)) · THE CHAPTER DETECTOR FIRES ON THE CHAPTER-REQUEST SHAPE ONLY ─────────
+      // MEASURED (DIAG4 H1/H1c, preview Q19): the gate carried the singular «حديث», so «هل حديث «صوموا لرؤيته …» صحيح؟ وما حكم
+      // الاعتماد على الحساب الفلكي في إثبات الشهر؟» matched «حديث», its tail «اثبات الشهر» shrank to the window «اثبات» -> the
+      // chapter «إِثْبَات» (judicial proof), and the chapter branch REPLACED the question's two compound parts with six judicial
+      // senses: eight fatwa queries, rule ١١, six absence sentences. The gate is the PLURAL request only («أحاديث» / «ما صح»),
+      // and a composite question (an inner «؟», or questionParts > 0) is never a chapter request. The strings are DIAG4 H1's.
+      {
+        const Q34 = 'أبي منك تعطيني كل الأحاديث الصحاح في باب الزينة';
+        const Q35 = 'اذكر لي ما صحّ من الأحاديث في باب التجمّل والزينة';
+        const QW = 'ما حكم الوضوء من لمس المرأة؟';
+        const Q19 = 'هل حديث «صوموا لرؤيته وأفطروا لرؤيته» صحيح؟ وما حكم الاعتماد على الحساب الفلكي في إثبات الشهر؟';
+        const S1 = 'هل حديث «إنما الأعمال بالنيات» صحيح وما معناه في الصوم؟';
+        const Q9 = 'اذكر لي ما صح من الأحاديث في باب الاعتكاف';
+        const Q8 = 'أبي أحاديث صحيحة في باب الطيب';
+        const Q26 = 'أبي أحاديث صحيحة في باب اللباس';
+        // SYNTHETIC: a plural request followed by a second question part (an inner «؟»); the composite test alone nulls it
+        const S4_SYNTHETIC = 'اذكر لي ما صح من الأحاديث في باب الاعتكاف؟ وما حكم الاعتكاف في البيت؟';
+        ok('Z2a Q19 (a composite question ending on «في إثبات الشهر») is NOT a chapter request: null, and its two compound parts stand',
+          BW2.isChapterHadithRequest(Q19) === null && BW2.questionParts(Q19).length === 2, ascii(JSON.stringify(BW2.isChapterHadithRequest(Q19))));
+        ok('Z2b S1 (a single-hadith question ending on «في الصوم») is NOT a chapter request: null',
+          BW2.isChapterHadithRequest(S1) === null, ascii(JSON.stringify(BW2.isChapterHadithRequest(S1))));
+        const r9 = BW2.isChapterHadithRequest(Q9), r8 = BW2.isChapterHadithRequest(Q8), r26 = BW2.isChapterHadithRequest(Q26);
+        // the written names are compared without their diacritics (the file's shadda/damma order is the store's, not the keyboard's)
+        const bare = (s) => String(s || '').replace(/[ً-ْ]/gu, '');
+        ok('Z2c the chapter requests are read as before: Q9 -> اعْتِكَافٌ, Q8 -> تَطَيُّبٌ, Q26 -> أَلْبِسَةٌ',
+          !!r9 && r9.key === 'اعتكاف' && bare(r9.chapter) === 'اعتكاف' && !!r8 && r8.key === 'تطيب' && bare(r8.chapter) === 'تطيب' && !!r26 && r26.key === 'البسه' && bare(r26.chapter) === 'ألبسة',
+          ascii(JSON.stringify([r9 && r9.chapter, r8 && r8.chapter, r26 && r26.chapter])));
+        ok('Z2d SYNTHETIC a plural request with a second part after an inner «؟» is NOT a chapter request: null (the composite test)',
+          BW2.isChapterHadithRequest(S4_SYNTHETIC) === null, ascii(JSON.stringify(BW2.isChapterHadithRequest(S4_SYNTHETIC))));
+        ok('Z2e the O-2 shapes unchanged: Q34 and Q35 still name «الزينة», QW and the unknown chapter still null',
+          !!BW2.isChapterHadithRequest(Q34) && !!BW2.isChapterHadithRequest(Q35) && BW2.isChapterHadithRequest(QW) === null && BW2.isChapterHadithRequest('أعطني كل الأحاديث الصحيحة في باب الطائرات') === null);
+        // the mutants: (1) the composite test removed -> the SYNTHETIC composite row red; (2) the whole change disarmed (the
+        // singular «حديث» back in the gate AND the composite test removed) -> the Q19 row red. (1) alone cannot redden Q19:
+        // MEASURED (DIAG4 H1 §4), the plural gate by itself already nulls Q19 («no plural request word»).
+        {
+          const srcC = read('lib/before-writing-v2.js');
+          const seamGate = 'const CHAPTER_REQUEST_RE = /(?:احاديث|ما\\s+صح)/u;';
+          const seamComp = '  if ((raw.match(/[؟?]/gu) || []).length > 0 || questionParts(raw).length) return null; // ITEM 35-D4 C1 (a) (brain35-5 Z2): a composite question keeps its own parts';
+          ok('Z2 mutant seams present once each', srcC.split(seamGate).length === 2 && srcC.split(seamComp).length === 2);
+          const loadC = async (tag, text) => {
+            const tmpC = path.join(REPO, 'lib', '.mut-z2-' + tag + '.mjs');
+            fs.writeFileSync(tmpC, text.replace(/from\s+(['"])(\.[^'"]*)\1/gu, (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+            let M = null;
+            try { M = await import(pathToFileURL(tmpC).href + '?m=' + Date.now()); } catch (e) { M = null; } finally { fs.rmSync(tmpC, { force: true }); }
+            return M;
+          };
+          const M1 = await loadC('composite', srcC.split(seamComp).join('  // mutant: no composite test'));
+          const M2 = await loadC('whole', srcC.split(seamComp).join('  // mutant: no composite test').split(seamGate).join('const CHAPTER_REQUEST_RE = /(?:احاديث|حديث|ما\\s+صح)/u; // mutant: the singular back'));
+          ok('Z2 mutants load', !!M1 && !!M2);
+          ok('Z2 MUTANT (1) KILLED: without the composite test the SYNTHETIC composite is a chapter request again, while Q19 stays null by the plural gate',
+            !!M1 && M1.isChapterHadithRequest(S4_SYNTHETIC) !== null && M1.isChapterHadithRequest(Q19) === null, M1 ? ascii(JSON.stringify(M1.isChapterHadithRequest(S4_SYNTHETIC))) : 'no module');
+          ok('Z2 MUTANT (2) KILLED: with the whole change disarmed Q19 is the chapter «إِثْبَات» again and S1 is «صَوْم»',
+            !!M2 && !!M2.isChapterHadithRequest(Q19) && M2.isChapterHadithRequest(Q19).key === 'اثبات' && !!M2.isChapterHadithRequest(S1) && M2.isChapterHadithRequest(S1).key === 'صوم',
+            M2 ? ascii(JSON.stringify([M2.isChapterHadithRequest(Q19) && M2.isChapterHadithRequest(Q19).key, M2.isChapterHadithRequest(S1) && M2.isChapterHadithRequest(S1).key])) : 'no module');
+        }
+      }
     // ---------------------------------------------------------------- ITEM 35-D3 D5 (b) (brain35-3 X7, 2026-11-07): THE UNIT UNDER A HEADING STARTS A LINE
     // MEASURED (DIAG3 H5 (b), preview Q14): «### التطيب لصلاه الجمعه» went out on ONE line with «وعن سلمان الفارسي…» -- the heading is
     // released with the first unit that goes out under it, and that unit's own separator was a SPACE (the sentence before it in
