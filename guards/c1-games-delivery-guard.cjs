@@ -5,7 +5,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const hash = body => crypto.createHash('sha256').update(body).digest('hex');
 const documents = Object.fromEntries(fixture.files.map(file => [file, read(file)]));
 const worker = read('quest-sw.js'), registry = JSON.parse(read('guards/asset-versions.json')).assets;
-const pattern = /[^"'\s`<>]+\.js\?v=[a-zA-Z0-9_-]+/g;
+const pattern = /[^"'\s`<>]+\.(?:js|css)\?v=[a-zA-Z0-9_-]+/g;
 function target(file, url) {
   const base = file.startsWith('hanna-laha/assets/') && url.startsWith('assets/') ? 'https://fixture.invalid/hanna-laha/' : 'https://fixture.invalid/' + file;
   return new URL(url, base).pathname.slice(1);

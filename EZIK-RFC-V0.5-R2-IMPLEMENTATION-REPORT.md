@@ -660,3 +660,12 @@ To be run only after this review, with explicit authorisation.
    Then set `RFC_V05_MODE=off` in the preview and confirm both return `legacy:mode_off`.
 
 None of the above has been executed.
+
+## ORDER T1 validation status (2026-11-08)
+
+Roster: 282 gates. Added trialfixcontent, trialfixui, trialfixsync and trialfixmerges.
+Cache reservation: ezik-v146. Quest assets: 20261108-trialfix-1.
+The historical all-pass table above is not a certification of this branch.
+The current order prohibits browser execution, so chatux and lang cannot be run.
+Do not publish an all-pass current-head claim until the permitted follow-up audit completes.
+See REPORT-C1-ORDER-T1.md in the session archive for the final measured result.
