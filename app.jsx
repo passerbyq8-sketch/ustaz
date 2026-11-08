@@ -21747,6 +21747,7 @@ function ezTourTarget(id) {
   if (id === 'chat') return document.querySelector('.ezc-dock');
   if (id === 'profile') return document.querySelector('[data-ezik-topbar="menu"]');
   if (id === 'info') return document.querySelector('[data-ezik-topbar="tour"]');
+  if (id === 'prayer' && document.querySelector('[data-ez110-prayer-card] .ez110-prayer-open')) return document.querySelector('[data-ez110-prayer-card] .ez110-prayer-open');
   return [...document.querySelectorAll('[data-ezik-home-module], [data-ez110-tile], [data-ezik-tour-entry]')]
     .find(el => el.dataset.ezikHomeModule === id || el.dataset.ez110Tile === id || el.dataset.ezikTourEntry === id);
 }

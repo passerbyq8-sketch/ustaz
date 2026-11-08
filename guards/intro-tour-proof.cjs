@@ -134,5 +134,46 @@ console.log('PASS intro tour: '+JSON.stringify(result)+'; four original and adde
   }
   assert(contrast('rgb(157,187,255)','rgb(244,237,224)')<3,'original pale-blue regression is rejected');
   console.log('PASS tour focus contrast >=3:1 in light/dark and both identities');await ctx.close();
+  // Station 2: execute the shipped tour and measure its actual SVG lift over the prayer entry.
+  for(const location of [false,true]){
+   const tourCtx=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'});
+   await tourCtx.route('**/*',route=>{
+    const u=new URL(route.request().url());
+    if(u.origin!=='http://fixture.invalid'||u.pathname.startsWith('/api/'))return route.abort();
+    const file=path.resolve(root,u.pathname==='/'?'index.html':decodeURIComponent(u.pathname).slice(1));
+    if(!file.startsWith(root+path.sep)||!fs.existsSync(file)||!fs.statSync(file).isFile())return route.abort();
+    return route.fulfill({body:fs.readFileSync(file),contentType:({'.html':'text/html','.js':'application/javascript','.css':'text/css','.json':'application/json','.woff2':'font/woff2'})[path.extname(file)]||'application/octet-stream'});
+   });
+   await tourCtx.addInitScript(location=>{
+    localStorage.setItem('child_profile',JSON.stringify({name:'TEST',age:30,birthYear:1990,pid:'P1',gender:'male'}));
+    localStorage.setItem('ezik_ai_consent_v1',JSON.stringify({status:'granted',version:'2026-11-02-1',pid:'P1',grantedBy:'user'}));
+    localStorage.setItem('ezik.tour.v1.seen','1');
+    if(location)localStorage.setItem('ezik_qibla_loc_v1',JSON.stringify({lat:29.3759,lng:47.9774}));
+   },location);
+   const p=await tourCtx.newPage();await p.goto('http://fixture.invalid/',{waitUntil:'load'});
+   await p.locator('.ezc-dock textarea').waitFor({timeout:20000});await p.evaluate(()=>document.fonts.ready);
+   await p.locator('[data-ezik-topbar="tour"]').click();
+   await p.locator('.ez-tour-actions button').last().click();
+   await p.locator('.ez-tour-actions button').last().click();
+   const assertPrayerLift=async()=>{
+    await p.waitForTimeout(250);
+    const measured=await p.evaluate(()=>{
+     const el=document.querySelector('[data-ez110-prayer-card] .ez110-prayer-open'),r=el?.getBoundingClientRect();
+     const visible=!!r&&r.width>0&&r.height>0&&r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth;
+     const lifted=visible&&[...document.querySelectorAll('.ez-tour-shade>rect[stroke]')].some(e=>['x','y','width','height'].every((k,i)=>Math.abs(+e.getAttribute(k)-[r.left-4,r.top-4,r.width+8,r.height+8][i])<1));
+     return {visible,lifted};
+    });
+    assert.ok(measured.visible,'fixture exposes prayer entry at station 2');
+    assert.ok(measured.lifted,'station 2 lifts visible prayer entry');
+   };
+   await assertPrayerLift();
+   await p.evaluate(()=>{window.order13Target=ezTourTarget;ezTourTarget=id=>id==='prayer'?null:window.order13Target(id);});
+   await p.locator('.ez-tour-actions button').last().click();await p.locator('.ez-tour-actions button').nth(1).click();
+   await assert.rejects(assertPrayerLift,/station 2 lifts visible prayer entry/,'missing prayer lift must fail');
+   await p.evaluate(()=>{ezTourTarget=window.order13Target;delete window.order13Target;});
+   await p.locator('.ez-tour-actions button').last().click();await p.locator('.ez-tour-actions button').nth(1).click();
+   await assertPrayerLift();await tourCtx.close();
+  }
+  console.log('PASS station 2 prayer lift with/without location; missing-lift mutations rejected');
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
