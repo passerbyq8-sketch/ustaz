@@ -37,6 +37,7 @@ import { addresseeFor, addressLineFor } from '../lib/sync/memory.js';
 import { classifyRoute, createSourceFilter, isReligiousText, normalizeArabic, isRulingFrame } from '../lib/route-classify.js';
 import { verifyAttributedReply } from '../lib/attribution.js';
 import { planAsk, unattributedNote, REASON, ambiguousScholarPrompt, NEEDS_MATERIAL } from '../lib/ask-plan.js';
+import { namedScholarsIn } from '../lib/before-writing-v2.js'; // ITEM 35-D4 C4 (a) (brain35-5 Z4): the roster reader, for the identity builder
 import { consistencyProblems, screenDraft, NO_ATTRIBUTION_AVAILABLE } from '../lib/policy/consistency-gate.js';
 import { sourcesAddressingSubject, phraseVariants, buildClaimInstruction, verifyClaims, CLAIM_REFUSAL } from '../lib/claim-gate.js';
 // THE PARALLEL PATH'S SWITCH, AND ONLY THE SWITCH. lib/ledger/flag.js is a few env reads and,
@@ -2068,6 +2069,11 @@ export default async function handler(req, res) {
       if (plan.attributionMode !== 'namedScholarOpinion') return null;
       const name = String(plan.namedEntity || '').trim();
       if (!name) return null;
+      // ITEM 35-D4 C4 (a) (brain35-5 Z4, 2026-11-08): «ابن باز وابن عثيمين» is TWO men, not one unresolved name (MEASURED, preview
+      // Q25: the joint entity resolved to nobody and the notice «لم أتبيّنْ مَن تقصِد» went under an answer that named one of
+      // them). Each man is asked his own store by the arbiter (lib/before-writing-v2.js namedScholarsIn, the roster only);
+      // there is no single identity to respect, so the notice stands down.
+      if (namedScholarsIn(name).length > 1) return null; // ITEM 35-D4 C4 (a) (brain35-5 Z4): two roster men are two men, not one unresolved name
       // THREE STATES AND NO FOURTH. 'unresolved' is not «no identity»: it is «a man was asked
       // about and no registry knew him», which is the shape the worst measured case had — the
       // answer reported an absence about somebody else entirely. Folding it into null here would

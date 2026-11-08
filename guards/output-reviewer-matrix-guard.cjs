@@ -1253,6 +1253,56 @@ function quantityContradiction(parts) {
       ok('Y2 marker mutant seam applied and module loaded', markerMutant.changed && markerMutant.loaded, markerMutant.error);
       ok('MUTANT KILLED: without the marker the live Q12 row declares no khilaf and the trigger is null again', markerMutant.loaded && markerMutant.survived === false, JSON.stringify(markerMutant));
     }
+    // ── brain35-5 Z4 (2026-11-08; DIAG4 C4 (a)) · TWO ROSTER NAMES ARE TWO MEN, NOT ONE UNRESOLVED NAME ───────────────
+    // MEASURED (DIAG4 H4, preview Q25 «ما قول ابن باز وابن عثيمين في حكم صلاة الجماعة للرجال؟»): the plan read the conjunction
+    // as ONE entity («ابن باز وابن عثيمين», resolved to nobody), api/ask.js built `requestedIdentity { status: 'unresolved' }`,
+    // and because the first paragraph had lost its name the reviewer wrote «تنبيه: لم أتبيّنْ مَن تقصِد بالاسمِ الذي ذكرتَ …».
+    // The builder now returns null when namedScholarsIn (lib/before-writing-v2.js, the roster) finds more than one man: the
+    // arbiter (O-1) owns a two-shaykhs question and there is no single identity to respect. The builder is a closure inside
+    // the handler, so the rows cut its IIFE out of api/ask.js by its own text and evaluate it with its three free names.
+    {
+      const PLAN = await import(pathToFileURL(path.join(ROOT, 'lib', 'ask-plan.js')).href);
+      const BW2Z4 = await import(pathToFileURL(path.join(ROOT, 'lib', 'before-writing-v2.js')).href);
+      const Q25 = 'ما قول ابن باز وابن عثيمين في حكم صلاة الجماعة للرجال؟';
+      const Q25c = 'ما قول الشيخ ابن باز في حكم صلاة الجماعة للرجال؟';
+      const askSrc = fs.readFileSync(path.join(ROOT, 'api', 'ask.js'), 'utf8').replace(/\r\n/g, '\n');
+      const builderOf = (src) => {
+        const open = '    const requestedIdentity = (() => {';
+        const start = src.indexOf(open);
+        const end = src.indexOf('\n    })();', start);
+        if (start < 0 || end < 0) return null;
+        const body = src.slice(start + '    const requestedIdentity = '.length, end + '\n    })();'.length).trim().replace(/;$/u, '');
+        try { return new Function('plan', 'namedScholarsIn', 'ambiguousScholarPrompt', 'return ' + body); } catch (e) { return null; }
+      };
+      const build = builderOf(askSrc);
+      const identityFor = (fn, q) => fn(PLAN.planAsk([{ role: 'user', content: q }], {}), BW2Z4.namedScholarsIn, PLAN.ambiguousScholarPrompt);
+      ok('Z4 the identity builder is cut out of api/ask.js by its own text and evaluates', typeof build === 'function');
+      ok('Z4 api/ask.js imports namedScholarsIn from lib/before-writing-v2.js beside the existing imports',
+        /^import \{ namedScholarsIn \} from '\.\.\/lib\/before-writing-v2\.js';/mu.test(askSrc));
+      const plan25 = PLAN.planAsk([{ role: 'user', content: Q25 }], {});
+      ok('Z4a Q25 names two roster men (binbaz, binothaimeen) while the plan reads ONE entity «ابن باز وابن عثيمين» with no authority id (the inputs, pinned)',
+        BW2Z4.namedScholarsIn(Q25).map((n) => n.id).join(',') === 'binbaz,binothaimeen' && plan25.attributionMode === 'namedScholarOpinion'
+        && plan25.namedEntity === 'ابن باز وابن عثيمين' && !plan25.requestedAuthorityId, JSON.stringify([BW2Z4.namedScholarsIn(Q25).map((n) => n.id), plan25.namedEntity, plan25.requestedAuthorityId]));
+      const id25 = build ? identityFor(build, Q25) : 'no builder';
+      ok('Z4b Q25 -> requestedIdentity null (two men: the arbiter owns the question, no single identity to respect)', build && id25 === null, JSON.stringify(id25));
+      const id25c = build ? identityFor(build, Q25c) : null;
+      ok('Z4c Q25c «ما قول الشيخ ابن باز في …» -> ibn-baz resolved (unchanged)', !!id25c && id25c.status === 'resolved' && id25c.id === 'ibn-baz' && id25c.name === 'ابن باز', JSON.stringify(id25c));
+      const WITNESS = 'فبعض أهل العلم رحمه الله يرى أن صلاة الجماعة واجبة على الرجال في المساجد، وأن التخلف عنها بغير عذر إثم.\n\nوقال ابن عثيمين رحمه الله: صلاة الجماعة واجبة على الرجال، ومن تركها بلا عذر فهو آثم، لكن صلاته صحيحة.\n\nوالراجح وجوبها على الأعيان.';
+      const r25 = module.requestedIdentityRespected(WITNESS, module.identityView(id25 === 'no builder' ? null : id25));
+      ok('Z4d the witness\'s three paragraphs under the Q25 identity -> respected, no notice', r25.respected === true && !r25.notice, JSON.stringify(r25));
+      const rOld = module.requestedIdentityRespected(WITNESS, module.identityView({ id: '', name: 'ابن باز وابن عثيمين', status: 'unresolved', candidates: [] }));
+      ok('Z4e the same text under the OLD joint identity -> the notice «تنبيه: لم أتبيّنْ مَن تقصِد …» (why the rule exists; the reviewer unchanged)',
+        rOld.respected === false && rOld.reason === 'unresolved-substituted' && rOld.notice.startsWith('تنبيه: لم أتبيّنْ مَن تقصِد'), JSON.stringify(rOld));
+      // the mutant: the two-names line removed from the builder -> Q25 is one unresolved name again
+      {
+        const seamZ4 = "      if (namedScholarsIn(name).length > 1) return null; // ITEM 35-D4 C4 (a) (brain35-5 Z4): two roster men are two men, not one unresolved name";
+        ok('Z4 mutant seam present once', askSrc.split(seamZ4).length === 2);
+        const mutant = builderOf(askSrc.split(seamZ4).join('      // mutant: the joint name stands as one'));
+        const idM = mutant ? identityFor(mutant, Q25) : null;
+        ok('Z4 MUTANT KILLED: without the two-names line Q25 is «ابن باز وابن عثيمين» unresolved again and the witness text draws the notice',
+          !!idM && idM.status === 'unresolved' && idM.name === 'ابن باز وابن عثيمين' && module.requestedIdentityRespected(WITNESS, module.identityView(idM)).respected === false, JSON.stringify(idM));
+      }
+    }
     ok('the pure reviewer made zero network calls', wireCalls === 0, String(wireCalls));
   } catch (error) {
     fail++;
