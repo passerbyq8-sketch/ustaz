@@ -2423,6 +2423,15 @@ export default async function handler(req, res) {
       // §٣/٢ is therefore a property of which field each side reads, not a subtraction anybody has
       // to remember to perform.
       finalizerContext.readerSuffix = encyclopediaTail(out.cited);
+      // ITEM 35-D4 C2 (brain35-5 Z5, 2026-11-08; owner decision 2026-11-07 D4, extended to this path 2026-11-08): the line only
+      // when the encyclopedia is named NOWHERE -- no encyclopedia card shown (pickEncyclopediaCards marks `cardShown`), and only
+      // for a row whose text supports a delivered sentence (the BW2 call's shape; the third argument `null` keeps the tail's
+      // no-switch reading). MEASURED (DIAG4 H2b, preview Q11): the sealed call above wrote the line exactly when the card had
+      // gone out (r2-6's «one verdict»). The sealed footer line stands as two guards pin it; its result is re-decided here.
+      // lib/free-brain/loop.js is unchanged: the tail's own tests are right, the CALL was wrong.
+      const encycShownHere = (Array.isArray(out.cited) ? out.cited : []).some((row) => row && row.kind === 'encyclopedia' && row.cardShown === true);
+      if (encycShownHere) finalizerContext.readerSuffix = ''; // ITEM 35-D4 C2 (brain35-5 Z5): a shown encyclopedia card, no line beside it
+      else if (finalizerContext.readerSuffix) finalizerContext.readerSuffix = encyclopediaTail(out.cited, String(out.text || ''), null); // ITEM 35-D4 C2 (brain35-5 Z5): the support test on the delivered text
       // ── §٣/٣ (C): THE SILENT LOSS, ENDED ──────────────────────────────────
       // One line per cited row with the reason it did or did not reach the reader. Serialised
       // rather than handed over as an object, for the reason [free-brain/redactions] below states:
