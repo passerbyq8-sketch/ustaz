@@ -1419,6 +1419,13 @@
   },
   "cleanups": [
     {
+      "hadith": 31,
+      "field": "matn",
+      "paragraph": 0,
+      "old": "سَعدِ بنِ سَهلٍ",
+      "new": "سَهلِ بنِ سَعدٍ"
+    },
+    {
       "hadith": 12,
       "field": "matn",
       "paragraph": 0,

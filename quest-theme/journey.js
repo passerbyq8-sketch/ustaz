@@ -143,7 +143,7 @@
       if ((hasRooms || game === 'test') && M.offlineReady) {
         // These two entry pages version their new screens independently. Cache
         // them after the first worker takes control, including a first visit.
-        const screenAssets = ['theme.css?v=20261028-kfix1', 'journey.js?v=20261107-c1item33-1', 'room-categories.js?v=20261022-roomsfix2', 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
+        const screenAssets = ['theme.css?v=20261108-trialfix-1', 'journey.js?v=20261108-trialfix-1', 'room-categories.js?v=20261022-roomsfix2', 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
         if (game === 'board') screenAssets.push('board-rooms.js?v=20261107-c1item33-1');
         if (navigator.serviceWorker.controller) await Promise.all(screenAssets.map(async file => {
           const response = await fetch('/quest-theme/' + file);

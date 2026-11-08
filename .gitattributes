@@ -1168,3 +1168,12 @@ tests/usage.test.js text eol=lf
 # Intro tour proof extends the existing home gate.
 guards/intro-tour-proof.cjs text eol=lf
 guards/intro-tour-approved.json text eol=lf
+
+# ORDER T1 focused regression files.
+tests/trialfix-content.test.cjs text eol=lf
+tests/trialfix-ui.test.cjs text eol=lf
+tests/trialfix-sync.test.cjs text eol=lf
+tests/trialfix-merges.test.js text eol=lf
+tests/trialfix-client-harness.cjs text eol=lf
+tests/trialfix-content-baseline.json text eol=lf
+lib/sync/trialfix-progress.js text eol=lf

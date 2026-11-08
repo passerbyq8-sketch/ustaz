@@ -115,6 +115,7 @@ function readPage(n) {
  * wording is ever rewritten. (Strings are \u-escaped so the table survives any editor.)
  * ---------------------------------------------------------------------------------------- */
 const FIXES = [
+  { hadith: 31, field: 'matn', paragraph: 0, old: "\u0633\u064e\u0639\u062f\u0650 \u0628\u0646\u0650 \u0633\u064e\u0647\u0644\u064d", new: "\u0633\u064e\u0647\u0644\u0650 \u0628\u0646\u0650 \u0633\u064e\u0639\u062f\u064d" },  // ORDER T1: approved narrator name correction
   { hadith: 12, field: 'matn', paragraph: 0, old: 'r ', new: '' },  // stray latin r at the head of the matn
   { hadith: 20, field: 'rawi', paragraph: 2, old: '\u0627\u0644\u0644\u0647r\u062e\u0645\u0633', new: '\u0627\u0644\u0644\u0647 \u062e\u0645\u0633' },  // stray latin r glued between two words
   { hadith: 22, field: 'rawi', paragraph: 2, old: '\u0627\u0644\u0644\u0647r\u060c', new: '\u0627\u0644\u0644\u0647\u060c' },  // stray latin r before the comma

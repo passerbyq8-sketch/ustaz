@@ -379,3 +379,6 @@
   .ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-column-cells{gap:4px}
   .ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-cell{min-height:40px;padding:3px 1px;font-size:13px}
 }
+
+/* ORDER T1 D6: enabled solid room actions keep readable hover and touch-hover colours. */
+.ezik-treasure-theme.journey-room .btn.solid:hover:not(:disabled){background:#0e4f72;color:#fff8eb}

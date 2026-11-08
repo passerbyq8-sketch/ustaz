@@ -79,11 +79,12 @@ function EzPanelHealth() {
   return <section className="ezub-card" data-panel-health="1"><h3>{ezT('panel.navOverview')} · UTC</h3>
     {failed?<p role="alert">{ezT('panel.settingsError')}</p>:null}
     <label>{ezT('panel.dailyLimit')}<input type="number" min="0.01" max="10000" step="0.01" value={limit} onChange={e=>setLimit(e.target.value)} /></label>
+    <p>{ezT('panel.dailyLimitHelp')}</p>
     <button type="button" className="ezcp-act" onClick={()=>act({action:'limit',usd:Number(limit)})}>{ezT('common.save')}</button>
     <p>{ezT('panel.costMissing')}</p><p>{ezT('panel.sampleCoverage')}</p>
     {data?<><p>{data.day} · {ezT('usage.noFind')}: {ezUbNum(data.sample.noFind)} / {ezUbNum(data.sample.read)} · {ezT('usage.faults')}: {ezUbNum(data.sample.faults)}</p>
       {data.alerts.map(a=><div key={a.id} data-panel-private-notification={a.id} role={a.acknowledged?undefined:'alert'}>
-        <strong>↑ {ezT(a.kind==='noFind'?'usage.noFind':a.kind==='faults'?'usage.faults':'panel.dailyLimit')}</strong>
+        <strong>↑ {ezT(a.kind==='noFind'?'usage.noFind':a.kind==='faults'?'usage.faults':'panel.spendAlert')}</strong>
         {!a.acknowledged?<button type="button" className="ezcp-act" onClick={()=>act({action:'ack',id:a.id})}>{ezT('common.close')}</button>:null}
       </div>)}</>:null}
   </section>;
@@ -537,10 +538,17 @@ const EZ_I18N = {
     'tour.profile.text': "من القائمة الجانبية تجد ملفك وإعداداتك وزر «الاقتراحات والشكاوى»؛ رأيك يهمّنا.",
     'tour.finish.title': "انتهت الجولة",
     'tour.finish.text': "تقدر تعيدها في أي وقت من علامة ⓘ هنا بجانب أيقونة البيت.",
-    'panel.dailyLimit': "الحد اليومي (USD، UTC)",
+    'panel.dailyLimit': "عتبة تنبيه الصرف اليومي (بالدولار، بتوقيت جرينتش)",
+    'panel.spendAlert': "الحد اليومي (USD، UTC)",
+    'panel.versionFooter': "آخر ٧ أيام حتى اليوم بتوقيت جرينتش. يُحسب كل جهاز مرة واحدة وفق آخر إصدار رُصد له، والعدد تقديري.",
+    'panel.versionOther': "إصدارات أخرى",
+    'panel.versionUnknown': "إصدار غير معروف",
+    'panel.versionCurrent': "الإصدار الحالي",
+    'panel.versionHeading': "إصدارات الأجهزة · آخر ٧ أيام",
+    'panel.dailyLimitHelp': "هذا إعداد للتنبيه فقط، ولا يوقف الإجابات أو يبطئها. تنبيهات الصرف غير متاحة حاليًا لأن بيانات التكلفة غير مكتملة.",
     'panel.costMissing': "التكلفة غير متاحة: بيانات التسعير والاستهلاك غير مكتملة.",
     'panel.sampleCoverage': "عينة لا تتجاوز 200 إجابة يوميا؛ لا تشمل كل الاستخدام.",
-    'panel.oldDevices': "أجهزة بإصدارات قديمة",
+    'panel.oldDevices': "أجهزة بإصدارات أقدم من الإصدار الحالي",
     'panel.unknown': "غير معروف",
     'panel.campaign': "رسالة من الإدارة",
     'panel.campaignStart': "البداية (بالتوقيت المحلي)",
@@ -1078,7 +1086,10 @@ const EZ_I18N = {
     'settings.language': 'اللغة',
     'settings.savedOnDevice': 'يُحفظ على هذا الجهاز',
     'settings.profile': 'ملفُّك',
-    'settings.profileHint': 'اختياريٌّ كلُّه. بلا سنةِ ميلادٍ يُعامَلُ الحسابُ معاملةَ بالغٍ فوقَ الثامنةَ عشرة، ويُحفظُ على هذا الجهاز.',
+    'settings.profileHint': "اختياريٌّ كلُّه. بلا سنةِ ميلادٍ يُعامَلُ الحسابُ معاملةَ بالغٍ فوقَ الثامنةَ عشرة. ومع تسجيلِ الدخولِ يُحفَظُ مع حسابِك ويرجعُ لك على أيِّ جهاز، وعندَ الخروجِ تبقى سنةُ الميلادِ على هذا الجهاز.",
+    'settings.useAccountYear': "اعتمدْ سنةَ الحساب",
+    'settings.keepDeviceYear': "اعتمدْ سنةَ هذا الجهاز",
+    'settings.yearConflict': "سنةُ الميلادِ على هذا الجهازِ تختلفُ عن سنتِك المحفوظةِ في حسابِك. أيُّهما نعتمد؟ وإلى أن تختارَ تبقى سنةُ هذا الجهاز.",
     'settings.profileSave': 'احفظْ',
     'settings.womenCornerRule': 'واختيارُك هنا هو ما يقرِّرُ «ركن النساء» على رئيسيّتك: يظهرُ مع «أنثى» ومع «أفضِّلُ عدمَ الإجابة»، ولا يظهرُ مع «ذكر». بدِّلْ إجابتَك واحفظْها فيعودُ أو يذهبُ في الحال.',
     'settings.profileSaved': 'حُفِظ.',
@@ -2570,10 +2581,17 @@ const EZ_I18N = {
     'tour.profile.text': "The side menu holds your profile, settings, and Suggestions and complaints. Your opinion matters.",
     'tour.finish.title': "Tour complete",
     'tour.finish.text': "Repeat the tour anytime with ⓘ here beside the home icon.",
-    'panel.dailyLimit': "Daily limit (USD, UTC)",
+    'panel.dailyLimit': "Daily spend alert threshold (USD, UTC)",
+    'panel.spendAlert': "Daily limit (USD, UTC)",
+    'panel.versionFooter': "Last 7 days through today in UTC. Each device is counted once using its latest observed version. Counts are approximate.",
+    'panel.versionOther': "Other versions",
+    'panel.versionUnknown': "Unknown version",
+    'panel.versionCurrent': "Current version",
+    'panel.versionHeading': "Device versions - last 7 days",
+    'panel.dailyLimitHelp': "This setting only controls alerts; it does not stop or slow answers. Spend alerts are currently unavailable because cost data is incomplete.",
     'panel.costMissing': "Cost unavailable: pricing and usage accounting are incomplete.",
     'panel.sampleCoverage': "Sample of at most 200 answers per day; not all traffic.",
-    'panel.oldDevices': "Devices on older versions",
+    'panel.oldDevices': "Devices on versions older than the current version",
     'panel.unknown': "Unknown",
     'panel.campaign': "Announcement",
     'panel.campaignStart': "Starts (local time)",
@@ -3111,7 +3129,10 @@ const EZ_I18N = {
     'settings.language': 'Language',
     'settings.savedOnDevice': 'Saved on this device',
     'settings.profile': 'Your profile',
-    'settings.profileHint': 'All of it is optional. With no year of birth the account is treated as an adult over eighteen, and what you write here is kept on this device.',
+    'settings.profileHint': "All fields are optional. Without a birth year, the account is treated as an adult over eighteen. When signed in, your profile is saved with your account and restored on your devices. Signing out keeps the birth year on this device.",
+    'settings.useAccountYear': "Use the account year",
+    'settings.keepDeviceYear': "Use this device's year",
+    'settings.yearConflict': "The birth year on this device differs from the one saved in your account. Which should be used? Until you choose, this device keeps its year.",
     'settings.profileSave': 'Save',
     'settings.womenCornerRule': 'Your answer here is what decides the women\u2019s corner on your home: it is shown for \u201cfemale\u201d and for \u201cprefer not to say\u201d, and not shown for \u201cmale\u201d. Change your answer and save it, and it comes back, or it goes, at once.',
     'settings.profileSaved': 'Saved.',
@@ -11401,6 +11422,7 @@ function Ez110Home(v) {
   // sequence reads the groups straight through with the mushaf first -- where it lands when the reader takes it out of
   // the bar. The prayer is never a tile (its card is its door).
   const [bar, setBar] = useState(ez110ReadBar);
+  useEzikSyncedValue('ezik:settings:applied', setBar, ez110ReadBar);
   const [draftBar, setDraftBar] = useState(null);  // the bar being arranged, or null
   const [slotSel, setSlotSel] = useState(null);    // the slot pressed, waiting for a tile, or null
   const seqFor = (b) => ['mushaf'].concat(groups.flatMap((g) => g.ids))
@@ -11684,6 +11706,7 @@ function Ez110Preview({ id }) {
 function Ez110SettingsExtras({ onOpenPrivacy }) {
   const ez = useEz110();
   const [font, setFont] = useState(ez110ReadFont);
+  useEzikSyncedValue('ezik:settings:applied', setFont, ez110ReadFont);
   const ids = ez110Choosable();
   const go = <svg className="ez110-row-go" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6" /></svg>;
   return (
@@ -21798,7 +21821,7 @@ function useEzikIntroTour(screen, setScreen, policy, chat) {
     setScreen(step ? step.screen : id === 'finish' ? 'chat' : origin.current);
     setTour({ id, steps });
   };
-  return { open, defer, node: tour ? <EzikIntroTour tour={tour} onMove={move} onClose={close} /> : null };
+  return { open, defer, savedScroll: () => (tour || restoring.current) ? scroll.current : null, node: tour ? <EzikIntroTour tour={tour} onMove={move} onClose={close} /> : null };
 }
 function EzikIntroTour({ tour, onMove, onClose }) {
   const box = useRef(null), [rects, setRects] = useState([]), [bubbleHeight, setBubbleHeight] = useState(300);
@@ -21997,6 +22020,12 @@ function App() {
   // with the attribute already on <html>. No effect runs at mount, so nothing can repaint.
   const [theme, setTheme] = useState(readStoredTheme);
   const chooseTheme = (t) => setTheme(applyTheme(t));
+  useEffect(() => { const timer = setTimeout(ezikSyncWatch, 0); return () => clearTimeout(timer); }, []);
+  useEffect(() => {
+    const refresh = () => setTheme(readStoredTheme());
+    window.addEventListener('ezik:theme:applied', refresh);
+    return () => window.removeEventListener('ezik:theme:applied', refresh);
+  }, []);
   const fileInputRef = useRef(null);
   const docInputRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -22078,6 +22107,25 @@ function App() {
   // the follow effect saw an unarmed pin and animated an open it was never meant to touch.
   // A counter is decided by the code path, not by which timer won.
   const skipFollowRef = useRef(0);
+  const chatPositions = useRef(new Map());
+  const tourPosition = useRef(null);
+  tourPosition.current = introTour.savedScroll;
+  const chatTranscriptRef = React.useCallback(node => {
+    const old = messagesAreaRef.current;
+    if (!node && old) {
+      const original = tourPosition.current?.();
+      chatPositions.current.set(chatId, original == null ? old.scrollTop : original);
+    }
+    messagesAreaRef.current = node;
+  }, [chatId]);
+  React.useLayoutEffect(() => {
+    const node = messagesAreaRef.current;
+    if (screen === 'chat' && node && !jumpToEndRef.current && chatPositions.current.has(chatId)) {
+      const original = introTour.savedScroll();
+      node.scrollTop = original == null ? chatPositions.current.get(chatId) : original;
+    }
+  }, [screen, chatId]);
+
   // ── STREAM-P4 §٣/١: THE QUESTION STAYS AT THE TOP ─────────────────────────
   // The reader's own note, verbatim: the question they just asked should settle at the top of
   // the transcript and the answer should grow underneath it, instead of the view chasing the
@@ -22129,6 +22177,7 @@ function App() {
   // coming back from the switch re-mounts the chat and re-reads the key -- the same lifecycle
   // the theme and the watermark already rely on, and no value is threaded between them.
   const [enterPref, setEnterPref] = useState(readEnterPref);
+  useEzikSyncedValue('ezik:settings:applied', setEnterPref, readEnterPref);
   const enterSends = ezikEnterSends(enterPref, inputIsTouch);
   const [wmAutoHide, setWmAutoHide] = useState(readWatermarkAutoHide);
   useEffect(() => {
@@ -22157,8 +22206,16 @@ function App() {
       voiceProfileRef.current = next;
       setProfile(next);
     };
+    const applySyncedProfile = event => {
+      if (!event.detail || event.detail.session !== readAuthSession()?.session) return;
+      const next = event.detail.profile;
+      profileRef.current = next;
+      voiceProfileRef.current = next;
+      setProfile(next);
+    };
+    window.addEventListener('ezik:profile:applied', applySyncedProfile);
     window.addEventListener('ezik:profile:signedout', clearSignedOutProfile);
-    return () => window.removeEventListener('ezik:profile:signedout', clearSignedOutProfile);
+    return () => { window.removeEventListener('ezik:profile:signedout', clearSignedOutProfile); window.removeEventListener('ezik:profile:applied', applySyncedProfile); };
   }, []);
   // D16 PROFILE END
   const audioUnlockedRef = useRef(false); // true after the one-time first-gesture audio unlock (mobile autoplay)
@@ -24607,6 +24664,11 @@ function App() {
     const year = typed ? yr : (new Date().getFullYear() - ONBOARDING_DEFAULT_AGE);
     const p = { ...base, name: String(name || '').trim(), gender: gender || null,
       birthYear: year, age: new Date().getFullYear() - year, birthYearProvided: typed && /^\d{4}$/.test(raw) && yearProvided !== false };
+    p.syncFields = { ...(base.syncFields || {}) };
+    if (p.name !== base.name) p.syncFields.name = Date.now();
+    if (p.gender !== base.gender) p.syncFields.gender = Date.now();
+    if (p.birthYear !== base.birthYear || p.birthYearProvided !== base.birthYearProvided) p.syncFields.year = Date.now();
+
     profileRef.current = p;
     voiceProfileRef.current = p;               // غ‑٣: مرآةُ حاجزِ الصوت — تُكتب مع profileRef دائماً
     setProfile(p);
@@ -26352,7 +26414,7 @@ function App() {
   // an onOpenChat: the chat is entered from that menu's «محادثة جديدة» row.
   if (screen === 'home') return (
     <>
-      {introTour.node}
+      {introTour.node}<EzikProfileConflict />
       <Home profile={profile} onOpenMenu={openDrawer} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenSunan={() => setSunanOpen(true)} onOpenYahimmak={() => setYahimmakOpen(true)} onOpenDima={() => setDimaOpen(true)} onOpenArbaeen={() => setScreen('arbaeen')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenLessons={() => setScreen('lessons')} onOpenAsmaa={() => setAsmaaOpen(true)} onOpenSettings={() => openEzikSheet('settings')} key={homeEpoch} />
       {ezikDrawer()}
     </>
@@ -26461,7 +26523,7 @@ function App() {
 
   return (
     <div className="theme-dark ezhome ezc" style={s.chatContainer}>
-      {introTour.node}
+      {introTour.node}<EzikProfileConflict />
       {/* THE WATERMARK. One element, behind everything, reachable by nothing: aria-hidden so no
           reader is told about it, pointer-events:none so no tap can land on it, and z-index:-1
           inside this root's stacking context so it paints over the page colour and under every
@@ -26518,7 +26580,7 @@ function App() {
         </div>
       </div>
 
-      <div ref={messagesAreaRef} onScroll={onMessagesScroll} className={'ezc-scroll' + (pinnedAskIndex == null ? '' : ' ezc-askpinned')} style={s.messagesArea}>
+      <div ref={chatTranscriptRef} onScroll={onMessagesScroll} className={'ezc-scroll' + (pinnedAskIndex == null ? '' : ' ezc-askpinned')} style={s.messagesArea}>
         {/* S112 -- THE EMPTY STATE. A NEW thread shows this and nothing else IN THE TRANSCRIPT:
             no old messages, no history list, no card of any kind and no devotional text.
             ITEM 94: and no WORD either. It drew the app’s own name in 21px above the
@@ -30089,10 +30151,12 @@ function EzPanelVersionDevices() {
     if (held) ezikInbox({ session: held.session, action: 'list', kind: 'version-devices' }).then(r => { if (live) setData(r.ok ? r.data : null); });
     return () => { live = false; };
   }, []);
-  return <div data-panel-version-devices="1"><h4>{ezT('panel.oldDevices')} · {ezT('usage.week')}</h4>
-    {data ? <><strong>{ezUbNum(data.old)}</strong><p>{ezT('panel.unknown')}: {ezUbNum(data.unknown + data.other)}</p>
-      {data.versions.map(v => <div className="ezub-pair" key={v.v}><bdi dir="ltr">{v.v}</bdi><span>{ezUbNum(v.n)}</span></div>)}
-      <small>{ezT('usage.note')}</small></> : <p>{ezT('usage.pending')}</p>}
+  return <div data-panel-version-devices="1"><h4>{ezT('panel.versionHeading')}</h4>
+    {data ? <><p>{ezT('panel.oldDevices')}: <strong>{ezUbNum(data.old)}</strong></p>
+      <p>{ezT('panel.versionUnknown')}: {ezUbNum(data.unknown)}</p>
+      <p>{ezT('panel.versionOther')}: {ezUbNum(data.other)}</p>
+      {data.versions.map(v => <div className="ezub-pair" key={v.v}><bdi dir="ltr">{v.v}</bdi>{v.v === data.currentVersion ? <span>{ezT('panel.versionCurrent')}</span> : null}<span>{ezUbNum(v.n)}</span></div>)}
+      <small>{ezT('panel.versionFooter')}</small></> : <p>{ezT('usage.pending')}</p>}
   </div>;
 }
 function EzikUsageBoard({ store }) {
@@ -34418,7 +34482,206 @@ const EZIK_SYNC_LINK_SLOT = 'ezik_sync_link_v1';
 // The mark an attached image leaves on the other devices -- the SAME string lib/sync/merge.js
 // IMAGE_ELSEWHERE holds, so the server knows a marked copy and the device's own copy as one message.
 const EZIK_SYNC_IMAGE_MARK = '📷 [صورة على جهاز آخر]';
+const EZIK_PROGRESS = (() => {
+// Account progress shapes. Pure merges; no device preferences or notification state.
+const object = v => !!v && typeof v === 'object' && !Array.isArray(v);
+const own = (o, k, v) => Object.defineProperty(o, k, { value: v, enumerable: true, writable: true, configurable: true });
+const stable = v => JSON.stringify(v, (k, x) => object(x) ? Object.fromEntries(Object.keys(x).sort().map(k => [k, x[k]])) : x);
+const unique = values => [...new Map(values.map(v => [stable(v), v])).entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)).map(([,v]) => v);
+function mergeProfile(held, incoming) {
+  const a = object(held?.val) ? held.val : {}, b = object(incoming?.val) ? incoming.val : {};
+  const stamp = (v, rec, field) => object(v._fields) ? Number(v._fields[field]) || 0 : Number(rec?.u) || 0;
+  const out = { _fields: {} };
+  for (const field of ['name', 'gender', 'year']) {
+    const at = stamp(a, held, field), bt = stamp(b, incoming, field);
+    const key = field === 'year' ? 'birthYear' : field;
+    const takeB = !Object.hasOwn(a, key) || (Object.hasOwn(b, key) && bt > at);
+    const v = takeB ? b : a;
+    out._fields[field] = Math.max(at, bt);
+    if (field === 'year') {
+      out.birthYear = Number.isInteger(v.birthYear) ? v.birthYear : null;
+      out.birthYearProvided = out.birthYear !== null && v.birthYearProvided === true;
+    } else out[field] = v[field] ?? (field === 'name' ? '' : null);
+  }
+  return out;
+}
+function validCivilDay(v) {
+  if (typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return false;
+  const date = new Date(v + 'T12:00:00Z');
+  return Number.isFinite(+date) && date.toISOString().slice(0,10) === v;
+}
+function mergeDima(a, b) {
+  a = object(a) ? a : {}; b = object(b) ? b : {};
+  const starts = [a.startDate, b.startDate].filter(validCivilDay).sort();
+  const out = { schema: 2, startDate: starts[0] || null, log: {}, presented: {}, conflicts: {} };
+  for (const day of new Set([...Object.keys(a.log || {}), ...Object.keys(b.log || {})])) {
+    if (!validCivilDay(day)) continue;
+    const x = a.log?.[day] || {}, y = b.log?.[day] || {};
+    out.log[day] = { l: !!(x.l || y.l), q: !!(x.q || y.q), j: !!(x.j || y.j), taps: Math.max(0, Number(x.taps) || 0, Number(y.taps) || 0) };
+  }
+  for (const day of new Set([...Object.keys(a.presented || {}), ...Object.keys(b.presented || {}), ...Object.keys(a.conflicts || {}), ...Object.keys(b.conflicts || {})])) {
+    if (!validCivilDay(day)) continue;
+    const values = unique([a.presented?.[day], b.presented?.[day], ...(Array.isArray(a.conflicts?.[day]) ? a.conflicts[day] : []), ...(Array.isArray(b.conflicts?.[day]) ? b.conflicts[day] : [])].filter(v => object(v) && v.civilDate === day));
+    if (values.length) out.presented[day] = values[0];
+    // Preserve every conflicting frozen snapshot for review, including completed days.
+    if (values.length > 1) out.conflicts[day] = values.slice(1);
+  }
+  return out;
+}
+function unionIntervals(values) {
+  const out = [];
+  for (const v of values.filter(v => Array.isArray(v) && v.length === 2 && v.every(Number.isInteger) && v[0] > 0 && v[1] >= v[0]).sort((a,b) => a[0]-b[0] || a[1]-b[1])) {
+    const prev = out[out.length - 1];
+    if (prev && v[0] <= prev[1]+1) prev[1] = Math.max(prev[1], v[1]); else out.push(v.slice());
+  }
+  return out;
+}
+function mergeMemorizer(key, a, b, newer) {
+  if (key === 'held') {
+    const out = {};
+    for (const k of new Set([...Object.keys(a || {}), ...Object.keys(b || {})])) if (/^\d{1,3}$/.test(k)) out[k] = unionIntervals([...(Array.isArray(a?.[k]) ? a[k] : []), ...(Array.isArray(b?.[k]) ? b[k] : [])]);
+    return out;
+  }
+  if (key === 'tests' || key === 'ranges' || key === 'plans') {
+    const map = new Map();
+    for (const v of [...(Array.isArray(newer ? a : b) ? (newer ? a : b) : []), ...(Array.isArray(newer ? b : a) ? (newer ? b : a) : [])]) {
+      if (!object(v)) continue;
+      const id = String(v.id || stable(v));
+      const previous = map.get(id);
+      if (key === 'plans' && previous) {
+        const log = { ...(previous.log || {}) };
+        for (const [day, values] of Object.entries(v.log || {})) if (validCivilDay(day) && Array.isArray(values)) log[day] = values.map((n,i) => Math.max(Number(n)||0,Number(log[day]?.[i])||0));
+        map.set(id, { ...v, pos: Math.max(previous.pos || 0, v.pos || 0), cycle: Math.max(previous.cycle || 0, v.cycle || 0), log });
+        continue;
+      }
+      map.set(id, key === 'ranges' && previous ? { ...v, segs: unionIntervals([...(previous.segs || []), ...(v.segs || [])].filter(s => Array.isArray(s) && s.length === 4).map(s => [s[0]*1000+s[1],s[2]*1000+s[3]])).map(([a,b]) => [Math.floor(a/1000),a%1000,Math.floor(b/1000),b%1000]) } : v);
+    }
+    return [...map.entries()].sort(([a],[b]) => (a < b ? -1 : a > b ? 1 : 0)).map(([,v]) => v);
+  }
+  if (key === 'run') {
+    const values = v => !v ? [] : Array.isArray(v.runs) ? v.runs : [v];
+    const byId = new Map();
+    for (const run of [...values(a), ...values(b)]) {
+      if (!object(run)) continue;
+      const id = String(run.id || run.seed || stable(run));
+      const previous = byId.get(id);
+      if (!previous || Number(run.at || 0) > Number(previous.at || 0) || (Number(run.at || 0) === Number(previous.at || 0) && stable(run) > stable(previous))) byId.set(id,run);
+    }
+    const runs = [...byId.values()].sort((x,y) => (Number(x.at) || 0) - (Number(y.at) || 0) || (stable(x) < stable(y) ? -1 : stable(x) > stable(y) ? 1 : 0));
+    return { runs, active: runs.length ? runs[runs.length - 1] : null };
+  }
+  if (key === 'prefs') return newer ? b : a;
+  const merge = (x,y) => {
+    if (x === undefined) return y;
+    if (y === undefined) return x;
+    if (typeof x === 'number' && typeof y === 'number') return Math.max(x,y);
+    if (Array.isArray(x) && Array.isArray(y)) return x.length === y.length && x.every(Number.isFinite) && y.every(Number.isFinite) ? x.map((n,i) => Math.max(n,y[i])) : unique([...x,...y]);
+    if (object(x) && object(y)) { const out = {}; for (const k of new Set([...Object.keys(x),...Object.keys(y)])) own(out,k,merge(x[k],y[k])); return out; }
+    return newer ? y : x;
+  };
+  return merge(a,b);
+}
+
+return { mergeDima, mergeMemorizer };
+})();
+const EZIK_SYNC_EXTRA_SETTINGS = ['murabbi_theme_v1', 'ezik_110_font_v1', 'ezik_110_identity_v1', 'ezik_110_digits_v1', 'ezik_110_bar_v1', 'ezik_watermark_opacity_v1', 'ezik_watermark_autohide_v1', 'ezik_enter_sends_v1'];
+const EZIK_SYNC_MEM = ['held', 'ranges', 'words', 'tests', 'run', 'plans', 'days', 'prefs'];
+function useEzikSyncedValue(event, setter, reader) {
+  useEffect(() => { const refresh = () => setter(reader()); window.addEventListener(event, refresh); return () => window.removeEventListener(event, refresh); }, [event, setter, reader]);
+}
+function ezikSyncSettingsRefresh(key) {
+  if (key === THEME_KEY) { applyTheme(readStoredTheme()); window.dispatchEvent(new CustomEvent('ezik:theme:applied')); }
+  if (key.startsWith('ezik_110_')) { ez110Apply(); window.dispatchEvent(new CustomEvent(EZ110_EVENT)); }
+  if (key === EZIK_VISUAL_THEME_KEY) window.dispatchEvent(new CustomEvent(EZIK_VISUAL_THEME_EVENT));
+  if (key === EZIK_WM_KEY) applyWatermarkOpacity(readWatermarkOpacity());
+  if (key === EZIK_WM_HIDE_KEY) window.dispatchEvent(new CustomEvent(EZIK_WM_HIDE_EVENT));
+  if (key === EZIK_ENTER_KEY) window.dispatchEvent(new CustomEvent(EZIK_ENTER_EVENT));
+  window.dispatchEvent(new CustomEvent('ezik:settings:applied'));
+}
+function ezikSyncDimaEpoch() { return localStorage.getItem('ezik_dima_epoch_v1') || '0'; }
+function ezikSyncProgressCollect(out) {
+  const raw = ezikSyncJson(localStorage.getItem(DIMA_V2_KEY));
+  const dima = raw && dimaV2Valid(raw) ? raw : dimaReadLegacyStore();
+  const epoch = ezikSyncDimaEpoch();
+  out['kv:dima_epoch'] = epoch;
+  if (dima.startDate) {
+    out['ctr:dima.' + epoch + '.start'] = { schema: 2, startDate: dima.startDate, log: {}, presented: {} };
+    const days = new Set([...Object.keys(dima.log || {}), ...Object.keys(dima.presented || {})]);
+    for (const day of [...days].sort()) {
+      if (!dimaValidDayKey(day)) continue;
+      const progress = EZIK_PROGRESS.mergeDima({}, { log: { [day]: dima.log?.[day] }, presented: { [day]: dima.presented?.[day] }, conflicts: { [day]: dima.conflicts?.[day] || [] } });
+      if (ezikSyncUtf8Len(JSON.stringify(progress)) > EZIK_SYNC_PART_BYTES) throw new Error('sync-dima-day-too-large');
+      out['ctr:dima.' + epoch + '.' + day] = progress;
+    }
+  }
+  for (const key of EZIK_SYNC_MEM) {
+    let value = ezikSyncJson(localStorage.getItem('ezik_mem_' + key + '_v1'));
+    if (value == null) continue;
+    if (key === 'tests' && Array.isArray(value)) value = value.map(v => ({ ...v, id: v.id || 'legacy-' + ezikSyncHash(JSON.stringify(v)) }));
+    if (key === 'run') value = { runs: [...(ezikSyncJson(localStorage.getItem('ezik_mem_runs_v1')) || []), value] };
+    // Stored memorizer values have ceilings below 150 KB; shard dictionaries and lists by stable identity.
+    if (['held','words','days'].includes(key) && value && typeof value === 'object' && !Array.isArray(value)) {
+      for (const [part, entry] of Object.entries(value)) out['ctr:mem.' + key + '.' + part] = { [part]: entry };
+    } else if (['tests','ranges','plans'].includes(key) && Array.isArray(value)) {
+      for (const entry of value) out['ctr:mem.' + key + '.' + ezikSyncHash(String(entry.id || JSON.stringify(entry)))] = [entry];
+    } else {
+      if (ezikSyncUtf8Len(JSON.stringify(value)) > EZIK_SYNC_PART_BYTES) throw new Error('sync-memorizer-record-too-large');
+      out['ctr:mem.' + key] = value;
+    }
+  }
+}
+function ezikSyncDimaClear() {
+  const previous = ezikSyncJson(localStorage.getItem(DIMA_V2_KEY)) || dimaReadLegacyStore();
+  const next = { schema: 2, startDate: null, log: {}, presented: {}, notify: previous.notify || dimaDefaultStore().notify, notifySeen: previous.notifySeen === true };
+  localStorage.setItem(DIMA_V2_KEY, JSON.stringify(next));
+  localStorage.setItem(DIMA_KEY, JSON.stringify(next));
+  dimaResetSession();
+  window.dispatchEvent(new CustomEvent('ezik:dima:state'));
+}
+function ezikSyncProgressApply(id, rec) {
+  if (id === 'kv:dima_epoch') {
+    const next = String(rec?.val || '0');
+    if (next !== ezikSyncDimaEpoch()) { ezikSyncDimaClear(); localStorage.setItem('ezik_dima_epoch_v1', next); }
+    return true;
+  }
+  if (id.startsWith('ctr:dima.')) {
+    const [,epoch,day] = id.split('.');
+    if (epoch !== ezikSyncDimaEpoch()) return true;
+    let current = ezikSyncJson(localStorage.getItem(DIMA_V2_KEY));
+    if (!dimaV2Valid(current)) current = { ...dimaReadLegacyStore(), schema: 2, presented: {} };
+    if (rec?.del) {
+      if (day === 'start') { ezikSyncDimaClear(); return true; }
+      delete current.log[day]; delete current.presented[day];
+    } else {
+      const merged = EZIK_PROGRESS.mergeDima(current, rec.val);
+      // Reminder times and preferences remain on this device.
+      for (const day of Object.keys(merged.log)) if (current.log?.[day]?.laterAt != null) merged.log[day].laterAt = current.log[day].laterAt;
+      current = { ...current, ...merged };
+    }
+    localStorage.setItem(DIMA_V2_KEY, JSON.stringify(current));
+    localStorage.setItem(DIMA_KEY, JSON.stringify({ startDate: current.startDate, log: current.log, notify: current.notify, notifySeen: current.notifySeen }));
+    dimaResetSession();
+    window.dispatchEvent(new CustomEvent('ezik:dima:state'));
+    return true;
+  }
+  if (id.startsWith('ctr:mem.')) {
+    const key = id.split('.')[1]; if (!EZIK_SYNC_MEM.includes(key)) return true;
+    const storageKey = 'ezik_mem_' + key + '_v1';
+    const current = ezikSyncJson(localStorage.getItem(storageKey));
+    if (rec?.del) { localStorage.removeItem(storageKey); return true; }
+    const value = EZIK_PROGRESS.mergeMemorizer(key, current, rec.val, true);
+    if (key === 'run') {
+      localStorage.setItem('ezik_mem_runs_v1', JSON.stringify(value.runs));
+      localStorage.setItem(storageKey, JSON.stringify(value.active));
+    } else localStorage.setItem(storageKey, JSON.stringify(value));
+    window.dispatchEvent(new CustomEvent('ezik:memorizer:applied'));
+    return true;
+  }
+  return false;
+}
+
 function ezikSyncKv() { return [
+  ...EZIK_SYNC_EXTRA_SETTINGS,
   EZIK_VISUAL_THEME_KEY, EZ_LANG_KEY, EZWID_KEY, HOME_ORDER_KEY, HIJRI_OFFSET_KEY,
   EZIK_FATWA_SCHOLARS_KEY, MUSHAF_BOOKMARK_KEY, MUSHAF_LAST_PAGE_KEY, WIRD_TARGET_KEY,
   DAILY_WIRD_KEY, WIRD_LIST_KEY, ADHKAR_FAVORITES_KEY, ADHKAR_PLACE_KEY, TASBIH_SESSION_KEY,
@@ -34477,7 +34740,7 @@ function ezikSyncCollect() {
   for (const k of ezikSyncKv()) { const v = get(k); if (v !== null) out['kv:' + k] = v; }
   for (const k of ezikSyncCtr()) { const v = ezikSyncJson(get(k)); if (v !== undefined && v !== null) out['ctr:' + k] = v; }
   const prof = ezikSyncJson(get('child_profile'));
-  if (prof && typeof prof === 'object') out['kv:profile'] = { name: prof.name || '', birthYear: prof.birthYear || null, gender: prof.gender || null };
+  if (prof && typeof prof === 'object') out['kv:profile'] = ezikSyncProfileConflict()?.account || { name: prof.name || '', birthYear: prof.birthYear || null, birthYearProvided: prof.birthYearProvided === true, gender: prof.gender || null, _fields: prof.syncFields || {} };
   const prefs = ezikSyncJson(get(PRAYER_PREFS_KEY));
   if (prefs && typeof prefs === 'object') {
     const calc = {};
@@ -34495,6 +34758,7 @@ function ezikSyncCollect() {
     if (pid && r.pk !== pid) continue;
     Object.assign(out, ezikSyncChatRecords(r, ezikSyncTextOnly(ezikReadChatMessages(r.id))));
   }
+  ezikSyncProgressCollect(out);
   return out;
 }
 
@@ -34512,26 +34776,74 @@ function ezikSyncTextOnly(msgs) {
 
 /** Write one record (merged by the server) onto this device. A tombstone removes it. */
 // The engine's own writes are not the reader's changes: the watcher (ezikSyncWatch) ignores them.
+function ezikSyncProfileConflict() {
+  try { const value = ezikSyncJson(localStorage.getItem('ezik_profile_conflict_v1'));
+    return value && value.session === readAuthSession()?.session ? value : null;
+  } catch (_) { return null; }
+}
+function ezikSyncChooseProfileYear(useAccount) {
+  const conflict = ezikSyncProfileConflict();
+  if (!conflict) return false;
+  const p = ezikSyncJson(localStorage.getItem('child_profile'));
+  if (!p) return false;
+  const pair = useAccount ? conflict.account : p;
+  const next = { ...p, birthYear: pair.birthYear, birthYearProvided: pair.birthYearProvided === true,
+    age: pair.birthYear == null ? ONBOARDING_DEFAULT_AGE : new Date().getFullYear() - pair.birthYear,
+    syncFields: { ...(p.syncFields || {}), year: Date.now() } };
+  localStorage.setItem('child_profile', JSON.stringify(next));
+  localStorage.removeItem('ezik_profile_conflict_v1');
+  window.dispatchEvent(new CustomEvent('ezik:profile:applied', { detail: { session: readAuthSession()?.session, profile: next } }));
+  ezikSyncSoon();
+  return true;
+}
+function EzikProfileConflict() {
+  const [conflict, setConflict] = useState(ezikSyncProfileConflict);
+  useEffect(() => {
+    const refresh = () => setConflict(ezikSyncProfileConflict());
+    window.addEventListener('ezik:profile:applied', refresh);
+    window.addEventListener('ezik:profile:signedout', refresh);
+    return () => { window.removeEventListener('ezik:profile:applied', refresh); window.removeEventListener('ezik:profile:signedout', refresh); };
+  }, []);
+  if (!conflict) return null;
+  return <section role="alert" data-profile-year-conflict="1">
+    <p>{ezT('settings.yearConflict')}</p>
+    <button onClick={() => ezikSyncChooseProfileYear(false)}>{ezT('settings.keepDeviceYear')}</button>
+    <button onClick={() => ezikSyncChooseProfileYear(true)}>{ezT('settings.useAccountYear')}</button>
+  </section>;
+}
 let ezikSyncApplying = false;
 function ezikSyncApply(id, rec) {
   ezikSyncApplying = true;
-  try { ezikSyncApplyNow(id, rec); } finally { ezikSyncApplying = false; }
+  try { return ezikSyncApplyNow(id, rec); } finally { ezikSyncApplying = false; }
 }
 function ezikSyncApplyNow(id, rec) {
+  if (ezikSyncProgressApply(id, rec)) return;
   const del = !rec || rec.del === true;
   const val = rec ? rec.val : null;
   const set = (k, v) => { try { if (v === null || v === undefined) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} };
-  if (id.indexOf('kv:') === 0 && ezikSyncKv().indexOf(id.slice(3)) !== -1) { set(id.slice(3), del ? null : String(val)); return; }
+  if (id.indexOf('kv:') === 0 && ezikSyncKv().indexOf(id.slice(3)) !== -1) { set(id.slice(3), del || val == null ? null : String(val)); ezikSyncSettingsRefresh(id.slice(3)); return; }
   if (id.indexOf('ctr:') === 0 && ezikSyncCtr().indexOf(id.slice(4)) !== -1) { set(id.slice(4), del ? null : JSON.stringify(val)); return; }
   const pid = ezikSyncLocalPid();
   if (id === 'kv:profile') {
     if (del || !val) return;
     const p = ezikSyncJson(localStorage.getItem('child_profile'));
-    if (!p || typeof p !== 'object') return;      // no profile on this device yet: the onboarding makes one
-    const next = Object.assign({}, p, { name: String(val.name || ''), gender: val.gender === 'female' || val.gender === 'male' ? val.gender : null });
-    if (Number.isInteger(val.birthYear)) { next.birthYear = val.birthYear; next.age = new Date().getFullYear() - val.birthYear; }
-    set('child_profile', JSON.stringify(next));
-    return;
+    if (!p || typeof p !== 'object') return false;
+    const account = { ...val, birthYear: Number.isInteger(val.birthYear) ? val.birthYear : null,
+      birthYearProvided: Number.isInteger(val.birthYear) && val.birthYearProvided === true };
+    const conflict = p.birthYearProvided === true && account.birthYearProvided && p.birthYear !== account.birthYear;
+    if (conflict) {
+      localStorage.setItem('ezik_profile_conflict_v1', JSON.stringify({ session: readAuthSession()?.session, account }));
+    }
+    const next = { ...p, name: String(val.name || ''), gender: ['female','male'].includes(val.gender) ? val.gender : null,
+      syncFields: val._fields || {} };
+    if (!conflict) {
+      next.birthYear = account.birthYear;
+      next.birthYearProvided = account.birthYearProvided;
+      next.age = account.birthYear == null ? ONBOARDING_DEFAULT_AGE : new Date().getFullYear() - account.birthYear;
+    }
+    localStorage.setItem('child_profile', JSON.stringify(next));
+    window.dispatchEvent(new CustomEvent('ezik:profile:applied', { detail: { session: readAuthSession()?.session, profile: next } }));
+    return true;
   }
   if (id === 'kv:prayer_calc') {
     if (del || !val) return;
@@ -34589,7 +34901,7 @@ async function ezikSyncCall(body, opts) {
   });
   let d = null;
   try { d = await r.json(); } catch (e) { d = null; }
-  if (ezikSyncSessionDead(r.status, d) && !(opts && opts.deferSignOut)) ezikSyncQuietSignOut();
+  if (ezikSyncSessionDead(r.status, d) && body.session === readAuthSession()?.session && !(opts && opts.deferSignOut)) ezikSyncQuietSignOut();
   return { ok: r.ok && !!d && d.ok === true, status: r.status, data: d };
 }
 
@@ -34656,8 +34968,9 @@ function ezikSyncCycle() {
       const held = readAuthSession();
       if (!held) return 'signed-out';
       if (!(await ezikSyncStatus())) return 'closed';
+      if (readAuthSession()?.session !== held.session) return 'account-changed';
       const st = ezikSyncReadState();
-      if (st.acct !== held.session) { st.acct = held.session; st.cursor = 0; st.shadow = {}; st.pend = {}; }
+      if (st.acct !== held.session) { st.pend = st.acct ? {} : Object.fromEntries(Object.entries(st.pend).filter(([,p]) => p.explicit)); st.acct = held.session; st.cursor = 0; st.shadow = {}; st.deferred = {}; }
       const touched = {};
       const kvLike = (id) => id.indexOf('kv:') === 0 || id.indexOf('note:') === 0;
       const hashOf = (v) => ezikSyncHash(JSON.stringify(v));
@@ -34668,11 +34981,13 @@ function ezikSyncCycle() {
       await ezikSyncLibCollect();
       let local = Object.assign(ezikSyncCollect(), ezikSyncLibSnapshot());
       const p = await ezikSyncCall({ action: 'pull', session: held.session, cursor: st.cursor });
+      if (readAuthSession()?.session !== held.session) return 'account-changed';
       if (!p.ok) return 'pull-failed';
+      st.deferred = st.deferred || {};
       let applied = 0;
       const noRoom = ezikSyncChatRoom(p.data.changes, local);
       // A conversation's own record before its parts, so a part always finds the conversation it joins.
-      const pulled = (p.data.changes || []).slice().sort((a, b) => (ezikSyncChatBase(a.id) ? 1 : 0) - (ezikSyncChatBase(b.id) ? 1 : 0));
+      const pulled = [...Object.entries(st.deferred).map(([id, rec]) => ({ id, rec })), ...(p.data.changes || [])].sort((a, b) => (a.id === 'kv:dima_epoch' ? -1 : ezikSyncChatBase(a.id) ? 1 : 0) - (b.id === 'kv:dima_epoch' ? -1 : ezikSyncChatBase(b.id) ? 1 : 0));
       for (const c of pulled) {
         if (noRoom[c.id] || noRoom[ezikSyncChatBase(c.id)]) continue;
         // A conversation the reader deleted by hand is not written back by the echo of its own last
@@ -34680,10 +34995,14 @@ function ezikSyncCycle() {
         if (st.gone[ezikSyncChatBase(c.id) || c.id] && !(c.rec && c.rec.del)) continue;     // SYNC FIX 2: kept in the account, not written here
         const has = c.id in local;
         const known = Object.prototype.hasOwnProperty.call(st.shadow, c.id);
-        const dirty = has && known && st.shadow[c.id] !== hashOf(local[c.id]);
+        const dirty = (has && known && st.shadow[c.id] !== hashOf(local[c.id])) || st.pend[c.id]?.explicit === true;
         const firstSetting = has && !known && kvLike(c.id);
+        if (c.id === 'kv:profile' && c.rec?.val?.birthYearProvided === true && local[c.id]?.birthYearProvided === true && local[c.id].birthYear !== c.rec.val.birthYear) {
+          ezikSyncApply(c.id, c.rec); touched[c.id] = c.rec; applied++; continue;
+        }
         if (dirty || (has && !known && !firstSetting)) continue;   // step 2 merges it
-        ezikSyncApply(c.id, c.rec);
+        if (ezikSyncApply(c.id, c.rec) === false) { st.deferred[c.id] = c.rec; continue; }
+        delete st.deferred[c.id];
         touched[c.id] = c.rec;
         applied++;
       }
@@ -34698,6 +35017,7 @@ function ezikSyncCycle() {
       const changes = ezikSyncDirty(st, local, Date.now(), touched);
       for (const batch of ezikSyncBatches(changes, EZIK_SYNC_BODY_MAX)) {
         const r = await ezikSyncCall({ action: 'push', session: held.session, changes: batch });
+        if (readAuthSession()?.session !== held.session) return 'account-changed';
         if (!r.ok && r.status === 413) continue;
         if (!r.ok) { ezikSyncWriteState(st); return 'push-failed'; }
         ezikSyncTake(st, r.data.results, touched);
@@ -34755,6 +35075,9 @@ function ezikSyncDirty(st, local, now, skip) {
     st.pend[id] = { h: h, u: now };
     return now;
   };
+  for (const [id, pending] of Object.entries(st.pend)) {
+    if (pending.explicit && pending.removed && !(id in local)) out.push({ id, rec: { u: pending.u, del: false, val: null } });
+  }
   for (const id of Object.keys(local)) {
     if (skip && skip[id]) continue;
     const h = ezikSyncHash(JSON.stringify(local[id]));
@@ -34805,7 +35128,7 @@ function ezikSyncBatches(changes, cap) {
 function ezikSyncTake(st, results, touched) {
   for (const res of results || []) {
     if (!res || !res.rec) continue;
-    ezikSyncApply(res.id, res.rec);
+    if (ezikSyncApply(res.id, res.rec) === false) { (st.deferred ||= {})[res.id] = res.rec; continue; }
     touched[res.id] = res.rec;
     delete st.pend[res.id];
     if (st.gone) delete st.gone[res.id];
@@ -34827,6 +35150,7 @@ function ezikSyncSeal(st, touched, after) {
 // (The favourites are heard through their writer's own event instead.)
 let ezikSyncWatching = false;
 function ezikSyncIsSyncedKey(k) {
+  if (k === DIMA_V2_KEY || k === 'ezik_dima_epoch_v1' || /^ezik_mem_(held|ranges|words|tests|run|plans|days|prefs)_v1$/.test(k)) return true;
   if (typeof k !== 'string') return false;
   if (k.indexOf(EZIK_CHAT_PREFIX) === 0 || k === EZIK_CHATS_KEY || k === 'child_profile') return true;
   if (k === PRAYER_PREFS_KEY || k === EZIK_A11Y_KEY) return true;
@@ -34842,8 +35166,26 @@ function ezikSyncWatch() {
       const orig = proto[name];
       if (typeof orig !== 'function') return;
       proto[name] = function (k) {
+        const before = this === window.localStorage && k === DIMA_V2_KEY ? ezikSyncJson(this.getItem(k)) : null;
         const out = orig.apply(this, arguments);
-        try { if (!ezikSyncApplying && this === window.localStorage && ezikSyncIsSyncedKey(k)) ezikSyncSoon(); } catch (e) {}
+        if (!ezikSyncApplying && this === window.localStorage && before?.startDate && k === DIMA_V2_KEY) {
+          const next = ezikSyncJson(this.getItem(k));
+          if (!next?.startDate) {
+            const st = ezikSyncReadState();
+            for (const id of Object.keys(st.shadow)) if (id.startsWith('ctr:dima.')) st.gone[id] = Date.now();
+            ezikSyncWriteState(st);
+            this.setItem('ezik_dima_epoch_v1', String(Date.now()));
+          }
+        }
+        try { if (!ezikSyncApplying && this === window.localStorage && ezikSyncIsSyncedKey(k)) {
+          if (EZIK_SYNC_EXTRA_SETTINGS.includes(k) || k === 'ezik_dima_epoch_v1') {
+            const st = ezikSyncReadState(), id = k === 'ezik_dima_epoch_v1' ? 'kv:dima_epoch' : 'kv:' + k;
+            const value = this.getItem(k);
+            st.pend[id] = { h: ezikSyncHash(JSON.stringify(value)), u: Date.now(), explicit: true, removed: value === null };
+            ezikSyncWriteState(st);
+          }
+          ezikSyncSoon();
+        } } catch (e) {}
         return out;
       };
     };
@@ -34879,7 +35221,7 @@ function ezikSyncFlush() {
     if (!held) return 0;
     if (ezikSyncSoonTimer) { clearTimeout(ezikSyncSoonTimer); ezikSyncSoonTimer = null; }
     const st = ezikSyncReadState();
-    if (st.acct !== held.session) { st.acct = held.session; st.cursor = 0; st.shadow = {}; st.pend = {}; }
+    if (st.acct !== held.session) { st.pend = st.acct ? {} : Object.fromEntries(Object.entries(st.pend).filter(([,p]) => p.explicit)); st.acct = held.session; st.cursor = 0; st.shadow = {}; st.deferred = {}; }
     const local = Object.assign(ezikSyncCollect(), ezikSyncLibSnapshot());
     const all = ezikSyncDirty(st, local, Date.now(), null);
     ezikSyncWriteState(st);
@@ -34892,7 +35234,7 @@ function ezikSyncFlush() {
       const done = () => { for (const c of batch) if (ezikSyncInFlight[c.id] === sig(c)) delete ezikSyncInFlight[c.id]; };
       try {
         fetch(EZIK_SYNC_PATH, { method: 'POST', headers, keepalive, body: JSON.stringify({ action: 'push', session: held.session, changes: batch }) })
-          .then((r) => r.json().then((d) => { done(); if (r.ok && d && d.ok) ezikSyncFlushTaken(d.results); else if (ezikSyncSessionDead(r.status, d)) ezikSyncQuietSignOut(); }))
+          .then((r) => r.json().then((d) => { done(); if (readAuthSession()?.session !== held.session) return; if (r.ok && d && d.ok) ezikSyncFlushTaken(d.results); else if (ezikSyncSessionDead(r.status, d)) ezikSyncQuietSignOut(); }))
           .catch(done);
       } catch (e) { done(); }
     };
@@ -34998,6 +35340,7 @@ function ezikSyncChatRoom(changes, local) {
 // SIGNING OUT: what is synced leaves this device (it stays in the account); what belongs to the
 // device stays. The synced-data wipe needs an open switch; name/gender clearing applies to every sign-out.
 function ezikSyncSignOutWipe() {
+  try { localStorage.removeItem('ezik_profile_conflict_v1'); } catch (_) {}
   // D16: name and gender belong to the signed-out person, even with sync closed.
   // Keep the birth year, age, profile id and every other field exactly as stored.
   try {
@@ -35011,6 +35354,11 @@ function ezikSyncSignOutWipe() {
   const rm = (k) => { try { localStorage.removeItem(k); } catch (e) {} };
   ezikSyncKv().forEach(rm);
   ezikSyncCtr().forEach(rm);
+  ezikSyncApplying = true;
+  try { ezikSyncDimaClear(); } finally { ezikSyncApplying = false; }
+  rm('ezik_dima_epoch_v1');
+  EZIK_SYNC_MEM.forEach(key => rm('ezik_mem_' + key + '_v1'));
+  rm('ezik_mem_runs_v1');
   const pid = ezikSyncLocalPid();
   for (const r of ezikReadChatIndex()) if (!pid || r.pk === pid) rm(EZIK_CHAT_PREFIX + r.id);
   ezikWriteChatIndex(ezikReadChatIndex().filter((r) => pid && r.pk !== pid));
@@ -39576,7 +39924,9 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   // only ever changes through applyWatermarkOpacity, so what is on screen, what is on the
   // document root and what is in the store cannot disagree.
   const [wmOpacity, setWmOpacity] = useState(readWatermarkOpacity);
+  useEzikSyncedValue('ezik:settings:applied', setWmOpacity, readWatermarkOpacity);
   const [wmHide, setWmHide] = useState(readWatermarkAutoHide);
+  useEzikSyncedValue('ezik:settings:applied', setWmHide, readWatermarkAutoHide);
   // ITEM 05-D: the owner ruled that "arrange your home" belongs HERE rather than at the foot of
   // the home screen, and that it must let him edit his SECTIONS as places. Both records are read
   // once at mount from their own readers and written through their own writers, and each writer
@@ -39594,6 +39944,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   // rule exactly. The switch shows the RESOLVED behaviour, so an `auto` device shows the
   // state it is actually in rather than a third word the reader never chose.
   const [enterPref, setEnterPref] = useState(readEnterPref);
+  useEzikSyncedValue('ezik:settings:applied', setEnterPref, readEnterPref);
   const enterIsTouch = ezikComposerIsTouch();
   const enterSendsNow = ezikEnterSends(enterPref, enterIsTouch);
   // ===== APPLE 4.0.0 -- THE THREE FIELDS THE FIRST-RUN CARD USED TO ASK FOR =====
@@ -39609,18 +39960,27 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   // and hope, or press a word that is not true of him. Without it the whole block is one a
   // person either lies to or abandons, and an abandoned block tells us nothing either.
   const PF_UNSPECIFIED = null;
-  const [pfName, setPfName] = useState(() => String((profile && profile.name) || ''));
-  const [pfGender, setPfGender] = useState(() => (profile && profile.gender) || null);
+  const [pfName, setPfNameRaw] = useState(() => String((profile && profile.name) || ''));
+  const [pfGender, setPfGenderRaw] = useState(() => (profile && profile.gender) || null);
   const [pfYear, setPfYearRaw] = useState(() => (profile && profile.birthYear != null ? String(profile.birthYear) : ''));
   const pfYearProvided = useRef(profile?.birthYearProvided === true);
+  const pfDirty = useRef({});
+  const setPfName = value => { pfDirty.current.name = true; setPfNameRaw(value); };
+  const setPfGender = value => { pfDirty.current.gender = true; setPfGenderRaw(value); };
+  useEffect(() => {
+    if (!pfDirty.current.name) setPfNameRaw(String(profile?.name || ''));
+    if (!pfDirty.current.gender) setPfGenderRaw(profile?.gender || null);
+    if (!pfDirty.current.year) { setPfYearRaw(profile?.birthYear == null ? '' : String(profile.birthYear)); pfYearProvided.current = profile?.birthYearProvided === true; }
+  }, [profile]);
   const setPfYear = (value) => {
+    pfDirty.current.year = true;
     setPfYearRaw(value);
     pfYearProvided.current = true;
   };
   const [pfMsg, setPfMsg] = useState('');
   // D16 SETTINGS PROFILE START
   useEffect(() => {
-    const clearSignedOutFields = () => { setPfName(''); setPfGender(null); setPfMsg(''); };
+    const clearSignedOutFields = () => { pfDirty.current = {}; setPfNameRaw(''); setPfGenderRaw(null); setPfMsg(''); };
     window.addEventListener('ezik:profile:signedout', clearSignedOutFields);
     return () => window.removeEventListener('ezik:profile:signedout', clearSignedOutFields);
   }, []);
@@ -39630,7 +39990,9 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   const pfYearOk = !(pfYear.trim() && !(Number.isInteger(pfYearNum) && pfDerived >= 4 && pfDerived <= 99));
   const savePf = () => {
     if (!pfYearOk) return;
-    setPfMsg(onSaveProfile(pfName, pfGender, pfYear, pfYearProvided.current) ? ezT('settings.profileSaved') : ezT('settings.profileSaveFailed'));
+    const saved = onSaveProfile(pfName, pfGender, pfYear, pfYearProvided.current);
+    if (saved) pfDirty.current = {};
+    setPfMsg(saved ? ezT('settings.profileSaved') : ezT('settings.profileSaveFailed'));
   };
   const [pin1, setPin1] = useState('');
   const [pin2, setPin2] = useState('');
@@ -40805,6 +41167,7 @@ const Mem86RangeBuilder = ({ counts, held, initial, onDone, onCancel }) => {
 // ---------- saved ranges: list, edit, delete, reorder ----------
 const Mem86Ranges = ({ counts, held }) => {
   const [list, setList] = useState(mem86RangesRead);
+  useEzikSyncedValue('ezik:memorizer:applied', setList, mem86RangesRead);
   const [editing, setEditing] = useState(null);   // null | 'new' | a range
   const [failed, setFailed] = useState(false);
   const put = (next) => { const got = mem86RangesWrite(next); setFailed(got.length !== next.length); setList(got); };
@@ -41031,11 +41394,12 @@ const mem86TestsRead = () => {
   const v = mem86Load(MEM86_TESTS_KEY);
   if (!Array.isArray(v)) return [];
   return v.filter((r) => mem86Obj(r) && mem86Int(r.t, 0, 1e14) !== null && mem86Int(r.shown, 1, 999) && mem86Int(r.ok, 0, 999) !== null && r.ok <= r.shown)
-    .map((r) => ({ t: r.t, shown: r.shown, ok: r.ok, errs: Array.isArray(r.errs) ? r.errs.filter((x) => /^\d{1,3}:\d{1,3}:\d{1,3}$/.test(x)).slice(0, 300) : [], sur: Array.isArray(r.sur) ? r.sur.filter((n) => mem86Int(n, 1, 114)) : [] }))
+    .map((r) => ({ id: r.id || 'legacy-' + ezikSyncHash(JSON.stringify(r)), t: r.t, shown: r.shown, ok: r.ok, errs: Array.isArray(r.errs) ? r.errs.filter((x) => /^\d{1,3}:\d{1,3}:\d{1,3}$/.test(x)).slice(0, 300) : [], sur: Array.isArray(r.sur) ? r.sur.filter((n) => mem86Int(n, 1, 114)) : [] }))
     .slice(-60);
 };
 const mem86TestsPut = (rec) => {
-  const all = mem86TestsRead().filter((r) => r.t !== rec.t).concat([rec]);
+  rec = { ...rec, id: rec.id || ezikMintId() };
+  const all = mem86TestsRead().filter((r) => r.id !== rec.id).concat([rec]);
   while (all.length && !mem86Store(MEM86_TESTS_KEY, all.slice(-60))) all.shift();
   return mem86TestsRead();
 };
@@ -41047,7 +41411,7 @@ const mem86RunRead = () => {
   if (!segs.length) return null;
   const st = mem86Obj(v.st) ? v.st : {};
   return {
-    segs, seed: v.seed, i: v.i, cfg: { ...MEM86_PREF_DEFAULT, ...v.cfg },
+    id: v.id, at: v.at, segs, seed: v.seed, i: v.i, cfg: { ...MEM86_PREF_DEFAULT, ...v.cfg },
     st: {
       shown: mem86Int(st.shown, 0, 999) || 0, ok: mem86Int(st.ok, 0, 999) || 0, streak: mem86Int(st.streak, 0, 999) || 0,
       errs: Array.isArray(st.errs) ? st.errs.filter((x) => typeof x === 'string').slice(0, 300) : [],
@@ -41057,7 +41421,7 @@ const mem86RunRead = () => {
     prevT: mem86Int(v.prevT, 0, 1e14) || 0,
   };
 };
-const mem86RunWrite = (run) => (run ? mem86Store(MEM86_RUN_KEY, run) : (() => { try { localStorage.removeItem(MEM86_RUN_KEY); } catch (e) {} return true; })());
+const mem86RunWrite = (run) => (run ? mem86Store(MEM86_RUN_KEY, { ...run, id: run.id || String(run.seed), at: Date.now() }) : (() => { try { localStorage.removeItem(MEM86_RUN_KEY); } catch (e) {} return true; })());
 // the suggestions: only from what is memorised, and only when the record can say something
 const mem86Suggest = (held, counts) => {
   const out = [];
@@ -41092,6 +41456,7 @@ const Mem86Test = ({ counts, held, ranges, prefs, onPref, isFemale, onSimilar, o
   const [stage, setStage] = useState('setup');       // setup | count | q | paused | result
   const [run, setRun] = useState(null);              // { segs, seed, i, cfg, st, temp }
   const [saved, setSaved] = useState(mem86RunRead);
+  useEzikSyncedValue('ezik:memorizer:applied', setSaved, mem86RunRead);
   const [src, setSrc] = useState(() => (mem86HeldTotal(held) ? 'held' : 'starter'));
   const [tick, setTick] = useState(0);
   const [qs, setQs] = useState(null);                // the current question: { words, shownTo, help: [], marking, wrong: [] }
@@ -41641,7 +42006,9 @@ const Mem86PlanForm = ({ counts, held, ranges, initial, onDone, onCancel }) => {
 
 const Mem86Plans = ({ counts, held, ranges, onOpen }) => {
   const [plans, setPlans] = useState(mem86PlansRead);
+  useEzikSyncedValue('ezik:memorizer:applied', setPlans, mem86PlansRead);
   const [days, setDays] = useState(mem86DaysRead);
+  useEzikSyncedValue('ezik:memorizer:applied', setDays, mem86DaysRead);
   const [editing, setEditing] = useState(null);
   const [showArch, setShowArch] = useState(false);
   const [pick, setPick] = useState('');               // 'planId|day' whose details are open
@@ -44581,6 +44948,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
   // Item 86 (memorizer): the picker's tabs and the reader's memorised ayat. The catalogue is always the first tab.
   const [tab, setTab] = useState(() => (mem86Lit() ? 'recite' : 'learn'));
   const [held, setHeld] = useState(mem86HeldRead);
+  useEzikSyncedValue('ezik:memorizer:applied', setHeld, mem86HeldRead);
   // the red of his experiment is his alone (mem86Own): anyone else reads it off, whatever is stored
   const mine = (p) => (mem86Own() ? p : { ...p, wrong: false });
   const [prefs, setPrefs] = useState(() => (mem86Lit() ? mine(mem86PrefsRead()) : MEM86_PREF_MAIN));

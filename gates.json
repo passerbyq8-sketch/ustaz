@@ -1395,5 +1395,25 @@
     "name": "usage",
     "script": "tests/usage.test.js",
     "args": ""
+  },
+  {
+    "name": "trialfixcontent",
+    "script": "tests/trialfix-content.test.cjs",
+    "args": ""
+  },
+  {
+    "name": "trialfixui",
+    "script": "tests/trialfix-ui.test.cjs",
+    "args": ""
+  },
+  {
+    "name": "trialfixsync",
+    "script": "tests/trialfix-sync.test.cjs",
+    "args": ""
+  },
+  {
+    "name": "trialfixmerges",
+    "script": "tests/trialfix-merges.test.js",
+    "args": ""
   }
 ]

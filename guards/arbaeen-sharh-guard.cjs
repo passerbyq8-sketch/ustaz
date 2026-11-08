@@ -31,8 +31,8 @@ const sha = (f) => crypto.createHash('sha256').update(fs.readFileSync(path.join(
 
 // Re-cut with the files, by tools/arbaeen-sharh-build.cjs, and never by hand.
 const PIN = {
-  'arbaeen.json': 'f0f10f465a2fc59e4b9b2513c37d9ea502866a020d66f2c4781a87519c82bcad',
-  'arbaeen-sharh.json': '6957d9d1def11daead299428bcba3d02f9631fb74cfe75540004a1d2c865dd71',
+  'arbaeen.json': 'cceee0d5d7e820d0f1735f32ba76a166f830ab8f334c6c1d2f38fcc584b4c0f6',
+  'arbaeen-sharh.json': 'd5ce142ab3388c8cf4840f0b456e2a268646ffd06c758ae03e19381804242e38',
 };
 const COUNT = 42;
 const SITE = 'https://alnawawiforty.com/';
