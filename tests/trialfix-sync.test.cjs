@@ -104,3 +104,24 @@ test('trialfix-d11 large multi-day history is split below the record cap and ove
   state.presented['2024-01-01']={civilDate:'2024-01-01',index:1,packId:'p',dayId:'d',version:1,snapshot:{lisan:{text:'x'.repeat(300000)},qalb:{text:'q'},jawarih:{text:'j'}}};
   d.local.setItem('ezik_dima_v2',JSON.stringify(state));assert.throws(()=>run(d,'ezikSyncCollect()'),/sync-dima-day-too-large/);
 });
+test('trialfix-d12a a setting edited during pull or push is not overwritten by the older response', async()=>{
+  const d=device();
+  run(d, `
+    readAuthSession = () => ({session:'race-account'});
+    ezikSyncStatus = async () => true; ezikSyncLibCollect = async () => {};
+    ezikSyncLibSnapshot = () => ({}); ezikSyncArmNext = () => {};
+    ezikSyncWatching = false; ezikSyncWatch();
+    ezikSyncCall = async body => {
+      if (body.action === 'pull') {
+        localStorage.setItem('ezik_110_font_v1','cairo');
+        return {ok:true,data:{cursor:1,changes:[{id:'kv:ezik_110_font_v1',rec:{u:1,val:'noto'}}]}};
+      }
+      localStorage.setItem('ezik_110_font_v1','tajawal');
+      return {ok:true,data:{results:body.changes}};
+    };
+  `);
+  assert.equal(await run(d,'ezikSyncCycle()'),'ok');
+  assert.equal(d.local.getItem('ezik_110_font_v1'),'tajawal');
+  assert.equal(run(d,'ezikSyncReadState().pend["kv:ezik_110_font_v1"].explicit'),true);
+  run(d,'ezikSyncHalted = true; clearTimeout(ezikSyncSoonTimer);');
+});

@@ -2,9 +2,10 @@ const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),test
 const root=path.resolve(__dirname,'..'),source=fs.readFileSync(path.join(root,'app.jsx'),'utf8');
 test('trialfix-d2 middle position and tour snapshot survive detachment; explicit opens keep their pin',()=>{
  const start=source.indexOf('  const chatPositions = useRef(new Map());'),end=source.indexOf('\n  //',start);
- const block=source.slice(start,end);let snapshot=null;
- const state={React:{useCallback:f=>f,useLayoutEffect:f=>state.layout=f},useRef:current=>({current}),introTour:{savedScroll:()=>snapshot},messagesAreaRef:{current:null},chatId:'one',screen:'chat',jumpToEndRef:{current:false}};
- vm.createContext(state);vm.runInContext(block+';this.attach=chatTranscriptRef;',state);
+ const refStart=source.indexOf('  const messagesAreaRef = React.useMemo('),refEnd=source.indexOf('  //',refStart);
+ const block=source.slice(start,end), refBlock=source.slice(refStart,refEnd);let snapshot=null;
+ const state={React:{useMemo:f=>f(),useLayoutEffect:f=>state.layout=f},useRef:current=>({current}),introTour:{savedScroll:()=>snapshot},chatIdRef:{current:'one'},chatId:'one',screen:'chat',jumpToEndRef:{current:false}};
+ vm.createContext(state);vm.runInContext(refBlock+block+';this.attach=messagesAreaRef;this.messagesAreaRef=messagesAreaRef;',state);
  const old={scrollTop:450};state.attach(old);state.attach(null);
  const fresh={scrollTop:0};state.attach(fresh);state.layout();assert.equal(fresh.scrollTop,450);
  snapshot=321;fresh.scrollTop=999;state.attach(null);state.attach({scrollTop:0});state.layout();assert.equal(state.messagesAreaRef.current.scrollTop,321);

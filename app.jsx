@@ -22092,7 +22092,18 @@ function App() {
   const messagesEndRef = useRef(null);
   // S97: the scroll CONTAINER, which nothing used to hold a handle on -- the only scrolling the
   // chat did was scrollIntoView on the sentinel above, and that cannot be made instant-before-paint.
-  const messagesAreaRef = useRef(null);
+  const messagesAreaRef = React.useMemo(() => {
+    const attach = node => {
+      const old = attach.current;
+      if (!node && old) {
+        const original = tourPosition.current?.();
+        chatPositions.current.set(chatIdRef.current, original == null ? old.scrollTop : original);
+      }
+      attach.current = node;
+    };
+    attach.current = null;
+    return attach;
+  }, []);
   // true from the moment a STORED conversation is loaded until its height has settled. While it is
   // true the container is pinned to its own end before every paint, so the last reply is the first
   // thing on screen and there is no descent to watch.
@@ -22110,17 +22121,10 @@ function App() {
   const chatPositions = useRef(new Map());
   const tourPosition = useRef(null);
   tourPosition.current = introTour.savedScroll;
-  const chatTranscriptRef = React.useCallback(node => {
-    const old = messagesAreaRef.current;
-    if (!node && old) {
-      const original = tourPosition.current?.();
-      chatPositions.current.set(chatId, original == null ? old.scrollTop : original);
-    }
-    messagesAreaRef.current = node;
-  }, [chatId]);
   React.useLayoutEffect(() => {
     const node = messagesAreaRef.current;
-    if (screen === 'chat' && node && !jumpToEndRef.current && chatPositions.current.has(chatId)) {
+    const returningScreen = screen;
+    if (returningScreen === 'chat' && node && !jumpToEndRef.current && chatPositions.current.has(chatId)) {
       const original = introTour.savedScroll();
       node.scrollTop = original == null ? chatPositions.current.get(chatId) : original;
     }
@@ -26580,7 +26584,7 @@ function App() {
         </div>
       </div>
 
-      <div ref={chatTranscriptRef} onScroll={onMessagesScroll} className={'ezc-scroll' + (pinnedAskIndex == null ? '' : ' ezc-askpinned')} style={s.messagesArea}>
+      <div ref={messagesAreaRef} onScroll={onMessagesScroll} className={'ezc-scroll' + (pinnedAskIndex == null ? '' : ' ezc-askpinned')} style={s.messagesArea}>
         {/* S112 -- THE EMPTY STATE. A NEW thread shows this and nothing else IN THE TRANSCRIPT:
             no old messages, no history list, no card of any kind and no devotional text.
             ITEM 94: and no WORD either. It drew the app’s own name in 21px above the
@@ -34971,6 +34975,7 @@ function ezikSyncCycle() {
       if (readAuthSession()?.session !== held.session) return 'account-changed';
       const st = ezikSyncReadState();
       if (st.acct !== held.session) { st.pend = st.acct ? {} : Object.fromEntries(Object.entries(st.pend).filter(([,p]) => p.explicit)); st.acct = held.session; st.cursor = 0; st.shadow = {}; st.deferred = {}; }
+      ezikSyncWriteState(st);
       const touched = {};
       const kvLike = (id) => id.indexOf('kv:') === 0 || id.indexOf('note:') === 0;
       const hashOf = (v) => ezikSyncHash(JSON.stringify(v));
@@ -34984,6 +34989,9 @@ function ezikSyncCycle() {
       if (readAuthSession()?.session !== held.session) return 'account-changed';
       if (!p.ok) return 'pull-failed';
       st.deferred = st.deferred || {};
+      local = Object.assign(ezikSyncCollect(), ezikSyncLibSnapshot());
+      const latestPending = ezikSyncReadState();
+      if (latestPending.acct === st.acct) Object.assign(st.pend, latestPending.pend);
       let applied = 0;
       const noRoom = ezikSyncChatRoom(p.data.changes, local);
       // A conversation's own record before its parts, so a part always finds the conversation it joins.
@@ -35128,6 +35136,8 @@ function ezikSyncBatches(changes, cap) {
 function ezikSyncTake(st, results, touched) {
   for (const res of results || []) {
     if (!res || !res.rec) continue;
+    const latest = ezikSyncReadState().pend[res.id];
+    if (latest?.explicit && latest.u > (Number(res.rec.u) || 0)) { st.pend[res.id] = latest; continue; }
     if (ezikSyncApply(res.id, res.rec) === false) { (st.deferred ||= {})[res.id] = res.rec; continue; }
     touched[res.id] = res.rec;
     delete st.pend[res.id];
@@ -35181,7 +35191,7 @@ function ezikSyncWatch() {
           if (EZIK_SYNC_EXTRA_SETTINGS.includes(k) || k === 'ezik_dima_epoch_v1') {
             const st = ezikSyncReadState(), id = k === 'ezik_dima_epoch_v1' ? 'kv:dima_epoch' : 'kv:' + k;
             const value = this.getItem(k);
-            st.pend[id] = { h: ezikSyncHash(JSON.stringify(value)), u: Date.now(), explicit: true, removed: value === null };
+            st.pend[id] = { h: ezikSyncHash(JSON.stringify(value)), u: Math.max(Date.now(), (st.pend[id]?.u || 0) + 1), explicit: true, removed: value === null };
             ezikSyncWriteState(st);
           }
           ezikSyncSoon();

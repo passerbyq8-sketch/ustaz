@@ -2102,7 +2102,7 @@ const SEALED = {
   // 2026-11-04 QAF-GAP-N2: ezik-v136; rebuild and CORE measurement, then LF worker seal.
   // 2026-11-04 INTEG1 preview: reserved ezik-v137; rebuilt app.js, measured CORE, LF worker seal.
   // 2026-11-06 BRAIN36 ship: reserved ezik-v139; app.js rebuilt at the same byte length; CORE unchanged; LF worker seal remeasured from the guard's printed digest.
-  'sw.js': 'c5be9929cbe432e6070be57bcbd9d181a7a6f906fe69faab3e8e009d35b3a4e6',
+  'sw.js': '25357266727c3a6dbfb50a4561194484802f9bbe7b3389077fda2aeae6a45e78',
 };
 
 // ---------------------------------------------------------------------------
@@ -3291,7 +3291,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2707094, of: 'app.js' },
+      { n: 2707493, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
@@ -3305,7 +3305,7 @@ async function compare(bankPath) {
       // ITEM 89 (2026-10-13). The forty-two's explanation, warmed last in IDLE and out of CORE; its
       // size is stated in the IDLE note and re-derived here from the file it names. (Item 4's
       // footnotes left CORE with the fifty they belonged to.)
-      { n: 272449, of: 'arbaeen-sharh.json' },
+      { n: 272616, of: 'arbaeen-sharh.json' },
       // ITEM 87. The day from waking to sleeping, the sixth corpus in CORE, stated in the
       // worker's byte table and re-derived here from the file it names.
       { n: 84759, of: 'sunan-day.json' },
