@@ -126,7 +126,7 @@ function freeNames(root) {
   const free = new Set();
   walk(root, (n, p) => {
     if (n.type !== 'Identifier') return;
-    if (p && p.type === 'MemberExpression' && p.property === n && !p.computed) return;   // .foo
+    if (p && (p.type === 'MemberExpression' || p.type === 'OptionalMemberExpression') && p.property === n && !p.computed) return;   // .foo
     if (p && p.type === 'ObjectProperty' && p.key === n && !p.computed) return;          // { foo: }
     if (p && p.type === 'ObjectMethod' && p.key === n && !p.computed) return;
     if (p && (p.type === 'VariableDeclarator' || p.type === 'FunctionDeclaration'
@@ -378,6 +378,10 @@ const LAB_NAMES = ['settings', 'bm', 'tags', 'fav', 'notes', 'refl', 'recent', '
 // mentioned would be a false citation there. What makes an entry lawful here is that the button
 // erases it and is asserted to keep erasing it -- not the date it was added.
 const MUST_GO_ALREADY = [
+  // ORDER T1: companion data is erased with profile, Dima and memorizer progress.
+  { lit: 'ezik_dima_epoch_v1' },
+  { lit: 'ezik_mem_runs_v1' },
+  { lit: 'ezik_profile_conflict_v1' },
   { lit: 'ezik_dima_v2' },              // active pack progress and frozen selections
   { lit: 'child_profile' },              // the name, birth year and gender
   { c: 'EZIK_CHATS_KEY' },               // the index of saved conversations

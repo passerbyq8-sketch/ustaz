@@ -25783,6 +25783,10 @@ function App() {
       ezikClearMushafDownloads();
       try { localStorage.removeItem(EZIK_SYNC_STATE_KEY); } catch (e) {}
       localStorage.removeItem('child_profile');
+      // ORDER T1: all local account-progress companions leave with their parent data.
+      try { localStorage.removeItem('ezik_dima_epoch_v1'); } catch (e) {}
+      try { localStorage.removeItem('ezik_mem_runs_v1'); } catch (e) {}
+      try { localStorage.removeItem('ezik_profile_conflict_v1'); } catch (e) {}
       // S92 -- "delete all my data" has to mean the SAVED CONVERSATIONS too: every stored body,
       // the index that lists them, and the single legacy thread the old 'messages' key held.
       ezikClearAllChats();
@@ -34588,7 +34592,7 @@ function mergeMemorizer(key, a, b, newer) {
 
 return { mergeDima, mergeMemorizer };
 })();
-const EZIK_SYNC_EXTRA_SETTINGS = ['murabbi_theme_v1', 'ezik_110_font_v1', 'ezik_110_identity_v1', 'ezik_110_digits_v1', 'ezik_110_bar_v1', 'ezik_watermark_opacity_v1', 'ezik_watermark_autohide_v1', 'ezik_enter_sends_v1'];
+const EZIK_SYNC_EXTRA_SETTINGS = [THEME_KEY, EZ110_FONT_KEY, EZ110_IDENTITY_KEY, EZ110_DIGITS_KEY, EZ110_BAR_KEY, EZIK_WM_KEY, EZIK_WM_HIDE_KEY, EZIK_ENTER_KEY];
 const EZIK_SYNC_MEM = ['held', 'ranges', 'words', 'tests', 'run', 'plans', 'days', 'prefs'];
 function useEzikSyncedValue(event, setter, reader) {
   useEffect(() => { const refresh = () => setter(reader()); window.addEventListener(event, refresh); return () => window.removeEventListener(event, refresh); }, [event, setter, reader]);
