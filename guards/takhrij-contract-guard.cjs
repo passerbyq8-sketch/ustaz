@@ -3909,6 +3909,61 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       }
     }
 
+    // ── brain35-5 Z1 (2026-11-08; DIAG4 C3) · THE GRADE VOCABULARY KNOWS THE HEAD'S OWN VERDICT FORMS ───────────────────
+    // MEASURED (DIAG4 H3, preview Q3): the head «هذا الحديث ليس بحديث …، ونسبته إليه غير صحيحة.» carries no GRADE_VOCAB form
+    // («ليس بحديث» is not in the list; the feminine ة breaks the boundary after «صحيح»), so gradeStatedAtHead was false and the
+    // ledger wrote «وأما الحكم عليه فلم أقف على من حكم عليه بعينه.» under a head that had graded the hadith. The vocabulary
+    // gains the head's own forms, read in the five places it is read: مكذوب · ليس له أصل · لا أعلم له أصلا · ليس بحديث ·
+    // غير صحيح(ة) · غير ثابت(ة) · شاذ · معلول · مرسل · منقطع · ثابت · رجاله ثقات. The strings are the DIAG4 H3 harness's.
+    {
+      const LEDGER = await esm('lib/completion-ledger.js');
+      const Q3 = 'ما درجة حديث «اطلبوا العلم ولو بالصين» وما حكم العلماء عليه؟';
+      const led = (released) => LEDGER.completionLedger({ question: Q3, released });
+      ok('Z1a «هذا الحديث ليس بحديث.» at the head of an answer to Q3 -> no grader sentence', led('هذا الحديث ليس بحديث.').length === 0, JSON.stringify(led('هذا الحديث ليس بحديث.')));
+      const WITNESS_HEADS = [
+        'هذا الحديث ليس بحديث عن النبي صلى الله عليه وسلم، ونسبته إليه غير صحيحة.',
+        'هذا الحديث ليس بحديث، بل هو من كلام بعض الناس، ونسبته إلى النبي صلى الله عليه وسلم غير صحيحة.',
+        'هذا الحديث ليس بحديث ثابت، والرواية به عن النبي صلى الله عليه وسلم غير صحيحة.',
+      ];
+      ok('Z1b the three reconstructed witness heads («ليس بحديث … غير صحيحة») -> no grader sentence on any',
+        WITNESS_HEADS.every((h) => led(h).length === 0 && LEDGER.gradeStatedAtHead(h) === true), JSON.stringify(WITNESS_HEADS.map((h) => led(h))));
+      const NEW_FORMS = ['ليس بحديث', 'غير صحيحة', 'مكذوب', 'ثابت', 'مرسل', 'شاذ', 'ليس له أصل', 'لا أعلم له أصلا', 'غير ثابت', 'غير ثابتة', 'معلول', 'منقطع', 'رجاله ثقات'];
+      for (const f of NEW_FORMS) {
+        const h1 = 'هذا الحديث ' + f + '.';
+        const h2 = 'حديث «اطلبوا العلم ولو بالصين» ' + f + '.';
+        ok('Z1c the form «' + f + '» as the head («هذا الحديث <form>.» and «حديث «…» <form>.») -> a grade stated, no grader sentence',
+          LEDGER.gradeStatedAtHead(h1) === true && LEDGER.gradeStatedAtHead(h2) === true && led(h1).length === 0 && led(h2).length === 0,
+          JSON.stringify([LEDGER.gradeStatedAtHead(h1), LEDGER.gradeStatedAtHead(h2), led(h1), led(h2)]));
+      }
+      ok('Z1d «غير صحيح» stays green: «هذا الحديث غير صحيح.» -> a grade stated, no grader sentence (unchanged)',
+        LEDGER.gradeStatedAtHead('هذا الحديث غير صحيح.') === true && led('هذا الحديث غير صحيح.').length === 0);
+      const NO_GRADE_HEAD = 'ورد هذا اللفظ في كتب الأدب والمواعظ ضمن أحاديث جمعت في باب الجهاد وحب الأوطان، وتداوله الناس على الألسنة.';
+      ok('Z1e a head with no verdict form («ورد هذا اللفظ في كتب الأدب …») -> the grader sentence (unchanged)',
+        JSON.stringify(led(NO_GRADE_HEAD)) === JSON.stringify([LEDGER.LEDGER_GRADER_SENTENCE]) && LEDGER.gradeStatedAtHead(NO_GRADE_HEAD) === false, JSON.stringify(led(NO_GRADE_HEAD)));
+      ok('Z1f the F5 heads unchanged: «هذا الحديث لا أصل له.», «ليس صحيحا بل موضوع.», «هذا الحديث ليس بصحيح.» -> a grade stated; «متفق عليه» alone is no grade word',
+        led('هذا الحديث لا أصل له. وقد بحثت عنه في الكتب المسندة فلم أجده.').length === 0 && LEDGER.gradeStatedAtHead('ليس صحيحا بل موضوع.') === true
+        && LEDGER.gradeStatedAtHead('هذا الحديث ليس بصحيح.') === true && LEDGER.gradeStatedAtHead('هذا الحديث متفق عليه.') === false);
+      ok('Z1g graderNamed reads the new forms in the grader frames too: «قال الألباني: ثابت», «قال الألباني: ليس بحديث», «عند الألباني: مكذوب»',
+        LEDGER.graderNamed('قال الألباني: ثابت') === true && LEDGER.graderNamed('قال الألباني: ليس بحديث') === true && LEDGER.graderNamed('عند الألباني: مكذوب') === true
+        && LEDGER.graderNamed('قال الذهبي: حسن لغيره') === true && LEDGER.graderNamed('قال الألباني في كتابه كلاما طويلا') === false);
+      // the mutant: «ليس\s+بحديث|» removed from GRADE_VOCAB -> Z1a's shape draws the grader sentence again
+      {
+        const fsM = require('fs'); const { pathToFileURL } = require('url');
+        const srcG = fsM.readFileSync(path.join(REPO, 'lib/completion-ledger.js'), 'utf8').replace(/\r\n/g, '\n');
+        const seamZ1 = 'ليس\\\\s+بحديث|';
+        ok('Z1 mutant seam present once', srcG.split(seamZ1).length === 2);
+        const tmpZ1 = path.join(REPO, 'lib', '.mut-z1-vocab.mjs');
+        fsM.writeFileSync(tmpZ1, srcG.split(seamZ1).join('').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MZ1 = null;
+        try { MZ1 = await import(pathToFileURL(tmpZ1).href + '?m=' + Date.now()); } catch (e) { MZ1 = null; } finally { fsM.rmSync(tmpZ1, { force: true }); }
+        ok('Z1 mutant loads', !!MZ1);
+        ok('Z1 MUTANT KILLED: without «ليس بحديث» in the vocabulary the Z1a head draws the grader sentence again',
+          !!MZ1 && JSON.stringify(MZ1.completionLedger({ question: Q3, released: 'هذا الحديث ليس بحديث.' })) === JSON.stringify([MZ1.LEDGER_GRADER_SENTENCE]),
+          MZ1 ? JSON.stringify(MZ1.completionLedger({ question: Q3, released: 'هذا الحديث ليس بحديث.' })) : 'no module');
+      }
+    }
+
     // ── brain35-3 X2 (2026-11-07; DIAG3 D2 fix 2; owner D2: both fixes) · A LEAD LINE IS NOT THE HEAD ─────────────────
     // MEASURED (DIAG3 H2 (c), preview Q7): the first non-heading line was the disagreement frame («اختلفت الأقوال المنقولة …
     // والقول الآتي يخالف ما سبق:»), which ends on «:» and carries no grade word, so gradeStatedAtHead read it, found no grade
