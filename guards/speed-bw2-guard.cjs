@@ -2663,6 +2663,48 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
           !!MI && (await play12(MI, IMAM_12)).holds.unsupported_school === 1, MI ? JSON.stringify((await play12(MI, IMAM_12)).holds) : 'no module');
       }
     }
+    // ── brain35-5 Z3 (2026-11-08; DIAG4 C6 (a)) · THE IMAM'S KUNYA IN ANY CASE IS ONE NAME ──────────────────────────────
+    // MEASURED (DIAG4 H6 / H6b, preview Q23): the store's «أُضْحِيَّةٌ» article (F00362) says «8 - وذهب ابو حنيفه الي انها واجبه.»
+    // (nominative) and the writer's second view says «وهو قول أبي حنيفة» (genitive): X8's imam reading needed the SAME folded form
+    // in the unit and in the row, so the second view was held unsupported_school on the row's own stance. namesSchool now
+    // compares the imam key through kunyaCase (ابي/ابا -> ابو) on both sides. The passage is read from the bundled store
+    // (lib/data/fiqh-search.json.gz) exactly as DIAG4 H6b cut it; the units are H6b's.
+    {
+      const UNITS_Z3 = await esm('lib/bw2-units.js');
+      const zlibZ3 = require('zlib');
+      const storeZ3 = JSON.parse(zlibZ3.gunzipSync(fs.readFileSync(path.join(REPO, 'lib/data/fiqh-search.json.gz'))).toString('utf8'));
+      const foldZ3 = (v) => String(v || '').replace(/[ً-ْٰـ]/gu, '').replace(/[آأإ]/gu, 'ا').replace(/ة/gu, 'ه').trim();
+      const recZ3 = storeZ3.find((r) => foldZ3(r.term) === 'اضحيه');
+      const atZ3 = recZ3 ? recZ3.search.indexOf('حكم الاضحيه') : -1;
+      const PASSAGE_Z3 = recZ3 && atZ3 >= 0 ? recZ3.search.slice(Math.max(0, atZ3 - 50), atZ3 + 1400) : '';
+      ok('Z3 the store\'s «أُضْحِيَّةٌ» passage is found and says «وذهب ابو حنيفه الي انها واجبه» (the row names the imam in the nominative only)',
+        !!recZ3 && PASSAGE_Z3.includes('وذهب ابو حنيفه الي انها واجبه') && !PASSAGE_Z3.includes('ابي حنيفه') && !PASSAGE_Z3.includes('الحنفيه'), ascii(recZ3 ? recZ3.id + ' ' + recZ3.term : 'no record'));
+      const rowsZ3 = [{ ref: 1, kind: 'lib_book', title: 'الموسوعة الفقهية الكويتية', bookTitle: 'الموسوعة الفقهية الكويتية', author: 'مجموعة من المؤلفين', locator: '', recordId: recZ3 ? recZ3.id : 'F00362', fullText: PASSAGE_Z3, text: PASSAGE_Z3, passage: PASSAGE_Z3 }];
+      const playZ3 = async (mod, writer) => { const out = []; const r = mod.createBw2Releaser({ rows: rowsZ3, emit: (p) => { out.push(p); return true; } }); r.push(writer + '\n'); const sum = await r.end(); return { text: out.join(''), holds: sum.holds }; };
+      const GEN_Z3 = 'القول الثاني: أنها واجبة على القادر، وهو قول أبي حنيفة [[1]].';
+      const NOM_Z3 = 'القول الثاني: أنها واجبة على القادر، وهو قول أبو حنيفة [[1]].';
+      const SCHOOL_Z3 = 'القول الثاني: أنها واجبة على القادر، وهو قول الحنفية [[1]].';
+      const gen = await playZ3(UNITS_Z3, GEN_Z3);
+      ok('Z3a the genitive «وهو قول أبي حنيفة» on the F00362 passage («وذهب ابو حنيفه …») -> released', gen.text.includes('وهو قول أبي حنيفة') && !gen.holds.unsupported_school, JSON.stringify(gen.holds));
+      const nom = await playZ3(UNITS_Z3, NOM_Z3);
+      ok('Z3b the nominative «وهو قول أبو حنيفة» on the same passage -> released (unchanged)', nom.text.includes('وهو قول أبو حنيفة') && !nom.holds.unsupported_school, JSON.stringify(nom.holds));
+      const sch = await playZ3(UNITS_Z3, SCHOOL_Z3);
+      ok('Z3c the school\'s plural «وهو قول الحنفية» on the same passage -> held unsupported_school (unchanged: the row names the imam only)', sch.holds.unsupported_school === 1 && !sch.text.includes('وهو قول الحنفية'), JSON.stringify(sch.holds));
+      // the mutant: kunyaCase removed from the unit side -> the genitive is held again
+      {
+        const srcK = read('lib/bw2-units.js');
+        const seamK = "  || (!!unitFolded && ROW_IMAM_KEYS[school].some((f) => unitNamesImam(kunyaCase(unitFolded), kunyaCase(f)) && kunyaCase(String(folded)).includes(kunyaCase(f))));";
+        ok('Z3 mutant seam present once', srcK.split(seamK).length === 2);
+        const tmpK = path.join(REPO, 'lib', '.mut-z3-kunya.mjs');
+        fs.writeFileSync(tmpK, srcK.split(seamK).join("  || (!!unitFolded && ROW_IMAM_KEYS[school].some((f) => unitNamesImam(unitFolded, kunyaCase(f)) && kunyaCase(String(folded)).includes(kunyaCase(f)))); // mutant: the unit's kunya keeps its case").replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MK = null;
+        try { MK = await import(pathToFileURL(tmpK).href + '?m=' + Date.now()); } catch (e) { MK = null; } finally { fs.rmSync(tmpK, { force: true }); }
+        ok('Z3 mutant loads', !!MK);
+        ok('Z3 MUTANT KILLED: with the unit\'s kunya left in its case the genitive «أبي حنيفة» is held unsupported_school again',
+          !!MK && (await playZ3(MK, GEN_Z3)).holds.unsupported_school === 1, MK ? JSON.stringify((await playZ3(MK, GEN_Z3)).holds) : 'no module');
+      }
+    }
     // ---------------------------------------------------------------- ITEM 35-D3 D6 (i) (brain35-3 X9, 2026-11-07; owner: (iii) with (ii) first): A DEMONSTRATIVE AFTER A BARE VERB IS A BACK-REFERENCE
     // MEASURED (DIAG3 H6 (b), preview Q12 / Q6): «استدل هؤلاء بحديث: …» and «يكون هذا أشد وأعظم…» were released with nothing naming
     // «هؤلاء» / «هذا» before them: «استدل» is a bare five-letter verb in no set, and «هؤلاء» / «هذا» as the second word is in
