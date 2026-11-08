@@ -39,6 +39,10 @@ const sandbox = {
   console,
 };
 vm.createContext(sandbox);
+// ORDER T1: test records now receive stable IDs from the shipped shared helper.
+const mint = ast.program.body.find(n => n.type === 'FunctionDeclaration' && n.id.name === 'ezikMintId');
+if (!mint) throw Error('missing shared stable-ID helper');
+vm.runInContext(raw.slice(mint.start, mint.end), sandbox);
 const LIFT = [];
 const lift = (names) => {
   const missing = [];
@@ -349,8 +353,8 @@ ok(q4.length > 0 && lnOf(q4[q4.length - 1]) - lnOf(q4[0]) >= 4, 'a 5-line questi
 ok(q1.every((w) => typeof w.text === 'string' && w.text === X.__quranData[w.s + ':' + w.a].split(/\s+/).filter(Boolean).filter((x) => X.normalizeForRecite(x))[w.k]), 'every word shown is the mushaf\'s own word at its number');
 // results and the paused test
 reset();
-X.mem86TestsPut({ t: 1, shown: 4, ok: 3, errs: ['1:2:3', 'bad'], sur: [1, 999] });
-ok(JSON.stringify(X.mem86TestsRead()) === JSON.stringify([{ t: 1, shown: 4, ok: 3, errs: ['1:2:3'], sur: [1] }]), 'a result keeps valid refs and surahs only');
+X.mem86TestsPut({ id: 'fixture-result', t: 1, shown: 4, ok: 3, errs: ['1:2:3', 'bad'], sur: [1, 999] });
+ok(JSON.stringify(X.mem86TestsRead()) === JSON.stringify([{ id: 'fixture-result', t: 1, shown: 4, ok: 3, errs: ['1:2:3'], sur: [1] }]), 'a result keeps its stable ID, valid refs and surahs only');
 X.mem86TestsPut({ t: 1, shown: 4, ok: 3, errs: [], sur: [1] });
 ok(X.mem86TestsRead().length === 1 && X.mem86TestsRead()[0].errs.length === 0, 'removing a false error rewrites the same result');
 ok(X.mem86TestsRead().length === 1 && (() => { X.mem86TestsPut({ t: 2, shown: 0, ok: 0, errs: [], sur: [] }); return X.mem86TestsRead().length === 1; })(), 'a test with nothing shown is not a result');

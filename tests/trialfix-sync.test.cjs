@@ -66,6 +66,11 @@ test('trialfix-d12b memorizer reinstall, intervals, stable legacy IDs, paused ru
   assert.deepEqual(JSON.parse(d.local.getItem('ezik_mem_held_v1')),{'1':[[1,5]]});
   d.local.setItem('ezik_mem_tests_v1',JSON.stringify([{t:10,shown:5,ok:4}]));
   assert.deepEqual(plain(run(d,'ezikSyncCollect()')),plain(run(d,'ezikSyncCollect()')));
+  const legacyId=run(d,'mem86TestsRead()[0].id');
+  run(d,"mem86TestsPut({t:10,shown:5,ok:4,errs:[],sur:[1]})");
+  assert.equal(run(d,'mem86TestsRead().length'),1);assert.equal(run(d,'mem86TestsRead()[0].id'),legacyId);
+  run(d,"mem86TestsPut({id:'distinct-test',t:10,shown:5,ok:4,errs:[],sur:[1]})");
+  assert.equal(run(d,'mem86TestsRead().length'),2,'distinct stable IDs survive even with equal timestamps');
   run(d,"ezikSyncApply('ctr:mem.run',{u:1,val:{runs:[{id:'a',at:10},{id:'b',at:20}]}})");
   assert.equal(JSON.parse(d.local.getItem('ezik_mem_run_v1')).id,'b');
   assert.equal(JSON.parse(d.local.getItem('ezik_mem_runs_v1')).length,2);

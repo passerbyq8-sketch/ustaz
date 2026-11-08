@@ -8,10 +8,12 @@ const languageNode=ast.program.body.flatMap(n=>n.type==='VariableDeclaration'?n.
 assert.equal(languageNode.init.type,'StringLiteral');const languageKey=languageNode.init.value;
 const code=source.slice(declaration.start,declaration.end);
 function verify(fn){
- for(const open of [false,true])for(const year of [2016,1996]){
+ for(const open of [false,true])for(const year of [2016,1996])for(const provided of [true,false,undefined]){
   const profile={name:'Saved name',gender:'female',birthYear:year,age:2026-year,pid:'fixture-person',createdAt:'2025-01-01',future:{keep:true}};
+  if(provided!==undefined)profile.birthYearProvided=provided;
   const data={child_profile:JSON.stringify(profile),[languageKey]:'fr',unrelated:'keep'};const events=[];
   const scope={localStorage:{getItem:k=>data[k]||null,setItem:(k,v)=>{data[k]=v;},removeItem:k=>{delete data[k];}},ezikSyncIsOpen:()=>open,
+   ezikSyncDimaClear:()=>{},EZIK_SYNC_MEM:[],ezikSyncApplying:false,
    ezikSyncJson:s=>{try{return JSON.parse(s);}catch(_){return null;}},ezikSyncKv:()=>[],ezikSyncCtr:()=>[],ezikSyncLocalPid:()=>profile.pid,
    ezikReadChatIndex:()=>[],ezikWriteChatIndex:()=>{},ezikReadA11yAll:()=>({}),ezikWriteFavs:()=>{},ezikReadFavs:()=>[],ezikSyncLibWipe:()=>{},
    PRAYER_PREFS_KEY:'prayer',EZIK_SYNC_PRAYER_FIELDS:[],EZIK_A11Y_KEY:'a11y',EZIK_SYNC_STATE_KEY:'sync',EZIK_CHAT_PREFIX:'chat:',
@@ -25,10 +27,10 @@ function verify(fn){
 }
 function verifyListeners(){
  const bus={};const profile={name:'Name',gender:'male',birthYear:2016,age:10,pid:'same'};
- const scope={window:{addEventListener:(k,f)=>(bus[k]||(bus[k]=[])).push(f),removeEventListener:()=>{}},useEffect:f=>f(),profileRef:{current:profile},voiceProfileRef:{current:profile},setProfile:p=>{scope.rendered=p;},setPfName:n=>{scope.name=n;},setPfGender:g=>{scope.gender=g;},setPfMsg:m=>{scope.message=m;}};
+ const scope={window:{addEventListener:(k,f)=>(bus[k]||(bus[k]=[])).push(f),removeEventListener:()=>{}},useEffect:f=>f(),profileRef:{current:profile},voiceProfileRef:{current:profile},setProfile:p=>{scope.rendered=p;},pfDirty:{current:{name:true,gender:true}},setPfNameRaw:n=>{scope.name=n;},setPfGenderRaw:g=>{scope.gender=g;},setPfMsg:m=>{scope.message=m;}};
  for(const marker of ['D16 LIVE PROFILE START','D16 SETTINGS PROFILE START']){const a=source.indexOf('// '+marker),b=source.indexOf('// D16 PROFILE END',a);assert(a>=0&&b>a);vm.runInNewContext(source.slice(a,b),scope);}
  assert.equal(bus['ezik:profile:signedout'].length,2);bus['ezik:profile:signedout'].forEach(f=>f());
- assert.deepEqual(JSON.parse(JSON.stringify(scope.rendered)),{...profile,name:'',gender:null});assert.equal(scope.voiceProfileRef.current,scope.profileRef.current);assert.equal(scope.name,'');assert.equal(scope.gender,null);assert.equal(scope.message,'');
+ assert.deepEqual(JSON.parse(JSON.stringify(scope.rendered)),{...profile,name:'',gender:null});assert.equal(scope.voiceProfileRef.current,scope.profileRef.current);assert.equal(scope.name,'');assert.equal(scope.gender,null);assert.equal(scope.message,'');assert.equal(Object.keys(scope.pfDirty.current).length,0);
 }
 const mutant=code.replace('function ezikSyncSignOutWipe() {','function ezikSyncSignOutWipe() {\n  if (!ezikSyncIsOpen()) return false;');
 const languageMutant=code.replace('function ezikSyncSignOutWipe() {','function ezikSyncSignOutWipe() {\n  localStorage.removeItem('+JSON.stringify(languageKey)+');');

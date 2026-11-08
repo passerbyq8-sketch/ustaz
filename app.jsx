@@ -41412,8 +41412,10 @@ const mem86TestsRead = () => {
     .slice(-60);
 };
 const mem86TestsPut = (rec) => {
-  rec = { ...rec, id: rec.id || ezikMintId() };
-  const all = mem86TestsRead().filter((r) => r.id !== rec.id).concat([rec]);
+  const existing = mem86TestsRead();
+  const prior = !rec.id && existing.find((r) => r.t === rec.t);
+  rec = { ...rec, id: rec.id || (prior && prior.id) || ezikMintId() };
+  const all = existing.filter((r) => r.id !== rec.id).concat([rec]);
   while (all.length && !mem86Store(MEM86_TESTS_KEY, all.slice(-60))) all.shift();
   return mem86TestsRead();
 };
@@ -41503,7 +41505,7 @@ const Mem86Test = ({ counts, held, ranges, prefs, onPref, isFemale, onSimilar, o
   };
   const begin = (segs, cfg) => {
     if (!segs.length) return;
-    const r = { segs, seed: Math.floor(Math.random() * 2147483646) + 1, i: 0, cfg: { ...prefs, ...cfg }, temp, st: { shown: 0, ok: 0, streak: 0, errs: [], ayat: [], ms: 0 } };
+    const r = { segs, seed: Math.floor(Math.random() * 2147483646) + 1, id: ezikMintId(), i: 0, cfg: { ...prefs, ...cfg }, temp, st: { shown: 0, ok: 0, streak: 0, errs: [], ayat: [], ms: 0 } };
     setRun(r); setResult(null); setStage('count'); persist(r, 0); setSaved(null);
   };
   const resume = (r) => { setRun({ ...r, temp: false }); setStage('count'); setSaved(null); };
@@ -41522,7 +41524,7 @@ const Mem86Test = ({ counts, held, ranges, prefs, onPref, isFemale, onSimilar, o
     mem86RunWrite(null);
     const sur = [];
     r.st.ayat.forEach((g) => { const n = mem86SA(mem86Offsets(counts), g)[0]; if (sur.indexOf(n) === -1) sur.push(n); });
-    const rec = { t: r.prevT || Date.now(), shown: r.st.shown, ok: r.st.ok, errs: r.st.errs.slice(0, 300), sur };
+    const rec = { id: r.id || String(r.seed), t: r.prevT || Date.now(), shown: r.st.shown, ok: r.st.ok, errs: r.st.errs.slice(0, 300), sur };
     if (!r.temp && r.st.shown > 0) {
       mem86TestsPut(rec);
       mem86Credit({ review: r.st.ayat.length - (r.st.cred || 0), fresh: 0, ayat: r.st.ayat.slice(r.st.cred || 0).map((g) => mem86SA(mem86Offsets(counts), g)) });
@@ -41665,7 +41667,7 @@ const Mem86Test = ({ counts, held, ranges, prefs, onPref, isFemale, onSimilar, o
       if (!run || !run.temp) mem86WordsLog([r], gone ? 'err' : 'unerr');
       const removed = gone ? result.removed.filter((x) => x !== r) : result.removed.concat([r]);
       setResult({ ...result, removed });
-      if (!run || !run.temp) mem86TestsPut({ t: result.t, shown: result.shown, ok: result.ok, errs: result.errs.filter((x) => removed.indexOf(x) === -1), sur: result.sur });
+      if (!run || !run.temp) mem86TestsPut({ id: result.id, t: result.t, shown: result.shown, ok: result.ok, errs: result.errs.filter((x) => removed.indexOf(x) === -1), sur: result.sur });
     };
     return (
       <section style={s.mem86Card}>

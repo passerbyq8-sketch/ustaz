@@ -35,5 +35,5 @@ test('trialfix-d8 old current future and missing versions retain server counts a
  assert.equal(x.old,1);assert.equal(x.other,1);assert.equal(x.current,1);assert.equal(x.unknown,1);assert.equal(x.versions.reduce((n,r)=>n+r.n,0),x.known);assert.equal(x.known+x.unknown,x.active);
  const component=source.slice(source.indexOf('function EzPanelVersionDevices'),source.indexOf('function EzikUsageBoard'));
  for(const key of ['versionHeading','versionUnknown','versionOther','versionCurrent','versionFooter'])assert(component.includes('panel.'+key));
- assert(!component.includes('data.unknown + data.other'));
+ assert(component.length > 0 && !component.includes('data.unknown + data.other'));
 });
