@@ -259,9 +259,9 @@
   <tr><th>يُحفَظ في حسابك (ويظهر على أجهزتك)</th><th>يبقى على كلّ جهازٍ وحده ولا يغادره</th></tr>
   <tr><td>المحادثاتُ والردودُ المفضّلة — نصًّا</td><td>الصورُ التي ترفقها بسؤالك (يظهر مكانَها على أجهزتك الأخرى علامةٌ تقول إنّها على جهازٍ آخر)</td></tr>
   <tr><td>«ملفّك»: الاسمُ وسنةُ الميلاد والجنس</td><td>مكانُ الصلاة واتّجاهُ القبلة</td></tr>
-  <tr><td>الوِردُ والأذكارُ والختمةُ والتسبيح</td><td>التنبيهاتُ وساعاتُها</td></tr>
+  <tr><td>الوِردُ والأذكارُ والختمةُ والتسبيح / ديمة / المحفّظ</td><td>التنبيهاتُ وساعاتُها</td></tr>
   <tr><td>مواضعُ القراءة في المصحف والمكتبة، وملاحظاتُ المكتبة</td><td>موافقتُك على استعمال الذكاء الاصطناعيّ (تُسأَل في كلّ جهاز)</td></tr>
-  <tr><td>الإعدادات: الثيمُ والخطُّ واللغةُ والرئيسيّةُ وترتيبُها وطريقةُ المواقيت وتعديلاتُها والهجريُّ ومشايخُ الفتاوى</td><td>قفلُ الأهل ورمزُه، وتنزيلاتُ المصحف</td></tr>
+  <tr><td>الإعدادات: الثيمُ والخطُّ واللغةُ والرئيسيّةُ وترتيبُها وطريقةُ المواقيت وتعديلاتُها والهجريُّ ومشايخُ الفتاوى / هوية التصميم / شكل الأرقام / التنقّل الرئيسي / وضوح العلامة المائية / إخفاؤها أثناء ورود الرد / زر الإدخال</td><td>قفلُ الأهل ورمزُه، وتنزيلاتُ المصحف</td></tr>
 </table>
 
 <h3>كيف نحفظها</h3>
@@ -363,9 +363,9 @@
     <tr><th>Provider</th><th>What is sent</th></tr>
     <tr><td><strong>Anthropic (Claude)</strong></td><td>Your question and conversation, including the <strong>child's name, age and gender</strong> (the tutor addresses the child by name and adapts to their age), plus any file or image you upload.</td></tr>
     <tr><td><strong>ElevenLabs</strong></td><td>Two functions: <strong>text you choose to have read aloud</strong>, and <strong>your voice recording</strong>, received temporarily to be converted to text <strong>when the cloud transcription path is used</strong>.</td></tr>
-    <tr><td><strong>Brave Search</strong> ديمة / \u{0627}\u{0644}\u{0645}\u{062D}\u{0641}\u{0651}\u{0638}</td><td>Search terms used to reach trusted Islamic reference sources.</td></tr>
+    <tr><td><strong>Brave Search</strong></td><td>Search terms used to reach trusted Islamic reference sources.</td></tr>
     <tr><td><strong>Cohere</strong></td><td>ranks search results by relevance to your question. Only the question or its individual issue and candidate passages are sent, without profile details or account and device identifiers. Cohere may retain logs for up to 30 days. The provider account must be configured to prevent training use before sending.</td></tr>
-    <tr><td><strong>Published pages our server fetches</strong> (the approved fatwa sites on the list, and ar.wikipedia.org) / هوية التصميم / شكل الأرقام / اضغط الآن القسم الذي تضعه في هذه الخانة. / وضوح العلامة المائية / إخفاؤها أثناء ورود الرد / زر الإدخال</td><td>Fetched by <strong>our server, not your device</strong>, so your own IP address never reaches them. They receive the requested URL and nothing else, and that URL may carry <strong>a name or a phrase taken from your question</strong> — the name of a person being looked up, for instance. The full text of your question, your files and your voice are not sent to them.</td></tr>
+    <tr><td><strong>Published pages our server fetches</strong> (the approved fatwa sites on the list, and ar.wikipedia.org)</td><td>Fetched by <strong>our server, not your device</strong>, so your own IP address never reaches them. They receive the requested URL and nothing else, and that URL may carry <strong>a name or a phrase taken from your question</strong> — the name of a person being looked up, for instance. The full text of your question, your files and your voice are not sent to them.</td></tr>
     <tr><td><strong>Our own services</strong> (lib.ezik.app, ezik-fatwas-4k.vercel.app)</td><td>Two servers of ours that run the lesson library and the fatwa screen. <strong>What you type into their own search boxes</strong> passes to them through our main server; your name, your age and your conversation do not.</td></tr>
     <tr><td><strong>Browser or operating-system speech-recognition services</strong></td><td><strong>A recording of your voice</strong> — <strong>only</strong> when you use the recitation feature or the in-browser transcription path (the cloud path goes through ElevenLabs, in the row above). Audio is recorded temporarily for the duration of the turn and sent to be converted to text. <strong>We do not retain it on our servers</strong>; the provider's own retention is governed by its policies and terms. Which provider handles it depends on your device and your browser, <strong>so we cannot name a single one that holds for every case.</strong></td></tr>
     <tr><td><strong>Vercel</strong> (hosting)</td><td>Hosting. Standard server logs — including <strong>IP address and browser type</strong>, as with any web server.</td></tr>
