@@ -736,66 +736,6 @@ async function main() {
       ok('F8 MUTANT length-test seam applied', mF8.ok, mF8.reason);
       ok('F8 MUTANT KILLED: with the length test restored the short record is the old question-first block again',
         mF8.ok && mF8.mod.serverOwnedBlock(shortRec, [], { band: 'adult', brief: true }) === shortWhole);
-      // ── brain35-5 Z6 (2026-11-08; DIAG4 C5) · THE BRIEF EXCERPT SKIPS THE PREAMBLE AND STOPS BEFORE A SPEAKER TURN ──────
-      // MEASURED (DIAG4 H5, preview Q12 / Q19 / Q14) on same-shape fixture records of this worktree: the brief block opened on
-      // «ج : وعليكم السلام ورحمة الله وبركاته ..» (salmajed_1567), on «الشيخ: الحمد لله رب العالمين، وأصلي وأسلم …» (riba records[1])
-      // and carried the presenter's «المقدم: …» (wasl results[8]). The excerpt is now the answer's BODY (briefAnswerBody: the
-      // closed preamble list skipped, stopped before a speaker turn); a body under MIN_ANSWER_WORDS falls back to the whole
-      // answer; the «النص الكامل» expansion keeps every byte; substantiveFatwaAnswer is unchanged.
-      {
-        const fix = (rec) => ({ ...rec, displayPolicy: 'full', contentMode: 'written_fatwa', fullTextComplete: true, truncated: false, omittedChars: 0, question: rec.question || 'سؤال', answer: rec.answer, title: rec.title || 'فتوى', url: rec.url || 'https://binbaz.org.sa/fatwas/1', publisher: rec.publisher || 'ابن باز' });
-        const comp = JSON.parse(fs.readFileSync(path.join(REPO, 'guards/fixtures-comprehensive-2026-10-02.json'), 'utf8'));
-        const salmajed = fix(comp.salmajed_1567);
-        const ribaFix = JSON.parse(fs.readFileSync(path.join(REPO, 'fixtures/riba-family-two-records.json'), 'utf8'));
-        const ribaRec = fix(ribaFix.records[1].content);
-        const wasl = JSON.parse(fs.readFileSync(path.join(REPO, 'guards/fixtures-speed-wasl-fatwas.json'), 'utf8'));
-        let waslRec = null;
-        for (const [key, entry] of Object.entries(wasl)) {
-          if (!key.endsWith('84&scholar=all&page=1&limit=12&view=full')) continue;
-          let body; try { body = JSON.parse(entry.body); } catch { continue; }
-          const c = body && body.results && body.results[8] && body.results[8].content;
-          if (c && typeof c.answer === 'string' && c.answer.includes('المقدم: أحسن الله إليكم سماحة الشيخ')) { waslRec = fix(c); break; }
-        }
-        const visible = (rec) => FF.serverOwnedBlock(rec, [], { band: 'adult', brief: true }).split('<fatwafull')[0];
-        const bodyOf = (rec) => visible(rec).replace(/^## [^\n]*\n\n[^\n]*\n/u, '');
-        const plainHead = '## ' + FF.HEADING_TEXT + '\n\n' + FF.BRIEF_ANSWER_HEAD + '\n';
-        const bodyFn = (s) => (typeof FF.briefAnswerBody === 'function' ? FF.briefAnswerBody(s) : null); // null on a HEAD without the helper (the RED run)
-        ok('Z6 the three same-shape fixture records are found and substantive (DIAG4 H5: salmajed_1567, riba records[1], wasl results[8])',
-          !!salmajed.answer && !!ribaRec.answer && !!waslRec && FF.substantiveFatwaAnswer(salmajed) && FF.substantiveFatwaAnswer(ribaRec) && FF.substantiveFatwaAnswer(waslRec));
-        ok('Z6a the salmajed_1567 block opens on «يجوز للمسافر» (not on «ج : وعليكم السلام»)',
-          bodyOf(salmajed).startsWith('يجوز للمسافر') && !visible(salmajed).includes('وعليكم السلام'), bodyOf(salmajed).slice(0, 60));
-        ok('Z6b the riba records[1] block opens on «لا ريب أن الربا» (not on «الشيخ: الحمد لله رب العالمين»)',
-          bodyOf(ribaRec).startsWith('لا ريب أن الربا') && !visible(ribaRec).includes('الحمد لله رب العالمين'), bodyOf(ribaRec).slice(0, 60));
-        ok('Z6c the wasl results[8] block carries no «المقدم:» (the excerpt stops before the presenter\'s turn) and still opens on «نعم، إذا رأى المصلحة»',
-          !!waslRec && !visible(waslRec).includes('المقدم:') && !visible(waslRec).includes('الشيخ:') && bodyOf(waslRec).startsWith('نعم، إذا رأى المصلحة'), waslRec ? visible(waslRec).slice(-80) : 'no record');
-        const PLAIN = fix({ question: 'ما حكم قراءة القرآن للجنب؟', answer: 'ذهب جماهير العلماء إلى أن الجنب لا يقرأ القرآن حتى يغتسل، لحديث علي رضي الله عنه، وخالف في ذلك بعض أهل العلم فأجازوا له القراءة بغير مس المصحف.', title: 'ت', url: 'https://binbaz.org.sa/fatwas/2' });
-        ok('Z6d a record that starts on its answer is byte-identical to today: head + the whole answer (pinned)',
-          visible(PLAIN) === plainHead + PLAIN.answer + '\n' && bodyFn(PLAIN.answer) === PLAIN.answer, visible(PLAIN).slice(0, 80));
-        // SYNTHETIC: a one-line radio answer between a hamdala and the presenter (the body after the skip and the stop is six words)
-        const SHORT_SYNTHETIC = fix({ question: 'س', answer: 'الشيخ: الحمد لله رب العالمين، والصلاة والسلام على رسول الله. نعم، لا بأس بذلك إن شاء الله. المقدم: جزاكم الله خيرا، وأحسن إليكم.', title: 'ت', url: 'https://binbaz.org.sa/fatwas/3' });
-        ok('Z6e SYNTHETIC a record whose body after the skip and the stop is under twelve words («نعم، لا بأس بذلك إن شاء الله.») shows the WHOLE answer (pinned)',
-          FF.substantiveFatwaAnswer(SHORT_SYNTHETIC) === true && bodyFn(SHORT_SYNTHETIC.answer) === 'نعم، لا بأس بذلك إن شاء الله.' && visible(SHORT_SYNTHETIC) === plainHead + SHORT_SYNTHETIC.answer + '\n',
-          JSON.stringify([FF.substantiveFatwaAnswer(SHORT_SYNTHETIC), bodyFn(SHORT_SYNTHETIC.answer)]));
-        const expansionOf = (rec) => { const m = /matn="([A-Za-z0-9+/=]+)"/u.exec(FF.serverOwnedBlock(rec, [], { band: 'adult', brief: true })); return m ? Buffer.from(m[1], 'base64').toString('utf8') : ''; };
-        ok('Z6f the «النص الكامل» expansion is the whole block, byte for byte, for all three records (every preamble and turn kept)',
-          [salmajed, ribaRec, waslRec].every((rec) => !!rec && expansionOf(rec) === FF.serverOwnedBlock(rec, [], { band: 'adult' }) && expansionOf(rec).includes(rec.answer.slice(0, 40))));
-        ok('Z6g the B-1 and F8 fixtures are untouched by the skip and the stop: briefAnswerBody is the identity on them',
-          bodyFn(answerBody) === answerBody && bodyFn(SHEET_A) === SHEET_A && bodyFn(longAnswer) === longAnswer);
-        ok('Z6h substantiveFatwaAnswer is unchanged: judged on the stored answer, the floor still 12', FF.MIN_ANSWER_WORDS === 12 && FF.substantiveFatwaAnswer(salmajed) === true && FF.substantiveFatwaAnswer(fix({ question: 'س', answer: 'لا أعلم', title: 'ت' })) === false);
-        // the three witness shapes as DIAG4 H5 reconstructed them (the preview texts are remote)
-        const W12 = fix({ question: 'س', answer: 'وعليكم السلام ورحمة الله وبركاته. ذهب جماهير أهل العلم إلى أن الجنب لا يقرأ القرآن حتى يغتسل، واستدلوا بحديث علي رضي الله عنه، وذهب المالكية إلى الجواز للحائض دون الجنب، وذهب الظاهرية إلى الجواز مطلقا.', title: 'ت', url: 'https://binbaz.org.sa/fatwas/3' });
-        const W19 = fix({ question: 'س', answer: 'الحمد لله رب العالمين، والصلاة والسلام على من أرسله الله رحمة للعالمين، وعلى آله وصحبه وإخوانه إلى يوم الدين، أما بعد: فحديث «صوموا لرؤيته وأفطروا لرؤيته» متفق عليه، والعبرة في إثبات الشهر بالرؤية لا بالحساب.', title: 'ت', url: 'https://binbaz.org.sa/fatwas/3' });
-        const W14 = fix({ question: 'س', answer: 'من نسيها عند الوضوء؛ فلا شيء عليه، والتسمية سنة عند جمهور أهل العلم، وقال بعضهم بوجوبها مع الذكر، فإن نسيها فلا حرج، والوضوء صحيح. نعم.\nالمقدم: جزاكم الله خيرا.', title: 'ت', url: 'https://binbaz.org.sa/fatwas/3' });
-        ok('Z6i the DIAG4 witness shapes (reconstructed): Q12 opens on «ذهب جماهير أهل العلم», Q19 opens on «فحديث «صوموا» (the salutation and «أما بعد:» skipped), Q14 closes before «المقدم:»',
-          bodyOf(W12).startsWith('ذهب جماهير أهل العلم') && bodyOf(W19).startsWith('فحديث «صوموا') && !visible(W14).includes('المقدم:') && bodyOf(W14).startsWith('من نسيها عند الوضوء'),
-          JSON.stringify([bodyOf(W12).slice(0, 30), bodyOf(W19).slice(0, 30), visible(W14).slice(-40)]));
-        // the mutant: briefAnswerBody returns its input -> the three fixture rows red
-        const mZ6 = await mutate('lib/full-fatwa.js', "  let body = String(answer || '').replace(EXCERPT_PREAMBLE_RE, '').trim();",
-          "  return String(answer || ''); // mutant: the body is the whole answer\n  let body = String(answer || '').replace(EXCERPT_PREAMBLE_RE, '').trim();", 'z6body');
-        ok('Z6 MUTANT body seam applied', mZ6.ok, mZ6.reason);
-        ok('Z6 MUTANT KILLED: with the body returning its input the three blocks open on the preamble / carry the presenter again',
-          mZ6.ok && (() => { const v = (rec) => mZ6.mod.serverOwnedBlock(rec, [], { band: 'adult', brief: true }).split('<fatwafull')[0]; return v(salmajed).includes('وعليكم السلام') && v(ribaRec).includes('الحمد لله رب العالمين') && v(waslRec).includes('المقدم:'); })());
-      }
     }    // ── brain35-2 F10 (2026-11-07; DIAG2 R13 a) · THE «فأجاب …:» SPLIT AS A SAFETY FOR ONE-FIELD RECORDS ────────────
     // MEASURED (DIAG2 R13): the sheet the extension opened («السائل م س يقول … فأجاب رحمه الله تعالى: …») as a store record
     // with one text field was refused by recordUsableAsFatwa before the brief block was reached; printedFatwaPair knew only
