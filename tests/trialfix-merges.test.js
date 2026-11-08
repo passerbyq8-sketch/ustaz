@@ -2,6 +2,26 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mergeRecord } from '../lib/sync/merge.js';
 import { mergeDima, mergeMemorizer } from '../lib/sync/trialfix-progress.js';
+import { createRequire } from 'node:module';
+import { __setSyncStoreForTest } from '../lib/sync/store.js';
+import { push, exportAll, eraseForAccountDelete } from '../lib/sync/service.js';
+const { makeStore } = createRequire(import.meta.url)('../guards/sync-fake-store.cjs');
+test('trialfix-d11 server reset rejects unseen stale days and export/delete cover progress', async () => {
+  __setSyncStoreForTest(makeStore());
+  const env = { SYNC_ENC_KEY: '11'.repeat(32), VERCEL_ENV: 'preview' };
+  const account = 'trialfix-reset-test';
+  const change = (id, u, val) => ({ id, rec: { u, val } });
+  await push(account, [change('kv:dima_epoch',1,'0'),change('ctr:dima.0.start',2,{startDate:'2026-11-01'})], env);
+  await push(account, [change('kv:dima_epoch',20,'20')], env);
+  const stale = await push(account, [change('ctr:dima.0.2026-11-03',100,{log:{'2026-11-03':{l:true}}})], env);
+  assert.equal(stale.results[0].rec.del, true);
+  await push(account, [change('ctr:dima.20.start',21,{startDate:'2026-11-08'}),change('ctr:mem.prefs.test',22,{mode:'test'})], env);
+  const exported = await exportAll(account,env);
+  assert.ok(!Object.keys(exported.records).some(id=>id.startsWith('ctr:dima.0.')));
+  assert.ok(exported.records['ctr:dima.20.start']);assert.ok(exported.records['ctr:mem.prefs.test']);
+  await eraseForAccountDelete(account,env);
+  assert.deepEqual((await exportAll(account,env)).records,{});
+});
 test('trialfix-d5-d10 concurrent fields and atomic legacy year provenance', () => {
   const a={u:20,val:{name:'A',gender:'female',birthYear:2000,birthYearProvided:true,_fields:{name:20,gender:1,year:1}}};
   const b={u:30,val:{name:'old',gender:'male',birthYear:2000,birthYearProvided:true,_fields:{name:1,gender:30,year:1}}};
