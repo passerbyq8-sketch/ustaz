@@ -789,6 +789,7 @@ function libraryPlain(markup) {
   {
     const fs = require('fs');
     const FTD = await esm('lib/fatwa-title.js');
+    const FFW1 = await esm('lib/full-fatwa.js'); // brain35-5b W1 (2026-11-08): the brief excerpt's body, for the 3.4d-6 re-cut
     const FXD = require('./fixtures-comprehensive-2026-10-02.json');
     const R1567 = FXD.salmajed_1567;
     const QJ = 'ما حكم الجمع بين الظهر والعصر للمسافر؟';
@@ -863,8 +864,13 @@ function libraryPlain(markup) {
       // opens the block letter for letter, the question and the answer ride letter for letter inside the «النص الكامل» expansion
       const sameExp = /matn="([A-Za-z0-9+/=]+)"/u.exec(same.text);
       const sameWhole = sameExp ? Buffer.from(sameExp[1], 'base64').toString('utf8') : '';
-      ok('3.4d-6 control: the reader who asks it with the day gets the stored fatwa opening the answer letter for letter -- the answer above the fold, its question and answer in the expansion -- then the explanation (re-cut 2026-11-07, owner decision R8)',
-        same.text.startsWith('## نص الفتوى') && same.text.includes('الجواب (مختصرًا):') && same.text.replace(/\s+/gu, '').includes(R1567.answer.replace(/\s+/gu, ''))
+      // re-cut 2026-11-08 (brain35-5b W1; owner decision 2026-11-08, DIAG4 C5): the fold opens on the answer's BODY -- the opening formulas
+      // (the returned greeting here) skipped, stopped before any speaker turn (lib/full-fatwa.js briefAnswerBody) -- letter for letter;
+      // the question and the answer still ride whole inside the expansion
+      const sameBody = FFW1.briefAnswerBody(R1567.answer);
+      const sameFold = same.text.split('<fatwafull')[0];
+      ok('3.4d-6 control: the reader who asks it with the day gets the stored fatwa opening the answer\'s BODY letter for letter -- the body above the fold (the opening formulas skipped, stopped before a speaker turn), its question and answer whole in the expansion -- then the explanation (re-cut 2026-11-07, owner decision R8; re-cut 2026-11-08, brain35-5b W1)',
+        same.text.startsWith('## نص الفتوى') && same.text.includes('الجواب (مختصرًا):') && sameBody !== R1567.answer && (sameFold.replace(/\s+/gu, '').split(FFW1.BRIEF_ANSWER_HEAD.replace(/\s+/gu, ''))[1] || '').startsWith(sameBody.replace(/\s+/gu, '')) && !sameFold.replace(/\s+/gu, '').includes(R1567.answer.replace(/\s+/gu, ''))
         && sameWhole.replace(/\s+/gu, '').includes(R1567.question.replace(/\s+/gu, '')) && sameWhole.replace(/\s+/gu, '').includes(R1567.answer.replace(/\s+/gu, ''))
         && same.out.telemetry.directFatwa === true, ascii(same.text.slice(0, 80)));
       // FIX 48 item 7 (the owner's decision 8): the real record of the 2 Oct preview's answer 1, binbaz 14896, read from the local fatwa index (read only)

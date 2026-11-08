@@ -122,7 +122,10 @@ function surfaceChecks(api, cases) {
     add('voice', c.tag + ' voice: no run of 40 base64 characters of the tag', !b64Leak(voice, c.b64));
     add('voice', c.tag + ' voice: no button label', !voice.includes(LABEL));
     add('voice', c.tag + ' voice: no longer than the excerpt and what is around it', voice.length <= voiceRef.length, voice.length + ' vs ' + voiceRef.length);
-    add('voice', c.tag + ' voice: the excerpt is spoken (its answer, ITEM B-1)', norm(voice).includes(norm(c.answerHead)));
+    // brain35-5b W1 (2026-11-08): the excerpt is the answer's BODY -- re-cut for aladawy:839 and alathary:53 (ar / en / fa / ur), whose
+    // rows now read the body and are named «its answer's body»; where the body is the answer itself the three rows are as they were
+    const exHead = c.answerBodyHead, exLabel = c.answerBodyHead === c.answerHead ? 'its answer' : "its answer's body";
+    add('voice', c.tag + ' voice: the excerpt is spoken (' + exLabel + ', ITEM B-1)', norm(voice).includes(norm(exHead)));
     // the stream preview: the live one (ezikStreamPreviewSegments, drawn), its text sibling, and the answer at every stage
     const stages = [];
     for (let k = 1; k <= 8; k++) stages.push(c.brief.slice(0, Math.round(c.brief.length * k / 8)));
@@ -137,11 +140,11 @@ function surfaceChecks(api, cases) {
     add('preview', c.tag + ' stream preview (drawn, ' + stages.length + ' stages): no base64, no button label', pvBad === 0, pvBad + ' ' + pvDetail);
     add('previewText', c.tag + ' stream preview text (formatForStreamPreview): no base64, no button label', pvTxtBad === 0, String(pvTxtBad));
     const pvFull = textOf(drawSegs(api, api.previewSegs(c.brief, 30)));
-    add('preview', c.tag + ' stream preview: the excerpt is drawn (its answer, ITEM B-1)', norm(pvFull).includes(norm(c.answerHead)));
+    add('preview', c.tag + ' stream preview: the excerpt is drawn (' + exLabel + ', ITEM B-1)', norm(pvFull).includes(norm(exHead)));
     // the parents' log
     const log = api.log(c.brief);
     add('log', c.tag + ' log: no base64, no button label', !b64Leak(log, c.b64) && !log.includes(LABEL), asc(log.slice(-60)));
-    add('log', c.tag + ' log: the excerpt is there (its answer, ITEM B-1)', norm(log).includes(norm(c.answerHead)));
+    add('log', c.tag + ' log: the excerpt is there (' + exLabel + ', ITEM B-1)', norm(log).includes(norm(exHead)));
     // the folded view (a restored reply opens folded): the press draws one block in the excerpt's place
     const fv = api.fold(segs, api.FOLD_MIN, api.FOLD_HEAD);
     add('fold', c.tag + ' fold: the long reply folds', !!fv);
@@ -231,6 +234,7 @@ function mutate(src, m) {
 
   const cases = [];
   const untagged = [];
+  const briefBodyOf = (a) => { const body = FF.briefAnswerBody(String(a || '')); return body.split(/\s+/u).filter(Boolean).length >= FF.MIN_ANSWER_WORDS ? body : String(a || ''); }; // brain35-5b W1 (2026-11-08): the brief block's body, with its floor
   const addCase = (tag, brief, detailed, rec, translated) => {
     const m = /<fatwafull matn="([^"]+)">/.exec(brief);
     const printed = FF.printedFatwaPair(rec);
@@ -246,6 +250,11 @@ function mutate(src, m) {
       // the brief block's excerpt is the ANSWER, so what every surface carries of it is the answer's head, not the
       // question's. The question's head is kept above for the rows that read the DETAILED block.
       answerHead: String(printed.answer || '').replace(/^\s*الجواب\s*:\s*/u, '').slice(0, 40),
+      // brain35-5b W1 (2026-11-08; owner decision 2026-11-08, DIAG4 C5): the brief excerpt is the answer's BODY -- the opening formulas
+      // skipped, stopped before a speaker turn (lib/full-fatwa.js briefAnswerBody; a body under MIN_ANSWER_WORDS falls back to the whole
+      // answer, as serverOwnedBlock does). Where the body IS the answer (binbaz:2746, aladawy:912) this head equals answerHead and the
+      // three rows keep their name and expectation; for aladawy:839 and alathary:53 (ar / en / fa / ur) they read the body (re-cut).
+      answerBodyHead: briefBodyOf(printed.answer).replace(/^\s*الجواب\s*:\s*/u, '').slice(0, 40),
     });
     untagged.push(detailed);
   };
