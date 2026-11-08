@@ -41,7 +41,9 @@ const REPO = path.resolve(__dirname, '..');
 const STORE = path.join(REPO, 'lib', 'data', 'fiqh-search.json.gz');
 const OUT = path.join(REPO, 'lib', 'data', 'chapter-meanings.json');
 const MEANINGS_MAX = 6;
-const SUBSECTIONS_MIN = 3;
+// ITEM 35-D4 C1 (b) (brain35-5 Z10, 2026-11-08; owner decision 2026-11-08): two senses make a chapter, not three -- the related-terms
+// filter below takes a third of the old "senses" away (MEASURED, DIAG4 H1b: 2,313 of 6,745 were related terms).
+const SUBSECTIONS_MIN = 2;
 
 // the folding the question is read with (lib/arabic.js normalizeArabic, as much of it as a chapter key needs)
 const fold = (value) => String(value || '')
@@ -85,10 +87,25 @@ function meaningsOf(record) {
   if (!text || !term) return [];
   const seen = new Set();
   const out = [];
+  // ITEM 35-D4 C1 (b) (brain35-5 Z10): the entries of «الالفاظ ذات الصله» are terms the article DISTINGUISHES from the chapter, not senses
+  // of it. MEASURED layout (DIAG4 probe-article-headings): the first heading-shaped entry follows the title («الالفاظ ذات الصله: ا - الخلوه: 2 -»
+  // or «… الصله : التزين : 3 -»), later entries carry a letter marker «ب - », «ج - » …, and the section ends at the first heading without
+  // one. A heading the regex cut mid-word (a letter right before the match) or that opens on a sentence connective is a fragment.
+  let inRelated = false;
+  let relatedSeen = false;
+  const RELATED_TITLE_BEFORE = /الالفاظ ذات الصله\s*:?\s*(?:[ء-ي]\s*-\s*)?$/u;
+  const LETTERED_BEFORE = /[ء-ي]\s*-\s*$/u;
+  const CONNECTIVE_HEAD = /^(?:ومن|فانه|فان|ويشمل|يظهر|وقد|وهو|وهي|وكذا|وكذلك|ولا|فلا|وان|اذا|واذا|لان|ولان|وما|مما|وذلك|لما|وقال|قال|يقول|وفي|وعلي|والي|وهذا|وهذه|فهو|فهي)(?=\s|$)/u;
   for (const match of text.matchAll(HEADING_RE)) {
+    const before = text.slice(Math.max(0, match.index - 40), match.index);
     let head = fold(match[1]);
     // the flattened article opens on its own name twice, welded to the first heading
     while (head.startsWith(term + ' ')) head = head.slice(term.length + 1).trim();
+    // ITEM 35-D4 C1 (b) (brain35-5 Z10): the related-terms section and the fragments
+    if (/الالفاظ ذات الصله/u.test(head)) { inRelated = false; continue; } // the «N - X:» layout: nothing heading-shaped follows
+    if (inRelated) { if (!relatedSeen || LETTERED_BEFORE.test(before)) { relatedSeen = true; continue; } inRelated = false; }
+    else if (RELATED_TITLE_BEFORE.test(before)) { inRelated = true; relatedSeen = true; continue; }
+    if (/[ء-ي]$/u.test(before) || CONNECTIVE_HEAD.test(head)) continue; // a fragment
     if (!head || head === term || head.length < 4) continue;
     if (STRUCTURAL.has(head)) continue;
     // ITEM 35-D2 R9 (brain35-2 F3): the article's own name with or without the article, a «حكمه …» head, «حكم + التكليفي …»
@@ -183,7 +200,7 @@ function build() {
     schema: 'ezik.chapter-meanings.v1',
     built: 'tools/build-chapter-meanings.cjs',
     // the rule, written where the data is, so the next reader need not measure the store again
-    rule: 'A chapter is an article of the Kuwaiti encyclopedia; its meanings are the first six topical sub-sections the stored article keeps («<heading>: N -»), with the structural headings and the article\'s own name dropped. Keys are folded (normalizeArabic). source=owner entries are written by hand and are never overwritten.',
+    rule: 'A chapter is an article of the Kuwaiti encyclopedia; its meanings are the first six topical sub-sections the stored article keeps («<heading>: N -»), with the structural headings and the article\'s own name dropped. Keys are folded (normalizeArabic). source=owner entries are written by hand and are never overwritten. Since brain35-5 Z10 (2026-11-08, the owner\'s decision) the entries of the article\'s related-terms section (الالفاظ ذات الصله) are not senses, a heading cut mid-word or opening on a sentence connective is dropped, and a chapter needs two senses, not three.',
     counts: { chapters: Object.keys(chapters).length, owner: Object.keys(SEED).length, encyclopedia: added,
       aliases: Object.keys(aliasesSorted).length, aliasesOwner, aliasesStore, aliasesShadowed },
     aliasRule: 'An alias is a folded form the reader may type for a chapter whose key is the article\'s own term: the owner\'s block first (never overwritten), then from each article\'s definition head (a plural title\'s singular «جمع X», «ولفظ الX») and its related-terms head (a single-word term the article calls مرادف). An alias never shadows a key; the reader tries the key forms, then the aliases.',

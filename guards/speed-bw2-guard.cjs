@@ -2463,6 +2463,44 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       ok('O-2j the file is what tools/build-chapter-meanings.cjs writes from the store (--check), and the builder reads no network',
         (() => { try { require('child_process').execFileSync(process.execPath, [path.join(REPO, 'tools', 'build-chapter-meanings.cjs'), '--check'], { cwd: REPO, stdio: 'pipe' }); return true; } catch { return false; } })()
         && !/fetch\(|https?:\/\//u.test(read('tools/build-chapter-meanings.cjs').replace(/^\/\/.*$/gmu, '')));
+      // ── brain35-5b W3 (2026-11-08; DIAG4 C1 (b); owner decision 2026-11-08: the table without related terms, minimum two senses) · THE CHAPTER TABLE REBUILT
+      // MEASURED (DIAG4 H1b): 2,313 of 6,745 "senses" were entries of the articles' related-terms section (terms an article DISTINGUISHES from its
+      // chapter), and 8 opened on a sentence connective. tools/build-chapter-meanings.cjs now skips that section and the fragments, and a chapter
+      // needs two senses (SUBSECTIONS_MIN 2). The file: 1205 chapters, 4971 meanings, 16 aliases (was 1361 / 6751 / 17); 231 chapters left
+      // (BRAIN35-FIX5-evidence/chapters-left.txt). F3a's sense pin below was RE-CUT with it (W3, named): الاستياك للصلاه for the related
+      // term تخليل الاسنان. The owner's seed is pinned byte for byte to the file before the rebuild. Q8 / Q9 / Q26 (Z2c) are unchanged.
+      {
+        const cm = file.chapters;
+        const K_ITIKAF = "اعتكاف", K_TATAYYUB = "تطيب", K_ZINAH = "الزينه";
+        const M_RIBAT = "الرباط والمرابطه", M_JIWAR = "الجوار", M_TAZAYYUN = "التزين";
+        ok('Z10a اعتكاف.meanings carries neither الرباط والمرابطه nor الجوار (entries of its related-terms section), and keeps two or more senses',
+          !!cm[K_ITIKAF] && !cm[K_ITIKAF].meanings.includes(M_RIBAT) && !cm[K_ITIKAF].meanings.includes(M_JIWAR) && cm[K_ITIKAF].meanings.length >= 2, ascii(JSON.stringify(cm[K_ITIKAF] ? cm[K_ITIKAF].meanings : null)));
+        ok('Z10b no meaning in the file opens on ومن or فانه (a fragment of the sentence before it)',
+          entries.every(([, v]) => v.meanings.every((m) => !/^(?:ومن|فانه)(?:\s|$)/u.test(m))), ascii(String(entries.reduce((n, [, v]) => n + v.meanings.filter((m) => /^(?:ومن|فانه)(?:\s|$)/u.test(m)).length, 0))));
+        ok('Z10c the owner\'s seed الزينه is byte-identical to the file before the rebuild (pinned)', JSON.stringify(cm[K_ZINAH]) === "{\"source\":\"owner\",\"written\":\"الزينة\",\"meanings\":[\"اللباس\",\"الترجل والشعر\",\"خصال الفطرة\",\"الخاتم والطيب\",\"زينة المرأة\",\"الذهب والحرير\"]}", ascii(JSON.stringify(cm[K_ZINAH])));
+        ok('Z10d تطيب.meanings carries no التزين (a related term), and keeps two or more senses',
+          !!cm[K_TATAYYUB] && !cm[K_TATAYYUB].meanings.includes(M_TAZAYYUN) && cm[K_TATAYYUB].meanings.length >= 2, ascii(JSON.stringify(cm[K_TATAYYUB] ? cm[K_TATAYYUB].meanings : null)));
+        // the mutant: the related-terms section state taken out of the builder -> the file it writes (to a temporary path; the committed file
+        // is untouched) gives اعتكاف its related terms again, so the Z10a row would be red
+        {
+          const srcB = read('tools/build-chapter-meanings.cjs');
+          const seamB1 = "    if (inRelated) { if (!relatedSeen || LETTERED_BEFORE.test(before)) { relatedSeen = true; continue; } inRelated = false; }";
+          const seamB2 = "    else if (RELATED_TITLE_BEFORE.test(before)) { inRelated = true; relatedSeen = true; continue; }";
+          const outLine = "const OUT = path.join(REPO, 'lib', 'data', 'chapter-meanings.json');";
+          ok('Z10 mutant seams present once (the two related-terms lines and the OUT line)', srcB.split(seamB1).length === 2 && srcB.split(seamB2).length === 2 && srcB.split(outLine).length === 2);
+          const outB = path.join(require('os').tmpdir(), 'ezik-z10-mutant-' + process.pid + '.json');
+          const tmpB = path.join(REPO, 'tools', '.mut-z10-related.cjs');
+          let MB = null;
+          try {
+            fs.writeFileSync(tmpB, srcB.split(seamB1).join('').split(seamB2).join('').split(outLine).join('const OUT = ' + JSON.stringify(outB) + ';'));
+            require('child_process').execFileSync(process.execPath, [tmpB], { cwd: REPO, stdio: 'pipe' });
+            MB = JSON.parse(fs.readFileSync(outB, 'utf8'));
+          } catch (e) { MB = null; } finally { fs.rmSync(tmpB, { force: true }); fs.rmSync(outB, { force: true }); }
+          ok('Z10 mutant builds (to a temporary file)', !!MB && !!MB.chapters && !!MB.chapters[K_ITIKAF], MB ? ascii(JSON.stringify(MB.counts)) : 'no file');
+          ok('Z10 MUTANT KILLED: without the related-terms state اعتكاف carries الرباط والمرابطه / الجوار again',
+            !!MB && !!MB.chapters[K_ITIKAF] && (MB.chapters[K_ITIKAF].meanings.includes(M_RIBAT) || MB.chapters[K_ITIKAF].meanings.includes(M_JIWAR)), MB && MB.chapters[K_ITIKAF] ? ascii(JSON.stringify(MB.chapters[K_ITIKAF].meanings)) : 'no file');
+        }
+      }
       // ── brain35-2 F3 (2026-11-07; DIAG2 R9) · CHAPTER ALIASES, AND THE BUILDER'S STRUCTURAL FILTER ───────────────────
       // MEASURED (DIAG2 R9): P24 «… في باب السواك» found no chapter: the encyclopedia's article is «اسْتِيَاك» (key «استياك»)
       // and the file knew no plain form; «اللباس» missed «أَلْبِسَةٌ» (key «البسه») the same way. The file now carries
@@ -2475,7 +2513,7 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       const r24 = BW2.isChapterHadithRequest(P24);
       ok('F3a P24 («… في باب السواك») is read as a request for the chapter «اسْتِيَاك» through its alias, with the article\'s senses',
         !!r24 && r24.key === 'استياك' && r24.chapter === 'اسْتِيَاك' && r24.source === 'encyclopedia' && r24.meanings.length >= 3
-        && r24.meanings.includes('تخليل الاسنان'), ascii(JSON.stringify(r24)));
+        && r24.meanings.includes('الاستياك للصلاه'), ascii(JSON.stringify(r24)));
       const rLibas = BW2.isChapterHadithRequest('أبي أحاديث صحيحة في باب اللباس');
       ok('F3b «… في باب اللباس» reaches «أَلْبِسَةٌ» (key «البسه»), and «الثياب» reaches it too',
         !!rLibas && rLibas.key === 'البسه' && rLibas.meanings.length >= 3
