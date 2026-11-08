@@ -3964,6 +3964,107 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       }
     }
 
+    // ── brain35-5 Z8 (2026-11-08; DIAG4 C7) · A NARRATOR NAMED AFTER A COLLECTION IS A CLAIM THE ROW MUST CARRY ──────────────
+    // MEASURED (DIAG4 H7, preview Q4): «الحديث ثابت صحيح، أخرجه البخاري عن علي.» -- the hadith is Abu Hurayra's; narratorsNamed read
+    // «عن X» only with the Companion's prayer or in «من حديث X», so no narrator claim was made and the row proof never asked; and
+    // had it asked, textNamesNarrator against the WHOLE row would have passed (علي بن عبد الله, al-Bukhari's shaykh, is the FIRST
+    // name of the isnad). Now: «عن X» after a collection named earlier in the clause names the narrator with or without the
+    // prayer («عن طريق» excluded), and such a claim is compared with companionOfIsnad(row) -- the LAST «عن X» before the matn --
+    // alone. The rows read the releaser's own row-proof decision through the BW2 diagnostic (hadith-row-proof). The isnad texts
+    // are SYNTHETIC in al-Bukhari's style (DIAG4 H7's six; the twin is remote); the units are the DIAG4 H7 sentences.
+    {
+      const UNITS_Z8 = await esm('lib/bw2-units.js');
+      const DG_Z8 = await esm('lib/bw2-diagnostic.js');
+      const RC_Z8 = await esm('lib/route-classify.js');
+      const ROUTE_FOLD = RC_Z8.normalizeArabic;
+      const coi = (t) => (typeof UNITS_Z8.companionOfIsnad === 'function' ? UNITS_Z8.companionOfIsnad(t) : null); // null on a HEAD without the helper (the RED run)
+      const asciiZ8 = (s) => String(s).replace(/[^\x20-\x7e]/g, (c) => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
+      const MATN_Z8 = 'من صام رمضان إيمانا واحتسابا غفر له ما تقدم من ذنبه';
+      const ISNAD_2014_SYNTHETIC = 'حدثنا علي بن عبد الله حدثنا سفيان قال حفظناه وإنما حفظ من الزهري عن أبي سلمة عن أبي هريرة رضي الله عنه عن النبي صلى الله عليه وسلم قال: «من صام رمضان إيمانا واحتسابا غفر له ما تقدم من ذنبه»';
+      const ROW_TEXT_SYNTHETIC = 'صحيح البخاري، كتاب الصوم، باب من صام رمضان إيمانا واحتسابا ونية. ' + ISNAD_2014_SYNTHETIC; // the served row names its book in its text
+      const rowZ8 = { ref: 1, kind: 'lib_book', title: 'صحيح البخاري', bookTitle: 'صحيح البخاري', author: 'البخاري', locator: '', recordId: 'SYNTHETIC-2014', fullText: ROW_TEXT_SYNTHETIC, text: ROW_TEXT_SYNTHETIC, passage: ROW_TEXT_SYNTHETIC };
+      // the releaser with the BW2 diagnostic on (its gate reads VERCEL_ENV at call time; restored after the block)
+      const envBefore = process.env.VERCEL_ENV;
+      process.env.VERCEL_ENV = 'preview';
+      const probeZ8 = async (mod, unit) => {
+        const diag = DG_Z8.createBw2Diagnostic({ headers: { 'x-ezik-diag': '1', 'x-vercel-id': 'dev::z8' } }, { question: 'q', consent: '2026-11-02-1', requestStartedAt: Date.now() });
+        const out = [];
+        const r = mod.createBw2Releaser({ rows: [rowZ8], emit: (p) => { out.push(p); return true; }, askedMatn: MATN_Z8, takhrij: async (text) => ({ text, entries: [] }), diagnostic: diag });
+        r.push(unit + '\n');
+        const sum = await r.end();
+        let rowProof = null; let narrators = null; let lock = null;
+        try {
+          const cap = JSON.parse(diag.frames([]).map((f) => JSON.parse(f.split('\ndata: ')[1]).piece).join(''));
+          for (const u of cap.units || []) for (const c of u.checks || []) {
+            if (c.rule === 'hadith-row-proof') { rowProof = c.detail.found; narrators = c.detail.phrase && c.detail.phrase.narrators; }
+            if (c.rule === 'takhrij-lock') lock = c.detail.result && c.detail.result.outcome;
+          }
+        } catch (e) { rowProof = 'capture failed: ' + e.message; }
+        return { text: out.join(''), holds: sum.holds, released: sum.released, held: sum.held, rowProof, narrators, lock };
+      };
+      try {
+        const WRONG = 'الحديث ثابت صحيح، أخرجه البخاري عن علي [[1]].';
+        const RIGHT = 'الحديث ثابت صحيح، أخرجه البخاري عن أبي هريرة [[1]].';
+        const PRAYED = 'الحديث ثابت صحيح، أخرجه البخاري عن أبي هريرة رضي الله عنه [[1]].';
+        const wrong = await probeZ8(UNITS_Z8, WRONG);
+        ok('Z8a SYNTHETIC-isnad row: «أخرجه البخاري عن علي» (the shaykh\'s name, not the Companion\'s) -> the claim names علي and the row does NOT prove it (hadith-row-proof found=false); the unit is held',
+          wrong.rowProof === false && JSON.stringify(wrong.narrators) === JSON.stringify(['علي']) && wrong.held === 1 && !wrong.text.includes('عن علي'),
+          JSON.stringify({ rowProof: wrong.rowProof, narrators: asciiZ8(JSON.stringify(wrong.narrators)), holds: wrong.holds }));
+        const right = await probeZ8(UNITS_Z8, RIGHT);
+        ok('Z8b «أخرجه البخاري عن أبي هريرة» (the Companion, no prayer) on the same row -> the claim names أبي هريرة and the row proves it (found=true)',
+          right.rowProof === true && JSON.stringify(right.narrators) === JSON.stringify(['ابي هريره']), JSON.stringify({ rowProof: right.rowProof, narrators: asciiZ8(JSON.stringify(right.narrators)) }));
+        const prayed = await probeZ8(UNITS_Z8, PRAYED);
+        ok('Z8c «عن أبي هريرة رضي الله عنه» -> the claim names أبي هريرة and the row proves it (unchanged)',
+          prayed.rowProof === true && JSON.stringify(prayed.narrators) === JSON.stringify(['ابي هريره']), JSON.stringify({ rowProof: prayed.rowProof, narrators: asciiZ8(JSON.stringify(prayed.narrators)) }));
+        // FOUND, pinned as observed (not this item's): offline, the lock refuses a credit-only sentence whose row page does not carry the
+        // credit's words, right narrator or wrong (the live path's takhrij runner supplies the proof pages); the row-proof decision above
+        // is what this item changes.
+        ok('Z8 observed: offline the lock refuses the credit-only sentence on this library row whatever the narrator (takhrij_refused), before and after',
+          right.lock === 'REFUSED' && right.holds.takhrij_refused === 1 && prayed.holds.takhrij_refused === 1, JSON.stringify([right.lock, right.holds, prayed.holds]));
+        ok('Z8d «أخرجه البخاري عن طريق مالك» makes no narrator claim; «عن علي» with no collection before it makes none either (unchanged)',
+          UNITS_Z8.narratorsNamed('أخرجه البخاري عن طريق مالك.').length === 0 && UNITS_Z8.narratorsNamed('عن علي.').length === 0 && UNITS_Z8.narratorsNamed('الحديث ثابت عن علي.').length === 0);
+        ok('Z8e the readers: «أخرجه البخاري عن علي» names علي; «رواه مسلم عن جابر» names جابر; «أخرجه البخاري عن علي بن عبد الله» names the four words; the prayed and «من حديث» forms as before',
+          JSON.stringify(UNITS_Z8.narratorsNamed('الحديث ثابت صحيح، أخرجه البخاري عن علي.')) === JSON.stringify(['علي'])
+          && JSON.stringify(UNITS_Z8.narratorsNamed('رواه مسلم عن جابر.')) === JSON.stringify(['جابر'])
+          && JSON.stringify(UNITS_Z8.narratorsNamed('الحديث ثابت صحيح، أخرجه البخاري عن علي بن عبد الله.')) === JSON.stringify(['علي بن عبد الله'])
+          && JSON.stringify(UNITS_Z8.narratorsNamed('الحديث ثابت صحيح، أخرجه البخاري ومسلم عن أبي هريرة رضي الله عنه.')) === JSON.stringify(['ابي هريره'])
+          && JSON.stringify(UNITS_Z8.narratorsNamed('رواه البخاري من حديث أبي هريرة.')) === JSON.stringify(['ابي هريره']),
+          asciiZ8(JSON.stringify([UNITS_Z8.narratorsNamed('الحديث ثابت صحيح، أخرجه البخاري عن علي.'), UNITS_Z8.narratorsNamed('رواه مسلم عن جابر.')])));
+        const ISNADS_SYNTHETIC = [
+          [ISNAD_2014_SYNTHETIC, 'ابي هريره'],
+          ['حدثنا مسلم بن إبراهيم قال حدثنا هشام قال حدثنا يحيى عن أبي سلمة عن أبي هريرة قال: قال رسول الله صلى الله عليه وسلم: «من يقم ليلة القدر إيمانا واحتسابا غفر له ما تقدم من ذنبه»', 'ابي هريره'],
+          ['حدثنا محمد بن المثنى حدثنا يحيى عن هشام قال أخبرني أبي عن عائشة رضي الله عنها قالت: …', 'عايشه'],
+          ['حدثنا عبد الله بن يوسف أخبرنا مالك عن نافع عن ابن عمر رضي الله عنهما أن رسول الله صلى الله عليه وسلم قال: …', 'ابن عمر'],
+          ['حدثنا علي حدثنا سفيان عن الزهري عن أنس بن مالك رضي الله عنه قال: …', 'انس بن مالك'],
+          ['حدثنا محمد بن بشار حدثنا غندر حدثنا شعبة عن قتادة عن أبي نضرة عن أبي سعيد الخدري رضي الله عنه قال: …', 'ابي سعيد الخدري'],
+        ];
+        ok('Z8f companionOfIsnad on the DIAG4 H7 six SYNTHETIC Bukhari isnads -> the Companion each time (never the shaykh); the served row text too; a row with no «عن X» -> empty',
+          ISNADS_SYNTHETIC.every(([isnad, companion]) => coi(isnad) === companion) && coi(ROW_TEXT_SYNTHETIC) === 'ابي هريره' && coi('ذهب جمهور الفقهاء إلى أن الأضحية سنة مؤكدة.') === '',
+          asciiZ8(JSON.stringify(ISNADS_SYNTHETIC.map(([isnad]) => coi(isnad)))));
+        ok('Z8g the whole-row reading would have passed علي (the shaykh is in the isnad); the Companion reading refuses it and carries أبي هريرة',
+          UNITS_Z8.textNamesNarrator(ROUTE_FOLD(ISNAD_2014_SYNTHETIC), 'علي') === true && coi(ISNAD_2014_SYNTHETIC) !== null && UNITS_Z8.textNamesNarrator(coi(ISNAD_2014_SYNTHETIC), 'علي') === false
+          && UNITS_Z8.textNamesNarrator(coi(ISNAD_2014_SYNTHETIC) || '', 'ابي هريره') === true);
+        // the mutant: the takhrij frame forced false -> «عن علي» is nothing again and the row proves the narrator-less claim
+        {
+          const fsM = require('fs'); const { pathToFileURL } = require('url');
+          const srcN = fsM.readFileSync(path.join(REPO, 'lib/bw2-units.js'), 'utf8').replace(/\r\n/g, '\n');
+          const seamN = '      const takhrijFrame = head === AN && words.slice(0, i).some((w) => collectionsNamed(dropJoin(w), true).length > 0); // ITEM 35-D4 C7 (brain35-5 Z8)';
+          ok('Z8 mutant seam present once', srcN.split(seamN).length === 2);
+          const tmpN = path.join(REPO, 'lib', '.mut-z8-frame.mjs');
+          fsM.writeFileSync(tmpN, srcN.split(seamN).join('      const takhrijFrame = false; // mutant: no takhrij frame is read').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+            (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+          let MN = null;
+          try { MN = await import(pathToFileURL(tmpN).href + '?m=' + Date.now()); } catch (e) { MN = null; } finally { fsM.rmSync(tmpN, { force: true }); }
+          ok('Z8 mutant loads', !!MN);
+          const mw = MN ? await probeZ8(MN, WRONG) : null;
+          ok('Z8 MUTANT KILLED: with the frame unread «أخرجه البخاري عن علي» names no narrator and the row proves the claim again',
+            !!mw && mw.rowProof === true && JSON.stringify(mw.narrators) === JSON.stringify([]) && MN.narratorsNamed(WRONG).length === 0, mw ? JSON.stringify({ rowProof: mw.rowProof, narrators: mw.narrators }) : 'no module');
+        }
+      } finally {
+        if (envBefore === undefined) delete process.env.VERCEL_ENV; else process.env.VERCEL_ENV = envBefore;
+      }
+    }
+
     // ── brain35-3 X2 (2026-11-07; DIAG3 D2 fix 2; owner D2: both fixes) · A LEAD LINE IS NOT THE HEAD ─────────────────
     // MEASURED (DIAG3 H2 (c), preview Q7): the first non-heading line was the disagreement frame («اختلفت الأقوال المنقولة …
     // والقول الآتي يخالف ما سبق:»), which ends on «:» and carries no grade word, so gradeStatedAtHead read it, found no grade
