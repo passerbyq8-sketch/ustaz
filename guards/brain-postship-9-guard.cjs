@@ -40,8 +40,14 @@ function ok(name, cond, detail) {
       const m0 = TAG_RE.exec(brief);
       const shown0 = m0 ? brief.slice(0, m0.index) : brief;
       const printed0 = FF.printedFatwaPair(rec);
-      ok(tag + ': a block of 600 or fewer is the answer-first shape too: the whole answer, no «…», the whole block in the button (re-cut 2026-11-07, owner decision R8)',
-        shown0 === '## ' + FF.HEADING_TEXT + '\n\n' + FF.BRIEF_ANSWER_HEAD + '\n' + printed0.answer && !!m0 && Buffer.from(m0[1], 'base64').toString('utf8') === today,
+      // re-cut 2026-11-08 (brain35-5c W1; the owner's delegation of 2026-11-08 16:22, Claude's ruling): the owner's decision of 14:06 (the
+      // brief excerpt is the answer's BODY -- the opening formulas skipped, stopped before a speaker turn; lib/full-fatwa.js briefAnswerBody)
+      // has no exception for short blocks, and the spirit of R8 is kept: the whole BODY is shown, no …. A body under MIN_ANSWER_WORDS
+      // falls back to the whole answer, as serverOwnedBlock does (binothaimeen:6971: body = answer; aladawy:293: the hamdala is skipped).
+      const trimmed0 = FF.briefAnswerBody(printed0.answer);
+      const body0 = trimmed0.split(/\s+/u).filter(Boolean).length >= FF.MIN_ANSWER_WORDS ? trimmed0 : printed0.answer;
+      ok(tag + ': a block of 600 or fewer is the answer-first shape too: the whole body of the answer, no «…», the whole block in the button (re-cut 2026-11-07, owner decision R8; re-cut 2026-11-08, brain35-5c W1, owner\'s delegation)',
+        shown0 === '## ' + FF.HEADING_TEXT + '\n\n' + FF.BRIEF_ANSWER_HEAD + '\n' + body0 && !!m0 && Buffer.from(m0[1], 'base64').toString('utf8') === today,
         shown0.slice(0, 60).replace(/[^\x20-\x7e]/g, '.'));
       ok(tag + ': ...and the detailed depth is still the whole block', FF.serverOwnedBlock(rec, [], { band: 'adult' }) === today);
       continue;
