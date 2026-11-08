@@ -35188,7 +35188,7 @@ function ezikSyncWatch() {
             const st = ezikSyncReadState();
             for (const id of Object.keys(st.shadow)) if (id.startsWith('ctr:dima.')) st.gone[id] = Date.now();
             ezikSyncWriteState(st);
-            this.setItem('ezik_dima_epoch_v1', String(Date.now()));
+            this.setItem('ezik_dima_epoch_v1', String(Math.max(Date.now(), Number(ezikSyncDimaEpoch()) + 1)));
           }
         }
         try { if (!ezikSyncApplying && this === window.localStorage && ezikSyncIsSyncedKey(k)) {

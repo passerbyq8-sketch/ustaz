@@ -13,6 +13,8 @@ test('trialfix-d11 server reset rejects unseen stale days and export/delete cove
   const change = (id, u, val) => ({ id, rec: { u, val } });
   await push(account, [change('kv:dima_epoch',1,'0'),change('ctr:dima.0.start',2,{startDate:'2026-11-01'})], env);
   await push(account, [change('kv:dima_epoch',20,'20')], env);
+  await push(account, [change('kv:dima_epoch',100,'0')], env);
+  assert.equal((await exportAll(account,env)).records['kv:dima_epoch'],'20','a newer write of an older epoch cannot reopen deleted progress');
   const stale = await push(account, [change('ctr:dima.0.2026-11-03',100,{log:{'2026-11-03':{l:true}}})], env);
   assert.equal(stale.results[0].rec.del, true);
   await push(account, [change('ctr:dima.20.start',21,{startDate:'2026-11-08'}),change('ctr:mem.prefs.test',22,{mode:'test'})], env);

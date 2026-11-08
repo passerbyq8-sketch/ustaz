@@ -40,6 +40,11 @@ test('trialfix-d11 reinstall, frozen days, local notifications, idempotence, res
   run(d,"ezikSyncApply('kv:dima_epoch',{u:20,val:'20'})");run(d,code);
   assert.equal(JSON.parse(d.local.getItem('ezik_dima_v2')).startDate,null,'old generation cannot resurrect');
   d.local.setItem('ezik_dima_v2','bad-json');assert.doesNotThrow(()=>run(d,'ezikSyncCollect()'));
+  d.local.setItem('ezik_dima_epoch_v1','9000000000000');
+  d.local.setItem('ezik_dima_v2',JSON.stringify(progress));
+  run(d,'ezikSyncSoon = () => {}; ezikSyncWatching = false; ezikSyncWatch();');
+  d.local.removeItem('ezik_dima_v2');
+  assert.equal(d.local.getItem('ezik_dima_epoch_v1'),'9000000000001','a reset advances even beyond a previously imported fast-clock generation');
 });
 test('trialfix-d12a settings apply refreshes consumers and captures last explicit edit', () => {
   const d=device(); let events=0;d.window.addEventListener('ezik:settings:applied',()=>events++);
