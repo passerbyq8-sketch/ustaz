@@ -2748,6 +2748,68 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
           !!MQ && MQ.askedHadithOf(Q1b) === 'حب الوطن من الإيمان ومن أخرجه' && MQ.asksHadithSource(Q1b) === false, MQ ? ascii(MQ.askedHadithOf(Q1b)) : 'no module');
       }
     }
+    // ── brain35-5 Z7 / brain35-5b W2 (2026-11-08; DIAG4 C6 (b); owner decision 2026-11-08: an evidence block follows its stance; part (b) only) · THE SECOND
+    // VIEW'S LABEL AND ITS EVIDENCE. MEASURED (DIAG4 H6, preview Q23, on the store's «أُضْحِيَّةٌ» passage): the second view «القول
+    // الثاني: أنها واجبة على القادر، وهو قول أبي حنيفة.» was held whole (no label kind «القول» in F1), and «من أدلة القائلين بالوجوب: …»
+    // went out with no rule reading it as dependent on a stance -- the reader saw the evidence of a view never shown. Now:
+    // [the label widening -- F1's kinds + al-qawl / al-madhhab / al-ra'y -- was DROPPED by the owner (2026-11-08, brain35-5b W2): ORDER51-2's rule stands,; dependentKind knows the kind 'evidence' («(و)من أدلة القائلين بـX», «(و)أدلة القول
+    // an unsupported view is held whole, its label with it; the rows Z7c / Z7d of the fifth run are not written]
+    // الأول/الثاني», «(و)من حجج القائلين بـX»); such a unit is released only when its stance's word family (وجوب -> واجب/وجوب/يجب …)
+    // or its ordinal stands in the released text, else held evidence_of_held_stance (the enum and its pins gain the one label).
+    // The units are DIAG4 H6's; the passage is read from the bundled store as H6 cut it.
+    {
+      const UNITS_Z7 = await esm('lib/bw2-units.js');
+      const zlibZ7 = require('zlib');
+      const storeZ7 = JSON.parse(zlibZ7.gunzipSync(fs.readFileSync(path.join(REPO, 'lib/data/fiqh-search.json.gz'))).toString('utf8'));
+      const foldZ7 = (v) => String(v || '').replace(/[\u064B-\u0652\u0670\u0640]/gu, '').replace(/[\u0622\u0623\u0625]/gu, '\u0627').replace(/\u0629/gu, '\u0647').trim();
+      const recZ7 = storeZ7.find((r) => foldZ7(r.term) === 'اضحيه');
+      const atZ7 = recZ7 ? recZ7.search.indexOf('حكم الاضحيه') : -1;
+      const PASSAGE_Z7 = recZ7 && atZ7 >= 0 ? recZ7.search.slice(Math.max(0, atZ7 - 50), atZ7 + 1400) : '';
+      const rowsZ7 = [{ ref: 1, kind: 'lib_book', title: 'الموسوعة الفقهية الكويتية', bookTitle: 'الموسوعة الفقهية الكويتية', author: 'مجموعة من المؤلفين', locator: '', recordId: recZ7 ? recZ7.id : 'F00362', fullText: PASSAGE_Z7, text: PASSAGE_Z7, passage: PASSAGE_Z7 }];
+      const playZ7 = async (mod, units) => { const out = []; const r = mod.createBw2Releaser({ rows: rowsZ7, emit: (p) => { out.push(p); return true; } }); for (const u of units) r.push(u + '\n\n'); const sum = await r.end(); return { text: out.join(''), holds: sum.holds, released: sum.released, held: sum.held }; };
+      const U1 = 'اختلف العلماء في حكم الأضحية على قولين: الأول أنها سنة مؤكدة، وهو قول جمهور الفقهاء [[1]].';
+      const U2 = 'القول الثاني: أنها واجبة على القادر، وهو قول أبي حنيفة [[1]].';
+      const U3 = 'من أدلة القائلين بالوجوب: قوله تعالى: فصل لربك وانحر، والأمر يقتضي الوجوب [[1]].';
+      const U4 = 'ومن أدلة القائلين بالسنية: حديث أم سلمة رضي الله عنها: إذا دخل العشر وأراد أحدكم أن يضحي فلا يمس من شعره وبشره شيئا [[1]].';
+      const U5 = 'ووقت الذبح يبدأ بعد صلاة العيد وينتهي بغروب شمس آخر أيام التشريق [[1]].';
+      const srf = (u, t) => (typeof UNITS_Z7.stanceReleasedFor === 'function' ? UNITS_Z7.stanceReleasedFor(u, t) : null); // null on a HEAD without the helper (the RED run)
+      ok('Z7 the store\'s «أُضْحِيَّةٌ» passage is found and carries the two stances («سنه مؤكده», «وذهب ابو حنيفه الي انها واجبه»)', !!recZ7 && PASSAGE_Z7.includes('سنه مؤكده') && PASSAGE_Z7.includes('وذهب ابو حنيفه الي انها واجبه'));
+      const vA = await playZ7(UNITS_Z7, [U1, U2, U3, U4, U5]);
+      ok('Z7a variant A (U1, U2, U3, U4, U5): U2 released (Z3) and U3 «من أدلة القائلين بالوجوب» released after it; nothing held',
+        vA.held === 0 && vA.text.includes('وهو قول أبي حنيفة') && vA.text.includes('من أدلة القائلين بالوجوب') && vA.text.includes('ومن أدلة القائلين بالسنية'), JSON.stringify(vA.holds));
+      const vD = await playZ7(UNITS_Z7, [U1, U3, U4, U5]);
+      ok('Z7b variant D (the writer omits the second view): «من أدلة القائلين بالوجوب: …» HELD evidence_of_held_stance; «ومن أدلة القائلين بالسنية …» released (its stance «سنة مؤكدة» is in U1); the time released',
+        vD.holds.evidence_of_held_stance === 1 && !vD.text.includes('من أدلة القائلين بالوجوب') && vD.text.includes('ومن أدلة القائلين بالسنية') && vD.text.includes('ووقت الذبح'), JSON.stringify(vD.holds) + ' ' + ascii(vD.text.slice(0, 200)));
+      const k7 = (t) => UNITS_Z7.dependentKind(t);
+      ok('Z7e dependentKind: the evidence openings are \'evidence\'; the DIAG3 / X9 shapes are byte-identical (implicit, referral, backref, referral, backref)',
+        k7(U3) === 'evidence' && k7(U4) === 'evidence' && k7('وأدلة القول الثاني: قوله تعالى فصل لربك وانحر.') === 'evidence' && k7('ومن حجج القائلين بالتحريم: حديث أبي هريرة.') === 'evidence'
+        && k7('واستدلوا بقوله تعالى: فصل لربك وانحر.') === 'implicit' && k7('ودليلهم حديث أم سلمة.') === 'referral' && k7('وحجتهم أن الأمر يقتضي الوجوب.') === 'backref'
+        && k7('وأدلة هذا القول: قوله تعالى فصل لربك وانحر.') === 'referral' && k7('استدل هؤلاء بحديث: من رأى منكم منكرا فليغيره بيده.') === 'backref' && k7('الثاني: أنها واجبة.') === '',
+        JSON.stringify([k7(U3), k7(U4), k7('واستدلوا بقوله تعالى: فصل لربك وانحر.'), k7('ودليلهم حديث أم سلمة.'), k7('وحجتهم أن الأمر يقتضي الوجوب.'), k7('وأدلة هذا القول: قوله تعالى فصل لربك وانحر.'), k7('استدل هؤلاء بحديث: من رأى منكم منكرا فليغيره بيده.')]));
+      ok('Z7f stanceReleasedFor: the family (واجبة -> الوجوب), the ordinal, the unlisted stance word sought as itself, and a non-evidence unit is always true',
+        srf(U3, U1) === false && srf(U3, U1 + ' ' + U2) === true && srf(U4, U1) === true
+        && srf('وأدلة القول الثاني: قوله تعالى.', U1) === false && srf('وأدلة القول الثاني: قوله تعالى.', U1 + ' ' + U2) === true
+        && srf('ومن أدلة القائلين بالمنع: حديث.', 'ذهب الجمهور إلى المنع.') === true && srf('ومن أدلة القائلين بالمنع: حديث.', U1) === false
+        && srf(U5, '') === true);
+      ok('Z7g the hold-reason enum carries evidence_of_held_stance once; its field is heldEvidenceOfHeldStance; the two pins carry the label (telemetry-text-guard BW2_FIELDS, api/ask.js)',
+        UNITS_Z7.BW2_HOLD_REASONS.filter((r) => r === 'evidence_of_held_stance').length === 1 && UNITS_Z7.heldFieldOf('evidence_of_held_stance') === 'heldEvidenceOfHeldStance'
+        && read('guards/telemetry-text-guard.cjs').includes("  'heldEvidenceOfHeldStance',") && read('api/ask.js').includes('heldEvidenceOfHeldStance: t.heldEvidenceOfHeldStance,'));
+      // the mutant: the evidence regex emptied -> variant D releases the evidence of the held stance again
+      {
+        const srcE = read('lib/bw2-units.js');
+        const seamE = "const EVIDENCE_OPENING_RE = /^[وف]?(?:من\\s+)?(?:ادله|حجج|دليل|حجه)\\s+(?:القايلين\\s+ب(\\S+)|القول\\s+(الاول|الثاني|الثالث|الرابع|الخامس|الاخر))(?=\\s|$)/u;";
+        ok('Z7 mutant seam present once', srcE.split(seamE).length === 2);
+        const tmpE = path.join(REPO, 'lib', '.mut-z7-evidence.mjs');
+        fs.writeFileSync(tmpE, srcE.split(seamE).join('const EVIDENCE_OPENING_RE = /(?!)/u; // mutant: no opening is an evidence block').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let ME = null;
+        try { ME = await import(pathToFileURL(tmpE).href + '?m=' + Date.now()); } catch (e) { ME = null; } finally { fs.rmSync(tmpE, { force: true }); }
+        ok('Z7 mutant loads', !!ME);
+        const mD = ME ? await playZ7(ME, [U1, U3, U4, U5]) : null;
+        ok('Z7 MUTANT KILLED: with the evidence regex emptied variant D releases «من أدلة القائلين بالوجوب» under a view never shown again',
+          !!mD && !mD.holds.evidence_of_held_stance && mD.text.includes('من أدلة القائلين بالوجوب'), mD ? JSON.stringify(mD.holds) : 'no module');
+      }
+    }
     // ---------------------------------------------------------------- ITEM 35-D3 D6 (i) (brain35-3 X9, 2026-11-07; owner: (iii) with (ii) first): A DEMONSTRATIVE AFTER A BARE VERB IS A BACK-REFERENCE
     // MEASURED (DIAG3 H6 (b), preview Q12 / Q6): «استدل هؤلاء بحديث: …» and «يكون هذا أشد وأعظم…» were released with nothing naming
     // «هؤلاء» / «هذا» before them: «استدل» is a bare five-letter verb in no set, and «هؤلاء» / «هذا» as the second word is in

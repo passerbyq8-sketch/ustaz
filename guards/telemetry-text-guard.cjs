@@ -275,6 +275,8 @@ const BW2_FIELDS = [
   'heldDependentOpening', 'heldDanglingLeadIn', 'heldNotCovered', 'heldNotCoveredSentence',
   // SPEED PIPES fix 7: a heading nothing released came under (BW2_HOLD_REASONS 'empty_heading').
   'heldEmptyHeading',
+  // ITEM 35-D4 C6 (b) (brain35-5 Z7): an evidence block whose stance never went out (BW2_HOLD_REASONS 'evidence_of_held_stance'). A count.
+  'heldEvidenceOfHeldStance',
   // SPEED FIX 3, C4 (order EZIK-SPEED-FIX3-ORDER-2026-09-27): units released by a hadith proof (a kept
   // row carrying the text and every name, or the takhrij). A number.
   'unitsProvedHadith',

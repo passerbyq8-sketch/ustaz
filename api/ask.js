@@ -2235,6 +2235,7 @@ export default async function handler(req, res) {
           heldGradeRuleFailed: t.heldGradeRuleFailed, heldGradeEmptied: t.heldGradeEmptied, heldRepeat: t.heldRepeat, heldDependentOnHeld: t.heldDependentOnHeld,
           heldDependentOpening: t.heldDependentOpening, heldDanglingLeadIn: t.heldDanglingLeadIn, heldNotCovered: t.heldNotCovered, heldNotCoveredSentence: t.heldNotCoveredSentence,
           heldEmptyHeading: t.heldEmptyHeading,
+          heldEvidenceOfHeldStance: t.heldEvidenceOfHeldStance, // ITEM 35-D4 C6 (b) (brain35-5 Z7): a count, no text
           // PIPES fix 3: why the turn went on to today's path ('' when it did not).
           continued: t.continued,
         });
