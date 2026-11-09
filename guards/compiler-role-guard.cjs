@@ -112,7 +112,10 @@ const clean = (t) => { try { if (t && t.tmp) fs.rmSync(t.tmp, { recursive: true,
   const RULE12_SHA = '10dd55ce7fd7ae1a39dfa74b14babc01840cb36b7cb73562c656619da752a812';
   const rules = String(BW2.BW2_WRITE_RULES_BRAIN35 || '');
   const rule12 = rules.split('\n')[0]; // the brain35 rules: 12 (A-3), 13 (A-5) -- each line pinned by its own guard
-  ok('4b the writer\'s rules carry rule 12 (the order\'s sentence) on every turn, after the tenth', rule12.startsWith('١٢. ') && rule12.includes('ولا يُنسَبُ إلى جامعِه') && BW2.bw2RulesFor([], 'x', []).endsWith(rules) && BW2.bw2RulesFor([], 'ما حكم المسح على الجوارب عند المذاهب الأربعة؟', []).includes(rules));
+  // re-cut 2026-11-09 (brain35-5g CR, R9): the owner's no-Ja'fari line (item J) follows the brain35 rules on every turn; the pin of
+  // the assembled rules' tail moves to include it, read as speed-bw2 ORDER50-2c reads it -- nothing else of the row
+  const NO_JAFARI_R9 = fs.readFileSync(path.join(REPO, 'lib/free-brain/instructions.js'), 'utf8').includes('export const NO_JAFARI_SCHOOL_RULE') ? (await esm('lib/free-brain/instructions.js')).NO_JAFARI_SCHOOL_RULE : '';
+  ok('4b the writer\'s rules carry rule 12 (the order\'s sentence) on every turn, after the tenth', rule12.startsWith('١٢. ') && rule12.includes('ولا يُنسَبُ إلى جامعِه') && BW2.bw2RulesFor([], 'x', []).endsWith(rules + '\n' + NO_JAFARI_R9) && BW2.bw2RulesFor([], 'ما حكم المسح على الجوارب عند المذاهب الأربعة؟', []).includes(rules));
   ok('4c rule 12 is pinned by sha256 (the order\'s sentence, byte for byte)', sha(rule12) === RULE12_SHA, sha(rule12));
 
   // ── mutants ──
