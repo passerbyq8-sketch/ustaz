@@ -332,8 +332,10 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e\n]/g, '~').slice(0, 200);
     ok('X6b a unit whose encyclopedia card passes: the card, no mark, the row not in markedRows',
       x6b.text.includes('<book') && !x6b.text.includes(' — الموسوعة') && !x6b.sum.markedRows.includes(EA6), ascii(x6b.text));
     const x6c = await relX6(U, [PAGE], 'والظن لا يغني من الحق شيئا [[1]].', cards);
-    ok('X6c a page row the same way: its card refused (A-3 b: owed, unsupported) -> the mark « — ابن باز.» and the row in markedRows, no card',
-      x6c.text.includes(' — ' + IBN_BAZ + '.') && x6c.sum.markedRows.includes(PAGE) && !x6c.text.includes('<source'), ascii(x6c.text));
+    // re-cut 2026-11-09 (brain35-5f F-D2i, R1): the row its card deferred as unsupported is no longer the mark's source -- no mark, and
+    // (its only cited row unsupported) no markedRows entry; no card
+    ok('X6c a page row the same way: its card refused (A-3 b: owed, unsupported) -> no mark « — ابن باز», the row not in markedRows, no card',
+      !x6c.text.includes(' — ' + IBN_BAZ) && !x6c.sum.markedRows.includes(PAGE) && !x6c.text.includes('<source'), ascii(x6c.text));
     const x6d = await relX6(U, [PAGE], PAGE_TEXT + ' [[1]].', cards);
     ok('X6d ...and supported: the card, no mark', x6d.text.includes('<source') && !x6d.text.includes(' — ' + IBN_BAZ), ascii(x6d.text));
     const x6e = await relX6(U, [EA6], UNSUPPORTED_ENC + '\n\nيجوز المسح على الجوربين إذا لبسهما على طهارة [[1]].', encycOn);
@@ -395,8 +397,15 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e\n]/g, '~').slice(0, 200);
       const TARIKH = G10_ROW('التاريخ الكبير للبخاري', 'البخاري', 3, 'قال البخاري: فلان بن فلان فيه نظر ولا يتابع على حديثه.');
       const p1 = await relG10(U, [...FILL, FATH], [...FILL_UNITS, 'وقال ابن حجر: والمراد بالأحرف السبعة سبعة أوجه من المعاني المتقاربة بألفاظ مختلفة [[4]].']);
       ok('G10-3 SYNTHETIC «وقال ابن حجر: …» citing «فتح الباري» (its card refused by the cap) -> the mark « — فتح الباري» as today (pinned)', p1.text.includes('مختلفة — فتح الباري.'), ascii(p1.text));
-      const p2 = await relG10(U, [MUSLIM], ['حق المسلم على المسلم خمس [[1]].']);
+      // re-cut 2026-11-09 (brain35-5f F-D2i, R7): the input rebuilt on the cap path -- a SUPPORTED «صحيح مسلم» row whose card the per-turn cap
+      // refuses (three supported units first, as G10-3 / G10-5); the expectation unchanged (the article: «المسلم» is not «مسلم»). SYNTHETIC row text.
+      const MUSLIM_CAP = G10_ROW('صحيح مسلم', 'مسلم', 3, "حق المسلم على المسلم خمس: رد السلام، وعيادة المريض، واتباع الجنائز، وإجابة الدعوة، وتشميت العاطس.");
+      const p2 = await relG10(U, [...FILL, MUSLIM_CAP], [...FILL_UNITS, 'حق المسلم على المسلم خمس [[4]].']);
       ok('G10-4 SYNTHETIC «حق المسلم على المسلم خمس» citing «صحيح مسلم» -> the mark « — صحيح مسلم» as today (pinned: «المسلم» is not the whole word «مسلم»)', p2.text.includes('خمس — صحيح مسلم.'), ascii(p2.text));
+      // brain35-5f F-D2i-4 (order FIX5F): the same unit on a support-DEFERRED «صحيح مسلم» row (its card deferred by the A-3 b support test) -> no mark, no markedRows entry
+      const p2d = await relG10(U, [MUSLIM], ['حق المسلم على المسلم خمس [[1]].']);
+      ok('F-D2i-4 SYNTHETIC «حق المسلم على المسلم خمس» citing a support-deferred «صحيح مسلم» row -> no mark, the row not in markedRows',
+        p2d.text.includes('حق المسلم على المسلم خمس.') && !p2d.text.includes(' — صحيح مسلم') && !p2d.sum.markedRows.includes(MUSLIM), ascii(p2d.text));
       const p3 = await relG10(U, [...FILL, TARIKH], [...FILL_UNITS, 'قال البخاري: فلان بن فلان فيه نظر ولا يتابع على حديثه [[4]].']);
       ok('G10-5 SYNTHETIC «قال البخاري: …» citing «التاريخ الكبير للبخاري» -> the mark as today (pinned: «التاريخ» is not in the unit)', p3.text.includes('حديثه — التاريخ الكبير للبخاري.'), ascii(p3.text));
       const p4 = await relG10(U, [...FILL, TARIKH], [...FILL_UNITS, 'قال البخاري في التاريخ: فلان بن فلان فيه نظر ولا يتابع على حديثه [[4]].']);

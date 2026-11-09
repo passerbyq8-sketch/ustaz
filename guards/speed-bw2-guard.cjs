@@ -3214,6 +3214,47 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         ok('G8 MUTANT KILLED: without the strip V9 has a line «. وقرر …» again', !!MG8 && strayHead(m9), ascii(m9.slice(-120)));
       }
     }
+    // ---------------------------------------------------------------- FIX5D F-D2i (2026-11-09; DIAG5 D2 (1), preview Q5; the B-4 / X6 mark site): THE SOURCE MARK
+    // FOLLOWS THE CARD'S SUPPORT VERDICT. MEASURED (DIAG5 H2c variant M): the steps block cites the al-Adawi row, cardSupportsUnit is false, the
+    // card is deferred (A-3 (b)) -- and the mark wrote « — مصطفى العدوي» under a block his text does not carry. A row the plan deferred as
+    // unsupported for THIS unit is no longer the mark's source; a unit whose every cited row is unsupported gets no mark; a supported row whose
+    // card was refused for another reason (shown already) keeps today's mark. Rows and units: the H2c harness's, embedded.
+    {
+      const UNITS_D2I = await esm('lib/bw2-units.js');
+      const ADAWI_D2I = {"kind":"fatwa","title":"هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام","url":"https://mostafaaladwy.com/fatwa/178351/%D9%87%D9%84-%D9%8A%D8%AC%D9%88%D8%B2-%D9%84%D9%84%D8%B2%D9%88%D8%AC-%D9%85%D8%A8%D8%A7%D8%B4%D8%B1%D8%A9-%D8%B2%D9%88%D8%AC%D8%AA%D9%87-%D8%A3%D8%AB%D9%86%D8%A7%D8%A1-%D8%A7%D9%84%D8%AD%D9%8A%D8%B6/","publisher":"مصطفى العدوي","scholarId":"aladawy","text":"السؤال المنشور: هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام — الحمد لله والصلاة والسلام على رسول الله صلى الله عليه وسلم، وبعد: الجواب: هذا جائز دون جماع، ولقد كان النبي المصطفى صلى الله عليه وسلم يقبل ويباشر وهو صائم دون جماع. والله تبارك وتعالى أعلم.","recordId":"aladawy:293","fatwaRecord":{"id":"aladawy:293","kind":"fatwa_service","sourceKind":"corpus","title":"هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام","url":"https://mostafaaladwy.com/fatwa/178351/هل-يجوز-للزوج-مباشرة-زوجته-أثناء-الحيض/","publisher":"مصطفى العدوي","authorityId":"","scholarId":"","directAttribution":false,"contentMode":"written_fatwa","actualContentType":"written_fatwa","question":"هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام","answer":"الحمد لله والصلاة والسلام على رسول الله صلى الله عليه وسلم، وبعد: الجواب: هذا جائز دون جماع، ولقد كان النبي المصطفى صلى الله عليه وسلم يقبل ويباشر وهو صائم دون جماع. والله تبارك وتعالى أعلم.","questionChars":47,"answerChars":190,"fullTextHash":"4b589d52c112799e1bb41b7ac18ebbf52e88b035756ce1137f45beb0dd84e7cd","fullTextComplete":true,"truncated":false,"omittedChars":0,"displayPolicy":"full","score":0,"supportText":"هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام\n\nالحمد لله والصلاة والسلام على رسول الله صلى الله عليه وسلم، وبعد: الجواب: هذا جائز دون جماع، ولقد كان النبي المصطفى صلى الله عليه وسلم يقبل ويباشر وهو صائم دون جماع. والله تبارك وتعالى أعلم.","passage":"السؤال المنشور: هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام\n\nالنص المنشور: الحمد لله والصلاة والسلام على رسول الله صلى الله عليه وسلم، وبعد: الجواب: هذا جائز دون جماع، ولقد كان النبي المصطفى صلى الله عليه وسلم يقبل ويباشر وهو صائم دون جماع. والله تبارك وتعالى أعلم.","localEntry":null,"liveSource":null,"raw":null},"ref":1};
+      const SAL_D2I = {"kind":"fatwa","title":"كفارة الجماع أثناء الحيض","url":"https://salmajed.com/fatwa/SYNTHETIC-1","publisher":"سليمان الماجد","scholarId":"salmajed","text":"السؤال المنشور: ما كفارة جماع الحائض؟ — أما الوطء في الفرج فمحرم؛ لقوله تعالى: يسألونك عن المحيض قل هو أذى فاعتزلوا النساء في المحيض ولا تقربوهن حتى يطهرن، وإذا جامعها عالما بالحكم فهو آثم وعليه التوبة، ويستحب له التصدق بقيمة دينار أو نصفه من الذهب.","recordId":"SYNTHETIC-salmajed","ref":2}; // SYNTHETIC (H2c)
+      const STEPS1_D2I = "<steps title=\"ما يباح وما يحرم\">\n- يباح الاستمتاع بها دون جماع، كالتقبيل والمباشرة.\n- يباح للزوج أن يرى منها كل شيء وإن كان الأفضل تجنب ما يستحيا منه.\n- يحرم الوطء في الفرج حتى تطهر وتغتسل.\n- إن وطئها عالماً بالتحريم فهو آثم وعليه التوبة ويستحب له التصدق بدينار أو نصفه.\n</steps> [[1]]";
+      const STEPS12_D2I = "<steps title=\"ما يباح وما يحرم\">\n- يباح الاستمتاع بها دون جماع، كالتقبيل والمباشرة.\n- يباح للزوج أن يرى منها كل شيء وإن كان الأفضل تجنب ما يستحيا منه.\n- يحرم الوطء في الفرج حتى تطهر وتغتسل.\n- إن وطئها عالماً بالتحريم فهو آثم وعليه التوبة ويستحب له التصدق بدينار أو نصفه.\n</steps> [[1]] [[2]]";
+      const U1_D2I = "أما الوطء في الفرج فمحرم؛ لقوله تعالى: \"يسألونك عن المحيض قل هو أذى فاعتزلوا النساء في المحيض ولا تقربوهن حتى يطهرن\"، وإذا جامعها عالما بالحكم فهو آثم وعليه التوبة، ويستحب له التصدق بقيمة دينار أو نصفه من الذهب [[2]].";
+      const U3_D2I = "كما أن للزوج إجبار زوجته على الغسل من الحيض؛ لأن ذلك يمنع الاستمتاع الذي هو حق له، فملك إجبارها على إزالة ما يمنع حقه [[2]].";
+      const MARK_ADAWI_D2I = " — مصطفى العدوي";
+      const MARK_SAL_D2I = " — سليمان الماجد";
+      const cardsD2I = { buildSourceTag: ASK.buildSourceTag, buildBookTag: ASK.buildBookTag, encyclopediaCards: false, max: 3 };
+      const playD2I = async (mod, rows, units) => { const out = []; const r = mod.createBw2Releaser({ rows, emit: (p) => { out.push(p); return true; }, cards: cardsD2I }); for (const u of units) r.push(u + '\n\n'); const sum = await r.end(); return { text: out.join(''), sum }; };
+      const afterSteps = (t) => { const i = t.indexOf('</steps>'); return i >= 0 ? t.slice(i + 8) : ''; };
+      const m1D2I = await playD2I(UNITS_D2I, [ADAWI_D2I], [STEPS1_D2I]);
+      ok('F-D2i-1 H2c variant M (the steps block cites only the al-Adawi row, its card deferred unsupported): no mark of his name after </steps>, no card',
+        m1D2I.sum.cardsSent === 0 && !afterSteps(m1D2I.text).includes(MARK_ADAWI_D2I) && !m1D2I.text.includes('<source'), ascii(afterSteps(m1D2I.text)));
+      const m2D2I = await playD2I(UNITS_D2I, [ADAWI_D2I, SAL_D2I], [U1_D2I, STEPS12_D2I]);
+      ok('F-D2i-2 the steps block cites the unsupported al-Adawi row and the supported salmajed row (its card shown above): the supported row\'s mark',
+        afterSteps(m2D2I.text).startsWith(MARK_SAL_D2I) && !afterSteps(m2D2I.text).includes(MARK_ADAWI_D2I), ascii(afterSteps(m2D2I.text)));
+      const m3D2I = await playD2I(UNITS_D2I, [ADAWI_D2I, SAL_D2I], [U1_D2I, U3_D2I]);
+      ok('F-D2i-3 a supported cited row whose card was refused (shown already under the unit above): the mark as today',
+        m3D2I.sum.cardsSent === 1 && m3D2I.text.includes(MARK_SAL_D2I + '.'), ascii(m3D2I.text.slice(-200)));
+      {
+        const srcI = read('lib/bw2-units.js');
+        const seamI = 'const mark = shortSourceMark(verdict.cited.find((row) => shortSourceMark(row) && !unsupportedHere.includes(row)));';
+        ok('F-D2i mutant seam present once', srcI.split(seamI).length === 2);
+        const tmpI = path.join(REPO, 'lib', '.mut-fd2i-mark.mjs');
+        fs.writeFileSync(tmpI, srcI.split(seamI).join('const mark = shortSourceMark(verdict.cited.find((row) => shortSourceMark(row))); // mutant: the support filter removed').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MI = null;
+        try { MI = await import(pathToFileURL(tmpI).href + '?m=' + Date.now()); } catch (e) { MI = null; } finally { fs.rmSync(tmpI, { force: true }); }
+        ok('F-D2i mutant loads', !!MI);
+        const mm = MI ? await playD2I(MI, [ADAWI_D2I], [STEPS1_D2I]) : null;
+        ok('F-D2i MUTANT KILLED: with the support filter removed variant M signs the steps block with the al-Adawi mark again', !!mm && afterSteps(mm.text).includes(MARK_ADAWI_D2I), mm ? ascii(afterSteps(mm.text)) : 'no module');
+      }
+    }
   } catch (error) {
     ok('guard completed without exception', false, error && error.stack ? error.stack : String(error));
   }
