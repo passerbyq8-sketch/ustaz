@@ -8,6 +8,55 @@ const auditProfile = {pid:'audit',name:'Device',gender:'male',birthYear:2015,age
 const auditDevice = () => makeDevice({child_profile:JSON.stringify(auditProfile)},'audit-t2');
 const applyRecord = (d,id,val,u=20) => run(d,`ezikSyncApply(${JSON.stringify(id)},${JSON.stringify({u,val})})`);
 const validRun = (id,at) => ({id,at,seed:at+1,i:1,segs:[[1,1,1,7]],cfg:{},st:{shown:5,ok:4,errs:[],ayat:[1,2,3,4,5],ms:1000}});
+test('trialfix-t2b index zero reloads, resumes and survives sharded sync and retirement',async()=>{
+  const source=require('fs').readFileSync(require('path').join(__dirname,'../app.jsx'),'utf8');
+  const resume=source.match(/  const resume = \(r\) => \{[^\n]+/)[0];
+  const zero={...validRun('zero',20),i:0,st:{shown:0,ok:0,errs:[],ayat:[],ms:0}};
+  const first=device();run(first,'mem86RunWrite('+JSON.stringify(zero)+')');
+  const reloaded=device({ezik_mem_run_v1:first.local.getItem('ezik_mem_run_v1')});
+  const assertResume=d=>{
+    run(d,'__mem86Counts=new Array(115).fill(7)');
+    assert.equal(run(d,'mem86RunRead().i'),0);
+    const resumed=plain(run(d,'(()=>{let active,stage,saved;const setRun=v=>active=v,setStage=v=>stage=v,setSaved=v=>saved=v;'+resume+' resume(mem86RunRead());return {active,stage,saved};})()'));
+    assert.equal(resumed.active.id,'zero');assert.equal(resumed.active.i,0);assert.equal(resumed.active.temp,false);
+    assert.equal(resumed.stage,'count');assert.equal(resumed.saved,null);
+  };
+  assertResume(reloaded);
+  const service=await import('../lib/sync/service.js'),store=await import('../lib/sync/store.js');
+  store.__setSyncStoreForTest(require('../guards/sync-fake-store.cjs').makeStore());
+  const env={SYNC_ENC_KEY:'11'.repeat(32),VERCEL_ENV:'preview'},account='t2b-zero';
+  const records=plain(run(reloaded,'ezikSyncCollect()'));
+  const shard=Object.entries(records).find(([id,v])=>id.startsWith('ctr:mem.run.')&&v.runs.some(r=>r.id==='zero'));
+  assert.ok(shard);assert.equal(shard[1].runs[0].i,0);
+  await service.push(account,Object.entries(records).map(([id,val])=>({id,rec:{u:20,val}})),env);
+  const restored=device();
+  for(const c of (await service.pull(account,0,env)).changes)applyRecord(restored,c.id,c.rec.val,c.rec.u);
+  assertResume(restored);
+  for(const action of ['discard','finish']) {
+    const d=device({ezik_mem_run_v1:restored.local.getItem('ezik_mem_run_v1')});
+    run(d,action==='discard'?'mem86RunWrite(null)':'mem86RunWrite(null,'+JSON.stringify(zero)+')');
+    const retired=plain(run(d,'ezikSyncCollect()'));
+    const retirement=Object.entries(retired).find(([id,v])=>id.startsWith('ctr:mem.run.')&&v.retired.includes('zero'));
+    assert.ok(retirement,action);
+    await service.push(account,[{id:retirement[0],rec:{u:30,val:retirement[1]}}],env);
+    await service.push(account,[{id:shard[0],rec:{u:999,val:shard[1]}}],env);
+    const echo=device();
+    for(const c of (await service.pull(account,0,env)).changes)applyRecord(echo,c.id,c.rec.val,c.rec.u);
+    run(echo,'__mem86Counts=new Array(115).fill(7)');assert.equal(run(echo,'mem86RunRead()'),null,action);
+    assert.equal(Object.values((await service.exportAll(account,env)).records).flatMap(v=>v.runs||[]).some(r=>r.id==='zero'),false);
+  }
+});
+test('trialfix-t2b index validation rejects negative fractional oversized missing and nonnumeric values',()=>{
+  const d=device();run(d,'__mem86Counts=new Array(115).fill(7)');
+  for(const i of [-1,0.5,10000,undefined,null,'0']) {
+    d.local.setItem('ezik_mem_run_v1',JSON.stringify({...validRun('invalid',20),i}));
+    assert.equal(run(d,'mem86RunRead()'),null,String(i));
+  }
+  for(const i of [0,1,9999]) {
+    d.local.setItem('ezik_mem_run_v1',JSON.stringify({...validRun('valid',20),i}));
+    assert.equal(run(d,'mem86RunRead().i'),i);
+  }
+});
 function cycleFixture(d,changes=[]) {
   run(d,`readAuthSession=()=>({session:'A'});ezikSyncStatus=async()=>true;ezikSyncLibCollect=async()=>{};ezikSyncLibSnapshot=()=>({});ezikSyncArmNext=()=>{};var auditUploads=[];
     ezikSyncCall=async b=>b.action==='pull'?{ok:true,data:{cursor:1,changes:${JSON.stringify(changes)}}}:(auditUploads.push(...b.changes),{ok:true,data:{results:b.changes}});`);

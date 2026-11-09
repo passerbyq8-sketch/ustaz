@@ -686,3 +686,7 @@ See REPORT-C1-ORDER-T1B.md in the session archive for the final committed-head s
 C4 flags F1-F7 are addressed within the existing trialfix gate groups. Profiles preserve absent legacy years, merge saved fields independently, and reconcile pending year choices. Dima migrates frozen v1 days before sync and retains an atomic deletion generation after delete-all. Paused memorizer runs have stable-ID retirement and per-run sync records; oversize records emit an individual failure and do not stop unrelated sync.
 
 The standard app build, byte/digest records, focused sync and deletion checks were verified. No Arabic text, immutable quest asset URL, cache reservation or gate roster changed. The final committed-head stock suite measurements and per-file integrity table are recorded in the session archive REPORT-C1-ORDER-T2.md.
+
+## ORDER T2B index-zero repair (2026-11-09)
+
+The memorizer run reader accepts integer index zero by checking the invalid-value sentinel explicitly. All other run validation remains unchanged. Two regressions in the existing trialfixsync group cover reload and resume, sharded server round trips and retirements, and invalid index rejection. The standard build and dependent byte/digest records were verified; the roster remains 282. Final committed-head results and integrity measurements are recorded in the session archive REPORT-C1-ORDER-T2B.md.

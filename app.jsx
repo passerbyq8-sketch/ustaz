@@ -41483,7 +41483,7 @@ const mem86TestsPut = (rec) => {
 const mem86RunRead = () => {
   const v = mem86Load(MEM86_RUN_KEY);
   const counts = mem86Counts();
-  if (!mem86Obj(v) || !mem86Obj(v.cfg) || !mem86Int(v.seed, 0, 2147483647) || !mem86Int(v.i, 0, 9999) || !counts) return null;
+  if (!mem86Obj(v) || !mem86Obj(v.cfg) || !mem86Int(v.seed, 0, 2147483647) || mem86Int(v.i, 0, 9999) === null || !counts) return null;
   const segs = mem86SegsClean(v.segs, counts);
   if (!segs.length) return null;
   const st = mem86Obj(v.st) ? v.st : {};
