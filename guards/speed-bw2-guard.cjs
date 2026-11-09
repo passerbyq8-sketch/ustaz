@@ -1731,10 +1731,7 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         // ITEM O-1 (brain35, 2026-11-06; DIAG ARBITER): an empty judge is labelled by which emptiness it was --
         // judge_none (kept nothing of a complete reading), judge_incomplete (read the rows as not answering the whole
         // question), judge_failed (never answered).
-        continued: ['', 'no_rows', 'judge_none', 'judge_incomplete', 'judge_failed', 'marker', 'none_released'],
-        // re-cut 2026-11-09 (brain35-5e F-D5, R2): the reviewer's khilaf trigger (lib/output-reviewer.js khilafTriggerFor: both,
-        // source, opinions, prose) and its footer suppression reason (truncated), each plus 'none'
-        khilafTrigger: ['none', 'both', 'source', 'opinions', 'prose'], answerFooterSuppressedReason: ['none', 'truncated'] };
+        continued: ['', 'no_rows', 'judge_none', 'judge_incomplete', 'judge_failed', 'marker', 'none_released'] };
       const bad = Object.entries(t).filter(([k, v]) => {
         if (typeof v === 'number') return !Number.isFinite(v);
         if (typeof v === 'boolean' || v === null) return false;
