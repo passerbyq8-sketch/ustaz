@@ -2239,6 +2239,10 @@ export default async function handler(req, res) {
           heldBannedSchool: t.heldBannedSchool, // ITEM 35 J (brain35-5e): a count, no text
           // PIPES fix 3: why the turn went on to today's path ('' when it did not).
           continued: t.continued,
+          // ITEM 35-D5 (brain35-5d F-D5, 2026-11-09): the reviewer's khilaf trigger and the footer's suppression reason, closed enums
+          // (lib/before-writing-v2.js BW2_KHILAF_TRIGGERS / BW2_FOOTER_SUPPRESSED_REASONS). Never text.
+          khilafTrigger: t.khilafTrigger,
+          answerFooterSuppressedReason: t.answerFooterSuppressedReason,
         });
       }
       if (!(bw2Out && bw2Out.continued === true) || readerGone.aborted) return;
