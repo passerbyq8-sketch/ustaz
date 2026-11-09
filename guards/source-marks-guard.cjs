@@ -79,12 +79,14 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e\n]/g, '~').slice(0, 200);
   const m4377 = U.shortSourceMark(FC4377);
   ok('F7b FC-004377: the « - حطيبة» tail is stripped, the cut lands on a word and never ends on a connector',
     m4377 === 'شرح كتاب الجامع لأحكام العمرة و الحج…' && !CONNECTOR_TAIL.test(m4377) && !/[وف]\s*…$/u.test(m4377), ascii(m4377));
+  // re-cut 2026-11-09 (brain35-5g K2, R10): the fifth title's tail drop left the single word AL-UMM; it is refused, so the mark is the
+  // title before the drop -- that expectation moves, nothing else of the row
   ok('F7c a non-fatwa book «X بعناية Y» is named «X», and so are « تحقيق Y», « إعداد Y», « جمعه Y», « اعتنى به Y»',
     U.shortSourceMark({ kind: 'lib_book', bookTitle: 'جامع العلوم والحكم بعناية الأرنؤوط', author: 'ابن رجب', recordId: 'FC-000002:0001' }) === 'جامع العلوم والحكم'
     && U.shortSourceMark({ kind: 'lib_book', bookTitle: 'جامع العلوم والحكم تحقيق الأرنؤوط', author: 'ابن رجب', recordId: 'FC-000002:0001' }) === 'جامع العلوم والحكم'
     && U.shortSourceMark({ kind: 'lib_book', bookTitle: 'الفتاوى الكبرى إعداد عامر الجزار', author: 'ابن تيمية', recordId: 'FC-000002:0001' }) === 'الفتاوى الكبرى'
     && U.shortSourceMark({ kind: 'lib_book', bookTitle: 'مجموع الفتاوى جمعه ابن قاسم', author: 'ابن تيمية', recordId: 'FC-000002:0001' }) === 'مجموع الفتاوى'
-    && U.shortSourceMark({ kind: 'lib_book', bookTitle: 'الأم اعتنى به رفعت فوزي', author: 'الشافعي', recordId: 'FC-000002:0001' }) === 'الأم');
+    && U.shortSourceMark({ kind: 'lib_book', bookTitle: 'الأم اعتنى به رفعت فوزي', author: 'الشافعي', recordId: 'FC-000002:0001' }) === '\u0627\u0644\u0623\u0645 \u0627\u0639\u062a\u0646\u0649 \u0628\u0647 \u0631\u0641\u0639\u062a \u0641\u0648\u0632\u064a');
   ok('F7c ...and a title that only STARTS with such a word keeps it («جمع الجوامع», «تخريج أحاديث الإحياء», «تحقيق رياض الصالحين»: 31 catalogue titles open on «تحقيق»)',
     U.shortSourceMark({ kind: 'lib_book', bookTitle: 'جمع الجوامع', author: 'السيوطي', recordId: 'FC-000002:0001' }) === 'جمع الجوامع'
     && U.shortSourceMark({ kind: 'lib_book', bookTitle: 'تخريج أحاديث الإحياء', author: 'العراقي', recordId: 'FC-000002:0001' }) === 'تخريج أحاديث الإحياء'
@@ -139,6 +141,27 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e\n]/g, '~').slice(0, 200);
     // (the mutant of this item stands with the other mutants, section 6, after the twin helper)
     D6A_ROWS = { bookRow, D6A };
   }
+  let K2_ROWS = null; // brain35-5g K2: the rows the mutant below re-reads
+  // \u2500\u2500 brain35-5g K2 (2026-11-09; DIAG7 K2, from our batches 7f12b338 F7) \u00b7 NO SOURCE MARK LEFT ON A STUMP BY THE EDITION-TAIL DROP \u2500\u2500
+  // MEASURED (DIAG7 K2-mark-cut, preview Q8): \u00ab\u2014 \u0628\u062f\u0627\u0626\u0639 \u0627\u0644\u0635\u0646\u0627\u0626\u0639 \u0641\u064a\u00bb -- the tail drop read the title's own words as an editor's tail.
+  // The drop is refused when what it leaves ends on a word of the closed list or is a single word, and a final mark still ending on
+  // one loses its trailing list words. Catalogue rows by id (lib/data/lib-catalog.js).
+  {
+    const { LIB_CATALOG } = await esm('lib/data/lib-catalog.js');
+    const catRow = (id) => { const e = LIB_CATALOG.find((x) => x[0] === id); return e ? { kind: 'lib_book', title: e[1], bookTitle: e[1], author: e[2], recordId: e[0] + ':0001' } : null; };
+    const STUMP_WORDS = new Set(['\u0641\u064a', '\u0639\u0644\u0649', '\u0639\u0646', '\u0645\u0646', '\u0625\u0644\u0649', '\u0627\u0644\u0649', '\u0648', '\u0623\u0648', '\u0645\u0627', '\u0634\u0631\u062d', '\u0646\u0638\u0645', '\u0644\u0646\u0638\u0645']);
+    const endsOnStump = (m) => { const w = String(m).split(String.fromCharCode(0x2026)).join('').trim().split(' ').filter(Boolean); return w.length > 0 && STUMP_WORDS.has(w[w.length - 1]); };
+    const whole = (id) => { const r = catRow(id); return !!r && U.shortSourceMark(r) === r.bookTitle; };
+    ok('K2-1 FC-003532 \u00ab\u0628\u062f\u0627\u0626\u0639 \u0627\u0644\u0635\u0646\u0627\u0626\u0639 \u0641\u064a \u062a\u0631\u062a\u064a\u0628 \u0627\u0644\u0634\u0631\u0627\u0626\u0639\u00bb -> the mark is the whole title (not \u00ab\u0628\u062f\u0627\u0626\u0639 \u0627\u0644\u0635\u0646\u0627\u0626\u0639 \u0641\u064a\u00bb)', whole('FC-003532'), ascii(U.shortSourceMark(catRow('FC-003532'))));
+    ok('K2-2 FC-005243 \u00ab\u0627\u0644\u0645\u063a\u0631\u0628 \u0641\u064a \u062a\u0631\u062a\u064a\u0628 \u0627\u0644\u0645\u0639\u0631\u0628\u00bb -> the whole title', whole('FC-005243'), ascii(U.shortSourceMark(catRow('FC-005243'))));
+    ok('K2-3 FC-000308 \u00ab\u0623\u0633\u0631\u0627\u0631 \u062a\u0631\u062a\u064a\u0628 \u0627\u0644\u0642\u0631\u0622\u0646\u00bb -> the whole title (the drop left the single word \u00ab\u0623\u0633\u0631\u0627\u0631\u00bb)', whole('FC-000308'), ascii(U.shortSourceMark(catRow('FC-000308'))));
+    const m3418 = U.shortSourceMark(catRow('FC-003418')); const m2697 = U.shortSourceMark(catRow('FC-002697'));
+    ok('K2-4 FC-003418 and FC-002697 (the F-D6a second-clause rule) -> marks that end on no word of the list', !!m3418 && !!m2697 && !endsOnStump(m3418) && !endsOnStump(m2697), ascii(JSON.stringify([m3418, m2697])));
+    ok('K2-5 \u00ab\u0641\u062a\u0627\u0648\u0649 \u0646\u0648\u0631 \u0639\u0644\u0649 \u0627\u0644\u062f\u0631\u0628 \u0644\u0627\u0628\u0646 \u0628\u0627\u0632 \u0628\u0639\u0646\u0627\u064a\u0629 \u0627\u0644\u0634\u0648\u064a\u0639\u0631\u00bb -> the mark of today (pinned)', U.shortSourceMark({ kind: 'lib_book', title: '\u0641\u062a\u0627\u0648\u0649 \u0646\u0648\u0631 \u0639\u0644\u0649 \u0627\u0644\u062f\u0631\u0628 \u0644\u0627\u0628\u0646 \u0628\u0627\u0632 \u0628\u0639\u0646\u0627\u064a\u0629 \u0627\u0644\u0634\u0648\u064a\u0639\u0631', bookTitle: '\u0641\u062a\u0627\u0648\u0649 \u0646\u0648\u0631 \u0639\u0644\u0649 \u0627\u0644\u062f\u0631\u0628 \u0644\u0627\u0628\u0646 \u0628\u0627\u0632 \u0628\u0639\u0646\u0627\u064a\u0629 \u0627\u0644\u0634\u0648\u064a\u0639\u0631', author: '', recordId: 'FC-999999:0001' }) === '\u0641\u062a\u0627\u0648\u0649 \u0646\u0648\u0631 \u0639\u0644\u0649 \u0627\u0644\u062f\u0631\u0628 \u0644\u0627\u0628\u0646 \u0628\u0627\u0632', ascii(U.shortSourceMark({ kind: 'lib_book', bookTitle: '\u0641\u062a\u0627\u0648\u0649 \u0646\u0648\u0631 \u0639\u0644\u0649 \u0627\u0644\u062f\u0631\u0628 \u0644\u0627\u0628\u0646 \u0628\u0627\u0632 \u0628\u0639\u0646\u0627\u064a\u0629 \u0627\u0644\u0634\u0648\u064a\u0639\u0631', author: '', recordId: 'FC-999999:0001' })));
+    ok('K2-6 \u00ab\u062c\u0627\u0645\u0639 \u0627\u0644\u0639\u0644\u0648\u0645 \u0648\u0627\u0644\u062d\u0643\u0645 \u062a \u0627\u0644\u0623\u0631\u0646\u0624\u0648\u0637\u00bb -> the mark of today (pinned)', U.shortSourceMark({ kind: 'lib_book', title: '\u062c\u0627\u0645\u0639 \u0627\u0644\u0639\u0644\u0648\u0645 \u0648\u0627\u0644\u062d\u0643\u0645 \u062a \u0627\u0644\u0623\u0631\u0646\u0624\u0648\u0637', bookTitle: '\u062c\u0627\u0645\u0639 \u0627\u0644\u0639\u0644\u0648\u0645 \u0648\u0627\u0644\u062d\u0643\u0645 \u062a \u0627\u0644\u0623\u0631\u0646\u0624\u0648\u0637', author: '', recordId: 'FC-999999:0001' }) === '\u062c\u0627\u0645\u0639 \u0627\u0644\u0639\u0644\u0648\u0645 \u0648\u0627\u0644\u062d\u0643\u0645', ascii(U.shortSourceMark({ kind: 'lib_book', bookTitle: '\u062c\u0627\u0645\u0639 \u0627\u0644\u0639\u0644\u0648\u0645 \u0648\u0627\u0644\u062d\u0643\u0645 \u062a \u0627\u0644\u0623\u0631\u0646\u0624\u0648\u0637', author: '', recordId: 'FC-999999:0001' })));
+    K2_ROWS = { catRow };
+  }
+
 
 
   // ── 2. where the mark goes ──
@@ -482,6 +505,14 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e\n]/g, '~').slice(0, 200);
     const marksM = D6A_ROWS && mD6a.mod ? D6A_ROWS.D6A.map(([t, a, id]) => mD6a.mod.shortSourceMark(D6A_ROWS.bookRow(t, a, id))) : [];
     ok('F-D6a MUTANT KILLED: without the fallback the three titles are cut with «…» again',
       marksM.length === 3 && marksM.every((m) => m.endsWith('…')), mD6a.mod ? ascii(JSON.stringify(marksM)) : mD6a.error);
+  }
+
+  // brain35-5g K2: the refusal removed -> the tail drop leaves \u00ab\u0628\u062f\u0627\u0626\u0639 \u0627\u0644\u0635\u0646\u0627\u0626\u0639 \u0641\u064a\u00bb again (cleaned to \u00ab\u0628\u062f\u0627\u0626\u0639 \u0627\u0644\u0635\u0646\u0627\u0626\u0639\u00bb), not the whole title (K2-1 red)
+  {
+    const mK2 = await twin((s) => s.replace('markEndsOnStump(dropped) || dropped.split(', 'false && markEndsOnStump(dropped) || false && dropped.split('), 'k2');
+    ok('K2 MUTANT refusal seam applied and loaded', mK2.changed && mK2.mod, mK2.error);
+    const rowM = K2_ROWS && K2_ROWS.catRow('FC-003532');
+    ok('K2 MUTANT KILLED: without the refusal the FC-003532 mark is no longer the whole title', !!mK2.mod && !!rowM && mK2.mod.shortSourceMark(rowM) !== rowM.bookTitle, mK2.mod && rowM ? ascii(mK2.mod.shortSourceMark(rowM)) : mK2.error);
   }
 
   console.log('\n=== source-marks: ' + (checks - failures) + '/' + checks + (failures ? ' FAIL' : ' PASS') + ' ===');
