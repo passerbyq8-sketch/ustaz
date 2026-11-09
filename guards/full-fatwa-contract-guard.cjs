@@ -856,6 +856,51 @@ async function main() {
           ok('F-D4 MUTANT KILLED: with the list emptied the Q9 block opens on «الشيخ:» again',
             mD4.ok && mD4.mod.serverOwnedBlock(Q9_OPEN, [], { band: 'adult', brief: true }).split('<fatwafull')[0].includes('الشيخ: قدم الله'));
         }
+        // ── brain35-5e G1a (2026-11-09; DIAG6 G1) · THE FORMULA LIST TAKES THE FORMS THE LIVE CARDS CARRY ───────────────────
+        // MEASURED (DIAG6 G1-brief-preamble, preview Q12 / Q18): the W1 skip is a prefix match over a closed list and stops at the first
+        // form not on it, so «الحمد لله، وصلى الله وسلم على …» lost its hamdala and the card opened «وصلى الله وسلم …» (3 of 171 stored
+        // answers: albarrak:8687, aljasser:287, aljasser:439; none on the base). The list gains four alternatives in its own style: a
+        // free-standing «رب العالمين», «و?صلى الله (وسلم|وبارك)? على …», «و?من اهتدى / تبعهم / والاه / سار على / استن …», and up to three
+        // words between «والسلام» and «على»; the format characters U+200B-U+200F, U+2060, U+FEFF count as whitespace in the skip.
+        {
+          const ZWSP = String.fromCharCode(0x200B);
+          // SYNTHETIC (the order's record, Q18's preamble shape)
+          const G1A_Q18 = 'الحمد لله، وصلى الله وسلم على رسول الله، وعلى آله وأصحابه، ومن اهتدى بهداه، أما بعد. فإن الصائم إذا أكل أو شرب ناسيا فصومه صحيح.';
+          ok('G1a-1 SYNTHETIC «الحمد لله، وصلى الله وسلم على رسول الله، … ومن اهتدى بهداه، أما بعد. فإن الصائم …» -> the body opens «فإن الصائم»',
+            String(bodyFn(G1A_Q18)).startsWith('فإن الصائم'), String(bodyFn(G1A_Q18)).slice(0, 40));
+          // SYNTHETIC (the order's record, Q12's preamble shape; the content after «أما بعد:» SYNTHETIC)
+          const G1A_Q12_TAIL = 'وصلى الله وسلم على نبينا محمد، وعلى آله وصحبه ومن اهتدى بهديه إلى يوم الدين. أما بعد: الحلي المعد للاستعمال تجب فيه الزكاة إذا بلغ النصاب على الصحيح من أقوال أهل العلم.';
+          const G1A_Q12 = 'الحمد لله، رب العالمين، ' + G1A_Q12_TAIL;
+          ok('G1a-2 SYNTHETIC «الحمد لله، رب العالمين، وصلى الله وسلم على نبينا محمد، … أما بعد: الحلي المعد للاستعمال …» -> the body opens «الحلي»',
+            String(bodyFn(G1A_Q12)).startsWith('الحلي المعد'), String(bodyFn(G1A_Q12)).slice(0, 40));
+          const G1A_Q12_ZW = 'الحمد لله' + ZWSP + 'رب العالمين، ' + G1A_Q12_TAIL;
+          ok('G1a-3 SYNTHETIC the same with U+200B in place of «، » after «لله» -> the body opens «الحلي»',
+            String(bodyFn(G1A_Q12_ZW)).startsWith('الحلي المعد'), String(bodyFn(G1A_Q12_ZW)).slice(0, 40));
+          // SYNTHETIC (the aljasser shape; the content after «أما بعد:» SYNTHETIC)
+          const G1A_JASSER = 'الحمد لله رب العالمين والصلاة والسلام الأتمان الأكملان على المبعوث رحمة للعالمين، أما بعد: فإن الواجب على المسلم أن يؤدي الزكاة إذا حال عليها الحول وبلغت النصاب.';
+          ok('G1a-4 SYNTHETIC «… والصلاة والسلام الأتمان الأكملان على المبعوث رحمة للعالمين، أما بعد: فإن …» -> the body opens «فإن»',
+            String(bodyFn(G1A_JASSER)).startsWith('فإن الواجب'), String(bodyFn(G1A_JASSER)).slice(0, 40));
+          // the wasl fixture's record albarrak:8687 (DIAG6 G1: card «وصلى الله وسلم على محمد، أما بعد: فالمعتبر …»)
+          let r8687 = null;
+          for (const entry of Object.values(wasl)) {
+            let body; try { body = JSON.parse(entry.body); } catch { continue; }
+            const hit = body && Array.isArray(body.results) && body.results.find((r) => r && r.uid === 'albarrak:8687' && r.content && typeof r.content.answer === 'string');
+            if (hit) { r8687 = fix(hit.content); break; }
+          }
+          ok('G1a-5 albarrak:8687 (guards/fixtures-speed-wasl-fatwas.json) -> the brief body opens «فالمعتبر»',
+            !!r8687 && String(bodyFn(r8687.answer)).startsWith('فالمعتبر') && bodyOf(r8687).startsWith('فالمعتبر'), r8687 ? String(bodyFn(r8687.answer)).slice(0, 40) : 'no record');
+          ok('G1a-6 a record whose answer opens on content is byte-identical: head + the whole answer, body = answer (pinned)',
+            visible(PLAIN) === plainHead + PLAIN.answer + '\n' && bodyFn(PLAIN.answer) === PLAIN.answer);
+          // the mutant: the four alternatives (and the format characters) removed -> G1a-1 red
+          const G1A_OLD = "const EXCERPT_PREAMBLE_RE = /^(?:\\s*(?:ج|الشيخ|الجواب)\\s*[:：]\\s*)?(?:(?:و?عليكم\\s+السلام(?:\\s+ورحمة\\s+الله(?:\\s+وبركاته)?)?|بسم\\s+الله\\s+الرحمن\\s+الرحيم|الحمد\\s+لله(?:\\s+رب\\s+العالمين)?|و?(?:أصلي|نصلي)\\s+و(?:أسلم|نسلم)\\s+على[^.،؛]{0,80}|و?الصلاة\\s+والسلام\\s+على[^.،؛]{0,80}|و?على\\s+آله[^.،؛:]{0,60}|أما\\s+بعد|وبعد)\\s*[،.:؛]*\\s*\\.*\\s*)+/u;";
+          const G1A_SEAM = 'const EXCERPT_PREAMBLE_RE = new RegExp(String.raw`';
+          const ffSrc = fs.readFileSync(path.join(REPO, 'lib/full-fatwa.js'), 'utf8');
+          const g1aLine = ffSrc.split('\n').find((l) => l.startsWith(G1A_SEAM)) || '<<no G1a seam>>';
+          const mG1a = await mutate('lib/full-fatwa.js', g1aLine, G1A_OLD + ' // mutant: the four alternatives removed', 'g1alist');
+          ok('G1a MUTANT list seam applied', mG1a.ok, mG1a.reason);
+          ok('G1a MUTANT KILLED: with the four alternatives removed the Q18 body opens on «وصلى الله» again',
+            mG1a.ok && String(mG1a.mod.briefAnswerBody(G1A_Q18)).startsWith('وصلى الله'));
+        }
       }
     }    // ── brain35-2 F10 (2026-11-07; DIAG2 R13 a) · THE «فأجاب …:» SPLIT AS A SAFETY FOR ONE-FIELD RECORDS ────────────
     // MEASURED (DIAG2 R13): the sheet the extension opened («السائل م س يقول … فأجاب رحمه الله تعالى: …») as a store record
