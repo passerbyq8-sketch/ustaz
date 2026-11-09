@@ -795,6 +795,36 @@ async function main() {
         ok('Z6 MUTANT body seam applied', mZ6.ok, mZ6.reason);
         ok('Z6 MUTANT KILLED: with the body returning its input the three blocks open on the preamble / carry the presenter again',
           mZ6.ok && (() => { const v = (rec) => mZ6.mod.serverOwnedBlock(rec, [], { band: 'adult', brief: true }).split('<fatwafull')[0]; return v(salmajed).includes('وعليكم السلام') && v(ribaRec).includes('الحمد لله رب العالمين') && v(waslRec).includes('المقدم:'); })());
+        // ── brain35-5d F-D6b (2026-11-09; DIAG5 D6) · A BARE «[n]» IS DROPPED FROM THE BRIEF EXCERPT ONLY ────────────────────
+        // MEASURED (DIAG5 H4 §5, preview Q4 / Q10 / Q13): 15 of 171 stored answers carry an inline «[n]» reference whose footnote text
+        // is not stored (binbaz: «وفق الله الجميع[1].»); printedFatwaPair and briefAnswerBody kept the marker, so the brief card showed
+        // a bare «[1]». The brief BODY now drops a «[n]» whose footnote line is not in the answer (no line starts with the same «[n]»),
+        // taking the space before it when one would be left doubled; the «النص الكامل» expansion keeps every byte; a record whose
+        // answer carries the footnote line keeps the marker. STOP RULE probe (BRAIN35-FIX5D-evidence/probe-d6b-markers.out.txt): none
+        // of the six postship-2 fixture rows carries a marker, so the postship9 / postship19 pinned blocks are untouched (row F-D6b-5).
+        {
+          const dropFn = (s, a) => (typeof FF.dropBareFootnoteMarkers === 'function' ? FF.dropBareFootnoteMarkers(s, a) : null); // null on a HEAD without the helper (the RED run)
+          // SYNTHETIC in binbaz's shape: the marker welded to the word before the stop, no footnote line anywhere
+          const BARE = fix({ question: 'س', answer: 'الحمد لله. الواجب على المسلم أن يتحرى الحلال في كسبه وأن يبتعد عن الشبهات، وفق الله الجميع[1]. سؤال شخصي يكتبه الناس كثيرا في هذه الأيام وهو مما يحتاج إلى بيان من أهل العلم.', title: 'ت', url: 'https://binbaz.org.sa/fatwas/4' });
+          ok('F-D6b-1 SYNTHETIC «… وفق الله الجميع[1]. سؤال شخصي …» -> the brief body reads «… وفق الله الجميع. سؤال شخصي …» (no bare marker)',
+            bodyOf(BARE).includes('وفق الله الجميع. سؤال شخصي') && !visible(BARE).includes('[1]'), bodyOf(BARE).slice(0, 120));
+          ok('F-D6b-2 ...and the «النص الكامل» expansion is byte-identical to the whole block, the marker inside it (pinned)',
+            expansionOf(BARE) === FF.serverOwnedBlock(BARE, [], { band: 'adult' }) && expansionOf(BARE).includes('الجميع[1].'));
+          // SYNTHETIC: the same answer with its footnote line at the end
+          const FOOTED = fix({ ...BARE, answer: BARE.answer + '\n[1] أخرجه البخاري في صحيحه.' });
+          ok('F-D6b-3 SYNTHETIC a record whose answer ends with a line «[1] …» keeps the inline marker and the line (pinned)',
+            bodyOf(FOOTED).includes('الجميع[1].') && bodyOf(FOOTED).includes('\n[1] أخرجه البخاري'), bodyOf(FOOTED).slice(-80));
+          ok('F-D6b-4 the drop takes one space with the marker when one would be left doubled, and is the identity on a text with no marker',
+            dropFn('قال[1] كذا', 'قال[1] كذا') === 'قال كذا' && dropFn('قال [1] كذا', 'قال [1] كذا') === 'قال كذا' && dropFn('قال [1]', 'قال [1]') === 'قال'
+            && dropFn(answerBody, answerBody) === answerBody && dropFn(SHEET_A, SHEET_A) === SHEET_A,
+            JSON.stringify([dropFn('قال[1] كذا', 'قال[1] كذا'), dropFn('قال [1] كذا', 'قال [1] كذا'), dropFn('قال [1]', 'قال [1]')]));
+          ok('F-D6b-5 the six postship-2 fixture rows carry no marker (the STOP RULE probe, re-read here): their pinned blocks cannot move',
+            JSON.parse(fs.readFileSync(path.join(REPO, 'guards/fixtures-postship-2-fatwas.json'), 'utf8')).rows.every((r) => !/\[\d+\]/u.test(String(r.answer || ''))));
+          const mD6b = await mutate('lib/full-fatwa.js', "  body = dropBareFootnoteMarkers(body, String(answer || ''));", '  // mutant: the bare marker stays', 'd6bdrop');
+          ok('F-D6b MUTANT drop seam applied', mD6b.ok, mD6b.reason);
+          ok('F-D6b MUTANT KILLED: without the drop the brief body shows the bare «[1]» again',
+            mD6b.ok && mD6b.mod.serverOwnedBlock(BARE, [], { band: 'adult', brief: true }).split('<fatwafull')[0].includes('الجميع[1].'));
+        }
       }
     }    // ── brain35-2 F10 (2026-11-07; DIAG2 R13 a) · THE «فأجاب …:» SPLIT AS A SAFETY FOR ONE-FIELD RECORDS ────────────
     // MEASURED (DIAG2 R13): the sheet the extension opened («السائل م س يقول … فأجاب رحمه الله تعالى: …») as a store record
