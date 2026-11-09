@@ -35059,6 +35059,8 @@ function ezikSyncCycle() {
         const known = Object.prototype.hasOwnProperty.call(st.shadow, c.id);
         const dirty = (has && known && st.shadow[c.id] !== hashOf(local[c.id])) || st.pend[c.id]?.explicit === true;
         const firstSetting = has && !known && kvLike(c.id);
+        // A local reset boundary must be uploaded even on the first pull after returning.
+        if (c.id === 'kv:dima_epoch' && Number(local[c.id] || 0) > Number(c.rec?.val || 0)) continue;
         if (c.id === 'kv:profile') {
           if (ezikSyncApply(c.id, c.rec) === false) { st.deferred[c.id] = c.rec; continue; }
           delete st.deferred[c.id]; applied++;
@@ -41499,13 +41501,14 @@ const mem86RunRead = () => {
 const mem86RunWrite = (run, finished) => {
   if (run) return mem86Store(MEM86_RUN_KEY, { ...run, id: run.id || String(run.seed), at: Date.now() });
   try {
-    const active = finished || mem86Load(MEM86_RUN_KEY);
+    const saved = mem86Load(MEM86_RUN_KEY);
+    const active = finished || saved;
     const retired = ezikSyncJson(localStorage.getItem('ezik_mem_retired_v1')) || [];
     if (active) retired.push(String(active.id || active.seed));
-    const remaining = EZIK_PROGRESS.mergeMemorizer('run', {runs:ezikSyncJson(localStorage.getItem('ezik_mem_runs_v1')) || []}, {runs:[],retired}, true);
+    const remaining = EZIK_PROGRESS.mergeMemorizer('run', {runs:[...(ezikSyncJson(localStorage.getItem('ezik_mem_runs_v1')) || []), ...(saved ? [saved] : [])]}, {runs:[],retired}, true);
     localStorage.setItem('ezik_mem_retired_v1', JSON.stringify(remaining.retired));
     localStorage.setItem('ezik_mem_runs_v1', JSON.stringify(remaining.runs));
-    localStorage.removeItem(MEM86_RUN_KEY);
+    if (!saved || retired.includes(String(saved.id || saved.seed))) localStorage.removeItem(MEM86_RUN_KEY);
     ezikSyncSoon();
     return true;
   } catch (e) { return false; }

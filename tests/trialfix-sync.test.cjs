@@ -73,6 +73,9 @@ test('trialfix-t2-f5 dima-delete-all-stale-reconnect rejects old generation and 
   const fresh=plain(run(d,'ezikSyncCollect()'));
   await service.push(account,Object.entries(fresh).map(([id,val])=>({id,rec:{u:Date.now(),val}})),env);
   assert.equal((await service.exportAll(account,env)).records['ctr:dima.'+epoch.rec.val+'.start'].startDate,'2026-11-09');
+  const returning=auditDevice();returning.local.setItem('ezik_dima_epoch_v1',String(Number(epoch.rec.val)+1));
+  cycleFixture(returning,[epoch]);assert.equal(await run(returning,'ezikSyncCycle()'),'ok');
+  assert.equal(run(returning,"auditUploads.find(c=>c.id==='kv:dima_epoch').rec.val"),String(Number(epoch.rec.val)+1),'a newer local reset boundary reaches the account');
   await service.eraseForAccountDelete(account,env);assert.equal((await service.pull(account,0,env)).changes.length,0);
 });
 test('trialfix-t2-f6 valid-discarded-paused-run-resurrected and finished run stay retired after stale upload',async()=>{
@@ -102,6 +105,10 @@ test('trialfix-t2-f6 valid-discarded-paused-run-resurrected and finished run sta
     applyRecord(d,'ctr:mem.run',pair);applyRecord(d,retirement[0],merged.val);
     assert.equal(run(d,'mem86RunRead().id'),'a');assert.deepEqual(JSON.parse(d.local.getItem('ezik_mem_runs_v1')).map(r=>r.id),['a']);
   }
+  const other=auditDevice();run(other,'__mem86Counts=new Array(115).fill(7)');
+  other.local.setItem('ezik_mem_run_v1',JSON.stringify(validRun('a',10)));
+  run(other,'mem86RunWrite(null,'+JSON.stringify(validRun('b',20))+')');
+  assert.equal(run(other,'mem86RunRead().id'),'a','finishing another run keeps a genuinely paused active run');
 });
 test('trialfix-t2-f7 valid-paused-runs-stop-entire-sync shards 14 runs and isolates oversized records',async()=>{
   const d=auditDevice();
