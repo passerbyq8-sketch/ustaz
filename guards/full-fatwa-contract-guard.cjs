@@ -898,8 +898,54 @@ async function main() {
           const g1aLine = ffSrc.split('\n').find((l) => l.startsWith(G1A_SEAM)) || '<<no G1a seam>>';
           const mG1a = await mutate('lib/full-fatwa.js', g1aLine, G1A_OLD + ' // mutant: the four alternatives removed', 'g1alist');
           ok('G1a MUTANT list seam applied', mG1a.ok, mG1a.reason);
-          ok('G1a MUTANT KILLED: with the four alternatives removed the Q18 body opens on «وصلى الله» again',
-            mG1a.ok && String(mG1a.mod.briefAnswerBody(G1A_Q18)).startsWith('وصلى الله'));
+          // re-cut 2026-11-09 (brain35-5f G1b, R8): the kill condition is G1a-1 failing under the mutant, not the literal head the mutant left
+          ok('G1a MUTANT KILLED: with the four alternatives removed, G1a-1 FAILS (the Q18 body does not open on «فإن الصائم»)',
+            mG1a.ok && !String(mG1a.mod.briefAnswerBody(G1A_Q18)).startsWith('فإن الصائم'));
+        // ── brain35-5e G1b (2026-11-09; DIAG6 G1, Claude's addition) · A BRIEF CARD NEVER OPENS ON A FORMULA FRAGMENT ──────────
+        // When the body the skips leave opens (tested on a copy with diacritics, tatweel and the format characters removed) on a
+        // fragment head of a closed list («رب العالمين», «وصلى الله», «والسلام على», «وسلام على», «وعلى آله», «ومن اهتدى», «الأتمان» …),
+        // the brief body falls back to the answer with the label skip only and NO formula skip (the whole formula at the head, the
+        // base's shape). A body that does not open on a fragment head is byte-identical to G1a's.
+        {
+          const TANWEEN_DAMM = String.fromCharCode(0x064C);
+          const [FATHA, DAMMA, KASRA, SHADDA] = [0x064E, 0x064F, 0x0650, 0x0651].map((c) => String.fromCharCode(c));
+          // SYNTHETIC (the order's record; the content after «فإن» SYNTHETIC)
+          const G1B_SALAM = 'الحمد لله، وسلام' + TANWEEN_DAMM + ' على عباده الذين اصطفى، أما بعد: فإن الواجب على المسلم أن يتعلم أحكام دينه.';
+          ok('G1b-1 SYNTHETIC «الحمد لله، وسلامٌ على عباده الذين اصطفى، أما بعد: فإن …» -> the body opens «الحمد لله» (the whole formula, not «وسلامٌ على»)',
+            String(bodyFn(G1B_SALAM)).startsWith('الحمد لله، وسلام'), String(bodyFn(G1B_SALAM)).slice(0, 40));
+          // SYNTHETIC (the order's record, fully vowelled; the content after «فإن» SYNTHETIC)
+          const G1B_VOWELLED = 'الحمد' + DAMMA + ' لله' + KASRA + ' رب' + SHADDA + KASRA + ' العالمين' + FATHA + '، والصلاة' + DAMMA + ' والسلام' + DAMMA + ' على رسول' + KASRA + ' الله' + KASRA + '، أما بعد: فإن الواجب على المسلم أن يتعلم أحكام دينه.';
+          const g1bV = String(bodyFn(G1B_VOWELLED));
+          ok('G1b-2 SYNTHETIC «الحمدُ للهِ ربِّ العالمينَ، والصلاةُ والسلامُ على رسولِ اللهِ، أما بعد: فإن …» -> the body opens on «الحمدُ» or on «فإن», never on «ربِّ» (pinned: «الحمدُ» on f15de551 and after)',
+            (g1bV.startsWith('الحمد' + DAMMA) || g1bV.startsWith('فإن')) && !g1bV.startsWith('رب'), g1bV.slice(0, 40));
+          ok('G1b-3 every G1a row unchanged under the fallback: Q18 «فإن الصائم», Q12 «الحلي» (comma and U+200B), aljasser «فإن», albarrak:8687 «فالمعتبر» (pinned)',
+            String(bodyFn(G1A_Q18)).startsWith('فإن الصائم') && String(bodyFn(G1A_Q12)).startsWith('الحلي المعد') && String(bodyFn(G1A_Q12_ZW)).startsWith('الحلي المعد')
+            && String(bodyFn(G1A_JASSER)).startsWith('فإن الواجب') && !!r8687 && String(bodyFn(r8687.answer)).startsWith('فالمعتبر'));
+          // brain35-5f G1b-4 (order FIX5F; FIX5E FOUND 1): the two unpunctuated aljasser lessons of the wasl fixture. After G1a their
+          // body opened on the invocation's tail «يوم الدين وعنا معهم …»; now it falls back to the whole formula (the answer, label skip only).
+          const G1B_HEADS = ["رب العالمين","وصلى الله","صلى الله","والصلاة والسلام","والسلام على","وسلام على","وعلى آله","ومن اهتدى","ومن تبعهم","ومن والاه","الأتمان","الأكملان","يوم الدين","إلى يوم الدين","وعنا معهم","برحمتك","يا أرحم الراحمين","أجمعين","تسليما كثيرا","وصحبه","وأصحابه"];
+          const g1bFold = (s) => String(s || '').replace(/[\u064B-\u065F\u0670\u0640\u200B-\u200F\u2060\uFEFF]/gu, '').replace(/\s+/gu, ' ').trim();
+          const g1bJasser = {};
+          for (const entry of Object.values(wasl)) {
+            let body; try { body = JSON.parse(entry.body); } catch { continue; }
+            for (const r of (body && Array.isArray(body.results) ? body.results : [])) {
+              if (r && /^aljasser:(?:287|439)$/.test(r.uid) && r.content && typeof r.content.answer === 'string' && !g1bJasser[r.uid]) g1bJasser[r.uid] = fix(r.content);
+            }
+          }
+          for (const uid of ['aljasser:287', 'aljasser:439']) {
+            const rec = g1bJasser[uid];
+            const b = rec ? g1bFold(bodyFn(rec.answer)) : '';
+            const whole = rec ? g1bFold(String(rec.answer).trim()).slice(0, 30) : '<<none>>';
+            ok('G1b-4 ' + uid + ' (guards/fixtures-speed-wasl-fatwas.json) -> the brief body opens on no head of the fragment list (not «يوم الدين»): it opens on the whole formula',
+              !!rec && !G1B_HEADS.some((h) => b.startsWith(h + ' ') || b === h) && b.startsWith(whole), rec ? b.slice(0, 40) : 'no record');
+          }
+          // the mutant: the fallback removed -> G1b-1 red
+          const mG1b = await mutate('lib/full-fatwa.js', '  if (BRIEF_FRAGMENT_HEAD_RE.test(foldForFragmentHead(body))) body = String(answer || \'\').replace(EXCERPT_LABEL_RE, \'\').trim();',
+            '  // mutant: no fallback', 'g1bfallback');
+          ok('G1b MUTANT fallback seam applied', mG1b.ok, mG1b.reason);
+          ok('G1b MUTANT KILLED: without the fallback the body opens on «وسلامٌ على» again',
+            mG1b.ok && String(mG1b.mod.briefAnswerBody(G1B_SALAM)).startsWith('وسلام'));
+        }
         }
       }
     }    // ── brain35-2 F10 (2026-11-07; DIAG2 R13 a) · THE «فأجاب …:» SPLIT AS A SAFETY FOR ONE-FIELD RECORDS ────────────
