@@ -48,7 +48,6 @@ const syncJson = ast.program.body.find(n => n.type === 'FunctionDeclaration' && 
 if (!syncJson) throw Error('missing sync JSON helper');
 vm.runInContext(raw.slice(syncJson.start,syncJson.end),sandbox);
 sandbox.EZIK_PROGRESS = vm.runInContext('('+TOP.get('EZIK_PROGRESS')+')',sandbox);
-sandbox.ezikSyncSoon = () => {}; // Only scheduling is stubbed; retirement and storage are real.
 const LIFT = [];
 const lift = (names) => {
   const missing = [];

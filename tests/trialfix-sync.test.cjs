@@ -106,9 +106,11 @@ test('trialfix-t2-f6 valid-discarded-paused-run-resurrected and finished run sta
     assert.equal(run(d,'mem86RunRead().id'),'a');assert.deepEqual(JSON.parse(d.local.getItem('ezik_mem_runs_v1')).map(r=>r.id),['a']);
   }
   const other=auditDevice();run(other,'__mem86Counts=new Array(115).fill(7)');
+  run(other,'var auditScheduled=0;ezikSyncSoon=()=>{auditScheduled++};ezikSyncWatching=false;ezikSyncWatch();');
   other.local.setItem('ezik_mem_run_v1',JSON.stringify(validRun('a',10)));
   run(other,'mem86RunWrite(null,'+JSON.stringify(validRun('b',20))+')');
   assert.equal(run(other,'mem86RunRead().id'),'a','finishing another run keeps a genuinely paused active run');
+  assert.ok(run(other,'auditScheduled > 0'),'the storage watcher schedules retirement sync');
 });
 test('trialfix-t2-f7 valid-paused-runs-stop-entire-sync shards 14 runs and isolates oversized records',async()=>{
   const d=auditDevice();

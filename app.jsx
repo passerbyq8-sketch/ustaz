@@ -35224,7 +35224,7 @@ function ezikSyncSeal(st, touched, after) {
 // (The favourites are heard through their writer's own event instead.)
 let ezikSyncWatching = false;
 function ezikSyncIsSyncedKey(k) {
-  if (k === DIMA_V2_KEY || k === 'ezik_dima_epoch_v1' || /^ezik_mem_(held|ranges|words|tests|run|plans|days|prefs)_v1$/.test(k)) return true;
+  if (k === DIMA_V2_KEY || k === 'ezik_dima_epoch_v1' || /^ezik_mem_(held|ranges|words|tests|run|runs|retired|plans|days|prefs)_v1$/.test(k)) return true;
   if (typeof k !== 'string') return false;
   if (k.indexOf(EZIK_CHAT_PREFIX) === 0 || k === EZIK_CHATS_KEY || k === 'child_profile') return true;
   if (k === PRAYER_PREFS_KEY || k === EZIK_A11Y_KEY) return true;
@@ -41509,7 +41509,6 @@ const mem86RunWrite = (run, finished) => {
     localStorage.setItem('ezik_mem_retired_v1', JSON.stringify(remaining.retired));
     localStorage.setItem('ezik_mem_runs_v1', JSON.stringify(remaining.runs));
     if (!saved || retired.includes(String(saved.id || saved.seed))) localStorage.removeItem(MEM86_RUN_KEY);
-    ezikSyncSoon();
     return true;
   } catch (e) { return false; }
 };
