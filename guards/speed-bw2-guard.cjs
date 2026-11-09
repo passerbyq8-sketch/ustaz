@@ -3044,6 +3044,55 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
           !!m1D3 && m1D3.text.startsWith(S8_PLAIN_D3) && !m1D3.text.startsWith(EXPECT_D3), m1D3 ? ascii(m1D3.text) : 'no module');
       }
     }
+    // ---------------------------------------------------------------- FIX5D F-D2ii (2026-11-09; DIAG5 D2 (2), preview Q5; the X5 / F9 call site): A SHOWN LIBRARY
+    // CARD OF THE ENCYCLOPAEDIA NAMES IT. MEASURED (DIAG5 H2b variant H): the Mawsu'a paragraph cites the library row (its book card shown) and the store
+    // row (its card refused); the store row was in neither markedRows nor encyclopediaShown, so the global line «المصدر: الموسوعة الفقهية الكويتية.» went out
+    // under a card that already carried that name. A shown lib_book card whose work is the Mawsu'a now counts as naming it; a cited store row with
+    // no Mawsu'a card of any kind keeps its line. Rows, units and refs (salmajed 1, adawi 2, store 3, library 4) are the H2b harness's, embedded.
+    {
+      const Q5_D2II = "ما الذي يباح للزوج من زوجته أثناء الحيض؟";
+      const FATWA_D2II = [{"kind":"fatwa","title":"كفارة الجماع أثناء الحيض","url":"https://salmajed.com/fatwa/SYNTHETIC-1","publisher":"سليمان الماجد","scholarId":"salmajed","text":"السؤال المنشور: ما كفارة جماع الحائض؟ — أما الوطء في الفرج فمحرم؛ لقوله تعالى: يسألونك عن المحيض قل هو أذى فاعتزلوا النساء في المحيض ولا تقربوهن حتى يطهرن، وإذا جامعها عالما بالحكم فهو آثم وعليه التوبة، ويستحب له التصدق بقيمة دينار أو نصفه من الذهب.","recordId":"SYNTHETIC-salmajed"},{"kind":"fatwa","title":"هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام","url":"https://mostafaaladwy.com/fatwa/178351/هل-يجوز-للزوج-مباشرة-زوجته-أثناء-الحيض/","publisher":"مصطفى العدوي","scholarId":"aladawy","text":"السؤال المنشور: هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام — الحمد لله والصلاة والسلام على رسول الله صلى الله عليه وسلم، وبعد: الجواب: هذا جائز دون جماع، ولقد كان النبي المصطفى صلى الله عليه وسلم يقبل ويباشر وهو صائم دون جماع. والله تبارك وتعالى أعلم.","recordId":"aladawy:293","fatwaRecord":{"id":"aladawy:293","kind":"fatwa_service","sourceKind":"corpus","title":"هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام","url":"https://mostafaaladwy.com/fatwa/178351/هل-يجوز-للزوج-مباشرة-زوجته-أثناء-الحيض/","publisher":"مصطفى العدوي","authorityId":"","scholarId":"","directAttribution":false,"contentMode":"written_fatwa","actualContentType":"written_fatwa","question":"هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام","answer":"الحمد لله والصلاة والسلام على رسول الله صلى الله عليه وسلم، وبعد: الجواب: هذا جائز دون جماع، ولقد كان النبي المصطفى صلى الله عليه وسلم يقبل ويباشر وهو صائم دون جماع. والله تبارك وتعالى أعلم.","questionChars":47,"answerChars":190,"fullTextHash":"4b589d52c112799e1bb41b7ac18ebbf52e88b035756ce1137f45beb0dd84e7cd","fullTextComplete":true,"truncated":false,"omittedChars":0,"displayPolicy":"full","score":0,"supportText":"هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام\n\nالحمد لله والصلاة والسلام على رسول الله صلى الله عليه وسلم، وبعد: الجواب: هذا جائز دون جماع، ولقد كان النبي المصطفى صلى الله عليه وسلم يقبل ويباشر وهو صائم دون جماع. والله تبارك وتعالى أعلم.","passage":"السؤال المنشور: هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام\n\nالنص المنشور: الحمد لله والصلاة والسلام على رسول الله صلى الله عليه وسلم، وبعد: الجواب: هذا جائز دون جماع، ولقد كان النبي المصطفى صلى الله عليه وسلم يقبل ويباشر وهو صائم دون جماع. والله تبارك وتعالى أعلم.","localEntry":null,"liveSource":null,"raw":null}}];
+      const MAWSUA_LIB_D2II = {"kind":"lib_book","title":"الموسوعة الفقهية الكويتية","bookTitle":"الموسوعة الفقهية الكويتية","author":"مجموعة من المؤلفين","recordId":"SYNTHETIC-FC-MAWSUA-30-124","vol":"30","page":"124","text":"الموسوعة الفقهية الكويتية ج30 ص124: للزوج إجبار زوجته على الغسل من الحيض؛ لأن ذلك يمنع الاستمتاع الذي هو حق له، فملك إجبارها على إزالة ما يمنع حقه، كما يملك إجبار الذمية على الغسل من الحيض.","fullText":"الموسوعة الفقهية الكويتية ج30 ص124: للزوج إجبار زوجته على الغسل من الحيض؛ لأن ذلك يمنع الاستمتاع الذي هو حق له، فملك إجبارها على إزالة ما يمنع حقه، كما يملك إجبار الذمية على الغسل من الحيض."};
+      const OTHER_LIB_D2II = {"kind":"lib_book","title":"المغني لابن قدامة","bookTitle":"المغني لابن قدامة","author":"ابن قدامة","recordId":"SYNTHETIC-other-book","vol":"30","page":"124","text":"الموسوعة الفقهية الكويتية ج30 ص124: للزوج إجبار زوجته على الغسل من الحيض؛ لأن ذلك يمنع الاستمتاع الذي هو حق له، فملك إجبارها على إزالة ما يمنع حقه، كما يملك إجبار الذمية على الغسل من الحيض.","fullText":"الموسوعة الفقهية الكويتية ج30 ص124: للزوج إجبار زوجته على الغسل من الحيض؛ لأن ذلك يمنع الاستمتاع الذي هو حق له، فملك إجبارها على إزالة ما يمنع حقه، كما يملك إجبار الذمية على الغسل من الحيض."}; // SYNTHETIC title
+      const ENC_D2II = {"id":"F01299","part":18,"term":"حَيْضٌ","snippet":"حيض حيض التعريف: 1 - الحيض لغه مصدر حاض، يقال حاض السيل اذا فاض، وحاضت السمره اذا سال صمغها، وحاضت المراه: سال دمها. والمره حيضه، والجمع حيض، والقياس حيضات. والحياض: دم الحيضه. والحيضه بالكسر: الاسم، وخرقه الحيض، هي الخرقه التي تستثفر بها المراه. وكذلك المحيضه، والجمع المحايض. وفي حديث بئر بضاعه: «تلقي فيها المحايض». والمراه حائض، لانه وصف خاص. وجاء حائضه ايضا بناء له علي حاضت، وجمع الحائض حيض وحوائض، وجمع الحائضه حائضات. وتحيضت المراه قعدت عن الصلاه ايام حيضها. وللحيض في الاصطلاح تعريفات كثيره، وهي متقاربه في الغالب. وفيما يلي المشهور منها في كل مذهب. فقد عرفه صاحب الكنز من الحنفيه بقوله: هو دم ينفضه رحم امراه سليمه عن داء وصغر. وقال ابن عرفه من المالكيه: الحيض دم يلقيه رحم معتاد حملها دون ولاده. وعرفه الشافعيه بانه: دم جبله يخرج من اقصي رحم المراه بعد بلوغها علي سبيل الصحه من غير سبب في اوقات معلومه. وقال الحنابله: دم طبيعه يخرج مع الصحه من غير سبب ولاده من قعر الرحم يعتاد انثي اذا بلغت في اوقات معلومه. وللحيض اسماء منها: الطمث، والعراك، والنفاس. الالفاظ ذات الصله: ا - الطهر: 2 - الطهر لغه: النقاء من الدنس والنجس فهو نقيض النجاسه ونقيض الحيض والجمع اطهار. وطهرت المراه، وهي طاهر: انقطع عنها الدم ورات الطهر، فاذا اغتسلت قيل: تطهرت واطهرت. والمراه طاهر من الحيض، وطاهره من النجاسه ومن العيوب والطهر شرعا خلاف الحيض. قال البركوي: الطهر المطلق ما لا يكون حيضا ولا نفاسا. فالطهر في باب الحيض اخص من الطهر في اللغه. ب - القرء: 3 - القرء والقرء: الحيض، والطهر، فهو من الاضداد. والجمع اقرا"};
+      const W_H_D2II = "أما الوطء في الفرج فمحرم؛ لقوله تعالى: \"يسألونك عن المحيض قل هو أذى فاعتزلوا النساء في المحيض ولا تقربوهن حتى يطهرن\"، وإذا جامعها عالما بالحكم فهو آثم وعليه التوبة، ويستحب له التصدق بقيمة دينار أو نصفه من الذهب [[1]].\n\nكما أن للزوج إجبار زوجته على الغسل من الحيض؛ لأن ذلك يمنع الاستمتاع الذي هو حق له، فملك إجبارها على إزالة ما يمنع حقه [[4]] [[3]].\n\n<steps title=\"ما يباح وما يحرم\">\n- يباح الاستمتاع بها دون جماع، كالتقبيل والمباشرة.\n- يباح للزوج أن يرى منها كل شيء وإن كان الأفضل تجنب ما يستحيا منه.\n- يحرم الوطء في الفرج حتى تطهر وتغتسل.\n- إن وطئها عالماً بالتحريم فهو آثم وعليه التوبة ويستحب له التصدق بدينار أو نصفه.\n</steps> [[2]]";
+      const W_K_D2II = "أما الوطء في الفرج فمحرم؛ لقوله تعالى: \"يسألونك عن المحيض قل هو أذى فاعتزلوا النساء في المحيض ولا تقربوهن حتى يطهرن\"، وإذا جامعها عالما بالحكم فهو آثم وعليه التوبة، ويستحب له التصدق بقيمة دينار أو نصفه من الذهب [[1]].\n\nكما أن للزوج إجبار زوجته على الغسل من الحيض؛ لأن ذلك يمنع الاستمتاع الذي هو حق له، فملك إجبارها على إزالة ما يمنع حقه [[4]].\n\n<steps title=\"ما يباح وما يحرم\">\n- يباح الاستمتاع بها دون جماع، كالتقبيل والمباشرة.\n- يباح للزوج أن يرى منها كل شيء وإن كان الأفضل تجنب ما يستحيا منه.\n- يحرم الوطء في الفرج حتى تطهر وتغتسل.\n- إن وطئها عالماً بالتحريم فهو آثم وعليه التوبة ويستحب له التصدق بدينار أو نصفه.\n</steps> [[2]]";
+      const LINE_D2II = "المصدر: الموسوعة الفقهية الكويتية.";
+      const driveD2II = async (mod, writerText, library) => {
+        const { deps } = makeDeps({ fatwa: FATWA_D2II, library, encyclopedia: [ENC_D2II], writerText });
+        const target = makeTarget();
+        const facade = SSE.createFinalizedSseResponse(target, { finalize: (input) => ({ ok: true, text: String(input.text || ''), problems: [], replaced: false, drops: [], degraded: [] }),
+          context: () => ({ allowWireOwnedCards: true, sourceCards: [], readerCards: [], readerPrefix: '', readerSuffix: '' }), failureText: 'FACADE-FAILURE' });
+        const wire = mod.createBw2Wire(facade);
+        const out = await mod.runBw2Turn({ question: Q5_D2II, messages: [{ role: 'user', content: Q5_D2II }], mode: 'brief', band: 'adult', system: 'SYSTEM', model: 'writer-model', maxTokens: 4096,
+          providerUrl: 'https://api.anthropic.invalid/v1/messages', headers: {}, libFlagValue: 'on', libToken: 'guard-token', lessonsToken: '', onLessonRows: null, takhrijWired: false,
+          cards: { buildSourceTag: ASK.buildSourceTag, buildBookTag: ASK.buildBookTag, encyclopediaCards: true, max: 3 }, wire, requestStartedAt: Date.now(),
+          env: { BW2_RETRIEVAL_MS: '400', BW2_JUDGE_MS: '400' }, runtime: 'STORED_FIQH', continueWhenNotCovered: true, deps });
+        const text = deltasOf(framesOf(target)).join('');
+        return { out, text, line: text.includes(LINE_D2II), bookCard: text.includes('<book ') };
+      };
+      const h = await driveD2II(BW2, W_H_D2II, [MAWSUA_LIB_D2II]);
+      ok('F-D2ii-1 H2b variant H (the Mawsu\'a paragraph cites its library row, card shown, and the store row, card refused): no global encyclopaedia line',
+        h.bookCard && !h.line, JSON.stringify({ bookCard: h.bookCard, line: h.line, cards: h.out && h.out.telemetry && h.out.telemetry.cardsSent }));
+      const k = await driveD2II(BW2, W_K_D2II, [MAWSUA_LIB_D2II]);
+      ok('F-D2ii-2 H2b variant K (the store row cited nowhere): no line, as before', k.bookCard && !k.line, JSON.stringify({ bookCard: k.bookCard, line: k.line }));
+      const o = await driveD2II(BW2, W_H_D2II, [OTHER_LIB_D2II]);
+      ok('F-D2ii-3 the same paragraph with a library card of ANOTHER work (SYNTHETIC title) and the store row cited: no Mawsu\'a card of any kind -> the line',
+        o.bookCard && o.line, JSON.stringify({ bookCard: o.bookCard, line: o.line }));
+      {
+        const srcB = read('lib/before-writing-v2.js');
+        const seamB = '.concat(encycBookCards);';
+        ok('F-D2ii mutant seam present once', srcB.split(seamB).length === 2);
+        const tmpB = path.join(REPO, 'lib', '.mut-fd2ii-bw2.mjs');
+        fs.writeFileSync(tmpB, srcB.split(seamB).join('; // mutant: the lib_book test removed').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MB = null;
+        try { MB = await import(pathToFileURL(tmpB).href + '?m=' + Date.now()); } catch (e) { MB = null; } finally { fs.rmSync(tmpB, { force: true }); }
+        ok('F-D2ii mutant loads', !!MB);
+        const mh = MB ? await driveD2II(MB, W_H_D2II, [MAWSUA_LIB_D2II]) : null;
+        ok('F-D2ii MUTANT KILLED: with the lib_book test removed variant H draws the line beside the Mawsu\'a card again', !!mh && mh.line, mh ? JSON.stringify({ line: mh.line }) : 'no module');
+      }
+    }
   } catch (error) {
     ok('guard completed without exception', false, error && error.stack ? error.stack : String(error));
   }
