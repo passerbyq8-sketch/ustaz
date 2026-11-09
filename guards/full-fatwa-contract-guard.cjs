@@ -825,6 +825,37 @@ async function main() {
           ok('F-D6b MUTANT KILLED: without the drop the brief body shows the bare «[1]» again',
             mD6b.ok && mD6b.mod.serverOwnedBlock(BARE, [], { band: 'adult', brief: true }).split('<fatwafull')[0].includes('الجميع[1].'));
         }
+        // ── brain35-5d F-D4 (2026-11-09; DIAG5 D4) · A CLOSED-LIST LEADING SPEAKER LABEL IS SKIPPED BY THE BRIEF EXCERPT ─────────
+        // MEASURED (DIAG5 H4, preview Q9): the brief card of a binothaimeen.net record opened «الشيخ: قدم الله سبحانه وتعالى الصبر …»; the
+        // W1 regex skipped a label only when a FORMULA followed it, so 20 of 171 stored bodies (10 «الشيخ:», 7 «ج:», 3 other) still opened
+        // on a label. A leading label from the CLOSED list «الشيخ», «ج», «س» (then «:» or «：», spaces optional) is now skipped on its own
+        // (EXCERPT_LABEL_RE), content or formula after it; no generic word-plus-colon skip (the postship9 pin binothaimeen:6971 opens on
+        // «السؤال:», seven letters, outside the list, and stays «body = answer»); the formula skip and the speaker-turn stop are unchanged.
+        {
+          // copied from the EXT report, question 9 (the H4 harness's string)
+          const Q9_OPEN = fix({ question: 'س', answer: 'الشيخ: قدم الله سبحانه وتعالى الصبر عن الصلاة لأن الصبر أوسع؛ فالصلاة عبادة معينة لكن الصبر أوسع ومن الصبر الصلاة لأن الصلاة طاعة لله.', title: 'ت', url: 'https://binothaimeen.net/content/SYNTHETIC-9' });
+          ok('F-D4-1 «الشيخ: قدم الله سبحانه وتعالى الصبر …» (EXT Q9) -> the brief body opens «قدم الله»', bodyOf(Q9_OPEN).startsWith('قدم الله') && !visible(Q9_OPEN).includes('الشيخ:'), bodyOf(Q9_OPEN).slice(0, 50));
+          // SYNTHETIC: a «ج:» label followed by content (no formula)
+          const JIM_OPEN = fix({ question: 'س', answer: 'ج: يجوز للمسافر أن يجمع بين الظهر والعصر إذا شق عليه النزول في كل وقت، وهذا من رخص السفر التي جاءت بها السنة.', title: 'ت', url: 'https://salmajed.com/fatwa/SYNTHETIC-2' });
+          ok('F-D4-2 SYNTHETIC «ج: يجوز …» -> the brief body opens «يجوز»', bodyOf(JIM_OPEN).startsWith('يجوز للمسافر') && !/^ج\s*:/u.test(bodyOf(JIM_OPEN)), bodyOf(JIM_OPEN).slice(0, 50));
+          // the postship9 pin's record: its answer opens on a seven-letter word + colon that is none of the three labels -> unchanged
+          const p2rows = JSON.parse(fs.readFileSync(path.join(REPO, 'guards/fixtures-postship-2-fatwas.json'), 'utf8')).rows;
+          const r6971 = p2rows.find((r) => r.id === 'binothaimeen:6971');
+          ok('F-D4-3 binothaimeen:6971 (the postship9 «body = answer» pin) opens on a six-letter word + colon outside the list («السؤال:») -> briefAnswerBody is the identity on it (pinned)',
+            !!r6971 && /^[^\s:：]{6}\s*[:：]/u.test(r6971.answer) && !/^(?:الشيخ|ج|س)\s*[:：]/u.test(r6971.answer) && bodyFn(r6971.answer) === r6971.answer.trim(), r6971 ? r6971.answer.slice(0, 40) : 'no record');
+          ok('F-D4-4 SYNTHETIC «الشيخ : الحمد لله رب العالمين. يجوز …» (label, then a formula) -> opens «يجوز» (the label skip and the formula skip compose)',
+            bodyFn('الشيخ : الحمد لله رب العالمين. يجوز للمسافر أن يجمع بين الصلاتين إذا شق عليه النزول في كل وقت من أوقات السفر.') === 'يجوز للمسافر أن يجمع بين الصلاتين إذا شق عليه النزول في كل وقت من أوقات السفر.'
+            && bodyFn('س: ما حكم كذا؟ الجواب واضح في كتب أهل العلم ولا خلاف فيه بينهم فيما نعلم.') === 'ما حكم كذا؟ الجواب واضح في كتب أهل العلم ولا خلاف فيه بينهم فيما نعلم.',
+            JSON.stringify([bodyFn('الشيخ : الحمد لله رب العالمين. يجوز للمسافر أن يجمع بين الصلاتين إذا شق عليه النزول في كل وقت من أوقات السفر.')]));
+          ok('F-D4-5 a word that merely BEGINS with a label letter («جميع: …», «سئل: …») is not a label (pinned: no generic word-plus-colon skip)',
+            bodyFn('جميع: ما ورد في الباب ضعيف عند أهل العلم ولا يصح منه شيء مرفوعا فيما نعلم.') === 'جميع: ما ورد في الباب ضعيف عند أهل العلم ولا يصح منه شيء مرفوعا فيما نعلم.'
+            && bodyFn('سئل: عن حكم كذا فأجاب بأن الأمر فيه سعة ولا حرج على من فعله أو تركه.') === 'سئل: عن حكم كذا فأجاب بأن الأمر فيه سعة ولا حرج على من فعله أو تركه.');
+          // the mutant: the closed list emptied -> F-D4-1 red
+          const mD4 = await mutate('lib/full-fatwa.js', 'const EXCERPT_LABEL_RE = /^\\s*(?:الشيخ|ج|س)\\s*[:：]\\s*/u;', 'const EXCERPT_LABEL_RE = /^(?!)/u; // mutant: no label is a label', 'd4label');
+          ok('F-D4 MUTANT label seam applied', mD4.ok, mD4.reason);
+          ok('F-D4 MUTANT KILLED: with the list emptied the Q9 block opens on «الشيخ:» again',
+            mD4.ok && mD4.mod.serverOwnedBlock(Q9_OPEN, [], { band: 'adult', brief: true }).split('<fatwafull')[0].includes('الشيخ: قدم الله'));
+        }
       }
     }    // ── brain35-2 F10 (2026-11-07; DIAG2 R13 a) · THE «فأجاب …:» SPLIT AS A SAFETY FOR ONE-FIELD RECORDS ────────────
     // MEASURED (DIAG2 R13): the sheet the extension opened («السائل م س يقول … فأجاب رحمه الله تعالى: …») as a store record
