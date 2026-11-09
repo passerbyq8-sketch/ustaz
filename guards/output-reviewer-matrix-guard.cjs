@@ -1303,6 +1303,27 @@ function quantityContradiction(parts) {
           !!idM && idM.status === 'unresolved' && idM.name === 'ابن باز وابن عثيمين' && module.requestedIdentityRespected(WITNESS, module.identityView(idM)).respected === false, JSON.stringify(idM));
       }
     }
+    // ---------------------------------------------------------------- FIX5D F-D5b (2026-11-09; DIAG5 FOUND 2, preview Q2): ذهب THE NOUN IS NOT THE VIEW VERB.
+    // MEASURED (DIAG5 H5): Q2's two parties were «ذهب المرأة» and «ذهب الزينة» -- the metal read as «ذهب X إلى». A closed exception: ذهب
+    // followed by a noun of its own field, or governed by زكاة / preceded by في / من, opens no view clause. «ذهب الجمهور / الشافعي / ابن باز إلى …» unchanged.
+    {
+      const P1_D5B = "تجب الزكاة في ذهب المرأة الذي تلبسه وتتزين به، فقد سئل ابن باز عن زكاة الحلي من الذهب فأجاب: الصواب فيه الزكاة إذا بلغ النصاب، ولو كانت المرأة تلبسه وتتزين به عليها أن تزكيه إذا بلغ النصاب وحال عليه الحول، وهذا هو المختار من أقوال أهل العلم عنده."; // Q2's first paragraph (EXT report)
+      const T2_D5B = "تجب الزكاة في ذهب المرأة الذي تلبسه وتتزين به، فقد سئل ابن باز عن زكاة الحلي من الذهب فأجاب: الصواب فيه الزكاة إذا بلغ النصاب، ولو كانت المرأة تلبسه وتتزين به عليها أن تزكيه إذا بلغ النصاب وحال عليه الحول، وهذا هو المختار من أقوال أهل العلم عنده.\n\nوالنصاب كما ذكر ابن باز هو اثنان وعشرون مثقالا، ومقداره بالغرام اثنان وتسعون غراما، ومقداره بالجنيه السعودي أحد عشر جنيها ونصف جنيه — ابن باز. فإذا بلغ الذهب هذا القدر وحال عليه الحول وجبت فيه الزكاة، فإن كان كثيرا فالواجب ربع العشر، أي في كل أربعين جنيها جنيه واحد.\n\nوقد سئل عبدالرحمن البراك عن الذهب الذي لا تلبسه المرأة إلا في المناسبات، فأجاب أن الحلي لبس أو لم يلبس لا يختلف حكمه، فالزكاة لا تتعلق بكونه يلبس أو لا يلبس، وإنما تتعلق بكونه مما يقصد لبسه، فما كان من الأساور والفتخات والقلائد مما يقصد للبس فحكمه واحد سواء لبس كل سنة أو كل شهر أو كل يوم.\n\nهل تجب الزكاة في ذهب الزينة الذي لا تلبسه المرأة إلا في المناسبات؟\n\nوبنحو هذا أجاب سليمان الماجد في مسألة الذهب الذي لا يلبس إلا نادرا، فقال: ما دام معدا للبس فلا زكاة فيه ولو لم يلبس إلا أحيانا.\n\nوفرق في موضع آخر بين الذهب المعد للبس فلا زكاة فيه، والمعد للادخار أو التجارة ففيه الزكاة.\n\nوأما من لا تملك نقودا تخرجها زكاة عن حليها، فقد بين ابن عثيمين أنها تزكي من الحلي نفسه، إما بإخراج شيء منه بقدر الزكاة، وإما بتقدير قيمته وإخراج ذلك من القيمة — ابن عثيمين."; // Q2's prose (EXT report lines 108-129, as DIAG5 H5 extracted it)
+      const CONTROLS_D5B = ["ذهب الجمهور إلى وجوب الزكاة في الحلي.","ذهب الشافعي إلى وجوب الزكاة في الحلي.","فذهب ابن باز إلى وجوب الزكاة في الحلي."]; // SYNTHETIC
+      ok('F-D5b-1 Q2\'s first paragraph («تجب الزكاة في ذهب المرأة …»): 0 parties', module.releasedViewsIn([P1_D5B]) === 0, String(module.releasedViewsIn([P1_D5B])));
+      ok('F-D5b-2 Q2\'s prose: the two parties read from the gold nouns are gone (0)', module.releasedViewsIn([T2_D5B]) === 0, String(module.releasedViewsIn([T2_D5B])));
+      ok('F-D5b-3 «ذهب الجمهور إلى …», «ذهب الشافعي إلى …», «فذهب ابن باز إلى وجوب الزكاة في الحلي» (SYNTHETIC): 1 each, unchanged',
+        CONTROLS_D5B.every((t) => module.releasedViewsIn([t]) === 1), JSON.stringify(CONTROLS_D5B.map((t) => module.releasedViewsIn([t]))));
+      const goldMutant = await runMutant({
+        sourceFile: REVIEWER,
+        name: 'fd5b-gold-exception-removed',
+        transform: (source) => source.replace('const key = goldNotView(sentence, m) ? null : viewPartyKey(m[2], m[1]);', 'const key = viewPartyKey(m[2], m[1]); /* mutant: the gold exception removed */'),
+        survives: (mm) => mm.releasedViewsIn([P1_D5B]) === 0,
+      });
+      ok('F-D5b mutant seam applied', goldMutant.changed, goldMutant.error);
+      ok('F-D5b mutant module loaded', goldMutant.loaded, goldMutant.error);
+      ok('F-D5b MUTANT KILLED: without the exception Q2\'s first paragraph counts the gold noun as a party again', goldMutant.loaded && goldMutant.survived === false, JSON.stringify(goldMutant));
+    }
     ok('the pure reviewer made zero network calls', wireCalls === 0, String(wireCalls));
   } catch (error) {
     fail++;
