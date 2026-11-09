@@ -1056,6 +1056,28 @@ function quantityContradiction(parts) {
       ok('MUTANT KILLED: with the timing pair removed S8 folds into one view and draws no tail', timingMutant.loaded && timingMutant.survived === false, JSON.stringify(timingMutant));
     }
 
+    // ── brain35-5e G5a (2026-11-09; DIAG6 G5 (A)) · «وسئل X عن …؟» WAITS FOR ITS ANSWER ─────────────────────────────────────────
+    // MEASURED (DIAG6 G5-hanging-openings, preview Q14): «وسئل البراك عن الأفضل: …؟» stood with no answer under it; sentenceIntegrity's
+    // 'unanswered-report' regex read «سئل» and «قد/وقد/فقد سئل» but a «و» or «ف» glued to «سئل» is neither a listed prefix nor a word
+    // boundary. The prefix group gains «و» and «ف».
+    {
+      const REPORT_G5A = "وسئل البراك عن الأفضل: هل سردها ركعتين ركعتين في أوقات متفرقة أم صلاتها دفعة واحدة؟"; // copied (EXT Q14, via the DIAG6 G5 harness)
+      const rulesOf = (mod, text) => mod.sentenceIntegrity(text).findings.map((f) => f.rule);
+      ok('G5a-1 «وسئل البراك عن الأفضل: هل سردها … أم صلاتها دفعة واحدة؟» (EXT Q14) -> \'unanswered-report\'', rulesOf(module, REPORT_G5A).includes('unanswered-report'), JSON.stringify(rulesOf(module, REPORT_G5A)));
+      const FA = 'ف' + REPORT_G5A.slice(1);
+      ok('G5a-2 SYNTHETIC the same with «فسئل» -> \'unanswered-report\'', rulesOf(module, FA).includes('unanswered-report'), JSON.stringify(rulesOf(module, FA)));
+      const ANSWERED = 'وسئل البراك عن الأفضل فأجاب: الأمر في ذلك واسع، والسرد والتفريق جائزان.';
+      ok('G5a-3 SYNTHETIC «وسئل البراك عن الأفضل فأجاب: …» -> no finding (pinned)', !rulesOf(module, ANSWERED).includes('unanswered-report'), JSON.stringify(rulesOf(module, ANSWERED)));
+      const prefixMutant = await runMutant({
+        sourceFile: REVIEWER,
+        name: 'g5a-glued-prefix-removed',
+        transform: (source) => source.replace('    if (/(?:^|\\s)(?:فقد|وقد|قد|و|ف)?\\s*س[ئي]ل\\s.+?\\sعن\\s/u.test(folded)', '    if (/(?:^|\\s)(?:فقد|وقد|قد)?\\s*س[ئي]ل\\s.+?\\sعن\\s/u.test(folded) /* mutant: the glued letters removed */'),
+        survives: (mutantModule) => rulesOf(mutantModule, REPORT_G5A).includes('unanswered-report'),
+      });
+      ok('G5a prefix mutant seam applied and module loaded', prefixMutant.changed && prefixMutant.loaded, prefixMutant.error);
+      ok('MUTANT KILLED: without «و» and «ف» in the prefix the glued «وسئل» is no report again (G5a-1 red)', prefixMutant.loaded && prefixMutant.survived === false, JSON.stringify(prefixMutant));
+    }
+
     // ── brain35-3 X12 (2026-11-07; FIX-2 request 1) · THE LEGACY PATH COUNTS KHILAF PARTIES ON THE SUBJECT TOO ──────
     // brain35-2 F6 wired the subject into the before-writing path only: lib/free-brain/review.js forwards named fields alone,
     // so the legacy path kept the old count. review.js now forwards `subjectTerms` (a Set, or null: the filter off) and

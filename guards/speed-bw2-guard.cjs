@@ -3168,6 +3168,19 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         ok('J MUTANT KILLED: with the banned list emptied Q20\'s sentence is released again', !!mj && mj.sum.released === 1 && !heldBanned(mj), mj ? ascii(JSON.stringify(mj.sum.holds)) : 'no module');
       }
     }
+    // ---------------------------------------------------------------- brain35-5e G5a (2026-11-09; DIAG6 G5 (A)): «وسئل X عن …؟» WAITS FOR ITS
+    // ANSWER. The DIAG6 G5 harness's Q14-b composition (the report followed directly by the next block): the report was released on
+    // its own (the glued «و» hid it from 'unanswered-report'); it now waits for its answer, none comes, and it is held.
+    {
+      const UG5 = await esm('lib/bw2-units.js');
+      const Q14B = {"q":"ما حكم صلاة الضحى، وما أفضل وقتها، وأبي أحاديث الباب","rows":[{"ref":1,"kind":"lib_book","title":"فتاوى البراك","bookTitle":"فتاوى البراك","author":"","locator":"","recordId":"SYN-1","url":"","text":"سئل الشيخ البراك عن صلاة الضحى. صلاة الضحى من النوافل المستحبة، وأقلها ركعتان.","fullText":"سئل الشيخ البراك عن صلاة الضحى. صلاة الضحى من النوافل المستحبة، وأقلها ركعتان.","passage":"سئل الشيخ البراك عن صلاة الضحى. صلاة الضحى من النوافل المستحبة، وأقلها ركعتان."}],"units":["صلاة الضحى نافلة مستحبة، وأقلها ركعتان [[1]].","وسئل البراك عن الأفضل: هل سردها ركعتين ركعتين في أوقات متفرقة أم صلاتها دفعة واحدة؟ [[1]]","أما الأحاديث الواردة في فضلها:","عن أبي هريرة رضي الله عنه: «أوصاني خليلي صلى الله عليه وسلم بثلاث» [[1]]."]};
+      const out = []; const rel = UG5.createBw2Releaser({ rows: Q14B.rows, mode: 'brief', emit: (p) => { out.push(p); return true; }, takhrij: null, cards: null, askedMatn: UG5.askedHadithOf(Q14B.q), sourceQuestion: UG5.asksHadithSource(Q14B.q), leadLine: '', holdUncitedRulings: true, question: Q14B.q });
+      for (const u of Q14B.units) rel.push(u + '\n\n');
+      const sumG5 = await rel.end();
+      const textG5 = out.join('');
+      ok('G5a-4 G5\'s Q14-b composition: the report «وسئل البراك عن الأفضل: …؟» is held (no answer came), the first unit released',
+        !textG5.includes('وسئل البراك') && textG5.includes('صلاة الضحى نافلة مستحبة') && sumG5.held >= 1, ascii(JSON.stringify(sumG5.holds)) + ' ' + ascii(textG5.slice(0, 120)));
+    }
   } catch (error) {
     ok('guard completed without exception', false, error && error.stack ? error.stack : String(error));
   }
