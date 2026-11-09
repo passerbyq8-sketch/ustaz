@@ -2548,6 +2548,38 @@ function libraryPlain(markup) {
       for (const k of ENV_KEYS) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; }
     }
   }
+  // ---------------------------------------------------------------- FIX5D F-D2iii (2026-11-09; DIAG5 D2 (3), preview Q5): THE TITLE FLOOR READS أو AS A
+  // DISJUNCTION AND UN-GLUES أوال. MEASURED (DIAG5 H2 (a)): the fixture aladawy:293 title, which answers Q5 letter for letter, was restricted
+  // «حيض اوالصيام» (the glued word read as one noun, and both nouns required). Now a condition whose nouns are joined by أو is satisfied
+  // by ANY asked noun, and a leading أوال is read as أو + the article before the restriction test; a و conjunction is unchanged.
+  {
+    const FTD3 = await esm('lib/fatwa-title.js');
+    const fsD3 = require('fs');
+    const adD3 = JSON.parse(fsD3.readFileSync(path.join(REPO, 'guards/fixtures-postship-2-fatwas.json'), 'utf8')).rows.find((r) => r.id === 'aladawy:293');
+    const Q5_D3 = "ما الذي يباح للزوج من زوجته أثناء الحيض؟"; // the EXT report question 5
+    const GLUED_D3 = "أوالصيام";
+    const baseD3 = adD3 ? adD3.title.slice(0, adD3.title.indexOf(GLUED_D3)).trimEnd() : '';
+    const lastOffD3 = baseD3.replace(/\s+\S+$/u, '');
+    ok('F-D2iii-0 the fixture title ends on the glued word', !!adD3 && adD3.title.endsWith(GLUED_D3) && baseD3.length > 0);
+    const fl = (t) => FTD3.directMatchFloor(Q5_D3, t, '');
+    ok('F-D2iii-1 aladawy:293 «… أثناء الحيض أوالصيام» against Q5: ok (the glued disjunction)', !!adD3 && fl(adD3.title).ok === true, ascii(JSON.stringify(adD3 ? fl(adD3.title) : null)));
+    ok('F-D2iii-2 the same title spaced «… الحيض أو الصيام» (SYNTHETIC): ok', fl(baseD3 + ' ' + "أو الصيام").ok === true, ascii(JSON.stringify(fl(baseD3 + ' ' + "أو الصيام"))));
+    ok('F-D2iii-3 the conjunction «… الحيض والصيام» (SYNTHETIC): restricted, as before', fl(baseD3 + ' ' + "والصيام").ok === false && fl(baseD3 + ' ' + "والصيام").restricted.length === 1);
+    ok('F-D2iii-4 a single condition not asked «… أثناء الصيام» (SYNTHETIC): restricted, as before', fl(lastOffD3 + ' ' + "الصيام").ok === false);
+    ok('F-D2iii-5 a disjunction none of whose nouns is asked «… أثناء الصيام أو الاعتكاف» (SYNTHETIC): restricted', fl(lastOffD3 + ' ' + "الصيام أو الاعتكاف").ok === false);
+    {
+      const srcT = fsD3.readFileSync(path.join(REPO, 'lib/fatwa-title.js'), 'utf8');
+      const seamT = '        if (toks[j] === OR_STEM && cond.length > 1) cond.or = true; // FIX5D F-D2iii: nouns joined by aw\n';
+      ok('F-D2iii mutant seam present once', srcT.split(seamT).length === 2);
+      const tmpT = path.join(REPO, 'lib', '.mut-fd2iii-title.mjs');
+      fsD3.writeFileSync(tmpT, srcT.split(seamT).join('').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + require('url').pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+      let MT = null;
+      try { MT = await import(require('url').pathToFileURL(tmpT).href + '?m=' + Date.now()); } catch (e) { MT = null; } finally { fsD3.rmSync(tmpT, { force: true }); }
+      ok('F-D2iii mutant loads', !!MT);
+      ok('F-D2iii MUTANT KILLED: without the disjunction reading aladawy:293 is restricted against Q5 again', !!MT && !!adD3 && MT.directMatchFloor(Q5_D3, adD3.title, '').ok === false);
+    }
+  }
   process.exit(finish());
 })().catch((error) => {
   ok('guard completed without exception', false, error && error.stack ? error.stack : String(error));
