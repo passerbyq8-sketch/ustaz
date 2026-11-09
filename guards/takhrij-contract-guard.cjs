@@ -3976,6 +3976,75 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       }
     }
 
+    // ── FIX5D F-D1 (2026-11-09; DIAG5 D1, preview Q7) · THE TAKHRIJ ENTRY CARRIES EVERY PROVED COMPANION ──────────────────────────
+    // MEASURED (DIAG5 H1): the engine's entry carried ONE `companion`, so a credit naming another Companion the books prove for a
+    // mutawatir hadith (V6: al-Mughira) was refused (takhrij_refused) and the answer collapsed to the ladder head and the matn. The entry
+    // now carries `companions` (every Companion the ladder rows name for the matn; `companion` unchanged), the BW2 wrapper passes the list,
+    // and takhrijProves accepts a narrator named in ANY of them. A Companion in no proving row (V3: Ali) is still refused. The stub is H1's
+    // (before-writing-v2's wrapper shape) with the list; the rows and variants are H1's SYNTHETIC ones.
+    {
+      const UNITS_D1 = await esm('lib/bw2-units.js');
+      const TK_D1 = await esm('lib/takhrij.js');
+      const Q7_D1 = "ما صحة حديث \"من كذب عليّ متعمدًا فليتبوأ مقعده من النار\" ومن رواه؟";
+      const LEAD_D1 = "تخريج الحديث: البخاري ومسلم.";
+      const ROWS_D1 = [{"ref":3,"kind":"lib_book","title":"صحيح البخاري","bookTitle":"صحيح البخاري","author":"البخاري","locator":"","recordId":"SYNTHETIC-B110","fullText":"صحيح البخاري، كتاب العلم، باب إثم من كذب على النبي صلى الله عليه وسلم. حدثنا موسى قال حدثنا أبو عوانة عن أبي حصين عن أبي صالح عن أبي هريرة عن النبي صلى الله عليه وسلم قال: «تسموا باسمي ولا تكتنوا بكنيتي، ومن رآني في المنام فقد رآني، فإن الشيطان لا يتمثل في صورتي، ومن كذب علي متعمدا فليتبوأ مقعده من النار»","text":"صحيح البخاري، كتاب العلم، باب إثم من كذب على النبي صلى الله عليه وسلم. حدثنا موسى قال حدثنا أبو عوانة عن أبي حصين عن أبي صالح عن أبي هريرة عن النبي صلى الله عليه وسلم قال: «تسموا باسمي ولا تكتنوا بكنيتي، ومن رآني في المنام فقد رآني، فإن الشيطان لا يتمثل في صورتي، ومن كذب علي متعمدا فليتبوأ مقعده من النار»","passage":"صحيح البخاري، كتاب العلم، باب إثم من كذب على النبي صلى الله عليه وسلم. حدثنا موسى قال حدثنا أبو عوانة عن أبي حصين عن أبي صالح عن أبي هريرة عن النبي صلى الله عليه وسلم قال: «تسموا باسمي ولا تكتنوا بكنيتي، ومن رآني في المنام فقد رآني، فإن الشيطان لا يتمثل في صورتي، ومن كذب علي متعمدا فليتبوأ مقعده من النار»","url":""},{"ref":7,"kind":"lib_book","title":"صحيح مسلم","bookTitle":"صحيح مسلم","author":"مسلم","locator":"","recordId":"SYNTHETIC-M3","fullText":"صحيح مسلم، المقدمة، باب تغليظ الكذب على رسول الله صلى الله عليه وسلم. حدثنا محمد بن عبيد الغبري قال حدثنا أبو عوانة عن أبي حصين عن أبي صالح عن أبي هريرة قال: قال رسول الله صلى الله عليه وسلم: «من كذب علي متعمدا فليتبوأ مقعده من النار»","text":"صحيح مسلم، المقدمة، باب تغليظ الكذب على رسول الله صلى الله عليه وسلم. حدثنا محمد بن عبيد الغبري قال حدثنا أبو عوانة عن أبي حصين عن أبي صالح عن أبي هريرة قال: قال رسول الله صلى الله عليه وسلم: «من كذب علي متعمدا فليتبوأ مقعده من النار»","passage":"صحيح مسلم، المقدمة، باب تغليظ الكذب على رسول الله صلى الله عليه وسلم. حدثنا محمد بن عبيد الغبري قال حدثنا أبو عوانة عن أبي حصين عن أبي صالح عن أبي هريرة قال: قال رسول الله صلى الله عليه وسلم: «من كذب علي متعمدا فليتبوأ مقعده من النار»","url":""}]; // SYNTHETIC (H1 set A)
+      const V0_D1 = "قال رسول الله صلى الله عليه وسلم: «من كذب علي متعمدا فليتبوأ مقعده من النار» [[1]].";
+      const V_D1 = {"V1":"حديث صحيح متواتر، رواه البخاري ومسلم [[1]].","V2":"حديث صحيح متواتر، رواه البخاري ومسلم عن أبي هريرة رضي الله عنه [[1]].","V3":"حديث صحيح متواتر، رواه البخاري ومسلم عن علي بن أبي طالب رضي الله عنه [[1]].","V6":"حديث صحيح متواتر، رواه البخاري ومسلم عن المغيرة بن شعبة رضي الله عنه [[1]]."}; // SYNTHETIC (H1)
+      const LIST_D1 = ["أبو هريرة","المغيرة بن شعبة"];
+      const KEY_D1 = "فليتبوأ مقعده من النار";
+      const stubD1 = (companion, companions) => async (text) => {
+        const entries = []; const proofs = []; const sourced = []; let value = text;
+        for (const t of TK_D1.findTargets(text).targets) {
+          if (!TK_D1.foldArabic(t.matn).includes(TK_D1.foldArabic(KEY_D1))) continue;
+          entries.push({ matn: t.matn, books: ['البخاري', 'مسلم'], companion, ...(companions ? { companions } : {}) });
+          sourced.push(t.matn);
+          proofs.push({ title: 'صحيح البخاري', passage: 'صحيح البخاري ' + t.matn }, { title: 'صحيح مسلم', passage: 'صحيح مسلم ' + t.matn });
+          const quoted = '\u00ab' + t.matn + '\u00bb';
+          if (value.includes(quoted) && !value.includes(quoted + ' (متفق عليه)')) value = value.replace(quoted, quoted + ' (متفق عليه)');
+        }
+        return { text: value, proofs, sourced, entries };
+      };
+      const playD1 = async (mod, units, companions) => {
+        const sent = [];
+        const rel = mod.createBw2Releaser({ rows: ROWS_D1.map((r, i) => ({ ...r, ref: i + 1 })), mode: 'brief', emit: (p) => { sent.push(p); return true; }, takhrij: stubD1(LIST_D1[0], companions), cards: null,
+          askedMatn: mod.askedHadithOf(Q7_D1), sourceQuestion: mod.asksHadithSource(Q7_D1), leadLine: LEAD_D1, holdUncitedRulings: true, question: Q7_D1 });
+        for (const u of units) rel.push(u + '\n\n');
+        const sum = await rel.end();
+        return { text: sent.join(''), held: sum.held, holds: sum.holds, released: sum.released };
+      };
+      const asciiD1 = (s) => String(s).replace(/[^\x20-\x7e]/g, '~').slice(0, 200);
+      const v6 = await playD1(UNITS_D1, [V_D1.V6, V0_D1], LIST_D1);
+      ok('F-D1a V6 (the credit names al-Mughira) with the stub\'s list [Abu Hurayra, al-Mughira]: released, nothing held', v6.held === 0 && v6.text.includes("المغيرة بن شعبة"), JSON.stringify(v6.holds) + ' ' + asciiD1(v6.text));
+      const v2 = await playD1(UNITS_D1, [V_D1.V2, V0_D1], LIST_D1);
+      ok('F-D1b V2 (Abu Hurayra) with the list: released, as with the one companion', v2.held === 0, JSON.stringify(v2.holds));
+      const v3 = await playD1(UNITS_D1, [V_D1.V3, V0_D1], LIST_D1);
+      ok('F-D1c V3 (Ali, in no proving row) with the list: held takhrij_refused, the matn released alone (unchanged)', v3.holds.takhrij_refused === 1 && v3.held === 1, JSON.stringify(v3.holds));
+      const v0 = await playD1(UNITS_D1, [V0_D1], LIST_D1);
+      const v0one = await playD1(UNITS_D1, [V0_D1], null);
+      ok('F-D1d V0 alone (the matn block): byte-identical with and without the list', v0.text === v0one.text && v0.held === 0, asciiD1(v0.text));
+      const v1 = await playD1(UNITS_D1, [V_D1.V1, V0_D1], LIST_D1);
+      ok('F-D1e V1 (no Companion): released (unchanged)', v1.held === 0, JSON.stringify(v1.holds));
+      const tkSrcD1 = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').split(String.fromCharCode(13, 10)).join(String.fromCharCode(10));
+      const bwSrcD1 = require('fs').readFileSync(path.join(REPO, 'lib/before-writing-v2.js'), 'utf8').split(String.fromCharCode(13, 10)).join(String.fromCharCode(10));
+      ok('F-D1f the engine\'s entry carries `companions` beside `companion` (a string, unchanged) and the BW2 wrapper passes it',
+        tkSrcD1.includes('      companions: denied ? [] : provedCompanions(state.candidates, named.name),') && tkSrcD1.includes('      companion: named.name,\n')
+        && bwSrcD1.includes("          companions: (Array.isArray(e.companions) ? e.companions : []).map((c) => String(c || '')).filter(Boolean),"));
+      ok('F-D1g provedCompanions: every named candidate with a ladder row, the agreed one first, folded duplicates once; none without a row',
+        typeof TK_D1.provedCompanions === 'function' && JSON.stringify(TK_D1.provedCompanions([{ name: LIST_D1[1], book: 'r1' }, { name: LIST_D1[0], book: 'r2' }, { name: LIST_D1[0], book: 'r3' }, { name: 'x', book: '' }], LIST_D1[0])) === JSON.stringify([LIST_D1[0], LIST_D1[1]]));
+      {
+        const srcC = require('fs').readFileSync(path.join(REPO, 'lib/bw2-units.js'), 'utf8').split(String.fromCharCode(13, 10)).join(String.fromCharCode(10));
+        const seamC = '      companions.push(...mine.flatMap((entry) => [entry.companion, ...(Array.isArray(entry.companions) ? entry.companions : [])])';
+        ok('F-D1 mutant seam present once', srcC.split(seamC).length === 2);
+        const tmpC = path.join(REPO, 'lib', '.mut-fd1-list.mjs');
+        require('fs').writeFileSync(tmpC, srcC.split(seamC).join('      companions.push(...mine.flatMap((entry) => [entry.companion, ...(Array.isArray(entry.companions) ? entry.companions.slice(0, 1) : [])]) /* mutant: the list cut to its first element */').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + require('url').pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MC = null;
+        try { MC = await import(require('url').pathToFileURL(tmpC).href + '?m=' + Date.now()); } catch (e) { MC = null; } finally { require('fs').rmSync(tmpC, { force: true }); }
+        ok('F-D1 mutant loads', !!MC);
+        const mc = MC ? await playD1(MC, [V_D1.V6, V0_D1], LIST_D1) : null;
+        ok('F-D1 MUTANT KILLED: with the list cut to its first element V6 is refused again', !!mc && mc.holds.takhrij_refused === 1, mc ? JSON.stringify(mc.holds) : 'no module');
+      }
+    }
     // ── brain35-5 Z8 (2026-11-08; DIAG4 C7) · A NARRATOR NAMED AFTER A COLLECTION IS A CLAIM THE ROW MUST CARRY ──────────────
     // MEASURED (DIAG4 H7, preview Q4): «الحديث ثابت صحيح، أخرجه البخاري عن علي.» -- the hadith is Abu Hurayra's; narratorsNamed read
     // «عن X» only with the Companion's prayer or in «من حديث X», so no narrator claim was made and the row proof never asked; and
