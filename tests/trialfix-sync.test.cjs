@@ -3,6 +3,130 @@ const { makeDevice, vm } = require('./trialfix-client-harness.cjs');
 const run = (d, code) => vm.runInContext(code, d.ctx);
 const plain = v => JSON.parse(JSON.stringify(v));
 const profile = { pid: 'trial', name: '', birthYear: 2007, age: 19, birthYearProvided: false, gender: null };
+// ORDER T2: C4's independent fixtures, asserting the repaired outcomes.
+const auditProfile = {pid:'audit',name:'Device',gender:'male',birthYear:2015,age:11,birthYearProvided:true};
+const auditDevice = () => makeDevice({child_profile:JSON.stringify(auditProfile)},'audit-t2');
+const applyRecord = (d,id,val,u=20) => run(d,`ezikSyncApply(${JSON.stringify(id)},${JSON.stringify({u,val})})`);
+const validRun = (id,at) => ({id,at,seed:at+1,i:1,segs:[[1,1,1,7]],cfg:{},st:{shown:5,ok:4,errs:[],ayat:[1,2,3,4,5],ms:1000}});
+function cycleFixture(d,changes=[]) {
+  run(d,`readAuthSession=()=>({session:'A'});ezikSyncStatus=async()=>true;ezikSyncLibCollect=async()=>{};ezikSyncLibSnapshot=()=>({});ezikSyncArmNext=()=>{};var auditUploads=[];
+    ezikSyncCall=async b=>b.action==='pull'?{ok:true,data:{cursor:1,changes:${JSON.stringify(changes)}}}:(auditUploads.push(...b.changes),{ok:true,data:{results:b.changes}});`);
+}
+test('trialfix-t2-f1 new-client-null-account-year preserves device year, age and provenance',()=>{
+  for(const val of [{name:'Account'},{birthYear:null},{birthYear:'1980'},{birthYear:1980.5}]) {
+    const d=auditDevice();applyRecord(d,'kv:profile',val);
+    const p=JSON.parse(d.local.getItem('child_profile'));
+    assert.deepEqual([p.birthYear,p.age,p.birthYearProvided],[2015,11,true]);
+  }
+  const d=auditDevice();applyRecord(d,'kv:profile',{birthYear:new Date().getFullYear()-19,birthYearProvided:false,_fields:{year:50}});
+  const p=JSON.parse(d.local.getItem('child_profile'));assert.equal(p.age,19);assert.equal(p.birthYearProvided,false);
+});
+test('trialfix-t2-f2 conflicting-year-drops-saved-name and gender survive pull and upload',async()=>{
+  const d=auditDevice();
+  cycleFixture(d,[{id:'kv:profile',rec:{u:20,val:{name:'OLD ACCOUNT NAME',gender:'male',birthYear:1980,birthYearProvided:true,_fields:{name:1,gender:1,year:20}}}}]);
+  run(d,"var st=ezikSyncReadState();st.acct='A';st.shadow['kv:profile']=ezikSyncHash(JSON.stringify(ezikSyncCollect()['kv:profile']));ezikSyncWriteState(st)");
+  d.local.setItem('child_profile',JSON.stringify({...auditProfile,name:'LOCAL SAVED EDIT',gender:'female',syncFields:{name:100,gender:101,year:1}}));
+  assert.equal(await run(d,'ezikSyncCycle()'),'ok');
+  const p=JSON.parse(d.local.getItem('child_profile')),v=plain(run(d,"ezikSyncCollect()['kv:profile']"));
+  assert.equal(p.name,'LOCAL SAVED EDIT');assert.equal(p.gender,'female');assert.equal(v._fields.name,100);assert.equal(v._fields.gender,101);assert.equal(v._fields.year,1);assert.equal(v.birthYear,2015);
+  assert.equal(run(d,"auditUploads.find(c=>c.id==='kv:profile').rec.val.name"),'LOCAL SAVED EDIT');
+});
+test('trialfix-t2-f3 resolved-remotely-conflict-still-pending clears and choices use latest account',()=>{
+  const d=auditDevice();run(d,"readAuthSession=()=>({session:'A'})");
+  applyRecord(d,'kv:profile',{name:'Old',birthYear:1980,birthYearProvided:true},2);
+  applyRecord(d,'kv:profile',{name:'Latest',birthYear:2015,birthYearProvided:true},3);
+  assert.equal(run(d,'ezikSyncProfileConflict()'),null);
+  const v=plain(run(d,"ezikSyncCollect()['kv:profile']"));assert.equal(v.name,'Latest');assert.equal(v.birthYear,2015);
+  applyRecord(d,'kv:profile',{birthYear:1980,birthYearProvided:true},4);
+  applyRecord(d,'kv:profile',{birthYear:1990,birthYearProvided:true},5);
+  assert.equal(run(d,'ezikSyncProfileConflict().account.birthYear'),1990);
+  run(d,'ezikSyncChooseProfileYear(true)');assert.equal(JSON.parse(d.local.getItem('child_profile')).birthYear,1990);
+  applyRecord(d,'kv:profile',{birthYear:1980,birthYearProvided:true},6);
+  applyRecord(d,'kv:profile',{name:'Legacy'},7);assert.equal(run(d,'ezikSyncProfileConflict()'),null);
+});
+test('trialfix-t2-f4 legacy-completed-day-reindexed freezes before earlier start, including deferred migration',()=>{
+  const fs=require('fs'),data=fs.readFileSync(require('path').join(__dirname,'../dima/dima-v1.json'),'utf8');
+  for(const preMigrate of [false,true]) {
+    const d=auditDevice();d.local.setItem('ezik_dima_v1',JSON.stringify({startDate:'2026-11-03',log:{'2026-11-04':{l:1,q:1,j:1,taps:3}},notify:{on:false,slot:'fajr30'},notifySeen:true}));
+    const incoming={schema:2,startDate:'2026-11-01',log:{},presented:{}};
+    if(!preMigrate){assert.equal(applyRecord(d,'ctr:dima.0.start',incoming),false);assert.equal(d.local.getItem('ezik_dima_v2'),null);}
+    run(d,'__dimaData='+data);if(preMigrate)run(d,'dimaReadStore()');
+    applyRecord(d,'ctr:dima.0.start',incoming);
+    const after=plain(run(d,"dimaResolveForDate(dimaReadStore(),dimaDateFromKey('2026-11-04'))"));
+    assert.equal(after.index,2);assert.equal(after.dayId,'dima.regular.002');
+    assert.equal(JSON.parse(d.local.getItem('ezik_dima_v2')).startDate,'2026-11-01');
+  }
+});
+test('trialfix-t2-f5 dima-delete-all-stale-reconnect rejects old generation and accepts fresh progress',async()=>{
+  const service=await import('../lib/sync/service.js'),store=await import('../lib/sync/store.js');
+  store.__setSyncStoreForTest(require('../guards/sync-fake-store.cjs').makeStore());
+  const env={SYNC_ENC_KEY:'11'.repeat(32),VERCEL_ENV:'preview'},account='t2-wipe';
+  const val={schema:2,startDate:'2026-11-01',log:{},presented:{}};
+  await service.push(account,[{id:'kv:dima_epoch',rec:{u:1,val:'0'}},{id:'ctr:dima.0.start',rec:{u:1,val}}],env);
+  const before=await service.pull(account,0,env);await service.wipeAll(account,env);
+  await service.push(account,[{id:'ctr:dima.0.start',rec:{u:1,val}}],env);
+  const exported=await service.exportAll(account,env);assert.equal(Object.keys(exported.records).some(id=>id.startsWith('ctr:dima.')),false);
+  const pulled=await service.pull(account,before.cursor,env),epoch=pulled.changes.find(c=>c.id==='kv:dima_epoch');assert.ok(epoch);assert(Number(epoch.rec.val)>0);
+  await service.push(account,[{id:'kv:dima_epoch',rec:{u:Date.now()+999,del:true,val:null}}],env);
+  assert.equal((await service.exportAll(account,env)).records['kv:dima_epoch'],epoch.rec.val,'a stale epoch deletion cannot remove the boundary');
+  const d=auditDevice();applyRecord(d,'kv:dima_epoch',epoch.rec.val);d.local.setItem('ezik_dima_v2',JSON.stringify({...val,startDate:'2026-11-09',notify:{on:false,slot:'fajr30'},notifySeen:true}));
+  const fresh=plain(run(d,'ezikSyncCollect()'));
+  await service.push(account,Object.entries(fresh).map(([id,val])=>({id,rec:{u:Date.now(),val}})),env);
+  assert.equal((await service.exportAll(account,env)).records['ctr:dima.'+epoch.rec.val+'.start'].startDate,'2026-11-09');
+  await service.eraseForAccountDelete(account,env);assert.equal((await service.pull(account,0,env)).changes.length,0);
+});
+test('trialfix-t2-f6 valid-discarded-paused-run-resurrected and finished run stay retired after stale upload',async()=>{
+  const {mergeRecord}=await import('../lib/sync/merge.js');
+  const service=await import('../lib/sync/service.js'),store=await import('../lib/sync/store.js');
+  store.__setSyncStoreForTest(require('../guards/sync-fake-store.cjs').makeStore());
+  const env={SYNC_ENC_KEY:'11'.repeat(32),VERCEL_ENV:'preview'};
+  for(const action of ['discard','finish']) {
+    const d=auditDevice();run(d,'__mem86Counts=new Array(115).fill(7)');
+    const pair={runs:[validRun('a',10),validRun('b',20)]};applyRecord(d,'ctr:mem.run',pair);
+    assert.equal(run(d,'mem86RunRead().id'),'b');
+    if(action==='discard') run(d,'mem86RunWrite(null)');
+    else {
+      const source=require('fs').readFileSync(require('path').join(__dirname,'../app.jsx'),'utf8');
+      const start=source.indexOf('  const finish = (r) => {'),end=source.indexOf('  const pause = () => {',start);
+      run(d,'(()=>{const elapsed=()=>1000,t0={current:0},counts=new Array(115).fill(7),setRun=()=>{},setResult=()=>{},setStage=()=>{},setQs=()=>{};'+source.slice(start,end)+'finish('+JSON.stringify({...validRun('b',20),temp:true})+');})()');
+    }
+    assert.equal(run(d,'mem86RunRead()'),null,action);
+    const records=plain(run(d,'ezikSyncCollect()')),retirement=Object.entries(records).find(([id,v])=>id.startsWith('ctr:mem.run.')&&v.retired.includes('b'));assert.ok(retirement);
+    const merged=mergeRecord(retirement[0],{u:30,val:retirement[1]},{u:999,val:{runs:[validRun('b',20)]}});
+    await service.push(action,[{id:'ctr:mem.run',rec:{u:20,val:pair}}],env);
+    await service.push(action,[{id:retirement[0],rec:{u:30,val:retirement[1]}}],env);
+    await service.push(action,[{id:'ctr:mem.run',rec:{u:999,val:pair}}],env);
+    const exported=(await service.exportAll(action,env)).records;
+    assert.equal(Object.values(exported).flatMap(v=>v.runs||[]).some(r=>r.id==='b'),false,action+' server retirement');
+    assert.equal(Object.values(exported).flatMap(v=>v.runs||[]).filter(r=>r.id==='a').length,1);
+    applyRecord(d,'ctr:mem.run',pair);applyRecord(d,retirement[0],merged.val);
+    assert.equal(run(d,'mem86RunRead().id'),'a');assert.deepEqual(JSON.parse(d.local.getItem('ezik_mem_runs_v1')).map(r=>r.id),['a']);
+  }
+});
+test('trialfix-t2-f7 valid-paused-runs-stop-entire-sync shards 14 runs and isolates oversized records',async()=>{
+  const d=auditDevice();
+  const many={runs:Array.from({length:14},(_,i)=>({...validRun('run'+i,i),segs:[[1,1,114,6]],st:{shown:999,ok:999,errs:Array(300).fill('2:255:4'),ayat:Array.from({length:2000},(_,j)=>j+1),ms:1000}}))};
+  assert.equal(Buffer.byteLength(JSON.stringify(many)),168233);
+  applyRecord(d,'ctr:mem.run',many);d.local.setItem('ezik_110_font_v1','cairo');
+  d.local.setItem('ezik_mem_held_v1',JSON.stringify({'1':[[1,3]]}));
+  d.local.setItem('ezik_dima_v2',JSON.stringify({schema:2,startDate:'2026-11-01',log:{},presented:{},notify:{on:false,slot:'fajr30'},notifySeen:true}));
+  let records=plain(run(d,'ezikSyncCollect()'));assert.equal(Object.keys(records).filter(id=>id.startsWith('ctr:mem.run.')).length,14);
+  for(const val of Object.values(records))assert(Buffer.byteLength(JSON.stringify(val))<150*1024);
+  cycleFixture(d);assert.equal(await run(d,'ezikSyncCycle()'),'ok');
+  assert.ok(run(d,"auditUploads.some(c=>c.id==='kv:profile')"));assert.ok(run(d,"auditUploads.some(c=>c.id==='kv:ezik_110_font_v1')"));
+  assert.ok(run(d,"auditUploads.some(c=>c.id==='ctr:dima.0.start')"));assert.ok(run(d,"auditUploads.some(c=>c.id==='ctr:mem.held.1')"));
+  applyRecord(d,'ctr:mem.run',{runs:[{...validRun('huge',50),extra:'x'.repeat(200000)}]});
+  let errors=[];d.window.addEventListener('ezik:sync:record-error',e=>errors.push(e.detail));
+  records=plain(run(d,'ezikSyncCollect()'));assert.equal(Object.keys(records).filter(id=>id.startsWith('ctr:mem.run.')).length,14);assert.ok(errors.some(e=>e.reason==='size'));
+  d.local.setItem('ezik_110_font_v1','noto');assert.equal(await run(d,'ezikSyncCycle()'),'ok');assert.equal(run(d,"auditUploads.filter(c=>c.id==='kv:ezik_110_font_v1').at(-1).rec.val"),'noto');
+  const service=await import('../lib/sync/service.js'),store=await import('../lib/sync/store.js');store.__setSyncStoreForTest(require('../guards/sync-fake-store.cjs').makeStore());
+  const env={SYNC_ENC_KEY:'11'.repeat(32),VERCEL_ENV:'preview'};
+  const result=await service.push('runs',[{id:'ctr:mem.run',rec:{u:100,val:many}},{id:'kv:ezik_110_font_v1',rec:{u:1,val:'cairo'}}],env);
+  assert.equal(result.results.filter(r=>r.id.startsWith('ctr:mem.run.')).length,14);
+  for(const r of result.results){assert.ok(!r.refused);assert(Buffer.byteLength(JSON.stringify(r.rec))<150*1024);}
+  const isolated=await service.push('runs',[{id:'ctr:mem.run.toobig',rec:{u:101,val:{runs:[{...validRun('toobig',50),extra:'x'.repeat(300000)}]}}},{id:'kv:ezik_110_font_v1',rec:{u:102,val:'noto'}}],env);
+  assert.equal(isolated.results[0].refused,'size');assert.equal(isolated.results[1].rec.val,'noto');
+});
 function device(seed={}) { return makeDevice({ child_profile: JSON.stringify(profile), ...seed }, 'trialfix'); }
 test('trialfix-d5-d10 profile hydration, missing local, legacy provenance, conflicts and explicit choice', () => {
   const d = device();
@@ -14,7 +138,7 @@ test('trialfix-d5-d10 profile hydration, missing local, legacy provenance, confl
   apply({ name:'Account',gender:'male',birthYear:1980,birthYearProvided:true });
   assert.equal(JSON.parse(d.local.getItem('child_profile')).birthYear,1990);
   assert.ok(run(d,'ezikSyncProfileConflict()'));
-  assert.equal(run(d,'ezikSyncCollect()["kv:profile"].birthYear'),1980,'pending device year is not uploaded as an edit');
+  assert.equal(run(d,'ezikSyncCollect()["kv:profile"].birthYear'),1990,'collection retains the pending device pair without advancing its year timestamp');
   run(d,'ezikSyncChooseProfileYear(true)');
   assert.equal(JSON.parse(d.local.getItem('child_profile')).birthYear,1980);
   apply({name:'Legacy',birthYear:1975});
@@ -22,7 +146,7 @@ test('trialfix-d5-d10 profile hydration, missing local, legacy provenance, confl
   d.local.removeItem('child_profile');
   assert.equal(apply({name:'Early',birthYear:1980}),false,'pre-onboarding record is not consumed');
   d.local.setItem('child_profile',JSON.stringify(profile));
-  apply({name:'Cleared',birthYear:null,birthYearProvided:false});
+  apply({name:'Cleared',birthYear:new Date().getFullYear()-19,birthYearProvided:false});
   assert.equal(JSON.parse(d.local.getItem('child_profile')).age,19);
   run(d,"ezikSyncSignOutWipe()");
   assert.equal(JSON.parse(d.local.getItem('child_profile')).name,'');
@@ -112,7 +236,9 @@ test('trialfix-d11 large multi-day history is split below the record cap and ove
   for(const [id,value] of Object.entries(records))assert(Buffer.byteLength(JSON.stringify(value))<200*1024,id);
   const state=JSON.parse(d.local.getItem('ezik_dima_v2'));
   state.presented['2024-01-01']={civilDate:'2024-01-01',index:1,packId:'p',dayId:'d',version:1,snapshot:{lisan:{text:'x'.repeat(300000)},qalb:{text:'q'},jawarih:{text:'j'}}};
-  d.local.setItem('ezik_dima_v2',JSON.stringify(state));assert.throws(()=>run(d,'ezikSyncCollect()'),/sync-dima-day-too-large/);
+  d.local.setItem('ezik_dima_v2',JSON.stringify(state));assert.doesNotThrow(()=>run(d,'ezikSyncCollect()'));
+  assert.equal(run(d,"ezikSyncRecordErrors['ctr:dima.0.2024-01-01']"),'size');
+  assert.equal(Object.keys(plain(run(d,'ezikSyncCollect()'))).filter(k=>k.startsWith('ctr:dima.')).length,900);
 });
 test('trialfix-d12a a setting edited during pull or push is not overwritten by the older response', async()=>{
   const d=device();

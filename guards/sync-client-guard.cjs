@@ -290,7 +290,8 @@ async function main() {
     Object.defineProperty(proto, 'serviceWorker', { configurable: true, get: () => ({ controller: { postMessage: (m) => d1.deleted.push(m) } }) });
     try { d1.api.clearDl(); } finally { delete proto.serviceWorker; }
   }
-  check('W1 delete-all: the server copy of the account is empty', ![...store.data.keys()].some((k) => k.includes(SSTORE.spaceIdOf(A.key)) && /:(r|q|v|m)$/.test(k)));
+  const afterWipe = await SSTORE.readSpace('preview',SSTORE.spaceIdOf(A.key));
+  check('W1 delete-all: only the durable Dima deletion boundary remains', Object.keys(afterWipe.records).length === 1 && !!afterWipe.records['kv:dima_epoch']);
   check('W2 item 142: the page asks the worker to drop the mushaf downloads store', d1.deleted.length === 1 && d1.deleted[0].ezik === 'downloads-clear');
   // SYNC FIX 3 -- the gate in front of «حذف كل البيانات», against the real route: the server is
   // wiped FIRST, and the device erase runs only after the server said so.
@@ -301,9 +302,13 @@ async function main() {
     const spaceKeys = () => [...store.data.keys()].filter((k) => k.includes(SSTORE.spaceIdOf(Wk.key)) && /:(r|q|v|m)$/.test(k));
     const hadData = spaceKeys().length > 0;
     let serverEmptyWhenErased = null;
-    const took = dw.api.resetGate(() => { serverEmptyWhenErased = spaceKeys().length === 0; });
+    const onlyBoundary = () => {
+      const records=store.data.get(SSTORE.keysOf('preview',SSTORE.spaceIdOf(Wk.key)).r)?.v;
+      return records?.size === 1 && records.has('kv:dima_epoch');
+    };
+    const took = dw.api.resetGate(() => { serverEmptyWhenErased = onlyBoundary(); });
     await settle(); await settle();
-    check('W3 sync fix 3: for an open account the gate takes the press, wipes the server, THEN lets the device erase run', hadData && took === true && serverEmptyWhenErased === true && spaceKeys().length === 0, JSON.stringify({ hadData, took, serverEmptyWhenErased }));
+    check('W3 sync fix 3: for an open account the gate takes the press, wipes the server, THEN lets the device erase run', hadData && took === true && serverEmptyWhenErased === true && onlyBoundary(), JSON.stringify({ hadData, took, serverEmptyWhenErased }));
   }
 
   // C -- switch closed

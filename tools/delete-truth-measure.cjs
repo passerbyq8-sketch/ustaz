@@ -379,7 +379,7 @@ const LAB_NAMES = ['settings', 'bm', 'tags', 'fav', 'notes', 'refl', 'recent', '
 // erases it and is asserted to keep erasing it -- not the date it was added.
 const MUST_GO_ALREADY = [
   // ORDER T1: companion data is erased with profile, Dima and memorizer progress.
-  { lit: 'ezik_dima_epoch_v1' },
+  { lit: 'ezik_mem_retired_v1' },
   { lit: 'ezik_mem_runs_v1' },
   { lit: 'ezik_profile_conflict_v1' },
   { lit: 'ezik_dima_v2' },              // active pack progress and frozen selections
@@ -610,6 +610,7 @@ const MUST_GO_NEW = [
 
 // What must be standing afterwards, and the reason each one is allowed to stand.
 const MUST_STAY = [
+  { lit: 'ezik_dima_epoch_v1', why: 'ORDER T2 F5: deletion boundary advances; no user progress remains' },
   { c: 'HIJRI_OFFSET_KEY',
     why: 'delete.html promises it in neither language; erasing it would widen the button' },
   // ITEM 67. THE SAME RULE AS THE HIJRI OFFSET, BY THE SAME OWNER'S REASONING. delete.html
@@ -911,6 +912,15 @@ run('the press erases the roster and nothing beyond it', () => {
   const expected = Array.from(GO).sort();
   eq(r.gone, expected, 'the exact set of keys the press removed');
   return r.gone.length + ' keys removed, exactly the ' + expected.length + ' expected';
+});
+
+run('trialfix-t2-f5 local reset advances a durable deletion boundary', () => {
+  const s = scene();
+  s.storage.setItem('ezik_dima_epoch_v1','9000000000000');
+  s.h.resetAll();
+  eq(s.storage.getItem('ezik_dima_epoch_v1'),'9000000000001','generation must advance beyond a fast-clock imported boundary');
+  is(s.storage.getItem('ezik_dima_v2') === null, 'Dima progress remains');
+  is(s.storage.getItem('ezik_mem_retired_v1') === null, 'run retirement data remains');
 });
 
 // ---- 5. The survivors, printed by name for the owner to read. -------------------------------

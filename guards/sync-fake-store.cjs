@@ -62,6 +62,16 @@ function makeStore(opts) {
           del(k) { ops.push(['del', k]); return data.delete(k) ? 1 : 0; },
         });
       }
+      if (script.includes('-- sync-wipe-progress-v1')) {
+        const [r,q,v,m] = keys, [expected,id,envelope] = argv;
+        const seq = Number(h(m)?.get('seq') || 0);
+        if (seq !== Number(expected)) return 0;
+        const ver = Number(h(v)?.get(id) || 0) + 1;
+        for (const k of keys) data.delete(k);
+        hput(r).set(id,envelope); hput(q).set(id,String(seq+1)); hput(v).set(id,String(ver));
+        hput(m).set('seq',String(seq+1)); hput(m).set('bytes',String(envelope.length));
+        return 1;
+      }
       if (/HSTRLEN/.test(script)) {
         const [r, q, v, m] = keys; const [id, expected, envlp, quota] = argv;
         const vm = h(v); const cur = vm && vm.has(id) ? String(vm.get(id)) : '0';

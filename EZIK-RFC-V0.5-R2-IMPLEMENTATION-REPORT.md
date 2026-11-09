@@ -680,3 +680,9 @@ The stock chatux, lang and c1dimahome invocations passed on the T1 head using th
 The current roster contains 282 entries. Clean-tree recon measured 375/0/0 before its report-facts check; that check was the sole failure before this report update. Section K records the expected complete signature, not an unmeasured full-suite success.
 The device-only design hint was removed in all 24 dictionaries; it contained no other clause. The standard app build and localization/UI/asset checks passed.
 See REPORT-C1-ORDER-T1B.md in the session archive for the final committed-head stock suite result and evidence paths.
+
+## ORDER T2 audit repairs (2026-11-09)
+
+C4 flags F1-F7 are addressed within the existing trialfix gate groups. Profiles preserve absent legacy years, merge saved fields independently, and reconcile pending year choices. Dima migrates frozen v1 days before sync and retains an atomic deletion generation after delete-all. Paused memorizer runs have stable-ID retirement and per-run sync records; oversize records emit an individual failure and do not stop unrelated sync.
+
+The standard app build, byte/digest records, focused sync and deletion checks were verified. No Arabic text, immutable quest asset URL, cache reservation or gate roster changed. The final committed-head stock suite measurements and per-file integrity table are recorded in the session archive REPORT-C1-ORDER-T2.md.

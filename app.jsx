@@ -25782,8 +25782,8 @@ function App() {
       try { localStorage.removeItem(EZIK_SYNC_STATE_KEY); } catch (e) {}
       localStorage.removeItem('child_profile');
       // ORDER T1: all local account-progress companions leave with their parent data.
-      try { localStorage.removeItem('ezik_dima_epoch_v1'); } catch (e) {}
-      try { localStorage.removeItem('ezik_mem_runs_v1'); } catch (e) {}
+      try { localStorage.setItem('ezik_dima_epoch_v1', String(Math.max(Date.now(), (Number(ezikSyncDimaEpoch()) || 0) + 1))); } catch (e) {}
+      try { localStorage.removeItem('ezik_mem_runs_v1'); localStorage.removeItem('ezik_mem_retired_v1'); } catch (e) {}
       try { localStorage.removeItem('ezik_profile_conflict_v1'); } catch (e) {}
       // S92 -- "delete all my data" has to mean the SAVED CONVERSATIONS too: every stored body,
       // the index that lists them, and the single legacy thread the old 'messages' key held.
@@ -34565,16 +34565,18 @@ function mergeMemorizer(key, a, b, newer) {
     return [...map.entries()].sort(([a],[b]) => (a < b ? -1 : a > b ? 1 : 0)).map(([,v]) => v);
   }
   if (key === 'run') {
-    const values = v => !v ? [] : Array.isArray(v.runs) ? v.runs : [v];
+    const values = v => !v ? [] : Array.isArray(v.runs) ? v.runs : (v.id || v.seed) ? [v] : [];
+    const retired = [...new Set([...(a?.retired || []), ...(b?.retired || [])].map(String))].sort();
     const byId = new Map();
     for (const run of [...values(a), ...values(b)]) {
       if (!object(run)) continue;
       const id = String(run.id || run.seed || stable(run));
+      if (retired.includes(id)) continue;
       const previous = byId.get(id);
       if (!previous || Number(run.at || 0) > Number(previous.at || 0) || (Number(run.at || 0) === Number(previous.at || 0) && stable(run) > stable(previous))) byId.set(id,run);
     }
     const runs = [...byId.values()].sort((x,y) => (Number(x.at) || 0) - (Number(y.at) || 0) || (stable(x) < stable(y) ? -1 : stable(x) > stable(y) ? 1 : 0));
-    return { runs, active: runs.length ? runs[runs.length - 1] : null };
+    return { runs, retired, active: runs.length ? runs[runs.length - 1] : null };
   }
   if (key === 'prefs') return newer ? b : a;
   const merge = (x,y) => {
@@ -34588,7 +34590,33 @@ function mergeMemorizer(key, a, b, newer) {
   return merge(a,b);
 }
 
-return { mergeDima, mergeMemorizer };
+// Reversible stable identities: no hash collisions between paused runs.
+function memorizerRunPart(id) {
+  const bytes = [];
+  for (const c of String(id)) {
+    const n = c.codePointAt(0);
+    if (n < 128) bytes.push(n);
+    else if (n < 2048) bytes.push(192 | n >> 6, 128 | n & 63);
+    else if (n < 65536) bytes.push(224 | n >> 12, 128 | n >> 6 & 63, 128 | n & 63);
+    else bytes.push(240 | n >> 18, 128 | n >> 12 & 63, 128 | n >> 6 & 63, 128 | n & 63);
+  }
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-';
+  let out = '', bits = 0, count = 0;
+  for (const byte of bytes) {
+    bits = bits << 8 | byte; count += 8;
+    while (count >= 6) { count -= 6; out += alphabet[bits >>> count & 63]; }
+  }
+  if (count) out += alphabet[bits << (6-count) & 63];
+  return out;
+}
+function shardMemorizerRuns(value) {
+  const merged = mergeMemorizer('run', null, value, true), parts = {};
+  for (const run of merged.runs) parts[memorizerRunPart(run.id || run.seed || stable(run))] = { runs: [run], retired: [] };
+  for (const id of merged.retired) parts[memorizerRunPart(id)] = { runs: [], retired: [id] };
+  return parts;
+}
+
+return { mergeProfile, mergeDima, mergeMemorizer, shardMemorizerRuns };
 })();
 const EZIK_SYNC_EXTRA_SETTINGS = [THEME_KEY, EZ110_FONT_KEY, EZ110_IDENTITY_KEY, EZ110_DIGITS_KEY, EZ110_BAR_KEY, EZIK_WM_KEY, EZIK_WM_HIDE_KEY, EZIK_ENTER_KEY];
 const EZIK_SYNC_MEM = ['held', 'ranges', 'words', 'tests', 'run', 'plans', 'days', 'prefs'];
@@ -34605,34 +34633,46 @@ function ezikSyncSettingsRefresh(key) {
   window.dispatchEvent(new CustomEvent('ezik:settings:applied'));
 }
 function ezikSyncDimaEpoch() { return localStorage.getItem('ezik_dima_epoch_v1') || '0'; }
+let ezikSyncRecordErrors = {};
 function ezikSyncProgressCollect(out) {
+  ezikSyncRecordErrors = {};
+  const put = (id, value) => {
+    if (id.length > 120 || ezikSyncUtf8Len(JSON.stringify(value)) > EZIK_SYNC_PART_BYTES) {
+      ezikSyncRecordErrors[id] = 'size';
+      window.dispatchEvent(new CustomEvent('ezik:sync:record-error', { detail: {id, reason:'size'} }));
+      return;
+    }
+    out[id] = value;
+  };
   const raw = ezikSyncJson(localStorage.getItem(DIMA_V2_KEY));
-  const dima = raw && dimaV2Valid(raw) ? raw : dimaReadLegacyStore();
+  const dima = raw && dimaV2Valid(raw) ? raw : __dimaData ? dimaReadStore() : dimaReadLegacyStore();
   const epoch = ezikSyncDimaEpoch();
   out['kv:dima_epoch'] = epoch;
-  if (dima.startDate) {
+  if (dima.startDate && (dimaV2Valid(dima) || !Object.keys(dima.log || {}).length)) {
     out['ctr:dima.' + epoch + '.start'] = { schema: 2, startDate: dima.startDate, log: {}, presented: {} };
     const days = new Set([...Object.keys(dima.log || {}), ...Object.keys(dima.presented || {})]);
     for (const day of [...days].sort()) {
       if (!dimaValidDayKey(day)) continue;
       const progress = EZIK_PROGRESS.mergeDima({}, { log: { [day]: dima.log?.[day] }, presented: { [day]: dima.presented?.[day] }, conflicts: { [day]: dima.conflicts?.[day] || [] } });
-      if (ezikSyncUtf8Len(JSON.stringify(progress)) > EZIK_SYNC_PART_BYTES) throw new Error('sync-dima-day-too-large');
-      out['ctr:dima.' + epoch + '.' + day] = progress;
+      put('ctr:dima.' + epoch + '.' + day, progress);
     }
   }
   for (const key of EZIK_SYNC_MEM) {
     let value = ezikSyncJson(localStorage.getItem('ezik_mem_' + key + '_v1'));
+    if (key === 'run') {
+      const saved = { runs: [...(ezikSyncJson(localStorage.getItem('ezik_mem_runs_v1')) || []), ...(value ? [value] : [])], retired: ezikSyncJson(localStorage.getItem('ezik_mem_retired_v1')) || [] };
+      for (const [part, entry] of Object.entries(EZIK_PROGRESS.shardMemorizerRuns(saved))) put('ctr:mem.run.' + part, entry);
+      continue;
+    }
     if (value == null) continue;
     if (key === 'tests' && Array.isArray(value)) value = value.map(v => ({ ...v, id: v.id || 'legacy-' + ezikSyncHash(JSON.stringify(v)) }));
-    if (key === 'run') value = { runs: [...(ezikSyncJson(localStorage.getItem('ezik_mem_runs_v1')) || []), value] };
     // Stored memorizer values have ceilings below 150 KB; shard dictionaries and lists by stable identity.
     if (['held','words','days'].includes(key) && value && typeof value === 'object' && !Array.isArray(value)) {
-      for (const [part, entry] of Object.entries(value)) out['ctr:mem.' + key + '.' + part] = { [part]: entry };
+      for (const [part, entry] of Object.entries(value)) put('ctr:mem.' + key + '.' + part, { [part]: entry });
     } else if (['tests','ranges','plans'].includes(key) && Array.isArray(value)) {
-      for (const entry of value) out['ctr:mem.' + key + '.' + ezikSyncHash(String(entry.id || JSON.stringify(entry)))] = [entry];
+      for (const entry of value) put('ctr:mem.' + key + '.' + ezikSyncHash(String(entry.id || JSON.stringify(entry))), [entry]);
     } else {
-      if (ezikSyncUtf8Len(JSON.stringify(value)) > EZIK_SYNC_PART_BYTES) throw new Error('sync-memorizer-record-too-large');
-      out['ctr:mem.' + key] = value;
+      put('ctr:mem.' + key, value);
     }
   }
 }
@@ -34647,14 +34687,18 @@ function ezikSyncDimaClear() {
 function ezikSyncProgressApply(id, rec) {
   if (id === 'kv:dima_epoch') {
     const next = String(rec?.val || '0');
-    if (next !== ezikSyncDimaEpoch()) { ezikSyncDimaClear(); localStorage.setItem('ezik_dima_epoch_v1', next); }
+    if (Number(next) > Number(ezikSyncDimaEpoch())) { ezikSyncDimaClear(); localStorage.setItem('ezik_dima_epoch_v1', next); }
     return true;
   }
   if (id.startsWith('ctr:dima.')) {
     const [,epoch,day] = id.split('.');
     if (epoch !== ezikSyncDimaEpoch()) return true;
     let current = ezikSyncJson(localStorage.getItem(DIMA_V2_KEY));
-    if (!dimaV2Valid(current)) current = { ...dimaReadLegacyStore(), schema: 2, presented: {} };
+    if (!dimaV2Valid(current)) {
+      const legacy = dimaReadLegacyStore();
+      if (!__dimaData && Object.keys(legacy.log || {}).length) return false;
+      current = dimaUpgradeStore(legacy);
+    }
     if (rec?.del) {
       if (day === 'start') { ezikSyncDimaClear(); return true; }
       delete current.log[day]; delete current.presented[day];
@@ -34673,17 +34717,18 @@ function ezikSyncProgressApply(id, rec) {
   if (id.startsWith('ctr:mem.')) {
     const key = id.split('.')[1]; if (!EZIK_SYNC_MEM.includes(key)) return true;
     const storageKey = 'ezik_mem_' + key + '_v1';
-    const current = ezikSyncJson(localStorage.getItem(storageKey));
+    const current = key === 'run' ? { runs: [...(ezikSyncJson(localStorage.getItem('ezik_mem_runs_v1')) || []), ...(ezikSyncJson(localStorage.getItem(storageKey)) ? [ezikSyncJson(localStorage.getItem(storageKey))] : [])], retired: ezikSyncJson(localStorage.getItem('ezik_mem_retired_v1')) || [] } : ezikSyncJson(localStorage.getItem(storageKey));
     if (rec?.del) { localStorage.removeItem(storageKey); return true; }
     const value = EZIK_PROGRESS.mergeMemorizer(key, current, rec.val, true);
     if (key === 'run') {
+      localStorage.setItem('ezik_mem_retired_v1', JSON.stringify(value.retired));
       localStorage.setItem('ezik_mem_runs_v1', JSON.stringify(value.runs));
       localStorage.setItem(storageKey, JSON.stringify(value.active));
     } else localStorage.setItem(storageKey, JSON.stringify(value));
     window.dispatchEvent(new CustomEvent('ezik:memorizer:applied'));
     return true;
   }
-  return false;
+  return null;
 }
 
 function ezikSyncKv() { return [
@@ -34746,7 +34791,7 @@ function ezikSyncCollect() {
   for (const k of ezikSyncKv()) { const v = get(k); if (v !== null) out['kv:' + k] = v; }
   for (const k of ezikSyncCtr()) { const v = ezikSyncJson(get(k)); if (v !== undefined && v !== null) out['ctr:' + k] = v; }
   const prof = ezikSyncJson(get('child_profile'));
-  if (prof && typeof prof === 'object') out['kv:profile'] = ezikSyncProfileConflict()?.account || { name: prof.name || '', birthYear: prof.birthYear || null, birthYearProvided: prof.birthYearProvided === true, gender: prof.gender || null, _fields: prof.syncFields || {} };
+  if (prof && typeof prof === 'object') out['kv:profile'] = { name: prof.name || '', birthYear: prof.birthYear || null, birthYearProvided: prof.birthYearProvided === true, gender: prof.gender || null, _fields: prof.syncFields || {} };
   const prefs = ezikSyncJson(get(PRAYER_PREFS_KEY));
   if (prefs && typeof prefs === 'object') {
     const calc = {};
@@ -34823,7 +34868,8 @@ function ezikSyncApply(id, rec) {
   try { return ezikSyncApplyNow(id, rec); } finally { ezikSyncApplying = false; }
 }
 function ezikSyncApplyNow(id, rec) {
-  if (ezikSyncProgressApply(id, rec)) return;
+  const progressApplied = ezikSyncProgressApply(id, rec);
+  if (progressApplied !== null) return progressApplied;
   const del = !rec || rec.del === true;
   const val = rec ? rec.val : null;
   const set = (k, v) => { try { if (v === null || v === undefined) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} };
@@ -34839,10 +34885,13 @@ function ezikSyncApplyNow(id, rec) {
     const conflict = p.birthYearProvided === true && account.birthYearProvided && p.birthYear !== account.birthYear;
     if (conflict) {
       localStorage.setItem('ezik_profile_conflict_v1', JSON.stringify({ session: readAuthSession()?.session, account }));
-    }
-    const next = { ...p, name: String(val.name || ''), gender: ['female','male'].includes(val.gender) ? val.gender : null,
-      syncFields: val._fields || {} };
-    if (!conflict) {
+    } else localStorage.removeItem('ezik_profile_conflict_v1');
+    const merged = EZIK_PROGRESS.mergeProfile(rec, {u:0,val:{...p,_fields:p.syncFields || {}}});
+    const next = { ...p, name: String(merged.name || ''), gender: ['female','male'].includes(merged.gender) ? merged.gender : null,
+      syncFields: { ...merged._fields, year: p.syncFields?.year || 0 } };
+    // Settings clears save a numeric adult-default year with false provenance. Missing legacy years are absent information.
+    if (!conflict && Number.isInteger(val.birthYear)) {
+      next.syncFields.year = merged._fields.year;
       next.birthYear = account.birthYear;
       next.birthYearProvided = account.birthYearProvided;
       next.age = account.birthYear == null ? ONBOARDING_DEFAULT_AGE : new Date().getFullYear() - account.birthYear;
@@ -34985,6 +35034,9 @@ function ezikSyncCycle() {
       //    record since the last cycle (that change is pushed in step 2 and merged on the server).
       //    A SETTING this device has never synced is not a change: the account's value is adopted,
       //    so a fresh device's defaults never overwrite what the reader chose elsewhere.
+      if (!__dimaData && !dimaV2Valid(ezikSyncJson(localStorage.getItem(DIMA_V2_KEY))) && Object.keys(dimaReadLegacyStore().log || {}).length) {
+        try { await loadDima(); } catch (_) {} // Leave records deferred if the migration data is unavailable.
+      }
       await ezikSyncLibCollect();
       let local = Object.assign(ezikSyncCollect(), ezikSyncLibSnapshot());
       const p = await ezikSyncCall({ action: 'pull', session: held.session, cursor: st.cursor });
@@ -35007,8 +35059,12 @@ function ezikSyncCycle() {
         const known = Object.prototype.hasOwnProperty.call(st.shadow, c.id);
         const dirty = (has && known && st.shadow[c.id] !== hashOf(local[c.id])) || st.pend[c.id]?.explicit === true;
         const firstSetting = has && !known && kvLike(c.id);
-        if (c.id === 'kv:profile' && c.rec?.val?.birthYearProvided === true && local[c.id]?.birthYearProvided === true && local[c.id].birthYear !== c.rec.val.birthYear) {
-          ezikSyncApply(c.id, c.rec); touched[c.id] = c.rec; applied++; continue;
+        if (c.id === 'kv:profile') {
+          if (ezikSyncApply(c.id, c.rec) === false) { st.deferred[c.id] = c.rec; continue; }
+          delete st.deferred[c.id]; applied++;
+          // Other saved fields must reach the server even while a year choice is pending.
+          if (hashOf(ezikSyncCollect()[c.id]) === hashOf(c.rec?.val)) touched[c.id] = c.rec;
+          continue;
         }
         if (dirty || (has && !known && !firstSetting)) continue;   // step 2 merges it
         if (ezikSyncApply(c.id, c.rec) === false) { st.deferred[c.id] = c.rec; continue; }
@@ -35137,6 +35193,10 @@ function ezikSyncBatches(changes, cap) {
 /** The server's merged answers: written here, and no longer pending. */
 function ezikSyncTake(st, results, touched) {
   for (const res of results || []) {
+    if (res?.refused) {
+      ezikSyncRecordErrors[res.id] = res.refused;
+      window.dispatchEvent(new CustomEvent('ezik:sync:record-error', { detail: {id:res.id, reason:res.refused} }));
+    }
     if (!res || !res.rec) continue;
     const latest = ezikSyncReadState().pend[res.id];
     if (latest?.explicit && latest.u > (Number(res.rec.u) || 0)) { st.pend[res.id] = latest; continue; }
@@ -35186,7 +35246,7 @@ function ezikSyncWatch() {
             const st = ezikSyncReadState();
             for (const id of Object.keys(st.shadow)) if (id.startsWith('ctr:dima.')) st.gone[id] = Date.now();
             ezikSyncWriteState(st);
-            this.setItem('ezik_dima_epoch_v1', String(Math.max(Date.now(), Number(ezikSyncDimaEpoch()) + 1)));
+            this.setItem('ezik_dima_epoch_v1', String(Math.max(Date.now(), (Number(ezikSyncDimaEpoch()) || 0) + 1)));
           }
         }
         try { if (!ezikSyncApplying && this === window.localStorage && ezikSyncIsSyncedKey(k)) {
@@ -35371,6 +35431,7 @@ function ezikSyncSignOutWipe() {
   rm('ezik_dima_epoch_v1');
   EZIK_SYNC_MEM.forEach(key => rm('ezik_mem_' + key + '_v1'));
   rm('ezik_mem_runs_v1');
+  rm('ezik_mem_retired_v1');
   const pid = ezikSyncLocalPid();
   for (const r of ezikReadChatIndex()) if (!pid || r.pk === pid) rm(EZIK_CHAT_PREFIX + r.id);
   ezikWriteChatIndex(ezikReadChatIndex().filter((r) => pid && r.pk !== pid));
@@ -41435,7 +41496,20 @@ const mem86RunRead = () => {
     prevT: mem86Int(v.prevT, 0, 1e14) || 0,
   };
 };
-const mem86RunWrite = (run) => (run ? mem86Store(MEM86_RUN_KEY, { ...run, id: run.id || String(run.seed), at: Date.now() }) : (() => { try { localStorage.removeItem(MEM86_RUN_KEY); } catch (e) {} return true; })());
+const mem86RunWrite = (run, finished) => {
+  if (run) return mem86Store(MEM86_RUN_KEY, { ...run, id: run.id || String(run.seed), at: Date.now() });
+  try {
+    const active = finished || mem86Load(MEM86_RUN_KEY);
+    const retired = ezikSyncJson(localStorage.getItem('ezik_mem_retired_v1')) || [];
+    if (active) retired.push(String(active.id || active.seed));
+    const remaining = EZIK_PROGRESS.mergeMemorizer('run', {runs:ezikSyncJson(localStorage.getItem('ezik_mem_runs_v1')) || []}, {runs:[],retired}, true);
+    localStorage.setItem('ezik_mem_retired_v1', JSON.stringify(remaining.retired));
+    localStorage.setItem('ezik_mem_runs_v1', JSON.stringify(remaining.runs));
+    localStorage.removeItem(MEM86_RUN_KEY);
+    ezikSyncSoon();
+    return true;
+  } catch (e) { return false; }
+};
 // the suggestions: only from what is memorised, and only when the record can say something
 const mem86Suggest = (held, counts) => {
   const out = [];
@@ -41519,7 +41593,7 @@ const Mem86Test = ({ counts, held, ranges, prefs, onPref, isFemale, onSimilar, o
   const finish = (r) => {
     const ms = elapsed(r);
     t0.current = 0;
-    mem86RunWrite(null);
+    mem86RunWrite(null, r);
     const sur = [];
     r.st.ayat.forEach((g) => { const n = mem86SA(mem86Offsets(counts), g)[0]; if (sur.indexOf(n) === -1) sur.push(n); });
     const rec = { id: r.id || String(r.seed), t: r.prevT || Date.now(), shown: r.st.shown, ok: r.st.ok, errs: r.st.errs.slice(0, 300), sur };

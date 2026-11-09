@@ -43,6 +43,12 @@ vm.createContext(sandbox);
 const mint = ast.program.body.find(n => n.type === 'FunctionDeclaration' && n.id.name === 'ezikMintId');
 if (!mint) throw Error('missing shared stable-ID helper');
 vm.runInContext(raw.slice(mint.start, mint.end), sandbox);
+// ORDER T2: retirement uses the shipped progress merge and JSON helper.
+const syncJson = ast.program.body.find(n => n.type === 'FunctionDeclaration' && n.id.name === 'ezikSyncJson');
+if (!syncJson) throw Error('missing sync JSON helper');
+vm.runInContext(raw.slice(syncJson.start,syncJson.end),sandbox);
+sandbox.EZIK_PROGRESS = vm.runInContext('('+TOP.get('EZIK_PROGRESS')+')',sandbox);
+sandbox.ezikSyncSoon = () => {}; // Only scheduling is stubbed; retirement and storage are real.
 const LIFT = [];
 const lift = (names) => {
   const missing = [];
