@@ -235,6 +235,14 @@ async function main() {
     const spaceA = SSTORE.spaceIdOf(A.key);
     const wiped = await SSTORE.readSpace('preview', spaceA);
     check('D1 delete-all-my-data: only the durable Dima deletion boundary remains', r.statusCode === 200 && Object.keys(wiped.records).length === 1 && !!wiped.records['kv:dima_epoch']);
+  // T3: unchanged records with a stale cursor must still be refused by the actual Lua.
+  {
+    const snapshot = wiped;
+    const rejected = await SSTORE.wipeProgressSpace('preview', spaceA, snapshot.cursor - 1,
+      snapshot.records['kv:dima_epoch'].env, snapshot.records);
+    const after = await SSTORE.readSpace('preview', spaceA);
+    check('D1b real wipe script rejects a stale cursor without changing records', !rejected && JSON.stringify(after) === JSON.stringify(snapshot));
+  }
     r = await call({ action: 'pull', session: A.session, cursor: 0 });
     check('D2 ...and the account stays: its session finds only a positive deletion generation', r.statusCode === 200 && r.body.changes.length === 1 && r.body.changes[0].id === 'kv:dima_epoch' && Number(r.body.changes[0].rec.val) > 0 && !!(await AUTHSTORE.readJson(A.key)));
     r = await call({ action: 'pull', session: B.session, cursor: 0 });

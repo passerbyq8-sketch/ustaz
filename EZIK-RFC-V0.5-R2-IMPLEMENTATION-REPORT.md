@@ -690,3 +690,9 @@ The standard app build, byte/digest records, focused sync and deletion checks we
 ## ORDER T2B index-zero repair (2026-11-09)
 
 The memorizer run reader accepts integer index zero by checking the invalid-value sentinel explicitly. All other run validation remains unchanged. Two regressions in the existing trialfixsync group cover reload and resume, sharded server round trips and retirements, and invalid index rejection. The standard build and dependent byte/digest records were verified; the roster remains 282. Final committed-head results and integrity measurements are recorded in the session archive REPORT-C1-ORDER-T2B.md.
+
+## ORDER T3 second-audit repairs (2026-11-09)
+
+C4 flags T2-F1 through T2-F4 are addressed in the existing gate groups. Profile application uses the winning year pair and its timestamp. Delete-all validates the exact sealed record snapshot inside the cursor-checked deletion transaction, rejecting torn reads and retrying. Memorizer begin, persist, resume and finish preserve one run ID, including old seed-ID saves. The sync fixture executes the shipped deletion statements; removing the real delete or cursor comparison fails both stock sync guards. Existing assertions remain.
+
+The standard build and byte/digest records were verified. The roster remains 282; privacy wording T2-F5 is unchanged. Final committed-head suite results, mutation outputs, C4 scenario replays and per-file integrity measurements are recorded in the session archive REPORT-C1-ORDER-T3.md.

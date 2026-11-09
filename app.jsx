@@ -34892,9 +34892,9 @@ function ezikSyncApplyNow(id, rec) {
     // Settings clears save a numeric adult-default year with false provenance. Missing legacy years are absent information.
     if (!conflict && Number.isInteger(val.birthYear)) {
       next.syncFields.year = merged._fields.year;
-      next.birthYear = account.birthYear;
-      next.birthYearProvided = account.birthYearProvided;
-      next.age = account.birthYear == null ? ONBOARDING_DEFAULT_AGE : new Date().getFullYear() - account.birthYear;
+      next.birthYear = merged.birthYear;
+      next.birthYearProvided = merged.birthYearProvided;
+      next.age = merged.birthYear == null ? ONBOARDING_DEFAULT_AGE : new Date().getFullYear() - merged.birthYear;
     }
     localStorage.setItem('child_profile', JSON.stringify(next));
     window.dispatchEvent(new CustomEvent('ezik:profile:applied', { detail: { session: readAuthSession()?.session, profile: next } }));
@@ -41488,7 +41488,7 @@ const mem86RunRead = () => {
   if (!segs.length) return null;
   const st = mem86Obj(v.st) ? v.st : {};
   return {
-    id: v.id, at: v.at, segs, seed: v.seed, i: v.i, cfg: { ...MEM86_PREF_DEFAULT, ...v.cfg },
+    id: v.id || String(v.seed), at: v.at, segs, seed: v.seed, i: v.i, cfg: { ...MEM86_PREF_DEFAULT, ...v.cfg },
     st: {
       shown: mem86Int(st.shown, 0, 999) || 0, ok: mem86Int(st.ok, 0, 999) || 0, streak: mem86Int(st.streak, 0, 999) || 0,
       errs: Array.isArray(st.errs) ? st.errs.filter((x) => typeof x === 'string').slice(0, 300) : [],
@@ -41569,7 +41569,7 @@ const Mem86Test = ({ counts, held, ranges, prefs, onPref, isFemale, onSimilar, o
     return starts.current.list;
   };
   const elapsed = (r) => r.st.ms + (stage === 'q' && t0.current ? Date.now() - t0.current : 0);
-  const persist = (r, ms) => { if (!r.temp) mem86RunWrite({ segs: r.segs, seed: r.seed, i: r.i, cfg: r.cfg, prevT: r.prevT || 0, st: { ...r.st, ms } }); };
+  const persist = (r, ms) => { if (!r.temp) mem86RunWrite({ id: r.id || String(r.seed), segs: r.segs, seed: r.seed, i: r.i, cfg: r.cfg, prevT: r.prevT || 0, st: { ...r.st, ms } }); };
   const nextQ = (r) => {
     const list = startList(r.segs);
     if (!list.length) return;

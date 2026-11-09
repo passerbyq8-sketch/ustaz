@@ -199,7 +199,8 @@ test('trialfix-d5-d10 profile hydration, missing local, legacy provenance, confl
   assert.equal(run(d,'ezikSyncCollect()["kv:profile"].birthYear'),1990,'collection retains the pending device pair without advancing its year timestamp');
   run(d,'ezikSyncChooseProfileYear(true)');
   assert.equal(JSON.parse(d.local.getItem('child_profile')).birthYear,1980);
-  apply({name:'Legacy',birthYear:1975});
+  // A newer legacy write still normalizes missing provenance to false; an older write now loses.
+  apply({name:'Legacy',birthYear:1975,_fields:{year:Date.now()+1000}});
   assert.equal(JSON.parse(d.local.getItem('child_profile')).birthYearProvided,false);
   d.local.removeItem('child_profile');
   assert.equal(apply({name:'Early',birthYear:1980}),false,'pre-onboarding record is not consumed');
@@ -318,4 +319,64 @@ test('trialfix-d12a a setting edited during pull or push is not overwritten by t
   assert.equal(d.local.getItem('ezik_110_font_v1'),'tajawal');
   assert.equal(run(d,'ezikSyncReadState().pend["kv:ezik_110_font_v1"].explicit'),true);
   run(d,'ezikSyncHalted = true; clearTimeout(ezikSyncSoonTimer);');
+});
+
+// ORDER T3: C4's expanded scenarios run through the shipped callbacks and store script.
+test('trialfix-t3-f1 saved-entered-year-versus-older-default-pair',async()=>{
+  const d=makeDevice({child_profile:JSON.stringify({...auditProfile,name:'Local',syncFields:{name:5,gender:5,year:100}})},'year-clear');
+  cycleFixture(d,[{id:'kv:profile',rec:{u:20,val:{name:'Remote',gender:'male',birthYear:2007,birthYearProvided:false,_fields:{name:20,gender:5,year:1}}}}]);
+  run(d,"var st=ezikSyncReadState();st.acct='A';st.shadow['kv:profile']='old';st.pend['kv:profile']={u:100,explicit:true};ezikSyncWriteState(st)");
+  assert.equal(await run(d,'ezikSyncCycle()'),'ok');
+  const p=JSON.parse(d.local.getItem('child_profile'));
+  assert.deepEqual([p.birthYear,p.age,p.birthYearProvided,p.syncFields.year,p.name],[2015,11,true,100,'Remote']);
+  const uploaded=plain(run(d,"auditUploads.find(c=>c.id==='kv:profile').rec.val"));
+  assert.deepEqual([uploaded.birthYear,uploaded.birthYearProvided,uploaded._fields.year,uploaded.name],[2015,true,100,'Remote']);
+});
+test('trialfix-t3-f2 F5-torn-read-concurrent-epoch and CAS contention',async()=>{
+  const S=await import('../lib/sync/service.js'),T=await import('../lib/sync/store.js'),C=await import('../lib/sync/crypto.js');
+  const env={VERCEL_ENV:'preview',SYNC_ENC_KEY:'11'.repeat(32)},keys=C.loadKeys(env);
+  for(const interleaving of ['torn-read','before-CAS']) {
+    const b=require('../guards/sync-fake-store.cjs').makeStore();T.__setSyncStoreForTest(b);
+    const a='t3-'+interleaving,space=T.spaceIdOf(a),ks=T.keysOf('preview',space),newer=Date.now()+60000;
+    await S.push(a,[{id:'kv:dima_epoch',rec:{u:1,val:'0'}}],env);
+    const write=()=>T.casWrite('preview',space,'kv:dima_epoch',1,C.seal(keys,'preview',space,'kv:dima_epoch',{u:newer,del:false,val:String(newer)}));
+    let armed=true,inject,wipes=0;const get=b.hgetall.bind(b),evaluate=b.eval.bind(b);
+    b.hgetall=async k=>{
+      if(interleaving==='torn-read'&&armed&&k===ks.r){const snapshot=await get(k);armed=false;inject=write();return snapshot;}
+      if(k===ks.m){await Promise.resolve();if(inject)await inject;}
+      return get(k);
+    };
+    b.eval=async(script,ks,args)=>{
+      if(script.includes('-- sync-wipe-progress-v1')){wipes++;if(interleaving==='before-CAS'&&armed){armed=false;await write();}}
+      return evaluate(script,ks,args);
+    };
+    await S.wipeAll(a,env);assert.equal(armed,false);assert.equal(wipes,2,'invalid snapshot retries');
+    const after=(await S.exportAll(a,env)).records;
+    assert.equal(Number(after['kv:dima_epoch']),newer+1);
+    const stale='ctr:dima.'+newer+'.start',fresh='ctr:dima.'+(newer+1)+'.start';
+    const val={schema:2,startDate:'2026-11-01',log:{},presented:{}};
+    const pushed=await S.push(a,[{id:stale,rec:{u:1,val}}],env);
+    assert.equal(pushed.results[0].rec.del,true);assert.equal((await S.exportAll(a,env)).records[stale],undefined);
+    await S.push(a,[{id:fresh,rec:{u:2,val}}],env);assert.equal((await S.exportAll(a,env)).records[fresh].startDate,val.startDate);
+  }
+});
+test('trialfix-t3-f3 F6-extra-real-begin-persist-finish and legacy seed resume',()=>{
+  const source=require('fs').readFileSync(require('path').join(__dirname,'../app.jsx'),'utf8');
+  const persist=source.match(/  const persist = \(r, ms\) => \{[^\n]+/)[0];
+  const begin=source.slice(source.indexOf('  const begin = (segs, cfg) => {'),source.indexOf('  const resume = (r) => {'));
+  const resume=source.match(/  const resume = \(r\) => \{[^\n]+/)[0];
+  const finish=source.slice(source.indexOf('  const finish = (r) => {'),source.indexOf('  const pause = () => {',source.indexOf('  const finish = (r) => {')));
+  for(const mode of ['begin','seed-resume','idless-resume','seed-discard']) {
+    const d=auditDevice();run(d,'__mem86Counts=new Array(115).fill(7)');
+    const legacy={...validRun('42',10),seed:42,i:0};if(mode==='idless-resume')delete legacy.id;
+    if(mode!=='begin')d.local.setItem('ezik_mem_run_v1',JSON.stringify(legacy));
+    const got=plain(run(d,'(()=>{let active;const prefs={},temp=false,setRun=v=>active=v,setResult=()=>{},setStage=()=>{},setSaved=()=>{},setQs=()=>{},elapsed=()=>0,t0={current:0},counts=new Array(115).fill(7);'+persist+begin+resume+finish+
+      (mode==='begin'?'begin([[1,1,1,7]],{});':'resume(mem86RunRead());persist(active,0);')+
+      'const before=mem86RunRead(),runtimeId=active.id;active.st.shown=1;active.st.ok=1;active.st.ayat=[1];'+(mode==='seed-discard'?'mem86RunWrite(null);':'finish(active);')+
+      'return {runtimeId,storedId:before.id,after:mem86RunRead(),retired:JSON.parse(localStorage.getItem("ezik_mem_retired_v1")),collected:ezikSyncCollect()};})()'));
+    assert.equal(got.runtimeId,got.storedId,mode);assert.equal(got.after,null,mode);assert.ok(got.retired.includes(got.storedId));
+    assert.equal(Object.values(got.collected).flatMap(v=>v.runs||[]).some(r=>r.id===got.storedId),false,mode);
+    applyRecord(d,'ctr:mem.run',{runs:[{...legacy,id:got.storedId}]},999);
+    assert.equal(run(d,'mem86RunRead()'),null,'stale echo stays retired');
+  }
 });

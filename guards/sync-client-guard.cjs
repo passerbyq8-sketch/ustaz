@@ -292,6 +292,14 @@ async function main() {
   }
   const afterWipe = await SSTORE.readSpace('preview',SSTORE.spaceIdOf(A.key));
   check('W1 delete-all: only the durable Dima deletion boundary remains', Object.keys(afterWipe.records).length === 1 && !!afterWipe.records['kv:dima_epoch']);
+  // T3: unchanged records with a stale cursor must still be refused by the actual Lua.
+  {
+    const snapshot = afterWipe;
+    const rejected = await SSTORE.wipeProgressSpace('preview', SSTORE.spaceIdOf(A.key), snapshot.cursor - 1,
+      snapshot.records['kv:dima_epoch'].env, snapshot.records);
+    const after = await SSTORE.readSpace('preview', SSTORE.spaceIdOf(A.key));
+    check('W1b real wipe script rejects a stale cursor without changing records', !rejected && JSON.stringify(after) === JSON.stringify(snapshot));
+  }
   check('W2 item 142: the page asks the worker to drop the mushaf downloads store', d1.deleted.length === 1 && d1.deleted[0].ezik === 'downloads-clear');
   // SYNC FIX 3 -- the gate in front of «حذف كل البيانات», against the real route: the server is
   // wiped FIRST, and the device erase runs only after the server said so.
