@@ -1115,6 +1115,25 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
       try { fs.rmSync(tmp45, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  console.log('\n=== brain35-5e J · THE LEGACY STEP DROPS A SENTENCE THAT NAMES THE JA\'FARI SCHOOL ===');
+  {
+    const FINJ = await esm('lib/finalize-reader-text.js');
+    // copied from the EXT report (س20): the question and three lines of its answer
+    const Q20_J = "كيف يصلي المريض الذي لا يستطيع القيام ولا الجلوس؟";
+    const S20_J = "لم أقفْ في هذه المادّةِ على نصٍّ مفصَّلٍ خاصٍّ بالجعفريّةِ أو غيرِ المذاهبِ الأربعةِ في هذه المسألةِ بعينِها.";
+    const L_SHAFII_J = "الشافعيّةُ: ممّن قال بالاضطجاعِ عندَ العجزِ عن الجلوس، ولهم في بعضِ أحوالِ العاجزِ تفصيلٌ في كتبِهم.";
+    const L_DOCTOR_J = "وتقدير الضرر ومقداره يرجع فيه إلى الطبيب المختص.";
+    const WITH = L_SHAFII_J + '\n' + S20_J + '\n' + L_DOCTOR_J;
+    const WITHOUT = L_SHAFII_J + '\n' + L_DOCTOR_J;
+    const fin = (text, question) => FINJ.finalizeReaderText({ text, sources: [], question }).text;
+    ok('J-10 the legacy step on a text carrying Q20\'s sentence (Q20\'s question): the sentence dropped, the rest byte-identical to the text without it',
+      fin(WITH, Q20_J) === fin(WITHOUT, Q20_J) && !fin(WITH, Q20_J).includes('بالجعفريّةِ'), fin(WITH, Q20_J).replace(/[^\x20-\x7e\n]/gu, '~').slice(0, 200));
+    ok('J-11 SYNTHETIC the same text when the QUESTION names the school («هل للجعفرية قول في صلاة المريض؟»): kept (pinned)',
+      fin(WITH, 'هل للجعفرية قول في صلاة المريض؟').includes(S20_J));
+    ok('J-12 the wiring: api/ask.js hands the question to finalizeReaderText and lib/free-brain/loop.js declines a streamed unit that names the school',
+      fs.readFileSync(path.join(REPO, 'api/ask.js'), 'utf8').includes('finalizeReaderText({ ...input, question: lastUserText(body && body.messages) })')
+      && fs.readFileSync(path.join(REPO, 'lib/free-brain/loop.js'), 'utf8').includes('if (!namesBannedSchool(ctx.question) && namesBannedSchool(detail.piece)) return false;'));
+  }
   console.log('\n' + (failures === 0
     ? 'OK: ' + checks + '/' + checks + ' checks passed.'
     : 'FAILED: ' + failures + ' of ' + checks + ' checks failed.'));

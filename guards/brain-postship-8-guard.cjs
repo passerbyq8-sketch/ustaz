@@ -115,6 +115,16 @@ const LONG = [
   for (const v of LONG) { const t = await run('وقد قال الله تعالى في كتابه ' + v + ' وهذا أصل في الباب.'); if (/\d+:\d+/.test(t) && arLeft(t).length) long++; }
   ok('the positive side holds: ten marked verses and five long unmarked ones are matched 15/15', marked + long === 15, 'marked ' + marked + '/10, long ' + long + '/5');
 
+  console.log('-- brain35-5e J: the no-Ja\'fari line rides on both writer prompts, every turn');
+  {
+    // the rule's text copied from the order (EZIK-ORDER-BRAIN35-FIX5E-2026-11-09, item J (1))
+    const RULE_J = "لا تذكرِ المذهبَ الجعفريَّ (الإماميّة) في الجوابِ بحالٍ: لا قولًا له ولا نفيًا عنه، ولا تقلْ فيه «لم أقف». فإن ذكره السائلُ في سؤالِه فأجبْ عن سؤالِه من النصوصِ المعروضةِ هنا دون أن تنسبَ إليه قولًا.";
+    const qs = [...P2, 'ما مذهب الحنابلة في زكاة الحلي؟', ...NOT_FIQH];
+    ok('J-7 the BW2 writer rules carry the line on every turn (four P2 forms, a one-school question, three non-fiqh questions)', qs.every((q) => BW.bw2RulesFor([{ id: 'x' }], q, []).includes(RULE_J)), String(qs.filter((q) => BW.bw2RulesFor([{ id: 'x' }], q, []).includes(RULE_J)).length) + '/' + qs.length);
+    ok('J-8 the legacy writer instructions carry it on every turn: fiqh or not, every band', ['adult', 'teen', 'young', ''].every((band) => [true, false].every((fiqh) => FB.buildFreeBrainInstruction({ band, fiqh }).includes(RULE_J))));
+    ok('J-9 BW_MADHHAB_VIEWS_RULE and FREE_BRAIN_MADHHAB_RULE are not edited: neither carries the line (pinned)', !BW.BW_MADHHAB_VIEWS_RULE.includes(RULE_J) && !FB.FREE_BRAIN_MADHHAB_RULE.includes(RULE_J));
+  }
+
   console.log('\n' + (checks - failures) + '/' + checks + ' checks passed');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.log('FAIL  guard crashed: ' + (e && e.stack || e)); process.exit(1); });

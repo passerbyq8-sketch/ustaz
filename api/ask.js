@@ -1580,7 +1580,7 @@ export default async function handler(req, res) {
       const result = takhrijSealRefused
         ? { ok: false, text: String(input.fallbackText || FINALIZER_REFUSAL), problems: ['TAKHRIJ_SEAL_REFUSED'],
           replaced: true, degraded: ['takhrij-rebuild-empty'], drops: [], outcome: 'REFUSED' }
-        : finalizeReaderText(input);
+        : finalizeReaderText({ ...input, question: lastUserText(body && body.messages) }); // ITEM 35 J (brain35-5e): the question, for the banned-school drop
       if (!result.ok) console.warn('[finalizer] reader text replaced', { problems: result.problems });
       for (const drop of Array.isArray(result.drops) ? result.drops : []) {
         if (!dropLogRoom()) break;
@@ -2236,6 +2236,7 @@ export default async function handler(req, res) {
           heldDependentOpening: t.heldDependentOpening, heldDanglingLeadIn: t.heldDanglingLeadIn, heldNotCovered: t.heldNotCovered, heldNotCoveredSentence: t.heldNotCoveredSentence,
           heldEmptyHeading: t.heldEmptyHeading,
           heldEvidenceOfHeldStance: t.heldEvidenceOfHeldStance, // ITEM 35-D4 C6 (b) (brain35-5 Z7): a count, no text
+          heldBannedSchool: t.heldBannedSchool, // ITEM 35 J (brain35-5e): a count, no text
           // PIPES fix 3: why the turn went on to today's path ('' when it did not).
           continued: t.continued,
         });

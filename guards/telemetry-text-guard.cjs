@@ -277,6 +277,8 @@ const BW2_FIELDS = [
   'heldEmptyHeading',
   // ITEM 35-D4 C6 (b) (brain35-5 Z7): an evidence block whose stance never went out (BW2_HOLD_REASONS 'evidence_of_held_stance'). A count.
   'heldEvidenceOfHeldStance',
+  // re-cut 2026-11-09 (brain35-5e J, R5 (b)): a unit that names the Ja'fari school (BW2_HOLD_REASONS 'banned_school'). A count.
+  'heldBannedSchool',
   // SPEED FIX 3, C4 (order EZIK-SPEED-FIX3-ORDER-2026-09-27): units released by a hadith proof (a kept
   // row carrying the text and every name, or the takhrij). A number.
   'unitsProvedHadith',

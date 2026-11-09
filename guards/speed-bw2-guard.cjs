@@ -846,7 +846,10 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         !fs.existsSync(ORDER10) || fs.readFileSync(ORDER10, 'utf8').includes('«' + body10 + '»'));
       // brain35 A-3 (2026-11-06, the owner's decision): the writer's rules now carry the compiler rule (BW2_WRITE_RULES_BRAIN35,
       // rule 12) AFTER the tenth sentence on every turn; the tenth is still carried, and the brain35 rules close the list.
-      ok('ORDER50-2c every turn\'s rules carry it, and the brain35 rules follow it, last', BW2.bw2RulesFor([], 'x', []).endsWith(BW2.BW2_WRITE_RULES_BRAIN35)
+      // re-cut 2026-11-09 (brain35-5e J, R5 (a)): the owner's no-Ja'fari line is appended after them on every turn; the pin of the
+      // assembled rules' tail moves to include it, nothing else of the row
+      const NO_JAFARI_R5 = require('fs').readFileSync(path.join(REPO, 'lib/free-brain/instructions.js'), 'utf8').includes('export const NO_JAFARI_SCHOOL_RULE') ? (await esm('lib/free-brain/instructions.js')).NO_JAFARI_SCHOOL_RULE : '';
+      ok('ORDER50-2c every turn\'s rules carry it, and the brain35 rules follow it, last', BW2.bw2RulesFor([], 'x', []).endsWith(BW2.BW2_WRITE_RULES_BRAIN35 + String.fromCharCode(10) + NO_JAFARI_R5)
         && BW2.bw2RulesFor([], 'x', []).indexOf(rule10) < BW2.bw2RulesFor([], 'x', []).indexOf(BW2.BW2_WRITE_RULES_BRAIN35));
       ok('ORDER50-2c every turn\'s rules carry it (a turn about the schools carries it too)', BW2.bw2RulesFor([], 'ما درجة حديث «اختلاف أمتي رحمة»؟', []).includes(rule10)
         && BW2.bw2RulesFor([], 'x', []).includes(rule10) && BW2.bw2RulesFor([], 'ما حكم الجهر بالبسملة عند المذاهب الأربعة؟', []).includes(rule10));
@@ -3121,6 +3124,48 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         ok('F-D2iv mutant loads', !!MV);
         const mv = MV ? await playD2IV(MV, ADAWI_N_D2IV) : null;
         ok('F-D2iv MUTANT KILLED: with the decode removed variant N ships the unsupported card again', !!mv && mv.sum.cardsSent === 1 && mv.text.includes('mostafaaladwy.com'), mv ? JSON.stringify({ sent: mv.sum.cardsSent }) : 'no module');
+      }
+    }
+    // ---------------------------------------------------------------- brain35-5e J (2026-11-09; the owner: «أكيد مايجيب طاري الجعفري بالمره»): EZIK
+    // NEVER NAMES THE JA'FARI SCHOOL. A unit whose folded text carries a banned word, in a turn whose question carries none, is held
+    // 'banned_school' before the support tests (lib/bw2-units.js check(); the list in lib/free-brain/instructions.js). Q20's question
+    // and sentence copied from the EXT report (س20); the other units and the rows SYNTHETIC (each row carries its unit, so today's
+    // tests release it: BRAIN35-FIX5E-evidence/probe-j-head.out.txt).
+    {
+      const UJ = await esm('lib/bw2-units.js');
+      const Q20_J = "كيف يصلي المريض الذي لا يستطيع القيام ولا الجلوس؟";
+      const S20_J = "لم أقفْ في هذه المادّةِ على نصٍّ مفصَّلٍ خاصٍّ بالجعفريّةِ أو غيرِ المذاهبِ الأربعةِ في هذه المسألةِ بعينِها.";
+      const rowJ = (text) => ({ ref: 1, kind: 'lib_book', title: 'كتاب', bookTitle: 'كتاب', author: 'مؤلف', locator: '', recordId: 'SYN-J-1', subjectId: 'FC-009100', url: '', text, fullText: text, passage: text, locatorSpan: {} });
+      const citeJ = (s) => s.replace(/\.$/u, '') + ' [[1]].';
+      const playJ = async (mod, q, unit, rowText) => { const o = []; const r = mod.createBw2Releaser({ rows: [rowJ(rowText)], mode: 'brief', emit: (p) => { o.push(p); return true; }, takhrij: null, cards: null, askedMatn: '', sourceQuestion: false, leadLine: '', holdUncitedRulings: true, question: q }); r.push(citeJ(unit) + '\n\n'); const sum = await r.end(); return { text: o.join(''), sum }; };
+      const heldBanned = (r) => r.sum.released === 0 && !!r.sum.holds && r.sum.holds.banned_school === 1;
+      const j1 = await playJ(UJ, Q20_J, S20_J, S20_J);
+      ok('J-1 Q20\'s «لم أقفْ … خاصٍّ بالجعفريّةِ أو غيرِ المذاهبِ الأربعةِ …» cited, with Q20\'s question: held banned_school, not on the page', heldBanned(j1) && j1.text === '', ascii(JSON.stringify(j1.sum.holds)));
+      const j2 = await playJ(UJ, 'ما حكم الجمع بين الصلاتين في الحضر؟', 'وعند الإمامية يجوز الجمع بين الصلاتين في الحضر بلا عذر.', 'وعند الإمامية يجوز الجمع بين الصلاتين في الحضر بلا عذر.');
+      ok('J-2 SYNTHETIC «وعند الإمامية يجوز …» cited: held banned_school', heldBanned(j2), ascii(JSON.stringify(j2.sum.holds)));
+      const j3 = await playJ(UJ, 'ما حكم الجمع بين الصلاتين في الحضر؟', 'وقال أبو جعفر الطحاوي: يجوز الجمع بين الصلاتين في الحضر للحاجة.', 'قال أبو جعفر الطحاوي: يجوز الجمع بين الصلاتين في الحضر للحاجة.');
+      ok('J-3 SYNTHETIC «وقال أبو جعفر الطحاوي: …» -> as today: released byte for byte (pinned)', j3.text === 'وقال أبو جعفر الطحاوي: يجوز الجمع بين الصلاتين في الحضر للحاجة.' && !(j3.sum.holds || {}).banned_school, ascii(j3.text));
+      const j4 = await playJ(UJ, 'من روى حديث إنما الأعمال بالنيات؟', 'رواه محمد بن إسماعيل الجعفي في صحيحه.', 'رواه محمد بن إسماعيل الجعفي في صحيحه، حديث إنما الأعمال بالنيات.');
+      ok('J-4 SYNTHETIC «رواه محمد بن إسماعيل الجعفي في صحيحه.» -> as today: released byte for byte (pinned)', j4.text === 'رواه محمد بن إسماعيل الجعفي في صحيحه.' && !(j4.sum.holds || {}).banned_school, ascii(j4.text));
+      const j5 = await playJ(UJ, 'هل يجوز للمرأة أن تتزوج رجلا جعفريا؟', 'زواج المسلمة من رجل جعفري مسألة اختلف فيها أهل العلم المعاصرون.', 'زواج المسلمة من رجل جعفري مسألة اختلف فيها أهل العلم المعاصرون.');
+      ok('J-5 SYNTHETIC question «هل يجوز للمرأة أن تتزوج رجلا جعفريا؟», a cited unit carrying «جعفري» -> as today (pinned: the asker named it)', j5.text === 'زواج المسلمة من رجل جعفري مسألة اختلف فيها أهل العلم المعاصرون.' && !(j5.sum.holds || {}).banned_school, ascii(j5.text));
+      ok('J-6 the closed hold-reason registry names banned_school', Array.isArray(UJ.BW2_HOLD_REASONS) && UJ.BW2_HOLD_REASONS.includes('banned_school'));
+      {
+        // the mutant: the banned list emptied (a twin of lib/free-brain/instructions.js beside it, and a bw2-units twin importing it)
+        const instrSrc = read('lib/free-brain/instructions.js');
+        const unitsSrc = read('lib/bw2-units.js');
+        const seamJ = 'const BANNED_FOLDED = BANNED_SCHOOL_WORDS.map((w) => foldSchoolText(w).split(\' \'));';
+        const importJ = "from './free-brain/instructions.js';";
+        ok('J mutant seams present once', instrSrc.split(seamJ).length === 2 && unitsSrc.split(importJ).length === 2);
+        const tmpI = path.join(REPO, 'lib', 'free-brain', '.mut-j-instr.mjs');
+        const tmpU = path.join(REPO, 'lib', '.mut-j-units.mjs');
+        fs.writeFileSync(tmpI, instrSrc.split(seamJ).join('const BANNED_FOLDED = []; // mutant: the banned list emptied'));
+        fs.writeFileSync(tmpU, unitsSrc.split(importJ).join("from './free-brain/.mut-j-instr.mjs';"));
+        let MJ = null;
+        try { MJ = await import(pathToFileURL(tmpU).href + '?m=' + Date.now()); } catch (e) { MJ = null; } finally { fs.rmSync(tmpI, { force: true }); fs.rmSync(tmpU, { force: true }); }
+        ok('J mutant loads', !!MJ);
+        const mj = MJ ? await playJ(MJ, Q20_J, S20_J, S20_J) : null;
+        ok('J MUTANT KILLED: with the banned list emptied Q20\'s sentence is released again', !!mj && mj.sum.released === 1 && !heldBanned(mj), mj ? ascii(JSON.stringify(mj.sum.holds)) : 'no module');
       }
     }
   } catch (error) {
