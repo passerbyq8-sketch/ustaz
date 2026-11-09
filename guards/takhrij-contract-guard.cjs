@@ -2872,6 +2872,18 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     const f3 = FR.finalizeReaderText({ text: 'الجمهور يرون أن الحديث على ظاهره وعمومه، وهذا هو المشهور.', kind: 'answer', sources: [] });
     ok('3.4h-8 nothing lifted, nothing touched: an answer that opens «والجمهور…» with nothing taken out of it, and one with a «و» only in its middle, are returned byte for byte',
       f2.text === 'والجمهور يرون أن الحديث على ظاهره وعمومه.' && f2.replaced === false && f3.text === 'الجمهور يرون أن الحديث على ظاهره وعمومه، وهذا هو المشهور.' && f3.replaced === false);
+    // FIX5D F-D3 (2026-11-09; DIAG5 D3, preview Q6): after a removal, a dangling أيضا / كذلك as the second or third word of the
+    // opening goes (stripDanglingAlso, applied after stripOpeningConjunction); as the first word only behind the conjunction just taken off.
+    // The S1 sentence is the EXT report's question 6; the fifth-word sentence is SYNTHETIC.
+    const sdaD3 = typeof OC.stripDanglingAlso === 'function' ? OC.stripDanglingAlso : (t) => ({ text: String(t == null ? '' : t), stripped: false }); // identity on a HEAD without it (the RED run)
+    const chainD3 = (t, o) => { const c = st(t, o); return sdaD3(c.text, { ...o, wawStripped: c.stripped }).text; };
+    ok('F-D3c the preview Q6 sentence after a removal: the third word أيضا goes with its space, nothing else changes', chainD3("ابن باز أيضا أفتى بأن الأضحية سنة وليست بواجبة.", REMOVED) === "ابن باز أفتى بأن الأضحية سنة وليست بواجبة.", JSON.stringify(chainD3("ابن باز أيضا أفتى بأن الأضحية سنة وليست بواجبة.", REMOVED)));
+    ok('F-D3d the tanween spelling goes the same way', chainD3("ابن باز أيضًا أفتى بأن الأضحية سنة وليست بواجبة.", REMOVED) === "ابن باز أفتى بأن الأضحية سنة وليست بواجبة.", JSON.stringify(chainD3("ابن باز أيضًا أفتى بأن الأضحية سنة وليست بواجبة.", REMOVED)));
+    ok('F-D3e وكذلك as the first released unit after a hold: the conjunction strip, then كذلك gone', chainD3("وكذلك أفتى ابن باز بأن الأضحية سنة وليست بواجبة.", REMOVED) === "أفتى ابن باز بأن الأضحية سنة وليست بواجبة.", JSON.stringify(chainD3("وكذلك أفتى ابن باز بأن الأضحية سنة وليست بواجبة.", REMOVED)));
+    ok('F-D3f nothing removed before it: both sentences byte for byte', chainD3("ابن باز أيضا أفتى بأن الأضحية سنة وليست بواجبة.", {}) === "ابن باز أيضا أفتى بأن الأضحية سنة وليست بواجبة." && chainD3("وكذلك أفتى ابن باز بأن الأضحية سنة وليست بواجبة.", {}) === "وكذلك أفتى ابن باز بأن الأضحية سنة وليست بواجبة.");
+    ok('F-D3g unchanged after a removal: the word as the fifth word (SYNTHETIC), followed by a comma, كذلك first with no conjunction taken off, and a heading first',
+      chainD3("الأضحية سنة وليست بواجبة أيضا عند ابن باز.", REMOVED) === "الأضحية سنة وليست بواجبة أيضا عند ابن باز." && chainD3("ابن باز أيضا، أفتى بأن الأضحية سنة وليست بواجبة.", REMOVED) === "ابن باز أيضا، أفتى بأن الأضحية سنة وليست بواجبة."
+      && chainD3("كذلك أفتى ابن باز بأن الأضحية سنة وليست بواجبة.", REMOVED) === "كذلك أفتى ابن باز بأن الأضحية سنة وليست بواجبة." && chainD3("## الأضحية\nابن باز أيضا أفتى بأن الأضحية سنة وليست بواجبة.", REMOVED) === "## الأضحية\nابن باز أيضا أفتى بأن الأضحية سنة وليست بواجبة.");
     // mutants of lib/opening-conjunction.js (a temp copy beside it)
     {
       const fsx = require('fs');

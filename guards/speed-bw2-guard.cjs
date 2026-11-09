@@ -3009,6 +3009,41 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
           !!MY && (await playY3(MY, LIVE12, FULL_U1)).holds.unsupported_school === 1, MY ? JSON.stringify((await playY3(MY, LIVE12, FULL_U1)).holds) : 'no module');
       }
     }
+    // ---------------------------------------------------------------- FIX5D F-D3 (2026-11-09; DIAG5 D3, preview Q6): THE FIRST RELEASED SENTENCE AFTER A HOLD
+    // DOES NOT KEEP A DANGLING أيضا. MEASURED (DIAG5 H3 S1, offline): the obligation view held unsupported_attribution, its evidence held
+    // evidence_of_held_stance (W2), and the one surviving sentence went out as ابن باز أيضا أفتى بأن الأضحية سنة وليست بواجبة -- with nothing before it. The mark site now
+    // applies lib/opening-conjunction.js stripDanglingAlso after stripOpeningConjunction, afterRemoval only. The composition and the row are
+    // the H3 harness's (SYNTHETIC, the row's title copied from the page's card, the sentence from the EXT report question 6).
+    {
+      const UNITS_D3 = await esm('lib/bw2-units.js');
+      const ROW_D3 = {"kind":"fatwa","title":"الأضحية سنة وليست واجبة","url":"https://binbaz.org.sa/fatwas/SYNTHETIC-udhiyah","publisher":"ابن باز","scholarId":"binbaz","recordId":"SYNTHETIC-binbaz-udhiyah","text":"السؤال المنشور: هل الأضحية واجبة على القادر، ومن تركها هل يأثم؟ — الأضحية سنة مؤكدة وليست بواجبة في أصح قولي العلماء، فمن ضحى فقد أحسن وأصاب السنة، ومن تركها وهو قادر فلا إثم عليه، لكنه فاته خير كثير. وأما القول بوجوبها فهو قول مرجوح.","ref":1};
+      const S1_D3 = ["ذهب أبو حنيفة إلى أن الأضحية واجبة على القادر، فمن تركها وهو قادر فهو آثم [[1]].","ومن أدلة القائلين بالوجوب: قوله تعالى: فصل لربك وانحر، والأمر يقتضي الوجوب [[1]].","ابن باز أيضا أفتى بأن الأضحية سنة وليست بواجبة [[1]]."];
+      const S8_D3 = ["ابن باز أيضا أفتى بأن الأضحية سنة وليست بواجبة [[1]]."];
+      const EXPECT_D3 = "ابن باز أفتى بأن الأضحية سنة وليست بواجبة.";
+      const S8_PLAIN_D3 = "ابن باز أيضا أفتى بأن الأضحية سنة وليست بواجبة.";
+      const playD3 = async (mod, units) => { const out = []; const r = mod.createBw2Releaser({ rows: [ROW_D3], emit: (p) => { out.push(p); return true; } }); for (const u of units) r.push(u + '\n\n'); const sum = await r.end(); return { text: out.join(''), holds: sum.holds, released: sum.released, held: sum.held }; };
+      const s1D3 = await playD3(UNITS_D3, S1_D3);
+      ok('F-D3a S1 (the view held unsupported_attribution, its evidence held evidence_of_held_stance): the released Ibn Baz sentence opens without the dangling word, the rest byte for byte',
+        s1D3.holds.unsupported_attribution === 1 && s1D3.holds.evidence_of_held_stance === 1 && s1D3.released === 1 && s1D3.text.startsWith(EXPECT_D3), ascii(s1D3.text) + ' ' + JSON.stringify(s1D3.holds));
+      const s8D3 = await playD3(UNITS_D3, S8_D3);
+      ok('F-D3b S8 (the same sentence, nothing held before it): released byte-identical, the word kept', s8D3.held === 0 && s8D3.text.startsWith(S8_PLAIN_D3), ascii(s8D3.text));
+      {
+        const srcOC = read('lib/opening-conjunction.js');
+        const seamOC = "const POST_REMOVAL_ALSO_WORDS = new Set(['ايضا', 'كذلك']);";
+        ok('F-D3 mutant seam present once', srcOC.split(seamOC).length === 2);
+        const tmpOC = path.join(REPO, 'lib', '.mut-fd3-oc.mjs');
+        const tmpUD = path.join(REPO, 'lib', '.mut-fd3-units.mjs');
+        fs.writeFileSync(tmpOC, srcOC.split(seamOC).join('const POST_REMOVAL_ALSO_WORDS = new Set([]); // mutant: the word list emptied'));
+        fs.writeFileSync(tmpUD, read('lib/bw2-units.js').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + (spec === './opening-conjunction.js' ? pathToFileURL(tmpOC).href : pathToFileURL(path.resolve(REPO, 'lib', spec)).href) + q));
+        let MD3 = null;
+        try { MD3 = await import(pathToFileURL(tmpUD).href + '?m=' + Date.now()); } catch (e) { MD3 = null; } finally { fs.rmSync(tmpUD, { force: true }); fs.rmSync(tmpOC, { force: true }); }
+        ok('F-D3 mutant loads', !!MD3);
+        const m1D3 = MD3 ? await playD3(MD3, S1_D3) : null;
+        ok('F-D3 MUTANT KILLED: with the word list emptied S1\'s released sentence opens on the dangling word again',
+          !!m1D3 && m1D3.text.startsWith(S8_PLAIN_D3) && !m1D3.text.startsWith(EXPECT_D3), m1D3 ? ascii(m1D3.text) : 'no module');
+      }
+    }
   } catch (error) {
     ok('guard completed without exception', false, error && error.stack ? error.stack : String(error));
   }
