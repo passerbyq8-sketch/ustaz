@@ -380,3 +380,19 @@ test('trialfix-t3-f3 F6-extra-real-begin-persist-finish and legacy seed resume',
     assert.equal(run(d,'mem86RunRead()'),null,'stale echo stays retired');
   }
 });
+// ORDER T3D (T2-F5): both privacy copies state the one encrypted boundary record that delete-all keeps.
+test('trialfix-t3d-t2f5 privacy copies say what delete-all keeps',()=>{
+  const fsT3d=require('fs'),pathT3d=require('path');
+  const keptAr="\u00ab\u062d\u0630\u0641 \u0643\u0644 \u0627\u0644\u0628\u064a\u0627\u0646\u0627\u062a\u00bb \u064a\u0645\u0633\u062d\u0647\u0627 \u0645\u0646 \u062c\u0647\u0627\u0632\u0643 \u0648\u0645\u0646 \u062d\u0633\u0627\u0628\u0643 \u0641\u0648\u0631\u064b\u0627\u060c \u0648\u064a\u0628\u0642\u0649 \u062d\u0633\u0627\u0628\u064f\u0643 \u0641\u0627\u0631\u063a\u064b\u0627 \u0645\u0646\u0647\u0627\u060c \u0625\u0644\u0651\u0627 \u0631\u0642\u0645\u064b\u0627 \u062a\u0642\u0646\u064a\u064b\u0651\u0627 \u0645\u0634\u0641\u0651\u0631\u064b\u0627 \u0644\u0627 \u0645\u062d\u062a\u0648\u0649 \u0641\u064a\u0647\u060c \u0645\u0639 \u0639\u062f\u0651\u0627\u062f\u0627\u062a\u0650 \u0645\u0632\u0627\u0645\u0646\u062a\u0650\u0647\u060c \u064a\u0645\u0646\u0639\u064f \u0623\u064a\u064e\u0651 \u062c\u0647\u0627\u0632\u064d \u0642\u062f\u064a\u0645\u064d \u0645\u0646 \u0625\u0631\u062c\u0627\u0639\u0650 \u062a\u0642\u062f\u0651\u0645\u0650 \u00ab\u062f\u064a\u0645\u0629\u00bb \u0627\u0644\u0645\u062d\u0630\u0648\u0641.";
+  const keptEn="\"Delete all data\" erases it from your device and from your account at once; your account stays empty of it, except for an encrypted technical number with no content (and its sync counters), which stops any old device from bringing back deleted Dima progress.";
+  const emptyAr="\u00ab\u062d\u0630\u0641 \u0643\u0644 \u0627\u0644\u0628\u064a\u0627\u0646\u0627\u062a\u00bb \u064a\u0645\u0633\u062d\u0647\u0627 \u0645\u0646 \u062c\u0647\u0627\u0632\u0643 \u0648\u0645\u0646 \u062d\u0633\u0627\u0628\u0643 \u0641\u0648\u0631\u064b\u0627\u060c \u0648\u064a\u0628\u0642\u0649 \u062d\u0633\u0627\u0628\u064f\u0643 \u0641\u0627\u0631\u063a\u064b\u0627.";
+  const emptyEn="\"Delete all data\" erases it from your device and from your account at once; your account stays, empty.";
+  for(const rel of ['privacy.html','lib/sync/privacy-page.js']){
+    const shown=fsT3d.readFileSync(pathT3d.join(__dirname,'..',rel),'utf8').replace(/<\/?strong>/g,'');
+    const seen=s=>shown.split(s).length-1;
+    assert.equal(seen(keptAr),1,rel+' arabic boundary sentence');
+    assert.equal(seen(keptEn),1,rel+' english boundary sentence');
+    assert.equal(seen(emptyAr),0,rel+' old arabic empty-account promise');
+    assert.equal(seen(emptyEn),0,rel+' old english empty-account promise');
+  }
+});
