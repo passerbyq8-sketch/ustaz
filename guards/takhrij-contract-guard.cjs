@@ -1900,6 +1900,78 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       }
     }
   }
+  console.log('\n=== brain35-5e G2 (2026-11-09; DIAG6 G2) · THE COMPANION IS READ INSIDE HIS OWN NARRATION ===');
+  {
+    // MEASURED (DIAG6 G2-companion-wording, preview Q2): «… «فوالذي نفسي بيده …» عن أبي هريرة رضي الله عنه: «لا يؤمن أحدكم، حتى … والناس
+    // أجمعين» (متفق عليه).» -- Anas's wording under Abu Hurayra. companionFrom took the LAST «anchor + name + رضي الله عنه» before the matn
+    // cut; Anas's own narration carries no prayer («عن أنس، قال:»), so the reader walked back over the narration boundary and took the
+    // Companion of the narration BEFORE it on the same page. The part searched now starts at the last narration boundary before the cut:
+    // a hadith number («15 - »), an isnad opener after the last closing «»», or «وعن» right after it; a narration whose own Companion has
+    // no prayer names NO Companion. Not a boundary: «وفي رواية», «ولفظه», a closing «»» alone (Claude's ruling: the alternate wording of
+    // the SAME narration keeps its Companion). The atoms and paragraphs are the DIAG6 harness's (SYNTHETIC), the quotations copied (EXT Q2).
+    const TG2 = await esm('lib/takhrij.js');
+    const LG2 = await esm('lib/takhrij-ladder.js');
+    const idG2 = (display) => (LG2.TAKHRIJ_LADDER.find((r) => r.display === display) || { ids: [] }).ids[0];
+    const ID_B = idG2('البخاري'); const ID_M = idG2('مسلم'); const ID_N = idG2('النسائي');
+    const AH_MATN = "فوالذي نفسي بيده، لا يؤمن أحدكم حتى أكون أحب إليه من والده وولده";
+    const ANAS_MATN = "لا يؤمن أحدكم، حتى أكون أحب إليه من والده وولده والناس أجمعين";
+    const B0 = "باب حب الرسول صلى الله عليه وسلم من الإيمان 14 - حدثنا أبو اليمان، قال: أخبرنا شعيب، قال: حدثنا أبو الزناد، عن الأعرج، عن أبي هريرة رضي الله عنه: أن رسول الله صلى الله عليه وسلم قال: «فوالذي نفسي بيده، لا يؤمن أحدكم حتى أكون أحب إليه من والده وولده» 15 - حدثنا يعقوب بن إبراهيم، قال: حدثنا ابن علية، عن عبد العزيز بن صهيب، عن أنس، قال: قال النبي صلى الله عليه وسلم: «لا يؤمن أحدكم، حتى أكون أحب إليه من والده وولده والناس أجمعين»";
+    const B1 = "باب حب الرسول صلى الله عليه وسلم من الإيمان 14 - حدثنا أبو اليمان، قال: أخبرنا شعيب، قال: حدثنا أبو الزناد، عن الأعرج، عن أبي هريرة رضي الله عنه: أن رسول الله صلى الله عليه وسلم قال: «فوالذي نفسي بيده، لا يؤمن أحدكم حتى أكون أحب إليه من والده وولده» 15 - حدثنا يعقوب بن إبراهيم، قال: حدثنا ابن علية، عن عبد العزيز بن صهيب، عن أنس رضي الله عنه، قال: قال النبي صلى الله عليه وسلم: «لا يؤمن أحدكم، حتى أكون أحب إليه من والده وولده والناس أجمعين»";
+    const M0 = "69 - (44) حدثنا محمد بن المثنى، وابن بشار، قالا: حدثنا محمد بن جعفر، حدثنا شعبة، قال: سمعت قتادة، يحدث عن أنس بن مالك، قال: قال رسول الله صلى الله عليه وسلم: «لا يؤمن أحدكم، حتى أكون أحب إليه من والده وولده والناس أجمعين»";
+    const M0X = "69 - (44) حدثنا محمد بن المثنى، وابن بشار، قالا: حدثنا محمد بن جعفر، حدثنا شعبة، قال: سمعت قتادة، يحدث عن أنس بن مالك، قال: قال رسول الله صلى الله عليه وسلم: «لا يؤمن أحدكم حتى أكون أحب إليه من ولده ووالده والناس أجمعين»";
+    const M1 = "69 - (44) حدثنا محمد بن المثنى، وابن بشار، قالا: حدثنا محمد بن جعفر، حدثنا شعبة، قال: سمعت قتادة، يحدث عن أنس بن مالك رضي الله عنه، قال: قال رسول الله صلى الله عليه وسلم: «لا يؤمن أحدكم، حتى أكون أحب إليه من والده وولده والناس أجمعين»";
+    const N0 = "5014 - أخبرنا قتيبة، قال: حدثنا الليث، عن ابن عجلان، عن أبيه، عن أبي هريرة رضي الله عنه، أن رسول الله صلى الله عليه وسلم قال: «والذي نفسي بيده لا يؤمن أحدكم حتى أكون أحب إليه من والده وولده» 5015 - أخبرنا عمران بن موسى، قال: حدثنا عبد الوارث، عن عبد العزيز، عن أنس، قال: قال رسول الله صلى الله عليه وسلم: «لا يؤمن أحدكم، حتى أكون أحب إليه من والده وولده والناس أجمعين»";
+    const N1 = "5014 - أخبرنا قتيبة، قال: حدثنا الليث، عن ابن عجلان، عن أبيه، عن أبي هريرة رضي الله عنه، أن رسول الله صلى الله عليه وسلم قال: «والذي نفسي بيده لا يؤمن أحدكم حتى أكون أحب إليه من والده وولده» 5015 - أخبرنا عمران بن موسى، قال: حدثنا عبد الوارث، عن عبد العزيز، عن أنس رضي الله عنه، قال: قال رسول الله صلى الله عليه وسلم: «لا يؤمن أحدكم، حتى أكون أحب إليه من والده وولده والناس أجمعين»";
+    const W1G2 = "رواه الإمام البخاري في صحيحه، في كتاب الإيمان، باب حب الرسول صلى الله عليه وسلم من الإيمان، من حديث أبي هريرة رضي الله عنه بلفظ: «فوالذي نفسي بيده، لا يؤمن أحدكم حتى أكون أحب إليه من والده وولده» وفي رواية: «لا يؤمن أحدكم، حتى أكون أحب إليه من والده وولده والناس أجمعين».";
+    const W3G2 = "رواه الإمام البخاري في صحيحه، في كتاب الإيمان، باب حب الرسول صلى الله عليه وسلم من الإيمان، من حديث أبي هريرة رضي الله عنه بلفظ: «فوالذي نفسي بيده، لا يؤمن أحدكم حتى أكون أحب إليه من والده وولده» عن أبي هريرة رضي الله عنه: «لا يؤمن أحدكم، حتى أكون أحب إليه من والده وولده والناس أجمعين».";
+    const S1 = [[ID_B, B0], [ID_M, M0X]];
+    const S3 = [[ID_B, B0], [ID_M, M0], [ID_N, N0]];
+    const S4 = [[ID_B, B1], [ID_M, M1], [ID_N, N1]];
+    const S5 = [[ID_B, B0.slice(B0.indexOf('15 - '))], [ID_M, M0], [ID_N, N0.slice(N0.indexOf('5015 - '))]];
+    const lookupG2 = (atoms) => async (matns) => matns.map((matn) => ({ matn, subjectIds: atoms.map((a) => a[0]), atoms: atoms.map((a) => a[1]) }));
+    ok('G2-1 S3\'s al-Bukhari page (Abu Hurayra\'s narration with the prayer, then Anas\'s without): companionFrom(Anas\'s wording) = \'\'',
+      TG2.companionFrom(B0, ANAS_MATN).name === '', JSON.stringify(TG2.companionFrom(B0, ANAS_MATN)));
+    ok('G2-2 the same page: companionFrom(Abu Hurayra\'s wording) = «أبي هريرة» (pinned)', TG2.companionFrom(B0, AH_MATN).name === 'أبي هريرة', JSON.stringify(TG2.companionFrom(B0, AH_MATN)));
+    ok('G2-3 S4 (Anas WITH the prayer on every page): companionFrom(Anas\'s wording) = «أنس» on the al-Bukhari and al-Nasa\'i pages, «أنس بن مالك» on Muslim\'s (pinned)',
+      TG2.companionFrom(B1, ANAS_MATN).name === 'أنس' && TG2.companionFrom(N1, ANAS_MATN).name === 'أنس' && TG2.companionFrom(M1, ANAS_MATN).name === 'أنس بن مالك',
+      JSON.stringify(S4.map((a) => TG2.companionFrom(a[1], ANAS_MATN).name)));
+    ok('G2-4 S5 (each page cut to the Anas narration, no prayer): \'\' on every atom (pinned)', S5.every((a) => TG2.companionFrom(a[1], ANAS_MATN).name === ''));
+    // SYNTHETIC: one narration, its alternate wording behind «وفي رواية:» (not a boundary)
+    const RIWAYA = 'حدثنا فلان عن فلان عن أبي هريرة رضي الله عنه قال: قال رسول الله صلى الله عليه وسلم: «الطهور شطر الإيمان والحمد لله تملأ الميزان» وفي رواية: «إسباغ الوضوء شطر الإيمان والحمد لله تملأ الميزان»';
+    ok('G2-5 SYNTHETIC «عن أبي هريرة رضي الله عنه قال: … «…» وفي رواية: «…»»: the second wording keeps «أبي هريرة» (pinned: «وفي رواية» is no boundary)',
+      TG2.companionFrom(RIWAYA, 'إسباغ الوضوء شطر الإيمان والحمد لله تملأ الميزان').name === 'أبي هريرة');
+    // SYNTHETIC: a second narration opened by «وعن» right after the first matn's closing «»»
+    const WAAN = 'حدثنا فلان عن فلان عن أبي هريرة رضي الله عنه قال: قال رسول الله صلى الله عليه وسلم: «الطهور شطر الإيمان والحمد لله تملأ الميزان». وعن أنس قال: قال رسول الله صلى الله عليه وسلم: «إسباغ الوضوء شطر الإيمان والحمد لله تملأ الميزان»';
+    ok('G2-6 SYNTHETIC «… «…». وعن أنس قال: قال رسول الله صلى الله عليه وسلم: «…»»: the second wording names no Companion',
+      TG2.companionFrom(WAAN, 'إسباغ الوضوء شطر الإيمان والحمد لله تملأ الميزان').name === '', JSON.stringify(TG2.companionFrom(WAAN, 'إسباغ الوضوء شطر الإيمان والحمد لله تملأ الميزان')));
+    const ON_G2 = { TAKHRIJ_V1: 'on' };
+    const w1s3 = await TG2.applyTakhrij(W1G2, { env: ON_G2, lookup: lookupG2(S3) });
+    ok('G2-7 applyTakhrij on W1 («… وفي رواية: «…»») with S3: no «عن أبي هريرة رضي الله عنه:» before Anas\'s wording',
+      !String(w1s3.text || '').includes('عن أبي هريرة رضي الله عنه: «لا يؤمن أحدكم، حتى'), String(w1s3.text || '').slice(-160).replace(/[^\x20-\x7e]/gu, '~'));
+    const w3s1 = await TG2.applyTakhrij(W3G2, { env: ON_G2, lookup: lookupG2(S1) });
+    const anasEntry = (w3s1.entries || []).find((e) => String(e.matn || '').includes('والناس أجمعين'));
+    ok('G2-8 the engine on W3 with S1: the entry of Anas\'s wording exists and its companions carry no «أبي هريرة»',
+      !!anasEntry && !(anasEntry.companions || []).includes('أبي هريرة') && anasEntry.companion !== 'أبي هريرة', JSON.stringify(anasEntry ? { companion: anasEntry.companion, companions: anasEntry.companions } : null));
+    {
+      const fs = require('fs'); const os = require('os');
+      const src = fs.readFileSync(path.join(REPO, 'lib', 'takhrij.js'), 'utf8');
+      const SEAM = '    const found = nameBeforeCut(bare.slice(narrationStartBefore(bare, cut), cut));';
+      const changed = src.split(SEAM).join('    const found = nameBeforeCut(bare.slice(0, cut)); // mutant: the narration boundary removed');
+      ok('MUTANT G2 boundary seam applied', changed !== src);
+      const dir = path.dirname(path.join(REPO, 'lib', 'takhrij.js'));
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-g2-mut-'));
+      try {
+        const file = path.join(tmp, 'boundary-blind.mjs');
+        fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir, spec).replace(/\\/g, '/') + q), 'utf8');
+        const mod = await import('file:///' + file.replace(/\\/g, '/'));
+        ok('MUTANT G2 KILLED: without the boundary S3\'s al-Bukhari page names Abu Hurayra for Anas\'s wording again',
+          mod.companionFrom(B0, ANAS_MATN).name === 'أبي هريرة');
+      } finally {
+        try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
   console.log('\n=== 111 THIRD ORDER · STEP 4 · NO GLUED OPENER, NO LINE THAT OPENS ON A COMMA ===');
   {
     const T4 = await esm('lib/takhrij.js');
