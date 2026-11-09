@@ -104,6 +104,42 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e\n]/g, '~').slice(0, 200);
   ok('F7h a fatwa-kind book whose author is NOT a roster scholar keeps its title',
     U.shortSourceMark({ ...FC4526, author: 'لجنة الإفتاء' }) === 'فتاوى نور على الدرب لابن باز', ascii(U.shortSourceMark({ ...FC4526, author: 'لجنة الإفتاء' })));
 
+  let D6A_ROWS = null; // brain35-5d F-D6a: the rows the mutant below re-reads
+  // ── brain35-5d F-D6a (2026-11-09; DIAG5 D6) · THE WORK'S SHORT NAME BEFORE THE CUT ──────────────────────────────────────────
+  // MEASURED (DIAG5 H6, preview Q8 / Q12 / Q13): three library titles over SOURCE_MARK_MAX reached the reader cut with «…»
+  // («تخريج أحاديث الإحياء = المغني عن حمل…», «سلسلة الأحاديث الصحيحة وشيء من فقهها…», «المعاني البديعة في معرفة اختلاف أهل…»). A
+  // lib_book row bound to a catalogue work (its record id, or its title, is the catalogue's) is now named by the work's short name
+  // read off the catalogue title's shape (workShortName: «A = B» -> the first name that fits; «X في Y» -> X; «X وشيء/ويليه/وال… Y» -> X);
+  // a mark of 40 or fewer is unchanged; a row with no catalogue work, or a title with no such shape, keeps today's cut.
+  {
+    const bookRow = (bookTitle, author, recordId) => ({ kind: 'lib_book', title: bookTitle, bookTitle, author, recordId });
+    const todayCut = (mark) => mark.slice(0, 40).replace(/\s+\S*$/u, '') + '…'; // F7's cut, for a title with no trailing connector
+    const D6A = [ // titles copied from the DIAG5 H6 output (the EXT report's Q8 / Q12 / Q13 cards), with their catalogue ids
+      ['تخريج أحاديث الإحياء = المغني عن حمل الأسفار', 'العراقي، زين الدين', 'FC-002005:0001', 'تخريج أحاديث الإحياء'],
+      ['سلسلة الأحاديث الصحيحة وشيء من فقهها وفوائدها', 'ناصر الدين الألباني', 'FC-002060:0001', 'سلسلة الأحاديث الصحيحة'],
+      ['المعاني البديعة في معرفة اختلاف أهل الشريعة', 'الريمي', 'FC-003853:0001', 'المعاني البديعة'],
+    ];
+    const marks = D6A.map(([t, a, id]) => U.shortSourceMark(bookRow(t, a, id)));
+    ok('F-D6a-1 the three DIAG5 H6 titles over the cap -> the work\'s short name, no «…»',
+      D6A.every(([t]) => t.length > 40) && marks.every((m, i) => m === D6A[i][3] && !m.includes('…')), ascii(JSON.stringify(marks)));
+    const byTitle = D6A.map(([t, a]) => U.shortSourceMark(bookRow(t, a, 'SYNTHETIC')));
+    ok('F-D6a-2 ...and the row is bound by the catalogue TITLE when its record id is not a catalogue id (the H6 rows\' shape)',
+      byTitle.every((m, i) => m === D6A[i][3]), ascii(JSON.stringify(byTitle)));
+    ok('F-D6a-3 «جامع العلوم والحكم ت الأرنؤوط» -> «جامع العلوم والحكم» (pinned: under the cap once the edition tail is dropped)',
+      U.shortSourceMark(bookRow('جامع العلوم والحكم ت الأرنؤوط', 'ابن رجب الحنبلي', 'FC-001812:0001')) === 'جامع العلوم والحكم');
+    const SYN44 = 'أحكام الصلاة المفصلة المطولة المحققة المدققة جدا'; // SYNTHETIC: no catalogue work, over the cap
+    ok('F-D6a-4 SYNTHETIC a ' + SYN44.length + '-character title with no catalogue work -> today\'s cut (pinned)',
+      SYN44.length > 40 && U.shortSourceMark(bookRow(SYN44, 'مؤلف', 'FC-999999:0001')) === todayCut(SYN44), ascii(U.shortSourceMark(bookRow(SYN44, 'مؤلف', 'FC-999999:0001'))));
+    const PLAIN_LONG = 'الجامع لعلوم الإمام أحمد - التفسير وعلوم القرآن'; // FC-000011 (47 chars): no «=», no « في », no second clause; «- X Y Z» is not an edition tail
+    ok('F-D6a-5 a catalogue title over the cap whose shape yields no short name -> today\'s cut (pinned)',
+      U.shortSourceMark(bookRow(PLAIN_LONG, 'أحمد بن حنبل', 'FC-000011:0001')) === todayCut(PLAIN_LONG), ascii(U.shortSourceMark(bookRow(PLAIN_LONG, 'أحمد بن حنبل', 'FC-000011:0001'))));
+    ok('F-D6a-6 workShortName on «تفسير الرازي = مفاتيح الغيب أو التفسير الكبير» (FC-000045) -> the FIRST name, «تفسير الرازي»; a row with no catalogue work -> empty',
+      typeof U.workShortName === 'function' && U.workShortName(bookRow('تفسير الرازي = مفاتيح الغيب أو التفسير الكبير', 'الرازي', 'FC-000045:0001')) === 'تفسير الرازي'
+      && U.workShortName(bookRow(SYN44, 'مؤلف', 'FC-999999:0001')) === '', typeof U.workShortName);
+    // (the mutant of this item stands with the other mutants, section 6, after the twin helper)
+    D6A_ROWS = { bookRow, D6A };
+  }
+
 
   // ── 2. where the mark goes ──
   const first = await drive(U, PAGE_TEXT + ' [[1]].', [PAGE]);
@@ -364,6 +400,15 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e\n]/g, '~').slice(0, 200);
   ok('F7 MUTANT connector seam applied and loaded', m4.changed && m4.mod, m4.error);
   ok('F7 MUTANT KILLED: without the connector strip FC-004377\'s mark ends on a bare «و» again',
     !!m4.mod && /\sو…$/u.test(m4.mod.shortSourceMark(FC4377)), m4.mod ? ascii(m4.mod.shortSourceMark(FC4377)) : m4.error);
+
+  // brain35-5d F-D6a: the fallback removed -> the three DIAG5 H6 titles are cut with «…» again (the first F-D6a row red)
+  {
+    const mD6a = await twin((s) => s.replace("  const short = row.kind === 'lib_book' && mark.length > SOURCE_MARK_MAX ? workShortName(row) : '';", "  const short = ''; // mutant: no short name before the cut"), 'd6a');
+    ok('F-D6a MUTANT fallback seam applied and loaded', mD6a.changed && mD6a.mod, mD6a.error);
+    const marksM = D6A_ROWS && mD6a.mod ? D6A_ROWS.D6A.map(([t, a, id]) => mD6a.mod.shortSourceMark(D6A_ROWS.bookRow(t, a, id))) : [];
+    ok('F-D6a MUTANT KILLED: without the fallback the three titles are cut with «…» again',
+      marksM.length === 3 && marksM.every((m) => m.endsWith('…')), mD6a.mod ? ascii(JSON.stringify(marksM)) : mD6a.error);
+  }
 
   console.log('\n=== source-marks: ' + (checks - failures) + '/' + checks + (failures ? ' FAIL' : ' PASS') + ' ===');
   process.exit(failures ? 1 : 0);
