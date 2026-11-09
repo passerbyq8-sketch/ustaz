@@ -1078,6 +1078,40 @@ function quantityContradiction(parts) {
       ok('MUTANT KILLED: without «و» and «ف» in the prefix the glued «وسئل» is no report again (G5a-1 red)', prefixMutant.loaded && prefixMutant.survived === false, JSON.stringify(prefixMutant));
     }
 
+    // ── brain35-5f G7 (2026-11-09; DIAG6 G7; order FIX5F, Claude's ruling) · A DENIED DISPUTE IS NOT A DISPUTE: THE TEST STANDS ON THE MARKER ──
+    // MEASURED (DIAG6 G7-khilaf-no-contradiction, preview Q14): the tail «لظهور الخلاف فيها» on a settled recommendation; the source prong matched
+    // KHILAF_SOURCE_MARKERS inside the Mawsu'a's «ولا خلاف بين الفقهاء …». A marker now counts unless the marker ITSELF is denied: a
+    // particle of the closed list within the five words right before it, in its own clause. No agreement test (FIX5E's sentence-level
+    // form killed S7's real dispute). Q14's prose: G7.Q14.prose.txt (DIAG6, copied from the EXT report); the evidence: the G7 harness's
+    // SYNTHETIC snippets; G7-2..5 SYNTHETIC (each sentence followed by the same supporting sentence, so the source supports the prose).
+    {
+      const Q14_G7 = "ما حكم صلاة الضحى، وما أفضل وقتها، وأبي أحاديث الباب";
+      const T14_G7 = "صلاة الضحى نافلة مستحبة عند جمهور الفقهاء، وصرح المالكية والشافعية بأنها سنة مؤكدة.\n\nوقال ابن باز: صلاة الضحى سنة مؤكدة، والنبي أوصى بها عليه الصلاة والسلام، وكان يصليها بعض الأحيان، فإذا تيسر للمؤمن فعلها فهذا خير عظيم، لكنها غير لازمة، لو فعلها بعض الأحيان وتركها بعض الأحيان أو تركها بالكلية فلا حرج.\n\nأقلها ركعتان، ولا حد لأكثرها، وقال النووي في شرح المهذب: إن أكثرها ثمان، وذكر أن أدنى الكمال أربع وأفضل منه ست.\n\nوقال ابن باز أيضا: ويكفي من ذلك ركعتان تركعهما من الضحى، وإذا صلى أربعا أو ستا أو ثمانيا أو أكثر فلا بأس.\n\nما أفضل وقت لصلاة الضحى؟\n\nأما وقتها، فذهب الجمهور إلى أن وقت صلاة الضحى من ارتفاع الشمس إلى قبيل زوالها ما لم يدخل وقت النهي — الموسوعة الفقهية الكويتية. قال ابن عثيمين: أول وقتها إذا ارتفعت الشمس قيد رمح، وهذا يكون بنحو ربع ساعة بعد طلوع الشمس، وينتهي وقتها قبيل الزوال، أي قبل زوال الشمس بعشر دقائق تقريبا.\n\nوأفضل وقتها إذا اشتد الحر؛ لا خلاف بين الفقهاء في أن الأفضل فعل صلاة الضحى إذا علت الشمس واشتد حرها، لقول النبي صلى الله عليه وسلم: «صلاة الأوابين حين ترمض الفصال» (مسلم)، ومعناه أن تحمى الرمضاء فتبرك الفصال من شدة الحر. وقال ابن باز: الأفضل أن تكون بعد ارتفاع النهار، إذا اشتد النهار قبل زوال الشمس بنصف ساعة، وإن صلاها مبكرا بعد ارتفاع الشمس قيد رمح حصل المقصود، وإن أخرها حتى يرتفع النهار فهو أفضل — ابن باز. وقال ابن عثيمين: هذه الصلاة من الصلوات التي ينبغي أن تصلى في آخر وقتها، لكن قبل الزوال بنحو ربع ساعة هذا هو الأفضل، وإذا كان لا يتيسر للإنسان هذا الوقت لكونه مشغولا بوظيفة أو دراسة أو تجارة، فإنه يصليها إذا ارتفعت الشمس قيد رمح — ابن عثيمين.\n\nوسئل البراك عن الأفضل: هل سردها ركعتين ركعتين في أوقات متفرقة أم صلاتها دفعة واحدة؟\n\nأما الأحاديث الواردة في فضلها:\n\nعن أبي هريرة رضي الله عنه: «أوصاني خليلي صلى الله عليه وسلم بثلاث: صيام ثلاثة أيام من كل شهر، وركعتي الضحى، وأن أوتر قبل أن أنام» (متفق عليه) — مختصر الفقه الإسلامي\n\n«يصبح على كل سلامى من أحدكم صدقة، فكل تسبيحة صدقة، وكل تحميدة صدقة، وكل تهليلة صدقة، وكل تكبيرة صدقة، وأمر بالمعروف صدقة، ونهي عن المنكر صدقة، ويجزئ من ذلك ركعتان يركعهما من الضحى» (مسلم)\n\nقاله النبي صلى الله عليه وسلم لما رأى زيد بن أرقم قوما يصلون من الضحى فقال: أما لقد علموا أن الصلاة في غير هذه الساعة أفضل.";
+      const EV14_G7 = [{"id":"ref-1","title":"الموسوعة الفقهية الكويتية","url":"","snippet":"صلاة الضحى نافلة مستحبة عند جمهور الفقهاء، وصرح المالكية والشافعية بأنها سنة مؤكدة. وذهب الجمهور إلى أن وقت صلاة الضحى من ارتفاع الشمس إلى قبيل زوالها، ولا خلاف بين الفقهاء في أن الأفضل فعلها إذا علت الشمس واشتد حرها."},{"id":"ref-2","title":"فتاوى نور على الدرب لابن باز","url":"","snippet":"صلاة الضحى سنة مؤكدة، والنبي أوصى بها، لكنها غير لازمة، لو فعلها بعض الأحيان وتركها بعض الأحيان فلا حرج."},{"id":"ref-3","title":"مختصر الفقه الإسلامي","url":"","snippet":"أقلها ركعتان ولا حد لأكثرها، وقال النووي: إن أكثرها ثمان، وأدنى الكمال أربع وأفضل منه ست."},{"id":"ref-4","title":"ما أفضل وقت لصلاة الضحى؟","url":"https://binbaz.org.sa/SYNTHETIC","snippet":"ويكفي من ذلك ركعتان، وإذا صلى أربعا أو ستا أو ثمانيا أو أكثر فلا بأس، والأفضل أن تكون بعد ارتفاع النهار."},{"id":"ref-5","title":"آخر وقت صلاة الضحى، وأفضل وقت لصلاتها","url":"https://binothaimeen.net/SYNTHETIC","snippet":"أول وقتها إذا ارتفعت الشمس قيد رمح، وينتهي قبيل الزوال، والأفضل في آخر وقتها."}];
+      const triggerG7 = (mod, ev) => mod.reviewAnswer({ text: T14_G7, evidence: ev, domain: 'fiqh', mode: 'brief', truncated: false, topic: classifyTopic(Q14_G7), subjectTerms: QT.subjectTermsOf(Q14_G7) }).verdict.khilafTrigger;
+      const withRef1 = (snippet) => EV14_G7.map((e, i) => (i === 0 ? { ...e, snippet } : e));
+      ok('G7-1 Q14\'s prose with the SYNTHETIC Mawsu\'a snippet («… ولا خلاف بين الفقهاء في أن الأفضل …»): khilafTrigger null', triggerG7(module, EV14_G7) === null, JSON.stringify(triggerG7(module, EV14_G7)));
+      const DISPUTE = 'اختلف الفقهاء في حكم صلاة الضحى، فصلاة الضحى نافلة مستحبة عند جمهور الفقهاء، وصرح المالكية والشافعية بأنها سنة مؤكدة.';
+      ok('G7-2 SYNTHETIC a snippet «اختلف الفقهاء في حكم …»: \'source\' (pinned)', triggerG7(module, withRef1(DISPUTE)) === 'source', JSON.stringify(triggerG7(module, withRef1(DISPUTE))));
+      const G7_SUPPORT = " صلاة الضحى نافلة مستحبة عند جمهور الفقهاء، وصرح المالكية والشافعية بأنها سنة مؤكدة.";
+      const G7_3 = "لا خلاف بين الفقهاء في مشروعيتها، واختلفوا في عدد ركعاتها." + G7_SUPPORT;
+      ok('G7-3 SYNTHETIC «لا خلاف بين الفقهاء في مشروعيتها، واختلفوا في عدد ركعاتها»: \'source\' (the second clause\'s marker «اختلفوا في …» stands under no denial)', triggerG7(module, withRef1(G7_3)) === 'source', JSON.stringify(triggerG7(module, withRef1(G7_3))));
+      const G7_4 = "اتفق الفقهاء على مشروعيتها واختلفوا في وقتها." + G7_SUPPORT;
+      ok('G7-4 SYNTHETIC «اتفق الفقهاء على مشروعيتها واختلفوا في وقتها»: as today, "source" (pinned)', JSON.stringify(triggerG7(module, withRef1(G7_4))) === "\"source\"", JSON.stringify(triggerG7(module, withRef1(G7_4))));
+      const G7_5 = "لا نعلم بين أهل العلم خلافا في ذلك." + G7_SUPPORT;
+      ok('G7-5 SYNTHETIC «لا نعلم بين أهل العلم خلافا في ذلك»: no source trigger from it (neither \'source\' nor \'both\')', !['source', 'both'].includes(triggerG7(module, withRef1(G7_5))), JSON.stringify(triggerG7(module, withRef1(G7_5))));
+      const denialMutant = await runMutant({
+        sourceFile: REVIEWER,
+        name: 'g7-marker-denial-removed',
+        transform: (source) => source.replace(
+          '  for (const m of bare.matchAll(KHILAF_SOURCE_MARKERS_ALL)) if (!khilafMarkerDenied(bare, clauseStart(m.index), m.index)) return true;',
+          '  for (const m of bare.matchAll(KHILAF_SOURCE_MARKERS_ALL)) return true; // mutant: the denial test removed'),
+        survives: (mutantModule) => triggerG7(mutantModule, EV14_G7) === null,
+      });
+      ok('G7 denial mutant seam applied and module loaded', denialMutant.changed && denialMutant.loaded, denialMutant.error);
+      ok('MUTANT KILLED: without the marker-denial test the Mawsu\'a\'s «ولا خلاف» declares a khilaf again (G7-1 red)', denialMutant.loaded && denialMutant.survived === false, JSON.stringify(denialMutant));
+    }
+
     // ── brain35-3 X12 (2026-11-07; FIX-2 request 1) · THE LEGACY PATH COUNTS KHILAF PARTIES ON THE SUBJECT TOO ──────
     // brain35-2 F6 wired the subject into the before-writing path only: lib/free-brain/review.js forwards named fields alone,
     // so the legacy path kept the old count. review.js now forwards `subjectTerms` (a Set, or null: the filter off) and
