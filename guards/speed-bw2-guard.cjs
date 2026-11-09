@@ -3181,6 +3181,36 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       ok('G5a-4 G5\'s Q14-b composition: the report «وسئل البراك عن الأفضل: …؟» is held (no answer came), the first unit released',
         !textG5.includes('وسئل البراك') && textG5.includes('صلاة الضحى نافلة مستحبة') && sumG5.held >= 1, ascii(JSON.stringify(sumG5.holds)) + ' ' + ascii(textG5.slice(0, 120)));
     }
+    // ---------------------------------------------------------------- brain35-5e G8 (2026-11-09; DIAG6 G8): NO UNIT OPENS ON A STRAY STOP. MEASURED
+    // (DIAG6 G8-period-line, preview Q12): «… أيضا. [[O]]\n. وقرر ابن باز …» -- the cutter ends a unit at the citations after its stop, and
+    // a SECOND stop the writer put after them heads the next unit: a line «. وقرر …» (V9) or «… أيضا. . وقرر …» (V6). A unit body that
+    // opens on one or more of «.» «،» «؛» followed by whitespace or a line end loses them and that whitespace at release (Claude's
+    // ruling: this release-time form, not a change to findUnitEnd); a unit left empty is dropped.
+    {
+      const UG8 = await esm('lib/bw2-units.js');
+      const D8 = {"Q12":"هل يجب على المرأة إخراج زكاة الذهب الذي تلبسه كل يوم؟","OTH":{"kind":"fatwa","title":"هل يجب عليه إخراج زكاة حليها وكم مقدار الزكاة ؟","url":"https://binothaimeen.net/content/SYNTHETIC-1","publisher":"ابن عثيمين","scholarId":"binothaimeen","recordId":"SYN-OTH","text":"السؤال المنشور: هل يجب على المرأة زكاة حليها؟ — المسألة فيها خلاف بين أهل العلم، والراجح عندي وجوب الزكاة في الحلي إذا بلغ النصاب، وهو مذهب الحنفية، ورواية عن الإمام أحمد بن حنبل، لأن النصوص ترجح القول بالوجوب."},"BAZ":{"kind":"fatwa","title":"زكاة الحلي الملبوس","url":"https://binbaz.org.sa/fatwas/SYNTHETIC-2","publisher":"ابن باز","scholarId":"binbaz","recordId":"SYN-BAZ","text":"السؤال المنشور: هل في الحلي زكاة؟ — الحلي يزكى سواء لبس أو لم يلبس، بالغا ما بلغ، إذا بلغ النصاب وحال عليه الحول."},"V6":"المسألة فيها خلاف بين أهل العلم، ولم يجمعوا على قول واحد فيها [[1]].\n\nوعند الحنفية: تجب الزكاة في الحلي ولو كان مستعملا للبس والزينة [[1]]. وهذا القول هو الذي رجحه ابن عثيمين، لأن النصوص عنده ترجح القول بالوجوب، وذكر أنه رواية عن الإمام أحمد بن حنبل أيضا. [[1]]. وقرر ابن باز أن الحلي يزكى سواء لبس أو لم يلبس، بالغا ما بلغ، إذا بلغ النصاب [[2]].","V8":"المسألة فيها خلاف بين أهل العلم، ولم يجمعوا على قول واحد فيها [[1]].\n\nوعند الحنفية: تجب الزكاة في الحلي ولو كان مستعملا للبس والزينة [[1]]. وهذا القول هو الذي رجحه ابن عثيمين، لأن النصوص عنده ترجح القول بالوجوب، وذكر أنه رواية عن الإمام أحمد بن حنبل أيضا [[1]]. وقرر ابن باز أن الحلي يزكى سواء لبس أو لم يلبس، بالغا ما بلغ، إذا بلغ النصاب [[2]].","V9":"المسألة فيها خلاف بين أهل العلم، ولم يجمعوا على قول واحد فيها [[1]].\n\nوعند الحنفية: تجب الزكاة في الحلي ولو كان مستعملا للبس والزينة [[1]]. وهذا القول هو الذي رجحه ابن عثيمين، لأن النصوص عنده ترجح القول بالوجوب، وذكر أنه رواية عن الإمام أحمد بن حنبل أيضا. [[1]]\n. وقرر ابن باز أن الحلي يزكى سواء لبس أو لم يلبس، بالغا ما بلغ، إذا بلغ النصاب [[2]]."};
+      const rowsG8 = [{ ...D8.OTH, ref: 1 }, { ...D8.BAZ, ref: 2 }];
+      const playG8 = async (mod, w) => { const o = []; const r = mod.createBw2Releaser({ rows: rowsG8, mode: 'brief', emit: (p) => { o.push(p); return true; }, takhrij: null, cards: null, askedMatn: '', sourceQuestion: false, leadLine: '', holdUncitedRulings: true, question: D8.Q12 }); r.push(w + '\n'); await r.end(); return o.join(''); };
+      const strayHead = (t) => /(?:^|\n)[ \t]*[.،؛]/u.test(t) || t.includes('. .');
+      const v9 = await playG8(UG8, D8.V9);
+      ok('G8-1 V9 («… أيضا. [[O]]\\n. وقرر …»): no line opens on «.» and the released text has no «. .»', !strayHead(v9) && v9.includes('أيضا.\nوقرر ابن باز'), ascii(v9.slice(-160)));
+      const v6 = await playG8(UG8, D8.V6);
+      ok('G8-2 V6 («… أيضا. [[O]]. وقرر …»): «… أيضا. وقرر …»', v6.includes('أيضا. وقرر ابن باز') && !v6.includes('. .'), ascii(v6.slice(-160)));
+      const v8 = await playG8(UG8, D8.V8);
+      ok('G8-3 V8 («… أيضا [[O]]. وقرر …», one stop): byte-identical (pinned)', v8 === "المسألة فيها خلاف بين أهل العلم، ولم يجمعوا على قول واحد فيها.\n\nوعند الحنفية: تجب الزكاة في الحلي ولو كان مستعملا للبس والزينة. وهذا القول هو الذي رجحه ابن عثيمين، لأن النصوص عنده ترجح القول بالوجوب، وذكر أنه رواية عن الإمام أحمد بن حنبل أيضا. وقرر ابن باز أن الحلي يزكى سواء لبس أو لم يلبس، بالغا ما بلغ، إذا بلغ النصاب.", ascii(v8.slice(-120)));
+      {
+        const srcG8 = read('lib/bw2-units.js');
+        const seamG8 = "    if (STRAY_STOP_HEAD_RE.test(verdict.text)) { verdict.text = verdict.text.replace(STRAY_STOP_HEAD_RE, '$1'); if (!verdict.text.trim()) return; }";
+        ok('G8 mutant seam present once', srcG8.split(seamG8).length === 2);
+        const tmpG8 = path.join(REPO, 'lib', '.mut-g8-stop.mjs');
+        fs.writeFileSync(tmpG8, srcG8.split(seamG8).join('    // mutant: the stray stop stays').replace(/from\s+(['"])(\.[^'"]*)\1/gu, (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MG8 = null;
+        try { MG8 = await import(pathToFileURL(tmpG8).href + '?m=' + Date.now()); } catch (e) { MG8 = null; } finally { fs.rmSync(tmpG8, { force: true }); }
+        ok('G8 mutant loads', !!MG8);
+        const m9 = MG8 ? await playG8(MG8, D8.V9) : '';
+        ok('G8 MUTANT KILLED: without the strip V9 has a line «. وقرر …» again', !!MG8 && strayHead(m9), ascii(m9.slice(-120)));
+      }
+    }
   } catch (error) {
     ok('guard completed without exception', false, error && error.stack ? error.stack : String(error));
   }
