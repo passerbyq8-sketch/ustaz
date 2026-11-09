@@ -347,6 +347,71 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e\n]/g, '~').slice(0, 200);
     ok('X6 MUTANT old-prediction seam applied and loaded', m8.ok, m8.reason);
     ok('X6 MUTANT KILLED: with the old prediction the refused encyclopedia card leaves the unit unmarked again',
       m8.ok && !(await relX6(m8.units, [EA6], UNSUPPORTED_ENC, encycOn)).text.includes(ENC_MARK), m8.reason);
+
+    // ── brain35-5e G10 (2026-11-09; DIAG6 G10, from our batches 4753fea7) · NO MARK THAT REPEATS THE WORK ITS SENTENCE NAMES ────
+    // MEASURED (DIAG6 G10-mark-repeats-book, preview Q3): six lines «البخاري في صحيحه — صحيح البخاري», «مسلم في صحيحه — صحيح مسلم» …:
+    // each cited row's card was deferred (A-3 b) and X6 appended the row's own book title, the very work the line names. A mark M
+    // is not appended when EVERY distinctive word of M (folded; a leading «لل» read as «ال», a leading «و» dropped; minus the genre
+    // words صحيح / سنن / مسند / … / الأوسط and the particles ابن / بن / أبو / … / إلى) stands in the unit as a whole word (one
+    // proclitic «و ف ب ل ك», or «لل» before an article word, allowed); the rows go to markedRows exactly as if it had been.
+    // Claude's ruling: EVERY distinctive word, the article kept («حق المسلم على المسلم» keeps «— صحيح مسلم»).
+    {
+      // copied from the DIAG6 harness G10-mark-repeats-book.mjs (its Q3, copied from the EXT report; its SYNTHETIC rows; the page's six lines)
+      const Q3G10 = 'ما صحة حديث: «إن هذا القرآن أنزل على سبعة أحرف فاقرؤوا ما تيسر منه» ومن رواه؟';
+      const G10_TEXT = (title) => title + '. حدثنا فلان عن عمر بن الخطاب رضي الله عنه قال: سمعت هشام بن حكيم يقرأ سورة الفرقان … فقال رسول الله صلى الله عليه وسلم: «إن هذا القرآن أنزل على سبعة أحرف، فاقرءوا ما تيسر منه».';
+      const G10_ROW = (title, author, i, text = G10_TEXT(title)) => ({ ref: i + 1, kind: 'lib_book', title, bookTitle: title, author, locator: '', recordId: 'SYN-G10-' + i, subjectId: 'FC-00900' + i, url: '', text, fullText: text, passage: text, locatorSpan: {} });
+      const G10_BOOKS = [['صحيح البخاري', 'البخاري'], ['صحيح مسلم', 'مسلم'], ['سنن أبي داود', 'أبو داود'], ['السنن الكبرى للنسائي', 'النسائي'], ['صحيح ابن حبان', 'ابن حبان'], ['مسند أحمد', 'أحمد بن حنبل']];
+      const G10_ROWS = G10_BOOKS.map(([t, a], i) => G10_ROW(t, a, i));
+      const G10_LINES = ['البخاري في صحيحه', 'مسلم في صحيحه', 'أبو داود في سننه', 'النسائي في سننه الكبرى والصغرى', 'ابن حبان في صحيحه', 'الإمام أحمد في مسنده'];
+      const relG10 = async (U2, rows, units) => {
+        const out = [];
+        const rel = U2.createBw2Releaser({ rows, mode: 'brief', emit: (p) => { out.push(p); return true; }, takhrij: null, cards, askedMatn: '', sourceQuestion: false, leadLine: '', holdUncitedRulings: true, question: Q3G10 });
+        for (const u of units) rel.push(u + '\n\n');
+        const sum = await rel.end();
+        return { text: out.join(''), sum };
+      };
+      const ownMarkLines = (text) => G10_BOOKS.filter(([t]) => text.includes(' — ' + t));
+      const COMPS = {
+        K3: G10_LINES.map((l, i) => '- ' + l + ' [[' + (i + 1) + ']]'),
+        K4: G10_LINES.map((l, i) => l + ' [[' + (i + 1) + ']].'),
+        K5: ['وقد أخرجه:', ...G10_LINES.map((l, i) => '- ' + l + ' [[' + (i + 1) + ']]')],
+      };
+      const g10 = {};
+      for (const [k, units] of Object.entries(COMPS)) g10[k] = await relG10(U, G10_ROWS, units);
+      ok('G10-1 K3 (a bullet list «- البخاري في صحيحه [[1]]» …): no line carries « — <its own book>», all six lines released, the six rows in markedRows',
+        ownMarkLines(g10.K3.text).length === 0 && G10_LINES.every((l) => g10.K3.text.includes(l)) && G10_ROWS.every((r) => g10.K3.sum.markedRows.includes(r)), ascii(g10.K3.text));
+      ok('G10-2 K4 (each line a sentence) and K5 (a lead-in, then the list): no line carries « — <its own book>»',
+        ownMarkLines(g10.K4.text).length === 0 && ownMarkLines(g10.K5.text).length === 0 && G10_LINES.every((l) => g10.K4.text.includes(l) && g10.K5.text.includes(l)), ascii(g10.K4.text + ' || ' + g10.K5.text));
+      // SYNTHETIC controls (probe-g10-controls / probe-g10-cap in BRAIN35-FIX5E-evidence): an attributed unit whose row carries it
+      // passes the credit test and its card test too, so it reaches the mark site through the per-turn card cap -- three supported
+      // units first (three cards, max 3), then the control, whose card the cap refuses. «حق المسلم …» needs no cap (its card is
+      // deferred by the A-3 b support test).
+      const OFF_TEXT = 'كتاب الطهارة. باب فضل الوضوء وما جاء في إسباغه على المكاره.';
+      const MUSLIM = G10_ROW('صحيح مسلم', 'مسلم', 0, OFF_TEXT);
+      const FILL_S = ['يجوز المسح على الجوربين إذا لبسهما على طهارة كاملة.', 'ومدة المسح يوم وليلة للمقيم وثلاثة أيام بلياليها للمسافر.', 'ويبطل المسح بخلع الجورب أو انتهاء المدة عند جمهور أهل العلم.'];
+      const FILL = FILL_S.map((t, i) => ({ ...G10_ROW('كتاب الفقه ' + (i + 1), 'مؤلف', i, t), recordId: 'SYN-CAP-' + (i + 1) }));
+      const FILL_UNITS = FILL_S.map((t, i) => t.replace(/\.$/u, '') + ' [[' + (i + 1) + ']].');
+      const FATH = G10_ROW('فتح الباري', 'ابن حجر', 3, 'قال ابن حجر: والمراد بالأحرف السبعة سبعة أوجه من المعاني المتقاربة بألفاظ مختلفة.');
+      const TARIKH = G10_ROW('التاريخ الكبير للبخاري', 'البخاري', 3, 'قال البخاري: فلان بن فلان فيه نظر ولا يتابع على حديثه.');
+      const p1 = await relG10(U, [...FILL, FATH], [...FILL_UNITS, 'وقال ابن حجر: والمراد بالأحرف السبعة سبعة أوجه من المعاني المتقاربة بألفاظ مختلفة [[4]].']);
+      ok('G10-3 SYNTHETIC «وقال ابن حجر: …» citing «فتح الباري» (its card refused by the cap) -> the mark « — فتح الباري» as today (pinned)', p1.text.includes('مختلفة — فتح الباري.'), ascii(p1.text));
+      const p2 = await relG10(U, [MUSLIM], ['حق المسلم على المسلم خمس [[1]].']);
+      ok('G10-4 SYNTHETIC «حق المسلم على المسلم خمس» citing «صحيح مسلم» -> the mark « — صحيح مسلم» as today (pinned: «المسلم» is not the whole word «مسلم»)', p2.text.includes('خمس — صحيح مسلم.'), ascii(p2.text));
+      const p3 = await relG10(U, [...FILL, TARIKH], [...FILL_UNITS, 'قال البخاري: فلان بن فلان فيه نظر ولا يتابع على حديثه [[4]].']);
+      ok('G10-5 SYNTHETIC «قال البخاري: …» citing «التاريخ الكبير للبخاري» -> the mark as today (pinned: «التاريخ» is not in the unit)', p3.text.includes('حديثه — التاريخ الكبير للبخاري.'), ascii(p3.text));
+      const p4 = await relG10(U, [...FILL, TARIKH], [...FILL_UNITS, 'قال البخاري في التاريخ: فلان بن فلان فيه نظر ولا يتابع على حديثه [[4]].']);
+      ok('G10-6 SYNTHETIC «قال البخاري في التاريخ: …» citing «التاريخ الكبير للبخاري» -> no mark, the row in markedRows',
+        p4.text.includes('ولا يتابع على حديثه.') && !p4.text.includes(' — التاريخ الكبير') && p4.sum.markedRows.includes(TARIKH), ascii(p4.text));
+      // SYNTHETIC: a Mawsu'a paragraph naming the work in full (the switch off: its card is refused, the 4f2 shape)
+      const encNamed = await driveTurn(BW2F9, { writerText: 'وذكرت الموسوعة الفقهية الكويتية أنه يجوز المسح على الجوربين إذا لبسهما على طهارة [[1]].', encyclopedia: [ROW_A], encyclopediaCards: false });
+      ok('G10-7 SYNTHETIC a Mawsu\'a paragraph that names «الموسوعة الفقهية الكويتية» in full -> no mark and no «المصدر: الموسوعة الفقهية الكويتية.» line',
+        !encNamed.mark && !encNamed.line && encNamed.text.includes('الموسوعة الفقهية الكويتية أنه'), ascii(encNamed.text));
+      // the mutant: the names-the-work test removed -> G10-1 red
+      const mG10 = await twinPair('        if (mark && mark !== lastMark && unitNamesWork(value, mark)) lastMark = mark;', '        // mutant: the names-the-work test removed', null, null, 'g10');
+      ok('G10 MUTANT names-the-work seam applied and loaded', mG10.ok, mG10.reason);
+      ok('G10 MUTANT KILLED: without the test the K3 lines carry « — <their own book>» again',
+        mG10.ok && ownMarkLines((await relG10(mG10.units, G10_ROWS, COMPS.K3)).text).length > 0, mG10.reason);
+    }
   }
   // ── 5. the verse card ──
   const AYAH = 'وَلَوْ أَنَّا كَتَبْنَا عَلَيْهِمْ أَنِ اقْتُلُوا أَنفُسَكُمْ';
