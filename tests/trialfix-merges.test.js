@@ -36,7 +36,7 @@ test('trialfix-d11 earliest start, civil days, snapshot conflicts, max taps and 
   const a={startDate:'2026-11-03',log:{'2026-11-04':{l:true,taps:7}},presented:{'2026-11-04':{civilDate:'2026-11-04',index:2,packId:'ordinary'}}};
   const b={startDate:'2026-11-01',log:{'2026-11-04':{q:true,taps:5}},presented:{'2026-11-04':{civilDate:'2026-11-04',index:4,packId:'seasonal'}}};
   const merged=mergeDima(a,b);assert.equal(merged.startDate,'2026-11-01');assert.equal(merged.log['2026-11-04'].taps,7);
-  assert.ok(merged.log['2026-11-04'].l&&merged.log['2026-11-04'].q);assert.equal(merged.conflicts['2026-11-04'].length,1);
+  assert.deepEqual([merged.log['2026-11-04'].l,merged.log['2026-11-04'].q,merged.log['2026-11-04'].j],[1,1,0],'ORDER T4: true inputs merge to the contract 0|1');assert.equal(merged.conflicts['2026-11-04'].length,1);
   assert.deepEqual(mergeDima(b,a),merged);assert.deepEqual(mergeDima(merged,b),merged);
   assert.equal(mergeRecord('ctr:dima.0.start',{u:10,del:true},{u:100,val:a}).del,true);
 });

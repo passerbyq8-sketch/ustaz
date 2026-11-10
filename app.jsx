@@ -17412,7 +17412,8 @@ function dimaIndexForDate(startDate, date) {
 }
 function dimaLogFor(store, key) {
   const old = store && store.log && store.log[key] && typeof store.log[key] === 'object' ? store.log[key] : {};
-  return { ...old, l: old.l === 1 ? 1 : 0, q: old.q === 1 ? 1 : 0, j: old.j === 1 ? 1 : 0,
+  // ORDER T4 (D13-C1): 1 is the contract; true is what the v146 sync merge wrote, and it is a done drop too.
+  return { ...old, l: old.l === 1 || old.l === true ? 1 : 0, q: old.q === 1 || old.q === true ? 1 : 0, j: old.j === 1 || old.j === true ? 1 : 0,
     taps: Number.isInteger(old.taps) && old.taps >= 0 ? old.taps : 0,
     laterAt: Number.isFinite(old.laterAt) && old.laterAt > 0 ? old.laterAt : 0 };
 }
@@ -34523,7 +34524,9 @@ function mergeDima(a, b) {
   for (const day of new Set([...Object.keys(a.log || {}), ...Object.keys(b.log || {})])) {
     if (!validCivilDay(day)) continue;
     const x = a.log?.[day] || {}, y = b.log?.[day] || {};
-    out.log[day] = { l: !!(x.l || y.l), q: !!(x.q || y.q), j: !!(x.j || y.j), taps: Math.max(0, Number(x.taps) || 0, Number(y.taps) || 0) };
+    // ORDER T4 (D13-C1): Dima's contract stores each drop as 0|1; a mark synced as true (v146) still counts as done.
+    const on = v => v === 1 || v === true;
+    out.log[day] = { l: on(x.l) || on(y.l) ? 1 : 0, q: on(x.q) || on(y.q) ? 1 : 0, j: on(x.j) || on(y.j) ? 1 : 0, taps: Math.max(0, Number(x.taps) || 0, Number(y.taps) || 0) };
   }
   for (const day of new Set([...Object.keys(a.presented || {}), ...Object.keys(b.presented || {}), ...Object.keys(a.conflicts || {}), ...Object.keys(b.conflicts || {})])) {
     if (!validCivilDay(day)) continue;

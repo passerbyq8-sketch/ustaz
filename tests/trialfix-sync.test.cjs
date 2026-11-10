@@ -218,7 +218,7 @@ test('trialfix-d11 reinstall, frozen days, local notifications, idempotence, res
   d.local.setItem('ezik_dima_v2', JSON.stringify({...progress,startDate:null,log:{},presented:{},notify:{on:false,slot:'fajr30'},notifySeen:true}));
   const code=`ezikSyncApply('ctr:dima.0.2026-11-03',{u:1,val:${JSON.stringify(progress)}})`;
   run(d,code);const first=d.local.getItem('ezik_dima_v2');run(d,code);assert.equal(d.local.getItem('ezik_dima_v2'),first);
-  const got=JSON.parse(first);assert.equal(got.startDate,'2026-10-31');assert.equal(got.log['2026-11-03'].taps,7);assert.equal(got.notify.on,false);assert.deepEqual(got.presented['2026-11-03'],snap);
+  const got=JSON.parse(first);assert.equal(got.startDate,'2026-10-31');assert.equal(got.log['2026-11-03'].taps,7);assert.deepEqual([got.log['2026-11-03'].l,got.log['2026-11-03'].q,got.log['2026-11-03'].j],[1,1,0],'ORDER T4: a true mark is applied as 1');assert.equal(got.notify.on,false);assert.deepEqual(got.presented['2026-11-03'],snap);
   const collect=plain(run(d,'ezikSyncCollect()'));assert.ok(collect['ctr:dima.0.2026-11-03']);assert.equal(JSON.stringify(collect).includes('notify'),false);
   run(d,"ezikSyncApply('kv:dima_epoch',{u:20,val:'20'})");run(d,code);
   assert.equal(JSON.parse(d.local.getItem('ezik_dima_v2')).startDate,null,'old generation cannot resurrect');
@@ -292,6 +292,7 @@ test('trialfix-d11 large multi-day history is split below the record cap and ove
   for(let i=0;i<900;i++){const day=new Date(Date.UTC(2024,0,1+i)).toISOString().slice(0,10);log[day]={l:true,q:false,j:true,taps:i,laterAt:100};}
   d.local.setItem('ezik_dima_v2',JSON.stringify({schema:2,startDate:'2024-01-01',log,presented:{},notify:{on:false,slot:'fajr30'},notifySeen:true}));
   const records=plain(run(d,'ezikSyncCollect()'));assert.equal(Object.keys(records).filter(k=>k.startsWith('ctr:dima.')).length,901);
+  assert.deepEqual([records['ctr:dima.0.2024-01-01'].log['2024-01-01'].l,records['ctr:dima.0.2024-01-01'].log['2024-01-01'].q,records['ctr:dima.0.2024-01-01'].log['2024-01-01'].j],[1,0,1],'ORDER T4: collected true marks go up as 1');
   for(const [id,value] of Object.entries(records))assert(Buffer.byteLength(JSON.stringify(value))<200*1024,id);
   const state=JSON.parse(d.local.getItem('ezik_dima_v2'));
   state.presented['2024-01-01']={civilDate:'2024-01-01',index:1,packId:'p',dayId:'d',version:1,snapshot:{lisan:{text:'x'.repeat(300000)},qalb:{text:'q'},jawarih:{text:'j'}}};
@@ -395,4 +396,212 @@ test('trialfix-t3d-t2f5 privacy copies say what delete-all keeps',()=>{
     assert.equal(seen(emptyAr),0,rel+' old arabic empty-account promise');
     assert.equal(seen(emptyEn),0,rel+' old english empty-account promise');
   }
+});
+
+// ORDER T4: Dima's drop marks, the guest start and the birth-year field, on the real roads (diagnosis D3's harness).
+const T4 = require('./trialfix-t4-harness.cjs');
+const t4Git = rev => require('child_process').execFileSync('git', ['show', rev + ':app.js'], { cwd: T4.REPO, maxBuffer: 64 * 1024 * 1024, encoding: 'utf8' });
+const T4_V144 = '80957904', T4_V146 = '24992d446c5018e1cd5189cd8076575111678d81';
+const T4_MIN = 60000, T4_DAY = 86400000;
+const t4Owner = () => JSON.stringify({ name: 'Owner', age: 40, gender: 'male', birthYear: 1986, birthYearProvided: true, pid: 'pid-old', createdAt: '2026-10-01T00:00:00.000Z' });
+const t4Flags = log => Object.values(log || {}).flatMap(d => [d.l, d.q, d.j]);
+let t4Seq = 0;
+let t4V144Text = null; const t4V144App = () => (t4V144Text ||= t4Git(T4_V144));
+/** A fresh install of the same account: three moments (at once, after one cycle, after a restart). */
+async function t4Fresh(w, account, o = {}) {
+  if (o.gapMs) w.clock.now += o.gapMs;
+  const dev = w.open({ name: 'fresh', storage: w.fakeLocal({ mrb_device_v1: 'fresh-' + (++t4Seq) }) });
+  await w.advance(dev, 3000);
+  if (o.guestStart) { await w.openDima(dev); w.begin(dev); w.mark(dev, 0); await w.advance(dev, 5000); }
+  w.signIn(dev, account); w.onboard(dev);
+  await w.advance(dev, 5000);
+  const out = { atOnce: w.view(dev) };
+  await w.advance(dev, 125000);
+  out.afterCycle = w.view(dev);
+  if (o.openDima) { await w.openDima(dev); await w.advance(dev, 5000); out.afterOpen = w.view(dev); }
+  out.v2 = w.readJSON(dev, 'ezik_dima_v2');
+  w.kill(dev);
+  const again = w.open({ name: 'restart', storage: dev.local });
+  await w.advance(again, 5000);
+  out.afterRestart = w.view(again);
+  out.storage = dev.local;
+  w.kill(again);
+  return out;
+}
+async function t4V144Phase(w, account) {
+  const p = w.open({ name: 'v144', app: t4V144App(), storage: w.fakeLocal({ mrb_device_v1: 'old-' + (++t4Seq), child_profile: t4Owner() }) });
+  w.signIn(p, account); await w.advance(p, 10000);
+  await w.openDima(p); w.begin(p); w.mark(p, 0); await w.advance(p, 10000);
+  w.kill(p);
+  return p.local;
+}
+async function t4Update(w, storage, stayMs, o = {}) {
+  const p = w.open({ name: 'updated', storage });
+  await w.advance(p, 3000);
+  if (o.openDima) { await w.openDima(p); await w.advance(p, 1000); }
+  for (const t of o.moreDrops || []) { w.mark(p, t); await w.advance(p, 700); }
+  const before = w.view(p);
+  await w.advance(p, stayMs);
+  const after = w.view(p);
+  w.kill(p);
+  return { before, after };
+}
+const t4Moments = (f, keys = ['atOnce', 'afterCycle', 'afterRestart']) => keys.map(k => [k, f[k]]);
+
+test('trialfix-t4-c1-own-drop-survives-watcher-push-and-echo', async () => {
+  const w = await T4.world();
+  try {
+    const p = w.open({ storage: w.fakeLocal({ mrb_device_v1: 'own', child_profile: t4Owner() }) });
+    w.signIn(p, 't4-own'); await w.advance(p, 10000);
+    assert.ok(w.run(p, 'ezikSyncWatching'), 'the watcher is installed by the open server');
+    await w.openDima(p); w.begin(p);
+    const t0 = w.clock.now; w.mark(p, 0);
+    assert.equal(w.view(p).todayDrops, 1, 'at once');
+    await w.advance(p, 3000);
+    const key = w.view(p).todayKey;
+    const push = p.requests.find(r => r.t >= t0 && r.action === 'push' && r.ids.includes('ctr:dima.0.' + key));
+    assert.ok(push, 'the watcher pushed the day record (and its echo was applied)');
+    assert.equal(w.view(p).todayDrops, 1, 'after the push echo');
+    await w.advance(p, 10000);
+    assert.equal(w.view(p).todayDrops, 1, 'after 10 seconds');
+    assert.equal(w.readJSON(p, 'ezik_dima_v2').log[key].l, 1, 'the stored mark stays the contract number');
+    const acct = (await w.account('t4-own')).find(c => c.id === 'ctr:dima.0.' + key);
+    assert.deepEqual([acct.rec.val.log[key].l, acct.rec.val.log[key].q], [1, 0], 'the account holds 0|1');
+  } finally { w.restore(); }
+});
+
+test('trialfix-t4-c1-journeys-J1-J2-J3-J6-J7-fresh-install', async () => {
+  const w = await T4.world();
+  try {
+    // J1: one drop on v144 (no Dima sync), the update, a stay, then the reinstall.
+    for (const stay of [T4_MIN, 10 * T4_MIN]) {
+      const account = 't4-J1-' + stay;
+      const updated = await t4Update(w, await t4V144Phase(w, account), stay);
+      assert.equal(updated.after.todayDrops, 1, 'J1 the old phone keeps its drop after the update and its first sync');
+      const f = await t4Fresh(w, account);
+      for (const [m, v] of t4Moments(f)) { assert.equal(v.todayDrops, 1, 'J1 ' + m); assert.equal(v.days[v.todayKey], 1, 'J1 day ' + m); }
+      assert.ok(t4Flags(f.v2.log).every(x => x === 0 || x === 1), 'J1 fresh install stores 0|1');
+    }
+    // J2: a second drop on the updated build.
+    {
+      const account = 't4-J2';
+      const updated = await t4Update(w, await t4V144Phase(w, account), 10 * T4_MIN, { openDima: true, moreDrops: [1] });
+      assert.deepEqual([updated.before.todayDrops, updated.after.todayDrops], [2, 2], 'J2 the old phone keeps both drops');
+      const f = await t4Fresh(w, account);
+      for (const [m, v] of t4Moments(f)) assert.equal(v.todayDrops, 2, 'J2 ' + m);
+    }
+    // J3: three drops on the new build only, in front and in the background, 10 s before the wipe.
+    for (const bg of [false, true]) {
+      const account = 't4-J3-' + bg;
+      const p = w.open({ storage: w.fakeLocal({ mrb_device_v1: 'j3-' + bg, child_profile: t4Owner() }) });
+      w.signIn(p, account); await w.advance(p, 10000);
+      await w.openDima(p); w.begin(p); w.mark(p, 0); w.mark(p, 1); w.mark(p, 2);
+      if (bg) { p.visible = false; w.fire(p, 'visibilitychange', 'document'); w.fire(p, 'pagehide'); }
+      await w.advance(p, 10000);
+      assert.equal(w.view(p).todayDrops, 3, 'J3 the old phone after its push echo');
+      w.kill(p);
+      const f = await t4Fresh(w, account);
+      for (const [m, v] of t4Moments(f)) assert.equal(v.todayDrops, 3, 'J3 ' + (bg ? 'background ' : 'front ') + m);
+    }
+    // J6: two days of drops; the fresh install opens Dima on day two.
+    {
+      const account = 't4-J6';
+      const p = w.open({ storage: w.fakeLocal({ mrb_device_v1: 'j6', child_profile: t4Owner() }) });
+      w.signIn(p, account); await w.advance(p, 10000);
+      await w.openDima(p); w.begin(p); w.mark(p, 0); w.mark(p, 1); w.mark(p, 2);
+      await w.advance(p, 2 * T4_MIN);
+      const day1 = w.view(p).todayKey;
+      await w.advance(p, T4_DAY);
+      await w.openDima(p); w.mark(p, 0); w.mark(p, 1);
+      await w.advance(p, 2 * T4_MIN);
+      w.kill(p);
+      const f = await t4Fresh(w, account, { openDima: true });
+      for (const [m, v] of t4Moments(f, ['atOnce', 'afterCycle', 'afterOpen', 'afterRestart'])) {
+        assert.equal(v.titleIndex, 2, 'J6 day two ' + m); assert.equal(v.todayDrops, 2, 'J6 today ' + m);
+        assert.equal(v.days[day1], 3, 'J6 yesterday ' + m); assert.deepEqual(v.plants.slice(0, 2), [2, 3], 'J6 plants ' + m);
+      }
+    }
+    // J7: the owner's calendar: one drop on v144, the update, the reinstall two days later.
+    {
+      const account = 't4-J7';
+      await t4Update(w, await t4V144Phase(w, account), 10 * T4_MIN);
+      const f = await t4Fresh(w, account, { gapMs: 2 * T4_DAY, openDima: true });
+      for (const [m, v] of t4Moments(f, ['atOnce', 'afterCycle', 'afterOpen', 'afterRestart'])) {
+        assert.equal(v.titleIndex, 3, 'J7 day three ' + m); assert.equal(v.todayDrops, 0, 'J7 no drop yet today ' + m);
+        assert.deepEqual(v.plants.slice(0, 3), [0, 0, 1], 'J7 the first day plant is filled ' + m);
+      }
+    }
+  } finally { w.restore(); }
+});
+
+test('trialfix-t4-c1-stored-true-reads-done-on-screen-banner-and-reminders', async () => {
+  const w = await T4.world();
+  try {
+    const day = '2026-11-08';
+    const seed = flags => w.fakeLocal({ mrb_device_v1: 'true-' + (++t4Seq), child_profile: t4Owner(),
+      ezik_dima_v2: JSON.stringify({ schema: 2, startDate: day, log: { [day]: { ...flags, taps: 1 } }, presented: {}, notify: { on: true, slot: 'fajr30' }, notifySeen: true }) });
+    const seen = {};
+    for (const [label, flags] of [['true', { l: true, q: true, j: false }], ['one', { l: 1, q: 1, j: 0 }], ['allTrue', { l: true, q: true, j: true }]]) {
+      const p = w.open({ storage: seed(flags) });
+      await w.advance(p, 3000);
+      let el = await w.render(p, 'DimaHomeCard', { name: '' });
+      const banner = el.querySelectorAll('.dimaHomeProgressDrop.is-filled').length, bannerDone = !!el.querySelector('.dimaHomeDoneBadge');
+      w.unmount(p);
+      await w.openDima(p);
+      el = await w.render(p, 'EzikDimaSection', {});
+      const screen = { done: el.querySelectorAll('.dimaTab.is-done').length, complete: !!el.querySelector('.dimaStatus.is-done') };
+      w.unmount(p);
+      const items = plain(w.run(p, 'ezikDimaAlertItems(new Date())')).map(i => i.id + '@' + i.at);
+      seen[label] = { banner, bannerDone, screen, items };
+      w.kill(p);
+    }
+    assert.equal(seen.true.banner, 2, 'home banner counts true marks'); assert.deepEqual(seen.true.screen, { done: 2, complete: false }, 'screen pills');
+    assert.equal(seen.true.bannerDone, false); assert.equal(seen.allTrue.bannerDone, true, 'home banner completes on three true marks'); assert.equal(seen.allTrue.screen.complete, true, 'three true marks complete the day');
+    assert.ok(seen.one.items.length > 0, 'the reminders are computed for this store');
+    assert.deepEqual(seen.true, seen.one, 'a stored true reads exactly as a stored 1');
+  } finally { w.restore(); }
+});
+
+test('trialfix-t4-c1-merge-outputs-only-0-1-and-both-copies-agree', async () => {
+  const server = await import('../lib/sync/trialfix-progress.js');
+  const source = require('fs').readFileSync(require('path').join(__dirname, '../app.jsx'), 'utf8');
+  const lib = require('fs').readFileSync(require('path').join(__dirname, '../lib/sync/trialfix-progress.js'), 'utf8');
+  const body = (s, k) => { const i = s.indexOf(k); return s.slice(i, s.indexOf('\n}\n', i) + 2); };
+  assert.equal(body(source, 'function mergeDima('), body(lib, 'export function mergeDima(').replace('export ', ''), 'the client copy is the server function');
+  const w = await T4.world();
+  try {
+    const p = w.open({});
+    const values = [true, false, 1, 0, undefined, null, '1', 2];
+    const on = v => v === 1 || v === true;
+    for (const x of values) for (const y of values) {
+      const a = { startDate: '2026-11-01', log: { '2026-11-02': { l: x, q: y, j: x, taps: 1 } } }, b = { log: { '2026-11-02': { l: y, q: x } } };
+      const s = server.mergeDima(a, b), c = plain(w.run(p, 'EZIK_PROGRESS.mergeDima(' + JSON.stringify(a) + ',' + JSON.stringify(b) + ')'));
+      const day = s.log['2026-11-02'];
+      for (const f of ['l', 'q', 'j']) assert.ok(day[f] === 0 || day[f] === 1, 'flag ' + f + ' is 0|1');
+      assert.equal(day.l, on(x) || on(y) ? 1 : 0); assert.equal(day.q, on(y) || on(x) ? 1 : 0); assert.equal(day.j, on(x) ? 1 : 0);
+      if (x !== undefined && y !== undefined) assert.deepEqual(c, plain(s), 'client and server agree');
+    }
+    const merged = server.mergeDima({ log: { '2026-11-02': { l: true, q: false, j: true } } }, {});
+    assert.deepEqual([merged.log['2026-11-02'].l, merged.log['2026-11-02'].q, merged.log['2026-11-02'].j], [1, 0, 1], 'true inputs become 1');
+    assert.deepEqual(server.mergeDima(merged, merged), merged, 'idempotent');
+  } finally { w.restore(); }
+});
+
+test('trialfix-t4-c1-two-devices-each-drop-counts-on-both', async () => {
+  const w = await T4.world();
+  try {
+    const account = 't4-two';
+    const a = w.open({ name: 'a', storage: w.fakeLocal({ mrb_device_v1: 'two-a', child_profile: t4Owner() }) });
+    w.signIn(a, account); await w.advance(a, 10000);
+    await w.openDima(a); w.begin(a); w.mark(a, 0); await w.advance(a, 10000);
+    const b = w.open({ name: 'b', storage: w.fakeLocal({ mrb_device_v1: 'two-b', child_profile: t4Owner() }) });
+    w.signIn(b, account); await w.advance(b, 10000);
+    assert.equal(w.view(b).todayDrops, 1, 'device b sees the drop made on device a');
+    await w.openDima(b); w.mark(b, 1); await w.advance(b, 10000);
+    assert.equal(w.view(b).todayDrops, 2, 'device b counts both');
+    w.run(a, 'ezikSyncCycle()'); await w.advance(a, 5000);
+    assert.equal(w.view(a).todayDrops, 2, 'device a counts both');
+    await w.advance(a, 130000); await w.advance(b, 130000);
+    assert.deepEqual([w.view(a).todayDrops, w.view(b).todayDrops], [2, 2], 'stable across cycles');
+  } finally { w.restore(); }
 });
