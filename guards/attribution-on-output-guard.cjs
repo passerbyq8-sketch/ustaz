@@ -428,6 +428,144 @@ const rejectsWrongScholar = (module) => {
     ok('MUTANT KILLED: a rename instead of a union stops resolving the name the service still serves',
       renameMutant.loaded && renameMutant.survived === false, JSON.stringify(renameMutant));
 
+    // ── G. BRAIN-A C3 (2026-11-11; order EZIK-ORDER-BRAIN-A section 4.3; report BRAIN-XRAY section 6, FOUND) · «الخميس» IS THURSDAY ──
+    // MEASURED (BRAIN-XRAY-evidence/SMALL-S1-reviewer.md section 5; BRAIN-A-evidence/C3-probe.before.json): the registry row of
+    // عثمان الخميس carries the bare word as an alias, so «صيام يوم الخميس، …» was read as a credit to him -- the before-writing path
+    // withheld the sentence, and the older path could deliver «فلما كان يوم بعض أهل العلم قال: …». The bare word names the man only
+    // behind a title («الشيخ الخميس») or beside his first name («عثمان الخميس», «عثمان بن محمد الخميس»). The sibling rule for the
+    // retrieval side is «TIER 3 — a bare one-word surface («الخميس») licenses nobody» in guards/source-attribution-guard.cjs.
+    {
+      const review = (sentence, evidence = []) => module.reviewAnswer({ text: sentence, evidence, domain: 'fiqh', mode: 'عادي' });
+      const credits = (out) => (out.annotations || []).some((a) => /attribution/u.test(String(a.action || '')) || a.claimedAuthority || a.claimed);
+      const THURSDAY = [
+        ['a comma after the day', 'ويستحب صيام يوم الخميس، لأن الأعمال تعرض فيه.'],
+        ['a colon after the day', 'صيام يوم الخميس: سنة مستحبة.'],
+        ['«أن» after the day', 'وحكم صيام يوم الخميس أن ذلك مستحب.'],
+        ['a narrative «يوم الخميس قال:»', 'فلما كان يوم الخميس قال: ائتوني أكتب لكم كتابا.'],
+      ];
+      for (const [shape, sentence] of THURSDAY) {
+        const out = review(sentence);
+        ok('C3: Thursday with ' + shape + ' is no credit to anybody, and the sentence is delivered as written',
+          out.text === sentence && !credits(out), (out.annotations[0]?.action || '?') + ' | ' + out.text);
+      }
+      if (typeof module.reviewAuthorityRule === 'function') {
+        for (const name of ['يوم الخميس', 'محمد بن عبد الرحمن الخميس', 'عبد الله بن عبد الواحد الخميس']) {
+          ok('C3: «' + name + '» does not resolve to the scholar', module.reviewAuthorityRule(name) === null,
+            String(module.reviewAuthorityRule(name) && module.reviewAuthorityRule(name).canonical));
+        }
+        // MUST NOT CHANGE: the man's own names still resolve to him
+        for (const name of ['الخميس', 'عثمان الخميس', 'الشيخ الخميس', 'الشيخ عثمان الخميس', 'عثمان بن محمد الخميس']) {
+          const rule = module.reviewAuthorityRule(name);
+          ok('C3 control: «' + name + '» still resolves to عثمان الخميس', !!rule && rule.canonical === 'عثمان الخميس', String(rule && rule.canonical));
+        }
+      } else ok('C3: the reviewer exports its authority rule for this section', false, 'reviewAuthorityRule is not exported');
+      // MUST NOT CHANGE: a real credit to him. Each expected value below was generated from the tree BEFORE this change
+      // (BRAIN-A-evidence/C3-probe.before.json) and is pinned byte for byte.
+      const HIS_ROW = { id: 'kh-1', title: 'حكم صيام الاثنين', url: 'https://othmanalkhamees.com/fatwa/1', scholar: 'عثمان الخميس', snippet: 'صيام الاثنين مستحب وكان النبي يصومه.' };
+      const CONTROLS = [
+       [
+        "«قال الشيخ عثمان الخميس: …» with no row of his",
+        "قال الشيخ عثمان الخميس: صيام الاثنين مستحب.",
+        false,
+        "وقال بعض أهل العلم: صيام الاثنين مستحب.",
+        "removed-unsupported-attribution"
+       ],
+       [
+        "«قال الشيخ عثمان الخميس: …» on his own row",
+        "قال الشيخ عثمان الخميس: صيام الاثنين مستحب.",
+        true,
+        "قال الشيخ عثمان الخميس: صيام الاثنين مستحب.",
+        "kept-sourced-attribution"
+       ],
+       [
+        "«يرى الشيخ الخميس جواز ذلك.» with no row of his",
+        "يرى الشيخ الخميس جواز ذلك.",
+        false,
+        "ومن أهل العلم من يرى جواز ذلك.",
+        "removed-unsupported-attribution"
+       ],
+       [
+        "«قال عثمان الخميس: …» with no row of his",
+        "قال عثمان الخميس: صيام الاثنين مستحب.",
+        false,
+        "وقال بعض أهل العلم: صيام الاثنين مستحب.",
+        "removed-unsupported-attribution"
+       ],
+       [
+        "«قال الشيخ الخميس: …» with no row of his",
+        "قال الشيخ الخميس: صيام الاثنين مستحب.",
+        false,
+        "وقال بعض أهل العلم: صيام الاثنين مستحب.",
+        "removed-unsupported-attribution"
+       ],
+       [
+        "«قال عثمان بن محمد الخميس: …» with no row of his",
+        "قال عثمان بن محمد الخميس: صيام الاثنين مستحب.",
+        false,
+        "وقال بعض أهل العلم: صيام الاثنين مستحب.",
+        "removed-unsupported-attribution"
+       ],
+       [
+        "«قال الشيخ الخميس: …» on his own row",
+        "قال الشيخ الخميس: صيام الاثنين مستحب.",
+        true,
+        "قال الشيخ الخميس: صيام الاثنين مستحب.",
+        "kept-sourced-attribution"
+       ],
+       [
+        "«ذكر محمد بن عبد الرحمن الخميس أن …» (another author, no row)",
+        "ذكر محمد بن عبد الرحمن الخميس أن الإيمان قول وعمل.",
+        false,
+        "ذكر بعض أهل العلم أن الإيمان قول وعمل.",
+        "removed-unsupported-attribution"
+       ]
+      ];
+      for (const [label, sentence, withRow, expectedText, expectedAction] of CONTROLS) {
+        const out = review(sentence, withRow ? [HIS_ROW] : []);
+        ok('C3 control: ' + label + ' is the credit it was (' + expectedAction + ')',
+          out.text === expectedText && out.annotations[0]?.action === expectedAction, (out.annotations[0]?.action || '?') + ' | ' + out.text);
+      }
+      ok('C3 control: «يستحب صيام الاثنين والخميس.» was never a credit and is not one',
+        review('يستحب صيام الاثنين والخميس.').text === 'يستحب صيام الاثنين والخميس.' && !credits(review('يستحب صيام الاثنين والخميس.')));
+      // THE COST, STATED: the bare surname with punctuation only («الخميس: يجوز ذلك.») was read as a credit and no longer is.
+      ok('C3 cost: the bare surname with nothing but a colon after it is no longer read as a credit',
+        review('الخميس: يجوز ذلك.').text === 'الخميس: يجوز ذلك.' && !credits(review('الخميس: يجوز ذلك.')), review('الخميس: يجوز ذلك.').text);
+
+      // THE BEFORE-WRITING PATH: the unit is released, where it was withheld (BRAIN-XRAY SMALL-S1-bw2 D5-a).
+      const units = await fresh(path.join(ROOT, 'lib', 'bw2-units.js'), 'c3-units');
+      const driveUnit = async (unitsModule, unit) => {
+        const rowText = 'يستحب صيام يوم الاثنين ويوم الخميس، لأن الأعمال تعرض فيهما على الله.';
+        const rows = [{ ref: 1, kind: 'fatwa', title: 'صيام الاثنين والخميس', publisher: 'ابن باز', url: 'https://binbaz.org.sa/fatwas/SYN6', text: rowText, fullText: rowText, passage: rowText }];
+        let sent = '';
+        const releaser = unitsModule.createBw2Releaser({ rows, mode: 'brief', emit: (piece) => { sent += piece; return true; }, takhrij: null, cards: null,
+          askedMatn: '', sourceQuestion: false, leadLine: '', holdUncitedRulings: true, question: 'ما حكم صيام يوم الخميس؟', now: () => 0 });
+        releaser.push(unit + '\n\n');
+        await new Promise((resolve) => setImmediate(resolve));
+        const summary = await releaser.end();
+        return { sent, held: Number(summary.held) || 0, released: Number(summary.released) || 0, holds: summary.holds || {} };
+      };
+      const withComma = await driveUnit(units, 'يستحب صيام يوم الخميس، لأن الأعمال تعرض فيه [[1]].');
+      ok('C3: on the before-writing path the Thursday unit is released on a row that says it (it was withheld as unsupported_attribution)',
+        withComma.released === 1 && withComma.held === 0 && withComma.sent.includes('يستحب صيام يوم الخميس'), JSON.stringify(withComma.holds) + ' | ' + withComma.sent);
+      const noComma = await driveUnit(units, 'يستحب صيام يوم الخميس لأن الأعمال تعرض فيه [[1]].');
+      ok('C3 control: the same unit without the comma is released, as before',
+        noComma.released === 1 && noComma.held === 0, JSON.stringify(noComma.holds));
+
+      // M6 -- the rule taken out of the registry fallback: Thursday is a credit again
+      const thursdayMutant = await runMutant({
+        sourceFile: REVIEWER,
+        name: 'thursday-is-a-credit-again',
+        transform: (source) => source.replace(
+          "if (commonWordAlias(alias) && !TITLE_BEFORE_NAME_RE.test(before.replace(ARABIC_DIACRITICS, ''))) continue;",
+          '/* mutant: a common word is a man */'),
+        survives: (m) => { const out = m.reviewAnswer({ text: THURSDAY[0][1], evidence: [], domain: 'fiqh', mode: 'عادي' }); return out.text === THURSDAY[0][1] && !credits(out); },
+      });
+      ok('C3 mutant seam applied', thursdayMutant.changed, thursdayMutant.error);
+      ok('C3 mutant module loaded successfully', thursdayMutant.loaded, thursdayMutant.error);
+      ok('MUTANT KILLED: without the rule «صيام يوم الخميس، …» is a credit to the scholar again',
+        thursdayMutant.loaded && thursdayMutant.survived === false, JSON.stringify(thursdayMutant));
+    }
+
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }
