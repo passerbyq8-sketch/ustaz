@@ -531,6 +531,115 @@ const rejectsWrongScholar = (module) => {
       ok('C3 cost: the bare surname with nothing but a colon after it is no longer read as a credit',
         review('الخميس: يجوز ذلك.').text === 'الخميس: يجوز ذلك.' && !credits(review('الخميس: يجوز ذلك.')), review('الخميس: يجوز ذلك.').text);
 
+      // C3b (the second commit of this cure, after the automated security note on the first): THE BARE SURNAME AS A MAN. Ten shapes that
+      // were credits before the cure are credits after it -- four of them only since C3b (name first in front of a person's verb or of
+      // «رأيه», and «فضيلة» before the word). Expected values generated from the tree BEFORE the cure (C3b-probe.before-c3.json).
+      const BARE_MAN = [
+       [
+        "P4 name first, ruling verb",
+        "الخميس يحرّم ذلك.",
+        "يحرّم ذلك.",
+        "removed-unsupported-attribution"
+       ],
+       [
+        "P6 name first, yujiz",
+        "الخميس يجيز ذلك عند الحاجة.",
+        "يجيز ذلك عند الحاجة.",
+        "removed-unsupported-attribution"
+       ],
+       [
+        "P9 name first, ra'yuhu",
+        "الخميس رأيه أن ذلك جائز.",
+        "رأيه أن ذلك جائز.",
+        "removed-unsupported-attribution"
+       ],
+       [
+        "P7 fadila + surname",
+        "فضيلة الخميس يجيز ذلك عند الحاجة.",
+        "فضيلة الخميس يجيز ذلك عند الحاجة.",
+        "kept-unsupported-attribution-marked"
+       ],
+       [
+        "P1 verb first, colon",
+        "قال الخميس: يجوز ذلك.",
+        "وقال بعض أهل العلم: يجوز ذلك.",
+        "removed-unsupported-attribution"
+       ],
+       [
+        "P2 verb first, an",
+        "يرى الخميس أن ذلك جائز.",
+        "ومن أهل العلم من يرى أن ذلك جائز.",
+        "removed-unsupported-attribution"
+       ],
+       [
+        "P3 verb first, ila",
+        "ذهب الخميس إلى جواز ذلك.",
+        "وذهب بعض أهل العلم إلى جواز ذلك.",
+        "removed-unsupported-attribution"
+       ],
+       [
+        "P5 name first, yara",
+        "الخميس يرى جواز ذلك.",
+        "ومن أهل العلم من يرى جواز ذلك.",
+        "removed-unsupported-attribution"
+       ],
+       [
+        "P8 and-name first",
+        "والخميس يرى جواز ذلك.",
+        "ومن أهل العلم من يرى جواز ذلك.",
+        "removed-unsupported-attribution"
+       ],
+       [
+        "P10 afta",
+        "أفتى الخميس بجواز ذلك.",
+        "أفتى بعض أهل العلم بجواز ذلك.",
+        "removed-unsupported-attribution"
+       ]
+      ];
+      for (const [label, sentence, expectedText, expectedAction] of BARE_MAN) {
+        const out = review(sentence);
+        ok('C3b: the bare surname as a man (' + label + ') is the credit it was before the cure (' + expectedAction + ')',
+          out.text === expectedText && out.annotations[0]?.action === expectedAction, (out.annotations[0]?.action || '?') + ' | ' + out.text);
+      }
+      // ...and the eight day shapes of the same probe are no credit (six of them were one before the cure)
+      const DAY_SHAPES = [
+       [
+        "D1 day, qala",
+        "فلما كان يوم الخميس قال: ائتوني أكتب لكم كتابا."
+       ],
+       [
+        "D2 no yawm, qala later",
+        "إذا وافق الخميس قال بعض أهل العلم يصام."
+       ],
+       [
+        "D3 hukm after",
+        "الخميس حكم صيامه الاستحباب."
+       ],
+       [
+        "D4 sentence-initial day",
+        "الخميس يوم تعرض فيه الأعمال."
+       ],
+       [
+        "D5 sentence-initial day, colon",
+        "الخميس: يوم تعرض فيه الأعمال."
+       ],
+       [
+        "D6 yusam",
+        "يصام الخميس، لأن الأعمال تعرض فيه."
+       ],
+       [
+        "D7 fasting monday thursday",
+        "صيام الاثنين والخميس سنة."
+       ],
+       [
+        "D8 layla",
+        "وفي ليلة الخميس قال لهم: اجتمعوا."
+       ]
+      ];
+      for (const [label, sentence] of DAY_SHAPES) {
+        const out = review(sentence);
+        ok('C3b: Thursday (' + label + ') is no credit, and the sentence is delivered as written', out.text === sentence && !credits(out), (out.annotations[0]?.action || '?') + ' | ' + out.text);
+      }
       // THE BEFORE-WRITING PATH: the unit is released, where it was withheld (BRAIN-XRAY SMALL-S1-bw2 D5-a).
       const units = await fresh(path.join(ROOT, 'lib', 'bw2-units.js'), 'c3-units');
       const driveUnit = async (unitsModule, unit) => {
@@ -556,7 +665,7 @@ const rejectsWrongScholar = (module) => {
         sourceFile: REVIEWER,
         name: 'thursday-is-a-credit-again',
         transform: (source) => source.replace(
-          "if (commonWordAlias(alias) && !TITLE_BEFORE_NAME_RE.test(before.replace(ARABIC_DIACRITICS, ''))) continue;",
+          'if (commonWordAlias(alias) && !commonAliasNamesAMan(before, after)) continue;',
           '/* mutant: a common word is a man */'),
         survives: (m) => { const out = m.reviewAnswer({ text: THURSDAY[0][1], evidence: [], domain: 'fiqh', mode: 'عادي' }); return out.text === THURSDAY[0][1] && !credits(out); },
       });
