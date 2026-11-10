@@ -128,7 +128,10 @@ function pairingChecks(src) {
       // has no exception for short blocks, and the spirit of R8 is kept: the whole BODY is shown, no …. A body under MIN_ANSWER_WORDS
       // falls back to the whole answer, as serverOwnedBlock does (binothaimeen:6971: body = answer; aladawy:293: the hamdala is skipped).
       const trimmed0 = FF.briefAnswerBody(printed0.answer);
-      const body0 = trimmed0.split(/\s+/u).filter(Boolean).length >= FF.MIN_ANSWER_WORDS ? trimmed0 : printed0.answer;
+      // re-cut R14 (2026-11-11, BRAIN-A C4 (ii)): under the floor the block falls back to the answer WITHOUT its label and formula
+      // (lib/full-fatwa.js briefAnswerHead), no longer to the whole answer; this reference follows it. No record of this fixture
+      // moves: for each of them the head is the answer itself.
+      const body0 = trimmed0.split(/\s+/u).filter(Boolean).length >= FF.MIN_ANSWER_WORDS ? trimmed0 : (FF.briefAnswerHead(printed0.answer) || printed0.answer);
       ok(tag + ': a block of 600 or fewer is the answer-first shape too: the whole body of the answer, no «…», the whole block in the button (re-cut 2026-11-07, owner decision R8; re-cut 2026-11-08, brain35-5c W1, owner\'s delegation)',
         shown0 === '## ' + FF.HEADING_TEXT + '\n\n' + FF.BRIEF_ANSWER_HEAD + '\n' + body0 && !!m0 && Buffer.from(m0[1], 'base64').toString('utf8') === today,
         shown0.slice(0, 60).replace(/[^\x20-\x7e]/g, '.'));
@@ -139,7 +142,8 @@ function pairingChecks(src) {
     const m = TAG_RE.exec(brief);
     const visible = m ? brief.slice(0, m.index) : brief;
     ok(tag + ': the brief block shows 600 characters at most', visible.length <= 600, String(visible.length));
-    ok(tag + ': ...ending at a sentence\'s end, closed by «…»', /[.؟!؛]…$|\n…$|…$/u.test(visible) && visible.endsWith('…'), visible.slice(-30).replace(/[^\x20-\x7e]/g, '.'));
+    // name re-cut R14 (2026-11-11, BRAIN-A C4 (iii)): the cut may fall on a comma when the last sentence end wastes more than a third of the room
+    ok(tag + ': ...ending at a sentence\'s end (or, R14, at a comma when that end wastes over a third of the room), closed by «…»',/[.؟!؛]…$|\n…$|…$/u.test(visible) && visible.endsWith('…'), visible.slice(-30).replace(/[^\x20-\x7e]/g, '.'));
     // ITEM B-1 (brain35, 2026-11-06) BY THE OWNER'S DECISION (DIAG B-1: the brief block must give the ANSWER): the brief
     // block is no longer the first 600 characters of the served sheet, because those characters were the QUESTION -- it is
     // the sheet's own heading, then «الجواب (مختصرًا):», then an excerpt of the ANSWER. So «an excerpt of the block as

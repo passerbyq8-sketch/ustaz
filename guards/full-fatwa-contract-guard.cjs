@@ -773,8 +773,8 @@ async function main() {
           visible(PLAIN) === plainHead + PLAIN.answer + '\n' && bodyFn(PLAIN.answer) === PLAIN.answer, visible(PLAIN).slice(0, 80));
         // SYNTHETIC: a one-line radio answer between a hamdala and the presenter (the body after the skip and the stop is six words)
         const SHORT_SYNTHETIC = fix({ question: 'س', answer: 'الشيخ: الحمد لله رب العالمين، والصلاة والسلام على رسول الله. نعم، لا بأس بذلك إن شاء الله. المقدم: جزاكم الله خيرا، وأحسن إليكم.', title: 'ت', url: 'https://binbaz.org.sa/fatwas/3' });
-        ok('Z6e SYNTHETIC a record whose body after the skip and the stop is under twelve words («نعم، لا بأس بذلك إن شاء الله.») shows the WHOLE answer (pinned)',
-          FF.substantiveFatwaAnswer(SHORT_SYNTHETIC) === true && bodyFn(SHORT_SYNTHETIC.answer) === 'نعم، لا بأس بذلك إن شاء الله.' && visible(SHORT_SYNTHETIC) === plainHead + SHORT_SYNTHETIC.answer + '\n',
+        ok('Z6e SYNTHETIC a record whose body after the skip and the stop is under twelve words («نعم، لا بأس بذلك إن شاء الله.») shows the answer WITHOUT its label and formula, only the speaker-turn stop undone (re-cut R14, 2026-11-11, BRAIN-A C4 (ii); it pinned the WHOLE answer)',
+          FF.substantiveFatwaAnswer(SHORT_SYNTHETIC) === true && bodyFn(SHORT_SYNTHETIC.answer) === 'نعم، لا بأس بذلك إن شاء الله.' && visible(SHORT_SYNTHETIC) === plainHead + 'نعم، لا بأس بذلك إن شاء الله. المقدم: جزاكم الله خيرا، وأحسن إليكم.' + '\n',
           JSON.stringify([FF.substantiveFatwaAnswer(SHORT_SYNTHETIC), bodyFn(SHORT_SYNTHETIC.answer)]));
         const expansionOf = (rec) => { const m = /matn="([A-Za-z0-9+/=]+)"/u.exec(FF.serverOwnedBlock(rec, [], { band: 'adult', brief: true })); return m ? Buffer.from(m[1], 'base64').toString('utf8') : ''; };
         ok('Z6f the «النص الكامل» expansion is the whole block, byte for byte, for all three records (every preamble and turn kept)',
@@ -916,8 +916,8 @@ async function main() {
           // SYNTHETIC (the order's record, fully vowelled; the content after «فإن» SYNTHETIC)
           const G1B_VOWELLED = 'الحمد' + DAMMA + ' لله' + KASRA + ' رب' + SHADDA + KASRA + ' العالمين' + FATHA + '، والصلاة' + DAMMA + ' والسلام' + DAMMA + ' على رسول' + KASRA + ' الله' + KASRA + '، أما بعد: فإن الواجب على المسلم أن يتعلم أحكام دينه.';
           const g1bV = String(bodyFn(G1B_VOWELLED));
-          ok('G1b-2 SYNTHETIC «الحمدُ للهِ ربِّ العالمينَ، والصلاةُ والسلامُ على رسولِ اللهِ، أما بعد: فإن …» -> the body opens on «الحمدُ» or on «فإن», never on «ربِّ» (pinned: «الحمدُ» on f15de551 and after)',
-            (g1bV.startsWith('الحمد' + DAMMA) || g1bV.startsWith('فإن')) && !g1bV.startsWith('رب'), g1bV.slice(0, 40));
+          ok('G1b-2 SYNTHETIC «الحمدُ للهِ ربِّ العالمينَ، والصلاةُ والسلامُ على رسولِ اللهِ، أما بعد: فإن …» -> the body opens on «فإن» (re-cut R14, 2026-11-11, BRAIN-A C4 (i): the vowelled formula is skipped; the row pinned «الحمدُ» or «فإن», never «ربِّ»)',
+            g1bV.startsWith('فإن الواجب'), g1bV.slice(0, 40));
           ok('G1b-3 every G1a row unchanged under the fallback: Q18 «فإن الصائم», Q12 «الحلي» (comma and U+200B), aljasser «فإن», albarrak:8687 «فالمعتبر» (pinned)',
             String(bodyFn(G1A_Q18)).startsWith('فإن الصائم') && String(bodyFn(G1A_Q12)).startsWith('الحلي المعد') && String(bodyFn(G1A_Q12_ZW)).startsWith('الحلي المعد')
             && String(bodyFn(G1A_JASSER)).startsWith('فإن الواجب') && !!r8687 && String(bodyFn(r8687.answer)).startsWith('فالمعتبر'));
@@ -945,6 +945,91 @@ async function main() {
           ok('G1b MUTANT fallback seam applied', mG1b.ok, mG1b.reason);
           ok('G1b MUTANT KILLED: without the fallback the body opens on «وسلامٌ على» again',
             mG1b.ok && String(mG1b.mod.briefAnswerBody(G1B_SALAM)).startsWith('وسلام'));
+        }
+        // ── BRAIN-A C4 (2026-11-11; order EZIK-ORDER-BRAIN-A section 4.4; the owner's decision R14 of 11 November; report BRAIN-XRAY
+        // section 6, "The decision of 8 November", and BRAIN-XRAY-evidence/SMALL-S3-excerpt-decision.md D3, D4) · THREE MECHANICAL CURES ──
+        //  (i)   the skip of opening formulas reads text written WITH vowel marks (the al-Mosleh and Ferkous stores write theirs so:
+        //        84 of 86 and 82 of 82 formula-headed answers kept the formula at the head of the brief excerpt);
+        //  (ii)  a body under the twelve-word floor falls back to the answer AFTER the label and formula skip (only the speaker-turn
+        //        stop is undone), not to the whole answer with the formula it had removed;
+        //  (iii) the cut may fall on a comma when the last sentence end wastes more than a third of the room (binbaz:13610: the
+        //        excerpt stopped at 327 of 568 characters, one character before the sentence that answers the reader).
+        // The pointer to the sentence that rules on the reader's question is NOT here (batches B and C).
+        {
+          const [FATHA4, DAMMA4, KASRA4, SHADDA4, SUKUN4, TANWEEN_FATH4] = [0x064E, 0x064F, 0x0650, 0x0651, 0x0652, 0x064B].map((c) => String.fromCharCode(c));
+          const strip4 = (s) => String(s || '').replace(/[ً-ٰٟـ]/gu, '');
+          // (i) SYNTHETIC, the shape of ferkous:425 (the store's own opening formula, vowelled as the store writes it)
+          const C4_FERKOUS = 'الحمد' + DAMMA4 + ' لله رب' + SHADDA4 + KASRA4 + ' العالمين، والصلاة' + DAMMA4 + ' والسلام' + DAMMA4 + ' على م' + FATHA4 + 'ن' + SUKUN4 + ' أرسله الله' + DAMMA4
+            + ' رحمة' + TANWEEN_FATH4 + ' للعالمين، وعلى آله وصحب' + KASRA4 + 'ه وإخوان' + KASRA4 + 'ه إلى يوم الد' + SHADDA4 + KASRA4 + 'ين، أم' + SHADDA4 + FATHA4 + 'ا بعد' + DAMMA4 + ':\n'
+            + 'فالقراءة' + DAMMA4 + ' خلف الإمام' + KASRA4 + ' في الجهري' + SHADDA4 + FATHA4 + 'ة مسألة' + TANWEEN_FATH4 + ' اختلف فيها أهل العلم على أقوال، والراجح منها أن المأموم ينصت لقراءة إمامه إذا جهر.';
+          ok('C4-1 (i) SYNTHETIC the ferkous:425 shape, fully vowelled «الحمدُ لله ربِّ العالمين، والصلاةُ والسلامُ على مَنْ أرسله … أمَّا بعدُ:» -> the body opens «فالقراءةُ خلف الإمامِ»',
+            String(bodyFn(C4_FERKOUS)).startsWith('فالقراءة' + DAMMA4 + ' خلف الإمام' + KASRA4), String(bodyFn(C4_FERKOUS)).slice(0, 40));
+          // (i) SYNTHETIC, the al-Mosleh shape: every letter of the formula vowelled
+          const C4_MOSLEH = 'ال' + FATHA4 + 'ح' + FATHA4 + 'م' + SUKUN4 + 'د' + DAMMA4 + ' لله' + KASRA4 + '، و' + FATHA4 + 'ص' + FATHA4 + 'ل' + SHADDA4 + FATHA4 + 'ى الله' + DAMMA4 + ' و' + FATHA4 + 'س' + FATHA4 + 'ل' + SHADDA4 + FATHA4 + 'م' + FATHA4
+            + ' و' + FATHA4 + 'بار' + FATHA4 + 'ك' + FATHA4 + ' ع' + FATHA4 + 'ل' + FATHA4 + 'ى ر' + FATHA4 + 'س' + DAMMA4 + 'ول' + KASRA4 + ' الله' + KASRA4 + '، و' + FATHA4 + 'ع' + FATHA4 + 'ل' + FATHA4 + 'ى آل' + KASRA4 + 'ه' + KASRA4 + ' و' + FATHA4 + 'ص' + FATHA4 + 'ح' + SUKUN4 + 'ب' + KASRA4 + 'ه' + KASRA4
+            + '. أ' + FATHA4 + 'م' + SHADDA4 + FATHA4 + 'ا ب' + FATHA4 + 'ع' + SUKUN4 + 'د' + DAMMA4 + ': ف' + FATHA4 + 'إ' + KASRA4 + 'جاب' + FATHA4 + 'ة' + TANWEEN_FATH4 + ' على سؤالك نقول: صلاة الجماعة واجبة على الرجال في أصح قولي أهل العلم مع القدرة عليها.';
+          ok('C4-2 (i) SYNTHETIC the al-Mosleh shape «الحَمْدُ للهِ، وَصَلَّى اللهُ وَسَلَّمَ وَبارَكَ عَلَى رَسُولِ اللهِ، وَعَلَى آلِهِ وَصَحْبِهِ. أَمَّا بَعْدُ:» -> the formula is gone (the body opens on the store\'s own lead-in «فَإِجابَةً», batch C\'s case)',
+            strip4(bodyFn(C4_MOSLEH)).startsWith('فإجابة على سؤالك') && !strip4(bodyFn(C4_MOSLEH)).includes('الحمد لله'), String(bodyFn(C4_MOSLEH)).slice(0, 40));
+          const C4_GREETING = 'وعليكم' + DAMMA4 + ' السلام' + DAMMA4 + ' ورحمة' + DAMMA4 + ' الله' + KASRA4 + ' وبركات' + DAMMA4 + 'ه. يجوز للمسافر أن يجمع بين الصلاتين جمع تقديم أو جمع تأخير بحسب الأرفق به.';
+          ok('C4-3 (i) SYNTHETIC a vowelled returned greeting «وعليكمُ السلامُ ورحمةُ اللهِ وبركاتُه.» -> the body opens «يجوز للمسافر»',
+            String(bodyFn(C4_GREETING)).startsWith('يجوز للمسافر'), String(bodyFn(C4_GREETING)).slice(0, 40));
+          const C4_CONTENT = 'ي' + FATHA4 + 'جوز' + DAMMA4 + ' للمسافر' + KASRA4 + ' أن يجمع' + FATHA4 + ' بين الصلاتين جمع تقديم أو جمع تأخير بحسب الأرفق به، ولا حرج عليه في ذلك.';
+          ok('C4-4 (i) control: a vowelled answer that opens on its content is the identity (nothing is skipped)', bodyFn(C4_CONTENT) === C4_CONTENT, String(bodyFn(C4_CONTENT)).slice(0, 40));
+          // (i) parity: marks added to the formula-headed fixtures of this file change nothing but the marks. (A damma after the second
+          // letter of every word of three letters or more: not real vowelling, a test of the tolerance alone.)
+          const mark4 = (s) => String(s).replace(/([ء-ي]{2})(?=[ء-ي])/gu, '$1' + DAMMA4);
+          const PARITY = [G1A_Q18, G1A_Q12, G1A_JASSER, W12.answer, W19.answer, salmajed.answer, ribaRec.answer];
+          ok('C4-5 (i) parity: for seven formula-headed answers of this file, the body of the marked text opens, marks removed, as the body of the unmarked text opens (60 characters)',
+            PARITY.every((a) => mark4(a) !== a && strip4(bodyFn(mark4(a))).slice(0, 60) === strip4(bodyFn(a)).slice(0, 60)),
+            JSON.stringify(PARITY.map((a) => strip4(bodyFn(mark4(a))).slice(0, 60) === strip4(bodyFn(a)).slice(0, 60))));
+          // (ii) SYNTHETIC, the shape of salmajed:5660 (BRAIN-XRAY SMALL-S3 sample record 83): nine words after the label and the greeting
+          const C4_SHORT = fix({ question: 'س', answer: 'ج: وعليكم السلام ورحمة الله وبركاته .. يُستحب حضور الأضحية عند ذبحها، ولا يجب. والله أعلم.', title: 'ت', url: 'https://binbaz.org.sa/fatwas/4' });
+          ok('C4-6 (ii) SYNTHETIC the salmajed:5660 shape «ج: وعليكم السلام ورحمة الله وبركاته .. يُستحب حضور الأضحية عند ذبحها، ولا يجب. والله أعلم.» -> the block shows the answer without the label and the greeting',
+            FF.substantiveFatwaAnswer(C4_SHORT) === true && visible(C4_SHORT) === plainHead + 'يُستحب حضور الأضحية عند ذبحها، ولا يجب. والله أعلم.' + '\n', visible(C4_SHORT).slice(plainHead.length, plainHead.length + 70));
+          const C4_ONLY_FORMULA = fix({ question: 'س', answer: 'الحمد لله رب العالمين، والصلاة والسلام على رسول الله وعلى آله وصحبه أجمعين.', title: 'ت', url: 'https://binbaz.org.sa/fatwas/5' });
+          ok('C4-7 (ii) control: an answer that is nothing but a formula still shows the whole answer (never an empty block)',
+            FF.substantiveFatwaAnswer(C4_ONLY_FORMULA) === true && visible(C4_ONLY_FORMULA) === plainHead + C4_ONLY_FORMULA.answer + '\n', visible(C4_ONLY_FORMULA).slice(plainHead.length, plainHead.length + 60));
+          ok('C4-8 (ii) control: a body at or over the floor is what it was: the three DIAG4 fixture blocks and the plain record are unchanged by the fallback',
+            bodyOf(salmajed).startsWith('يجوز للمسافر') && bodyOf(ribaRec).startsWith('لا ريب أن الربا') && bodyOf(waslRec).startsWith('نعم، إذا رأى المصلحة') && visible(PLAIN) === plainHead + PLAIN.answer + '\n');
+          // (iii) the real record binbaz:13610 (fixtures/brain-a-excerpt-binbaz-13610.json, copied from the store by the inspection)
+          const rec13610 = fix(JSON.parse(fs.readFileSync(path.join(REPO, 'fixtures/brain-a-excerpt-binbaz-13610.json'), 'utf8')).record);
+          const body13610 = bodyOf(rec13610).replace(/\n$/u, '');
+          ok('C4-9 (iii) binbaz:13610: the excerpt runs to 460 characters or more (it stopped at 327), carries «سجد سجدتين قبل أن يسلم للسهو», ends on «…» and not on a comma',
+            body13610.length >= 460 && body13610.includes('سجد سجدتين قبل أن يسلم للسهو') && body13610.endsWith('…') && !/[،؛]…$/u.test(body13610) && rec13610.answer.startsWith(body13610.slice(0, -1)),
+            body13610.length + ' | ' + body13610.slice(-60));
+          // (iii) the rule itself, against the cut as it was (written out here: the last sentence end inside the room, the last space when that is under a third)
+          const oldCut = (text, max) => { const room = String(text).slice(0, Math.max(1, max - 1)); let cut = -1; for (const m of room.matchAll(/[.؟!؛](?=\s|$)|\n/gu)) cut = m.index + m[0].length; if (cut < Math.floor(max / 3)) { const sp = room.lastIndexOf(' '); cut = sp > 0 ? sp : room.length; } return room.slice(0, cut).replace(/\s+$/u, ''); };
+          const LATE_STOP = 'قال أهل العلم إن الجمع بين الصلاتين رخصة للمسافر، وإن القصر سنة مؤكدة في حقه، وإن الأفضل له أن يفعل الأرفق به من التقديم أو التأخير، وقد دل على ذلك فعل النبي في أسفاره كلها. ثم إن المسافر إذا نوى الإقامة، فإنه يتم صلاته عند جمهور الفقهاء، والله أعلم بالصواب في ذلك كله';
+          ok('C4-10 (iii) control: a text whose last sentence end lies past two thirds of the room is cut exactly as before (at the full stop)',
+            FF.briefExcerpt(LATE_STOP, 200) === oldCut(LATE_STOP, 200) && FF.briefExcerpt(LATE_STOP, 200).endsWith('.'), FF.briefExcerpt(LATE_STOP, 200).slice(-30));
+          ok('C4-11 (iii) control: the long fixture of this file (B-1) is cut exactly as before', FF.briefExcerpt(longAnswer, Math.max(1, FF.BRIEF_FATWA_MAX - longHead.length)) === oldCut(longAnswer, Math.max(1, FF.BRIEF_FATWA_MAX - longHead.length)));
+          const MID_STOP = 'الجمع بين الصلاتين رخصة للمسافر عند جمهور أهل العلم ولا حرج عليه في ذلك. ' + 'وقد ذكر أهل العلم في هذه المسألة تفصيلا، منه أن المسافر يترخص برخص السفر ما دام مسافرا، ومنه أن المقيم لا يترخص بشيء منها عند جمهور الفقهاء في ذلك كله';
+          ok('C4-12 (iii) a text whose last sentence end keeps a third of the room and wastes more than a third is cut at its last comma (the comma itself left out), and is longer than it was',
+            FF.briefExcerpt(MID_STOP, 200).length > oldCut(MID_STOP, 200).length && !/[،؛]$/u.test(FF.briefExcerpt(MID_STOP, 200)) && MID_STOP[FF.briefExcerpt(MID_STOP, 200).length] === '،',
+            FF.briefExcerpt(MID_STOP, 200).length + ' vs ' + oldCut(MID_STOP, 200).length);
+          const EARLY_STOP = 'نعم. ' + 'وقد ذكر أهل العلم في هذه المسألة تفصيلا طويلا، منه أن المسافر يترخص برخص السفر ما دام مسافرا، ومنه أن المقيم لا يترخص ومنه أن من نوى الإقامة مدة معلومة فله حكم المقيم عند جمهور الفقهاء في ذلك كله';
+          ok('C4-12b (iii) control: a text whose only sentence end lies in the first third is cut at the last space exactly as before, commas or not',
+            FF.briefExcerpt(EARLY_STOP, 200) === oldCut(EARLY_STOP, 200), FF.briefExcerpt(EARLY_STOP, 200).length + ' vs ' + oldCut(EARLY_STOP, 200).length);
+          // never shorter than before, over every answer this file holds and a sweep of budgets
+          const SWEEP = [LATE_STOP, MID_STOP, EARLY_STOP, longAnswer, rec13610.answer, salmajed.answer, ribaRec.answer, waslRec.answer, W12.answer, W19.answer, W14.answer];
+          const shorter = [];
+          for (const text of SWEEP) for (let max = 60; max <= 700; max += 20) if (FF.briefExcerpt(text, max).length < oldCut(text, max).length) shorter.push(max);
+          ok('C4-12c (iii) no excerpt is shorter than it was: eleven answers, budgets 60 to 700', shorter.length === 0, JSON.stringify(shorter.slice(0, 10)));
+          const NO_COMMA = 'نعم. ' + 'وقد ذكر أهل العلم في هذه المسألة تفصيلا طويلا منه أن المسافر يترخص برخص السفر ما دام مسافرا ومنه أن المقيم لا يترخص ومنه أن من نوى الإقامة مدة معلومة فله حكم المقيم عند جمهور الفقهاء في ذلك كله';
+          ok('C4-13 (iii) control: with no comma after that sentence end the cut is exactly as before', FF.briefExcerpt(NO_COMMA, 200) === oldCut(NO_COMMA, 200));
+          // the mutants
+          const srcC4 = fs.readFileSync(path.join(REPO, 'lib/full-fatwa.js'), 'utf8');
+          const mC4i = await mutate('lib/full-fatwa.js', '.replace(EXCERPT_LETTER_RE, excerptLetterWithMarks), \'u\');', ', \'u\'); // mutant: the formulas read no marks', 'c4marks');
+          ok('C4 MUTANT (i) marks seam applied', mC4i.ok && srcC4.includes('.replace(EXCERPT_LETTER_RE, excerptLetterWithMarks), \'u\');'), mC4i.reason);
+          ok('C4 MUTANT (i) KILLED: without the tolerance the vowelled Ferkous formula is back at the head', mC4i.ok && !String(mC4i.mod.briefAnswerBody(C4_FERKOUS)).startsWith('فالقراءة'));
+          const mC4ii = await mutate('lib/full-fatwa.js', ': (briefAnswerHead(printed.answer) || printed.answer) };', ': printed.answer }; // mutant: the fallback is the whole answer', 'c4fallback');
+          ok('C4 MUTANT (ii) fallback seam applied', mC4ii.ok, mC4ii.reason);
+          ok('C4 MUTANT (ii) KILLED: with the old fallback the short answer shows its label and greeting again',
+            mC4ii.ok && mC4ii.mod.serverOwnedBlock(C4_SHORT, [], { band: 'adult', brief: true }).split('<fatwafull')[0].includes('وعليكم السلام'));
+          const mC4iii = await mutate('lib/full-fatwa.js', '  if (cut < Math.ceil(room.length * 2 / 3)) {', '  if (false) { // mutant: no comma cut', 'c4comma');
+          ok('C4 MUTANT (iii) comma seam applied', mC4iii.ok, mC4iii.reason);
+          ok('C4 MUTANT (iii) KILLED: without the comma rule the binbaz:13610 excerpt stops at its one full stop again (under 400 characters)',
+            mC4iii.ok && mC4iii.mod.serverOwnedBlock(rec13610, [], { band: 'adult', brief: true }).split('<fatwafull')[0].length < 400);
         }
         }
       }

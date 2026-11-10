@@ -234,7 +234,7 @@ function mutate(src, m) {
 
   const cases = [];
   const untagged = [];
-  const briefBodyOf = (a) => { const body = FF.briefAnswerBody(String(a || '')); return body.split(/\s+/u).filter(Boolean).length >= FF.MIN_ANSWER_WORDS ? body : String(a || ''); }; // brain35-5b W1 (2026-11-08): the brief block's body, with its floor
+  const briefBodyOf = (a) => { const body = FF.briefAnswerBody(String(a || '')); return body.split(/\s+/u).filter(Boolean).length >= FF.MIN_ANSWER_WORDS ? body : (FF.briefAnswerHead(String(a || '')) || String(a || '')); }; // brain35-5b W1 (2026-11-08): the brief block's body, with its floor; re-cut R14 (2026-11-11, BRAIN-A C4 (ii)): under the floor, the answer without its label and formula, as serverOwnedBlock now falls back (aladawy:912's three rows: voice, preview, log)
   const addCase = (tag, brief, detailed, rec, translated) => {
     const m = /<fatwafull matn="([^"]+)">/.exec(brief);
     const printed = FF.printedFatwaPair(rec);
