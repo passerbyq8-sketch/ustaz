@@ -314,7 +314,7 @@ function mutate(src, m) {
   ok('share and every export hand over the same buildCopyText the copy button does', /<ShareReplyButton getText=\{buildCopyText\} \/>/.test(app) && /<CopyReplyButton text=\{String\(message\.content \|\| ''\)\.trim\(\)\} getText=\{buildCopyText\} \/>/.test(app)
     && app.includes('const buildCopyText = () => serializeReply(segments, { tashkeel, band: deriveCaps(age).band });'));
   ok('the listen button speaks formatForTTS of the reply (fetchSpeechAudio)', app.includes('const ttsText = formatForTTS(rawText);'));
-  ok('the server still sends the excerpt, then the tag with the whole block (unchanged)', fs.readFileSync(path.join(REPO, 'lib/full-fatwa.js'), 'utf8').includes("return briefExcerpt(whole, BRIEF_FATWA_MAX) + '…\\n' + '<fatwafull matn=\"'"));
+  ok('the server still sends the excerpt, then the tag with the whole block (unchanged) (re-cut R13 2026-11-10: owner decision B-1, as postship16)', fs.readFileSync(path.join(REPO, 'lib/full-fatwa.js'), 'utf8').includes("return head + answerOnly + (cut ? '…' : '') + '\\n' + '<fatwafull matn=\"'"));
 
   console.log('\n' + (checks - failures) + '/' + checks + ' checks passed');
   process.exit(failures ? 1 : 0);
