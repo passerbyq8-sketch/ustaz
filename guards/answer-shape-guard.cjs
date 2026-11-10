@@ -301,6 +301,42 @@ function answerShapeViolations(reply) {
   }
 
   // =========================================================================
+  console.log('\n=== BRAIN-A C1. THE WORSHIP CARD TAG IS NOT MACHINE NARRATION ===');
+  {
+    // BRAIN-A C1 (order EZIK-ORDER-BRAIN-A-2026-11-11, section 4.1; report REPORT-BRAIN-XRAY-2026-11-10 section 3, B19).
+    // MEASURED (BRAIN-XRAY-evidence/H5-worship-tag.out.md): the system prompt orders the writer to answer the manner of
+    // prayer, wudu, ghusl or tayammum with the card tag ALONE; the tag is 20 to 24 Latin letters and no Arabic one, so
+    // the Latin-line rule (isForeignScriptLine) deleted it, and the reader of the older path got no card and no steps.
+    // The verse, surah, hadith and dhikr tags were already exempt; the worship tag is a server-owned card like them.
+    const delivered3 = (value) => LOOP.deliverableText(value, []);
+    const TAGS = ['salah', 'wudu', 'ghusl', 'tayammum'].map((id) => '<worship id="' + id + '"></worship>');
+    // "wa-mata yushra'u al-tayammum?" then one cited sentence: the second part of the witness B19.
+    const WHEN = '\u0648\u0645\u062a\u0649 \u064a\u0634\u0631\u0639 \u0627\u0644\u062a\u064a\u0645\u0645\u061f\n\n'
+      + '\u064a\u0634\u0631\u0639 \u0627\u0644\u062a\u064a\u0645\u0645 \u0639\u0646\u062f \u0641\u0642\u062f \u0627\u0644\u0645\u0627\u0621 [[1]].';
+    for (const tag of TAGS) {
+      eq('C1: the tag ' + tag + ' alone on a line survives the delivery filter', delivered3(tag), tag);
+      ok('C1: ...and ' + tag + ' is not judged a foreign-script line', LOOP.isForeignScriptLine(tag) === false);
+    }
+    eq('C1: the tayammum tag on the first line, then the second part of the question (B19), is delivered whole',
+      delivered3(TAGS[3] + '\n\n' + WHEN), TAGS[3] + '\n\n' + WHEN);
+    // "sifat al-tayammum" as a heading line, then the tag on its own line
+    const HEAD = '\u0635\u0641\u0629 \u0627\u0644\u062a\u064a\u0645\u0645';
+    eq('C1: the tag on its own line under a heading is delivered whole',
+      delivered3(HEAD + '\n\n' + TAGS[3] + '\n\n' + WHEN), HEAD + '\n\n' + TAGS[3] + '\n\n' + WHEN);
+    eq('C1: the tag behind a list marker is delivered whole', delivered3('- ' + TAGS[1]), '- ' + TAGS[1]);
+    // MUST NOT CHANGE: English narration is still deleted, with or without the word "worship" in it.
+    const EN1 = "I'll research each of these five questions in the authoritative sources.";
+    const EN2 = 'I will now show the worship card for tayammum to the reader of this answer.';
+    eq('C1 control: an English sentence alone is still deleted', delivered3(EN1), '');
+    eq('C1 control: an English sentence that says "worship" (no tag) is still deleted', delivered3(EN2), '');
+    eq('C1 control: an English sentence above the tag is deleted and the tag stays',
+      delivered3(EN1 + '\n' + TAGS[0]), TAGS[0]);
+    ok('C1 control: the four tags that were already exempt still are',
+      ['<verse surah_num="2" ayah="255"></verse>', '<surah num="112"></surah>', '<hadith narrator="x" ruling="y">z</hadith>', '<dhikr id="27"></dhikr>']
+        .every((line) => LOOP.isForeignScriptLine(line) === false));
+  }
+
+  // =========================================================================
   console.log('\n=== A. THE GENERATOR IS RUN, NOT READ ===');
   // The measured range the owner's readers actually span: adult/fiqh, teen, child — each in the
   // typed and the spoken mode, and both personas. If the fork ever emits a preamble for ONE band
