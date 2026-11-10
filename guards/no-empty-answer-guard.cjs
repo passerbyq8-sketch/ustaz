@@ -416,7 +416,10 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     // round having already written something, E4's tools-removed write never runs at all, so a
     // turn whose last round said nothing usable delivers a stale fragment instead of an answer.
     const keyMutant = await loopMutant('write-keyed-on-text-again',
-      (source) => source.replace('  if (!finished) {', '  if (!written.length) {'),
+      // ITEM O-3 (brain35, 2026-11-06) moved this line: the turn's own deadline is tested before the write, so the write
+      // now reads `} else if (!finished) {`. The mutant is unchanged in what it does -- key the write on the accumulated
+      // text instead of on `finished` -- and it must still be killed below.
+      (source) => source.replace('  } else if (!finished) {', '  } else if (!written.length) {'),
       async (twinModule) => {
         const turn = await driveScript(twinModule,
           (i) => (i === 0 ? withTool(EARLY, 't0') : textPayload(i === 1 ? '' : LATE)));
@@ -1745,7 +1748,10 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     // S6 — M25: `truncated` DERIVED FROM THE LENGTH. §٢/٣'s named mutant, and S2's short/long pair
     // is what kills it: a four-character answer that really was cut must still report `true`.
     const lengthMutant = await loopMutant('truncated-derived-from-length',
-      (source) => source.replace('  const truncated = truncatedFrom(deliveredStop);',
+      // ITEM O-3 (brain35, 2026-11-06) moved this line: a turn stopped by its own deadline is cut whatever its last stop
+      // said, so the line now reads `turnDeadlineHit ? true : truncatedFrom(deliveredStop)`. The mutant is unchanged in
+      // what it does -- guess the cut from the size of the text -- and it must still be killed below.
+      (source) => source.replace('  const truncated = turnDeadlineHit ? true : truncatedFrom(deliveredStop);',
         '  const truncated = answer.length >= 4000; // mutant: guessed from the size of the text'),
       async (twinModule) => {
         const cut = await driveScript(twinModule, () => stopPayload(SHORT, 'max_tokens'));

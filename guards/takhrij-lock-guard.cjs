@@ -836,7 +836,16 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         upstreamSignalAbortedEver, framesDelivered,
       };
     };
+    // ── brain35-4 Y4 (2026-11-07; FIX3 FOUND 5; owner: "yes to the four") · THE ENDPOINT SECTION OFFLINE END TO END ──────────
+    // X16 refused name resolution for the F-008 block only; outside it this section still preflight-resolved its fixture hosts and
+    // any row reaching the identity probe would have gone to the network. The same refusal (safe-fetch's own test seam) now stands
+    // around the whole section -- every row that drives api/ask.js -- and is reset in the section's finally. Row Y4 asserts it at
+    // the first and at the last row; the X16 row keeps asserting it inside the F-008 block. No product code.
+    let SAFE_FETCH = null;
     try {
+      SAFE_FETCH = await esm('lib/ledger/safe-fetch.js');
+      SAFE_FETCH.__setResolverForTest(async (host) => { throw new Error('offline gate: no resolution for ' + host); });
+      const refusedAtFirstRow = await SAFE_FETCH.checkHostAddresses('islamqa.info');
       ok('A1 endpoint assertions execute the handleEvent parser shipped in index.html', typeof clientVisibleFromRaw === 'function');
       /* Split out of A1: bare-hadith claim detection remains open.
       const h1 = '\u0625\u0646\u0645\u0627 \u0627\u0644\u0623\u0639\u0645\u0627\u0644 \u0628\u0627\u0644\u0646\u064a\u0627\u062a';
@@ -928,6 +937,18 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       // would now violate F-081 by reviving a lexical capture vetoed by the entity IR.
       const presenceQuestion = '\u0645\u0646 \u0647\u0648 \u062e\u0627\u0644\u062f \u0639\u0628\u062f\u0627\u0644\u0631\u062d\u0645\u0646\u061f';
       const contradiction = '\u062e\u0627\u0644\u062f \u0639\u0628\u062f\u0627\u0644\u0631\u062d\u0645\u0646 \u0645\u0637\u0631\u0628 \u0643\u0648\u064a\u062a\u064a \u0645\u0639\u0631\u0648\u0641.';
+      // ── brain35-3 X16 (2026-11-07; owner: ship item) · THE F-008 RACE REMOVED ──────────────────────────────────────
+      // MEASURED (BRAIN35-FIX-evidence/takhrij-F008-flake, five runs of this gate: three pass, two fail, no code change):
+      // the identity probe (api/ask.js -> lib/identity/wikipedia.js -> safeFetch) reaches the REAL ar.wikipedia.org -- the
+      // stubbed globalThis.fetch is bypassed by safe-fetch's pinned hop (node:https on the preflighted address) -- so this
+      // row passed only when that lookup timed out («[identity] wikipedia miss { reason: 'timeout' }» -> unknown -> the
+      // three problems) and failed when Wikipedia answered in time («[identity] { kind: 'public_figure', source:
+      // 'wikipedia' }» -> no problems). The row's subject is the MISS. For this block the gate refuses every name
+      // resolution through safe-fetch's own test seam: preflight fails, the probe misses deterministically, and the gate
+      // sends nothing to the network here. Restored after the block.
+      // brain35-4 Y4: the refusal is the section's (set above its first row); the X16 row below keeps asserting it here
+      const wikiPreflight = await SAFE_FETCH.checkHostAddresses('ar.wikipedia.org');
+      ok('X16 the name resolution is refused for the F-008 block (the identity probe cannot reach ar.wikipedia.org)', wikiPreflight && wikiPreflight.ok === false, JSON.stringify(wikiPreflight));
       const presenceBad = await drive({ question: presenceQuestion, draft: contradiction, evidence: '' });
       ok('F-008 endpoint negative: consistency removes the composed contradiction before first text write/end',
         rawContract(presenceBad)
@@ -948,7 +969,10 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         .nameUnknownLine('\u062e\u0627\u0644\u062f \u0639\u0628\u062f\u0627\u0644\u0631\u062d\u0645\u0646');
       ok('F-008 endpoint fixture has namedEntity empty and a real structured presence lead', presencePlan.namedEntity === '' && presenceGood.text.startsWith(expectedPresenceLead + '\n\n'), JSON.stringify({ namedEntity: presencePlan.namedEntity, text: presenceGood.text }));
       ok('F-008 endpoint green: composed text is finalized before first target write/end', rawContract(presenceGood) && presenceGood.res.textWritesBeforeFinalizer === 0 && presenceGood.res.endsBeforeFinalizer === 0 && presenceGood.finalizerProblems.length === 0 && presenceGood.text === expectedPresenceLead + '\n\n' + presenceBody, presenceGood.text);
-    } finally { globalThis.fetch = originalFetch; }
+      const refusedAtLastRow = await SAFE_FETCH.checkHostAddresses('ar.wikipedia.org');
+      ok('Y4 the name resolution is refused at the first and at the last row of the endpoint section (the gate sends nothing to the network)',
+        refusedAtFirstRow && refusedAtFirstRow.ok === false && refusedAtLastRow && refusedAtLastRow.ok === false, JSON.stringify({ refusedAtFirstRow, refusedAtLastRow }));
+    } finally { globalThis.fetch = originalFetch; if (SAFE_FETCH) SAFE_FETCH.__resetResolver(); /* brain35-4 Y4: the real resolver back after the section */ }
   }
 
   // ── 12. THE LEAD-IN GOES WITH THE BLOCK THE SEAL DROPS ─────────────────────
@@ -3761,9 +3785,11 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     ok('b12 W2 · «قال الألباني: صحيح.» does not reach the reader as a grade credited to nobody',
       viaReviewer(L12, W2) === 'ويستحب ذلك.\nوالعمل عليه عند أهل العلم.', JSON.stringify(viaReviewer(L12, W2)));
     for (const [label, input, want] of [
+      // brain35 A-1 (2026-11-06, owner: the khilaf warning only for a real contradiction): «وذهب الجمهور» alone (one view, the
+      // word الجمهور) no longer draws the reviewer's khilaf tail; the row's own subject -- the joined grade verb goes -- is unchanged.
       ['sibling · «وضعّفه الألبانيّ» joined, no page: goes',
         'قال رسول الله صلى الله عليه وسلم: «لا تقرأ الحائض ولا الجنب شيئا من القرآن».\nوضعّفه الألبانيّ.\nوذهب الجمهور إلى المنع.',
-        'قال رسول الله صلى الله عليه وسلم: «لا تقرأ الحائض ولا الجنب شيئا من القرآن».\nوذهب الجمهور إلى المنع.\nوتُراجَع المسألة مع أهل العلم لظهور الخلاف فيها.'],
+        'قال رسول الله صلى الله عليه وسلم: «لا تقرأ الحائض ولا الجنب شيئا من القرآن».\nوذهب الجمهور إلى المنع.'],
       ['sibling · «قال ابن باز: إسناده جيد» through the reviewer: the grade goes, and with it the sentence it was all of',
         'ويجوز ذلك.\nقال ابن باز: إسناده جيد.\nوالله أعلم.', 'ويجوز ذلك.\nوالله أعلم.'],
       ['sibling · a general speaker with more to say keeps it; only the grade clause goes',
@@ -4855,6 +4881,56 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         !mod.lockTakhrij(H + rows[0][1], []).text.includes('تحريم الغش'));
     } finally {
       try { fs.rmSync(tmp62, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
+
+  // ── brain35 A-3 (c) (2026-11-06; TIRMIDHI, DIAG:32/u2) · A PAGE THAT ENUMERATES HADITHS IS READ ITEM BY ITEM ───────────
+  // The captured unit and page (fixtures/brain35-tirmidhi-page.json): the page lists four asked hadiths and answers them by
+  // ordinal; the unit credited «ضعفه الترمذي» (hadith 1's answer) to the asked hadith 2 and the lock passed it (H9: CLEAN).
+  // With the asked matn handed in, the credit is tied to item 2: the Tirmidhi clause goes, «ضعيف جدا … الشعب» stays; the items
+  // reordered give the same; a one-item page and a call without the asked matn keep today's result.
+  {
+    console.log('\n=== brain35 A-3 (c) · THE NUMBERED PAGE ===');
+    const TLA3 = await esm('lib/takhrij-lock.js');
+    const UNITS = await esm('lib/bw2-units.js');
+    const FXA3 = JSON.parse(fs.readFileSync(path.join(REPO, 'fixtures/brain35-tirmidhi-page.json'), 'utf8'));
+    const asked = UNITS.askedHadithOf(FXA3.question);
+    const items = TLA3.pageItems(FXA3.page.passage);
+    ok('A-3c pageItems reads four numbered items with their matns and answers off the Committee page', items.length === 4 && items.map((it) => it.n).join(',') === '1,2,3,4'
+      && items[1].matnFolded.includes('مغفورا') && items[1].answer.includes('ضعيف جدا') && items[0].answer.includes('ضعفه الترمذي'), JSON.stringify(items.map((it) => it.n)));
+    ok('A-3c askedHadithOf(question) names the asked matn', asked.includes('يس') && asked.includes('مغفور'));
+    const got = TLA3.lockTakhrij(FXA3.unit, [FXA3.page], { askedMatn: asked });
+    ok('A-3c the DIAG-32 unit: «ضعفه الترمذي…» removed, «ضعيف جدا … الشعب» kept', got.outcome === 'REBUILT' && got.removed.length === 1 && got.removed[0].phrase.includes('الترمذي')
+      && !got.text.includes('الترمذي') && got.text.includes('ضعيف جدا') && got.text.includes('الشعب') && got.text.includes('أبو يعلى'), JSON.stringify(got));
+    const swapped = FXA3.page.passage
+      .replace('1- «من قرأ يس كتب له بقراءتها قراءة القرآن عشر مرات» . 2- «من قرأ يس في ليلة أصبح مغفورا له» .', '1- «من قرأ يس في ليلة أصبح مغفورا له» . 2- «من قرأ يس كتب له بقراءتها قراءة القرآن عشر مرات» .')
+      .replace('1 - الحديث الأول أخرجه الترمذي والدارمي والبيهقي (1) وضعفه الترمذي بقوله: هذا حديث غريب. 2 - الحديث الثاني ضعيف جدا، رواه أبو يعلى والدارمي والبيهقي في (الشعب) .', '1 - الحديث الأول ضعيف جدا، رواه أبو يعلى والدارمي والبيهقي في (الشعب) . 2 - الحديث الثاني أخرجه الترمذي والدارمي والبيهقي (1) وضعفه الترمذي بقوله: هذا حديث غريب.');
+    ok('A-3c the fixture\'s swapped page differs from the page', swapped !== FXA3.page.passage);
+    const gotS = TLA3.lockTakhrij(FXA3.unit, [{ ...FXA3.page, passage: swapped }], { askedMatn: asked });
+    ok('A-3c items reordered -> the same result', gotS.outcome === 'REBUILT' && gotS.removed.length === 1 && gotS.removed[0].phrase.includes('الترمذي') && gotS.text.includes('ضعيف جدا'), JSON.stringify(gotS));
+    const one = { ...FXA3.page, passage: 'س: ما حكم حديث «من قرأ يس في ليلة أصبح مغفورا له»؟ ج: الحديث ضعيف جدا، رواه أبو يعلى والدارمي والبيهقي في الشعب، وضعفه الترمذي بقوله: هذا حديث غريب.' };
+    const gotOne = TLA3.lockTakhrij(FXA3.unit, [one], { askedMatn: asked });
+    ok('A-3c a one-item page (no enumeration) keeps today\'s result (CLEAN)', TLA3.pageItems(one.passage).length === 0 && gotOne.outcome === 'CLEAN' && gotOne.removed.length === 0, JSON.stringify(gotOne));
+    const gotNone = TLA3.lockTakhrij(FXA3.unit, [FXA3.page]);
+    ok('A-3c without the asked matn (and no quoted matn) today\'s rule stands (CLEAN)', gotNone.outcome === 'CLEAN' && gotNone.removed.length === 0, JSON.stringify(gotNone));
+    const quoted = 'حديث «من قرأ يس في ليلة أصبح مغفورا له» ضعفه الترمذي بقوله: هذا حديث غريب [[3]]، وحكمت اللجنة الدائمة بأنه ضعيف جدا، رواه أبو يعلى والدارمي والبيهقي في الشعب [[3]].';
+    const gotQ = TLA3.lockTakhrij(quoted, [FXA3.page], { askedMatn: asked });
+    ok('A-3c the same credits with the asked matn quoted: the Tirmidhi clause is unsupported (removed), the matn is salvaged (today\'s quoted-sentence rule)',
+      gotQ.removed.length === 1 && gotQ.removed[0].phrase.includes('الترمذي') && gotQ.text.includes('«من قرأ يس في ليلة أصبح مغفورا له»'), JSON.stringify(gotQ));
+    // the seam: the item binding removed -> the Tirmidhi credit rides the page again
+    const srcA3 = fs.readFileSync(path.join(REPO, 'lib', 'takhrij-lock.js'), 'utf8');
+    const seamA3 = "      if (!ok && at < 0) unsupported.push(sp);\n";
+    ok('MUTANT A-3c item-binding seam applied', srcA3.split(seamA3).length === 2);
+    const tmpA3 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-a3c-mut-'));
+    try {
+      const file = path.join(tmpA3, 'takhrij-lock.mjs');
+      fs.writeFileSync(file, srcA3.split(seamA3).join("      // mutant: a credit found in another item's answer is never unsupported\n").replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + file.replace(/\\/g, '/'));
+      const mut = mod.lockTakhrij(FXA3.unit, [FXA3.page], { askedMatn: asked });
+      ok('MUTANT KILLED: without the item binding «ضعفه الترمذي» rides the Committee page again', mut.outcome === 'CLEAN' && mut.removed.length === 0, JSON.stringify(mut));
+    } finally {
+      try { fs.rmSync(tmpA3, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');

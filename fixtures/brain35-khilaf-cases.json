@@ -1,0 +1,347 @@
+{
+  "schema": "ezik.brain35.khilaf-cases.v1",
+  "source": "BRAIN35-DIAG-evidence/Qnn.text.md (ezik.app, 2026-11-06), fed as H3-khilaf.mjs fed them; S1-S4 are hand-written",
+  "topicFrom": "classifyTopic(question) for Qnn (the BW2 call site, before-writing-v2.js); explicit for S1-S4",
+  "cases": [
+    {
+      "id": "Q39",
+      "question": "ما حكم الصلوات الخمس؟",
+      "note": "the P3 control «ما حكم الصلوات الخمس؟»: an agreed obligation, no attributed view -> no tail",
+      "deliveredLive": true,
+      "input": {
+        "text": "الصلواتُ الخمسُ فرضٌ على كلِّ مسلمٍ، ثبتتْ فرضيتُها بالكتابِ والسنةِ والإجماعِ، وهي معلومةٌ من الدينِ بالضرورةِ، يكفرُ جاحدُها. وهي الظهرُ والعصرُ والمغربُ والعشاءُ والفجرُ، تؤدى كلَّ يومٍ وليلةٍ.\n\nوهي آكدُ الفروضِ وأفضلُها بعدَ الشهادتينِ، وهي الركنُ الثاني من أركانِ الإسلامِ الخمسةِ.\n\nأما الدليلُ من الكتابِ، فقولُه تعالى: وأقيموا الصلاةَ، وقولُه تعالى: إن الصلاةَ كانت على المؤمنينَ كتابًا موقوتًا، أي فرضًا مؤقتًا، وقولُه تعالى: حافظوا على الصلواتِ والصلاةِ الوسطى، وقولُه تعالى: وأقمِ الصلاةَ طرفيِ النهارِ وزلفًا من الليلِ.\n<book author=\"مجموعة من المؤلفين\" ref=\"ج27 · ص52\" book=\"FC-003910\" vol=\"27\" page=\"52\" matn=\"2YjZjtij2Y7ZhdmR2Y7YpyDYp9mE2LXZkdmO2YTZjtmI2Y7Yp9iq2Y8g2KfZhNmS2K7ZjtmF2ZLYs9mPINio2ZDYp9mE2LXZkdmP2YjYsdmO2KnZkCDYp9mE2ZLZhdmO2LnZktmH2Y/ZiNiv2Y7YqdmQINmB2Y7YpdmQ2YbZkdmO2YfZjtinINmB2Y/YsdmQ2LbZjtiq2ZIg2YTZjtmK2ZLZhNmO2KnZjiDYp9mE2KXZktmQ2LPZktix2Y7Yp9ih2ZAg2YjZjtin2YTZktmF2ZDYudmS2LHZjtin2KzZkCDYudmO2YTZjtmJINiu2ZDZhNin2Y7ZgdmNINio2Y7ZitmS2YbZjtmH2Y/ZhdmSINmB2ZDZiiDYqtmO2K3Zktiv2ZDZitiv2ZAg2LLZjtmF2Y7ZhtmQ2YfZkC4gNCAtINmI2Y7ZgtmO2K/ZkiDYq9mO2KjZjtiq2Y7YqtmSINmB2Y7YsdmS2LbZkNmK2ZHZjtip2Y8g2KfZhNi12ZHZjtmE2Y7ZiNmO2KfYqtmQINin2YTZktiu2Y7ZhdmS2LPZkCDYqNmQ2KfZhNmS2YPZkNiq2Y7Yp9io2ZAg2YjZjtin2YTYs9mR2Y/ZhtmR2Y7YqdmQINmI2Y7Yp9mE2KXZktmQ2KzZktmF2Y7Yp9i52ZA6INij2Y7ZhdmR2Y7YpyDYp9mE2ZLZg9mQ2KrZjtin2KjZjyDZgdmO2YLZjtmI2ZLZhNmP2YfZjyDYqtmO2LnZjtin2YTZjtmJINmB2ZDZiiDYutmO2YrZktix2ZAg2YXZjtmI2ZLYttmQ2LnZjSDZhdmQ2YbZjiDYp9mE2ZLZgtmP2LHZktii2YbZkC4ge9mI2Y7Yo9mO2YLZkNmK2YXZj9mI2Kcg2KfZhNi12ZHZjtmE2KfZjtip2Y4gKDEpIH0g2Iwg2YjZgtmO2YjZktmE2Ycg2KrZjti52Y7Yp9mE2Y7ZiToge9il2ZDZhtmR2Y4g2KfZhNi12ZHZjtmE2KfZjtip2Y4g2YPZjtin2YbZjtiq2ZIg2LnZjtmE2Y7ZiSDYp9mE2ZLZhdmP2KTZktmF2ZDZhtmQ2YrZhtmOINmD2ZDYqtmO2KfYqNmL2Kcg2YXZjtmI2ZLZgtmP2YjYqtmL2KcgKDIpIH0g2KPZjtmK2ZIg2YHZjtix2ZLYttmL2Kcg2YXZj9ik2Y7ZgtmR2Y7YqtmL2KcuINmI2YLZjtmI2ZLZhNmHINiq2Y7YudmO2KfZhNmO2Yk6IHvYrdmO2KfZgdmQ2LjZj9mI2Kcg2LnZjtmE2Y7ZiSDYp9mE2LXZkdmO2YTZjtmI2Y7Yp9iq2ZAg2YjZjtin2YTYtdmR2Y7ZhNin2Y7YqdmQINin2YTZktmI2Y/Ys9mS2LfZjtmJICgzKSB9INmI2Y7ZhdmP2LfZktmE2Y7ZgtmPINin2LPZktmF2ZAg2KfZhNi12ZHZjtmE2KfZjtip2ZAg2YrZjtmG2ZLYtdmO2LHZkNmB2Y8g2KXZkNmE2Y7ZiSDYp9mE2LXZkdmO2YTZjtmI2Y7Yp9iq2ZAg2KfZhNmS2YXZjti52ZLZh9mP2YjYr9mO2KnZkNiMINmI2Y7Zh9mQ2YrZjiDYp9mE2ZHZjtiq2ZDZiiDYqtmP2KTZjtiv2ZHZjtmJINmB2ZDZiiDZg9mP2YQg2YrZjtmI2ZLZhdmNINmI2Y7ZhNmO2YrZktmE2Y7YqdmNLiDZiNmC2Y7ZiNmS2YTZhyDYqtmO2LnZjtin2YTZjtmJOiB72YjZjtij2Y7ZgtmQ2YXZkCDYp9mE2LXZkdmO2YTYp9mO2KnZjiDYt9mO2LHZjtmB2Y7ZitmQINin2YTZhtmR2Y7Zh9mO2KfYsdmQINmI2Y7YstmP2YTZjtmB2YvYpyDZhdmQ2YbZjiDYp9mE2YTZkdmO2YrZktmEICg0KSB9INmK2Y7YrNmS2YXZjti52Y8g2KfZhNi12ZHZjtmE2Y7ZiNmO2KfYqtmQINin2YTZktiu2Y7ZhdmS2LPZjtibINmE2KPZkNmO2YbZkdmOINi12Y7ZhNin2Y7YqdmOINin2YTZktmB2Y7YrNmS2LHZkCDYqtmP2KTZjtiv2ZHZjtmJINmB2ZDZiiDYo9mO2K3Zjtiv2ZAg2LfZjtix2Y7ZgdmO2YrZkCDYp9mE2YbZkdmO2YfZjtin2LHZkNiMINmI2Y7YtdmO2YTYp9mO2KnZjiDYp9mE2LjZkdmP2YfZktix2ZAg2YjZjtin2YTZkti52Y7YtdmS2LHZkCDZitmP2KTZjtiv2ZHZjtmK2Y7Yp9mG2ZAg2YHZkNmKINin2YTYt9mR2Y7YsdmO2YHZkCDYp9mE2KLZktiu2Y7YsdmQ2Iwg2KXZkNiw2ZAg2KfZhNmG2ZHZjtmH2Y7Yp9ix2Y8g2YLZkNiz2ZLZhdmO2KfZhtmQINi62Y7Yr9mO2KfYqdmMINmI2Y7YudmO2LTZkNmK2ZHZjNiMINmI2Y7Yp9mE2ZLYutmO2K/Zjtin2KnZjyDYp9iz2ZLZhdmMINmE2KPZkNmO2YjZkdmO2YQg2KfZhNmG2ZHZjtmH2Y7Yp9ix2ZAg2KXZkNmE2Y7ZiSDZiNmO2YLZktiq2ZAg2KfZhNiy2ZHZjtmI2Y7Yp9mE2Iwg2YjZjtmF2Y7YpyDYqNmO2LnZktiv2Y7Zh9mPINin2YTZkti52Y7YtNmQ2YrZkdmP2Iwg2YHZjtiv2Y7YrtmO2YQg2YHZkNmKINi32Y7YsdmO2YHZjtmK2ZAg2KfZhNmG2ZHZjtmH2Y7Yp9ix2ZAg2KvZjtmE2KfZjtir2Y8g2LXZjtmE2Y7ZiNmO2KfYqtmNINmI2Y7Yr9mO2K7ZjtmEINmB2ZDZiiDZgtmO2YjZktmE2ZDZh9mQOg==\">الموسوعة الفقهية الكويتية</book>\n\nوقد ثبتَ عددُ ركعاتِ كلِّ صلاةٍ من هذه الصلواتِ بسنةِ رسولِ الله صَلَّى اللهُ عَلَيْهِ وَسَلَّم قولًا وفعلًا وبالإجماعِ، قالَ الكاسانيُّ: عرفنا ذلكَ بفعلِ النبي صَلَّى اللهُ عَلَيْهِ وَسَلَّم وقولِه: «صلوا كما رأيتموني أصلي» (البخاري).\n\nوقد ضربَ النبيُّ صَلَّى اللهُ عَلَيْهِ وَسَلَّم لهذه الصلواتِ مثلًا بديعًا، فقالَ: «مَثَلُ الصَّلَوَاتِ الْمَكْتُوبَاتِ كَمَثَلِ نَهْرٍ جَارٍ عَلَى بَابِ أَحَدِكُمْ يَغْتَسِلُ مِنْهُ كُلَّ يَوْمٍ خَمْسَ مَرَّاتٍ» (ابن حبان · لم يوقف على حكم).\n<book author=\"ابن حبان\" ref=\"ج5 · ص13\" book=\"FC-000704\" vol=\"5\" page=\"13\" matn=\"2LDZkNmD2ZLYsdmPINiq2Y7ZhdmS2KvZkNmK2YTZkCDYp9mE2YbZkdmO2KjZkNmK2ZHZkCDYtdmO2YTZkdmO2Ykg2KfZhNmE2ZHZjtmH2Y8g2LnZjtmE2Y7ZitmS2YfZkCDZiNmO2LPZjtmE2ZHZjtmF2Y4g2YXZj9i12Y7ZhNmR2ZDZitmOINin2YTYtdmR2Y7ZhNmO2YjZjtin2KrZkCDYp9mE2ZLYrtmO2YXZktiz2ZAg2KjZkNin2YTZktmF2Y/YutmS2KrZjtiz2ZDZhNmQINmB2ZDZiiDZhtmO2YfZktix2Y0g2KzZjtin2LHZjSAxNzI1IC0g2KPZjtiu2ZLYqNmO2LHZjtmG2Y7YpyDZhdmP2K3ZjtmF2ZHZjtiv2Y8g2KjZktmG2Y8g2YXZjtit2ZLZhdmP2YjYr9mQINio2ZLZhtmQINi52Y7Yr9mQ2YrZkdmN2Iwg2K3Zjtiv2ZHZjtir2Y7ZhtmO2Kcg2K3Zj9mF2Y7ZitmS2K/ZjyDYqNmS2YbZjyDYstmO2YbZktis2Y/ZiNmO2YrZktmH2ZDYjCDYrdmO2K/ZkdmO2KvZjtmG2Y7YpyDZitmO2LnZktmE2Y7ZiSDYqNmS2YbZjyDYudmP2KjZjtmK2ZLYr9mN2Iwg2K3Zjtiv2ZHZjtir2Y7ZhtmO2Kcg2KfZhNmS2KPZjti52ZLZhdmO2LTZj9iMINi52Y7ZhtmSINij2Y7YqNmQ2Yog2LPZj9mB2ZLZitmO2KfZhtmO2Iwg2LnZjtmG2ZIg2KzZjtin2KjZkNix2Y3YjCDZgtmO2KfZhNmOOiDZgtmO2KfZhNmOINix2Y7Ys9mP2YjZhNmPINin2YTZhNmR2Y7Zh9mQINi12Y7ZhNmR2Y7ZiSDYp9mE2YTZkdmO2YfZjyDYudmO2YTZjtmK2ZLZh9mQINmI2Y7Ys9mO2YTZkdmO2YXZjjogwqvZhdmO2KvZjtmE2Y8g2KfZhNi12ZHZjtmE2Y7ZiNmO2KfYqtmQINin2YTZktmF2Y7Zg9mS2KrZj9mI2KjZjtin2KrZkCDZg9mO2YXZjtir2Y7ZhNmQINmG2Y7Zh9mS2LHZjSDYrNmO2KfYsdmNINi52Y7ZhNmO2Ykg2KjZjtin2KjZkCDYo9mO2K3Zjtiv2ZDZg9mP2YXZkiDZitmO2LrZktiq2Y7Ys9mQ2YTZjyDZhdmQ2YbZktmH2Y8g2YPZj9mE2ZHZjiDZitmO2YjZktmF2Y0g2K7ZjtmF2ZLYs9mOINmF2Y7YsdmR2Y7Yp9iq2Y3Cuy4gWzE6IDJdINix2YLZhSDYt9io2LnYqSDYqNinINmI2LLZitixID0gKDE3MjIp\" open=\"1\">صحيح ابن حبان - مخرجا</book>\n\n<suggestions>\n- كيف فرضت ليلة الإسراء؟\n- ما أوقات الصلوات الخمس؟\n- هل تكفر الصلوات الذنوب؟\n</suggestions>\n",
+        "evidence": [
+          {
+            "snippet": "وَأَمَّا الصَّلَوَاتُ الْخَمْسُ بِالصُّورَةِ الْمَعْهُودَةِ فَإِنَّهَا فُرِضَتْ لَيْلَةَ الإِْسْرَاءِ وَالْمِعْرَاجِ عَلَى خِلاَفٍ بَيْنَهُمْ فِي تَحْدِيدِ زَمَنِهِ. 4 - وَقَدْ ثَبَتَتْ فَرْضِيَّةُ الصَّلَوَاتِ الْخَمْسِ بِالْكِتَابِ وَالسُّنَّةِ وَالإِْجْمَاعِ: أَمَّا الْكِتَابُ فَقَوْلُهُ تَعَالَى فِي غَيْرِ مَوْضِعٍ مِنَ الْقُرْآنِ. {وَأَقِيمُوا الصَّلاَةَ (1) } ، وقَوْله تَعَالَى: {إِنَّ الصَّلاَةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَوْقُوتًا (2) } أَيْ فَرْضًا مُؤَقَّتًا. وقَوْله تَعَالَى: {حَافِظُوا عَلَى الصَّلَوَاتِ وَالصَّلاَةِ الْوُسْطَى (3) } وَمُطْلَقُ اسْمِ الصَّلاَةِ يَنْصَرِفُ إِلَى الصَّلَوَاتِ الْمَعْهُودَةِ، وَهِيَ الَّتِي تُؤَدَّى فِي كُل يَوْمٍ وَلَيْلَةٍ. وقَوْله تَعَالَى: {وَأَقِمِ الصَّلاَةَ طَرَفَيِ النَّهَارِ وَزُلَفًا مِنَ اللَّيْل (4) } يَجْمَعُ الصَّلَوَاتِ الْخَمْسَ؛ لأَِنَّ صَلاَةَ الْفَجْرِ تُؤَدَّى فِي أَحَدِ طَرَفَيِ النَّهَارِ، وَصَلاَةَ الظُّهْرِ وَالْعَصْرِ يُؤَدَّيَانِ فِي الطَّرَفِ الآْخَرِ، إِذِ النَّهَارُ قِسْمَانِ غَدَاةٌ وَعَشِيٌّ، وَالْغَدَاةُ اسْمٌ لأَِوَّل النَّهَارِ إِلَى وَقْتِ الزَّوَال، وَمَا بَعْدَهُ الْعَشِيُّ، فَدَخَل فِي طَرَفَيِ النَّهَارِ ثَلاَثُ صَلَوَاتٍ وَدَخَل فِي قَوْلِهِ:",
+            "title": "الموسوعة الفقهية الكويتية",
+            "url": "ref-1",
+            "id": "ref-1"
+          },
+          {
+            "snippet": "ذِكْرُ تَمْثِيلِ النَّبِيِّ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ مُصَلِّيَ الصَّلَوَاتِ الْخَمْسِ بِالْمُغْتَسِلِ فِي نَهْرٍ جَارٍ 1725 - أَخْبَرَنَا مُحَمَّدُ بْنُ مَحْمُودِ بْنِ عَدِيٍّ، حَدَّثَنَا حُمَيْدُ بْنُ زَنْجُوَيْهِ، حَدَّثَنَا يَعْلَى بْنُ عُبَيْدٍ، حَدَّثَنَا الْأَعْمَشُ، عَنْ أَبِي سُفْيَانَ، عَنْ جَابِرٍ، قَالَ: قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: «مَثَلُ الصَّلَوَاتِ الْمَكْتُوبَاتِ كَمَثَلِ نَهْرٍ جَارٍ عَلَى بَابِ أَحَدِكُمْ يَغْتَسِلُ مِنْهُ كُلَّ يَوْمٍ خَمْسَ مَرَّاتٍ». [1: 2] رقم طبعة با وزير = (1722)",
+            "title": "صحيح ابن حبان - مخرجا",
+            "url": "ref-2",
+            "id": "ref-2"
+          },
+          {
+            "id": "pinned-row-shape",
+            "title": "الموسوعة الفقهية الكويتية",
+            "url": "ref-pinned",
+            "snippet": "الصلواتُ الخمسُ فرضٌ على كلِّ مسلمٍ، ثبتتْ فرضيتُها بالكتابِ والسنةِ والإجماعِ، وهي معلومةٌ من الدينِ بالضرورةِ، يكفرُ جاحدُها. وهي الظهرُ والعصرُ والمغربُ والعشاءُ والفجرُ، تؤدى كلَّ يومٍ وليلةٍ. وقد اختلف الفقهاء في بعض فروع هذه المسألة."
+          }
+        ],
+        "domain": "fiqh",
+        "mode": "brief",
+        "truncated": false
+      },
+      "expect": {
+        "trigger": null
+      }
+    },
+    {
+      "id": "Q19",
+      "question": "من أول من جمع القرآن في مصحف واحد؟ ولماذا جمعه عثمان بعد ذلك؟",
+      "note": "history of the collection of the Quran: no attributed view -> no tail",
+      "deliveredLive": true,
+      "input": {
+        "text": "### مسألة «من أول من جمع القرآن في مصحف واحد»\n\nجُمِعَ القرآنُ مرتين: مرةً في عهدِ أبي بكرٍ الصديق، وثانيةً في عهدِ عثمانَ رضيَ اللهُ عنهما. والفرقُ بينهما أنَّ جمعَ أبي بكرٍ كان لخشيةِ أن يذهبَ من القرآنِ شيءٌ بذهابِ جملتِه، لأنه لم يكن مجموعًا في موضعٍ واحد، فجمعَه في صحائفَ مرتبًا لآياتِ سورِه على ما وقَّفهم عليه النبيُّ صلى الله عليه وسلم.\n<book author=\"السيوطي\" ref=\"ج1 · ص209-210\" book=\"FC-000309\" vol=\"1\" page=\"209\" matn=\"2YLZjtin2YTZjiDZhdmP2K3ZjtmF2ZHZjtiv2Yw6INmB2Y7YuNmO2YbZjtmG2ZLYqtmPINij2Y7ZhtmR2Y7ZhdmO2Kcg2YPZjtin2YbZj9mI2Kcg2YrZj9ik2Y7YrtmR2ZDYsdmP2YjZhtmO2YfZjyDZhNmQ2YrZjtmG2ZLYuNmP2LHZj9mI2Kcg2KPZjtit2ZLYr9mO2KvZjtmH2Y/ZhdmSINi52Y7Zh9mS2K/Zi9inINio2ZDYp9mE2ZLYudmO2LHZkti22Y7YqdmQINin2YTZktij2Y7YrtmQ2YrYsdmO2KnZkCDZgdmO2YrZjtmD2ZLYqtmP2KjZj9mI2YbZjtmH2Y8g2LnZjtmE2Y7ZiSDZgtmO2YjZktmE2ZDZh9mQLiDZiNmO2KPZjtiu2ZLYsdmO2KzZjiDYp9io2ZLZhtmPINij2Y7YqNmQ2Yog2K/Zjtin2YjZj9iv2Y4g2KjZkNiz2Y7ZhtmO2K/ZjSDYtdmO2K3ZkNmK2K3ZjSDYudmO2YbZkiDYs9mP2YjZkNmK2K/ZkCDYqNmS2YbZkCDYutmO2YHZjtmE2Y7YqdmOINmC2Y7Yp9mE2Y46INmC2Y7Yp9mE2Y4g2LnZjtmE2ZDZitmR2Yw6INmE2Y7YpyDYqtmO2YLZj9mI2YTZj9mI2Kcg2YHZkNmKINi52Y/Yq9mS2YXZjtin2YbZjiDYpdmQ2YTZkdmO2Kcg2K7ZjtmK2ZLYsdmL2Kcg2YHZjtmI2Y7Yp9mE2YTZkdmO2YfZkCDZhdmO2Kcg2YHZjti52Y7ZhNmOINin2YTZkdmO2LDZkNmKINmB2Y7YudmO2YTZjiDZgdmQ2Yog2KfZhNmS2YXZjti12Y7Yp9it2ZDZgdmQINil2ZDZhNmR2Y7YpyDYudmO2YbZkiDZhdmO2YTZjtij2Y0g2YXZkNmG2ZHZjtinINmC2Y7Yp9mE2Y46INmF2Y7YpyDYqtmO2YLZj9mI2YTZj9mI2YbZjiDZgdmQ2Yog2YfZjtiw2ZDZh9mQINin2YTZktmC2ZDYsdmO2KfYodmO2KnZkNifINmB2Y7ZgtmO2K/ZkiDYqNmO2YTZjti62Y7ZhtmQ2Yog2KPZjtmG2ZHZjiDYqNmO2LnZkti22Y7Zh9mP2YXZkiDZitmO2YLZj9mI2YTZjzog2KXZkNmG2ZHZjiDZgtmQ2LHZjtin2KHZjtiq2ZDZiiDYrtmO2YrZktix2Ywg2YXZkNmG2ZIg2YLZkNix2Y7Yp9ih2Y7YqtmQ2YPZjiDZiNmO2YfZjtiw2Y7YpyDZitmO2YPZjtin2K/ZjyDZitmO2YPZj9mI2YbZjyDZg9mP2YHZktix2YvYpyDZgtmP2YTZktmG2Y7Ypzog2YHZjtmF2Y7YpyDYqtmO2LHZjtmJ2J8g2YLZjtin2YTZjjog2KPZjtix2Y7ZiSDYo9mO2YbZkiDZitmP2KzZktmF2Y7YudmOINin2YTZhtmR2Y7Yp9iz2Y8g2LnZjtmE2Y7ZiSDZhdmP2LXZktit2Y7ZgdmNINmI2Y7Yp9it2ZDYr9mNINmB2Y7ZhNmO2Kcg2KrZjtmD2Y/ZiNmG2Y8g2YHZj9ix2ZLZgtmO2KnZjCDZiNmO2YTZjtinINin2K7Zktiq2ZDZhNmO2KfZgdmMINmC2Y/ZhNmS2YbZjtinOiDZhtmQ2LnZktmF2Y4g2YXZjtinINix2Y7Yo9mO2YrZktiq2Y4uINmC2Y7Yp9mE2Y4g2KfYqNmS2YbZjyDYp9mE2KrZkdmQ2YrZhtmQINmI2Y7YutmO2YrZktix2Y/Zh9mPOiDYp9mE2ZLZgdmO2LHZktmC2Y8g2KjZjtmK2ZLZhtmOINis2Y7ZhdmS2LnZkCDYo9mO2KjZkNmKINio2Y7Zg9mS2LHZjSDZiNmO2KzZjtmF2ZLYudmQINi52Y/Yq9mS2YXZjtin2YbZjiDYo9mO2YbZkdmOINis2Y7ZhdmS2LnZjiDYo9mO2KjZkNmKINio2Y7Zg9mS2LHZjSDZg9mO2KfZhtmOINmE2ZDYrtmO2LTZktmK2Y7YqdmQINij2Y7ZhtmSINmK2Y7YsNmS2YfZjtio2Y4g2YXZkNmG2Y4g2KfZhNmS2YLZj9ix2ZLYotmG2ZAg2LTZitihINio2LDZh9in2Kgg2KzZhdmE2KrZhyDZhNmS2KPZjtmG2ZHZjtmH2Y8g2YTZjtmF2ZIg2YrZjtmD2Y/ZhtmSINmF2Y7YrNmS2YXZj9mI2LnZi9inINmB2ZDZiiDZhdmO2YjZkti22ZDYudmNINmI2Y7Yp9it2ZDYr9mNINmB2Y7YrNmO2YXZjti52Y7Zh9mPINmB2ZDZiiDYtdmO2K3Zjtin2KbZkNmB2Y4g2YXZj9ix2Y7YqtmR2ZDYqNmL2Kcg2YTZkNii2YrZjtin2KrZkCDYs9mP2YjZjtix2ZDZh9mQINi52Y7ZhNmO2Ykg2YXZjtinINmI2Y7ZgtmR2Y7ZgdmO2YfZj9mF2ZIg2LnZjtmE2Y7ZitmS2YfZkCDYp9mE2YbZkdmO2KjZkNmK2ZHZjyDYtdmO2YTZkdmO2Ykg2KfZhNmE2ZHZjtmH2Y8g2LnZjtmE2Y7ZitmS2YfZkCDZiNmO2LPZjtmE2ZHZjtmF2Y4g2YjZjtis2Y7ZhdmS2LnZjyDYudmP2KvZktmF2Y7Yp9mG2Y4g2YPZjtin2YbZjiDZhNmO2YXZkdmO2Kcg2YPZjtir2Y/YsdmOINin2YTZjtin2K7Zktiq2ZDZhNmO2KfZgdmPINmB2ZDZiiDZiNmP2KzZj9mI2YfZkCDYp9mE2YLYsdin2KHYqSDYrdiq2Ykg2YLYsdik2YjZhyDYqNmQ2YTZj9i62Y7Yp9iq2ZDZh9mQ2YXZkiDYudmO2YTZjtmJINin2KrZkdmQ2LPZjtin2LnZkCDYp9mE2YTZkdmP2LrZjtin2KrZkCDZgdmO2KPZjtiv2ZHZjtmJINiw2Y7ZhNmQ2YPZjiDYqNmO2LnZkti22Y7Zh9mP2YXZkA==\" cut=\"1\" open=\"1\">الإتقان في علوم القرآن</book>\n\nوجاء في رواية ابن شهاب: لما أصيب المسلمون باليمامة، خاف أبو بكر أن يهلك طائفة من أهل القرآن، وإنما كان القرآن في العسب والرقاع، فأمر الناس فأتَوه بما كان عندهم، فأمر به فكُتب في الورق. فأبو بكر أول من جمع القرآن، وعثمان أول من جمع الناس على مصحف واحد.\n<book author=\"العسكري، أبو هلال\" ref=\"ج1 · ص143\" book=\"FC-005576\" vol=\"1\" page=\"143\" matn=\"2LnZhNmJINmB2KPZhtmJINii2K7YsCDYp9mE2YPZhNmF2KnYjCDZiNmD2KfZhiDYp9mE2YPYp9mF2YQg2YHZiSDYp9mE2KzYp9mH2YTZitipINin2YTYtNin2LnYsSDYp9mE2YPYp9iq2Kgg2KfZhNix2KfZhdmJINin2YTYsNmJINmK2K3Ys9mGINin2YTYudmI2YXYjCDZgdij2YXZhNmJINi52YTZitmHINmI2LnZhNmJINin2KjZhiDYudmB2LHYp9ihINiz2YjYsdipINmK2YjYs9mBINmI2LfZh9iMINmB2YLYr9mF2YjYpyDYp9mE2YXYr9mK2YbYqdiMINmB2KzYp9ihINix2KfZgdi5INmC2YjZhdmHINmI2YfZhSDZgdmJINmF2LTYsdmC2Kkgwqsxwrsg2YHZgtin2YQ6INin2YbZiSDZgtivINin2YfYr9mK2Kog2YTZg9mFINmH2K/ZitipINmF2Kcg2KPZh9iv2Ykg2LHYrNmEINmE2YLZiNmF2Ycg2K7Zitix2Kcg2YXZhtmH2Kcg2KfZhNinINin2KjZhiDYudmB2LHYp9ih2Iwg2YHZgtix2KMg2LnZhNmK2YfZhSDYp9mE2LPZiNix2KrZitmGINmB2LHZhdmI2Ycg2KjYp9mE2K3YrNin2LHYqSDZiNin2YTZhdit2KfZiti2IMKrMsK7INmI2YPYp9mGINin2KjZhtin2Ycg2K7ZhNin2K8g2YjYsdmB2KfYudmHINij2LTYryDYp9mE2YbYp9izINi52YTZitmH2Iwg2KvZhSDYo9iz2YTZhdinINmI2LTZh9iv2YjYpyDYqNiv2LHYp9iMINmI2YLYqtmEINix2KfZgdi5INmK2YjZhSDYo9it2K8g2KPYtdin2KjYqtmHINix2YXZitipINmB2YTZhSDZitiy2YQg2LbZhdmG2Kcg2K3YqtmJINmF2KfYqiDZgdmJINmD2YTYp9mFINmH2LDYpyDZhdi52YbYp9mHLiDYo9mI2YQg2YXZhiDYs9mF2Ykg2KfZhNmC2LHYotmGINmF2LXYrdmB2Kcg2YjYo9mI2YQg2YXZhiDYrNmF2LnZhyDYo9io2Ygg2KjZg9ixINij2K7YqNix2YbYpyDYo9io2Ygg2KPYrdmF2K8g2LnZhiDYp9mE2KzZiNmH2LHZiSDYudmGINij2KjZiSDYstmK2K8g2LnZhiDYp9io2LHYp9mH2YrZhSDYqNmGINin2YTZhdmG2LDYsSDYudmGINmF2K3ZhdivINio2YYg2YHZhNmK2K0g2LnZhiDZhdmI2LPZiSDYqNmGINi52YLYqNipINi52YYg2KfYqNmGINi02YfYp9ioINmC2KfZhDog2YTZhdinINij2LXZitioINin2YTZhdiz2YTZhdmI2YYg2KjYp9mE2YrZhdin2YXYqdiMINiu2KfZgSDYo9io2Ygg2KjZg9ixINin2YYg2YrZh9mE2YMg2LfYp9im2YHYqSDZhdmGINij2YfZhCDYp9mE2YLYsdii2YbYjCDZiNin2YbZhdinINmD2KfZhiDZgdmJINin2YTYudiz2Kggwqszwrsg2YjYp9mE2LHZgtin2Lkgwqs0wrsg2YHYo9mF2LEg2KfZhNmG2KfYsyDZgdij2KrZiNmHINio2YXYpyDZg9in2YYg2LnZhtiv2YfZhdiMINmB2KPZhdixINio2Ycg2YHZg9iq2Kgg2YHZiSDYp9mE2YjYsdmC2Iwg2YHZhNmF2Kcg2YPYp9mGINij2YrYp9mFINi52KvZhdin2YYg2YPYq9ixINin2K7YqtmE2KfZgSDYp9mE2YbYp9izINmB2Ykg2KfZhNmC2LHYp9ih2KfYqtiMINmB2YLYp9mE2YjYpyDYrdix2YEg2LnYqNivINin2YTZhNmHINmI2K3YsdmBINij2KjZiSDZhdmI2LPZidiMINmB2KfYs9iq2LTYp9ixINin2YTYtdit2KfYqNip2Iwg2YHYo9i02KfYsdmI2Kcg2LnZhNmK2Ycg2KjYrNmF2Lkg2KfZhNmG2KfYsyDYudmE2Ykg2YXYtdit2YEg2YjYp9it2K/YjCDZgdis2YXYuSDZhdinINmD2KfZhiDYqNij2YrYr9mJINin2YTZhtin2LMg2YXZhiDYp9mE2YXYtdin2K3ZgSDZiNij2K3YsdmC2YfYp9iMINij2Ygg2YLYp9mE2YjYpzog2LrYs9mE2YfYp9iMINmI2KPZhdixINiz2LnYryDYqNmGINin2YTYudin2LUtINmI2YPYp9mGINij2YHYtditINin2YTZhtin2LMtINmB2KPZhdmE2Ykg2LnZhNmJINiy2YrYryDYqNmGINir2KfYqNiq2Iwg2YHZg9iq2Kgg2YXYtdin2K3ZgSDZiNmB2LHZgtmH2Kcg2YHZiSDYp9mE2KjZhNiv2KfZhiDZgdij2KjZiCDYqNmD2LEg2KPZiNmEINmF2YYg2KzZhdi5INin2YTZgtix2KLZhtiMINmI2LnYq9mF2KfZhiDYo9mI2YQg2YXZhiDYrNmF2Lkg2KfZhNmG2KfYsyDYudmE2Ykg2YXYtdit2YEg2YjYp9it2K8g2YHZiSDZg9mE2KfZhSDZh9iw2Kcg2YXYudmG2KfZhy4=\">الأوائل للعسكري</book>\n\nلم أقف على نصٍّ في مسألة «لماذا جمعه عثمان بعد ذلك».\n",
+        "evidence": [
+          {
+            "snippet": "قَالَ مُحَمَّدٌ: فَظَنَنْتُ أَنَّمَا كَانُوا يُؤَخِّرُونَهُ لِيَنْظُرُوا أَحْدَثَهُمْ عَهْدًا بِالْعَرْضَةِ الْأَخِيرَةِ فَيَكْتُبُونَهُ عَلَى قَوْلِهِ. وَأَخْرَجَ ابْنُ أَبِي دَاوُدَ بِسَنَدٍ صَحِيحٍ عَنْ سُوِيدِ بْنِ غَفَلَةَ قَالَ: قَالَ عَلِيٌّ: لَا تَقُولُوا فِي عُثْمَانَ إِلَّا خَيْرًا فَوَاللَّهِ مَا فَعَلَ الَّذِي فَعَلَ فِي الْمَصَاحِفِ إِلَّا عَنْ مَلَأٍ مِنَّا قَالَ: مَا تَقُولُونَ فِي هَذِهِ الْقِرَاءَةِ؟ فَقَدْ بَلَغَنِي أَنَّ بَعْضَهُمْ يَقُولُ: إِنَّ قِرَاءَتِي خَيْرٌ مِنْ قِرَاءَتِكَ وَهَذَا يَكَادُ يَكُونُ كُفْرًا قُلْنَا: فَمَا تَرَى؟ قَالَ: أَرَى أَنْ يُجْمَعَ النَّاسُ عَلَى مُصْحَفٍ وَاحِدٍ فَلَا تَكُونُ فُرْقَةٌ وَلَا اخْتِلَافٌ قُلْنَا: نِعْمَ مَا رَأَيْتَ. قَالَ ابْنُ التِّينِ وَغَيْرُهُ: الْفَرْقُ بَيْنَ جَمْعِ أَبِي بَكْرٍ وَجَمْعِ عُثْمَانَ أَنَّ جَمْعَ أَبِي بَكْرٍ كَانَ لِخَشْيَةِ أَنْ يَذْهَبَ مِنَ الْقُرْآنِ شيء بذهاب جملته لْأَنَّهُ لَمْ يَكُنْ مَجْمُوعًا فِي مَوْضِعٍ وَاحِدٍ فَجَمَعَهُ فِي صَحَائِفَ مُرَتِّبًا لِآيَاتِ سُوَرِهِ عَلَى مَا وَقَّفَهُمْ عَلَيْهِ النَّبِيُّ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ وَجَمْعُ عُثْمَانَ كَانَ لَمَّا كَثُرَ الَاخْتِلَافُ فِي وُجُوهِ القراءة حتى قرؤوه بِلُغَاتِهِمْ عَلَى اتِّسَاعِ اللُّغَاتِ فَأَدَّى ذَلِكَ بَعْضَهُمِ",
+            "title": "الإتقان في علوم القرآن",
+            "url": "ref-1",
+            "id": "ref-1"
+          },
+          {
+            "snippet": "على فأنى آخذ الكلمة، وكان الكامل فى الجاهلية الشاعر الكاتب الرامى الذى يحسن العوم، فأملى عليه وعلى ابن عفراء سورة يوسف وطه، فقدموا المدينة، فجاء رافع قومه وهم فى مشرقة «1» فقال: انى قد اهديت لكم هدية ما أهدى رجل لقومه خيرا منها الا ابن عفراء، فقرأ عليهم السورتين فرموه بالحجارة والمحايض «2» وكان ابناه خلاد ورفاعه أشد الناس عليه، ثم أسلما وشهدوا بدرا، وقتل رافع يوم أحد أصابته رمية فلم يزل ضمنا حتى مات فى كلام هذا معناه. أول من سمى القرآن مصحفا وأول من جمعه أبو بكر أخبرنا أبو أحمد عن الجوهرى عن أبى زيد عن ابراهيم بن المنذر عن محمد بن فليح عن موسى بن عقبة عن ابن شهاب قال: لما أصيب المسلمون باليمامة، خاف أبو بكر ان يهلك طائفة من أهل القرآن، وانما كان فى العسب «3» والرقاع «4» فأمر الناس فأتوه بما كان عندهم، فأمر به فكتب فى الورق، فلما كان أيام عثمان كثر اختلاف الناس فى القراءات، فقالوا حرف عبد الله وحرف أبى موسى، فاستشار الصحابة، فأشاروا عليه بجمع الناس على مصحف واحد، فجمع ما كان بأيدى الناس من المصاحف وأحرقها، أو قالوا: غسلها، وأمر سعد بن العاص- وكان أفصح الناس- فأملى على زيد بن ثابت، فكتب مصاحف وفرقها فى البلدان فأبو بكر أول من جمع القرآن، وعثمان أول من جمع الناس على مصحف واحد فى كلام هذا معناه.",
+            "title": "الأوائل للعسكري",
+            "url": "ref-2",
+            "id": "ref-2"
+          },
+          {
+            "id": "pinned-row-shape",
+            "title": "الموسوعة الفقهية الكويتية",
+            "url": "ref-pinned",
+            "snippet": "جُمِعَ القرآنُ مرتين: مرةً في عهدِ أبي بكرٍ الصديق، وثانيةً في عهدِ عثمانَ رضيَ اللهُ عنهما. والفرقُ بينهما أنَّ جمعَ أبي بكرٍ كان لخشيةِ أن يذهبَ من القرآنِ شيءٌ بذهابِ جملتِه، لأنه لم يكن مجموعًا في موضعٍ واحد، فجمعَه في صحائفَ مرتبًا لآياتِ سورِه على ما وقَّفهم عليه النبيُّ صلى الله عليه وسلم. وقد اختلف الفقهاء في بعض فروع هذه المسألة."
+          }
+        ],
+        "domain": "fiqh",
+        "mode": "brief",
+        "truncated": false
+      },
+      "expect": {
+        "trigger": null
+      }
+    },
+    {
+      "id": "Q13",
+      "question": "هل حديث «تفترق أمتي على ثلاث وسبعين فرقة» صحيح؟ وما درجة زيادة «كلها في النار إلا واحدة»؟",
+      "note": "a hadith-grade answer (topic hadith): every quoted authority says صحيح -> no tail",
+      "deliveredLive": true,
+      "input": {
+        "text": "تخريج الحديث: ابن حبان، ولم تُثبت المكتبة حكمًا عليه.\n\n## نص الفتوى\n\nالسؤال:\nالسؤال الثاني عشر حديث تفترق امتي على ثلاث وسبعين شعبة كلها في النار الا…\n\nالجواب:\nالحديث صحيح ومن حكم بضعفه فهو مخطئ ،وحتى تعلم الحديث خذ الحديث من اوله افترقت اليهود على احدى وسبعين وافترقت النصارى على اثنتين وسبعين وستفترق امتي على ثلاث وسبعين كلها في النار الا واحدة ؛قالوا من هي يا رسول الله قال: ((ما انا عليه واصحابي)) ؛ قوله صلى الله عليه وسلم ((ستفترق امتي)) كلمة أمة محمد صلى الله عليه وسلم يراد بها امران : امة الدعوة وامة الاستجابة . لو سألك سائل فقال لك : اليهودي والنصراني اليوم من أمة محمد أم ليس من أمة محمد صلى الله عليه وسلم ؟؟ ماذا تقول ؟…\n<fatwafull matn=\"IyMg2YbYtSDYp9mE2YHYqtmI2YkKCtin2YTYs9ik2KfZhDoK2KfZhNiz2KTYp9mEINin2YTYq9in2YbZiiDYudi02LEg2K3Yr9mK2Ksg2KrZgdiq2LHZgiDYp9mF2KrZiiDYudmE2Ykg2KvZhNin2Ksg2YjYs9io2LnZitmGINi02LnYqNipINmD2YTZh9inINmB2Yog2KfZhNmG2KfYsSDYp9mE2KfigKYKCtin2YTYrNmI2KfYqDoK2KfZhNit2K/ZitirINi12K3ZititINmI2YXZhiDYrdmD2YUg2KjYtti52YHZhyDZgdmH2Ygg2YXYrti32KYg2IzZiNit2KrZiSDYqti52YTZhSDYp9mE2K3Yr9mK2Ksg2K7YsCDYp9mE2K3Yr9mK2Ksg2YXZhiDYp9mI2YTZhyDYp9mB2KrYsdmC2Kog2KfZhNmK2YfZiNivINi52YTZiSDYp9it2K/ZiSDZiNiz2KjYudmK2YYg2YjYp9mB2KrYsdmC2Kog2KfZhNmG2LXYp9ix2Ykg2LnZhNmJINin2KvZhtiq2YrZhiDZiNiz2KjYudmK2YYg2YjYs9iq2YHYqtix2YIg2KfZhdiq2Yog2LnZhNmJINir2YTYp9irINmI2LPYqNi52YrZhiDZg9mE2YfYpyDZgdmKINin2YTZhtin2LEg2KfZhNinINmI2KfYrdiv2Kkg2JvZgtin2YTZiNinINmF2YYg2YfZiiDZitinINix2LPZiNmEINin2YTZhNmHINmC2KfZhDogKCjZhdinINin2YbYpyDYudmE2YrZhyDZiNin2LXYrdin2KjZiikpINibINmC2YjZhNmHINi12YTZiSDYp9mE2YTZhyDYudmE2YrZhyDZiNiz2YTZhSAoKNiz2KrZgdiq2LHZgiDYp9mF2KrZiikpINmD2YTZhdipINij2YXYqSDZhdit2YXYryDYtdmE2Ykg2KfZhNmE2Ycg2LnZhNmK2Ycg2YjYs9mE2YUg2YrYsdin2K8g2KjZh9inINin2YXYsdin2YYgOiDYp9mF2Kkg2KfZhNiv2LnZiNipINmI2KfZhdipINin2YTYp9iz2KrYrNin2KjYqSAuINmE2Ygg2LPYo9mE2YMg2LPYp9im2YQg2YHZgtin2YQg2YTZgyA6INin2YTZitmH2YjYr9mKINmI2KfZhNmG2LXYsdin2YbZiiDYp9mE2YrZiNmFINmF2YYg2KPZhdipINmF2K3ZhdivINij2YUg2YTZitizINmF2YYg2KPZhdipINmF2K3ZhdivINi12YTZiSDYp9mE2YTZhyDYudmE2YrZhyDZiNiz2YTZhSDYn9ifINmF2KfYsNinINiq2YLZiNmEINifINiq2YLZiNmEIDrYp9mE2KPZhdipINij2YXYqtin2YY6INij2YXYqSDYr9i52YjYqSDYmyDZiNij2YXYqSDYp9iz2KrYrNin2KjYqSAuINmB2YfZiCDZhdmGINij2YXYqSDYp9mE2K/YudmI2Kkg2YjZhNmK2LMg2YXZhiDYo9mF2Kkg2KfZhNin2LPYqtis2KfYqNipIC4g2KfZhNmK2YfZiNiv2Yog2YjYp9mE2YbYtdix2KfZhtmKINmF2YYg2KfZhdipINmF2K3ZhdivINi12YTZiSDYp9mE2YTZhyDYudmE2YrZhyDZiNiz2YTZhSDYm9ij2YXYqSDZhdin2LDYpyDYn9ifINin2YTYr9i52YjYqSDZiNmE2YrYsyDZhdmGINij2YXYqSDYp9mE2KXYs9iq2KzYp9io2KkgLiDZgtmI2YTZhyDYtdmE2Ykg2KfZhNmE2Ycg2LnZhNmK2Ycg2YjYs9mE2YUgOigo2YjYs9iq2YHYqtix2YIg2KPZhdiq2Yog2LnZhNmJINir2YTYp9irINmI2LPYqNi52YrZhiDYtNi52KjYqSkpLiDZh9mEINin2YTZhdix2KfYryDYqNij2YXYqtmKINij2YXYqSDYp9mE2K/YudmI2Kkg2J8g2KfZhdipINin2YTYp9iz2KrYrNin2KjYqSDYm9mI2YTZitizINin2YXYqSDYp9mE2K/YudmI2KnYmyDYo9iq2K/YsdmI2YYg2YTZhdifINmE2KPZhiDYp9mE2YbYqNmKINi12YTZiSDYp9mE2YTZhyDYudmE2YrZhyDZiNiz2YTZhSDYsNmD2LEg2KfZhNmK2YfZiNivINir2YUg2LDZg9ixINin2YTZhti12KfYsdmJINir2YUg2YLYp9mEINmI2LPYqtmB2KrYsdmCINin2YXYqtmKIC4uKSkg2YHYrNi52YQg2KPZhdiq2Ycg2YXZgtin2KjZhCDYp9mE2YrZh9mI2K8g2YjYp9mE2YbYtdin2LHZiSDZgdmE2YUg2YrZg9mGINmF2LnZhtmJINmE2YLZiNmE2Ycg2KPZhdiq2Yog2KXZhNinINij2YYg2KrZg9mI2YYg2KPZhdipINin2YTYp9iz2KrYrNin2KjYqSDYm9mE2KPZhiDYp9mE2YrZh9mI2K8g2YjYp9mE2YbYtdin2LHZiSDYp9mF2Kkg2KfZhNiv2LnZiNip2Iwg2YHZhNmF2Kcg2LDZg9ixINin2YTZitmH2YjYryDYq9mFINiw2YPYsSDYp9mE2YbYtdin2LHZiSDYq9mFINmC2KfZhCDZiNiz2KrZgdiq2LHZgiDYo9mF2KrZiiDZgdmE2YUg2YrZg9mGINmF2LnZhtmJINmE2YLZiNmE2Ycg2KfZhdiq2Yog2YXZgtin2KjZhCDYp9mE2YrZh9mI2K8g2YjYp9mE2YbYtdin2LHZiSDYp9mE2Kcg2KfZhiDYqtmD2YjZhiDYp9mF2Kkg2KfZhNin2LPYqtis2KfYqNipIC4g2KfZhNi52YTZhdin2KEg2YrZgtmI2YTZiNmGINin2YTZgdmQ2LHZgiAo2KfZhNin2LPYqtis2KfYqNipICkg2YjZgti52Kog2YHZiiDYstmF2YYg2KfZhNi12K3Yp9io2Kkg2Iwg2YjYo9mI2YQg2KfZhNmB2LHZgiDYp9mE2KrZiiDZiNmC2LnYqiDYp9mE2K7ZiNin2LHYrCDZiNin2YTYtNmK2LnYqdibINir2YUg2KrZgdix2ZHYuSDYp9mE2K7ZiNin2LHYrCDYp9mC2YjYp9mF2Kcg2YjYqtmB2LHYuSDYp9mE2LTZiti52Kkg2KfZgtmI2KfZhdinINin2K7YsdmK2YYgLiDZiNin2YfZhCDYp9mE2LnZhNmFINmK2YLZiNmE2YjZhiA62KfZhNiu2YjYp9ix2Kwg2YjYp9mE2LHZiNin2YHYtiDZiNis2YfYqtin2YYg2YTYudmF2YTYqSDZiNin2K3Yr9ip2Iwg2YLYp9mE2YjYpyDZhdiq2Ykg2LHYp9mK2Kog2KfZhNix2YjYp9mB2LYg2KfYqNit2Ksg2LnZhiDYp9mE2K7ZiNin2LHYrCDYqtis2K8g2JvZiNmF2KrZiSDYsdij2YrYqiDYp9mE2K7ZiNin2LHYrCDYp9io2K3YqyDYudmGINin2YTYsdmI2KfZgdi2INiq2KzYryDYm9mB2LPZhtmR2Kkg2KfZhNmE2Ycg2YLYp9i22YrYqSDYp9mGINiq2LjZh9ix2Kcg2YXYudin2IzZiNmC2K8g2YLYp9mEINin2YTZhtio2Yog2LXZhNmJINin2YTZhNmHINi52YTZitmHINmI2LPZhNmFINi52YYg2KfZhNiu2YjYp9ix2Kwg2YLYp9mEIDogKCjZg9mE2YXYpyDYuNmH2LEg2YLYsdmGINmF2YbZh9mFINmC2LfYuSkp2Jsg2YfYsNinINi52YbYryDYp9io2YYg2YXYp9is2YcgLiDZiNmK2LjZh9ixINin2K7YsdmH2YUg2YXYuSDYp9mE2K/YrNin2YQg2YHYr9mE2ZEg2LDZhNmDINio2KfZhNmF2YLYr9mF2Kkg2KfZhNiz2KfYqNmC2Kkg2KfZhiDYp9mE2K7ZiNin2LHYrCDZhdi5INin2YTYsdmI2KfZgdi2INmK2LjZh9ix2YjZhiDZiNin2YYg2K3Yp9mEINin2YTYsdmI2KfZgdi2INin2YbZh9mFINmK2LjZh9ix2YjZhiDYqNmK2YYg2KfZhNit2YrZhiDZiNin2YTYrdmK2YYg2YjYp9mG2YfZhSDZitmC2LfYudmI2YbYjCDZhNij2YYg2LPZhtipINin2YTZhNmHINmC2KfYttmK2Kkg2YjYp9mGINin2YTYp9mF2Kkg2KfZhNio2KfZgtmK2Kkg2YfZiiDYp9mF2Kkg2KfZhNmI2LPYtyDZgdin2YTYutin2YTZiiDZhNinINmK2KjZgtmJ2Jsg2LPZhtipINin2YTZhNmHINmC2KfZhtmI2YYg2KfZhNmE2Ycg2YHZiiDYp9mE2YPZiNmGINmK2YLYttmKINmF2YYg2LrZhNinINmB2Yog2LTZiiDZhNinINio2K8g2KfZhiDZitmC2LfYuSDZiNmE2LDYpyDZgtin2YQg2KfZhNmG2KjZiiDYtdmE2Ykg2KfZhNmE2Ycg2LnZhNmK2Ycg2YjYs9mE2YUg2YPZhdinINmB2Yog2KfZhNio2K7Yp9ix2Yog4oCc2YTZhiDZiti02KfYr9mRINin2YTYr9mR2YrZhiDYp9it2K8g2KfZhNinINi62YTYqNmH4oCdINin2YTYr9mR2YrZhiDZiti62YTYqCDZiNmH2Ygg2YrZhtmF2K3ZiiDZiNmK2LLZiNmE2JvZgdmF2YYg2KfZhNiw2Yog2YrYqNmC2YnYn9if2J8g2KfZhNij2YXYqSDYp9mE2YjYs9i3INib2KfZhNiq2Yog2YTYpyDZitmI2KzYryDYudmG2K/Zh9inINi62YTZiCDZiNmE2Kcg2KrYs9in2YfZhCAuINin2YTYsdmI2KfZgdi2INi52YbYr9mH2YUg2KfZhNiq2LPYp9mH2YQg2YjYp9mE2K7ZiNin2LHYrCDYudmG2K/Zh9mFINin2YTYqti02K/YryDZiNmH2KTZhNin2KEg2YjZh9ik2YTYp9ihINiz2YbYqSDYp9mE2YTZhyDYqtmC2LbZiiDYp9mGINmE2Kcg2YrYqNmC2YjYpyDZhNmD2YYg2YfZhCDZitmD2YjZhiDZhNmH2YUg2YLYsdmI2YbYpyDYqNmK2YYg2KfZhNit2YrZhiDZiNin2YTYrdmK2YbYnyDZhti52YUg2YrZg9mI2YYg2YTZh9mFINmC2LHZiNmG2Kcg2KjZitmGINin2YTYrdmK2YYg2YjYp9mE2K3ZitmGIC4g2KrYo9mF2YQg2YXYudmKINin2YTYrdiv2YrYqyDZhdix2Kkg2KPYrtix2Ykg2Jsg2YLYp9mEINi12YTZiSDYp9mE2YTZhyDYudmE2YrZhyDZiNiz2YTZhSA6IOKAnNmF2Kcg2LjZh9ixINmC2LHZhiDZhdmG2YfZhSDYpdmE2Kcg2YLZj9i32Lkg4oCc2YjYsNmD2LEg2YLZj9i32Lkg2KjYtdmK2LrYqSDYp9mE2YHYudmEINin2YTZhdio2YbZiiDZhNmE2YXYrNmH2YjZhNiMINmB2YXZhiDYp9mE2LDZiiDZitmC2LfYudmH2YUgLtifINin2YTZhNmHINin2LnZhNmFLiDYqtiv2KfYqNmK2LEg2KfZhNmE2YfYmyDZgdmH2YUg2YLYryDZitmC2LfYudmI2Kcg2KjYp9mE2LnZhNmFINio2KfZhNit2KzYqSDYqNin2YTYqNix2YfYp9mG2Jsg2KPZiCDYqNin2YTZg9mB2KfYsSDZitmC2LfYudmI2YYgLiDZhNmF2Kcg2LDZg9ixINin2YTZhtio2Yog2LXZhNmJINin2YTZhNmHINi52YTZitmHINmI2LPZhNmFINmC2LfYuSDZh9mD2LDYpyDYqNi12YrYutipINin2YTZgdi52YQg2KfZhNmF2KjZhtmKINmE2YTZhdis2YfZiNmEINi52YTZhdmR2YbYpyDYp9mGINmC2LfYudmH2YUg2KfZhtmF2Kcg2YfZiCDYqtiv2KjZitixINiu2KfZhNi1INmF2YYg2KfZhNmE2Ycg2LnYsiDZiNis2YQg2YjZh9iw2Ycg2K/ZgtipINi02K/Zitiv2Kkg2YXYqtmG2KfZh9mK2Kkg2YHZitmH2Kcg2KfZhiDYqtmC2YEg2YjYqtiq2KPZhdmEINin2YTZgdin2Lgg2KfZhNmG2KjZiiDYtdmE2Ykg2KfZhNmE2Ycg2LnZhNmK2Ycg2YjYs9mE2YUg2YjZhdin2LDYpyDZgtin2YQg2KfZhNmG2KjZiiDYtdmE2Ykg2KfZhNmE2Ycg2LnZhNmK2Ycg2YjYs9mE2YUg2YHZiiDZh9ik2YTYp9ihLiDirIUg2YXYrNmE2LMg2YHYqtin2YjZiSDYp9mE2KzZhdi52KkuIDIxINi12YHYsSAxNDM5INmH2KzYsdmKIDIwMTcg4oCTIDExIOKAkyAxMCDYpdmB2LHZhtis2Yog4qyFINiu2K/ZhdipINin2YTYr9ix2LEg2KfZhNit2LPYp9mGINmF2YYg2YXYrNin2YTYsyDYp9mE2LTZitiuINmF2LTZh9mI2LEg2KjZhiDYrdiz2YYg2KLZhCDYs9mE2YXYp9mGLuKcjeKcjSDirIUg2YTZhNin2LTYqtix2KfZgyDZgdmKINmC2YbYp9ipINin2YTYqtmE2LrYsdin2YU6IGh0dHA6Ly90Lm1lL21lc2hob29y\">النص الكامل</fatwafull>\n\nالمفتي: مشهور آل سلمان\n<source site=\"meshhoor.com\" url=\"https://meshhoor.com/fatwa/%D8%A7%D9%84%D8%B3%D8%A4%D8%A7%D9%84-%D8%A7%D9%84%D8%AB%D8%A7%D9%86%D9%8A-%D8%B9%D8%B4%D8%B1-%D8%AD%D8%AF%D9%8A%D8%AB-%D8%AA%D9%81%D8%AA%D8%B1%D9%82-%D8%A7%D9%85%D8%AA%D9%8A-%D8%B9%D9%84%D9%89-%D8%AB/\">السؤال الثاني عشر حديث تفترق امتي على ثلاث وسبعين شعبة كلها في النار الا…</source>\n\nالحديث صحيح مشهور في السنن والمسانيد، كسنن أبي داود والترمذي والنسائي وغيرهم.\n<book author=\"ابن تيمية\" ref=\"ج3 · ص345\" book=\"FC-004493\" vol=\"3\" page=\"345\" matn=\"2YjZjtiz2Y/YptmQ2YTZjiDYtNmO2YrZktiu2Y8g2KfZhNmS2KXZkNiz2ZLZhNmO2KfZhdmQINij2Y7YrdmS2YXZjtiv2Y8g2KfYqNmS2YbZjyDYqtmO2YrZktmF2ZDZitmR2Y7YqSAtINmC2Y7Yr9mR2Y7Ys9mOINin2YTZhNmR2Y7Zh9mPINix2Y/ZiNit2Y7Zh9mPIC06INi52Y7ZhtmSINmC2Y7ZiNmS2YTZkNmH2ZAg2LXZjtmE2ZHZjtmJINin2YTZhNmR2Y7Zh9mPINi52Y7ZhNmO2YrZktmH2ZAg2YjZjtiz2Y7ZhNmR2Y7ZhdmOICIg2KrZjtmB2ZLYqtmO2LHZkNmC2Y8g2KPZj9mF2ZHZjtiq2ZDZiiDYq9mO2YTZjtin2KvZjtip2Ysg2YjZjtiz2Y7YqNmS2LnZkNmK2YbZjiDZgdmQ2LHZktmC2Y7YqdmLICIuINmF2Y7YpyDYp9mE2ZLZgdmQ2LHZjtmC2Y/YnyDZiNmO2YXZjtinINmF2Y/YudmS2KrZjtmC2Y7Yr9mPINmD2Y/ZhNmR2ZAg2YHZkNix2ZLZgtmO2KnZjSDZhdmQ2YbZkiDZh9mO2LDZkNmH2ZAg2KfZhNi12ZHZj9mG2Y/ZiNmB2ZDYnyAuINmB2Y7Yo9mO2KzZjtin2KjZjjog2KfZhNmS2K3ZjtmF2ZLYr9mPINmE2ZDZhNmR2Y7Zh9mQ2Iwg2KfZhNmS2K3Zjtiv2ZDZitir2Y8g2LXZjtit2ZDZitit2Ywg2YXZjti02ZLZh9mP2YjYsdmMINmB2ZDZiiDYp9mE2LPZkdmP2YbZjtmG2ZAg2YjZjtin2YTZktmF2Y7Ys9mO2KfZhtmQ2K/ZkNibINmD2Y7Ys9mP2YbZjtmG2ZAg2KPZjtio2ZDZiiDYr9mO2KfZiNmP2K8g2YjZjtin2YTYqtmR2ZDYsdmS2YXZkNiw2ZDZiiDZiNmO2KfZhNmG2ZHZkNiz2Y7Yp9im2ZDZitmR2ZAg2YjZjti62Y7ZitmS2LHZkNmH2ZDZhdmSINmI2Y7ZhNmO2YHZkti42Y/Zh9mPIHvYp9mB2ZLYqtmO2LHZjtmC2Y7YqtmSINin2YTZktmK2Y7Zh9mP2YjYr9mPINi52Y7ZhNmO2Ykg2KXYrdmS2K/ZjtmJINmI2Y7Ys9mO2KjZkti52ZDZitmG2Y4g2YHZkNix2ZLZgtmO2KnZiyDZg9mP2YTZkdmP2YfZjtinINmB2ZDZiiDYp9mE2YbZkdmO2KfYsdmQINil2YTZkdmO2Kcg2YjZjtin2K3ZkNiv2Y7YqdmLINmI2Y7Yp9mB2ZLYqtmO2LHZjtmC2Y7YqtmSINin2YTZhtmR2Y7YtdmO2KfYsdmO2Ykg2LnZjtmE2Y7ZiSDYp9ir2ZLZhtmO2KrZjtmK2ZLZhtmQINmI2Y7Ys9mO2KjZkti52ZDZitmG2Y4g2YHZkNix2ZLZgtmO2KnZiyDZg9mP2YTZkdmP2YfZjtinINmB2ZDZiiDYp9mE2YbZkdmO2KfYsdmQINil2YTZkdmO2Kcg2YjZjtin2K3ZkNiv2Y7YqdmLINmI2Y7Ys9mO2KrZjtmB2ZLYqtmO2LHZkNmC2Y8g2YfZjtiw2ZDZh9mQINin2YTZktij2Y/ZhdmR2Y7YqdmPINi52Y7ZhNmO2Ykg2KvZjtmE2Y7Yp9ir2Y0g2YjZjtiz2Y7YqNmS2LnZkNmK2YbZjiDZgdmQ2LHZktmC2Y7YqdmLINmD2Y/ZhNmR2Y/Zh9mO2Kcg2YHZkNmKINin2YTZhtmR2Y7Yp9ix2ZAg2KXZhNmR2Y7YpyDZiNmO2KfYrdmQ2K/Zjtip2Yt9INmI2Y7ZgdmQ2Yog2YTZjtmB2ZLYuNmNIHvYudmO2YTZjtmJINir2Y7ZhNmO2KfYq9mNINmI2Y7Ys9mO2KjZkti52ZDZitmG2Y4g2YXZkNmE2ZHZjtip2Yt9INmI2Y7ZgdmQ2Yog2LHZkNmI2Y7Yp9mK2Y7YqdmNIHvZgtmO2KfZhNmP2YjYpzog2YrZjtinINix2Y7Ys9mP2YjZhNmOINin2YTZhNmR2Y7Zh9mQINmF2Y7ZhtmSINin2YTZktmB2ZDYsdmS2YLZjtip2Y8g2KfZhNmG2ZHZjtin2KzZkNmK2Y7YqdmP2J8g2YLZjtin2YTZjjog2YXZjtmG2ZIg2YPZjtin2YbZjiDYudmO2YTZjtmJINmF2ZDYq9mS2YTZkCDZhdmO2Kcg2KPZjtmG2Y7YpyDYudmO2YTZjtmK2ZLZh9mQINin2YTZktmK2Y7ZiNmS2YXZjiDZiNmO2KPZjti12ZLYrdmO2KfYqNmQ2Yp9INmI2Y7ZgdmQ2Yog2LHZkNmI2Y7Yp9mK2Y7YqdmNINmC2Y7Yp9mE2Y4ge9mH2ZDZitmOINin2YTZktis2Y7ZhdmO2KfYudmO2KnZjyDZitmO2K/ZjyDYp9mE2YTZkdmO2YfZkCDYudmO2YTZjtmJINin2YTZktis2Y7ZhdmO2KfYudmO2KnZkH0gLiDZiNmO2YTZkNmH2Y7YsNmO2Kcg2YjZjti12Y7ZgdmOINin2YTZktmB2ZDYsdmS2YLZjtip2Y4g2KfZhNmG2ZHZjtin2KzZkNmK2Y7YqdmOINio2ZDYo9mO2YbZkdmO2YfZjtinINij2Y7Zh9mS2YTZjyDYp9mE2LPZkdmP2YbZkdmO2KnZkCDZiNmO2KfZhNmS2KzZjtmF2Y7Yp9i52Y7YqdmQINmI2Y7Zh9mP2YXZkiDYp9mE2ZLYrNmP2YXZktmH2Y/ZiNix2Y8g2KfZhNmS2KPZjtmD2ZLYqNmO2LHZjyDZiNmO2KfZhNiz2ZHZjtmI2Y7Yp9iv2Y8g2KfZhNmS2KPZjti52ZLYuNmO2YXZjy4=\">مجموع الفتاوى</book>\nولفظه: افترقت اليهود على إحدى وسبعين فرقة كلها في النار إلا واحدة، وافترقت النصارى على اثنتين وسبعين فرقة كلها في النار إلا واحدة، وستفترق هذه الأمة على ثلاث وسبعين فرقة كلها في النار إلا واحدة.\n\nالحديث صحيح لكثرة طرقه وتلقي الأمة له بالقبول، فقد قبله العلماء وأثبتوه حتى في بعض كتب العقائد.\n<source site=\"binothaimeen.net\" url=\"https://binothaimeen.net/ar/voice_library/lessonDetails/%D9%87%D9%84%20%D8%AD%D8%AF%D9%8A%D8%AB%20%3A%20%22%20%D8%B3%D8%AA%D9%81%D8%AA%D8%B1%D9%82%20%D9%87%D8%B0%D9%87%20%D8%A7%D9%84%D8%A3%D9%85%D8%A9%20%D8%B9%D9%84%D9%89%20%D8%AB%D9%84%D8%A7%D8%AB%D8%A9%20%D9%88%D8%B3%D8%A8%D8%B9%D9%8A%D9%86%20%D9%81%D8%B1%D9%82%D8%A9%20%D9%83%D9%84%D9%87%D8%A7%20%D9%81%D9%8A%20%D8%A7%D9%84%D9%86%D8%A7%D8%B1%20%D8%A5%D9%84%D8%A7%20%D9%88%D8%A7%D8%AD%D8%AF%D8%A9%20%22%20%D8%B5%D8%AD%D9%8A%D8%AD%20%D8%9F/3f339e8a-cfc7-4078-99fc-8de6bda6d26f\">هل حديث : \" ستفترق هذه الأمة على ثلاثة وسبعين فرقة كلها في النار إلا واحدة \" صحيح ؟</source>\nوقد صرّح شيخ الإسلام ابن تيمية بأن الحديث صحيح مشهور في السنن والمسانيد، كما صرّح مشهور آل سلمان بأن الحديث صحيح، ومن حكم بضعفه فهو مخطئ.\n\nوقد وصف الفرقة الناجية بأنها أهل السنة والجماعة وهم الجمهور الأكبر والسواد الأعظم.\n\n### مسألة «ما درجة زيادة «كلها في النار إلا واحدة»» فقد ورد لفظ \"كلها في النار إلا واحدة\" ضمن رواية ابن تيمية للحديث عن أبي داود والترمذي والنسائي وغيرهم، وضمن النص الذي نقله مشهور آل سلمان عند حكمه بصحة الحديث.\n<source site=\"meshhoor.com\" url=\"https://meshhoor.com/fatwa/f605/\">السؤال: ما معنى قوله صلّى الله عليه وسلّم (كلّها في النار إلّا واحدة)؟</source>\n",
+        "evidence": [
+          {
+            "snippet": "## نص الفتوى\n\nالسؤال:\nالسؤال الثاني عشر حديث تفترق امتي على ثلاث وسبعين شعبة كلها في النار الا…\n\nالجواب:\nالحديث صحيح ومن حكم بضعفه فهو مخطئ ،وحتى تعلم الحديث خذ الحديث من اوله افترقت اليهود على احدى وسبعين وافترقت النصارى على اثنتين وسبعين وستفترق امتي على ثلاث وسبعين كلها في النار الا واحدة ؛قالوا من هي يا رسول الله قال: ((ما انا عليه واصحابي)) ؛ قوله صلى الله عليه وسلم ((ستفترق امتي)) كلمة أمة محمد صلى الله عليه وسلم يراد بها امران : امة الدعوة وامة الاستجابة . لو سألك سائل فقال لك : اليهودي والنصراني اليوم من أمة محمد أم ليس من أمة محمد صلى الله عليه وسلم ؟؟ ماذا تقول ؟ تقول :الأمة أمتان: أمة دعوة ؛ وأمة استجابة . فهو من أمة الدعوة وليس من أمة الاستجابة . اليهودي والنصراني من امة محمد صلى الله عليه وسلم ؛أمة ماذا ؟؟ الدعوة وليس من أمة الإستجابة . قوله صلى الله عليه وسلم :((وستفترق أمتي على ثلاث وسبعين شعبة)). هل المراد بأمتي أمة الدعوة ؟ امة الاستجابة ؛وليس امة الدعوة؛ أتدرون لم؟ لأن النبي صلى الله عليه وسلم ذكر اليهود ثم ذكر النصارى ثم قال وستفترق امتي ..)) فجعل أمته مقابل اليهود والنصارى فلم يكن معنى لقوله أمتي إلا أن تكون أمة الاستجابة ؛لأن اليهود والنصارى امة الدعوة، فلما ذكر اليهود ثم ذكر النصارى ثم قال وستفترق أمتي فلم يكن معنى لقوله امتي مقابل اليهود والنصارى الا ان تكون امة الاستجابة . العلماء يقولون الفِرق (الاستجابة ) وقعت في زمن الصحابة ، وأول الفرق التي وقعت الخوارج والشيعة؛ ثم تفرّع الخوارج اقواما وتفرع الشيعة اقواما اخرين . واهل العلم يقولون :الخوارج والروافض وجهتان لعملة واحدة، قالوا متى رايت الروافض ابحث عن الخوارج تجد ؛ومتى رأيت الخوارج ابحث عن الروافض تجد ؛فسنّة الله قاضية ان تظهرا معا،وقد قال النبي صلى الله عليه وسلم عن الخوارج قال : ((كلما ظهر قرن منهم قطع))؛ هذا عند ابن ماجه . ويظهر اخرهم مع الدجال فدلّ ذلك بالمقدمة السابقة ان الخوارج مع الروافض يظهرون وان حال الروافض انهم يظهرون بين الحين والحين وانهم يقطعون، لأن سنة الله قاضية وان الامة الباقية هي امة الوسط فالغالي لا يبقى؛ سنة الله قانون الله في الكون يقضي من غلا في شي لا بد ان يقطع ولذا قال النبي صلى الله عليه وسلم كما في البخاري “لن يشادّ الدّين احد الا غلبه” الدّين يغلب وهو ينمحي ويزول؛فمن الذي يبقى؟؟؟ الأمة الوسط ؛التي لا يوجد عندها غلو ولا تساهل . الروافض عندهم التساهل والخوارج عندهم التشدد وهؤلاء وهؤلاء سنة الله تقضي ان لا يبقوا لكن هل يكون لهم قرونا بين الحين والحين؟ نعم يكون لهم قرونا بين الحين والحين . تأمل معي الحديث مرة أخرى ؛ قال صلى الله عليه وسلم : “ما ظهر قرن منهم إلا قُطع “وذكر قُطع بصيغة الفعل المبني للمجهول، فمن الذي يقطعهم .؟ الله اعلم. تدابير الله؛ فهم قد يقطعوا بالعلم بالحجة بالبرهان؛ أو بالكفار يقطعون . لما ذكر النبي صلى الله عليه وسلم قطع هكذا بصيغة الفعل المبني للمجهول علمّنا ان قطعهم انما هو تدبير خالص من الله عز وجل وهذه دقة شديدة متناهية فيها ان تقف وتتأمل الفاظ النبي صلى الله عليه وسلم وماذا قال النبي صلى الله عليه وسلم في هؤلاء. ⬅ مجلس فتاوى الجمعة. 21 صفر 1439 هجري 2017 – 11 – 10 إفرنجي ⬅ خدمة الدرر الحسان من مجالس الشيخ مشهور بن حسن آل سلمان.✍✍ ⬅ للاشتراك في قناة التلغرام: http://t.me/meshhoor",
+            "title": "النص الكامل",
+            "url": "ref-1",
+            "id": "ref-1"
+          },
+          {
+            "snippet": "وَسُئِلَ شَيْخُ الْإِسْلَامِ أَحْمَدُ ابْنُ تَيْمِيَّة - قَدَّسَ اللَّهُ رُوحَهُ -: عَنْ قَوْلِهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ \" تَفْتَرِقُ أُمَّتِي ثَلَاثَةً وَسَبْعِينَ فِرْقَةً \". مَا الْفِرَقُ؟ وَمَا مُعْتَقَدُ كُلِّ فِرْقَةٍ مِنْ هَذِهِ الصُّنُوفِ؟ . فَأَجَابَ: الْحَمْدُ لِلَّهِ، الْحَدِيثُ صَحِيحٌ مَشْهُورٌ فِي السُّنَنِ وَالْمَسَانِدِ؛ كَسُنَنِ أَبِي دَاوُد وَالتِّرْمِذِي وَالنِّسَائِيِّ وَغَيْرِهِمْ وَلَفْظُهُ {افْتَرَقَتْ الْيَهُودُ عَلَى إحْدَى وَسَبْعِينَ فِرْقَةً كُلُّهَا فِي النَّارِ إلَّا وَاحِدَةً وَافْتَرَقَتْ النَّصَارَى عَلَى اثْنَتَيْنِ وَسَبْعِينَ فِرْقَةً كُلُّهَا فِي النَّارِ إلَّا وَاحِدَةً وَسَتَفْتَرِقُ هَذِهِ الْأُمَّةُ عَلَى ثَلَاثٍ وَسَبْعِينَ فِرْقَةً كُلُّهَا فِي النَّارِ إلَّا وَاحِدَةً} وَفِي لَفْظٍ {عَلَى ثَلَاثٍ وَسَبْعِينَ مِلَّةً} وَفِي رِوَايَةٍ {قَالُوا: يَا رَسُولَ اللَّهِ مَنْ الْفِرْقَةُ النَّاجِيَةُ؟ قَالَ: مَنْ كَانَ عَلَى مِثْلِ مَا أَنَا عَلَيْهِ الْيَوْمَ وَأَصْحَابِي} وَفِي رِوَايَةٍ قَالَ {هِيَ الْجَمَاعَةُ يَدُ اللَّهِ عَلَى الْجَمَاعَةِ} . وَلِهَذَا وَصَفَ الْفِرْقَةَ النَّاجِيَةَ بِأَنَّهَا أَهْلُ السُّنَّةِ وَالْجَمَاعَةِ وَهُمْ الْجُمْهُورُ الْأَكْبَرُ وَالسَّوَادُ الْأَعْظَمُ.",
+            "title": "مجموع الفتاوى",
+            "url": "ref-2",
+            "id": "ref-2"
+          },
+          {
+            "snippet": "",
+            "title": "السؤال الثاني عشر حديث تفترق امتي على ثلاث وسبعين شعبة كلها في النار الا…",
+            "url": "https://meshhoor.com/fatwa/%D8%A7%D9%84%D8%B3%D8%A4%D8%A7%D9%84-%D8%A7%D9%84%D8%AB%D8%A7%D9%86%D9%8A-%D8%B9%D8%B4%D8%B1-%D8%AD%D8%AF%D9%8A%D8%AB-%D8%AA%D9%81%D8%AA%D8%B1%D9%82-%D8%A7%D9%85%D8%AA%D9%8A-%D8%B9%D9%84%D9%89-%D8%AB/",
+            "id": "ref-3"
+          },
+          {
+            "snippet": "",
+            "title": "هل حديث : \" ستفترق هذه الأمة على ثلاثة وسبعين فرقة كلها في النار إلا واحدة \" صحيح ؟",
+            "url": "https://binothaimeen.net/ar/voice_library/lessonDetails/%D9%87%D9%84%20%D8%AD%D8%AF%D9%8A%D8%AB%20%3A%20%22%20%D8%B3%D8%AA%D9%81%D8%AA%D8%B1%D9%82%20%D9%87%D8%B0%D9%87%20%D8%A7%D9%84%D8%A3%D9%85%D8%A9%20%D8%B9%D9%84%D9%89%20%D8%AB%D9%84%D8%A7%D8%AB%D8%A9%20%D9%88%D8%B3%D8%A8%D8%B9%D9%8A%D9%86%20%D9%81%D8%B1%D9%82%D8%A9%20%D9%83%D9%84%D9%87%D8%A7%20%D9%81%D9%8A%20%D8%A7%D9%84%D9%86%D8%A7%D8%B1%20%D8%A5%D9%84%D8%A7%20%D9%88%D8%A7%D8%AD%D8%AF%D8%A9%20%22%20%D8%B5%D8%AD%D9%8A%D8%AD%20%D8%9F/3f339e8a-cfc7-4078-99fc-8de6bda6d26f",
+            "id": "ref-4"
+          },
+          {
+            "snippet": "",
+            "title": "السؤال: ما معنى قوله صلّى الله عليه وسلّم (كلّها في النار إلّا واحدة)؟",
+            "url": "https://meshhoor.com/fatwa/f605/",
+            "id": "ref-5"
+          }
+        ],
+        "domain": "fiqh",
+        "mode": "brief",
+        "truncated": false
+      },
+      "expect": {
+        "trigger": null
+      }
+    },
+    {
+      "id": "Q08",
+      "question": "هل ينقض لمس المرأة الوضوء؟ وما أقوال المذاهب الأربعة في ذلك؟",
+      "note": "three schools set out under their names (المذهب المالكي / وذهب الشافعية / المذهب الحنبلي) -> the tail stays",
+      "deliveredLive": true,
+      "input": {
+        "text": "## نص الفتوى\n\nالسؤال:\nسؤال من: س. أ.م - شبرا - مصر تقول فيه: ما حكم الشرع في لمس الرجل للمرأة الأجنبية باليد دون حائل هل ينقض الوضوء أم لا؟ وما المقصود بالمرأة الأجنبية؟\n\nالجواب:\nلمس المرأة لا ينقض الوضوء مطلقًا في أصح أقوال أهل العلم؛ لأنه ثبت عن النبي ﷺ أنه قبل بعض نسائه ثم صلى ولم يتوضأ. وليس للمرأة أن تصافح أحدًا من الرجال غير محارمها، كما أنه ليس للرجل أن يصافح امرأة من غير محارمه، لقول النبي ﷺ: إني لا أصافح النساء ولما ثبت عن عائشة رضي الله عنها: أن النبي ﷺ كان يبايع النساء بالكلام فقط قالت: وما مست يده يد امرأة قط.…\n<fatwafull matn=\"IyMg2YbYtSDYp9mE2YHYqtmI2YkKCtin2YTYs9ik2KfZhDoK2LPYpNin2YQg2YXZhjog2LMuINijLtmFIC0g2LTYqNix2KcgLSDZhdi12LEg2KrZgtmI2YQg2YHZitmHOiDZhdinINit2YPZhSDYp9mE2LTYsdi5INmB2Yog2YTZhdizINin2YTYsdis2YQg2YTZhNmF2LHYo9ipINin2YTYo9is2YbYqNmK2Kkg2KjYp9mE2YrYryDYr9mI2YYg2K3Yp9im2YQg2YfZhCDZitmG2YLYtiDYp9mE2YjYttmI2KEg2KPZhSDZhNin2J8g2YjZhdinINin2YTZhdmC2LXZiNivINio2KfZhNmF2LHYo9ipINin2YTYo9is2YbYqNmK2KnYnwoK2KfZhNis2YjYp9ioOgrZhNmF2LMg2KfZhNmF2LHYo9ipINmE2Kcg2YrZhtmC2LYg2KfZhNmI2LbZiNihINmF2LfZhNmC2YvYpyDZgdmKINij2LXYrSDYo9mC2YjYp9mEINij2YfZhCDYp9mE2LnZhNmF2Jsg2YTYo9mG2Ycg2KvYqNiqINi52YYg2KfZhNmG2KjZiiDvt7og2KPZhtmHINmC2KjZhCDYqNi52LYg2YbYs9in2KbZhyDYq9mFINi12YTZiSDZiNmE2YUg2YrYqtmI2LbYoy4g2YjZhNmK2LMg2YTZhNmF2LHYo9ipINij2YYg2KrYtdin2YHYrSDYo9it2K/Zi9inINmF2YYg2KfZhNix2KzYp9mEINi62YrYsSDZhdit2KfYsdmF2YfYp9iMINmD2YXYpyDYo9mG2Ycg2YTZitizINmE2YTYsdis2YQg2KPZhiDZiti12KfZgditINin2YXYsdij2Kkg2YXZhiDYutmK2LEg2YXYrdin2LHZhdmH2Iwg2YTZgtmI2YQg2KfZhNmG2KjZiiDvt7o6INil2YbZiiDZhNinINij2LXYp9mB2K0g2KfZhNmG2LPYp9ihINmI2YTZhdinINir2KjYqiDYudmGINi52KfYpti02Kkg2LHYttmKINin2YTZhNmHINi52YbZh9inOiDYo9mGINin2YTZhtio2Yog77e6INmD2KfZhiDZitio2KfZiti5INin2YTZhtiz2KfYoSDYqNin2YTZg9mE2KfZhSDZgdmC2Lcg2YLYp9mE2Ko6INmI2YXYpyDZhdiz2Kog2YrYr9mHINmK2K8g2KfZhdix2KPYqSDZgti3LiDZiNmC2K8g2YLYp9mEINin2YTZhNmHINiz2KjYrdin2YbZhzog2YTZjtmC2Y7Yr9mSINmD2Y7Yp9mG2Y4g2YTZjtmD2Y/ZhdmSINmB2ZDZiiDYsdmO2LPZj9mI2YTZkCDYp9mE2YTZkdmO2YfZkCDYo9mP2LPZktmI2Y7YqdmMINit2Y7Ys9mO2YbZjtip2YwgW9in2YTYo9it2LLYp9ioOiAyMV0uINmI2YTYo9mGINmF2LXYp9mB2K3YqSDYp9mE2YbYs9in2KEg2YTZhNix2KzYp9mEINmI2YXYtdin2YHYrdipINin2YTYsdis2KfZhCDZhNmE2YbYs9in2KEg2YXZhiDYutmK2LEg2KfZhNmF2K3Yp9ix2YUg2YXZhiDYo9iz2KjYp9ioINin2YTZgdiq2YbYqSDZhNmE2KzZhdmK2LnYjCDZiNmC2K8g2KzYp9ih2Kog2KfZhNi02LHZiti52Kkg2KfZhNil2LPZhNin2YXZitipINin2YTZg9in2YXZhNipINio2LPYryDYp9mE2LDYsdin2KbYuSDYp9mE2YXZgdi22YrYqSDYpdmE2Ykg2YXYpyDYrdix2YUg2KfZhNmE2YcuINmI2YXZhdinINiq2YLYr9mFINmK2LnZhNmFINij2YYg2KfZhNmF2LHYo9ipINin2YTYo9is2YbYqNmK2Kk6INmH2Yog2KfZhNiq2Yog2YTZitizINio2YrZhtmH2Kcg2YjYqNmK2YYg2KfZhNix2KzZhCDZhdinINmK2K3YsdmF2YfYpyDYudmE2YrZhyDYqNmG2LPYqCDYo9mIINiz2KjYqCDZhdio2KfYrdiMINmH2LDZhyDZh9mKINin2YTYo9is2YbYqNmK2KnYjCDYo9mF2Kcg2YXZhiDYqtit2LHZhSDYudmE2Ykg2KfZhNix2KzZhCDZhtiz2KjZi9inINmD2KPZhdmHINmI2KPYrtiq2Ycg2YjYudmF2KrZh9iMINij2Ygg2KjYs9io2Kgg2LTYsdi52Yog2YPYp9mE2LHYttin2LnYqSDZiNin2YTZhdi12KfZh9ix2Kkg2YHZh9mKINmE2YrYs9iqINij2KzZhtio2YrYqS4g2YjYqNin2YTZhNmHINin2YTYqtmI2YHZitmCWzFdLiDZhti02LHYqiDZgdmKINis2LHZitiv2Kkg2KfZhNmF2LPZhNmF2YjZhiDZgdmKINin2YTYudiv2K8gKDQpINmE2YrZiNmFINin2YTYs9io2Kog2KfZhNmF2YjYp9mB2YIgMTEgLyA2IC8gMTQwNdmH2YAuINmI2YHZiiDZhdis2YTYqSDYp9mE2K/YudmI2Kkg2YHZiiDYp9mE2LnYr9ivICgxNTIxKSDYqNiq2KfYsdmK2K4gMjIgLyA3IC8gMTQxNtmH2YDYjCAo2YXYrNmF2YjYuSDZgdiq2KfZiNmJINmI2YXZgtin2YTYp9iqINin2YTYtNmK2K4g2KfYqNmGINio2KfYsiAxMC8gMTMzKS4=\">النص الكامل</fatwafull>\n\nالمفتي: ابن باز\n<source site=\"binbaz.org.sa\" url=\"https://binbaz.org.sa/fatwas/3747/%D9%84%D9%85%D8%B3-%D8%A7%D9%84%D9%85%D8%B1%D8%A7%D8%A9-%D8%A7%D9%84%D8%A7%D8%AC%D9%86%D8%A8%D9%8A%D8%A9-%D9%87%D9%84-%D9%8A%D9%86%D9%82%D8%B6-%D8%A7%D9%84%D9%88%D8%B6%D9%88%D8%A1\">لمس المرأة الأجنبية هل ينقض الوضوء؟</source>\n\nالمسألةُ فيها خلافٌ بين العلماء، وأقربُ الأقوالِ إلى الدليلِ أن لمسَ المرأةِ لا ينقضُ الوضوءَ مطلقًا، سواءٌ كان بشهوةٍ أو بغيرها، وسواءٌ كانت زوجةً أو غيرَها، ما لم يخرجْ من الملامِسِ شيءٌ كمذيٍ ونحوِه.\n<source site=\"binbaz.org.sa\" url=\"https://binbaz.org.sa/fatwas/3750/%D9%84%D9%85%D8%B3-%D8%A7%D9%84%D9%85%D8%B1%D8%A7%D8%A9-%D8%A8%D8%B4%D9%87%D9%88%D8%A9-%D8%A7%D9%88-%D8%A8%D8%AF%D9%88%D9%86-%D8%B4%D9%87%D9%88%D8%A9-%D9%87%D9%84-%D9%8A%D9%86%D9%82%D8%B6-%D8%A7%D9%84%D9%88%D8%B6%D9%88%D8%A1\">لمس المرأة بشهوة أو بدون شهوة هل ينقض الوضوء؟</source>\nوالدليلُ على هذا أن النبيَّ صلى الله عليه وسلم كان يقبِّلُ بعضَ نسائِه ثم يصلي ولا يتوضأُ، وأن الأصلَ سلامةُ الطهارةِ وبراءةَ الذمةِ من وضوءٍ آخر، فلا يجبُ الوضوءُ إلا بدليلٍ سليمٍ لا معارضَ له.\n<source site=\"binbaz.org.sa\" url=\"https://binbaz.org.sa/fatwas/3748/%D9%87%D9%84-%D9%84%D9%85%D8%B3-%D8%A7%D9%84%D9%85%D8%B1%D8%A7%D8%A9-%D9%8A%D9%86%D9%82%D8%B6-%D8%A7%D9%84%D9%88%D8%B6%D9%88%D8%A1\">هل لمس المرأة ينقض الوضوء؟</source>\nأما قولُه تعالى: أو لامستم النساء، فالمرادُ به الجماعُ لا مجردُ اللمسِ باليد، كما فسّره ابنُ عباسٍ رضي الله عنهما وجماعةٌ من أهلِ العلم.\n\nالمذهبُ المالكي: ينتقضُ الوضوءُ بلمسِ المتوضئِ البالغِ لشخصٍ يُلتذُّ به عادةً من ذكرٍ أو أنثى، ولو كان الملموسُ غيرَ بالغ، سواءٌ كان اللمسُ لزوجتِه أو أجنبيةٍ أو محرمًا، أم كان اللمسُ لظفرٍ أو شعرٍ أم من فوقِ حائلٍ كثوب.\n<book author=\"الكاساني\" ref=\"ج1 · ص30\" book=\"FC-003532\" vol=\"1\" page=\"30\" matn=\"2YjZjtmE2Y7ZiNmSINmE2Y7ZhdmO2LPZjiDYp9mF2ZLYsdmO2KPZjtiq2Y7Zh9mPINio2ZDYtNmO2YfZktmI2Y7YqdmN2Iwg2KPZjtmI2ZIg2LrZjtmK2ZLYsdmQINi02Y7Zh9mS2YjZjtip2ZAg2YHZjtix2ZLYrNmQ2YfZjtinINij2Y7ZiNmSINiz2Y7Yp9im2ZDYsdmQINij2Y7YudmS2LbZjtin2KbZkNmH2Y7YpyDZhdmQ2YbZkiDYutmO2YrZktix2ZAg2K3Zjtin2KbZkNmE2Y0g2YjZjtmE2Y7ZhdmSINmK2Y/ZhtmS2LTZjtix2ZIg2YTZjtmH2Y7YpyDZhNmO2Kcg2YrZj9mG2ZLYqtmO2YLZjti22Y8g2YjZj9i22Y/ZiNih2Y/Zh9mPINi52ZDZhtmS2K/ZjiDYudmO2KfZhdmR2Y7YqdmQINin2YTZkti52Y/ZhNmO2YXZjtin2KHZkCDZiNmO2YLZjtin2YTZjiDZhdmO2KfZhNmQ2YPZjDog2KXZhtmSINmD2Y7Yp9mG2Y4g2KfZhNmS2YXZjtiz2ZHZjyDYqNmQ2LTZjtmH2ZLZiNmO2KnZjSDZitmO2YPZj9mI2YbZjyDYrdmO2K/Zjtir2YvYp9iMINmI2Y7YpdmQ2YbZkiDZg9mO2KfZhtmOINio2ZDYutmO2YrZktix2ZAg2LTZjtmH2ZLZiNmO2KnZjSDYqNmQ2KPZjtmG2ZIg2YPZjtin2YbZjtiq2ZIg2LXZjti62ZDZitix2Y7YqdmL2Iwg2KPZjtmI2ZIg2YPZjtin2YbZjtiq2ZIg2LDZjtinINix2Y7YrdmQ2YXZjSDZhdmO2K3Zktix2Y7ZhdmNINmF2ZDZhtmS2YfZjyDZhNmO2Kcg2YrZjtmD2Y/ZiNmG2Y8g2K3Zjtiv2Y7Yq9mL2KfYjCDZiNmO2YfZj9mI2Y4g2KPZjtit2Y7Yr9mPINmC2Y7ZiNmS2YTZjtmK2ZIg2KfZhNi02ZHZjtin2YHZkNi52ZDZitmR2ZDYjCDZiNmO2YHZkNmKINmC2Y7ZiNmS2YTZjSDZitmO2YPZj9mI2YbZjyDYrdmO2K/Zjtir2YvYpyDZg9mO2YrZktmB2Y7ZhdmO2Kcg2YPZjtin2YbZjiDYqNmQ2LTZjtmH2ZLZiNmO2KnZjSDYo9mO2YjZkiDYqNmQ2LrZjtmK2ZLYsdmQINi02Y7Zh9mS2YjZjtip2Y3YjCDZiNmO2YfZjtmE2ZIg2KrZj9mG2ZLYqtmO2YLZjti22Y8g2LfZjtmH2Y7Yp9ix2Y7YqdmPINin2YTZktmF2Y7ZhNmS2YXZj9mI2LPZjtip2ZAg2YTZjtinINi02Y7Zg9mR2Y4g2KPZjtmG2ZHZjtmH2Y7YpyDZhNmO2Kcg2KrZj9mG2ZLYqtmO2YLZjti22Y8g2LnZkNmG2ZLYr9mO2YbZjtin2Iwg2YjZjtmE2ZDZhNi02ZHZjtin2YHZkNi52ZDZitmR2ZAg2YHZkNmK2YfZkCDZgtmO2YjZktmE2Y7Yp9mG2ZAg2KfYrdmS2KrZjtis2ZHZjtinINio2ZDZgtmO2YjZktmE2ZDZh9mQINiq2Y7YudmO2KfZhNmO2Ykge9ij2Y7ZiNmSINmE2KfZhdmO2LPZktiq2Y/ZhdmPINin2YTZhtmR2ZDYs9mO2KfYodmOfSBb2KfZhNmF2KfYptiv2Kk6IDZdINmI2Y7Yp9mE2ZLZhdmP2YTZjtin2YXZjtiz2Y7YqdmPINmF2Y/ZgdmO2KfYudmO2YTZjtip2Ywg2YXZkNmG2ZIg2KfZhNmE2ZHZjtmF2ZLYs9mQ2Iwg2YjZjtin2YTZhNmR2Y7ZhdmS2LPZjyDZiNmO2KfZhNmS2YXZjtiz2ZHZjyDZiNmO2KfYrdmQ2K/ZjCDZhNmP2LrZjtip2Ysg2YLZjtin2YTZjiDYp9mE2YTZkdmO2YfZjyDYqtmO2LnZjtin2YTZjtmJIHvZiNmO2KPZjtmG2ZHZjtinINmE2Y7ZhdmO2LPZktmG2Y7YpyDYp9mE2LPZkdmO2YXZjtin2KHZjn0gW9in2YTYrNmGOiA4XSAuINmI2Y7YrdmO2YLZkNmK2YLZjtip2Y8g2KfZhNmE2ZHZjtmF2ZLYs9mQINmE2ZDZhNmR2Y7ZhdmS2LPZkCDYqNmQ2KfZhNmS2YrZjtiv2ZDYjCDZiNmO2YTZkNmE2ZLYrNmQ2YXZjtin2LnZkCDZhdmO2KzZjtin2LLZjNiMINij2Y7ZiNmSINmH2Y/ZiNmOINit2Y7ZgtmQ2YrZgtmO2KnZjCDZhNmO2YfZj9mF2Y7YpyDYrNmO2YXZkNmK2LnZi9inINmE2ZDZiNmP2KzZj9mI2K/ZkCDYp9mE2ZLZhdmO2LPZkdmQINmB2ZDZitmH2ZDZhdmO2Kcg2KzZjtmF2ZDZiti52YvYp9iMINmI2Y7YpdmQ2YbZkdmO2YXZjtinINin2K7Zktiq2Y7ZhNmO2YHZjiDYotmE2Y7YqdmPINin2YTZktmF2Y7Ys9mR2ZAg2YHZjtmD2Y7Yp9mG2Y4g2KfZhNmQ2KfYs9mS2YXZjyDYrdmO2YLZkNmK2YLZjtip2Ysg2YTZjtmH2Y/ZhdmO2Kcg2YTZkNmI2Y/YrNmP2YjYr9mQINmF2Y7YudmS2YbZjtmJINin2YTZkNin2LPZktmF2ZAg2YHZkNmK2YfZkNmF2Y7Ypy4=\">بدائع الصنائع في ترتيب الشرائع</book>\nويُشترطُ في النقضِ باللمسِ عند المالكيةِ ثلاثةُ شروط: أن يكونَ اللامسُ بالغًا، وأن يكونَ الملموسُ ممن يُشتهى عادةً، وأن يقصدَ اللامسُ اللذةَ أو يجدَها.\n<book author=\"محمد بن أحمد الدسوقي\" ref=\"ج1 · ص119\" book=\"FC-003623\" vol=\"1\" page=\"119\" matn=\"2YjZjtij2Y7ZhdmR2Y7YpyDYp9mE2ZLZhdmO2LPZkdmPINmB2Y7Zh9mP2YjZjiDZhdmP2YTZjtin2YLZjtin2KnZjyDYrNmQ2LPZktmF2Y0g2YTZkNii2K7Zjtix2Y4g2LnZjtmE2Y7ZiSDYo9mO2YrZkdmQINmI2Y7YrNmS2YfZjSDZg9mO2KfZhtmOINmI2Y7ZhNmQ2LDZjtinINi52Y7YqNmR2Y7YsdmOINio2ZDZh9mQINmB2ZDZiiDYp9mE2LDZkdmO2YPZjtix2ZAg2YTZkNmD2Y7ZiNmS2YbZkNmH2ZAg2YTZjtinINmK2Y/YtNmS2KrZjtix2Y7Yt9mPINmB2ZDZiiDZhtmO2YLZkti22ZAg2KfZhNmS2YjZj9i22Y/ZiNih2ZAg2KjZkNmH2ZAg2YLZjti12ZLYr9mMINmI2Y7ZgtmO2YjZktmE2Y/Zh9mPINmI2Y7ZhNmO2YXZktiz2Ywg2KPZjtmK2ZIg2YjZjtmE2Y7ZiNmSINmF2ZDZhtmSINin2YXZktix2Y7Yo9mO2KnZjSDZhNmQ2KPZj9iu2ZLYsdmO2Ykg2YPZjtmF2Y7YpyDZgdmQ2Yog2KfZhNmF2Kwg2YbZjtmC2ZLZhNmL2Kcg2LnZjtmG2ZIg2K0g2YLZkNmK2Y7Yp9iz2YvYpyDYudmO2YTZjtmJINin2YTZkti62Y/ZhNmO2KfZhdmO2YrZktmG2ZDYmyDZhNmQ2KPZjtmG2ZHZjiDZg9mP2YTZkdmL2Kcg2YrZjtmE2ZLYqtmO2LDZkdmPINio2ZDYp9mE2ZLYotiu2Y7YsdmQICjZgtmO2YjZktmE2Y/Zh9mPOiDZhNmO2Kcg2YXZkNmG2ZIg2LXZjti62ZDZitix2Y0g2YjZjtmE2Y7ZiNmSINix2Y7Yp9mH2Y7ZgtmOKSDYmyDZhNmQ2KPZjtmG2ZHZjiDYp9mE2YTZkdmO2YXZktiz2Y4g2KXZhtmR2Y7ZhdmO2Kcg2YbZjtmC2Y7YttmOINmE2ZDZg9mO2YjZktmG2ZDZh9mQINmK2Y/YpNmO2K/ZkdmQ2Yog2YTZkNiu2Y/YsdmP2YjYrNmQINin2YTZktmF2Y7YsNmS2YrZkCDZiNmO2YTZjtinINmF2Y7YsNmS2YrZjiDZhNmQ2LrZjtmK2ZLYsdmQINin2YTZktio2Y7Yp9mE2ZDYutmQICjZgtmO2YjZktmE2Y/Zh9mPOiDZiNmO2KXZkNmG2ZIg2KfZj9iz2ZLYqtmP2K3ZkNio2ZHZjiDZhNmO2YfZjyDYp9mE2ZLYutmP2LPZktmE2Y8g2YPZjtmF2Y7YpyDYs9mO2YrZjtij2ZLYqtmQ2YopINij2Y7ZitmSINmI2Y7Yp9iz2ZLYqtmQ2K3Zktio2Y7Yp9io2Y8g2KfZhNmS2LrZj9iz2ZLZhNmQINmK2Y7ZgtmS2KrZjti22ZDZiiDYp9iz2ZLYqtmQ2K3Zktio2Y7Yp9io2Y4g2KfZhNmS2YjZj9i22Y/ZiNih2ZAg2YXZkNmG2ZIg2KjZjtin2KjZjSDYo9mO2YjZktmE2Y7ZiSAo2YLZjtmI2ZLZhNmP2YfZjzog2YrZjtmE2ZLYqtmO2LDZkdmPINi12Y7Yp9it2ZDYqNmP2YfZjyDYqNmQ2YfZkCDYudmO2KfYr9mO2KnZiykg2KfZhNmS2K3Zjtin2LXZkNmE2Y8g2KPZjtmG2ZHZjiDYp9mE2YbZkdmO2YLZkti22Y4g2KjZkNin2YTZhNmR2Y7ZhdmS2LPZkCDZhdmO2LTZktix2Y/ZiNi32Ywg2KjZkNi02Y/YsdmP2YjYt9mNINir2Y7ZhNmO2KfYq9mO2KnZjSDYo9mO2YbZkiDZitmO2YPZj9mI2YbZjiDYp9mE2YTZkdmO2KfZhdmQ2LPZjyDYqNmO2KfZhNmQ2LrZi9inINmI2Y7Yo9mO2YbZkiDZitmO2YPZj9mI2YbZjiDYp9mE2ZLZhdmO2YTZktmF2Y/ZiNiz2Y8g2YXZkNmF2ZHZjtmG2ZIg2YrZj9i02ZLYqtmO2YfZjtmJINi52Y7Yp9iv2Y7YqdmLINmI2Y7Yo9mO2YbZkiDZitmO2YLZkti12ZDYr9mOINin2YTZhNmR2Y7Yp9mF2ZDYs9mPINin2YTZhNmR2Y7YsNmR2Y7YqdmOINij2Y7ZiNmSINmK2Y7YrNmQ2K/ZjtmH2Y7YpyDZgdmO2YLZjtmI2ZLZhNmP2YfZjyDYudmO2KfYr9mO2KnZiyDYo9mO2YrZkiDZhNmQ2YPZjtmI2ZLZhtmQINin2YTZktmF2Y7ZhNmS2YXZj9mI2LPZkCDZitmP2LTZktiq2Y7Zh9mO2Ykg2LnZjtin2K/Zjtip2Ysg2KPZjtmK2ZIg2YHZkNmKINi52Y7Yp9iv2Y7YqdmQINin2YTZhtmR2Y7Yp9iz2ZAg2YTZjtinINio2ZDYrdmO2LPZjtio2ZAg2LnZjtin2K/Zjtip2ZAg2KfZhNmS2YXZj9mE2ZLYqtmO2LDZkdmQINmI2Y7YrdmS2K/ZjtmH2Y8g2YjZjtiw2Y7ZhNmQ2YPZjtibINmE2ZDYo9mO2YbZkdmOINin2YTZkdmO2LDZkNmKINmK2Y7ZhtmS2LbZjtio2ZDYt9mPINmG2Y7ZgdmS2YrZi9inINmI2Y7YpdmQ2KvZktio2Y7Yp9iq2YvYpyDYudmO2KfYr9mO2KnZjyDYp9mE2YbZkdmO2KfYs9mQINin2YTZkti62Y7Yp9mE2ZDYqNmO2KnZjyDZiNmO2KXZkNmE2ZHZjtinINmE2Y7Yp9iu2ZLYqtmO2YTZjtmB2Y4g2KfZhNmS2K3Zj9mD2ZLZhdmPINio2ZDYp9iu2ZLYqtmQ2YTZjtin2YHZkCDYp9mE2ZLYo9mO2LTZktiu2Y7Yp9i12ZAgKNmC2Y7ZiNmS2YTZj9mH2Y86INiu2Y7YsdmO2KzZjiDYqNmQ2YfZkCkg2KPZjtmK2ZIg2KjZkNmC2Y7ZiNmS2YTZkNmH2ZA=\" cut=\"1\" open=\"1\">الشرح الكبير للشيخ الدردير وحاشية الدسوقي</book>\n\nوذهب الشافعيةُ إلى أنه إذا التقت بشرتا رجلٍ وامرأةٍ أجنبيةٍ تُشتهى، انتقض وضوءُ اللامسِ منهما، سواءٌ كان اللامسُ الرجلَ أو المرأةَ، وسواءٌ كان اللمسُ بشهوةٍ أم لا، تعقبُه لذةٌ أم لا، وسواءٌ قصد ذلك أم حصل سهوًا أو اتفاقًا.\n<book author=\"النووي\" ref=\"ج2 · ص25-26\" book=\"FC-003660\" vol=\"2\" page=\"25\" matn=\"2KjZjtin2KjZkCDYtdmQ2YHZjtip2ZAg2KfZhNmS2LrZj9iz2ZLZhNmQINil2YbZkiDYtNmO2KfYodmOINin2YTZhNmR2Y7Zh9mPINiq2Y7YudmO2KfZhNmO2Yk6INmI2Y7ZgtmO2YjZktmE2Y/Zh9mPINmD2Y7ZhdmO2Kcg2YTZjtmI2ZIg2YXZjtiz2ZHZjiDYsNmO2YPZjtix2Y4g2LrZjtmK2ZLYsdmQ2YfZkCDZitmO2LnZktmG2ZDZiiDZgdmO2KXZkNmG2ZHZjtmH2Y8g2YrZj9mG2ZLZgtmO2LbZjyDYp9mE2ZLZhdmO2KfYs9mR2Y8g2K/Zj9mI2YbZjiDYp9mE2ZLZhdmO2YXZktiz2Y/ZiNiz2ZAgW9mC2Y7ZiNmS2YTZi9inINmI2Y7Yp9it2ZDYr9mL2Kcg2YjZjtmH2Y7YsNmO2Kcg2LnZjtmE2Y7ZiSDYt9mO2LHZkNmK2YLZjtip2ZAg2KfZhNmS2YXZj9i12Y7ZhtmR2ZDZgdmQINmI2Y7Yp9mE2ZLYudmQ2LHZjtin2YLZkNmK2ZHZkNmK2YbZjiDZiNmO2YHZkNmK2YfZkCDYrtmQ2YTZjtin2YHZjCDZhNmQ2YTZktiu2Y/YsdmO2KfYs9mO2KfZhtmQ2YrZkdmO2YrZktmG2ZAg2LPZjtmG2Y7YsNmS2YPZj9ix2Y/Zh9mPINmB2ZDZiiDZhdmO2YjZkti22ZDYudmQ2YfZkCDYpdmG2ZIg2LTZjtin2KHZjiDYp9mE2YTZkdmO2YfZjyDYqtmO2LnZjtin2YTZjtmJICjYp9mE2ZLZhdmO2LPZktij2Y7ZhNmO2KnZjyDYp9mE2KvZkdmO2KfZhNmQ2KvZjtip2Y8pINil2LDZjtinINin2YTZktiq2Y7ZgtmO2KrZkiDYqNmO2LTZjtix2Y7YqtmO2Kcg2LHZjtis2Y/ZhNmNINmI2Y7Yp9mF2ZLYsdmO2KPZjtip2Y0g2KPZjtis2ZLZhtmO2KjZkNmK2ZHZjtip2Y0g2KrZj9i02ZLYqtmO2YfZjtmJINin2YbZktiq2Y7ZgtmO2LbZjiDZiNmP2LbZj9mI2KHZjyDYp9mE2YTZkdmO2KfZhdmQ2LPZkCDZhdmQ2YbZktmH2Y/ZhdmO2Kcg2LPZjtmI2Y7Yp9ih2Ywg2YPZjtin2YbZjiDYp9mE2YTZkdmO2KfZhdmQ2LPZjyDYp9mE2LHZkdmO2KzZj9mE2Y4g2KPZjtmI2ZIg2KfZhNmS2YXZjtix2ZLYo9mO2KnZjiDZiNmO2LPZjtmI2Y7Yp9ih2Ywg2YPZjtin2YbZjiDYp9mE2YTZkdmO2YXZktiz2Y8g2KjZkNi02Y7Zh9mS2YjZjtip2Y0g2KPZjtmF2ZIg2YTZjtinINiq2Y7YudmS2YLZj9io2Y/Zh9mPINmE2Y7YsNmR2Y7YqdmMINij2Y7ZhdmSINmE2Y7YpyDZiNmO2LPZjtmI2Y7Yp9ih2Ywg2YLZjti12Y7Yr9mOINiw2Y7ZhNmQ2YPZjiDYo9mO2YXZkiDYrdmO2LXZjtmE2Y4g2LPZjtmH2ZLZiNmL2Kcg2KPZjtmI2ZIg2KfYqtmR2ZDZgdmO2KfZgtmL2Kcg2YjZjtiz2Y7ZiNmO2KfYodmMINin2LPZktiq2Y7Yr9mO2KfZhdmOINin2YTZhNmR2Y7ZhdmS2LPZjyDYo9mO2YXZkiDZgdmO2KfYsdmO2YLZjiDYqNmQ2YXZj9is2Y7YsdmR2Y7Yr9mQINin2YTZktiq2ZDZgtmO2KfYodmQINin2YTZktio2Y7YtNmO2LHZjtiq2Y7ZitmS2YbZkCDZiNmO2LPZjtmI2Y7Yp9ih2Ywg2YTZjtmF2Y7Ys9mOINio2ZDYudmP2LbZktmI2Y0g2YXZkNmG2ZIg2KPZjti52ZLYttmO2KfYodmQINin2YTYt9mR2Y7Zh9mO2KfYsdmO2KnZkCDYo9mO2YXZkiDYqNmQ2LrZjtmK2ZLYsdmQ2YfZkCDZiNmO2LPZjtmI2Y7Yp9ih2Ywg2YPZjtin2YbZjiDYp9mE2ZLZhdmO2YTZktmF2Y/ZiNiz2Y8g2KPZjtmI2ZIg2KfZhNmS2YXZjtmE2ZLZhdmP2YjYs9mPINio2ZDZh9mQINi12Y7YrdmQ2YrYrdmL2Kcg2KPZjtmI2ZIg2KPZjti02Y7ZhNmR2Y4g2LLZjtin2KbZkNiv2YvYpyDYo9mO2YXZkiDYo9mO2LXZktmE2ZDZitmR2YvYpyDZgdmO2YPZj9mE2ZHZjyDYsNmO2YTZkNmD2Y4g2YrZjtmG2ZLZgtmP2LbZjyDYp9mE2ZLZiNmP2LbZj9mI2KHZjiDYudmQ2YbZktiv2Y7ZhtmO2Kcg2YjZjtmB2ZDZiiDZg9mP2YTZkdmQ2YfZkCDYrtmQ2YTZjtin2YHZjCDZhNmQ2YTYs9mR2Y7ZhNmO2YHZkCDYs9mO2YbZjtiw2ZLZg9mP2LHZj9mH2Y8g2YHZkNmKINmB2Y7YsdmS2LnZkCDZhdmO2LDZjtin2YfZkNio2ZAg2KfZhNmS2LnZj9mE2Y7ZhdmO2KfYodmQINil2YbZkiDYtNmO2KfYodmOINin2YTZhNmR2Y7Zh9mPINiq2Y7YudmO2KfZhNmO2Ykg2YjZjtmE2Y7ZhtmO2Kcg2KPZjtmI2ZLYrNmP2YfZjCDYttmO2LnZkNmK2YHZjtip2Ywg2YHZkNmKINio2Y7YudmS2LbZkCDZh9mO2LDZkNmH2ZAg2KfZhNi12ZHZj9mI2Y7YsdmQINmF2ZDZhtmS2YfZjtinINmI2Y7YrNmS2YfZjCDYrdmO2YPZjtin2YfZjyDYp9mE2ZLZgtmO2KfYttmQ2Yog2K3Zj9iz2Y7ZitmS2YbZjCDZiNmO2LrZjtmK2ZLYsdmP2YfZjyDYo9mO2YbZkdmOINin2YTZktmF2Y7YsdmS2KPZjtip2Y4g2YTZjtinINiq2Y7YstmO2KfZhNmPINmF2Y7ZhNmS2YXZj9mI2LPZjtip2Ysg2YjZjtmE2Y7Ypw==\" cut=\"1\" open=\"1\">المجموع شرح المهذب</book>\nوإن لمس شعرَها أو ظفرَها لم ينتقضِ الوضوءُ لأنه لا يُلتذُّ بلمسِه.\n\nالمذهبُ الحنبلي: المشهورُ من مذهبِ أحمد أن لمسَ النساءِ لشهوةٍ ينقضُ الوضوءَ ولا ينقضُه لغيرِ شهوة. ولا فرقَ بين الأجنبيةِ وذاتِ المحرم، ولا بين الكبيرةِ والصغيرة، خلافًا للشافعيِّ الذي قال بعدمِ النقضِ في لمسِ المحارمِ والصغيرة. ولا يختصُّ اللمسُ الناقضُ باليد، بل أيُّ شيءٍ منه لاقى شيئًا من بشرتِها مع الشهوةِ انتقض وضوؤه به. ولا ينقضُ مسُّ شعرِ المرأةِ ولا ظفرِها ولا سنِّها. ويُشترطُ في اللمسِ الناقضِ أن يكونَ من غيرِ حائل، فمع الحائلِ لا ينتقضُ، أشبهَ ما لو لمس ثيابَها لشهوة. وينتقضُ وضوءُ الملموسِ أيضًا إذا وُجدت منه الشهوة، لأن ما ينتقضُ بالتقاءِ البشرتين لا فرقَ فيه بين اللامسِ والملموس.\n\n<suggestions>\n- ما حكم تقبيل الزوجة بشهوة؟\n- هل مس المحارم ينقض الوضوء؟\n- ما معنى الملامسة في الآية؟\n</suggestions>\n",
+        "evidence": [
+          {
+            "snippet": "## نص الفتوى\n\nالسؤال:\nسؤال من: س. أ.م - شبرا - مصر تقول فيه: ما حكم الشرع في لمس الرجل للمرأة الأجنبية باليد دون حائل هل ينقض الوضوء أم لا؟ وما المقصود بالمرأة الأجنبية؟\n\nالجواب:\nلمس المرأة لا ينقض الوضوء مطلقًا في أصح أقوال أهل العلم؛ لأنه ثبت عن النبي ﷺ أنه قبل بعض نسائه ثم صلى ولم يتوضأ. وليس للمرأة أن تصافح أحدًا من الرجال غير محارمها، كما أنه ليس للرجل أن يصافح امرأة من غير محارمه، لقول النبي ﷺ: إني لا أصافح النساء ولما ثبت عن عائشة رضي الله عنها: أن النبي ﷺ كان يبايع النساء بالكلام فقط قالت: وما مست يده يد امرأة قط. وقد قال الله سبحانه: لَقَدْ كَانَ لَكُمْ فِي رَسُولِ اللَّهِ أُسْوَةٌ حَسَنَةٌ [الأحزاب: 21]. ولأن مصافحة النساء للرجال ومصافحة الرجال للنساء من غير المحارم من أسباب الفتنة للجميع، وقد جاءت الشريعة الإسلامية الكاملة بسد الذرائع المفضية إلى ما حرم الله. ومما تقدم يعلم أن المرأة الأجنبية: هي التي ليس بينها وبين الرجل ما يحرمها عليه بنسب أو سبب مباح، هذه هي الأجنبية، أما من تحرم على الرجل نسبًا كأمه وأخته وعمته، أو بسبب شرعي كالرضاعة والمصاهرة فهي ليست أجنبية. وبالله التوفيق[1]. نشرت في جريدة المسلمون في العدد (4) ليوم السبت الموافق 11 / 6 / 1405هـ. وفي مجلة الدعوة في العدد (1521) بتاريخ 22 / 7 / 1416هـ، (مجموع فتاوى ومقالات الشيخ ابن باز 10/ 133).",
+            "title": "النص الكامل",
+            "url": "ref-1",
+            "id": "ref-1"
+          },
+          {
+            "snippet": "وَلَوْ لَمَسَ امْرَأَتَهُ بِشَهْوَةٍ، أَوْ غَيْرِ شَهْوَةِ فَرْجِهَا أَوْ سَائِرِ أَعْضَائِهَا مِنْ غَيْرِ حَائِلٍ وَلَمْ يُنْشَرْ لَهَا لَا يُنْتَقَضُ وُضُوءُهُ عِنْدَ عَامَّةِ الْعُلَمَاءِ وَقَالَ مَالِكٌ: إنْ كَانَ الْمَسُّ بِشَهْوَةٍ يَكُونُ حَدَثًا، وَإِنْ كَانَ بِغَيْرِ شَهْوَةٍ بِأَنْ كَانَتْ صَغِيرَةً، أَوْ كَانَتْ ذَا رَحِمٍ مَحْرَمٍ مِنْهُ لَا يَكُونُ حَدَثًا، وَهُوَ أَحَدُ قَوْلَيْ الشَّافِعِيِّ، وَفِي قَوْلٍ يَكُونُ حَدَثًا كَيْفَمَا كَانَ بِشَهْوَةٍ أَوْ بِغَيْرِ شَهْوَةٍ، وَهَلْ تُنْتَقَضُ طَهَارَةُ الْمَلْمُوسَةِ لَا شَكَّ أَنَّهَا لَا تُنْتَقَضُ عِنْدَنَا، وَلِلشَّافِعِيِّ فِيهِ قَوْلَانِ احْتَجَّا بِقَوْلِهِ تَعَالَى {أَوْ لامَسْتُمُ النِّسَاءَ} [المائدة: 6] وَالْمُلَامَسَةُ مُفَاعَلَةٌ مِنْ اللَّمْسِ، وَاللَّمْسُ وَالْمَسُّ وَاحِدٌ لُغَةً قَالَ اللَّهُ تَعَالَى {وَأَنَّا لَمَسْنَا السَّمَاءَ} [الجن: 8] . وَحَقِيقَةُ اللَّمْسِ لِلَّمْسِ بِالْيَدِ، وَلِلْجِمَاعِ مَجَازٌ، أَوْ هُوَ حَقِيقَةٌ لَهُمَا جَمِيعًا لِوُجُودِ الْمَسِّ فِيهِمَا جَمِيعًا، وَإِنَّمَا اخْتَلَفَ آلَةُ الْمَسِّ فَكَانَ الِاسْمُ حَقِيقَةً لَهُمَا لِوُجُودِ مَعْنَى الِاسْمِ فِيهِمَا.",
+            "title": "بدائع الصنائع في ترتيب الشرائع",
+            "url": "ref-2",
+            "id": "ref-2"
+          },
+          {
+            "snippet": "وَأَمَّا الْمَسُّ فَهُوَ مُلَاقَاةُ جِسْمٍ لِآخَرَ عَلَى أَيِّ وَجْهٍ كَانَ وَلِذَا عَبَّرَ بِهِ فِي الذَّكَرِ لِكَوْنِهِ لَا يُشْتَرَطُ فِي نَقْضِ الْوُضُوءِ بِهِ قَصْدٌ وَقَوْلُهُ وَلَمْسٌ أَيْ وَلَوْ مِنْ امْرَأَةٍ لِأُخْرَى كَمَا فِي المج نَقْلًا عَنْ ح قِيَاسًا عَلَى الْغُلَامَيْنِ؛ لِأَنَّ كُلًّا يَلْتَذُّ بِالْآخَرِ (قَوْلُهُ: لَا مِنْ صَغِيرٍ وَلَوْ رَاهَقَ) ؛ لِأَنَّ اللَّمْسَ إنَّمَا نَقَضَ لِكَوْنِهِ يُؤَدِّي لِخُرُوجِ الْمَذْيِ وَلَا مَذْيَ لِغَيْرِ الْبَالِغِ (قَوْلُهُ: وَإِنْ اُسْتُحِبَّ لَهُ الْغُسْلُ كَمَا سَيَأْتِي) أَيْ وَاسْتِحْبَابُ الْغُسْلِ يَقْتَضِي اسْتِحْبَابَ الْوُضُوءِ مِنْ بَابٍ أَوْلَى (قَوْلُهُ: يَلْتَذُّ صَاحِبُهُ بِهِ عَادَةً) الْحَاصِلُ أَنَّ النَّقْضَ بِاللَّمْسِ مَشْرُوطٌ بِشُرُوطٍ ثَلَاثَةٍ أَنْ يَكُونَ اللَّامِسُ بَالِغًا وَأَنْ يَكُونَ الْمَلْمُوسُ مِمَّنْ يُشْتَهَى عَادَةً وَأَنْ يَقْصِدَ اللَّامِسُ اللَّذَّةَ أَوْ يَجِدَهَا فَقَوْلُهُ عَادَةً أَيْ لِكَوْنِ الْمَلْمُوسِ يُشْتَهَى عَادَةً أَيْ فِي عَادَةِ النَّاسِ لَا بِحَسَبِ عَادَةِ الْمُلْتَذِّ وَحْدَهُ وَذَلِكَ؛ لِأَنَّ الَّذِي يَنْضَبِطُ نَفْيًا وَإِثْبَاتًا عَادَةُ النَّاسِ الْغَالِبَةُ وَإِلَّا لَاخْتَلَفَ الْحُكْمُ بِاخْتِلَافِ الْأَشْخَاصِ (قَوْلُهُ: خَرَجَ بِهِ) أَيْ بِقَوْلِهِ",
+            "title": "الشرح الكبير للشيخ الدردير وحاشية الدسوقي",
+            "url": "ref-3",
+            "id": "ref-3"
+          },
+          {
+            "snippet": "بَابِ صِفَةِ الْغُسْلِ إنْ شَاءَ اللَّهُ تَعَالَى: وَقَوْلُهُ كَمَا لَوْ مَسَّ ذَكَرَ غَيْرِهِ يَعْنِي فَإِنَّهُ يُنْقَضُ الْمَاسُّ دُونَ الْمَمْسُوسِ [قَوْلًا وَاحِدًا وَهَذَا عَلَى طَرِيقَةِ الْمُصَنِّفِ وَالْعِرَاقِيِّينَ وَفِيهِ خِلَافٌ لِلْخُرَاسَانِيَّيْنِ سَنَذْكُرُهُ فِي مَوْضِعِهِ إنْ شَاءَ اللَّهُ تَعَالَى (الْمَسْأَلَةُ الثَّالِثَةُ) إذَا الْتَقَتْ بَشَرَتَا رَجُلٍ وَامْرَأَةٍ أَجْنَبِيَّةٍ تُشْتَهَى انْتَقَضَ وُضُوءُ اللَّامِسِ مِنْهُمَا سَوَاءٌ كَانَ اللَّامِسُ الرَّجُلَ أَوْ الْمَرْأَةَ وَسَوَاءٌ كَانَ اللَّمْسُ بِشَهْوَةٍ أَمْ لَا تَعْقُبُهُ لَذَّةٌ أَمْ لَا وَسَوَاءٌ قَصَدَ ذَلِكَ أَمْ حَصَلَ سَهْوًا أَوْ اتِّفَاقًا وَسَوَاءٌ اسْتَدَامَ اللَّمْسُ أَمْ فَارَقَ بِمُجَرَّدِ الْتِقَاءِ الْبَشَرَتَيْنِ وَسَوَاءٌ لَمَسَ بِعُضْوٍ مِنْ أَعْضَاءِ الطَّهَارَةِ أَمْ بِغَيْرِهِ وَسَوَاءٌ كَانَ الْمَلْمُوسُ أَوْ الْمَلْمُوسُ بِهِ صَحِيحًا أَوْ أَشَلَّ زَائِدًا أَمْ أَصْلِيًّا فَكُلُّ ذَلِكَ يَنْقُضُ الْوُضُوءَ عِنْدَنَا وَفِي كُلِّهِ خِلَافٌ لِلسَّلَفِ سَنَذْكُرُهُ فِي فَرْعِ مَذَاهِبِ الْعُلَمَاءِ إنْ شَاءَ اللَّهُ تَعَالَى وَلَنَا أَوْجُهٌ ضَعِيفَةٌ فِي بَعْضِ هَذِهِ الصُّوَرِ مِنْهَا وَجْهٌ حَكَاهُ الْقَاضِي حُسَيْنٌ وَغَيْرُهُ أَنَّ الْمَرْأَةَ لَا تَزَالُ مَلْمُوسَةً وَلَا",
+            "title": "المجموع شرح المهذب",
+            "url": "ref-4",
+            "id": "ref-4"
+          },
+          {
+            "snippet": "",
+            "title": "لمس المرأة الأجنبية هل ينقض الوضوء؟",
+            "url": "https://binbaz.org.sa/fatwas/3747/%D9%84%D9%85%D8%B3-%D8%A7%D9%84%D9%85%D8%B1%D8%A7%D8%A9-%D8%A7%D9%84%D8%A7%D8%AC%D9%86%D8%A8%D9%8A%D8%A9-%D9%87%D9%84-%D9%8A%D9%86%D9%82%D8%B6-%D8%A7%D9%84%D9%88%D8%B6%D9%88%D8%A1",
+            "id": "ref-5"
+          },
+          {
+            "snippet": "",
+            "title": "لمس المرأة بشهوة أو بدون شهوة هل ينقض الوضوء؟",
+            "url": "https://binbaz.org.sa/fatwas/3750/%D9%84%D9%85%D8%B3-%D8%A7%D9%84%D9%85%D8%B1%D8%A7%D8%A9-%D8%A8%D8%B4%D9%87%D9%88%D8%A9-%D8%A7%D9%88-%D8%A8%D8%AF%D9%88%D9%86-%D8%B4%D9%87%D9%88%D8%A9-%D9%87%D9%84-%D9%8A%D9%86%D9%82%D8%B6-%D8%A7%D9%84%D9%88%D8%B6%D9%88%D8%A1",
+            "id": "ref-6"
+          },
+          {
+            "snippet": "",
+            "title": "هل لمس المرأة ينقض الوضوء؟",
+            "url": "https://binbaz.org.sa/fatwas/3748/%D9%87%D9%84-%D9%84%D9%85%D8%B3-%D8%A7%D9%84%D9%85%D8%B1%D8%A7%D8%A9-%D9%8A%D9%86%D9%82%D8%B6-%D8%A7%D9%84%D9%88%D8%B6%D9%88%D8%A1",
+            "id": "ref-7"
+          }
+        ],
+        "domain": "fiqh",
+        "mode": "brief",
+        "truncated": false
+      },
+      "expect": {
+        "trigger": "source"
+      }
+    },
+    {
+      "id": "S1-agreed-two-parties",
+      "note": "two attributed views, then «ولا خلاف في ذلك»: the negation stands and no source carries a khilaf construction -> null",
+      "input": {
+        "text": "ذهب الحنفية إلى أن الوتر واجب، وذهب الجمهور إلى أنه سنة مؤكدة، ولا خلاف في ذلك بين أهل العلم.",
+        "evidence": [
+          {
+            "id": "s1",
+            "snippet": "الوتر واجب عند الحنفية، وسنة مؤكدة عند الجمهور."
+          }
+        ],
+        "domain": "fiqh",
+        "mode": "brief",
+        "truncated": false,
+        "topic": "sharia_ruling"
+      },
+      "expect": {
+        "trigger": null
+      }
+    },
+    {
+      "id": "S2-hadith-grade-two-graders",
+      "note": "a hadith-grade answer with two graders under topic hadith: the grade frame (A-5) is the sentence there, never the khilaf tail",
+      "input": {
+        "text": "ذهب الألباني إلى أن الحديث ضعيف لا يجوز العمل به. وذهب الترمذي إلى أنه حسن يجوز العمل به. وفي المسألة خلاف بين أهل العلم.",
+        "evidence": [
+          {
+            "id": "s2",
+            "snippet": "ذهب الألباني إلى أن الحديث ضعيف لا يجوز العمل به، وذهب الترمذي إلى أنه حسن يجوز العمل به، وفي المسألة خلاف بين أهل العلم."
+          }
+        ],
+        "domain": "fiqh",
+        "mode": "brief",
+        "truncated": false,
+        "topic": "hadith"
+      },
+      "expect": {
+        "trigger": null
+      }
+    },
+    {
+      "id": "S3-two-opposed-views-source",
+      "note": "the positive control: two opposed attributed views and a source that declares the khilaf -> source",
+      "input": {
+        "text": "ذهب الحنفية إلى أن الوتر واجب. وذهب الجمهور إلى أن الوتر مستحب غير واجب.",
+        "evidence": [
+          {
+            "id": "s3",
+            "snippet": "الوتر واجب عند الحنفية وسنة مؤكدة عند الجمهور، وفي هذه المسألة خلاف بين أهل العلم."
+          }
+        ],
+        "domain": "fiqh",
+        "mode": "brief",
+        "truncated": false,
+        "topic": "sharia_ruling"
+      },
+      "expect": {
+        "trigger": "source"
+      }
+    },
+    {
+      "id": "S4-one-view-majority-word",
+      "note": "one attributed view with الجمهور and الراجح in the prose and a khilaf source: one view -> null (Q01/Q02 shape)",
+      "input": {
+        "text": "ذهب الجمهور إلى أن الوتر سنة مؤكدة، وهو الراجح.",
+        "evidence": [
+          {
+            "id": "s4",
+            "snippet": "الوتر سنة مؤكدة عند الجمهور، وفي هذه المسألة خلاف بين أهل العلم."
+          }
+        ],
+        "domain": "fiqh",
+        "mode": "brief",
+        "truncated": false,
+        "topic": "sharia_ruling"
+      },
+      "expect": {
+        "trigger": null
+      }
+    },
+    {
+      "id": "S5-p13-side-issue-parties",
+      "question": "ما حكم الزكاة في الإسلام وهل هي فرض؟",
+      "note": "brain35-2 F6 (DIAG2 R7, P13): one agreed ruling, then two parties on WHEN zakah was made obligatory (no stance word, no stem of the question) and a source that declares a khilaf on the timing -> no tail: the parties are not views on the question",
+      "input": {
+        "text": "الزكاة فرض وركن من أركان الإسلام، دل على ذلك الكتاب والسنة والإجماع. وذهب الأكثرون إلى أن ذلك كان في السنة الثانية من الهجرة، وذهب ابن خزيمة إلى أنه كان قبل الهجرة.",
+        "evidence": [
+          {
+            "id": "s5",
+            "snippet": "الزكاة فرض بإجماع المسلمين، واختلف أهل العلم في وقت فرضها: فذهب الأكثرون إلى السنة الثانية من الهجرة، وذهب ابن خزيمة إلى أنها كانت قبل الهجرة، وفي هذه المسألة خلاف بين أهل العلم."
+          }
+        ],
+        "domain": "fiqh",
+        "mode": "brief",
+        "truncated": false,
+        "topic": "sharia_ruling"
+      },
+      "expect": {
+        "trigger": null
+      }
+    },
+    {
+      "id": "S6-two-parties-on-subject-party-level",
+      "question": "هل ينقض الوضوء لمس المرأة؟",
+      "note": "brain35-2 F6 (DIAG2 R7): two parties, the second naming the subject in one of its two sentences only -> source (the match is party-level: one clause on the subject keeps the party)",
+      "input": {
+        "text": "ذهب الشافعية إلى أن لمس المرأة ينقض الوضوء. وذهب الحنفية إلى خلاف ذلك، وقال الحنفية: لا ينقض الوضوء لمس المرأة بحال.",
+        "evidence": [
+          {
+            "id": "s6",
+            "snippet": "لمس المرأة ينقض الوضوء عند الشافعية ولا ينقضه عند الحنفية، وفي هذه المسألة خلاف بين أهل العلم."
+          }
+        ],
+        "domain": "fiqh",
+        "mode": "brief",
+        "truncated": false,
+        "topic": "sharia_ruling"
+      },
+      "expect": {
+        "trigger": "source"
+      }
+    },
+    {
+      "id": "S7-generic-question-filter-off",
+      "question": "ما الحكم؟",
+      "note": "brain35-2 F6 (DIAG2 R7): a question with fewer than two issue terms turns the subject filter off -> the P13 text counts its two parties as before -> source",
+      "input": {
+        "text": "الزكاة فرض وركن من أركان الإسلام، دل على ذلك الكتاب والسنة والإجماع. وذهب الأكثرون إلى أن ذلك كان في السنة الثانية من الهجرة، وذهب ابن خزيمة إلى أنه كان قبل الهجرة.",
+        "evidence": [
+          {
+            "id": "s7",
+            "snippet": "الزكاة فرض بإجماع المسلمين، واختلف أهل العلم في وقت فرضها، وفي هذه المسألة خلاف بين أهل العلم."
+          }
+        ],
+        "domain": "fiqh",
+        "mode": "brief",
+        "truncated": false,
+        "topic": "sharia_ruling"
+      },
+      "expect": {
+        "trigger": "source"
+      }
+    },
+    {
+      "id": "S8-timing-dispute-two-stances",
+      "question": "هل الحج واجب على الفور أم على التراخي؟",
+      "note": "brain35-3 X10 (DIAG3 FOUND 4, live Q12): two parties, one on «يجب على الفور» and one on «يجب على التراخي», both on the question's subject, the source declaring the khilaf -> source (the timing pair is two opposed stances; before X10 the shared «يجب» folded them into one view)",
+      "input": {
+        "text": "ذهب الجمهور إلى أن الحج يجب على الفور. وذهب الشافعية ومحمد بن الحسن إلى أنه يجب على التراخي.",
+        "evidence": [
+          {
+            "id": "s8",
+            "snippet": "اختلفوا في وجوب الحج عند تحقق الشروط هل هو على الفور أو على التراخي. ذهب أبو حنيفة في أصح الروايتين عنه وأبو يوسف ومالك في الراجح عنه وأحمد إلى أنه يجب على الفور. وذهب الشافعي والإمام محمد بن الحسن إلى أنه يجب على التراخي، فلا يأثم المستطيع بتأخيره. وفي هذه المسألة خلاف بين أهل العلم."
+          }
+        ],
+        "domain": "fiqh",
+        "mode": "brief",
+        "truncated": false,
+        "topic": "sharia_ruling"
+      },
+      "expect": {
+        "trigger": "source"
+      }
+    }
+  ]
+}

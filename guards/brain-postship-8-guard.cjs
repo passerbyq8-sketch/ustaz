@@ -75,7 +75,18 @@ const LONG = [
   const rt = (q) => { const m = [{ role: 'user', content: q }]; return RT.classifyReligiousRuntime(q, PL.planAsk(m, { policyEnabled: true }), RC.classifyRoute(m)); };
   ok('the four P2 forms are fiqh (STORED_FIQH), so the free brain gets the rule for each: 4/4', P2.filter((q) => rt(q) === 'STORED_FIQH').length === 4, P2.map(rt).join(','));
   ok('three questions that are not fiqh are not STORED_FIQH: no rule', NOT_FIQH.every((q) => rt(q) !== 'STORED_FIQH'), NOT_FIQH.map(rt).join(','));
-  ok('rule 10 is still the last of before writing\'s rules', BW.bw2RulesFor([], 'x', []).endsWith('١٠. لا تذكرْ غيابَ قولِ عالمٍ لم يسألْ عنه السائل.'));
+  // ITEMS A-3 (a) and A-5 (brain35, 2026-11-06): the order added rules 12 and 13 after rule 10 -- a collected fatwa
+  // book's compiler is not its author (rule 12) and a grade is explained in the grader's own words (rule 13), both
+  // sha-pinned in the reviewer's own guard. Rule 10 is therefore no longer the LAST rule; what this row protects is that
+  // it is still there, in its own place, with 12 and 13 behind it and no 11 invented between them.
+  ok('rule 10 is still in before writing\'s rules, in its place, with 12 and 13 after it and no 11 between',
+    (() => {
+      const rules = BW.bw2RulesFor([], 'x', []);
+      const at10 = rules.indexOf('١٠. لا تذكرْ غيابَ قولِ عالمٍ لم يسألْ عنه السائل.');
+      const at12 = rules.indexOf('\u0661\u0662. ');
+      const at13 = rules.indexOf('\u0661\u0663. ');
+      return at10 > 0 && at12 > at10 && at13 > at12 && rules.indexOf('\u0661\u0661. ') === -1;
+    })(), BW.bw2RulesFor([], 'x', []).slice(-140));
   ok('the rule says rule 10 does not forbid naming an absent school', String(BW.BW_MADHHAB_VIEWS_RULE || '').includes('ولا تمنعُ التصريحَ بغيابِ قولِ مذهب'));
 
   console.log('-- (b) what counts as a verse');
@@ -103,6 +114,23 @@ const LONG = [
   for (const v of MARKED) { const t = await run('قال الله تعالى: ﴿' + v + '﴾ وهذا أصل في الباب.'); if (/\d+:\d+/.test(t) && arLeft(t).length) marked++; }
   for (const v of LONG) { const t = await run('وقد قال الله تعالى في كتابه ' + v + ' وهذا أصل في الباب.'); if (/\d+:\d+/.test(t) && arLeft(t).length) long++; }
   ok('the positive side holds: ten marked verses and five long unmarked ones are matched 15/15', marked + long === 15, 'marked ' + marked + '/10, long ' + long + '/5');
+
+  console.log('-- brain35-5e J: the no-Ja\'fari line rides on both writer prompts, every turn');
+  {
+    // re-cut R12 (b) 2026-11-10 (brain35-ship J2): the rule's text copied from the order EZIK-ORDER-BRAIN35-J2-2026-11-10 (4) by BRAIN35-J2-evidence/extract-rows.cjs (was: EZIK-ORDER-BRAIN35-FIX5E-2026-11-09, item J (1))
+    const RULE_J = 'لا تذكرِ المذهبَ الجعفريَّ (الإماميّة) في الجوابِ بحالٍ: لا قولًا له ولا نفيًا عنه، ولا تقلْ فيه «لم أقف»، ولا تعطِ عنه معلومة. فإن سأل السائلُ عن حكمٍ عند أهل السنة فيه ذكرُ أتباعِه، فأجبْ من كلامِ علماءِ أهل السنة في النصوصِ المعروضةِ هنا دون أن تسمّيَ المذهبَ.';
+    const qs = [...P2, 'ما مذهب الحنابلة في زكاة الحلي؟', ...NOT_FIQH];
+    ok('J-7 the BW2 writer rules carry the line on every turn (four P2 forms, a one-school question, three non-fiqh questions; re-cut R12 (b) 2026-11-10: the line is the J2 order\'s (4))', qs.every((q) => BW.bw2RulesFor([{ id: 'x' }], q, []).includes(RULE_J)), String(qs.filter((q) => BW.bw2RulesFor([{ id: 'x' }], q, []).includes(RULE_J)).length) + '/' + qs.length);
+    ok('J-8 the legacy writer instructions carry it on every turn: fiqh or not, every band (re-cut R12 (b) 2026-11-10: the line is the J2 order\'s (4))', ['adult', 'teen', 'young', ''].every((band) => [true, false].every((fiqh) => FB.buildFreeBrainInstruction({ band, fiqh }).includes(RULE_J))));
+    ok('J-9 BW_MADHHAB_VIEWS_RULE and FREE_BRAIN_MADHHAB_RULE are not edited: neither carries the line (pinned)', !BW.BW_MADHHAB_VIEWS_RULE.includes(RULE_J) && !FB.FREE_BRAIN_MADHHAB_RULE.includes(RULE_J));
+    // brain35-ship J2 (2026-11-10), (4): both writer prompts carry the J2 constant, byte for byte (copied from EZIK-ORDER-BRAIN35-J2-2026-11-10.md
+    // (4) by BRAIN35-J2-evidence/extract-rows.cjs); the DENY / SUNNI RULING forms of the order among the questions.
+    const CONSTANT_J2 = '\u0644\u0627 \u062a\u0630\u0643\u0631\u0650 \u0627\u0644\u0645\u0630\u0647\u0628\u064e \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u064e\u0651 (\u0627\u0644\u0625\u0645\u0627\u0645\u064a\u0651\u0629) \u0641\u064a \u0627\u0644\u062c\u0648\u0627\u0628\u0650 \u0628\u062d\u0627\u0644\u064d: \u0644\u0627 \u0642\u0648\u0644\u064b\u0627 \u0644\u0647 \u0648\u0644\u0627 \u0646\u0641\u064a\u064b\u0627 \u0639\u0646\u0647\u060c \u0648\u0644\u0627 \u062a\u0642\u0644\u0652 \u0641\u064a\u0647 \u00ab\u0644\u0645 \u0623\u0642\u0641\u00bb\u060c \u0648\u0644\u0627 \u062a\u0639\u0637\u0650 \u0639\u0646\u0647 \u0645\u0639\u0644\u0648\u0645\u0629. \u0641\u0625\u0646 \u0633\u0623\u0644 \u0627\u0644\u0633\u0627\u0626\u0644\u064f \u0639\u0646 \u062d\u0643\u0645\u064d \u0639\u0646\u062f \u0623\u0647\u0644 \u0627\u0644\u0633\u0646\u0629 \u0641\u064a\u0647 \u0630\u0643\u0631\u064f \u0623\u062a\u0628\u0627\u0639\u0650\u0647\u060c \u0641\u0623\u062c\u0628\u0652 \u0645\u0646 \u0643\u0644\u0627\u0645\u0650 \u0639\u0644\u0645\u0627\u0621\u0650 \u0623\u0647\u0644 \u0627\u0644\u0633\u0646\u0629 \u0641\u064a \u0627\u0644\u0646\u0635\u0648\u0635\u0650 \u0627\u0644\u0645\u0639\u0631\u0648\u0636\u0629\u0650 \u0647\u0646\u0627 \u062f\u0648\u0646 \u0623\u0646 \u062a\u0633\u0645\u0651\u064a\u064e \u0627\u0644\u0645\u0630\u0647\u0628\u064e.';
+    const qsJ2 = [...qs, '\u0647\u0644 \u062a\u062c\u0648\u0632 \u0627\u0644\u0635\u0644\u0627\u0629 \u062e\u0644\u0641 \u0625\u0645\u0627\u0645 \u062c\u0639\u0641\u0631\u064a\u061f', '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0635\u0644\u0627\u0629 \u062e\u0644\u0641 \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u0629\u061f', '\u0645\u0627 \u0641\u0636\u0644 \u0627\u0644\u0635\u0644\u0627\u0629 \u0641\u064a \u0627\u0644\u0635\u0641\u0648\u0641 \u0627\u0644\u0623\u0645\u0627\u0645\u064a\u0629\u061f'];
+    ok('J2-P1 the BW2 writer rules carry the J2 constant on every turn', qsJ2.every((q) => BW.bw2RulesFor([{ id: 'x' }], q, []).includes(CONSTANT_J2)), String(qsJ2.filter((q) => BW.bw2RulesFor([{ id: 'x' }], q, []).includes(CONSTANT_J2)).length) + '/' + qsJ2.length);
+    ok('J2-P2 the legacy writer instructions carry the J2 constant on every turn: fiqh or not, every band', ['adult', 'teen', 'young', ''].every((band) => [true, false].every((fiqh) => FB.buildFreeBrainInstruction({ band, fiqh }).includes(CONSTANT_J2))));
+    ok('J2-P3 the J2 constant is the line J exports (NO_JAFARI_SCHOOL_RULE), and the two school rules do not carry it', FB.NO_JAFARI_SCHOOL_RULE === CONSTANT_J2 && !BW.BW_MADHHAB_VIEWS_RULE.includes(CONSTANT_J2) && !FB.FREE_BRAIN_MADHHAB_RULE.includes(CONSTANT_J2));
+  }
 
   console.log('\n' + (checks - failures) + '/' + checks + ' checks passed');
   process.exit(failures ? 1 : 0);

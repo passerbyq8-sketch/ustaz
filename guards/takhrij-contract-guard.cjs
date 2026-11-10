@@ -1900,6 +1900,78 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       }
     }
   }
+  console.log('\n=== brain35-5e G2 (2026-11-09; DIAG6 G2) · THE COMPANION IS READ INSIDE HIS OWN NARRATION ===');
+  {
+    // MEASURED (DIAG6 G2-companion-wording, preview Q2): «… «فوالذي نفسي بيده …» عن أبي هريرة رضي الله عنه: «لا يؤمن أحدكم، حتى … والناس
+    // أجمعين» (متفق عليه).» -- Anas's wording under Abu Hurayra. companionFrom took the LAST «anchor + name + رضي الله عنه» before the matn
+    // cut; Anas's own narration carries no prayer («عن أنس، قال:»), so the reader walked back over the narration boundary and took the
+    // Companion of the narration BEFORE it on the same page. The part searched now starts at the last narration boundary before the cut:
+    // a hadith number («15 - »), an isnad opener after the last closing «»», or «وعن» right after it; a narration whose own Companion has
+    // no prayer names NO Companion. Not a boundary: «وفي رواية», «ولفظه», a closing «»» alone (Claude's ruling: the alternate wording of
+    // the SAME narration keeps its Companion). The atoms and paragraphs are the DIAG6 harness's (SYNTHETIC), the quotations copied (EXT Q2).
+    const TG2 = await esm('lib/takhrij.js');
+    const LG2 = await esm('lib/takhrij-ladder.js');
+    const idG2 = (display) => (LG2.TAKHRIJ_LADDER.find((r) => r.display === display) || { ids: [] }).ids[0];
+    const ID_B = idG2('البخاري'); const ID_M = idG2('مسلم'); const ID_N = idG2('النسائي');
+    const AH_MATN = "فوالذي نفسي بيده، لا يؤمن أحدكم حتى أكون أحب إليه من والده وولده";
+    const ANAS_MATN = "لا يؤمن أحدكم، حتى أكون أحب إليه من والده وولده والناس أجمعين";
+    const B0 = "باب حب الرسول صلى الله عليه وسلم من الإيمان 14 - حدثنا أبو اليمان، قال: أخبرنا شعيب، قال: حدثنا أبو الزناد، عن الأعرج، عن أبي هريرة رضي الله عنه: أن رسول الله صلى الله عليه وسلم قال: «فوالذي نفسي بيده، لا يؤمن أحدكم حتى أكون أحب إليه من والده وولده» 15 - حدثنا يعقوب بن إبراهيم، قال: حدثنا ابن علية، عن عبد العزيز بن صهيب، عن أنس، قال: قال النبي صلى الله عليه وسلم: «لا يؤمن أحدكم، حتى أكون أحب إليه من والده وولده والناس أجمعين»";
+    const B1 = "باب حب الرسول صلى الله عليه وسلم من الإيمان 14 - حدثنا أبو اليمان، قال: أخبرنا شعيب، قال: حدثنا أبو الزناد، عن الأعرج، عن أبي هريرة رضي الله عنه: أن رسول الله صلى الله عليه وسلم قال: «فوالذي نفسي بيده، لا يؤمن أحدكم حتى أكون أحب إليه من والده وولده» 15 - حدثنا يعقوب بن إبراهيم، قال: حدثنا ابن علية، عن عبد العزيز بن صهيب، عن أنس رضي الله عنه، قال: قال النبي صلى الله عليه وسلم: «لا يؤمن أحدكم، حتى أكون أحب إليه من والده وولده والناس أجمعين»";
+    const M0 = "69 - (44) حدثنا محمد بن المثنى، وابن بشار، قالا: حدثنا محمد بن جعفر، حدثنا شعبة، قال: سمعت قتادة، يحدث عن أنس بن مالك، قال: قال رسول الله صلى الله عليه وسلم: «لا يؤمن أحدكم، حتى أكون أحب إليه من والده وولده والناس أجمعين»";
+    const M0X = "69 - (44) حدثنا محمد بن المثنى، وابن بشار، قالا: حدثنا محمد بن جعفر، حدثنا شعبة، قال: سمعت قتادة، يحدث عن أنس بن مالك، قال: قال رسول الله صلى الله عليه وسلم: «لا يؤمن أحدكم حتى أكون أحب إليه من ولده ووالده والناس أجمعين»";
+    const M1 = "69 - (44) حدثنا محمد بن المثنى، وابن بشار، قالا: حدثنا محمد بن جعفر، حدثنا شعبة، قال: سمعت قتادة، يحدث عن أنس بن مالك رضي الله عنه، قال: قال رسول الله صلى الله عليه وسلم: «لا يؤمن أحدكم، حتى أكون أحب إليه من والده وولده والناس أجمعين»";
+    const N0 = "5014 - أخبرنا قتيبة، قال: حدثنا الليث، عن ابن عجلان، عن أبيه، عن أبي هريرة رضي الله عنه، أن رسول الله صلى الله عليه وسلم قال: «والذي نفسي بيده لا يؤمن أحدكم حتى أكون أحب إليه من والده وولده» 5015 - أخبرنا عمران بن موسى، قال: حدثنا عبد الوارث، عن عبد العزيز، عن أنس، قال: قال رسول الله صلى الله عليه وسلم: «لا يؤمن أحدكم، حتى أكون أحب إليه من والده وولده والناس أجمعين»";
+    const N1 = "5014 - أخبرنا قتيبة، قال: حدثنا الليث، عن ابن عجلان، عن أبيه، عن أبي هريرة رضي الله عنه، أن رسول الله صلى الله عليه وسلم قال: «والذي نفسي بيده لا يؤمن أحدكم حتى أكون أحب إليه من والده وولده» 5015 - أخبرنا عمران بن موسى، قال: حدثنا عبد الوارث، عن عبد العزيز، عن أنس رضي الله عنه، قال: قال رسول الله صلى الله عليه وسلم: «لا يؤمن أحدكم، حتى أكون أحب إليه من والده وولده والناس أجمعين»";
+    const W1G2 = "رواه الإمام البخاري في صحيحه، في كتاب الإيمان، باب حب الرسول صلى الله عليه وسلم من الإيمان، من حديث أبي هريرة رضي الله عنه بلفظ: «فوالذي نفسي بيده، لا يؤمن أحدكم حتى أكون أحب إليه من والده وولده» وفي رواية: «لا يؤمن أحدكم، حتى أكون أحب إليه من والده وولده والناس أجمعين».";
+    const W3G2 = "رواه الإمام البخاري في صحيحه، في كتاب الإيمان، باب حب الرسول صلى الله عليه وسلم من الإيمان، من حديث أبي هريرة رضي الله عنه بلفظ: «فوالذي نفسي بيده، لا يؤمن أحدكم حتى أكون أحب إليه من والده وولده» عن أبي هريرة رضي الله عنه: «لا يؤمن أحدكم، حتى أكون أحب إليه من والده وولده والناس أجمعين».";
+    const S1 = [[ID_B, B0], [ID_M, M0X]];
+    const S3 = [[ID_B, B0], [ID_M, M0], [ID_N, N0]];
+    const S4 = [[ID_B, B1], [ID_M, M1], [ID_N, N1]];
+    const S5 = [[ID_B, B0.slice(B0.indexOf('15 - '))], [ID_M, M0], [ID_N, N0.slice(N0.indexOf('5015 - '))]];
+    const lookupG2 = (atoms) => async (matns) => matns.map((matn) => ({ matn, subjectIds: atoms.map((a) => a[0]), atoms: atoms.map((a) => a[1]) }));
+    ok('G2-1 S3\'s al-Bukhari page (Abu Hurayra\'s narration with the prayer, then Anas\'s without): companionFrom(Anas\'s wording) = \'\'',
+      TG2.companionFrom(B0, ANAS_MATN).name === '', JSON.stringify(TG2.companionFrom(B0, ANAS_MATN)));
+    ok('G2-2 the same page: companionFrom(Abu Hurayra\'s wording) = «أبي هريرة» (pinned)', TG2.companionFrom(B0, AH_MATN).name === 'أبي هريرة', JSON.stringify(TG2.companionFrom(B0, AH_MATN)));
+    ok('G2-3 S4 (Anas WITH the prayer on every page): companionFrom(Anas\'s wording) = «أنس» on the al-Bukhari and al-Nasa\'i pages, «أنس بن مالك» on Muslim\'s (pinned)',
+      TG2.companionFrom(B1, ANAS_MATN).name === 'أنس' && TG2.companionFrom(N1, ANAS_MATN).name === 'أنس' && TG2.companionFrom(M1, ANAS_MATN).name === 'أنس بن مالك',
+      JSON.stringify(S4.map((a) => TG2.companionFrom(a[1], ANAS_MATN).name)));
+    ok('G2-4 S5 (each page cut to the Anas narration, no prayer): \'\' on every atom (pinned)', S5.every((a) => TG2.companionFrom(a[1], ANAS_MATN).name === ''));
+    // SYNTHETIC: one narration, its alternate wording behind «وفي رواية:» (not a boundary)
+    const RIWAYA = 'حدثنا فلان عن فلان عن أبي هريرة رضي الله عنه قال: قال رسول الله صلى الله عليه وسلم: «الطهور شطر الإيمان والحمد لله تملأ الميزان» وفي رواية: «إسباغ الوضوء شطر الإيمان والحمد لله تملأ الميزان»';
+    ok('G2-5 SYNTHETIC «عن أبي هريرة رضي الله عنه قال: … «…» وفي رواية: «…»»: the second wording keeps «أبي هريرة» (pinned: «وفي رواية» is no boundary)',
+      TG2.companionFrom(RIWAYA, 'إسباغ الوضوء شطر الإيمان والحمد لله تملأ الميزان').name === 'أبي هريرة');
+    // SYNTHETIC: a second narration opened by «وعن» right after the first matn's closing «»»
+    const WAAN = 'حدثنا فلان عن فلان عن أبي هريرة رضي الله عنه قال: قال رسول الله صلى الله عليه وسلم: «الطهور شطر الإيمان والحمد لله تملأ الميزان». وعن أنس قال: قال رسول الله صلى الله عليه وسلم: «إسباغ الوضوء شطر الإيمان والحمد لله تملأ الميزان»';
+    ok('G2-6 SYNTHETIC «… «…». وعن أنس قال: قال رسول الله صلى الله عليه وسلم: «…»»: the second wording names no Companion',
+      TG2.companionFrom(WAAN, 'إسباغ الوضوء شطر الإيمان والحمد لله تملأ الميزان').name === '', JSON.stringify(TG2.companionFrom(WAAN, 'إسباغ الوضوء شطر الإيمان والحمد لله تملأ الميزان')));
+    const ON_G2 = { TAKHRIJ_V1: 'on' };
+    const w1s3 = await TG2.applyTakhrij(W1G2, { env: ON_G2, lookup: lookupG2(S3) });
+    ok('G2-7 applyTakhrij on W1 («… وفي رواية: «…»») with S3: no «عن أبي هريرة رضي الله عنه:» before Anas\'s wording',
+      !String(w1s3.text || '').includes('عن أبي هريرة رضي الله عنه: «لا يؤمن أحدكم، حتى'), String(w1s3.text || '').slice(-160).replace(/[^\x20-\x7e]/gu, '~'));
+    const w3s1 = await TG2.applyTakhrij(W3G2, { env: ON_G2, lookup: lookupG2(S1) });
+    const anasEntry = (w3s1.entries || []).find((e) => String(e.matn || '').includes('والناس أجمعين'));
+    ok('G2-8 the engine on W3 with S1: the entry of Anas\'s wording exists and its companions carry no «أبي هريرة»',
+      !!anasEntry && !(anasEntry.companions || []).includes('أبي هريرة') && anasEntry.companion !== 'أبي هريرة', JSON.stringify(anasEntry ? { companion: anasEntry.companion, companions: anasEntry.companions } : null));
+    {
+      const fs = require('fs'); const os = require('os');
+      const src = fs.readFileSync(path.join(REPO, 'lib', 'takhrij.js'), 'utf8');
+      const SEAM = '    const found = nameBeforeCut(bare.slice(narrationStartBefore(bare, cut), cut));';
+      const changed = src.split(SEAM).join('    const found = nameBeforeCut(bare.slice(0, cut)); // mutant: the narration boundary removed');
+      ok('MUTANT G2 boundary seam applied', changed !== src);
+      const dir = path.dirname(path.join(REPO, 'lib', 'takhrij.js'));
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-g2-mut-'));
+      try {
+        const file = path.join(tmp, 'boundary-blind.mjs');
+        fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir, spec).replace(/\\/g, '/') + q), 'utf8');
+        const mod = await import('file:///' + file.replace(/\\/g, '/'));
+        ok('MUTANT G2 KILLED: without the boundary S3\'s al-Bukhari page names Abu Hurayra for Anas\'s wording again',
+          mod.companionFrom(B0, ANAS_MATN).name === 'أبي هريرة');
+      } finally {
+        try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
   console.log('\n=== 111 THIRD ORDER · STEP 4 · NO GLUED OPENER, NO LINE THAT OPENS ON A COMMA ===');
   {
     const T4 = await esm('lib/takhrij.js');
@@ -2872,6 +2944,18 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     const f3 = FR.finalizeReaderText({ text: 'الجمهور يرون أن الحديث على ظاهره وعمومه، وهذا هو المشهور.', kind: 'answer', sources: [] });
     ok('3.4h-8 nothing lifted, nothing touched: an answer that opens «والجمهور…» with nothing taken out of it, and one with a «و» only in its middle, are returned byte for byte',
       f2.text === 'والجمهور يرون أن الحديث على ظاهره وعمومه.' && f2.replaced === false && f3.text === 'الجمهور يرون أن الحديث على ظاهره وعمومه، وهذا هو المشهور.' && f3.replaced === false);
+    // FIX5D F-D3 (2026-11-09; DIAG5 D3, preview Q6): after a removal, a dangling أيضا / كذلك as the second or third word of the
+    // opening goes (stripDanglingAlso, applied after stripOpeningConjunction); as the first word only behind the conjunction just taken off.
+    // The S1 sentence is the EXT report's question 6; the fifth-word sentence is SYNTHETIC.
+    const sdaD3 = typeof OC.stripDanglingAlso === 'function' ? OC.stripDanglingAlso : (t) => ({ text: String(t == null ? '' : t), stripped: false }); // identity on a HEAD without it (the RED run)
+    const chainD3 = (t, o) => { const c = st(t, o); return sdaD3(c.text, { ...o, wawStripped: c.stripped }).text; };
+    ok('F-D3c the preview Q6 sentence after a removal: the third word أيضا goes with its space, nothing else changes', chainD3("ابن باز أيضا أفتى بأن الأضحية سنة وليست بواجبة.", REMOVED) === "ابن باز أفتى بأن الأضحية سنة وليست بواجبة.", JSON.stringify(chainD3("ابن باز أيضا أفتى بأن الأضحية سنة وليست بواجبة.", REMOVED)));
+    ok('F-D3d the tanween spelling goes the same way', chainD3("ابن باز أيضًا أفتى بأن الأضحية سنة وليست بواجبة.", REMOVED) === "ابن باز أفتى بأن الأضحية سنة وليست بواجبة.", JSON.stringify(chainD3("ابن باز أيضًا أفتى بأن الأضحية سنة وليست بواجبة.", REMOVED)));
+    ok('F-D3e وكذلك as the first released unit after a hold: the conjunction strip, then كذلك gone', chainD3("وكذلك أفتى ابن باز بأن الأضحية سنة وليست بواجبة.", REMOVED) === "أفتى ابن باز بأن الأضحية سنة وليست بواجبة.", JSON.stringify(chainD3("وكذلك أفتى ابن باز بأن الأضحية سنة وليست بواجبة.", REMOVED)));
+    ok('F-D3f nothing removed before it: both sentences byte for byte', chainD3("ابن باز أيضا أفتى بأن الأضحية سنة وليست بواجبة.", {}) === "ابن باز أيضا أفتى بأن الأضحية سنة وليست بواجبة." && chainD3("وكذلك أفتى ابن باز بأن الأضحية سنة وليست بواجبة.", {}) === "وكذلك أفتى ابن باز بأن الأضحية سنة وليست بواجبة.");
+    ok('F-D3g unchanged after a removal: the word as the fifth word (SYNTHETIC), followed by a comma, كذلك first with no conjunction taken off, and a heading first',
+      chainD3("الأضحية سنة وليست بواجبة أيضا عند ابن باز.", REMOVED) === "الأضحية سنة وليست بواجبة أيضا عند ابن باز." && chainD3("ابن باز أيضا، أفتى بأن الأضحية سنة وليست بواجبة.", REMOVED) === "ابن باز أيضا، أفتى بأن الأضحية سنة وليست بواجبة."
+      && chainD3("كذلك أفتى ابن باز بأن الأضحية سنة وليست بواجبة.", REMOVED) === "كذلك أفتى ابن باز بأن الأضحية سنة وليست بواجبة." && chainD3("## الأضحية\nابن باز أيضا أفتى بأن الأضحية سنة وليست بواجبة.", REMOVED) === "## الأضحية\nابن باز أيضا أفتى بأن الأضحية سنة وليست بواجبة.");
     // mutants of lib/opening-conjunction.js (a temp copy beside it)
     {
       const fsx = require('fs');
@@ -3797,6 +3881,463 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       }
     }
   }
+
+
+
+  // ── brain35 B-2 (c) (2026-11-06; DIAG 35.4) · THE PARENTHESES STAND OUTSIDE THE QUOTATION ───────────────────────
+  // Measured on the delivered answers: the matched matn was one clause of a running quotation and the parentheses landed
+  // mid-dialogue (Q05 «أتُؤدّين زكاة هذا؟» (النسائي · …) قالت: لا»), mid-sentence inside the quotation (Q36), inside a du'a
+  // (Q35), and on a clause the matn does not cover (Q00 «وهو مذهب الحنفية (ابن خزيمة · صحيح)»).
+  {
+    const TK = await esm('lib/takhrij.js');
+    const q05 = 'فقال لها: «أتؤدين زكاة هذا؟ قالت: لا، قال: فيسرك أن يسورك الله بهما سوارين من نار؟»';
+    const inner = { start: q05.indexOf('أتؤدين'), end: q05.indexOf('؟') + 1, matn: 'أتؤدين زكاة هذا' };
+    const s05 = TK.parentheticalSlot(q05, inner);
+    ok('B-2c Q05: the parentheses of a matn inside a running quotation go after its CLOSING guillemet, not mid-dialogue',
+      !!s05 && s05.at === q05.lastIndexOf('»') + 1 && s05.at > inner.end, JSON.stringify(s05));
+    const q36 = 'قال صلى الله عليه وسلم: «من لبس ثوب شهرة في الدنيا ألبسه الله ثوب مذلة يوم القيامة».';
+    const m36 = { start: q36.indexOf('من لبس'), end: q36.indexOf('الدنيا') + 'الدنيا'.length, matn: 'من لبس ثوب شهرة في الدنيا' };
+    const s36 = TK.parentheticalSlot(q36, m36);
+    ok('B-2c Q36: the same, for a matn that is the opening clause of the quotation',
+      !!s36 && s36.at === q36.lastIndexOf('»') + 1, JSON.stringify(s36));
+    const whole = 'وفي الحديث: «إنما الأعمال بالنيات».';
+    const mw = { start: whole.indexOf('«'), end: whole.indexOf('»') + 1, matn: 'إنما الأعمال بالنيات' };
+    const sw = TK.parentheticalSlot(whole, mw);
+    ok('B-2c a matn that IS the whole quotation keeps today\'s place, right after it, undeferred',
+      !!sw && sw.at === mw.end && sw.deferred === false, JSON.stringify(sw));
+    const q00 = 'وقد ثبت ذلك في السنة الصحيحة، وهو مذهب الحنفية.';
+    const m00 = { start: 0, end: 'وقد ثبت ذلك'.length, matn: 'قد ثبت ذلك' };
+    const s00 = TK.parentheticalSlot(q00, m00);
+    ok('B-2c Q00: a deferred pair stops at the clause that opens a new claim («وهو مذهب الحنفية»), never on it',
+      !!s00 && s00.at <= q00.indexOf('، وهو') + 1, JSON.stringify(s00));
+    const ceiling = TK.parentheticalSlot(q05, inner, inner.end + 2);
+    ok('B-2c the next matn\'s lead-in still fences the pair: no slot when the quotation ends past the ceiling', ceiling === null, JSON.stringify(ceiling));
+    const src = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8');
+    const seam = '  const enclosing = enclosingQuotation(value, target);';
+    ok('B-2c mutant seam present', src.split(seam).length === 2);
+    const os2 = require('os');
+    const tmp = require("fs").mkdtempSync(path.join(os2.tmpdir(), 'ustaz-b2c-'));
+    try {
+      const file = path.join(tmp, 'takhrij.mjs');
+      require("fs").writeFileSync(file, src.split(seam).join('  const enclosing = null; // mutant: the quotation does not fence the pair')
+        .replace(/from\s+(['"])(\.[^'"]*)\1/gu, (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + file.replace(/\\/g, '/'));
+      const mut = mod.parentheticalSlot(q05, inner);
+      ok('B-2c MUTANT KILLED: without the enclosing quotation the pair lands mid-dialogue again', !mut || mut.at < q05.lastIndexOf('»'), JSON.stringify(mut));
+    } finally { try { require("fs").rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ } }
+  }
+  // ── brain35 A-2 (2026-11-06; DIAG 35.11) · THE ASKED ROLES: collector, narrator, grader ─────────────────────────
+  // «ومن خرّجه؟» asked and no collector reached the reader: the server writes the scoped collector sentence once; a released
+  // collector list, a head that names the book, or a question that asks no collector -> nothing. Over the captured texts.
+  {
+    const BW2A2 = await esm('lib/before-writing-v2.js');
+    const LED = JSON.parse(require('fs').readFileSync(path.join(REPO, 'fixtures/brain35-ledger-cases.json'), 'utf8'));
+    const byId = (id) => LED.cases.find((c) => c.id === id);
+    const q33 = byId('Q33');
+    const got33 = BW2A2.completionLedger({ question: q33.question, released: q33.input.released });
+    ok('A-2 Q33 «ومن رواه؟» with no collector released -> the collector sentence, once', got33.length === 1 && got33[0] === BW2A2.LEDGER_COLLECTOR_SENTENCE, JSON.stringify(got33));
+    ok('A-2 Q33 the sentence is the order\'s, byte for byte', BW2A2.LEDGER_COLLECTOR_SENTENCE === "وأما من خرّجه: فلم تُثبت المكتبة لهذا اللفظ مخرِّجًا في الكتب التي بُحث فيها.");
+    const q37 = byId('Q37');
+    ok('A-2 Q37 (the collector list released) -> nothing', BW2A2.completionLedger({ question: q37.question, released: q37.input.released }).length === 0);
+    const q10 = byId('Q10');
+    ok('A-2 a question without «من خرّجه» -> nothing', BW2A2.completionLedger({ question: q10.question, released: q10.input.released }).length === 0);
+    ok('A-2 a collector named by the library head counts as answered', BW2A2.completionLedger({ question: q33.question, released: q33.input.released, leadLine: 'تخريج الحديث: أبو داود.' }).length === 0);
+    ok('A-2 a collector named by the direct block counts as answered', BW2A2.completionLedger({ question: q33.question, released: q33.input.released, aboveText: 'رواه الترمذي في جامعه.' }).length === 0);
+    const qn = 'ما صحة حديث «حب الوطن من الإيمان» ومن راويه؟';
+    ok('A-2 «من راويه؟» with no narrator named -> the narrator sentence (and the grader is named, so no grader sentence)',
+      JSON.stringify(BW2A2.completionLedger({ question: qn, released: q33.input.released })) === JSON.stringify([BW2A2.LEDGER_NARRATOR_SENTENCE]));
+    const qg = 'ما صحة حديث «حب الوطن من الإيمان»؟';
+    ok('A-2 a grade asked with no grader named anywhere -> the grader sentence', JSON.stringify(BW2A2.completionLedger({ question: qg, released: 'الحديث مشهور على الألسنة ومعناه فيه نظر.' })) === JSON.stringify([BW2A2.LEDGER_GRADER_SENTENCE]));
+    ok('A-2 a grade asked and graded («ضعفه الألباني») -> nothing', BW2A2.completionLedger({ question: qg, released: 'ضعفه الألباني في السلسلة الضعيفة.' }).length === 0);    // ── brain35-2 F5 (2026-11-07; DIAG2 R3) · A GRADE STATED AT THE HEAD COUNTS AS ANSWERED ───────────────────────────
+    // MEASURED (DIAG2 R3, P10): the writer's first unit «ليس صحيحا بل موضوع.» names no grader, so the ledger wrote «وأما الحكم
+    // عليه فلم أقف على من حكم عليه بعينه» under a head that had already graded the hadith. A grade the answer states in its own
+    // voice on its first line (within 80 characters, no heading) now counts as answered: the grader sentence is withheld, the
+    // collector sentence stays. graderNamed also reads the grader's verb shapes («جزم X بضعفه», «حكم X بالوضع»), and its grade
+    // vocabulary gains «لا أصل له», «باطل», «منكر», «ضعيف جدا», «حسن لغيره», «صحيح لغيره» in every place it is read.
+    {
+      const LEDGER = await esm('lib/completion-ledger.js');
+      const P10 = 'ما درجة حديث «اطلبوا العلم من المهد إلى اللحد»؟ ومن أخرجه؟';
+      const P10_HEAD = 'ليس صحيحا بل موضوع.';
+      const P10_SHAPE = P10_HEAD + ' هذا اللفظ لا يثبت عن النبي صلى الله عليه وسلم، وإنما هو من كلام بعض الناس.';
+      const got10 = BW2A2.completionLedger({ question: P10, released: P10_SHAPE });
+      ok('F5a the P10 shape (a «موضوع» head, no lead line, no grader) -> the collector sentence only', got10.length === 1 && got10[0] === BW2A2.LEDGER_COLLECTOR_SENTENCE, JSON.stringify(got10));
+      ok('F5a ...and the collector sentence is byte-equal to A-2\'s', BW2A2.LEDGER_COLLECTOR_SENTENCE === "وأما من خرّجه: فلم تُثبت المكتبة لهذا اللفظ مخرِّجًا في الكتب التي بُحث فيها." && LEDGER.LEDGER_COLLECTOR_SENTENCE === BW2A2.LEDGER_COLLECTOR_SENTENCE);
+      ok('F5b «هذا الحديث لا أصل له.» at the head -> no grader sentence', BW2A2.completionLedger({ question: qg, released: 'هذا الحديث لا أصل له. وقد بحثت عنه في الكتب المسندة فلم أجده.' }).length === 0);
+      ok('F5c a grade stated only in the third paragraph -> the sentence stays (the head test reads the head)',
+        JSON.stringify(BW2A2.completionLedger({ question: qg, released: 'الحديث مشهور على الألسنة ومعناه فيه نظر.\n\nوقد بُحث عنه في الكتب المسندة.\n\nوالحديث ضعيف.' })) === JSON.stringify([BW2A2.LEDGER_GRADER_SENTENCE]));
+      ok('F5d «وضعه ابن الجوزي» / «حكم عليه الألباني بالوضع» -> nothing (unchanged), and «جزم الألباني بضعفه» names a grader too',
+        BW2A2.completionLedger({ question: qg, released: 'وقد بحث عنه أهل العلم. وضعه ابن الجوزي في الموضوعات.' }).length === 0
+        && BW2A2.completionLedger({ question: qg, released: 'وقد بحث عنه أهل العلم. حكم عليه الألباني بالوضع.' }).length === 0
+        && BW2A2.completionLedger({ question: qg, released: 'وقد بحث عنه أهل العلم. جزم الألباني بضعفه في الضعيفة.' }).length === 0
+        && BW2A2.graderNamed('جزم الألباني بضعفه') === true && BW2A2.graderNamed('قال الذهبي: حسن لغيره') === true && BW2A2.graderNamed('قال الألباني: ضعيف جدا') === true);
+      ok('F5e gradeStatedAtHead reads the first non-heading line within 80 characters, and nothing beyond',
+        LEDGER.gradeStatedAtHead(P10_SHAPE) === true && LEDGER.gradeStatedAtHead('### تخريج الحديث\nهذا الحديث لا أصل له.') === true
+        && LEDGER.gradeStatedAtHead('الحديث مشهور على الألسنة.\n\nوالحديث ضعيف.') === false
+        && LEDGER.gradeStatedAtHead('هذا الحديث مما يتداوله الناس في المجالس والخطب والكتب المدرسية وفي المواعظ المنتشرة على الألسنة في كل مكان من غير بحث، وهو ضعيف.') === false
+        && LEDGER.gradeStatedAtHead('') === false && LEDGER.gradeStatedAtHead('ضعيف') === true);
+      ok('F5e ...and a negated head («ليس بصحيح», «لا يصح») is a grade stated too', LEDGER.gradeStatedAtHead('هذا الحديث ليس بصحيح.') === true && LEDGER.gradeStatedAtHead('لا يصح هذا اللفظ عن النبي ﷺ.') === true);
+      // the mutant: gradeStatedAtHead false -> the P10 row red
+      {
+        const fsM = require('fs'); const { pathToFileURL } = require('url');
+        const srcG = fsM.readFileSync(path.join(REPO, 'lib/completion-ledger.js'), 'utf8').replace(/\r\n/g, '\n');
+        const seamG = 'export function gradeStatedAtHead(text) {';
+        ok('F5 mutant seam present once', srcG.split(seamG).length === 2);
+        const tmpG = path.join(REPO, 'lib', '.mut-f5-head.mjs');
+        fsM.writeFileSync(tmpG, srcG.split(seamG).join('export function gradeStatedAtHead(text) {\n  return false; // mutant: no head states a grade').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MG = null;
+        try { MG = await import(pathToFileURL(tmpG).href + '?m=' + Date.now()); } catch (e) { MG = null; } finally { fsM.rmSync(tmpG, { force: true }); }
+        ok('F5 mutant loads', !!MG);
+        ok('F5 MUTANT KILLED: with the head test false the P10 shape draws the grader sentence again',
+          !!MG && MG.completionLedger({ question: P10, released: P10_SHAPE }).length === 2, MG ? JSON.stringify(MG.completionLedger({ question: P10, released: P10_SHAPE })) : 'no module');
+      }
+    }
+
+    // ── brain35-5 Z1 (2026-11-08; DIAG4 C3) · THE GRADE VOCABULARY KNOWS THE HEAD'S OWN VERDICT FORMS ───────────────────
+    // MEASURED (DIAG4 H3, preview Q3): the head «هذا الحديث ليس بحديث …، ونسبته إليه غير صحيحة.» carries no GRADE_VOCAB form
+    // («ليس بحديث» is not in the list; the feminine ة breaks the boundary after «صحيح»), so gradeStatedAtHead was false and the
+    // ledger wrote «وأما الحكم عليه فلم أقف على من حكم عليه بعينه.» under a head that had graded the hadith. The vocabulary
+    // gains the head's own forms, read in the five places it is read: مكذوب · ليس له أصل · لا أعلم له أصلا · ليس بحديث ·
+    // غير صحيح(ة) · غير ثابت(ة) · شاذ · معلول · مرسل · منقطع · ثابت · رجاله ثقات. The strings are the DIAG4 H3 harness's.
+    {
+      const LEDGER = await esm('lib/completion-ledger.js');
+      const Q3 = 'ما درجة حديث «اطلبوا العلم ولو بالصين» وما حكم العلماء عليه؟';
+      const led = (released) => LEDGER.completionLedger({ question: Q3, released });
+      ok('Z1a «هذا الحديث ليس بحديث.» at the head of an answer to Q3 -> no grader sentence', led('هذا الحديث ليس بحديث.').length === 0, JSON.stringify(led('هذا الحديث ليس بحديث.')));
+      const WITNESS_HEADS = [
+        'هذا الحديث ليس بحديث عن النبي صلى الله عليه وسلم، ونسبته إليه غير صحيحة.',
+        'هذا الحديث ليس بحديث، بل هو من كلام بعض الناس، ونسبته إلى النبي صلى الله عليه وسلم غير صحيحة.',
+        'هذا الحديث ليس بحديث ثابت، والرواية به عن النبي صلى الله عليه وسلم غير صحيحة.',
+      ];
+      ok('Z1b the three reconstructed witness heads («ليس بحديث … غير صحيحة») -> no grader sentence on any',
+        WITNESS_HEADS.every((h) => led(h).length === 0 && LEDGER.gradeStatedAtHead(h) === true), JSON.stringify(WITNESS_HEADS.map((h) => led(h))));
+      const NEW_FORMS = ['ليس بحديث', 'غير صحيحة', 'مكذوب', 'ثابت', 'مرسل', 'شاذ', 'ليس له أصل', 'لا أعلم له أصلا', 'غير ثابت', 'غير ثابتة', 'معلول', 'منقطع', 'رجاله ثقات'];
+      for (const f of NEW_FORMS) {
+        const h1 = 'هذا الحديث ' + f + '.';
+        const h2 = 'حديث «اطلبوا العلم ولو بالصين» ' + f + '.';
+        ok('Z1c the form «' + f + '» as the head («هذا الحديث <form>.» and «حديث «…» <form>.») -> a grade stated, no grader sentence',
+          LEDGER.gradeStatedAtHead(h1) === true && LEDGER.gradeStatedAtHead(h2) === true && led(h1).length === 0 && led(h2).length === 0,
+          JSON.stringify([LEDGER.gradeStatedAtHead(h1), LEDGER.gradeStatedAtHead(h2), led(h1), led(h2)]));
+      }
+      ok('Z1d «غير صحيح» stays green: «هذا الحديث غير صحيح.» -> a grade stated, no grader sentence (unchanged)',
+        LEDGER.gradeStatedAtHead('هذا الحديث غير صحيح.') === true && led('هذا الحديث غير صحيح.').length === 0);
+      const NO_GRADE_HEAD = 'ورد هذا اللفظ في كتب الأدب والمواعظ ضمن أحاديث جمعت في باب الجهاد وحب الأوطان، وتداوله الناس على الألسنة.';
+      ok('Z1e a head with no verdict form («ورد هذا اللفظ في كتب الأدب …») -> the grader sentence (unchanged)',
+        JSON.stringify(led(NO_GRADE_HEAD)) === JSON.stringify([LEDGER.LEDGER_GRADER_SENTENCE]) && LEDGER.gradeStatedAtHead(NO_GRADE_HEAD) === false, JSON.stringify(led(NO_GRADE_HEAD)));
+      ok('Z1f the F5 heads unchanged: «هذا الحديث لا أصل له.», «ليس صحيحا بل موضوع.», «هذا الحديث ليس بصحيح.» -> a grade stated; «متفق عليه» alone is no grade word',
+        led('هذا الحديث لا أصل له. وقد بحثت عنه في الكتب المسندة فلم أجده.').length === 0 && LEDGER.gradeStatedAtHead('ليس صحيحا بل موضوع.') === true
+        && LEDGER.gradeStatedAtHead('هذا الحديث ليس بصحيح.') === true && LEDGER.gradeStatedAtHead('هذا الحديث متفق عليه.') === false);
+      ok('Z1g graderNamed reads the new forms in the grader frames too: «قال الألباني: ثابت», «قال الألباني: ليس بحديث», «عند الألباني: مكذوب»',
+        LEDGER.graderNamed('قال الألباني: ثابت') === true && LEDGER.graderNamed('قال الألباني: ليس بحديث') === true && LEDGER.graderNamed('عند الألباني: مكذوب') === true
+        && LEDGER.graderNamed('قال الذهبي: حسن لغيره') === true && LEDGER.graderNamed('قال الألباني في كتابه كلاما طويلا') === false);
+      // the mutant: «ليس\s+بحديث|» removed from GRADE_VOCAB -> Z1a's shape draws the grader sentence again
+      {
+        const fsM = require('fs'); const { pathToFileURL } = require('url');
+        const srcG = fsM.readFileSync(path.join(REPO, 'lib/completion-ledger.js'), 'utf8').replace(/\r\n/g, '\n');
+        const seamZ1 = 'ليس\\\\s+بحديث|';
+        ok('Z1 mutant seam present once', srcG.split(seamZ1).length === 2);
+        const tmpZ1 = path.join(REPO, 'lib', '.mut-z1-vocab.mjs');
+        fsM.writeFileSync(tmpZ1, srcG.split(seamZ1).join('').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MZ1 = null;
+        try { MZ1 = await import(pathToFileURL(tmpZ1).href + '?m=' + Date.now()); } catch (e) { MZ1 = null; } finally { fsM.rmSync(tmpZ1, { force: true }); }
+        ok('Z1 mutant loads', !!MZ1);
+        ok('Z1 MUTANT KILLED: without «ليس بحديث» in the vocabulary the Z1a head draws the grader sentence again',
+          !!MZ1 && JSON.stringify(MZ1.completionLedger({ question: Q3, released: 'هذا الحديث ليس بحديث.' })) === JSON.stringify([MZ1.LEDGER_GRADER_SENTENCE]),
+          MZ1 ? JSON.stringify(MZ1.completionLedger({ question: Q3, released: 'هذا الحديث ليس بحديث.' })) : 'no module');
+      }
+    }
+
+    // ── FIX5D F-D1 (2026-11-09; DIAG5 D1, preview Q7) · THE TAKHRIJ ENTRY CARRIES EVERY PROVED COMPANION ──────────────────────────
+    // MEASURED (DIAG5 H1): the engine's entry carried ONE `companion`, so a credit naming another Companion the books prove for a
+    // mutawatir hadith (V6: al-Mughira) was refused (takhrij_refused) and the answer collapsed to the ladder head and the matn. The entry
+    // now carries `companions` (every Companion the ladder rows name for the matn; `companion` unchanged), the BW2 wrapper passes the list,
+    // and takhrijProves accepts a narrator named in ANY of them. A Companion in no proving row (V3: Ali) is still refused. The stub is H1's
+    // (before-writing-v2's wrapper shape) with the list; the rows and variants are H1's SYNTHETIC ones.
+    {
+      const UNITS_D1 = await esm('lib/bw2-units.js');
+      const TK_D1 = await esm('lib/takhrij.js');
+      const Q7_D1 = "ما صحة حديث \"من كذب عليّ متعمدًا فليتبوأ مقعده من النار\" ومن رواه؟";
+      const LEAD_D1 = "تخريج الحديث: البخاري ومسلم.";
+      const ROWS_D1 = [{"ref":3,"kind":"lib_book","title":"صحيح البخاري","bookTitle":"صحيح البخاري","author":"البخاري","locator":"","recordId":"SYNTHETIC-B110","fullText":"صحيح البخاري، كتاب العلم، باب إثم من كذب على النبي صلى الله عليه وسلم. حدثنا موسى قال حدثنا أبو عوانة عن أبي حصين عن أبي صالح عن أبي هريرة عن النبي صلى الله عليه وسلم قال: «تسموا باسمي ولا تكتنوا بكنيتي، ومن رآني في المنام فقد رآني، فإن الشيطان لا يتمثل في صورتي، ومن كذب علي متعمدا فليتبوأ مقعده من النار»","text":"صحيح البخاري، كتاب العلم، باب إثم من كذب على النبي صلى الله عليه وسلم. حدثنا موسى قال حدثنا أبو عوانة عن أبي حصين عن أبي صالح عن أبي هريرة عن النبي صلى الله عليه وسلم قال: «تسموا باسمي ولا تكتنوا بكنيتي، ومن رآني في المنام فقد رآني، فإن الشيطان لا يتمثل في صورتي، ومن كذب علي متعمدا فليتبوأ مقعده من النار»","passage":"صحيح البخاري، كتاب العلم، باب إثم من كذب على النبي صلى الله عليه وسلم. حدثنا موسى قال حدثنا أبو عوانة عن أبي حصين عن أبي صالح عن أبي هريرة عن النبي صلى الله عليه وسلم قال: «تسموا باسمي ولا تكتنوا بكنيتي، ومن رآني في المنام فقد رآني، فإن الشيطان لا يتمثل في صورتي، ومن كذب علي متعمدا فليتبوأ مقعده من النار»","url":""},{"ref":7,"kind":"lib_book","title":"صحيح مسلم","bookTitle":"صحيح مسلم","author":"مسلم","locator":"","recordId":"SYNTHETIC-M3","fullText":"صحيح مسلم، المقدمة، باب تغليظ الكذب على رسول الله صلى الله عليه وسلم. حدثنا محمد بن عبيد الغبري قال حدثنا أبو عوانة عن أبي حصين عن أبي صالح عن أبي هريرة قال: قال رسول الله صلى الله عليه وسلم: «من كذب علي متعمدا فليتبوأ مقعده من النار»","text":"صحيح مسلم، المقدمة، باب تغليظ الكذب على رسول الله صلى الله عليه وسلم. حدثنا محمد بن عبيد الغبري قال حدثنا أبو عوانة عن أبي حصين عن أبي صالح عن أبي هريرة قال: قال رسول الله صلى الله عليه وسلم: «من كذب علي متعمدا فليتبوأ مقعده من النار»","passage":"صحيح مسلم، المقدمة، باب تغليظ الكذب على رسول الله صلى الله عليه وسلم. حدثنا محمد بن عبيد الغبري قال حدثنا أبو عوانة عن أبي حصين عن أبي صالح عن أبي هريرة قال: قال رسول الله صلى الله عليه وسلم: «من كذب علي متعمدا فليتبوأ مقعده من النار»","url":""}]; // SYNTHETIC (H1 set A)
+      const V0_D1 = "قال رسول الله صلى الله عليه وسلم: «من كذب علي متعمدا فليتبوأ مقعده من النار» [[1]].";
+      const V_D1 = {"V1":"حديث صحيح متواتر، رواه البخاري ومسلم [[1]].","V2":"حديث صحيح متواتر، رواه البخاري ومسلم عن أبي هريرة رضي الله عنه [[1]].","V3":"حديث صحيح متواتر، رواه البخاري ومسلم عن علي بن أبي طالب رضي الله عنه [[1]].","V6":"حديث صحيح متواتر، رواه البخاري ومسلم عن المغيرة بن شعبة رضي الله عنه [[1]]."}; // SYNTHETIC (H1)
+      const LIST_D1 = ["أبو هريرة","المغيرة بن شعبة"];
+      const KEY_D1 = "فليتبوأ مقعده من النار";
+      const stubD1 = (companion, companions) => async (text) => {
+        const entries = []; const proofs = []; const sourced = []; let value = text;
+        for (const t of TK_D1.findTargets(text).targets) {
+          if (!TK_D1.foldArabic(t.matn).includes(TK_D1.foldArabic(KEY_D1))) continue;
+          entries.push({ matn: t.matn, books: ['البخاري', 'مسلم'], companion, ...(companions ? { companions } : {}) });
+          sourced.push(t.matn);
+          proofs.push({ title: 'صحيح البخاري', passage: 'صحيح البخاري ' + t.matn }, { title: 'صحيح مسلم', passage: 'صحيح مسلم ' + t.matn });
+          const quoted = '\u00ab' + t.matn + '\u00bb';
+          if (value.includes(quoted) && !value.includes(quoted + ' (متفق عليه)')) value = value.replace(quoted, quoted + ' (متفق عليه)');
+        }
+        return { text: value, proofs, sourced, entries };
+      };
+      const playD1 = async (mod, units, companions) => {
+        const sent = [];
+        const rel = mod.createBw2Releaser({ rows: ROWS_D1.map((r, i) => ({ ...r, ref: i + 1 })), mode: 'brief', emit: (p) => { sent.push(p); return true; }, takhrij: stubD1(LIST_D1[0], companions), cards: null,
+          askedMatn: mod.askedHadithOf(Q7_D1), sourceQuestion: mod.asksHadithSource(Q7_D1), leadLine: LEAD_D1, holdUncitedRulings: true, question: Q7_D1 });
+        for (const u of units) rel.push(u + '\n\n');
+        const sum = await rel.end();
+        return { text: sent.join(''), held: sum.held, holds: sum.holds, released: sum.released };
+      };
+      const asciiD1 = (s) => String(s).replace(/[^\x20-\x7e]/g, '~').slice(0, 200);
+      const v6 = await playD1(UNITS_D1, [V_D1.V6, V0_D1], LIST_D1);
+      ok('F-D1a V6 (the credit names al-Mughira) with the stub\'s list [Abu Hurayra, al-Mughira]: released, nothing held', v6.held === 0 && v6.text.includes("المغيرة بن شعبة"), JSON.stringify(v6.holds) + ' ' + asciiD1(v6.text));
+      const v2 = await playD1(UNITS_D1, [V_D1.V2, V0_D1], LIST_D1);
+      ok('F-D1b V2 (Abu Hurayra) with the list: released, as with the one companion', v2.held === 0, JSON.stringify(v2.holds));
+      const v3 = await playD1(UNITS_D1, [V_D1.V3, V0_D1], LIST_D1);
+      ok('F-D1c V3 (Ali, in no proving row) with the list: held takhrij_refused, the matn released alone (unchanged)', v3.holds.takhrij_refused === 1 && v3.held === 1, JSON.stringify(v3.holds));
+      const v0 = await playD1(UNITS_D1, [V0_D1], LIST_D1);
+      const v0one = await playD1(UNITS_D1, [V0_D1], null);
+      ok('F-D1d V0 alone (the matn block): byte-identical with and without the list', v0.text === v0one.text && v0.held === 0, asciiD1(v0.text));
+      const v1 = await playD1(UNITS_D1, [V_D1.V1, V0_D1], LIST_D1);
+      ok('F-D1e V1 (no Companion): released (unchanged)', v1.held === 0, JSON.stringify(v1.holds));
+      const tkSrcD1 = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').split(String.fromCharCode(13, 10)).join(String.fromCharCode(10));
+      const bwSrcD1 = require('fs').readFileSync(path.join(REPO, 'lib/before-writing-v2.js'), 'utf8').split(String.fromCharCode(13, 10)).join(String.fromCharCode(10));
+      ok('F-D1f the engine\'s entry carries `companions` beside `companion` (a string, unchanged) and the BW2 wrapper passes it',
+        tkSrcD1.includes('      companions: denied ? [] : provedCompanions(state.candidates, named.name),') && tkSrcD1.includes('      companion: named.name,\n')
+        && bwSrcD1.includes("          companions: (Array.isArray(e.companions) ? e.companions : []).map((c) => String(c || '')).filter(Boolean),"));
+      ok('F-D1g provedCompanions: every named candidate with a ladder row, the agreed one first, folded duplicates once; none without a row',
+        typeof TK_D1.provedCompanions === 'function' && JSON.stringify(TK_D1.provedCompanions([{ name: LIST_D1[1], book: 'r1' }, { name: LIST_D1[0], book: 'r2' }, { name: LIST_D1[0], book: 'r3' }, { name: 'x', book: '' }], LIST_D1[0])) === JSON.stringify([LIST_D1[0], LIST_D1[1]]));
+      {
+        const srcC = require('fs').readFileSync(path.join(REPO, 'lib/bw2-units.js'), 'utf8').split(String.fromCharCode(13, 10)).join(String.fromCharCode(10));
+        const seamC = '      companions.push(...mine.flatMap((entry) => [entry.companion, ...(Array.isArray(entry.companions) ? entry.companions : [])])';
+        ok('F-D1 mutant seam present once', srcC.split(seamC).length === 2);
+        const tmpC = path.join(REPO, 'lib', '.mut-fd1-list.mjs');
+        require('fs').writeFileSync(tmpC, srcC.split(seamC).join('      companions.push(...mine.flatMap((entry) => [entry.companion, ...(Array.isArray(entry.companions) ? entry.companions.slice(0, 1) : [])]) /* mutant: the list cut to its first element */').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + require('url').pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MC = null;
+        try { MC = await import(require('url').pathToFileURL(tmpC).href + '?m=' + Date.now()); } catch (e) { MC = null; } finally { require('fs').rmSync(tmpC, { force: true }); }
+        ok('F-D1 mutant loads', !!MC);
+        const mc = MC ? await playD1(MC, [V_D1.V6, V0_D1], LIST_D1) : null;
+        ok('F-D1 MUTANT KILLED: with the list cut to its first element V6 is refused again', !!mc && mc.holds.takhrij_refused === 1, mc ? JSON.stringify(mc.holds) : 'no module');
+      }
+    }
+    // ── brain35-5 Z8 (2026-11-08; DIAG4 C7) · A NARRATOR NAMED AFTER A COLLECTION IS A CLAIM THE ROW MUST CARRY ──────────────
+    // MEASURED (DIAG4 H7, preview Q4): «الحديث ثابت صحيح، أخرجه البخاري عن علي.» -- the hadith is Abu Hurayra's; narratorsNamed read
+    // «عن X» only with the Companion's prayer or in «من حديث X», so no narrator claim was made and the row proof never asked; and
+    // had it asked, textNamesNarrator against the WHOLE row would have passed (علي بن عبد الله, al-Bukhari's shaykh, is the FIRST
+    // name of the isnad). Now: «عن X» after a collection named earlier in the clause names the narrator with or without the
+    // prayer («عن طريق» excluded), and such a claim is compared with companionOfIsnad(row) -- the LAST «عن X» before the matn --
+    // alone. The rows read the releaser's own row-proof decision through the BW2 diagnostic (hadith-row-proof). The isnad texts
+    // are SYNTHETIC in al-Bukhari's style (DIAG4 H7's six; the twin is remote); the units are the DIAG4 H7 sentences.
+    {
+      const UNITS_Z8 = await esm('lib/bw2-units.js');
+      const DG_Z8 = await esm('lib/bw2-diagnostic.js');
+      const RC_Z8 = await esm('lib/route-classify.js');
+      const ROUTE_FOLD = RC_Z8.normalizeArabic;
+      const coi = (t) => (typeof UNITS_Z8.companionOfIsnad === 'function' ? UNITS_Z8.companionOfIsnad(t) : null); // null on a HEAD without the helper (the RED run)
+      const asciiZ8 = (s) => String(s).replace(/[^\x20-\x7e]/g, (c) => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
+      const MATN_Z8 = 'من صام رمضان إيمانا واحتسابا غفر له ما تقدم من ذنبه';
+      const ISNAD_2014_SYNTHETIC = 'حدثنا علي بن عبد الله حدثنا سفيان قال حفظناه وإنما حفظ من الزهري عن أبي سلمة عن أبي هريرة رضي الله عنه عن النبي صلى الله عليه وسلم قال: «من صام رمضان إيمانا واحتسابا غفر له ما تقدم من ذنبه»';
+      const ROW_TEXT_SYNTHETIC = 'صحيح البخاري، كتاب الصوم، باب من صام رمضان إيمانا واحتسابا ونية. ' + ISNAD_2014_SYNTHETIC; // the served row names its book in its text
+      const rowZ8 = { ref: 1, kind: 'lib_book', title: 'صحيح البخاري', bookTitle: 'صحيح البخاري', author: 'البخاري', locator: '', recordId: 'SYNTHETIC-2014', fullText: ROW_TEXT_SYNTHETIC, text: ROW_TEXT_SYNTHETIC, passage: ROW_TEXT_SYNTHETIC };
+      // the releaser with the BW2 diagnostic on (its gate reads VERCEL_ENV at call time; restored after the block)
+      const envBefore = process.env.VERCEL_ENV;
+      process.env.VERCEL_ENV = 'preview';
+      const probeZ8 = async (mod, unit) => {
+        const diag = DG_Z8.createBw2Diagnostic({ headers: { 'x-ezik-diag': '1', 'x-vercel-id': 'dev::z8' } }, { question: 'q', consent: '2026-11-02-1', requestStartedAt: Date.now() });
+        const out = [];
+        const r = mod.createBw2Releaser({ rows: [rowZ8], emit: (p) => { out.push(p); return true; }, askedMatn: MATN_Z8, takhrij: async (text) => ({ text, entries: [] }), diagnostic: diag });
+        r.push(unit + '\n');
+        const sum = await r.end();
+        let rowProof = null; let narrators = null; let lock = null;
+        try {
+          const cap = JSON.parse(diag.frames([]).map((f) => JSON.parse(f.split('\ndata: ')[1]).piece).join(''));
+          for (const u of cap.units || []) for (const c of u.checks || []) {
+            if (c.rule === 'hadith-row-proof') { rowProof = c.detail.found; narrators = c.detail.phrase && c.detail.phrase.narrators; }
+            if (c.rule === 'takhrij-lock') lock = c.detail.result && c.detail.result.outcome;
+          }
+        } catch (e) { rowProof = 'capture failed: ' + e.message; }
+        return { text: out.join(''), holds: sum.holds, released: sum.released, held: sum.held, rowProof, narrators, lock };
+      };
+      try {
+        const WRONG = 'الحديث ثابت صحيح، أخرجه البخاري عن علي [[1]].';
+        const RIGHT = 'الحديث ثابت صحيح، أخرجه البخاري عن أبي هريرة [[1]].';
+        const PRAYED = 'الحديث ثابت صحيح، أخرجه البخاري عن أبي هريرة رضي الله عنه [[1]].';
+        const wrong = await probeZ8(UNITS_Z8, WRONG);
+        ok('Z8a SYNTHETIC-isnad row: «أخرجه البخاري عن علي» (the shaykh\'s name, not the Companion\'s) -> the claim names علي and the row does NOT prove it (hadith-row-proof found=false); the unit is held',
+          wrong.rowProof === false && JSON.stringify(wrong.narrators) === JSON.stringify(['علي']) && wrong.held === 1 && !wrong.text.includes('عن علي'),
+          JSON.stringify({ rowProof: wrong.rowProof, narrators: asciiZ8(JSON.stringify(wrong.narrators)), holds: wrong.holds }));
+        const right = await probeZ8(UNITS_Z8, RIGHT);
+        ok('Z8b «أخرجه البخاري عن أبي هريرة» (the Companion, no prayer) on the same row -> the claim names أبي هريرة and the row proves it (found=true)',
+          right.rowProof === true && JSON.stringify(right.narrators) === JSON.stringify(['ابي هريره']), JSON.stringify({ rowProof: right.rowProof, narrators: asciiZ8(JSON.stringify(right.narrators)) }));
+        const prayed = await probeZ8(UNITS_Z8, PRAYED);
+        ok('Z8c «عن أبي هريرة رضي الله عنه» -> the claim names أبي هريرة and the row proves it (unchanged)',
+          prayed.rowProof === true && JSON.stringify(prayed.narrators) === JSON.stringify(['ابي هريره']), JSON.stringify({ rowProof: prayed.rowProof, narrators: asciiZ8(JSON.stringify(prayed.narrators)) }));
+        // FOUND, pinned as observed (not this item's): offline, the lock refuses a credit-only sentence whose row page does not carry the
+        // credit's words, right narrator or wrong (the live path's takhrij runner supplies the proof pages); the row-proof decision above
+        // is what this item changes.
+        ok('Z8 observed: offline the lock refuses the credit-only sentence on this library row whatever the narrator (takhrij_refused), before and after',
+          right.lock === 'REFUSED' && right.holds.takhrij_refused === 1 && prayed.holds.takhrij_refused === 1, JSON.stringify([right.lock, right.holds, prayed.holds]));
+        ok('Z8d «أخرجه البخاري عن طريق مالك» makes no narrator claim; «عن علي» with no collection before it makes none either (unchanged)',
+          UNITS_Z8.narratorsNamed('أخرجه البخاري عن طريق مالك.').length === 0 && UNITS_Z8.narratorsNamed('عن علي.').length === 0 && UNITS_Z8.narratorsNamed('الحديث ثابت عن علي.').length === 0);
+        ok('Z8e the readers: «أخرجه البخاري عن علي» names علي; «رواه مسلم عن جابر» names جابر; «أخرجه البخاري عن علي بن عبد الله» names the four words; the prayed and «من حديث» forms as before',
+          JSON.stringify(UNITS_Z8.narratorsNamed('الحديث ثابت صحيح، أخرجه البخاري عن علي.')) === JSON.stringify(['علي'])
+          && JSON.stringify(UNITS_Z8.narratorsNamed('رواه مسلم عن جابر.')) === JSON.stringify(['جابر'])
+          && JSON.stringify(UNITS_Z8.narratorsNamed('الحديث ثابت صحيح، أخرجه البخاري عن علي بن عبد الله.')) === JSON.stringify(['علي بن عبد الله'])
+          && JSON.stringify(UNITS_Z8.narratorsNamed('الحديث ثابت صحيح، أخرجه البخاري ومسلم عن أبي هريرة رضي الله عنه.')) === JSON.stringify(['ابي هريره'])
+          && JSON.stringify(UNITS_Z8.narratorsNamed('رواه البخاري من حديث أبي هريرة.')) === JSON.stringify(['ابي هريره']),
+          asciiZ8(JSON.stringify([UNITS_Z8.narratorsNamed('الحديث ثابت صحيح، أخرجه البخاري عن علي.'), UNITS_Z8.narratorsNamed('رواه مسلم عن جابر.')])));
+        const ISNADS_SYNTHETIC = [
+          [ISNAD_2014_SYNTHETIC, 'ابي هريره'],
+          ['حدثنا مسلم بن إبراهيم قال حدثنا هشام قال حدثنا يحيى عن أبي سلمة عن أبي هريرة قال: قال رسول الله صلى الله عليه وسلم: «من يقم ليلة القدر إيمانا واحتسابا غفر له ما تقدم من ذنبه»', 'ابي هريره'],
+          ['حدثنا محمد بن المثنى حدثنا يحيى عن هشام قال أخبرني أبي عن عائشة رضي الله عنها قالت: …', 'عايشه'],
+          ['حدثنا عبد الله بن يوسف أخبرنا مالك عن نافع عن ابن عمر رضي الله عنهما أن رسول الله صلى الله عليه وسلم قال: …', 'ابن عمر'],
+          ['حدثنا علي حدثنا سفيان عن الزهري عن أنس بن مالك رضي الله عنه قال: …', 'انس بن مالك'],
+          ['حدثنا محمد بن بشار حدثنا غندر حدثنا شعبة عن قتادة عن أبي نضرة عن أبي سعيد الخدري رضي الله عنه قال: …', 'ابي سعيد الخدري'],
+        ];
+        ok('Z8f companionOfIsnad on the DIAG4 H7 six SYNTHETIC Bukhari isnads -> the Companion each time (never the shaykh); the served row text too; a row with no «عن X» -> empty',
+          ISNADS_SYNTHETIC.every(([isnad, companion]) => coi(isnad) === companion) && coi(ROW_TEXT_SYNTHETIC) === 'ابي هريره' && coi('ذهب جمهور الفقهاء إلى أن الأضحية سنة مؤكدة.') === '',
+          asciiZ8(JSON.stringify(ISNADS_SYNTHETIC.map(([isnad]) => coi(isnad)))));
+        ok('Z8g the whole-row reading would have passed علي (the shaykh is in the isnad); the Companion reading refuses it and carries أبي هريرة',
+          UNITS_Z8.textNamesNarrator(ROUTE_FOLD(ISNAD_2014_SYNTHETIC), 'علي') === true && coi(ISNAD_2014_SYNTHETIC) !== null && UNITS_Z8.textNamesNarrator(coi(ISNAD_2014_SYNTHETIC), 'علي') === false
+          && UNITS_Z8.textNamesNarrator(coi(ISNAD_2014_SYNTHETIC) || '', 'ابي هريره') === true);
+        // the mutant: the takhrij frame forced false -> «عن علي» is nothing again and the row proves the narrator-less claim
+        {
+          const fsM = require('fs'); const { pathToFileURL } = require('url');
+          const srcN = fsM.readFileSync(path.join(REPO, 'lib/bw2-units.js'), 'utf8').replace(/\r\n/g, '\n');
+          const seamN = '      const takhrijFrame = head === AN && words.slice(0, i).some((w) => collectionsNamed(dropJoin(w), true).length > 0); // ITEM 35-D4 C7 (brain35-5 Z8)';
+          ok('Z8 mutant seam present once', srcN.split(seamN).length === 2);
+          const tmpN = path.join(REPO, 'lib', '.mut-z8-frame.mjs');
+          fsM.writeFileSync(tmpN, srcN.split(seamN).join('      const takhrijFrame = false; // mutant: no takhrij frame is read').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+            (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+          let MN = null;
+          try { MN = await import(pathToFileURL(tmpN).href + '?m=' + Date.now()); } catch (e) { MN = null; } finally { fsM.rmSync(tmpN, { force: true }); }
+          ok('Z8 mutant loads', !!MN);
+          const mw = MN ? await probeZ8(MN, WRONG) : null;
+          ok('Z8 MUTANT KILLED: with the frame unread «أخرجه البخاري عن علي» names no narrator and the row proves the claim again',
+            !!mw && mw.rowProof === true && JSON.stringify(mw.narrators) === JSON.stringify([]) && MN.narratorsNamed(WRONG).length === 0, mw ? JSON.stringify({ rowProof: mw.rowProof, narrators: mw.narrators }) : 'no module');
+        }
+      } finally {
+        if (envBefore === undefined) delete process.env.VERCEL_ENV; else process.env.VERCEL_ENV = envBefore;
+      }
+    }
+
+    // ── brain35-3 X2 (2026-11-07; DIAG3 D2 fix 2; owner D2: both fixes) · A LEAD LINE IS NOT THE HEAD ─────────────────
+    // MEASURED (DIAG3 H2 (c), preview Q7): the first non-heading line was the disagreement frame («اختلفت الأقوال المنقولة …
+    // والقول الآتي يخالف ما سبق:»), which ends on «:» and carries no grade word, so gradeStatedAtHead read it, found no grade
+    // and the ledger wrote «وأما الحكم عليه فلم أقف على من حكم عليه بعينه.» under a unit that had graded the hadith. A line
+    // ending on «:» (or «：») with no GRADE_VOCAB word is a lead line; the first non-lead line is the head. NOT (d): the
+    // source-mark predicate is not added (owner decision D2).
+    {
+      const LEDGER = await esm('lib/completion-ledger.js');
+      const FRAME = 'اختلفت الأقوال المنقولة في الحكم على هذا الحديث، والقول الآتي يخالف ما سبق:';
+      const Q7 = 'ما درجة حديث «حب الوطن من الإيمان»؟ ومن أخرجه؟';
+      const U1 = 'حديث «حب الوطن من الإيمان» لا يصح عن النبي صلى الله عليه وسلم، فهو حديث موضوع.';
+      ok('X2a FRAME + «\\n\\n» + «…فهو حديث موضوع.» -> the head is the unit: true', LEDGER.gradeStatedAtHead(FRAME + '\n\n' + U1) === true);
+      ok('X2b «الجواب:\\nالحديث ضعيف.» -> true (the lead line skipped)', LEDGER.gradeStatedAtHead('الجواب:\nالحديث ضعيف.') === true);
+      ok('X2c a lead line alone -> false', LEDGER.gradeStatedAtHead(FRAME) === false && LEDGER.gradeStatedAtHead('الجواب:') === false);
+      ok('X2d «الحديث ضعيف:\\n…» (a grade word on the lead) -> true (it is the head)', LEDGER.gradeStatedAtHead('الحديث ضعيف:\nوقد بحثت عنه في الكتب المسندة.') === true);
+      ok('X2e the ledger on Q7 under the frame -> the collector sentence only (no grader sentence)',
+        JSON.stringify(LEDGER.completionLedger({ question: Q7, released: FRAME + '\n\n' + U1 })) === JSON.stringify([LEDGER.LEDGER_COLLECTOR_SENTENCE]),
+        JSON.stringify(LEDGER.completionLedger({ question: Q7, released: FRAME + '\n\n' + U1 })));
+      ok('X2f the F5 heads unchanged: P10, a «###» heading, a grade in the third paragraph, the empty text',
+        LEDGER.gradeStatedAtHead('ليس صحيحا بل موضوع. هذا اللفظ لا يثبت عن النبي صلى الله عليه وسلم.') === true && LEDGER.gradeStatedAtHead('### تخريج الحديث\nهذا الحديث لا أصل له.') === true
+        && LEDGER.gradeStatedAtHead('الحديث مشهور على الألسنة.\n\nوالحديث ضعيف.') === false && LEDGER.gradeStatedAtHead('') === false);
+      // the mutant: isLead always false -> X2a red
+      {
+        const fsM = require('fs'); const { pathToFileURL } = require('url');
+        const srcG = fsM.readFileSync(path.join(REPO, 'lib/completion-ledger.js'), 'utf8').replace(/\r\n/g, '\n');
+        const seamL = "  const isLead = (l) => /[:：]$/u.test(l) && !new RegExp(GRADE_VOCAB, 'u').test(l);";
+        ok('X2 mutant seam present once', srcG.split(seamL).length === 2);
+        const tmpL = path.join(REPO, 'lib', '.mut-x2-lead.mjs');
+        fsM.writeFileSync(tmpL, srcG.split(seamL).join('  const isLead = () => false; // mutant: no line is a lead line').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let ML = null;
+        try { ML = await import(pathToFileURL(tmpL).href + '?m=' + Date.now()); } catch (e) { ML = null; } finally { fsM.rmSync(tmpL, { force: true }); }
+        ok('X2 mutant loads', !!ML);
+        ok('X2 MUTANT KILLED: with no lead line skipped the frame is the head again and Q7 draws the grader sentence',
+          !!ML && ML.gradeStatedAtHead(FRAME + '\n\n' + U1) === false && ML.completionLedger({ question: Q7, released: FRAME + '\n\n' + U1 }).length === 2,
+          ML ? JSON.stringify(ML.completionLedger({ question: Q7, released: FRAME + '\n\n' + U1 })) : 'no module');
+      }
+    }
+
+    // ── brain35-3 X3 (2026-11-07; DIAG3 D3 (a); owner D3: (a) and (b)) · THE LEDGER READS WHAT THE READER READS ────────
+    // MEASURED (DIAG3 H3, preview Q8): the collector was judged named by the `<hadith narrator="…">` attribute of the card,
+    // which app.jsx HadithCard never prints (label, matn, ruling only), so no collector sentence went out while the reader saw
+    // no collector. The tag's attributes are stripped before collectionsNamed; the leadLine branch is unchanged.
+    {
+      const LEDGER = await esm('lib/completion-ledger.js');
+      const Q8 = 'ما صحة حديث «من قرأ آية الكرسي دبر كل صلاة مكتوبة لم يمنعه من دخول الجنة إلا أن يموت»؟ ومن أخرجه؟';
+      const H1 = 'الحديث ورد بلفظ: «من قرأ آية الكرسي في دبر كل صلاة مكتوبة لم يمنعه من دخول الجنة إلا أن يموت».';
+      const MATN = 'مَنْ قَرَأَ آيَةَ الْكُرْسِيِّ فِي دُبُرِ كُلِّ صَلَاةٍ مَكْتُوبَةٍ لَمْ يَمْنَعْهُ مِنْ دُخُولِ الْجَنَّةِ إِلَّا أَنْ يَمُوتَ';
+      const COMPANION = 'وهو من حديث أبي أمامة رضي الله عنه.';
+      const tagWith = (narrator, ruling) => '<hadith narrator="' + narrator + '" ruling="' + ruling + '">' + MATN + '</hadith>';
+      const CARDED = [H1, tagWith('أخرجه النسائي في الكبرى والطبراني', 'حسن (وإسناده جيد)'), COMPANION].join('\n');
+      const ledgerX3 = (released) => LEDGER.completionLedger({ question: Q8, released });
+      ok('X3a a released text whose only collector stands in narrator="…" -> the collector sentence IS appended', ledgerX3(CARDED).includes(LEDGER.LEDGER_COLLECTOR_SENTENCE), JSON.stringify(ledgerX3(CARDED)));
+      ok('X3b the same collector in prose («رواه النسائي») -> not appended', !ledgerX3([H1, 'رواه النسائي في الكبرى.', COMPANION].join('\n')).includes(LEDGER.LEDGER_COLLECTOR_SENTENCE));
+      ok('X3c «وهو من حديث أبي أمامة» alone -> appended (the companion is no collector)', ledgerX3(COMPANION).includes(LEDGER.LEDGER_COLLECTOR_SENTENCE));
+      ok('X3d the lead-line branch unchanged: a library head naming the collector -> not appended', !LEDGER.completionLedger({ question: Q8, released: COMPANION, leadLine: 'أخرجه النسائي في الكبرى والطبراني في الكبير.' }).includes(LEDGER.LEDGER_COLLECTOR_SENTENCE));
+      // the mutant: the attribute strip removed -> X3a red
+      {
+        const fsM = require('fs'); const { pathToFileURL } = require('url');
+        const srcG = fsM.readFileSync(path.join(REPO, 'lib/completion-ledger.js'), 'utf8').replace(/\r\n/g, '\n');
+        const seamV = "    const visible = everywhere.replace(/<hadith\\b[^>]*>/gu, '<hadith>');";
+        ok('X3 mutant seam present once', srcG.split(seamV).length === 2);
+        const tmpV = path.join(REPO, 'lib', '.mut-x3-visible.mjs');
+        fsM.writeFileSync(tmpV, srcG.split(seamV).join('    const visible = everywhere; // mutant: the tag attributes are read again').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MV = null;
+        try { MV = await import(pathToFileURL(tmpV).href + '?m=' + Date.now()); } catch (e) { MV = null; } finally { fsM.rmSync(tmpV, { force: true }); }
+        ok('X3 mutant loads', !!MV);
+        ok('X3 MUTANT KILLED: with the narrator attribute read again the carded Q8 text draws no collector sentence',
+          !!MV && !MV.completionLedger({ question: Q8, released: CARDED }).includes(MV.LEDGER_COLLECTOR_SENTENCE), MV ? JSON.stringify(MV.completionLedger({ question: Q8, released: CARDED })) : 'no module');
+      }
+    }
+
+    // ── brain35-3 X4 (2026-11-07; DIAG3 D3 (b); owner: choice 1, withhold) · THE GRADER SENTENCE UNDER A STATED DISPUTE OR A CARDED GRADE ──
+    // MEASURED (DIAG3 H3, preview Q8): «والعلماء اختلفوا في درجته: …» and a card whose ruling="حسن (وإسناده جيد)" told the
+    // reader the grade, and the ledger still wrote «وأما الحكم عليه فلم أقف على من حكم عليه بعينه.» (graderNamed false by the
+    // letter, no head grade). gradeDisputeStated and cardCarriesGrade join graderNamed and gradeStatedAtHead in gradeTold;
+    // the sentence is withheld, never reworded. RISK accepted: a dispute sentence about another hadith silences it too.
+    {
+      const LEDGER = await esm('lib/completion-ledger.js');
+      const Q8 = 'ما صحة حديث «من قرأ آية الكرسي دبر كل صلاة مكتوبة لم يمنعه من دخول الجنة إلا أن يموت»؟ ومن أخرجه؟';
+      const H1 = 'الحديث ورد بلفظ: «من قرأ آية الكرسي في دبر كل صلاة مكتوبة لم يمنعه من دخول الجنة إلا أن يموت».';
+      const MATN = 'مَنْ قَرَأَ آيَةَ الْكُرْسِيِّ فِي دُبُرِ كُلِّ صَلَاةٍ مَكْتُوبَةٍ لَمْ يَمْنَعْهُ مِنْ دُخُولِ الْجَنَّةِ إِلَّا أَنْ يَمُوتَ';
+      const DISPUTE = 'والعلماء اختلفوا في درجته: فذهب بعضهم إلى تحسينه وأن إسناده جيد، بينما رأى آخرون أنه ضعيف، لكنهم مع ذلك أجازوا العمل به لأنه من باب فضائل الأعمال، والحديث الضعيف يعمل به في الفضائل عند جمهور العلماء.';
+      const CARD = '<hadith narrator="" ruling="حسن (وإسناده جيد)">' + MATN + '</hadith>';
+      const grader = (released) => LEDGER.completionLedger({ question: Q8, released }).includes(LEDGER.LEDGER_GRADER_SENTENCE);
+      ok('X4a the Q8 shape (card ruling + dispute sentence) -> no grader sentence', !grader([H1, CARD, DISPUTE].join('\n')), JSON.stringify(LEDGER.completionLedger({ question: Q8, released: [H1, CARD, DISPUTE].join('\n') })));
+      ok('X4b the dispute sentence alone -> none', !grader([H1, DISPUTE].join('\n')));
+      ok('X4c the card ruling alone -> none', !grader([H1, CARD].join('\n')));
+      ok('X4d a fiqh dispute «اختلف الفقهاء في وجوب الزكاة» + no grade -> the sentence', grader([H1, 'اختلف الفقهاء في وجوب الزكاة على من ملك النصاب.'].join('\n')));
+      ok('X4e the predicates: gradeDisputeStated on the dispute sentence and «اختلف أهل العلم في حكمه» true, on the fiqh dispute false; cardCarriesGrade on the card true, on ruling="" false',
+        LEDGER.gradeDisputeStated(DISPUTE) === true && LEDGER.gradeDisputeStated('اختلف أهل العلم في حكمه.') === true && LEDGER.gradeDisputeStated('اختلف الفقهاء في وجوب الزكاة') === false
+        && LEDGER.cardCarriesGrade(CARD) === true && LEDGER.cardCarriesGrade('<hadith narrator="" ruling="">' + MATN + '</hadith>') === false);
+      // the mutants: gradeDisputeStated always false -> X4b red; cardCarriesGrade always false -> X4c red
+      {
+        const fsM = require('fs'); const { pathToFileURL } = require('url');
+        const srcG = fsM.readFileSync(path.join(REPO, 'lib/completion-ledger.js'), 'utf8').replace(/\r\n/g, '\n');
+        const seamD = 'export function gradeDisputeStated(text) {';
+        const seamC = 'export function cardCarriesGrade(text) {';
+        ok('X4 mutant seams present once each', srcG.split(seamD).length === 2 && srcG.split(seamC).length === 2);
+        const load = async (name, seam, repl) => {
+          const tmp = path.join(REPO, 'lib', '.mut-x4-' + name + '.mjs');
+          fsM.writeFileSync(tmp, srcG.split(seam).join(seam + '\n  return false; // mutant: ' + repl).replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+            (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+          let M = null;
+          try { M = await import(pathToFileURL(tmp).href + '?m=' + Date.now()); } catch (e) { M = null; } finally { fsM.rmSync(tmp, { force: true }); }
+          return M;
+        };
+        const MD = await load('dispute', seamD, 'no dispute is stated');
+        const MC = await load('card', seamC, 'no card carries a grade');
+        ok('X4 mutants load', !!MD && !!MC);
+        ok('X4 MUTANT KILLED: with gradeDisputeStated false the dispute-alone shape draws the grader sentence again',
+          !!MD && MD.completionLedger({ question: Q8, released: [H1, DISPUTE].join('\n') }).includes(MD.LEDGER_GRADER_SENTENCE));
+        ok('X4 MUTANT KILLED: with cardCarriesGrade false the card-alone shape draws the grader sentence again',
+          !!MC && MC.completionLedger({ question: Q8, released: [H1, CARD].join('\n') }).includes(MC.LEDGER_GRADER_SENTENCE));
+      }
+    }
+
+  }
+
 
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);

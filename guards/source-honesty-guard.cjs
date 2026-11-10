@@ -644,11 +644,13 @@ const stripComments = (s) => String(s)
         seams.length > 0 && loose.length === 0, JSON.stringify(loose));
       // ...and the one seam that is neither is `sendSynthesizedText`, whose only two callers
       // are the per-minute limit and the day cap.
-      ok('D5: ...and the synthesized-text seam really carries only those two messages',
+      // re-cut R12 (c) 2026-11-10 (brain35-ship J2): and the J2 deny sentence, a fixed server message, its third caller.
+      ok('D5: ...and the synthesized-text seam really carries only those two messages and the J2 deny (re-cut R12 (c) 2026-11-10)',
         /sendSynthesizedText\(res, ASK_LIMIT_MESSAGE\)/u.test(ASK)
           && /sendSynthesizedText\(res, dayCapMessage\(/u.test(ASK)
-          && (ASK.match(/sendSynthesizedText\(res,/gu) || []).length === 3,
-        'three matches: the declaration and its two call sites');
+          && /sendSynthesizedText\(res, BANNED_SCHOOL_DENY_TEXT\)/u.test(ASK)
+          && (ASK.match(/sendSynthesizedText\(res,/gu) || []).length === 4,
+        'four matches: the declaration and its three call sites');
     }
     {
       // ── AND THE SEAT ITSELF, DRIVEN ──────────────────────────────

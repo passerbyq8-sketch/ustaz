@@ -425,9 +425,13 @@ async function main() {
   }
   ok('F23 a name that merely BEGINS with an imam\'s («الإمام أحمد شاكر») is not the imam: the unresolved notice stays as it was',
     (() => { const r = asked('unresolved', 'الإمام أحمد شاكر', 'قال ابن عثيمين إن القنوت في الفجر لا يشرع.'); return r.respected === false && r.reason === 'unresolved-substituted'; })());
-  // The table is pinned: three men, and the shipped licence is the last term, after the three that were there.
-  ok('F24 the licence is WIRED as the last term of attributedEvidenceFor, after ownBookChoiceEvidenceFor',
-    /\|\| ownBookChoiceEvidenceFor\(attribution, evidence\)\n    \|\| imamBookEvidenceFor\(sentence, attribution, evidence\)\n    \|\| null;/.test(source));
+  // The table is pinned: three men, and the imam licence sits where it always did -- directly after
+  // ownBookChoiceEvidenceFor. ITEM A-6 (brain35, 2026-11-06) added the mediated licence AFTER it as the fifth and last
+  // term, which is what the order asked for («last term on purpose: it can only ADD a licence»). So this row pins the
+  // imam licence's own PLACE in the chain, and that only the mediated licence stands behind it.
+  ok('F24 the imam licence is WIRED directly after ownBookChoiceEvidenceFor, and only the mediated licence follows it',
+    source.includes('|| ownBookChoiceEvidenceFor(attribution, evidence)\n    || imamBookEvidenceFor(sentence, attribution, evidence)\n')
+    && /\|\| imamBookEvidenceFor\(sentence, attribution, evidence\)\n(?:[^\n]*\/\/[^\n]*\n)*\s*\|\| mediatedEvidenceFor\(sentence, attribution, evidence\)\n\s*\|\| null;/u.test(source));
   ok('F25 the table holds exactly three men -- a fourth is a decision, not an edit',
     (source.match(/Object\.freeze\(\{ man: 'imam-[a-z]+'/g) || []).length === 3);
 

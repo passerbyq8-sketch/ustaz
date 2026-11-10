@@ -237,19 +237,78 @@ const questions = [
   const khilaf = String(RV.REVIEW_KHILAF_TAIL || '').trim();
   ok('B4 BW2 actually releases its sourced answer and reader card', bw2.out.telemetry.cardsSent > 0
     && bw2.shown.includes(card.tag) && bw2.out.telemetry.unitsReleased > 0);
-  ok('B4 BW2 encyclopedia and disagreement tails precede one final long note', bw2.shown.endsWith(longNote)
-    && occurrences(bw2.shown, longNote) === 1 && bw2.shown.includes(encyc)
-    && !!khilaf && bw2.shown.includes(khilaf) && bw2.shown.indexOf(encyc) < bw2.shown.indexOf(longNote)
-    && bw2.shown.indexOf(khilaf) < bw2.shown.indexOf(longNote));
+  // ITEM A-1 (brain35, 2026-11-06) BY THE OWNER'S DECISION (DIAG 35.4): this fixture's answer is ONE ruling sentence on
+  // one row, so it releases one attributed view and the khilaf tail is no longer written for it (the tail now needs a
+  // narrowed disagreement marker AND two released views). The encyclopedia line and the order of the tails are what this
+  // row was protecting, and both are unchanged; the khilaf half is now asserted as the absence it has become.
+  // re-cut 2026-11-07 (brain35-2 F9; owner decision R6, DIAG2 P18): the encyclopedia card under the one unit names the row, so
+  // the global line no longer stands beside it; the long note is the one final tail. The no-card case below keeps its line.
+  ok('B4 BW2 with the card shown: no encyclopedia line beside it, one final long note, and a one-view answer carries no khilaf tail (re-cut 2026-11-07, owner decision R6)',
+    bw2.shown.endsWith(longNote) && occurrences(bw2.shown, longNote) === 1 && !bw2.shown.includes(encyc)
+    && !!khilaf && !bw2.shown.includes(khilaf), [bw2.shown.includes(encyc), bw2.shown.includes(khilaf)].join('/'));
   ok('B4 BW2 final answer equals the released deltas byte-for-byte', bw2.shown === bw2.pieces
     && bw2.out.text === bw2.pieces && bw2.ended === 1);
   const bw2NoCard = await deliverBw2(false);
-  ok('B4 BW2 opinion without a reader card ends in one short note after the encyclopedia',
+  // re-cut 2026-11-07 (brain35-3 X5 + X6; owner decision D4): the card the switch refuses is a refused card, so the unit now
+  // carries the encyclopedia's mark in its own line, and the global line (named nowhere) is no longer written; the short note
+  // is still the one final tail.
+  ok('B4 BW2 opinion without a reader card: the unit carries the encyclopedia mark, no global line, and ends in one short note (re-cut 2026-11-07, owner decision D4)',
     bw2NoCard.out.telemetry.cardsSent === 0 && bw2NoCard.shown.endsWith(shortNote)
       && occurrences(bw2NoCard.shown, shortNote) === 1 && !bw2NoCard.shown.includes(longNote)
-      && bw2NoCard.shown.indexOf(encyc) >= 0 && bw2NoCard.shown.indexOf(encyc) < bw2NoCard.shown.indexOf(shortNote));
+      && !bw2NoCard.shown.includes(encyc) && bw2NoCard.shown.includes(' — ' + encyc.slice(encyc.indexOf(':') + 2)) && bw2NoCard.shown.indexOf(' — ') < bw2NoCard.shown.indexOf(shortNote),
+    bw2NoCard.shown);
   ok('B4 BW2 no-card answer also preserves released bytes', bw2NoCard.shown === bw2NoCard.pieces
     && bw2NoCard.out.text === bw2NoCard.pieces && bw2NoCard.ended === 1);
+  // ── brain35-5 Z5 (2026-11-08; DIAG4 C2; owner decision 2026-11-08: D4 extends to the legacy path) · THE LEGACY LINE ONLY
+  // WHEN THE ENCYCLOPEDIA IS NAMED NOWHERE. MEASURED (DIAG4 H2b, preview Q11): after a BW2 hand-over the legacy branch called
+  // `encyclopediaTail(out.cited)` with no delivered text and no shown set, and lib/free-brain/loop.js then keeps every row
+  // whose `cardShown !== false` -- the row pickEncyclopediaCards had just marked `cardShown = true` -- so a shown Mawsu'a card
+  // and «المصدر: الموسوعة الفقهية الكويتية.» went out TOGETHER. The sealed footer line stands (brain-line-r2-6 and encyc-brain
+  // pin its text); right after it the call site now writes no line when a cited encyclopedia row has `cardShown === true`, and
+  // otherwise re-decides the tail with the support test on the delivered text (the BW2 call's shape). The site is a few lines
+  // inside the handler, so the rows cut them out of api/ask.js by their own text and evaluate them with their free names.
+  {
+    const fsZ5 = require('fs');
+    const LOOP = await esm('lib/free-brain/loop.js');
+    const askSrcZ5 = fsZ5.readFileSync(path.join(REPO, 'api', 'ask.js'), 'utf8').replace(/\r\n/g, '\n');
+    const START_Z5 = '      finalizerContext.readerSuffix = encyclopediaTail(out.cited);';
+    const END_Z5 = "      else if (finalizerContext.readerSuffix) finalizerContext.readerSuffix = encyclopediaTail(out.cited, String(out.text || ''), null); // ITEM 35-D4 C2 (brain35-5 Z5): the support test on the delivered text";
+    const siteOf = (src) => {
+      const start = src.indexOf(START_Z5);
+      const end = src.indexOf(END_Z5, start);
+      if (start < 0 || end < 0) return null;
+      try { return new Function('out', 'finalizerContext', 'encyclopediaTail', src.slice(start, end + END_Z5.length)); } catch (e) { return null; }
+    };
+    const site = siteOf(askSrcZ5);
+    const legacyTail = (fn, cited, text) => { const ctx = {}; fn({ cited, text }, ctx, LOOP.encyclopediaTail); return ctx.readerSuffix; };
+    // the DIAG4 H2b row: F02248 «فَوْرٌ», snippet «ذهب جمهور الفقهاء الي ان قضاء رمضان يكون علي التراخي.»
+    const rowZ5 = (extra) => ({ ...TOOLS.encyclopediaRow({ id: 'F02248', part: 32, term: A('641 64e 648 652 631 64c'), snippet: A('630 647 628 20 62c 645 647 648 631 20 627 644 641 642 647 627 621 20 627 644 64a 20 627 646 20 642 636 627 621 20 631 645 636 627 646 20 64a 643 648 646 20 639 644 64a 20 627 644 62a 631 627 62e 64a 2e') }), ...extra });
+    const T_Z5 = A('630 647 628 20 62c 645 647 648 631 20 627 644 641 642 647 627 621 20 627 644 64a 20 627 646 20 642 636 627 621 20 631 645 636 627 646 20 64a 643 648 646 20 639 644 64a 20 627 644 62a 631 627 62e 64a 2e');
+    // a delivered text the row does not support («يجوز الجمع بين الصلاتين للمطر.», from the repository's own guard rows)
+    const OTHER_Z5 = A('64a 62c 648 632 20 627 644 62c 645 639 20 628 64a 646 20 627 644 635 644 627 62a 64a 646 20 644 644 645 637 631 2e');
+    const LINE_Z5 = '\n\n' + encyc;
+    ok('Z5 the sealed footer line stands byte for byte and the legacy call site is cut out of api/ask.js by its own text and evaluates',
+      askSrcZ5.includes(START_Z5) && typeof site === 'function');
+    ok('Z5a legacy B4: a cited encyclopedia row whose card WENT OUT (cardShown = true), the text supported -> no line',
+      !!site && legacyTail(site, [rowZ5({ cardShown: true })], T_Z5) === '');
+    ok('Z5b legacy B4: a cited, supported row and NO card (no flag: the switch off) -> the line (unchanged)',
+      !!site && legacyTail(site, [rowZ5({})], T_Z5) === LINE_Z5);
+    ok('Z5c legacy B4: a cited row the delivered text does NOT support, no card -> no line (the support test now runs on the delivered text)',
+      !!site && legacyTail(site, [rowZ5({})], OTHER_Z5) === '');
+    ok('Z5d legacy B4: the switch on but the card REFUSED (cardShown = false), the text supported -> no line (the tail\'s own r2-6 verdict: a refused card, no tail; unchanged)',
+      !!site && legacyTail(site, [rowZ5({ cardShown: false })], T_Z5) === '');
+    ok('Z5e legacy B4: no encyclopedia row cited at all -> no line', !!site && legacyTail(site, [], T_Z5) === '' && legacyTail(site, null, T_Z5) === '');
+    ok('Z5f lib/free-brain/loop.js encyclopediaTail itself is unchanged: the bare call on a cardShown = true row still returns the line (the CALL was wrong, not the tail)',
+      LOOP.encyclopediaTail([rowZ5({ cardShown: true })]) === LINE_Z5 && LOOP.encyclopediaTail([rowZ5({ cardShown: false })]) === '');
+    // the mutant: the shown-card test disarmed -> the shown card draws the line again
+    {
+      const seamZ5 = "      if (encycShownHere) finalizerContext.readerSuffix = ''; // ITEM 35-D4 C2 (brain35-5 Z5): a shown encyclopedia card, no line beside it";
+      ok('Z5 mutant seam present once', askSrcZ5.split(seamZ5).length === 2);
+      const mutant = siteOf(askSrcZ5.split(seamZ5).join("      if (false) finalizerContext.readerSuffix = ''; // mutant: the shown card is not asked"));
+      ok('Z5 MUTANT KILLED: without the shown-card test the legacy call writes the line beside the shown card again',
+        !!mutant && legacyTail(mutant, [rowZ5({ cardShown: true })], T_Z5) === LINE_Z5);
+    }
+  }
   console.log('\n' + (checks - failures) + '/' + checks + ' checks passed');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.log('FAIL guard crashed: ' + (e && e.message || 'unknown error')); process.exit(1); });

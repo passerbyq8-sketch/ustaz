@@ -37,6 +37,7 @@ import { addresseeFor, addressLineFor } from '../lib/sync/memory.js';
 import { classifyRoute, createSourceFilter, isReligiousText, normalizeArabic, isRulingFrame } from '../lib/route-classify.js';
 import { verifyAttributedReply } from '../lib/attribution.js';
 import { planAsk, unattributedNote, REASON, ambiguousScholarPrompt, NEEDS_MATERIAL } from '../lib/ask-plan.js';
+import { namedScholarsIn } from '../lib/before-writing-v2.js'; // ITEM 35-D4 C4 (a) (brain35-5 Z4): the roster reader, for the identity builder
 import { consistencyProblems, screenDraft, NO_ATTRIBUTION_AVAILABLE } from '../lib/policy/consistency-gate.js';
 import { sourcesAddressingSubject, phraseVariants, buildClaimInstruction, verifyClaims, CLAIM_REFUSAL } from '../lib/claim-gate.js';
 // THE PARALLEL PATH'S SWITCH, AND ONLY THE SWITCH. lib/ledger/flag.js is a few env reads and,
@@ -136,7 +137,10 @@ import {
   classifyReligiousRuntime,
   resolveStoredContext,
   runStoredFiqhTurn,
+  latestUserTurns, // ITEM 35 J2: the two user turns a carried follow-up joins
 } from '../lib/stored-deen.js';
+// ITEM 35 J2 (brain35-ship, 2026-11-10): the question classifier beside J's list, and THE SENTENCE a question about the school gets.
+import { bannedSchoolQuestion, BANNED_SCHOOL_DENY_TEXT } from '../lib/free-brain/instructions.js';
 import { runClosedDeenTurn } from '../lib/closed-deen.js';
 // جولة «الاستعادة»، الفرع أ. Only the SWITCH is imported at module top — it is three environment
 // reads and no I/O. The loop, the tools and the instruction are imported lazily inside the branch,
@@ -646,7 +650,8 @@ export function buildBookTag(row) {
     .trim();
   const title = attr(row && row.bookTitle);
   if (!title) return dropCard('book-without-title', row && row.recordId);
-  const author = attr(row && row.author);
+  // ITEM A-3 (brain35, 2026-11-06; DIAG 35.1): a compiled fatwa work's chip names its compiler as such; the field is shown as is.
+  const author = attr(row && row.author ? (row.authorRole === 'compiler' ? 'جمعه: ' + row.author : row.author) : '');
   const where = attr(row && row.locator);
   const attrs = (author ? ` author="${author}"` : '') + (where ? ` ref="${where}"` : '') + bookPlaceAttrs(row);
   // ع-٤٩/د١ — THE MATN RIDES ON THE CARD, BASE64, AND THE ENCODING IS NOT DECORATION.
@@ -1228,13 +1233,24 @@ export default async function handler(req, res) {
   const supportContact = !pornBlocked && (isSupportContactRequest(currentQuestionText)
     || (readerOwnQuestionText !== currentQuestionText && isSupportContactRequest(readerOwnQuestionText)));
   const graveHazardClass = graveHazard(currentQuestionText);
+  // ITEM 35 J2 (brain35-ship, 2026-11-10; the owner): A QUESTION ABOUT THE JA'FARI SCHOOL GETS ONE SENTENCE AND NOTHING ELSE.
+  // Decided here, right after the fixed replies the server gives first (the grave hazard and the self-harm text, the pornography
+  // rule, the support address -- where one of them applies it stands), from the reader's own words and their Arabic: 'deny' on
+  // either denies (lib/free-brain/instructions.js bannedSchoolQuestion). 'sunni_ruling' and null go on unchanged; a unit or a
+  // sentence of the writer that names the school is held or dropped on every path (lib/bw2-units.js, lib/finalize-reader-text.js).
+  // J2 (2): a short follow-up the stored path carries onto the previous question (lib/stored-deen.js resolveStoredContext, `carried`)
+  // is answered as that standalone form -- the two user turns it joins -- so that form is classified here too, before every call.
+  const schoolDenied = !pornBlocked && !supportContact && !graveHazardClass
+    && ([...new Set([currentQuestionText, readerOwnQuestionText])].some((text) => bannedSchoolQuestion(text) === 'deny')
+      || (resolveStoredContext(body.messages, { currentPlan, lexicalRoute: effectiveRoute }).carried
+        && bannedSchoolQuestion(latestUserTurns(body.messages).join('\n')) === 'deny'));
   const impermissibleForWarmup = effectiveRoute === 'GEN'
     ? classifyImpermissibleRequest(currentQuestionText)
     : { blocked: false, kind: '' };
   const impermissibleCounselForWarmup = impermissibleForWarmup.blocked
     && !(impermissibleForWarmup.kind === 'pornography' && impermissibleEarlyDecision().enabled);
   // Do not make even a background service request for a fixed local refusal, safety redirect, or support reply.
-  if (!pornBlocked && !supportContact && !graveHazardClass && !impermissibleCounselForWarmup) {
+  if (!pornBlocked && !supportContact && !graveHazardClass && !impermissibleCounselForWarmup && !schoolDenied) {
     startFatwaServiceWarmup({ fetchImpl: globalThis.fetch });
   }
   const sorterPlan = sorterEligibility({
@@ -1269,6 +1285,18 @@ export default async function handler(req, res) {
       ...final,
     });
   };
+
+  // ITEM 35 J2: THE DENY SEAT. Before everything that reads the question for an answer -- the library-quote exit, the source
+  // follow-up, the sorter, the fatwa-service warm-up, the SSE commit, retrieval and every writer, on every route (BW2, legacy),
+  // every tier, every band and call mode alike. The reply is this handler's own fixed-text writer (sendSynthesizedText: one
+  // text delta and message_stop, as the throttle's and the day cap's), logged on the canned path with the flag `school_denied`,
+  // as the support address is logged; no card, no footer, no tail. A reader of another language gets the fixed-text lookup
+  // (lib/lang/fixed.js), whose text for it is the Arabic sentence.
+  if (schoolDenied) {
+    answerLog.note({ path: 'canned', flags: ['school_denied'] });
+    logRoute({ impermissible: 'none' });
+    return sendSynthesizedText(res, BANNED_SCHOOL_DENY_TEXT);
+  }
 
   // ── LIB_QUOTE_V1 · «انقل لي من كتاب …» ANSWERED WITH THE BOOK'S OWN WORDS ──────────────
   // An adult who asks for the text of a named book gets a SERVER-COMPOSED reply and no model
@@ -1578,7 +1606,7 @@ export default async function handler(req, res) {
       const result = takhrijSealRefused
         ? { ok: false, text: String(input.fallbackText || FINALIZER_REFUSAL), problems: ['TAKHRIJ_SEAL_REFUSED'],
           replaced: true, degraded: ['takhrij-rebuild-empty'], drops: [], outcome: 'REFUSED' }
-        : finalizeReaderText(input);
+        : finalizeReaderText({ ...input, question: lastUserText(body && body.messages) }); // ITEM 35 J (brain35-5e): the question, for the banned-school drop
       if (!result.ok) console.warn('[finalizer] reader text replaced', { problems: result.problems });
       for (const drop of Array.isArray(result.drops) ? result.drops : []) {
         if (!dropLogRoom()) break;
@@ -2067,6 +2095,11 @@ export default async function handler(req, res) {
       if (plan.attributionMode !== 'namedScholarOpinion') return null;
       const name = String(plan.namedEntity || '').trim();
       if (!name) return null;
+      // ITEM 35-D4 C4 (a) (brain35-5 Z4, 2026-11-08): «ابن باز وابن عثيمين» is TWO men, not one unresolved name (MEASURED, preview
+      // Q25: the joint entity resolved to nobody and the notice «لم أتبيّنْ مَن تقصِد» went under an answer that named one of
+      // them). Each man is asked his own store by the arbiter (lib/before-writing-v2.js namedScholarsIn, the roster only);
+      // there is no single identity to respect, so the notice stands down.
+      if (namedScholarsIn(name).length > 1) return null; // ITEM 35-D4 C4 (a) (brain35-5 Z4): two roster men are two men, not one unresolved name
       // THREE STATES AND NO FOURTH. 'unresolved' is not «no identity»: it is «a man was asked
       // about and no registry knew him», which is the shape the worst measured case had — the
       // answer reported an absence about somebody else entirely. Folding it into null here would
@@ -2223,11 +2256,19 @@ export default async function handler(req, res) {
           heldGradeConflict: t.heldGradeConflict,
           heldUncitedAttribution: t.heldUncitedAttribution, heldUncitedRuling: t.heldUncitedRuling, heldRemovedPerson: t.heldRemovedPerson, heldUnsupportedGroup: t.heldUnsupportedGroup, heldUnsupportedConsensus: t.heldUnsupportedConsensus,
           heldUnsupportedSchool: t.heldUnsupportedSchool, heldUnsupportedMatn: t.heldUnsupportedMatn, heldTakhrijRefused: t.heldTakhrijRefused, heldTakhrijEmptied: t.heldTakhrijEmptied,
+          // ITEM B-2 (a) (brain35, 2026-11-06): a unit the lock emptied of its credit frame, with nothing substantive left.
+          heldTakhrijEmptiedFrame: t.heldTakhrijEmptiedFrame,
           heldGradeRuleFailed: t.heldGradeRuleFailed, heldGradeEmptied: t.heldGradeEmptied, heldRepeat: t.heldRepeat, heldDependentOnHeld: t.heldDependentOnHeld,
           heldDependentOpening: t.heldDependentOpening, heldDanglingLeadIn: t.heldDanglingLeadIn, heldNotCovered: t.heldNotCovered, heldNotCoveredSentence: t.heldNotCoveredSentence,
           heldEmptyHeading: t.heldEmptyHeading,
+          heldEvidenceOfHeldStance: t.heldEvidenceOfHeldStance, // ITEM 35-D4 C6 (b) (brain35-5 Z7): a count, no text
+          heldBannedSchool: t.heldBannedSchool, // ITEM 35 J (brain35-5e): a count, no text
           // PIPES fix 3: why the turn went on to today's path ('' when it did not).
           continued: t.continued,
+          // ITEM 35-D5 (brain35-5d F-D5, 2026-11-09): the reviewer's khilaf trigger and the footer's suppression reason, closed enums
+          // (lib/before-writing-v2.js BW2_KHILAF_TRIGGERS / BW2_FOOTER_SUPPRESSED_REASONS). Never text.
+          khilafTrigger: t.khilafTrigger,
+          answerFooterSuppressedReason: t.answerFooterSuppressedReason,
         });
       }
       if (!(bw2Out && bw2Out.continued === true) || readerGone.aborted) return;
@@ -2247,6 +2288,7 @@ export default async function handler(req, res) {
       // answers a sum from memory must not pay for loading them.
       const {
         runFreeBrainTurn, shouldAppendC3NotCovered, pickReaderCards, pickBookCards, reviewerEvidence, encyclopediaTail,
+        turnDeadlineMs, // ITEM O-3 (brain35, 2026-11-06): the turn's own deadline, read from the environment once per turn
         citedDeliveryLedger, pickEncyclopediaCards,
       } = await import('../lib/free-brain/loop.js');
       const { buildFreeBrainInstruction } = await import('../lib/free-brain/instructions.js');
@@ -2291,6 +2333,12 @@ export default async function handler(req, res) {
           providerUrl: ANTHROPIC_URL,
           headers,
           signal: freeUpstream.signal,
+          // ITEM O-3 (brain35, 2026-11-06; DIAG WEAK-CONNECTION): the whole turn's deadline, four minutes from the
+          // request's own start (TURN_DEADLINE_MS overrides it, for the guard). The platform cuts the function at 300 s
+          // (vercel.json maxDuration), and a socket cut mid-answer is what the reader reads as a weak connection: past
+          // this deadline the loop makes no further call, the answer is marked cut, and the mark below ships with it.
+          turnDeadlineMs: turnDeadlineMs(process.env),
+          turnStartedAt: requestStartedAt,
           dailyBudget: paidSearchBudget,
           // The library rides the same two conditions everywhere: a non-brief depth AND an adult
           // band. Handing down an empty flag and an empty token for anyone else means the tool is
@@ -2407,6 +2455,15 @@ export default async function handler(req, res) {
       // §٣/٢ is therefore a property of which field each side reads, not a subtraction anybody has
       // to remember to perform.
       finalizerContext.readerSuffix = encyclopediaTail(out.cited);
+      // ITEM 35-D4 C2 (brain35-5 Z5, 2026-11-08; owner decision 2026-11-07 D4, extended to this path 2026-11-08): the line only
+      // when the encyclopedia is named NOWHERE -- no encyclopedia card shown (pickEncyclopediaCards marks `cardShown`), and only
+      // for a row whose text supports a delivered sentence (the BW2 call's shape; the third argument `null` keeps the tail's
+      // no-switch reading). MEASURED (DIAG4 H2b, preview Q11): the sealed call above wrote the line exactly when the card had
+      // gone out (r2-6's «one verdict»). The sealed footer line stands as two guards pin it; its result is re-decided here.
+      // lib/free-brain/loop.js is unchanged: the tail's own tests are right, the CALL was wrong.
+      const encycShownHere = (Array.isArray(out.cited) ? out.cited : []).some((row) => row && row.kind === 'encyclopedia' && row.cardShown === true);
+      if (encycShownHere) finalizerContext.readerSuffix = ''; // ITEM 35-D4 C2 (brain35-5 Z5): a shown encyclopedia card, no line beside it
+      else if (finalizerContext.readerSuffix) finalizerContext.readerSuffix = encyclopediaTail(out.cited, String(out.text || ''), null); // ITEM 35-D4 C2 (brain35-5 Z5): the support test on the delivered text
       // ── §٣/٣ (C): THE SILENT LOSS, ENDED ──────────────────────────────────
       // One line per cited row with the reason it did or did not reach the reader. Serialised
       // rather than handed over as an object, for the reason [free-brain/redactions] below states:
@@ -2882,6 +2939,8 @@ export default async function handler(req, res) {
           context: storedContext,
           band,
           depth: band === 'adult' ? effectiveDepth : 'brief',
+          // ITEM 35-D3 M1 (brain35-3 X11): the stored-deen hybrid block takes the one brief shape (lib/full-fatwa.js serverOwnedBlock, F8) on the brief tier
+          brief: (band === 'adult' ? effectiveDepth : 'brief') === 'brief',
           model,
           maxTokens,
           usePremium,

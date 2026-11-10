@@ -603,6 +603,380 @@ async function main() {
   ok('MUTANT killed: forcing a ruling onto a no-explicit-ruling fixture is refused',
     FF.unsupportedMajorityClaims('والراجح عند عامة أهل العلم أنه لا يجوز.', [noRuling]).length === 1);
 
+
+  // ── brain35 B-1 (2026-11-06; DIAG 35.2; the owner's decision, contract section 5) · THE BRIEF BLOCK ───────────
+  // MEASURED on the delivered blocks (H2): a 523-character reader's letter left ZERO answer characters inside the
+  // 600-character budget (Q01, Q04, Q28). The answer now gets the budget, the question rides in the expansion, and a
+  // record whose answer says nothing («والله ما أذكر، ما أدري»: Q22) opens no block at all.
+  console.log('\n--- brain35 B-1 · THE BRIEF BLOCK: THE ANSWER FIRST ---');
+  {
+    const UNITS = await esm('lib/bw2-units.js');
+    const longQuestion = 'سؤال طويل من قارئ يحكي حاله: ' + 'وقد كنت أعمل في بلد بعيد ثم رجعت إلى أهلي وقد تغيرت أحوالي كثيرا وصار عندي من المسائل ما يحتاج إلى بيان، '.repeat(4);
+    const answerBody = 'الواجب عليك أن تتوب إلى الله توبة صادقة وتكثر من العمل الصالح. وليس عليك قضاء ما تركت من الصلوات على القول الراجح عند أهل العلم. وأما الصيام فعليك أن تقضي ما أفطرته في رمضان بعدد الأيام التي أفطرتها إن كنت تعلمها.';
+    const record = (answer) => ({
+      question: longQuestion.trim(), answer, displayPolicy: 'full', contentMode: 'written_fatwa', fullTextComplete: true,
+      truncated: false, omittedChars: 0, supportText: longQuestion + ' ' + answer, url: 'https://example.invalid/b1',
+      publisher: 'ابن باز', scholar: { id: 'binbaz', name: 'ابن باز' },
+    });
+    const long = record(answerBody);
+    ok('B-1 the fixture is the measured shape: a question of 448 characters and an answer of its own, the whole block over the budget',
+      long.question.length === 448 && long.answer.length > 200 && (long.question.length + long.answer.length) > FF.BRIEF_FATWA_MAX);
+    const brief = FF.serverOwnedBlock(long, [], { band: 'adult', brief: true });
+    const shown = brief.split('<fatwafull')[0];
+    ok('B-1 the brief block opens on «## نص الفتوى» and «الجواب (مختصرًا):», not on the question',
+      shown.startsWith('## ' + FF.HEADING_TEXT) && shown.includes(FF.BRIEF_ANSWER_HEAD) && !shown.includes('السؤال:'), shown.slice(0, 120));
+    ok('B-1 it carries at least one COMPLETE answer sentence and no question text',
+      shown.includes('الواجب عليك أن تتوب إلى الله توبة صادقة وتكثر من العمل الصالح.') && !shown.includes(long.question.slice(0, 24)), shown.slice(0, 200));
+    // re-cut 2026-11-07 (brain35-2 F8, owner decision R8): «…» only when the ANSWER exceeds the budget; this 213-character answer fits, so it stands whole
+    ok('B-1 the answer fits the budget: it stands whole, no «…», inside the budget (re-cut 2026-11-07, owner decision R8)', !shown.includes('…') && shown.endsWith(long.answer + '\n') && shown.length <= FF.BRIEF_FATWA_MAX + 2, String(shown.length));
+    const expansion = /matn="([A-Za-z0-9+/=]+)"/u.exec(brief);
+    const expanded = expansion ? Buffer.from(expansion[1], 'base64').toString('utf8') : '';
+    ok('B-1 the expansion keeps the original question and answer, byte for byte',
+      expanded.includes('السؤال:') && expanded.includes(long.question.slice(0, 40)) && expanded.includes(long.answer));
+    ok('B-1 the other depths are untouched: the whole block, question first',
+      FF.serverOwnedBlock(long, [], { band: 'adult' }).startsWith('## ' + FF.HEADING_TEXT + '\n\nالسؤال:'));
+    // a record with nothing to say
+    const nothing = record('والله ما أذكر، ما أدري.');
+    ok('B-1 «والله ما أذكر، ما أدري» is no answer: substantiveFatwaAnswer false, and the brief block is empty',
+      FF.substantiveFatwaAnswer(nothing) === false && FF.serverOwnedBlock(nothing, [], { band: 'adult', brief: true }) === '');
+    ok('B-1 ...and a short but real answer is substantive', FF.substantiveFatwaAnswer(record('نعم يجوز لك أن تجمع بين الصلاتين في السفر إذا احتجت إلى ذلك.')) === true
+      && FF.substantiveFatwaAnswer(record('لا أعلم')) === false && FF.MIN_ANSWER_WORDS === 12);
+    ok('B-1 the direct-row selection asks the same question (lib/before-writing-v2.js skips a record with no answer)',
+      fs.readFileSync(path.join(REPO, 'lib/before-writing-v2.js'), 'utf8').includes('if (rec && !substantiveFatwaAnswer(rec)) continue;'));
+    // Q09's shape: a unit that RETELLS the shown block is held
+    const block = FF.serverOwnedBlock(long, [], { band: 'adult', brief: true });
+    const retell = 'وأما الفتوى المعروضة، فجاء فيها أن الواجب عليه أن يتوب إلى الله توبة صادقة وأن يكثر من العمل الصالح، وأنه ليس عليه قضاء ما ترك من الصلوات على القول الراجح عند أهل العلم [[1]].';
+    // the unit cites the row the block came from, so nothing but the retelling rule can hold it
+    const blockRow = { ref: 1, kind: 'fatwa', title: 'حكم قضاء الصلوات المتروكة', url: 'https://example.invalid/b1', publisher: 'ابن باز', scholarId: 'binbaz', recordId: 'b1', text: answerBody, passage: answerBody };
+    const drive = async (mod, unit) => {
+      const out = [];
+      const rel = mod.createBw2Releaser({ rows: [blockRow], emit: (p) => { out.push(p); return true; }, aboveText: block, cards: null });
+      rel.push(unit + '\n');
+      const sum = await rel.end();
+      return { text: out.join(''), released: sum.released, holds: sum.holds };
+    };
+    const held = await drive(UNITS, retell);
+    ok('B-1 a unit that opens on «وأما الفتوى المعروضة» and retells the shown block is held as a repeat',
+      held.released === 0 && held.holds.repeat === 1 && !held.text.includes('الفتوى المعروضة'), JSON.stringify(held.holds));
+    const fresh = await drive(UNITS, 'ومن أراد التفصيل في النذور والكفارات فليسأل أهل العلم في بلده عما يلزمه منها [[1]].');
+    ok('B-1 ...and a unit that says something else is released', fresh.released === 1 && !fresh.holds.repeat, JSON.stringify(fresh.holds));
+    ok('B-1 REPEAT_SHARE is the measured 0.6', UNITS.REPEAT_SHARE === 0.6);
+    // mutants
+    const mutate = async (file, from, to, tag) => {
+      const src = fs.readFileSync(path.join(REPO, file), 'utf8');
+      if (src.split(from).length !== 2) return { ok: false, reason: 'seam' };
+      const tmp = path.join(REPO, 'lib', '.mut-b1-' + tag + '.mjs');
+      fs.writeFileSync(tmp, src.split(from).join(to).replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + require('url').pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+      try { return { ok: true, mod: await import(require('url').pathToFileURL(tmp).href + '?m=' + Date.now()) }; } finally { fs.rmSync(tmp, { force: true }); }
+    };
+    const m1 = await mutate('lib/full-fatwa.js', "      const answerOnly = cut ? briefExcerpt(printed.answer, budget) : printed.answer;",
+      "      const answerOnly = briefExcerpt(whole, budget); // mutant: the question is back in the budget", 'budget'); // seam moved with brain35-2 F8 (one brief shape)
+    ok('B-1 MUTANT budget seam applied', m1.ok, m1.reason);
+    // re-cut 2026-11-07 (brain35-3 X15): the needle «…توبة صادقة.» (with a stop) never occurs in the fixture's answer («…توبة صادقة
+    // وتكثر…»), so the row was vacuous. MEASURED (x15 probe): under the budget mutant the 448-character question is back above the
+    // fold (575 of 600 characters shown, the question's head inside); on HEAD the fold shows the answer alone (173 characters).
+    ok('B-1 MUTANT KILLED: with the question back in the budget the reader sees the question\'s head above the fold again (re-cut 2026-11-07)',
+      m1.ok && m1.mod.serverOwnedBlock(long, [], { band: 'adult', brief: true }).split('<fatwafull')[0].includes(long.question.slice(0, 24))
+      && !FF.serverOwnedBlock(long, [], { band: 'adult', brief: true }).split('<fatwafull')[0].includes(long.question.slice(0, 24)));
+    const m2 = await mutate('lib/full-fatwa.js', '      if (!substantiveFatwaAnswer(record)) return \'\';',
+      '      if (false) return \'\'; // mutant: a record with nothing to say still opens the answer', 'nothing');
+    ok('B-1 MUTANT no-answer seam applied', m2.ok, m2.reason);
+    ok('B-1 MUTANT KILLED: without the test «ما أدري» opens the answer again',
+      m2.ok && m2.mod.serverOwnedBlock(nothing, [], { band: 'adult', brief: true }) !== '');
+    const m3 = await mutate('lib/bw2-units.js', 'export const REPEAT_SHARE = 0.6;', 'export const REPEAT_SHARE = 1.1; // mutant: no retelling ever reaches the share', 'share');
+    ok('B-1 MUTANT share seam applied', m3.ok, m3.reason);
+    if (m3.ok) {
+      const loose = await drive(m3.mod, retell);
+      ok('B-1 MUTANT KILLED: with an unreachable share the retelling is released again', loose.released === 1, JSON.stringify(loose.holds));
+    }    // ── brain35-2 F8 (2026-11-07; DIAG2 R8) · ONE BRIEF SHAPE WHATEVER THE RECORD'S LENGTH ──────────────────────────
+    // MEASURED (DIAG2 R8, P5 / P9): a stored fatwa whose whole block is 600 characters or fewer kept the old question-first
+    // «السؤال: … / الجواب: …» on the brief tier (the answer-first shape was built only past the cap): two shapes on one tier,
+    // and four of the sixteen DIAG-1 direct blocks. The brief tier is now always head + the answer (cut to the budget, «…»
+    // only when it exceeds it) + the «النص الكامل» expansion holding the whole block; the detailed tier unchanged.
+    const SHEET_Q = 'السائل م س يقول قبل عشر سنوات أو أقل من ذلك كنت لا أواظب على الصلاة حيث أنني أصلي يوما وأقطع آخر وذلك تهاونا مني في ذلك ولا أعلم عدد الأوقات التي لم أصلها أو عدد الأيام التي لم أصل بها فما العمل في ذلك؟';
+    const SHEET_A = 'الظاهر من سؤاله أن الرجل استقام وصار يصلي، والواجب عليه التوبة إلى الله والاستقامة على دينه، ولا قضاء عليه على الصحيح من أقوال أهل العلم.';
+    const shortRec = { ...record(SHEET_A), question: SHEET_Q, supportText: SHEET_Q + ' ' + SHEET_A };
+    const shortWhole = FF.serverOwnedBlock(shortRec, [], { band: 'adult' });
+    ok('F8 the short fixture is the DIAG2 shape: a whole block of 371 characters, under the cap', shortWhole.length === 371 && shortWhole.length <= FF.BRIEF_FATWA_MAX, String(shortWhole.length));
+    const shortBrief = FF.serverOwnedBlock(shortRec, [], { band: 'adult', brief: true });
+    const shortShown = shortBrief.split('<fatwafull')[0];
+    ok('F8a a 371-character record on the brief tier: head, «الجواب (مختصرًا):», the WHOLE answer, no «…», no «السؤال:» above the fold, then the expansion',
+      shortShown === '## ' + FF.HEADING_TEXT + '\n\n' + FF.BRIEF_ANSWER_HEAD + '\n' + SHEET_A + '\n' && !shortShown.includes('السؤال:') && !shortShown.includes('…') && shortBrief.includes('<fatwafull matn="'),
+      shortBrief.slice(0, 160));
+    const shortExp = /matn="([A-Za-z0-9+/=]+)"/u.exec(shortBrief);
+    ok('F8a ...and its expansion is the whole block, byte for byte', !!shortExp && Buffer.from(shortExp[1], 'base64').toString('utf8') === shortWhole);
+    // a record whose ANSWER exceeds the budget keeps the excerpt shape exactly as B-1 cut it
+    const longAnswer = Array.from({ length: 8 }, (_v, i) => 'الجملة رقم ' + (i + 1) + ' من جواب المفتي تذكر حكما من الأحكام الشرعية مع دليله من الكتاب والسنة وكلام أهل العلم فيه.').join(' ');
+    const longRec = record(longAnswer);
+    const longWhole = FF.serverOwnedBlock(longRec, [], { band: 'adult' });
+    ok('F8 the long fixture exceeds the budget by its answer alone', longAnswer.length > FF.BRIEF_FATWA_MAX && longWhole.length > FF.BRIEF_FATWA_MAX, String(longAnswer.length));
+    const longBrief = FF.serverOwnedBlock(longRec, [], { band: 'adult', brief: true });
+    const longHead = '## ' + FF.HEADING_TEXT + '\n\n' + FF.BRIEF_ANSWER_HEAD + '\n';
+    ok('F8b a record whose answer exceeds the budget is unchanged: head + the excerpt to a sentence\'s end + «…» + the expansion',
+      longBrief === longHead + FF.briefExcerpt(longAnswer, Math.max(1, FF.BRIEF_FATWA_MAX - longHead.length)) + '…\n' + '<fatwafull matn="' + Buffer.from(longWhole, 'utf8').toString('base64') + '">' + FF.FATWA_FULL_LABEL + '</fatwafull>'
+      && longBrief.split('<fatwafull')[0].length <= FF.BRIEF_FATWA_MAX + 2, longBrief.slice(0, 120));
+    ok('F8c the detailed tier gives the whole block for both', FF.serverOwnedBlock(shortRec, [], { band: 'adult' }) === shortWhole && FF.serverOwnedBlock(longRec, [], { band: 'adult' }) === longWhole
+      && shortWhole.startsWith('## ' + FF.HEADING_TEXT + '\n\nالسؤال:'));
+    const longExp = /matn="([A-Za-z0-9+/=]+)"/u.exec(longBrief);
+    ok('F8d the expansion equals the whole block byte for byte in both', !!longExp && Buffer.from(longExp[1], 'base64').toString('utf8') === longWhole && !!shortExp && Buffer.from(shortExp[1], 'base64').toString('utf8') === shortWhole);
+    ok('F8e an answer that fits the budget exactly carries no «…»; one character over does',
+      (() => { const S = 'نعم يجوز ذلك عند أهل العلم بلا خلاف بينهم في هذه المسألة المشهورة عندهم.'; const fit = record(S + ' ' + S + ' ' + S + ' ' + S + ' ' + S + ' ' + S); const over = record(Array.from({ length: 9 }, () => S).join(' '));
+        if (!(fit.answer.length <= FF.BRIEF_FATWA_MAX - longHead.length && over.answer.length > FF.BRIEF_FATWA_MAX - longHead.length)) return false;
+        const f = FF.serverOwnedBlock(fit, [], { band: 'adult', brief: true }).split('<fatwafull')[0]; const o = FF.serverOwnedBlock(over, [], { band: 'adult', brief: true }).split('<fatwafull')[0];
+        return !f.includes('…') && o.includes('…'); })());
+    // the hybrid path: the flag is passed through when its caller gives one (api/ask.js's `shared` carries depth, not brief: see the report)
+    ok('F8f lib/hybrid-deen.js passes brief through to serverOwnedBlock', /serverOwnedBlock\(record, \[\.\.\.spansFor\(entry\), \.\.\.carryingParagraphs\(record\)\],\n\s*\{ band: options\.band, brief: options\.brief === true \}\)/u.test(fs.readFileSync(path.join(REPO, 'lib/hybrid-deen.js'), 'utf8')));
+    // (a hybrid turn given brief: true is not driven here: the gold fixture is a spans-policy record, and the brief shape is
+    // the displayPolicy 'full' branch's; api/ask.js builds the hybrid caller's options with depth, not brief -- the report)
+    ok('F8f ...and a hybrid turn with no brief flag shows the whole block as before', !gold.text.includes(FF.BRIEF_ANSWER_HEAD) && !gold.text.includes('<fatwafull'));
+    {
+      const mF8 = await mutate('lib/full-fatwa.js', "      const cut = printed.answer.length > budget; // ITEM 35-D2 R8 (brain35-2 F8): the answer alone against the budget",
+        "      if (whole.length <= BRIEF_FATWA_MAX) return whole; // mutant: the length test restored\n      const cut = printed.answer.length > budget;", 'length');
+      ok('F8 MUTANT length-test seam applied', mF8.ok, mF8.reason);
+      ok('F8 MUTANT KILLED: with the length test restored the short record is the old question-first block again',
+        mF8.ok && mF8.mod.serverOwnedBlock(shortRec, [], { band: 'adult', brief: true }) === shortWhole);
+      // ── brain35-5 Z6 (2026-11-08; DIAG4 C5) · THE BRIEF EXCERPT SKIPS THE PREAMBLE AND STOPS BEFORE A SPEAKER TURN ──────
+      // MEASURED (DIAG4 H5, preview Q12 / Q19 / Q14) on same-shape fixture records of this worktree: the brief block opened on
+      // «ج : وعليكم السلام ورحمة الله وبركاته ..» (salmajed_1567), on «الشيخ: الحمد لله رب العالمين، وأصلي وأسلم …» (riba records[1])
+      // and carried the presenter's «المقدم: …» (wasl results[8]). The excerpt is now the answer's BODY (briefAnswerBody: the
+      // closed preamble list skipped, stopped before a speaker turn); a body under MIN_ANSWER_WORDS falls back to the whole
+      // answer; the «النص الكامل» expansion keeps every byte; substantiveFatwaAnswer is unchanged.
+      {
+        const fix = (rec) => ({ ...rec, displayPolicy: 'full', contentMode: 'written_fatwa', fullTextComplete: true, truncated: false, omittedChars: 0, question: rec.question || 'سؤال', answer: rec.answer, title: rec.title || 'فتوى', url: rec.url || 'https://binbaz.org.sa/fatwas/1', publisher: rec.publisher || 'ابن باز' });
+        const comp = JSON.parse(fs.readFileSync(path.join(REPO, 'guards/fixtures-comprehensive-2026-10-02.json'), 'utf8'));
+        const salmajed = fix(comp.salmajed_1567);
+        const ribaFix = JSON.parse(fs.readFileSync(path.join(REPO, 'fixtures/riba-family-two-records.json'), 'utf8'));
+        const ribaRec = fix(ribaFix.records[1].content);
+        const wasl = JSON.parse(fs.readFileSync(path.join(REPO, 'guards/fixtures-speed-wasl-fatwas.json'), 'utf8'));
+        let waslRec = null;
+        for (const [key, entry] of Object.entries(wasl)) {
+          if (!key.endsWith('84&scholar=all&page=1&limit=12&view=full')) continue;
+          let body; try { body = JSON.parse(entry.body); } catch { continue; }
+          const c = body && body.results && body.results[8] && body.results[8].content;
+          if (c && typeof c.answer === 'string' && c.answer.includes('المقدم: أحسن الله إليكم سماحة الشيخ')) { waslRec = fix(c); break; }
+        }
+        const visible = (rec) => FF.serverOwnedBlock(rec, [], { band: 'adult', brief: true }).split('<fatwafull')[0];
+        const bodyOf = (rec) => visible(rec).replace(/^## [^\n]*\n\n[^\n]*\n/u, '');
+        const plainHead = '## ' + FF.HEADING_TEXT + '\n\n' + FF.BRIEF_ANSWER_HEAD + '\n';
+        const bodyFn = (s) => (typeof FF.briefAnswerBody === 'function' ? FF.briefAnswerBody(s) : null); // null on a HEAD without the helper (the RED run)
+        ok('Z6 the three same-shape fixture records are found and substantive (DIAG4 H5: salmajed_1567, riba records[1], wasl results[8])',
+          !!salmajed.answer && !!ribaRec.answer && !!waslRec && FF.substantiveFatwaAnswer(salmajed) && FF.substantiveFatwaAnswer(ribaRec) && FF.substantiveFatwaAnswer(waslRec));
+        ok('Z6a the salmajed_1567 block opens on «يجوز للمسافر» (not on «ج : وعليكم السلام»)',
+          bodyOf(salmajed).startsWith('يجوز للمسافر') && !visible(salmajed).includes('وعليكم السلام'), bodyOf(salmajed).slice(0, 60));
+        ok('Z6b the riba records[1] block opens on «لا ريب أن الربا» (not on «الشيخ: الحمد لله رب العالمين»)',
+          bodyOf(ribaRec).startsWith('لا ريب أن الربا') && !visible(ribaRec).includes('الحمد لله رب العالمين'), bodyOf(ribaRec).slice(0, 60));
+        ok('Z6c the wasl results[8] block carries no «المقدم:» (the excerpt stops before the presenter\'s turn) and still opens on «نعم، إذا رأى المصلحة»',
+          !!waslRec && !visible(waslRec).includes('المقدم:') && !visible(waslRec).includes('الشيخ:') && bodyOf(waslRec).startsWith('نعم، إذا رأى المصلحة'), waslRec ? visible(waslRec).slice(-80) : 'no record');
+        const PLAIN = fix({ question: 'ما حكم قراءة القرآن للجنب؟', answer: 'ذهب جماهير العلماء إلى أن الجنب لا يقرأ القرآن حتى يغتسل، لحديث علي رضي الله عنه، وخالف في ذلك بعض أهل العلم فأجازوا له القراءة بغير مس المصحف.', title: 'ت', url: 'https://binbaz.org.sa/fatwas/2' });
+        ok('Z6d a record that starts on its answer is byte-identical to today: head + the whole answer (pinned)',
+          visible(PLAIN) === plainHead + PLAIN.answer + '\n' && bodyFn(PLAIN.answer) === PLAIN.answer, visible(PLAIN).slice(0, 80));
+        // SYNTHETIC: a one-line radio answer between a hamdala and the presenter (the body after the skip and the stop is six words)
+        const SHORT_SYNTHETIC = fix({ question: 'س', answer: 'الشيخ: الحمد لله رب العالمين، والصلاة والسلام على رسول الله. نعم، لا بأس بذلك إن شاء الله. المقدم: جزاكم الله خيرا، وأحسن إليكم.', title: 'ت', url: 'https://binbaz.org.sa/fatwas/3' });
+        ok('Z6e SYNTHETIC a record whose body after the skip and the stop is under twelve words («نعم، لا بأس بذلك إن شاء الله.») shows the WHOLE answer (pinned)',
+          FF.substantiveFatwaAnswer(SHORT_SYNTHETIC) === true && bodyFn(SHORT_SYNTHETIC.answer) === 'نعم، لا بأس بذلك إن شاء الله.' && visible(SHORT_SYNTHETIC) === plainHead + SHORT_SYNTHETIC.answer + '\n',
+          JSON.stringify([FF.substantiveFatwaAnswer(SHORT_SYNTHETIC), bodyFn(SHORT_SYNTHETIC.answer)]));
+        const expansionOf = (rec) => { const m = /matn="([A-Za-z0-9+/=]+)"/u.exec(FF.serverOwnedBlock(rec, [], { band: 'adult', brief: true })); return m ? Buffer.from(m[1], 'base64').toString('utf8') : ''; };
+        ok('Z6f the «النص الكامل» expansion is the whole block, byte for byte, for all three records (every preamble and turn kept)',
+          [salmajed, ribaRec, waslRec].every((rec) => !!rec && expansionOf(rec) === FF.serverOwnedBlock(rec, [], { band: 'adult' }) && expansionOf(rec).includes(rec.answer.slice(0, 40))));
+        ok('Z6g the B-1 and F8 fixtures are untouched by the skip and the stop: briefAnswerBody is the identity on them',
+          bodyFn(answerBody) === answerBody && bodyFn(SHEET_A) === SHEET_A && bodyFn(longAnswer) === longAnswer);
+        ok('Z6h substantiveFatwaAnswer is unchanged: judged on the stored answer, the floor still 12', FF.MIN_ANSWER_WORDS === 12 && FF.substantiveFatwaAnswer(salmajed) === true && FF.substantiveFatwaAnswer(fix({ question: 'س', answer: 'لا أعلم', title: 'ت' })) === false);
+        // the three witness shapes as DIAG4 H5 reconstructed them (the preview texts are remote)
+        const W12 = fix({ question: 'س', answer: 'وعليكم السلام ورحمة الله وبركاته. ذهب جماهير أهل العلم إلى أن الجنب لا يقرأ القرآن حتى يغتسل، واستدلوا بحديث علي رضي الله عنه، وذهب المالكية إلى الجواز للحائض دون الجنب، وذهب الظاهرية إلى الجواز مطلقا.', title: 'ت', url: 'https://binbaz.org.sa/fatwas/3' });
+        const W19 = fix({ question: 'س', answer: 'الحمد لله رب العالمين، والصلاة والسلام على من أرسله الله رحمة للعالمين، وعلى آله وصحبه وإخوانه إلى يوم الدين، أما بعد: فحديث «صوموا لرؤيته وأفطروا لرؤيته» متفق عليه، والعبرة في إثبات الشهر بالرؤية لا بالحساب.', title: 'ت', url: 'https://binbaz.org.sa/fatwas/3' });
+        const W14 = fix({ question: 'س', answer: 'من نسيها عند الوضوء؛ فلا شيء عليه، والتسمية سنة عند جمهور أهل العلم، وقال بعضهم بوجوبها مع الذكر، فإن نسيها فلا حرج، والوضوء صحيح. نعم.\nالمقدم: جزاكم الله خيرا.', title: 'ت', url: 'https://binbaz.org.sa/fatwas/3' });
+        ok('Z6i the DIAG4 witness shapes (reconstructed): Q12 opens on «ذهب جماهير أهل العلم», Q19 opens on «فحديث «صوموا» (the salutation and «أما بعد:» skipped), Q14 closes before «المقدم:»',
+          bodyOf(W12).startsWith('ذهب جماهير أهل العلم') && bodyOf(W19).startsWith('فحديث «صوموا') && !visible(W14).includes('المقدم:') && bodyOf(W14).startsWith('من نسيها عند الوضوء'),
+          JSON.stringify([bodyOf(W12).slice(0, 30), bodyOf(W19).slice(0, 30), visible(W14).slice(-40)]));
+        // the mutant: briefAnswerBody returns its input -> the three fixture rows red
+        const mZ6 = await mutate('lib/full-fatwa.js', "  let body = String(answer || '').replace(EXCERPT_PREAMBLE_RE, '').trim();",
+          "  return String(answer || ''); // mutant: the body is the whole answer\n  let body = String(answer || '').replace(EXCERPT_PREAMBLE_RE, '').trim();", 'z6body');
+        ok('Z6 MUTANT body seam applied', mZ6.ok, mZ6.reason);
+        ok('Z6 MUTANT KILLED: with the body returning its input the three blocks open on the preamble / carry the presenter again',
+          mZ6.ok && (() => { const v = (rec) => mZ6.mod.serverOwnedBlock(rec, [], { band: 'adult', brief: true }).split('<fatwafull')[0]; return v(salmajed).includes('وعليكم السلام') && v(ribaRec).includes('الحمد لله رب العالمين') && v(waslRec).includes('المقدم:'); })());
+        // ── brain35-5d F-D6b (2026-11-09; DIAG5 D6) · A BARE «[n]» IS DROPPED FROM THE BRIEF EXCERPT ONLY ────────────────────
+        // MEASURED (DIAG5 H4 §5, preview Q4 / Q10 / Q13): 15 of 171 stored answers carry an inline «[n]» reference whose footnote text
+        // is not stored (binbaz: «وفق الله الجميع[1].»); printedFatwaPair and briefAnswerBody kept the marker, so the brief card showed
+        // a bare «[1]». The brief BODY now drops a «[n]» whose footnote line is not in the answer (no line starts with the same «[n]»),
+        // taking the space before it when one would be left doubled; the «النص الكامل» expansion keeps every byte; a record whose
+        // answer carries the footnote line keeps the marker. STOP RULE probe (BRAIN35-FIX5D-evidence/probe-d6b-markers.out.txt): none
+        // of the six postship-2 fixture rows carries a marker, so the postship9 / postship19 pinned blocks are untouched (row F-D6b-5).
+        {
+          const dropFn = (s, a) => (typeof FF.dropBareFootnoteMarkers === 'function' ? FF.dropBareFootnoteMarkers(s, a) : null); // null on a HEAD without the helper (the RED run)
+          // SYNTHETIC in binbaz's shape: the marker welded to the word before the stop, no footnote line anywhere
+          const BARE = fix({ question: 'س', answer: 'الحمد لله. الواجب على المسلم أن يتحرى الحلال في كسبه وأن يبتعد عن الشبهات، وفق الله الجميع[1]. سؤال شخصي يكتبه الناس كثيرا في هذه الأيام وهو مما يحتاج إلى بيان من أهل العلم.', title: 'ت', url: 'https://binbaz.org.sa/fatwas/4' });
+          ok('F-D6b-1 SYNTHETIC «… وفق الله الجميع[1]. سؤال شخصي …» -> the brief body reads «… وفق الله الجميع. سؤال شخصي …» (no bare marker)',
+            bodyOf(BARE).includes('وفق الله الجميع. سؤال شخصي') && !visible(BARE).includes('[1]'), bodyOf(BARE).slice(0, 120));
+          ok('F-D6b-2 ...and the «النص الكامل» expansion is byte-identical to the whole block, the marker inside it (pinned)',
+            expansionOf(BARE) === FF.serverOwnedBlock(BARE, [], { band: 'adult' }) && expansionOf(BARE).includes('الجميع[1].'));
+          // SYNTHETIC: the same answer with its footnote line at the end
+          const FOOTED = fix({ ...BARE, answer: BARE.answer + '\n[1] أخرجه البخاري في صحيحه.' });
+          ok('F-D6b-3 SYNTHETIC a record whose answer ends with a line «[1] …» keeps the inline marker and the line (pinned)',
+            bodyOf(FOOTED).includes('الجميع[1].') && bodyOf(FOOTED).includes('\n[1] أخرجه البخاري'), bodyOf(FOOTED).slice(-80));
+          ok('F-D6b-4 the drop takes one space with the marker when one would be left doubled, and is the identity on a text with no marker',
+            dropFn('قال[1] كذا', 'قال[1] كذا') === 'قال كذا' && dropFn('قال [1] كذا', 'قال [1] كذا') === 'قال كذا' && dropFn('قال [1]', 'قال [1]') === 'قال'
+            && dropFn(answerBody, answerBody) === answerBody && dropFn(SHEET_A, SHEET_A) === SHEET_A,
+            JSON.stringify([dropFn('قال[1] كذا', 'قال[1] كذا'), dropFn('قال [1] كذا', 'قال [1] كذا'), dropFn('قال [1]', 'قال [1]')]));
+          ok('F-D6b-5 the six postship-2 fixture rows carry no marker (the STOP RULE probe, re-read here): their pinned blocks cannot move',
+            JSON.parse(fs.readFileSync(path.join(REPO, 'guards/fixtures-postship-2-fatwas.json'), 'utf8')).rows.every((r) => !/\[\d+\]/u.test(String(r.answer || ''))));
+          const mD6b = await mutate('lib/full-fatwa.js', "  body = dropBareFootnoteMarkers(body, String(answer || ''));", '  // mutant: the bare marker stays', 'd6bdrop');
+          ok('F-D6b MUTANT drop seam applied', mD6b.ok, mD6b.reason);
+          ok('F-D6b MUTANT KILLED: without the drop the brief body shows the bare «[1]» again',
+            mD6b.ok && mD6b.mod.serverOwnedBlock(BARE, [], { band: 'adult', brief: true }).split('<fatwafull')[0].includes('الجميع[1].'));
+        }
+        // ── brain35-5d F-D4 (2026-11-09; DIAG5 D4) · A CLOSED-LIST LEADING SPEAKER LABEL IS SKIPPED BY THE BRIEF EXCERPT ─────────
+        // MEASURED (DIAG5 H4, preview Q9): the brief card of a binothaimeen.net record opened «الشيخ: قدم الله سبحانه وتعالى الصبر …»; the
+        // W1 regex skipped a label only when a FORMULA followed it, so 20 of 171 stored bodies (10 «الشيخ:», 7 «ج:», 3 other) still opened
+        // on a label. A leading label from the CLOSED list «الشيخ», «ج», «س» (then «:» or «：», spaces optional) is now skipped on its own
+        // (EXCERPT_LABEL_RE), content or formula after it; no generic word-plus-colon skip (the postship9 pin binothaimeen:6971 opens on
+        // «السؤال:», seven letters, outside the list, and stays «body = answer»); the formula skip and the speaker-turn stop are unchanged.
+        {
+          // copied from the EXT report, question 9 (the H4 harness's string)
+          const Q9_OPEN = fix({ question: 'س', answer: 'الشيخ: قدم الله سبحانه وتعالى الصبر عن الصلاة لأن الصبر أوسع؛ فالصلاة عبادة معينة لكن الصبر أوسع ومن الصبر الصلاة لأن الصلاة طاعة لله.', title: 'ت', url: 'https://binothaimeen.net/content/SYNTHETIC-9' });
+          ok('F-D4-1 «الشيخ: قدم الله سبحانه وتعالى الصبر …» (EXT Q9) -> the brief body opens «قدم الله»', bodyOf(Q9_OPEN).startsWith('قدم الله') && !visible(Q9_OPEN).includes('الشيخ:'), bodyOf(Q9_OPEN).slice(0, 50));
+          // SYNTHETIC: a «ج:» label followed by content (no formula)
+          const JIM_OPEN = fix({ question: 'س', answer: 'ج: يجوز للمسافر أن يجمع بين الظهر والعصر إذا شق عليه النزول في كل وقت، وهذا من رخص السفر التي جاءت بها السنة.', title: 'ت', url: 'https://salmajed.com/fatwa/SYNTHETIC-2' });
+          ok('F-D4-2 SYNTHETIC «ج: يجوز …» -> the brief body opens «يجوز»', bodyOf(JIM_OPEN).startsWith('يجوز للمسافر') && !/^ج\s*:/u.test(bodyOf(JIM_OPEN)), bodyOf(JIM_OPEN).slice(0, 50));
+          // the postship9 pin's record: its answer opens on a seven-letter word + colon that is none of the three labels -> unchanged
+          const p2rows = JSON.parse(fs.readFileSync(path.join(REPO, 'guards/fixtures-postship-2-fatwas.json'), 'utf8')).rows;
+          const r6971 = p2rows.find((r) => r.id === 'binothaimeen:6971');
+          ok('F-D4-3 binothaimeen:6971 (the postship9 «body = answer» pin) opens on a six-letter word + colon outside the list («السؤال:») -> briefAnswerBody is the identity on it (pinned)',
+            !!r6971 && /^[^\s:：]{6}\s*[:：]/u.test(r6971.answer) && !/^(?:الشيخ|ج|س)\s*[:：]/u.test(r6971.answer) && bodyFn(r6971.answer) === r6971.answer.trim(), r6971 ? r6971.answer.slice(0, 40) : 'no record');
+          ok('F-D4-4 SYNTHETIC «الشيخ : الحمد لله رب العالمين. يجوز …» (label, then a formula) -> opens «يجوز» (the label skip and the formula skip compose)',
+            bodyFn('الشيخ : الحمد لله رب العالمين. يجوز للمسافر أن يجمع بين الصلاتين إذا شق عليه النزول في كل وقت من أوقات السفر.') === 'يجوز للمسافر أن يجمع بين الصلاتين إذا شق عليه النزول في كل وقت من أوقات السفر.'
+            && bodyFn('س: ما حكم كذا؟ الجواب واضح في كتب أهل العلم ولا خلاف فيه بينهم فيما نعلم.') === 'ما حكم كذا؟ الجواب واضح في كتب أهل العلم ولا خلاف فيه بينهم فيما نعلم.',
+            JSON.stringify([bodyFn('الشيخ : الحمد لله رب العالمين. يجوز للمسافر أن يجمع بين الصلاتين إذا شق عليه النزول في كل وقت من أوقات السفر.')]));
+          ok('F-D4-5 a word that merely BEGINS with a label letter («جميع: …», «سئل: …») is not a label (pinned: no generic word-plus-colon skip)',
+            bodyFn('جميع: ما ورد في الباب ضعيف عند أهل العلم ولا يصح منه شيء مرفوعا فيما نعلم.') === 'جميع: ما ورد في الباب ضعيف عند أهل العلم ولا يصح منه شيء مرفوعا فيما نعلم.'
+            && bodyFn('سئل: عن حكم كذا فأجاب بأن الأمر فيه سعة ولا حرج على من فعله أو تركه.') === 'سئل: عن حكم كذا فأجاب بأن الأمر فيه سعة ولا حرج على من فعله أو تركه.');
+          // the mutant: the closed list emptied -> F-D4-1 red
+          const mD4 = await mutate('lib/full-fatwa.js', 'const EXCERPT_LABEL_RE = /^\\s*(?:الشيخ|ج|س)\\s*[:：]\\s*/u;', 'const EXCERPT_LABEL_RE = /^(?!)/u; // mutant: no label is a label', 'd4label');
+          ok('F-D4 MUTANT label seam applied', mD4.ok, mD4.reason);
+          ok('F-D4 MUTANT KILLED: with the list emptied the Q9 block opens on «الشيخ:» again',
+            mD4.ok && mD4.mod.serverOwnedBlock(Q9_OPEN, [], { band: 'adult', brief: true }).split('<fatwafull')[0].includes('الشيخ: قدم الله'));
+        }
+        // ── brain35-5e G1a (2026-11-09; DIAG6 G1) · THE FORMULA LIST TAKES THE FORMS THE LIVE CARDS CARRY ───────────────────
+        // MEASURED (DIAG6 G1-brief-preamble, preview Q12 / Q18): the W1 skip is a prefix match over a closed list and stops at the first
+        // form not on it, so «الحمد لله، وصلى الله وسلم على …» lost its hamdala and the card opened «وصلى الله وسلم …» (3 of 171 stored
+        // answers: albarrak:8687, aljasser:287, aljasser:439; none on the base). The list gains four alternatives in its own style: a
+        // free-standing «رب العالمين», «و?صلى الله (وسلم|وبارك)? على …», «و?من اهتدى / تبعهم / والاه / سار على / استن …», and up to three
+        // words between «والسلام» and «على»; the format characters U+200B-U+200F, U+2060, U+FEFF count as whitespace in the skip.
+        {
+          const ZWSP = String.fromCharCode(0x200B);
+          // SYNTHETIC (the order's record, Q18's preamble shape)
+          const G1A_Q18 = 'الحمد لله، وصلى الله وسلم على رسول الله، وعلى آله وأصحابه، ومن اهتدى بهداه، أما بعد. فإن الصائم إذا أكل أو شرب ناسيا فصومه صحيح.';
+          ok('G1a-1 SYNTHETIC «الحمد لله، وصلى الله وسلم على رسول الله، … ومن اهتدى بهداه، أما بعد. فإن الصائم …» -> the body opens «فإن الصائم»',
+            String(bodyFn(G1A_Q18)).startsWith('فإن الصائم'), String(bodyFn(G1A_Q18)).slice(0, 40));
+          // SYNTHETIC (the order's record, Q12's preamble shape; the content after «أما بعد:» SYNTHETIC)
+          const G1A_Q12_TAIL = 'وصلى الله وسلم على نبينا محمد، وعلى آله وصحبه ومن اهتدى بهديه إلى يوم الدين. أما بعد: الحلي المعد للاستعمال تجب فيه الزكاة إذا بلغ النصاب على الصحيح من أقوال أهل العلم.';
+          const G1A_Q12 = 'الحمد لله، رب العالمين، ' + G1A_Q12_TAIL;
+          ok('G1a-2 SYNTHETIC «الحمد لله، رب العالمين، وصلى الله وسلم على نبينا محمد، … أما بعد: الحلي المعد للاستعمال …» -> the body opens «الحلي»',
+            String(bodyFn(G1A_Q12)).startsWith('الحلي المعد'), String(bodyFn(G1A_Q12)).slice(0, 40));
+          const G1A_Q12_ZW = 'الحمد لله' + ZWSP + 'رب العالمين، ' + G1A_Q12_TAIL;
+          ok('G1a-3 SYNTHETIC the same with U+200B in place of «، » after «لله» -> the body opens «الحلي»',
+            String(bodyFn(G1A_Q12_ZW)).startsWith('الحلي المعد'), String(bodyFn(G1A_Q12_ZW)).slice(0, 40));
+          // SYNTHETIC (the aljasser shape; the content after «أما بعد:» SYNTHETIC)
+          const G1A_JASSER = 'الحمد لله رب العالمين والصلاة والسلام الأتمان الأكملان على المبعوث رحمة للعالمين، أما بعد: فإن الواجب على المسلم أن يؤدي الزكاة إذا حال عليها الحول وبلغت النصاب.';
+          ok('G1a-4 SYNTHETIC «… والصلاة والسلام الأتمان الأكملان على المبعوث رحمة للعالمين، أما بعد: فإن …» -> the body opens «فإن»',
+            String(bodyFn(G1A_JASSER)).startsWith('فإن الواجب'), String(bodyFn(G1A_JASSER)).slice(0, 40));
+          // the wasl fixture's record albarrak:8687 (DIAG6 G1: card «وصلى الله وسلم على محمد، أما بعد: فالمعتبر …»)
+          let r8687 = null;
+          for (const entry of Object.values(wasl)) {
+            let body; try { body = JSON.parse(entry.body); } catch { continue; }
+            const hit = body && Array.isArray(body.results) && body.results.find((r) => r && r.uid === 'albarrak:8687' && r.content && typeof r.content.answer === 'string');
+            if (hit) { r8687 = fix(hit.content); break; }
+          }
+          ok('G1a-5 albarrak:8687 (guards/fixtures-speed-wasl-fatwas.json) -> the brief body opens «فالمعتبر»',
+            !!r8687 && String(bodyFn(r8687.answer)).startsWith('فالمعتبر') && bodyOf(r8687).startsWith('فالمعتبر'), r8687 ? String(bodyFn(r8687.answer)).slice(0, 40) : 'no record');
+          ok('G1a-6 a record whose answer opens on content is byte-identical: head + the whole answer, body = answer (pinned)',
+            visible(PLAIN) === plainHead + PLAIN.answer + '\n' && bodyFn(PLAIN.answer) === PLAIN.answer);
+          // the mutant: the four alternatives (and the format characters) removed -> G1a-1 red
+          const G1A_OLD = "const EXCERPT_PREAMBLE_RE = /^(?:\\s*(?:ج|الشيخ|الجواب)\\s*[:：]\\s*)?(?:(?:و?عليكم\\s+السلام(?:\\s+ورحمة\\s+الله(?:\\s+وبركاته)?)?|بسم\\s+الله\\s+الرحمن\\s+الرحيم|الحمد\\s+لله(?:\\s+رب\\s+العالمين)?|و?(?:أصلي|نصلي)\\s+و(?:أسلم|نسلم)\\s+على[^.،؛]{0,80}|و?الصلاة\\s+والسلام\\s+على[^.،؛]{0,80}|و?على\\s+آله[^.،؛:]{0,60}|أما\\s+بعد|وبعد)\\s*[،.:؛]*\\s*\\.*\\s*)+/u;";
+          const G1A_SEAM = 'const EXCERPT_PREAMBLE_RE = new RegExp(String.raw`';
+          const ffSrc = fs.readFileSync(path.join(REPO, 'lib/full-fatwa.js'), 'utf8');
+          const g1aLine = ffSrc.split('\n').find((l) => l.startsWith(G1A_SEAM)) || '<<no G1a seam>>';
+          const mG1a = await mutate('lib/full-fatwa.js', g1aLine, G1A_OLD + ' // mutant: the four alternatives removed', 'g1alist');
+          ok('G1a MUTANT list seam applied', mG1a.ok, mG1a.reason);
+          // re-cut 2026-11-09 (brain35-5f G1b, R8): the kill condition is G1a-1 failing under the mutant, not the literal head the mutant left
+          ok('G1a MUTANT KILLED: with the four alternatives removed, G1a-1 FAILS (the Q18 body does not open on «فإن الصائم»)',
+            mG1a.ok && !String(mG1a.mod.briefAnswerBody(G1A_Q18)).startsWith('فإن الصائم'));
+        // ── brain35-5e G1b (2026-11-09; DIAG6 G1, Claude's addition) · A BRIEF CARD NEVER OPENS ON A FORMULA FRAGMENT ──────────
+        // When the body the skips leave opens (tested on a copy with diacritics, tatweel and the format characters removed) on a
+        // fragment head of a closed list («رب العالمين», «وصلى الله», «والسلام على», «وسلام على», «وعلى آله», «ومن اهتدى», «الأتمان» …),
+        // the brief body falls back to the answer with the label skip only and NO formula skip (the whole formula at the head, the
+        // base's shape). A body that does not open on a fragment head is byte-identical to G1a's.
+        {
+          const TANWEEN_DAMM = String.fromCharCode(0x064C);
+          const [FATHA, DAMMA, KASRA, SHADDA] = [0x064E, 0x064F, 0x0650, 0x0651].map((c) => String.fromCharCode(c));
+          // SYNTHETIC (the order's record; the content after «فإن» SYNTHETIC)
+          const G1B_SALAM = 'الحمد لله، وسلام' + TANWEEN_DAMM + ' على عباده الذين اصطفى، أما بعد: فإن الواجب على المسلم أن يتعلم أحكام دينه.';
+          ok('G1b-1 SYNTHETIC «الحمد لله، وسلامٌ على عباده الذين اصطفى، أما بعد: فإن …» -> the body opens «الحمد لله» (the whole formula, not «وسلامٌ على»)',
+            String(bodyFn(G1B_SALAM)).startsWith('الحمد لله، وسلام'), String(bodyFn(G1B_SALAM)).slice(0, 40));
+          // SYNTHETIC (the order's record, fully vowelled; the content after «فإن» SYNTHETIC)
+          const G1B_VOWELLED = 'الحمد' + DAMMA + ' لله' + KASRA + ' رب' + SHADDA + KASRA + ' العالمين' + FATHA + '، والصلاة' + DAMMA + ' والسلام' + DAMMA + ' على رسول' + KASRA + ' الله' + KASRA + '، أما بعد: فإن الواجب على المسلم أن يتعلم أحكام دينه.';
+          const g1bV = String(bodyFn(G1B_VOWELLED));
+          ok('G1b-2 SYNTHETIC «الحمدُ للهِ ربِّ العالمينَ، والصلاةُ والسلامُ على رسولِ اللهِ، أما بعد: فإن …» -> the body opens on «الحمدُ» or on «فإن», never on «ربِّ» (pinned: «الحمدُ» on f15de551 and after)',
+            (g1bV.startsWith('الحمد' + DAMMA) || g1bV.startsWith('فإن')) && !g1bV.startsWith('رب'), g1bV.slice(0, 40));
+          ok('G1b-3 every G1a row unchanged under the fallback: Q18 «فإن الصائم», Q12 «الحلي» (comma and U+200B), aljasser «فإن», albarrak:8687 «فالمعتبر» (pinned)',
+            String(bodyFn(G1A_Q18)).startsWith('فإن الصائم') && String(bodyFn(G1A_Q12)).startsWith('الحلي المعد') && String(bodyFn(G1A_Q12_ZW)).startsWith('الحلي المعد')
+            && String(bodyFn(G1A_JASSER)).startsWith('فإن الواجب') && !!r8687 && String(bodyFn(r8687.answer)).startsWith('فالمعتبر'));
+          // brain35-5f G1b-4 (order FIX5F; FIX5E FOUND 1): the two unpunctuated aljasser lessons of the wasl fixture. After G1a their
+          // body opened on the invocation's tail «يوم الدين وعنا معهم …»; now it falls back to the whole formula (the answer, label skip only).
+          const G1B_HEADS = ["رب العالمين","وصلى الله","صلى الله","والصلاة والسلام","والسلام على","وسلام على","وعلى آله","ومن اهتدى","ومن تبعهم","ومن والاه","الأتمان","الأكملان","يوم الدين","إلى يوم الدين","وعنا معهم","برحمتك","يا أرحم الراحمين","أجمعين","تسليما كثيرا","وصحبه","وأصحابه"];
+          const g1bFold = (s) => String(s || '').replace(/[\u064B-\u065F\u0670\u0640\u200B-\u200F\u2060\uFEFF]/gu, '').replace(/\s+/gu, ' ').trim();
+          const g1bJasser = {};
+          for (const entry of Object.values(wasl)) {
+            let body; try { body = JSON.parse(entry.body); } catch { continue; }
+            for (const r of (body && Array.isArray(body.results) ? body.results : [])) {
+              if (r && /^aljasser:(?:287|439)$/.test(r.uid) && r.content && typeof r.content.answer === 'string' && !g1bJasser[r.uid]) g1bJasser[r.uid] = fix(r.content);
+            }
+          }
+          for (const uid of ['aljasser:287', 'aljasser:439']) {
+            const rec = g1bJasser[uid];
+            const b = rec ? g1bFold(bodyFn(rec.answer)) : '';
+            const whole = rec ? g1bFold(String(rec.answer).trim()).slice(0, 30) : '<<none>>';
+            ok('G1b-4 ' + uid + ' (guards/fixtures-speed-wasl-fatwas.json) -> the brief body opens on no head of the fragment list (not «يوم الدين»): it opens on the whole formula',
+              !!rec && !G1B_HEADS.some((h) => b.startsWith(h + ' ') || b === h) && b.startsWith(whole), rec ? b.slice(0, 40) : 'no record');
+          }
+          // the mutant: the fallback removed -> G1b-1 red
+          const mG1b = await mutate('lib/full-fatwa.js', '  if (BRIEF_FRAGMENT_HEAD_RE.test(foldForFragmentHead(body))) body = String(answer || \'\').replace(EXCERPT_LABEL_RE, \'\').trim();',
+            '  // mutant: no fallback', 'g1bfallback');
+          ok('G1b MUTANT fallback seam applied', mG1b.ok, mG1b.reason);
+          ok('G1b MUTANT KILLED: without the fallback the body opens on «وسلامٌ على» again',
+            mG1b.ok && String(mG1b.mod.briefAnswerBody(G1B_SALAM)).startsWith('وسلام'));
+        }
+        }
+      }
+    }    // ── brain35-2 F10 (2026-11-07; DIAG2 R13 a) · THE «فأجاب …:» SPLIT AS A SAFETY FOR ONE-FIELD RECORDS ────────────
+    // MEASURED (DIAG2 R13): the sheet the extension opened («السائل م س يقول … فأجاب رحمه الله تعالى: …») as a store record
+    // with one text field was refused by recordUsableAsFatwa before the brief block was reached; printedFatwaPair knew only
+    // «الجواب:» / «السؤال:». A record whose answer is empty and whose question carries the answering formula is now split on it,
+    // and recordUsableAsFatwa judges the record AFTER the split. The title floor (lib/fatwa-title.js) is not changed.
+    const ONE_FIELD = (formula) => ({ ...record(''), question: SHEET_Q + ' ' + formula + ' ' + SHEET_A, answer: '', supportText: SHEET_Q + ' ' + SHEET_A });
+    const sheet = ONE_FIELD('فأجاب رحمه الله تعالى:');
+    const sheetPair = FF.printedFatwaPair(sheet);
+    ok('F10a the sheet as one `question` field is usable: question ' + SHEET_Q.length + ' chars, answer ' + SHEET_A.length + ', substantive, and the brief block opens on the answer',
+      FF.recordUsableAsFatwa(sheet) === true && sheetPair.question === SHEET_Q && sheetPair.answer === SHEET_A && FF.substantiveFatwaAnswer(sheet) === true
+      && FF.serverOwnedBlock(sheet, [], { band: 'adult', brief: true }).startsWith('## ' + FF.HEADING_TEXT + '\n\n' + FF.BRIEF_ANSWER_HEAD + '\n' + SHEET_A),
+      JSON.stringify({ usable: FF.recordUsableAsFatwa(sheet), q: sheetPair.question.length, a: sheetPair.answer.length }));
+    ok('F10b «ج:» and «فأجابه:» and «فالجواب:» and «فأجاب فضيلته:» split the same way',
+      ['ج:', 'فأجابه:', 'فالجواب:', 'فأجاب فضيلته:', 'فأجاب الشيخ:'].every((f) => { const p = FF.printedFatwaPair(ONE_FIELD(f)); return p.question === SHEET_Q && p.answer === SHEET_A && FF.recordUsableAsFatwa(ONE_FIELD(f)); }));
+    ok('F10c a «ج:» inside a word («الحج:») does not split, and a one-field record with no formula stays unusable',
+      FF.recordUsableAsFatwa({ ...record(''), question: 'ما حكم الحج: هل هو واجب على الفور؟', answer: '' }) === false
+      && FF.recordUsableAsFatwa({ ...record(''), question: SHEET_Q + ' ' + SHEET_A, answer: '' }) === false);
+    ok('F10d a record with both fields is unchanged byte for byte, even when its question carries the formula',
+      JSON.stringify(FF.printedFatwaPair(long)) === JSON.stringify({ question: long.question, answer: long.answer }) && FF.recordUsableAsFatwa(long) === true
+      && (() => { const both = { ...record(SHEET_A), question: SHEET_Q + ' فأجاب رحمه الله تعالى: ' + SHEET_A }; const p = FF.printedFatwaPair(both); return p.question === SHEET_Q + ' فأجاب رحمه الله تعالى: ' + SHEET_A && p.answer === SHEET_A; })());
+    {
+      const mF10 = await mutate('lib/full-fatwa.js', "  if (!answer.trim()) {\n    const formula = FA_AJABA_RE.exec(question);", "  if (false) { // mutant: no one-field sheet is split\n    const formula = FA_AJABA_RE.exec(question);", 'split');
+      ok('F10 MUTANT split seam applied', mF10.ok, mF10.reason);
+      ok('F10 MUTANT KILLED: without the split the one-field sheet is refused again', mF10.ok && mF10.mod.recordUsableAsFatwa(sheet) === false && mF10.mod.printedFatwaPair(sheet).answer === '');
+    }
+
+
+  }
+
   console.log('\n=== full-fatwa-contract: ' + (checks - failures) + '/' + checks
     + ' — ' + (failures ? 'FAIL' : 'PASS') + ' ===');
   process.exit(failures ? 1 : 0);

@@ -152,7 +152,10 @@ function pressDraw(text) {
   const app = fs.readFileSync(path.join(REPO, 'app.jsx'), 'utf8');
   ok('the full text is drawn by the one prose site (no pre-wrap div of raw text)', !/dir="auto">\{body\}<\/div>/.test(app)
     && /full=\{prose\(\{ type: 'text', content: brief\.content \}\)\}/.test(app));
-  ok('the server still sends the excerpt, then the tag with the whole block (unchanged)', fs.readFileSync(path.join(REPO, 'lib/full-fatwa.js'), 'utf8').includes("return briefExcerpt(whole, BRIEF_FATWA_MAX) + '…\\n' + '<fatwafull matn=\"'"));
+  // re-cut 2026-11-07 (brain35-3 X14; owner decision B-1 of the first batch, the brief block answer-first; the line itself moved
+  // with brain35-2 F8): the server sends the head, the answer (cut to the budget only when the ANSWER exceeds it), then the tag
+  // with the whole block.
+  ok('the server still sends the excerpt, then the tag with the whole block (re-cut 2026-11-07, owner decision B-1)', fs.readFileSync(path.join(REPO, 'lib/full-fatwa.js'), 'utf8').includes("return head + answerOnly + (cut ? '…' : '') + '\\n' + '<fatwafull matn=\"'"));
 
   console.log('\n' + (checks - failures) + '/' + checks + ' checks passed');
   process.exit(failures ? 1 : 0);

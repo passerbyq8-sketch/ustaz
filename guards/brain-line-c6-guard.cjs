@@ -33,10 +33,19 @@ const NO_TAIL = [
   ['consensus (directive:119)', 'وجواز ذلك باتفاق أهل العلم، وهو مستحب.', ''],
   ['WP04 (witness/136.md 04.md:7,19,25)', 'العسر الأول هو العسر الثاني، واليسر الأول غير اليسر الثاني، وقد جاء في الحديث: «لن يغلب عسر يسرين» (البخاري)؛ ووجه ذلك أن العسر معروف فهو واحد، لأنه ذلك المعرف بعينه، واليسر منكر، ولو كان اليسر الثاني هو الأول لتكرر وفيه الألف واللام ليعرف ذكره.\nوقد خرج البزار في مسنده وابن أبي حاتم من حديث أنس عن النبي صلى الله عليه وسلم أنه قال: «لو جاء العسر فدخل هذا الجحر، لجاء اليسر حتى يدخل عليه فيخرجه» (الحاكم · لم يوقف على حكم)، فأنزل الله عز وجل هاتين الآيتين.\nوروى ابن جرير وغيره من حديث الحسن مرسلا نحوه، وفيه: فقال النبي صلى الله عليه وسلم: «لن يغلب عسر يسرين» (البخاري).', 'tafsir'],
   ['a ruling with khilaf, but the topic is sira', 'والمسألة فيها خلاف، والراجح أنه يجوز.', 'biography'],
-];
-const TAIL = [
-  ['a ruling sentence with an open khilaf (directive:119 + COMPOSED)', 'والمسألة فيها خلاف، والراجح أنه يجوز.', ''],
+  // ITEM A-1 (brain35, 2026-11-06): the same ruling with no topic and with the fiqh topic -- it declares a khilaf and
+  // names nobody, so there are no two views for the tail to send the reader back to. Both were TAIL rows before.
+  ['a ruling with khilaf but no view attributed to anybody', 'والمسألة فيها خلاف، والراجح أنه يجوز.', ''],
   ['the same, fiqh topic', 'والمسألة فيها خلاف، والراجح أنه يجوز.', 'sharia_ruling'],
+];
+// ITEM A-1 (brain35, 2026-11-06) BY THE OWNER'S DECISION (DIAG 35.4, the order's own words: «null when releasedViews < 2»):
+// a sentence that DECLARES a disagreement but shows no two views on the screen no longer carries the tail. The two rows
+// that pinned the old behaviour -- «والمسألة فيها خلاف، والراجح أنه يجوز.», which attributes nothing to anybody -- are now NO_TAIL rows, and the
+// positive witness is the same declaration with the two views it points at (Shafi'i and Hanafi, opposite stances), so the
+// guard still proves the tail FIRES where it belongs and not only that it stays silent.
+const TAIL = [
+  ['two named views and an open khilaf (directive:119 + COMPOSED)', 'وذهب الشافعية إلى أن الوضوء ينتقض من لحم الإبل، وذهب الحنفية إلى أنه لا ينتقص، والمسألة فيها خلاف، والراجح أنه ينتقض.', ''],
+  ['the same, fiqh topic', 'وذهب الشافعية إلى أن الوضوء ينتقض من لحم الإبل، وذهب الحنفية إلى أنه لا ينتقص، والمسألة فيها خلاف، والراجح أنه ينتقض.', 'sharia_ruling'],
 ];
 
 (async () => {

@@ -77,11 +77,12 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e]/g, (c) => '\\u' + c.charCod
     const r = await turn(Q, TITLE, copied);
     const answers = (r.text.match(/الجواب:/gu) || []).length;
     ok('the stored fatwa opens the answer (the block is shown)', r.out.telemetry.directFatwa === true && r.text.startsWith('## نص الفتوى'), ascii(r.text.slice(0, 80)));
-    ok('al-jawab: once in the answer (it was twice)', answers === 1, String(answers));
+    // re-cut 2026-11-07 (brain35-2 F8; owner decision R8): the brief block opens on «الجواب (مختصرًا):», the original «الجواب:» rides in the expansion; the writer's copy is still held, so none is visible
+    ok('al-jawab: none visible beside the block\'s own «الجواب (مختصرًا):» (it was twice; re-cut 2026-11-07, owner decision R8)', answers === 0 && (r.text.match(/الجواب \(مختصرًا\):/gu) || []).length === 1, String(answers));
     ok('...and the page card stays', r.text.includes('https://binbaz.org.sa/fatwas/5348'));
     console.log('-- 2. the writer explains in its own words');
     const own = await turn(Q, TITLE, 'يرى الشيخ أن زكاة الفطر لا تخرج نقودا، وإنما تخرج طعاما كما فرضها النبي صلى الله عليه وسلم [[1]].');
-    ok('an explanation in the writer\'s own words is released as it was', own.text.includes('يرى الشيخ أن زكاة الفطر لا تخرج نقودا') && (own.text.match(/الجواب:/gu) || []).length === 1, ascii(own.text.slice(-160)));
+    ok('an explanation in the writer\'s own words is released as it was', own.text.includes('يرى الشيخ أن زكاة الفطر لا تخرج نقودا') && (own.text.match(/الجواب:/gu) || []).length === 0 && (own.text.match(/الجواب \(مختصرًا\):/gu) || []).length === 1 /* re-cut 2026-11-07, brain35-2 F8, owner decision R8 */, ascii(own.text.slice(-160)));
   }
   console.log('-- 3. two records, one text (case b) / two fatwas');
   const HD = await esm('lib/hybrid-deen.js');

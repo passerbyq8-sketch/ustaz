@@ -145,6 +145,7 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
 
 (async () => {
   const BW2 = await esm('lib/before-writing-v2.js');
+  const REVIEW = await esm('lib/output-reviewer.js'); // brain35 A-3 (b): the binding predicate
   const SSE = await esm('lib/finalized-sse-writer.js');
   const TOOLS = await esm('lib/free-brain/tools.js');
   const ASK = await esm('api/ask.js');
@@ -248,6 +249,9 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       takhrijWired: !!opts.takhrij || !!opts.takhrijImpl, cards, wire, requestStartedAt: Date.now(),
       env: { BW2_RETRIEVAL_MS: String(opts.budget || 400), BW2_JUDGE_MS: '400', ...(opts.env || {}) },
       runtime: opts.runtime || '',
+      // ITEM O-1 (brain35, 2026-11-06): telemetry.continued is written only on a turn that hands over, so a row about the
+      // reason it handed over has to ask for that.
+      continueWhenNotCovered: !!opts.continueWhenNotCovered,
       deps,
     });
     const frames = framesOf(target);
@@ -405,11 +409,15 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       ok('3.4e-1 a sentence citing two rows is followed by one card, the first row\'s, right after it; the second card does not follow the first',
         twoCards.length === 1 && twoCards[0].includes('/fatwas/1234') && !two.deltas.join('').includes('/fatwas/5678') && two.out.telemetry.cardsSent === 1,
         ascii(JSON.stringify(two.deltas)));
-      const later = await run({ fatwa: [ROW_F1, ROW_F2], writerText: MASAH_RULING + ' [[1, 2]]. ' + MASAH_TERM + ' [[2]].' });
+      // brain35 A-3 (b) (2026-11-06, contract section 5: each paragraph tagged by its own source): a held card goes out under
+      // a later sentence only when that row's text supports it; the later sentence here is one ROW_F2 carries (the fasting
+      // ruling), where it used to be the masah term, which the fasting row does not carry.
+      const FASTING_RULING = 'صومه صحيح';
+      const later = await run({ fatwa: [ROW_F1, ROW_F2], writerText: MASAH_RULING + ' [[1, 2]]. ' + FASTING_RULING + ' [[2]].' });
       const iA = later.deltas.findIndex((d) => d.includes('/fatwas/1234'));
       const iB = later.deltas.findIndex((d) => d.includes('/fatwas/5678'));
       ok('3.4e-2 the held card goes out after a LATER sentence that cites that row again, and right after it: unit, card, unit, card',
-        iA > 0 && iB > iA + 1 && later.deltas[iA - 1].includes(MASAH_RULING) && later.deltas[iB - 1].includes(MASAH_TERM) && !later.deltas[iB - 1].includes('<source')
+        iA > 0 && iB > iA + 1 && later.deltas[iA - 1].includes(MASAH_RULING) && later.deltas[iB - 1].includes(FASTING_RULING) && !later.deltas[iB - 1].includes('<source')
         && later.out.telemetry.cardsSent === 2, ascii(JSON.stringify(later.deltas)));
       const mixed = await run({ fatwa: [ROW_F1], libOn: true, library: [ROW_L1], writerText: MASAH_RULING + ' [[1, 3]].' });
       ok('3.4e-3 a sentence citing a page and a book: one card after it, the first cited (the page); the book\'s card is not put behind it',
@@ -425,7 +433,9 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
           fsx.writeFileSync(tmpMod, srcU.split(seam).join('export const BW2_CARDS_PER_UNIT = 3;'));
           const MU = await import(require('url').pathToFileURL(tmpMod).href + '?m=34e');
           const out = [];
-          const rel = MU.createBw2Releaser({ rows: [{ ...ROW_F1, ref: 1 }, { ...ROW_F2, ref: 2 }], emit: (p) => { out.push(p); return true; },
+          // brain35 A-3 (b): a card is bound to the sentence its row supports, so the second row here is a second page that
+          // carries the same masah ruling (the fasting row no longer qualifies under the masah sentence)
+          const rel = MU.createBw2Releaser({ rows: [{ ...ROW_F1, ref: 1 }, { ...ROW_F1, ref: 2, url: 'https://binbaz.org.sa/fatwas/9999', recordId: '9999' }], emit: (p) => { out.push(p); return true; },
             cards: { buildSourceTag: (row) => ({ tag: '<source url="' + row.url + '">x</source>', url: row.url }), buildBookTag: () => null, max: 5 } });
           rel.push(MASAH_RULING + ' [[1, 2]].\n');
           await rel.end();
@@ -834,8 +844,15 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       const ORDER10 = 'C:/Users/passe/projects/ustaz-archive/sessions/comprehensive-2026-10-02/EZIK-ORDER-50-2026-10-03.md';
       ok('ORDER50-2b the sentence is the order file\'s own wherever the order file is present (it lives outside the repository, so a clone without it passes this one row)',
         !fs.existsSync(ORDER10) || fs.readFileSync(ORDER10, 'utf8').includes('«' + body10 + '»'));
-      ok('ORDER50-2c every turn\'s rules carry it, last (a turn about the schools carries it too)', BW2.bw2RulesFor([], 'ما درجة حديث «اختلاف أمتي رحمة»؟', []).includes(rule10)
-        && BW2.bw2RulesFor([], 'x', []).endsWith(rule10) && BW2.bw2RulesFor([], 'ما حكم الجهر بالبسملة عند المذاهب الأربعة؟', []).includes(rule10));
+      // brain35 A-3 (2026-11-06, the owner's decision): the writer's rules now carry the compiler rule (BW2_WRITE_RULES_BRAIN35,
+      // rule 12) AFTER the tenth sentence on every turn; the tenth is still carried, and the brain35 rules close the list.
+      // re-cut 2026-11-09 (brain35-5e J, R5 (a)): the owner's no-Ja'fari line is appended after them on every turn; the pin of the
+      // assembled rules' tail moves to include it, nothing else of the row
+      const NO_JAFARI_R5 = require('fs').readFileSync(path.join(REPO, 'lib/free-brain/instructions.js'), 'utf8').includes('export const NO_JAFARI_SCHOOL_RULE') ? (await esm('lib/free-brain/instructions.js')).NO_JAFARI_SCHOOL_RULE : '';
+      ok('ORDER50-2c every turn\'s rules carry it, and the brain35 rules follow it, last', BW2.bw2RulesFor([], 'x', []).endsWith(BW2.BW2_WRITE_RULES_BRAIN35 + String.fromCharCode(10) + NO_JAFARI_R5)
+        && BW2.bw2RulesFor([], 'x', []).indexOf(rule10) < BW2.bw2RulesFor([], 'x', []).indexOf(BW2.BW2_WRITE_RULES_BRAIN35));
+      ok('ORDER50-2c every turn\'s rules carry it (a turn about the schools carries it too)', BW2.bw2RulesFor([], 'ما درجة حديث «اختلاف أمتي رحمة»؟', []).includes(rule10)
+        && BW2.bw2RulesFor([], 'x', []).includes(rule10) && BW2.bw2RulesFor([], 'ما حكم الجهر بالبسملة عند المذاهب الأربعة؟', []).includes(rule10));
       const tmp10 = path.join(REPO, 'lib', '.mut-order50-2.mjs');
       try {
         const src10 = fs.readFileSync(path.join(REPO, 'lib/before-writing-v2.js'), 'utf8');
@@ -1161,7 +1178,11 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       // N section 3 N2(b): pinned asked-matn evidence opens q6 without a proving unit; q11 lacks it.
       ok('C7i pinned q6 evidence releases its three checked units without proof; q11 remains closed; explicit proof still works',
         UNITS.asksHadithSource(Q6_SOURCE) && UNITS.asksHadithSource(F.q11) && !UNITS.asksHadithSource(Q6)
-        && s6.deltas.join('') === c1.deltas.join('') && !hasOffer(s6)
+        // brain35 A-2 (2026-11-06, contract section 5: say when the wording's collector cannot be confirmed): the source
+        // question's three units go out as before, and the answer then ends on the collector sentence, once (no unit
+        // names a collector); the non-source twin (c1) gets no such sentence.
+        && s6.deltas.join('').startsWith(c1.deltas.join('')) && s6.deltas.join('').endsWith(BW2.LEDGER_COLLECTOR_SENTENCE)
+        && s6.deltas.join('').split(BW2.LEDGER_COLLECTOR_SENTENCE).length === 2 && !c1.deltas.join('').includes(BW2.LEDGER_COLLECTOR_SENTENCE) && !hasOffer(s6)
         && s6.out.telemetry.unitsReleased === 3 && s6.out.telemetry.unitsHeld === 0 && s6.out.telemetry.unitsProvedHadith === 0
         && s6.out.telemetry.heldDependentOpening === 0 && s6.out.telemetry.continued === ''
         && s11.deltas.join('') === NOT_COVERED && hasOffer(s11) && s11.out.telemetry.unitsReleased === 0
@@ -1282,7 +1303,9 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       const t = c.deltas.join('');
       const tel = c.out.telemetry;
       ok('C4a q1: the units the carrying row proves are released on it -- the opening that names Muslim and Tamim al-Dari, cited or not',
-        t.startsWith(W1) && t.includes(drop(W2(2))) && t.includes(W3) && tel.unitsProvedHadith === 3
+        // ITEM B-4 (brain35, 2026-11-06): W2's unit cites the row whose card went out above it, so it ends « — ابن باز.» --
+        // the unit's own words are all still there, with its full stop behind the mark.
+        t.startsWith(W1) && t.includes(drop(W2(2)).replace(/\.$/u, '')) && t.includes(W3.replace(/\.$/u, '')) && tel.unitsProvedHadith === 3
         && t.includes('binbaz.org.sa/audios/101'), ascii(c.deltas.join('|')) + ' ' + JSON.stringify(tel));
       ok('C4b ...no not-covered sentence and no offer; the connector after a proved unit follows it out; the rest held as today',
         !t.includes(NOT_COVERED) && !hasOffer(c) && t.includes(W4) && t.includes(W7) && tel.unitsReleased === 5 && tel.unitsHeld === 2
@@ -1371,7 +1394,10 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         && read('guards/telemetry-text-guard.cjs').includes("'unitsProvedHadith',"));
       // SPEED FIX 4: the Q1 fixture's released text, byte for byte, as 142a100 released it (SHA-256 measured there).
       ok('C6f FIX3\x27s Q1 fixture releases as before under C5 and C6: the same bytes, 5 released, 2 held, 3 proved',
-        require('crypto').createHash('sha256').update(t).digest('hex') === 'cacc99a08ac16ac782b62b29f4276f39c9d1de563952426cc03a0cb7e7dc5398'
+        // ITEM B-4 (brain35, 2026-11-06) BY THE OWNER'S DECISION (contract 5: every paragraph names its source): the unit citing
+        // the Ibn Baz row whose card already went out now ends on « — ابن باز». Measured: the released bytes are 142a100's
+        // with that one mark inserted and nothing else (was cacc99a08ac16ac782b62b29f4276f39c9d1de563952426cc03a0cb7e7dc5398).
+        require('crypto').createHash('sha256').update(t).digest('hex') === 'b4f04b76ad0ff9a8c4f2dda15ef2543e08d4a9ceb34be5ff6c556c994fbd827d'
         && tel.unitsReleased === 5 && tel.unitsHeld === 2 && tel.unitsProvedHadith === 3, JSON.stringify(tel));
     }
 
@@ -1445,8 +1471,10 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       // SPEED FIX 5: C7 answers a question about a hadith's source first or not at all, and this
       // fixture pins R5 / C1 / C5, not the question's class: its runs ask about the same hadith's meaning.
       const plain = await run({ question: '\u0645\u0627 \u0645\u0639\u0646\u0649 \u062d\u062f\u064a\u062b: ' + MATN + '\u061f', fatwa: [], libOn: true, library: [R301, R303, RENC], writerText: [W_PLAIN, A2C].join('\n'), takhrijImpl: byLibrary });
-      ok('C5d ...and goes out after a released unit; after a released sentence that is not substantive it is still held as an opening',
-        after.deltas.join('').startsWith(W_ANAS) && after.deltas.join('').includes(A2) && after.out.telemetry.unitsHeld === 0
+      // re-cut 2026-11-07 (brain35-3 X6; owner: yes): answer 2's row card is refused (A-3 b: unsupported, owed), so the unit now
+      // carries its source mark before its final period; the bytes before the mark are answer 2's, as before.
+      ok('C5d ...and goes out after a released unit (now with its source mark: its card is refused); after a released sentence that is not substantive it is still held as an opening',
+        after.deltas.join('').startsWith(W_ANAS) && after.deltas.join('').includes(A2.replace(/\.$/u, '')) && / — [^\n]{2,40}\.\s*$/mu.test(after.deltas.join('')) && after.out.telemetry.unitsHeld === 0
         && plain.deltas.join('').startsWith(W_PLAIN) && !plain.deltas.join('').includes(A2.slice(0, 20)) && plain.out.telemetry.heldDependentOpening === 1,
         ascii(after.deltas.join('|') + ' || ' + plain.deltas.join('|')));
       const own = await lib(W_OWN);
@@ -1460,7 +1488,9 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       const t2 = q2.deltas.join('');
       const tel2 = q2.out.telemetry;
       ok('C6a q2: the answering units go out on the carrying row (1:301) -- "\x27an Anas ibn Malik", "agreed upon", a nisba the row does not write, Anas as the subject -- and answer 2 follows them',
-        t2.startsWith(W_ANAS) && t2.includes(W_AGREED.replace(/\s*\[\[1\]\]/u, '')) && t2.includes(W_NISBA) && t2.includes(W_SUBJECT) && t2.includes(A2)
+        // ITEM B-4 (brain35, 2026-11-06): the «متفق عليه» unit cites the book row whose card went out above it, so it ends on
+        // « — جامع العلوم والحكم» before its full stop; its own words are unchanged.
+        t2.startsWith(W_ANAS) && t2.includes(W_AGREED.replace(/\s*\[\[1\]\]/u, '').replace(/\.$/u, '')) && t2.includes(W_NISBA) && t2.includes(W_SUBJECT) && t2.includes(A2)
         // COMPREHENSIVE 3.4c: answer 2's saying stands in STRAIGHT quotes, which findMatns now reads; the cited row (Jami' al-'Ulum, 1:301) carries it, so
         // the unit is now proved on the row too: 5 proved where it was 4 (the bytes released are the same; C7h pins them by sha256).
         && tel2.unitsProvedHadith === 5 && tel2.unitsHeld === 0 && tel2.takhrijLookups === 1, ascii(q2.deltas.join('|')) + ' ' + JSON.stringify(tel2));
@@ -1490,7 +1520,10 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       // ending on the word before, and every other byte released is the same (measured: the texts are equal with the matn taken
       // out). Was 949ade0807e77a9a1b7fd04834dc8160f4b6575b931e0676fb29b4c87043f008.
       ok('C7h FIX4\x27s Q2 fixture releases as before under C7 and C8 (a source question whose first unit is proved): the same bytes, 5 released, 5 proved (answer 2 now proved on its row: 3.4c)',
-        require('crypto').createHash('sha256').update(t2.replace(/<book([^>]*?) open="1">/gu, '<book$1>')).digest('hex') === '2d4ef79fb2ce880262dd2badd4465dee951752cf352731012ffd2640dd574118'
+        // ITEM B-4 (brain35, 2026-11-06) BY THE OWNER'S DECISION: one mark, « — جامع العلوم والحكم», on the first unit
+        // citing the book row whose card already went out; the three later units on that same row repeat nothing. Measured: every
+        // other byte is as before (was 2d4ef79fb2ce880262dd2badd4465dee951752cf352731012ffd2640dd574118).
+        require('crypto').createHash('sha256').update(t2.replace(/<book([^>]*?) open="1">/gu, '<book$1>')).digest('hex') === '994ab36e0b59506820341de2825a267fb002cebc9ddaca72cad61e17887c7e0f'
         && tel2.unitsReleased === 5 && tel2.unitsHeld === 0 && tel2.unitsProvedHadith === 5 && UNITS.asksHadithSource(Q2), JSON.stringify(tel2));
     }
 
@@ -1599,7 +1632,9 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       const fq = await run({ question: Q5, writerText: [Q5_RULING, Q5_SAYING, Q5_CHEW, Q5_MALIKI].join('\n'), takhrij: true });
       const fqt = fq.deltas.join('');
       ok('C7g a fiqh answer shaped like q5 is unchanged: the same bytes as on 4d353de',
-        !src(Q5) && require('crypto').createHash('sha256').update(fqt).digest('hex') === '75769309de0ef3c24faaeae206c59971285e4c5acef665f453634f6d182d18b7'
+        // ITEM B-4 (brain35, 2026-11-06) BY THE OWNER'S DECISION: the saying's unit cites the Ibn Baz row whose card went out under
+        // the ruling above it, so it ends on « — ابن باز» (was 75769309de0ef3c24faaeae206c59971285e4c5acef665f453634f6d182d18b7).
+        !src(Q5) && require('crypto').createHash('sha256').update(fqt).digest('hex') === '4ff4018956f3f7a997bf9642dd3620f18138b9163aed0f0fcdf3c72a44d23b6b'
         && fq.out.telemetry.unitsReleased === 3 && fq.out.telemetry.unitsHeld === 1,
         ascii(fqt) + ' ' + require('crypto').createHash('sha256').update(fqt).digest('hex') + ' ' + JSON.stringify(fq.out.telemetry));
 
@@ -1693,7 +1728,13 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       const t = r.out.telemetry;
       const ENUMS = { judgeOutcome: ['none', 'complete', 'incomplete', 'failed'], writerOutcome: ['none', 'ok', 'failed'],
         // SPEED PIPES fix 3: why the turn went on to today's path ('' when it did not).
-        continued: ['', 'no_rows', 'judge_none', 'marker', 'none_released'] };
+        // ITEM O-1 (brain35, 2026-11-06; DIAG ARBITER): an empty judge is labelled by which emptiness it was --
+        // judge_none (kept nothing of a complete reading), judge_incomplete (read the rows as not answering the whole
+        // question), judge_failed (never answered).
+        continued: ['', 'no_rows', 'judge_none', 'judge_incomplete', 'judge_failed', 'marker', 'none_released'],
+        // re-cut 2026-11-09 (brain35-5e F-D5, R2): the reviewer's khilaf trigger (lib/output-reviewer.js khilafTriggerFor: both,
+        // source, opinions, prose) and its footer suppression reason (truncated), each plus 'none'
+        khilafTrigger: ['none', 'both', 'source', 'opinions', 'prose'], answerFooterSuppressedReason: ['none', 'truncated'] };
       const bad = Object.entries(t).filter(([k, v]) => {
         if (typeof v === 'number') return !Number.isFinite(v);
         if (typeof v === 'boolean' || v === null) return false;
@@ -1955,6 +1996,373 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       const SHAFII54 = await play54('قال الإمام الشافعي: «' + MATN54 + '» [[1]].', rowOf54('الشافعي', 'الأم للشافعي'));
       ok('ORDER54-1 sibling: «الإمام مالك» over «الموطأ» and «الإمام الشافعي» over «الأم» go out with the name', MALIK54.text.includes('الإمام مالك') && SHAFII54.text.includes('الإمام الشافعي'), JSON.stringify([MALIK54, SHAFII54]));
     }
+
+
+
+    // ── brain35 A-4 (2026-11-06; DIAG 35.5) · THE ABSENCE WRITERS READ THE ANSWER ────────────────────────────────
+    // (a) «وما أقوال العلماء في ذلك» (Q15) is the same question asked of the scholars, not a part: no «لم أقف» under four
+    // quoted views; the part sentence names where the search ran; a views part answered by two named speakers draws none.
+    // (b) the library head «تخريج الحديث: X، ولم تُثبت المكتبة حكمًا عليه.» is reconciled with the first unit: the half is
+    // dropped when the unit carries the grade, replaced by «وأما الحكم عليه فانظر ما نقله المصدر أدناه» when a pinned row does,
+    // kept when nothing grades the hadith.
+    {
+      const UNITS4 = await esm('lib/bw2-units.js');
+      const Q15 = '\u0647\u0644 \u064a\u062c\u0648\u0632 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u0623\u0646 \u064a\u062c\u0645\u0639 \u0627\u0644\u0639\u0635\u0631 \u0645\u0639 \u0627\u0644\u062c\u0645\u0639\u0629 \u062c\u0645\u0639 \u062a\u0642\u062f\u064a\u0645\u061f \u0648\u0645\u0627 \u0623\u0642\u0648\u0627\u0644 \u0627\u0644\u0639\u0644\u0645\u0627\u0621 \u0641\u064a \u0630\u0644\u0643\u061f';
+      const Q13 = '\u0647\u0644 \u062d\u062f\u064a\u062b \u00ab\u062a\u0641\u062a\u0631\u0642 \u0623\u0645\u062a\u064a \u0639\u0644\u0649 \u062b\u0644\u0627\u062b \u0648\u0633\u0628\u0639\u064a\u0646 \u0641\u0631\u0642\u0629\u00bb \u0635\u062d\u064a\u062d\u061f \u0648\u0645\u0627 \u062f\u0631\u062c\u0629 \u0632\u064a\u0627\u062f\u0629 \u00ab\u0643\u0644\u0647\u0627 \u0641\u064a \u0627\u0644\u0646\u0627\u0631 \u0625\u0644\u0627 \u0648\u0627\u062d\u062f\u0629\u00bb\u061f';
+      const Q19 = '\u0645\u0646 \u0623\u0648\u0644 \u0645\u0646 \u062c\u0645\u0639 \u0627\u0644\u0642\u0631\u0622\u0646 \u0641\u064a \u0645\u0635\u062d\u0641 \u0648\u0627\u062d\u062f\u061f \u0648\u0644\u0645\u0627\u0630\u0627 \u062c\u0645\u0639\u0647 \u0639\u062b\u0645\u0627\u0646 \u0628\u0639\u062f \u0630\u0644\u0643\u061f';
+      ok('A-4 Q15 «… وما أقوال العلماء في ذلك؟» is one question (no parts), so no part sentence can follow the views', BW2.questionParts(Q15).length === 0
+        && BW2.isViewsQuestion('\u0645\u0627 \u0623\u0642\u0648\u0627\u0644 \u0627\u0644\u0639\u0644\u0645\u0627\u0621 \u0641\u064a \u0630\u0644\u0643') && BW2.isViewsQuestion('\u0648\u0645\u0627 \u0623\u0642\u0648\u0627\u0644 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645 \u0641\u064a\u0647\u0627') && BW2.isViewsQuestion('\u0645\u0627 \u0622\u0631\u0627\u0621 \u0627\u0644\u0641\u0642\u0647\u0627\u0621 \u0641\u064a \u0627\u0644\u0645\u0633\u0623\u0644\u0629'));
+      ok('A-4 ...and Q13 (two different hadith parts) and Q19 (two history parts) keep their two parts', BW2.questionParts(Q13).length === 2 && BW2.questionParts(Q19).length === 2);
+      const part = { text: '\u0647\u0644 \u0639\u0644\u064a\u0647 \u0643\u0641\u0627\u0631\u0629', title: '\u0647\u0644 \u0639\u0644\u064a\u0647 \u0643\u0641\u0627\u0631\u0629' };
+      ok('A-4 the part sentence names the searched sources: «لم أقف على نصٍّ في <title> فيما بُحث فيه (X، Y).»',
+        BW2.questionPartSentence(part, ['\u0627\u0628\u0646 \u0628\u0627\u0632', '\u0627\u0644\u0645\u0643\u062a\u0628\u0629']) === '\u0644\u0645 \u0623\u0642\u0641 \u0639\u0644\u0649 \u0646\u0635\u064d\u0651 \u0641\u064a \u0647\u0644 \u0639\u0644\u064a\u0647 \u0643\u0641\u0627\u0631\u0629 \u0641\u064a\u0645\u0627 \u0628\u064f\u062d\u062b \u0641\u064a\u0647 (\u0627\u0628\u0646 \u0628\u0627\u0632\u060c \u0627\u0644\u0645\u0643\u062a\u0628\u0629).'
+        && BW2.questionPartSentence(part) === '\u0644\u0645 \u0623\u0642\u0641 \u0639\u0644\u0649 \u0646\u0635\u064d\u0651 \u0641\u064a \u0647\u0644 \u0639\u0644\u064a\u0647 \u0643\u0641\u0627\u0631\u0629.');
+      ok('A-4 searchedSourceNames: the fatwa stores by scholar name, «المكتبة», «الموسوعة الفقهية», «الدروس», only those that answered',
+        JSON.stringify(BW2.searchedSourceNames({ fatwa: [ROW_F1, ROW_F2, { ...ROW_F1, publisher: '\u0627\u0628\u0646 \u0639\u062b\u064a\u0645\u064a\u0646' }], library: [ROW_L1], encyclopedia: [], lessons: [{}] }))
+          === JSON.stringify(['\u0627\u0628\u0646 \u0628\u0627\u0632', '\u0627\u0628\u0646 \u0639\u062b\u064a\u0645\u064a\u0646', '\u0627\u0644\u0645\u0643\u062a\u0628\u0629', '\u0627\u0644\u062f\u0631\u0648\u0633'])
+        && BW2.searchedSourceNames({ fatwa: [], library: [], encyclopedia: [], lessons: [] }).length === 0);
+      const viewsPart = { text: '\u0645\u0627 \u0623\u0642\u0648\u0627\u0644 \u0627\u0644\u0639\u0644\u0645\u0627\u0621 \u0641\u064a \u0630\u0644\u0643', title: 'x' };
+      ok('A-4 a views part answered by two named speakers draws no sentence; by one, it still does',
+        !BW2.partSentenceWanted(viewsPart, '\u0642\u0627\u0644 \u0627\u0628\u0646 \u0628\u0627\u0632: \u064a\u062c\u0648\u0632 \u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631. \u0648\u0630\u0647\u0628 \u0627\u0628\u0646 \u0639\u062b\u064a\u0645\u064a\u0646 \u0625\u0644\u0649 \u0623\u0646\u0647 \u0644\u0627 \u064a\u062c\u0648\u0632.')
+        && BW2.partSentenceWanted(viewsPart, '\u0642\u0627\u0644 \u0627\u0628\u0646 \u0628\u0627\u0632: \u064a\u062c\u0648\u0632 \u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631.'));
+      // ── brain35-2 F4 (2026-11-07; DIAG2 R4) · THE GRADE-PART VALVE ──────────────────────────────────────────────────────
+      // MEASURED (DIAG2 R4): P12 «… ومن رواه وما حكمه عند أهل الحديث؟» ended on «لم أقف على نصٍّ في حكمه عند أهل الحديث» under
+      // «ضعّفه ابن باز وابن عثيمين»: the part is not a views question, two agreeing graders are one view, and the part's stemmed
+      // terms met no delivered sentence twice. A part that asks the grade (حكمه / درجته / صحته / حكم / درجة / صحة) is now
+      // answered by a grade attributed to a named grader anywhere in the delivered text. Side defect seen on the way: the
+      // PARTS_JOIN cut doubled the waw («…صحيح، وومن رواه»); the follow-up's own conjunction is dropped before the join's.
+      const P12 = 'هل حديث «اقرؤوا على موتاكم يس» صحيح؟ ومن رواه وما حكمه عند أهل الحديث؟';
+      const parts12 = BW2.questionParts(P12);
+      const P12_SHAPE = 'الحديث ضعيف، ضعّفه ابن باز وابن عثيمين، وقال ابن باز: هذا الحديث ضعيف عند أهل العلم.';
+      ok('F4a P12 is two parts, the second «ما حكمه عند أهل الحديث», and over a text naming two graders it draws no sentence',
+        parts12.length === 2 && parts12[1].text === 'ما حكمه عند أهل الحديث' && BW2.partSentenceWanted(parts12[1], P12_SHAPE) === false,
+        ascii(JSON.stringify(parts12.map((p) => p.text))));
+      ok('F4b the same part over a text with no grader still draws it, and so does a text whose only grade names nobody',
+        parts12.length === 2 && BW2.partSentenceWanted(parts12[1], 'الحديث ضعيف عند أهل الحديث.') === true
+        && BW2.partSentenceWanted({ text: 'ما درجته', title: 'x' }, 'هذا الحديث لا يصح.') === true);
+      ok('F4c a part that asks no grade is read by today\'s valves, unchanged',
+        BW2.partSentenceWanted({ text: 'ما شروط الحج', title: 'x' }, P12_SHAPE) === true
+        && BW2.partSentenceWanted({ text: 'ما شروط الحج', title: 'x' }, 'شروط الحج خمسة: الإسلام والعقل والبلوغ والحرية والاستطاعة.') === false);
+      ok('F4d the first part reads «…صحيح، ومن رواه», not «وومن»', parts12.length === 2 && parts12[0].text === 'هل حديث «اقرؤوا على موتاكم يس» صحيح، ومن رواه' && !parts12[0].text.includes('وومن'), ascii(parts12[0] && parts12[0].text));
+      {
+        const srcV = read('lib/before-writing-v2.js');
+        const seamV = "  if (GRADE_PART_RE.test(normalizeArabic(String(part && part.text || ''))) && graderNamed(text)) return false; // ITEM 35-D2 R4 (brain35-2 F4): the grade-part valve";
+        ok('F4 mutant seam present once', srcV.split(seamV).length === 2);
+        const tmpV = path.join(REPO, 'lib', '.mut-f4-valve.mjs');
+        fs.writeFileSync(tmpV, srcV.split(seamV).join('  // mutant: no grade-part valve').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MV = null;
+        try { MV = await import(pathToFileURL(tmpV).href + '?m=' + Date.now()); } catch (e) { MV = null; } finally { fs.rmSync(tmpV, { force: true }); }
+        ok('F4 mutant loads', !!MV);
+        ok('F4 MUTANT KILLED: without the valve the grade part draws its sentence under two named graders again',
+          !!MV && parts12.length === 2 && MV.partSentenceWanted(parts12[1], P12_SHAPE) === true);
+      }
+      // the wiring: a real two-part turn whose second part no row answers ends on the sentence naming the sources that answered
+      const Q2 = '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0631\u0628\u061f \u0648\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u062d\u062c\u0627\u0645\u0629 \u0644\u0644\u0635\u0627\u0626\u0645\u061f';
+      // the fatwa store answers the first part's query only (the masah row), so the second part has no kept row (the z1 shape)
+      const twoDeps = makeDeps({ writerText: U.s1, judge: 'all' });
+      twoDeps.deps.runTool = (name, input, ctx) => {
+        const q = String(input && input.query || '');
+        if (name === 'search_fatawa' && /مسح|جوارب/u.test(q)) return Promise.resolve({ text: '', added: [ctx.table.add({ ...ROW_F1 })], calls: 1 });
+        return Promise.resolve({ text: '', added: [], calls: 1 });
+      };
+      const twoWire = makeWire();
+      await BW2.runBw2Turn({
+        question: Q2, messages: [{ role: 'user', content: Q2 }], mode: 'brief', band: 'adult', system: 'SYSTEM', model: 'writer-model', maxTokens: 4096,
+        providerUrl: 'https://api.anthropic.invalid/v1/messages', headers: {}, libFlagValue: '', libToken: '', lessonsToken: '', onLessonRows: null,
+        takhrijWired: false, cards, wire: twoWire.wire, requestStartedAt: Date.now(), env: { BW2_RETRIEVAL_MS: '400', BW2_JUDGE_MS: '400' }, runtime: '', deps: twoDeps.deps,
+      });
+      const twoText = deltasOf(framesOf(twoWire.target)).join('');
+      ok('A-4 wired: the empty part\'s sentence names where the search ran, once', twoText.split('\u0644\u0645 \u0623\u0642\u0641 \u0639\u0644\u0649 \u0646\u0635\u064d\u0651 \u0641\u064a').length === 2
+        && /فيما بُحث فيه \([^)]*ابن باز[^)]*\)\./u.test(twoText), ascii(twoText));
+      // (b) the head, driven on the releaser
+      const LEAD = '\u062a\u062e\u0631\u064a\u062c \u0627\u0644\u062d\u062f\u064a\u062b: \u0627\u0628\u0646 \u062d\u0628\u0627\u0646\u060c \u0648\u0644\u0645 \u062a\u064f\u062b\u0628\u062a \u0627\u0644\u0645\u0643\u062a\u0628\u0629 \u062d\u0643\u0645\u064b\u0627 \u0639\u0644\u064a\u0647.';
+      const GRADED = '\u0627\u0644\u062d\u062f\u064a\u062b \u0635\u062d\u064a\u062d \u0645\u0634\u0647\u0648\u0631 \u0641\u064a \u0627\u0644\u0633\u0646\u0646 \u0648\u0627\u0644\u0645\u0633\u0627\u0646\u064a\u062f\u060c \u0635\u062d\u062d\u0647 \u062c\u0645\u0627\u0639\u0629 \u0645\u0646 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645.';
+      const PLAIN = '\u0648\u0635\u0641 \u0627\u0644\u0641\u0631\u0642\u0629 \u0627\u0644\u0646\u0627\u062c\u064a\u0629 \u0628\u0623\u0646\u0647\u0627 \u0623\u0647\u0644 \u0627\u0644\u0633\u0646\u0629 \u0648\u0627\u0644\u062c\u0645\u0627\u0639\u0629.';
+      const rowG = { kind: 'fatwa', title: 'x', url: 'https://binbaz.org.sa/fatwas/77', publisher: IBN_BAZ, scholarId: 'binbaz', recordId: '77', text: GRADED, passage: GRADED, ref: 1 };
+      const rowP = { ...rowG, text: PLAIN, passage: PLAIN };
+      const UG = '\u0627\u0644\u062d\u062f\u064a\u062b \u0635\u062d\u064a\u062d \u0645\u0634\u0647\u0648\u0631 \u0641\u064a \u0627\u0644\u0633\u0646\u0646 \u0648\u0627\u0644\u0645\u0633\u0627\u0646\u064a\u062f [[1]].';
+      const UP = '\u0648\u0642\u062f \u0648\u0635\u0641 \u0627\u0644\u0641\u0631\u0642\u0629 \u0627\u0644\u0646\u0627\u062c\u064a\u0629 \u0628\u0623\u0646\u0647\u0627 \u0623\u0647\u0644 \u0627\u0644\u0633\u0646\u0629 \u0648\u0627\u0644\u062c\u0645\u0627\u0639\u0629 [[1]].';
+      const headOf = async (mod, unit, rows) => { const out = []; const rel = mod.createBw2Releaser({ rows, emit: (p) => { out.push(p); return true; }, leadLine: LEAD, cards: null }); rel.push(unit + '\n'); await rel.end(); return (out[0] || '').split('\n\n')[0]; };
+      const h1 = await headOf(UNITS4, UG, [rowG]);
+      ok('A-4 head: the first unit carries the grade -> the «ولم تُثبت المكتبة حكمًا عليه» half is dropped, the collector half stays', h1 === '\u062a\u062e\u0631\u064a\u062c \u0627\u0644\u062d\u062f\u064a\u062b: \u0627\u0628\u0646 \u062d\u0628\u0627\u0646.', ascii(h1));
+      const h2 = await headOf(UNITS4, UP, [rowG]);
+      ok('A-4 head: a pinned row carries the grade -> the half is replaced by «وأما الحكم عليه فانظر ما نقله المصدر أدناه»', h2 === '\u062a\u062e\u0631\u064a\u062c \u0627\u0644\u062d\u062f\u064a\u062b: \u0627\u0628\u0646 \u062d\u0628\u0627\u0646\u060c \u0648\u0623\u0645\u0627 \u0627\u0644\u062d\u0643\u0645 \u0639\u0644\u064a\u0647 \u0641\u0627\u0646\u0638\u0631 \u0645\u0627 \u0646\u0642\u0644\u0647 \u0627\u0644\u0645\u0635\u062f\u0631 \u0623\u062f\u0646\u0627\u0647.', ascii(h2));
+      const h3 = await headOf(UNITS4, UP, [rowP]);
+      ok('A-4 head: nothing grades the hadith -> the head stands as the ladder wrote it', h3 === LEAD, ascii(h3));
+      ok('A-4 carriesGradeClaim reads the writer\'s and the rows\' grade shapes', UNITS4.carriesGradeClaim(GRADED) && UNITS4.carriesGradeClaim('\u0636\u0639\u0641\u0647 \u0627\u0644\u0623\u0644\u0628\u0627\u0646\u064a \u0641\u064a \u0627\u0644\u0625\u0631\u0648\u0627\u0621.') && UNITS4.carriesGradeClaim('(\u0627\u0644\u062a\u0631\u0645\u0630\u064a \u00b7 \u0635\u062d\u064a\u062d)') && !UNITS4.carriesGradeClaim(PLAIN));
+      // mutants: the three words gone -> Q15 is two parts again; the reconciliation gone -> the head is kept over a graded unit
+      const srcW = read('lib/before-writing-v2.js');
+      const seamW = "'فقهاء', 'علماء', 'اهل', 'علم', 'فيها'";
+      ok('A-4 mutant seam (the three words) present', srcW.split(seamW).length === 2);
+      const tmpW = path.join(REPO, 'lib', '.mut-bw2-a4-words.mjs');
+      try {
+        fs.writeFileSync(tmpW, srcW.split(seamW).join("'فقهاء', 'فيها'").replace("if (!isMadhhabQuestion(seg) && !isViewsQuestion(seg)) return false;", "if (!isMadhhabQuestion(seg)) return false; // mutant"));
+        const MW = await import(pathToFileURL(tmpW).href + '?m=a4w');
+        ok('MUTANT KILLED: without the three words and the views follow-up, Q15 is two parts again', MW.questionParts(Q15).length === 2);
+      } finally { try { fs.rmSync(tmpW, { force: true }); } catch { /* nothing to clean */ } }
+      const srcH = read('lib/bw2-units.js');
+      const seamH = '    leadPending = reconcileLead(leadPending, piece); // ITEM A-4 (b): the head reads the first unit';
+      ok('A-4 mutant seam (the head reconciliation) present', srcH.split(seamH).length === 2);
+      const tmpH = path.join(REPO, 'lib', '.mut-bw2-units-a4.mjs');
+      try {
+        fs.writeFileSync(tmpH, srcH.split(seamH).join('    // mutant: the head never reads the answer'));
+        const MH = await import(pathToFileURL(tmpH).href + '?m=a4h');
+        ok('MUTANT KILLED: without the reconciliation the head keeps «ولم تُثبت المكتبة حكمًا عليه» over a unit that grades the hadith', (await headOf(MH, UG, [rowG])) === LEAD);
+      } finally { try { fs.rmSync(tmpH, { force: true }); } catch { /* nothing to clean */ } }
+    }
+
+
+    // ── brain35 B-3 (2026-11-06; DIAG 35.7) · THE PART'S OWN SHORT TITLE ──────────────────────────────────────────
+    // Seven battery answers opened on «### مسألة «<the question's own words>»» and the absence sentences repeated it.
+    // fixtures/brain35-part-titles.json carries what questionParts produced BEFORE this change, titles and queries both:
+    // every title is now the part's subject (five words at most, never the question text) and every QUERY is byte-equal.
+    {
+      const PT = JSON.parse(read('fixtures/brain35-part-titles.json'));
+      ok('B-3 the fixture carries the seven compound battery questions with their captured titles and queries',
+        PT.cases.length === 7 && PT.cases.every((c) => c.question && Array.isArray(c.parts)));
+      let titleWords = [];
+      for (const c of PT.cases) {
+        const now = BW2.questionParts(c.question);
+        ok('B-3 ' + c.id + ': the part count is unchanged', now.length === c.parts.length, now.length + ' vs ' + c.parts.length);
+        now.forEach((p, i) => {
+          const before = c.parts[i];
+          titleWords.push(p.title.split(' ').length);
+          ok('B-3 ' + c.id + ' part ' + (i + 1) + ': the title is at most five words and is not the question text',
+            p.title.split(' ').length <= 5 && p.title !== p.text && p.title !== c.question && !p.title.startsWith('مسألة «'), ascii(p.title));
+          ok('B-3 ' + c.id + ' part ' + (i + 1) + ': the queries are byte-equal to the captured ones',
+            !!before && p.query === before.query && p.fatwaQuery === before.fatwaQuery, ascii(p.query + ' | ' + (before && before.query)));
+          ok('B-3 ' + c.id + ' part ' + (i + 1) + ': the captured title WAS the long one (the fixture is the old behaviour)',
+            !!before && (before.titleBefore.startsWith('مسألة «') || before.titleBefore.split(' ').length > 5), ascii(before && before.titleBefore));
+        });
+      }
+      ok('B-3 every title of the seven is shorter than its part text', titleWords.length === 12 && Math.max(...titleWords) <= 5);
+      ok('B-3 the absence sentence carries the short title', BW2.questionPartSentence({ title: BW2.shortPartTitle('وهل عليه كفارة') }, []) === 'لم أقف على نصٍّ في عليه كفارة.');
+      ok('B-3 the writer is asked for the short heading', BW2.bw2PartsRule([{ title: 'ينتهي حكم السفر' }], []).includes('### ينتهي حكم السفر'));
+      ok('B-3 a quoted matn keeps its guillemets and is cut with «…»', BW2.shortPartTitle('ما درجة حديث «اقرؤوا يس على موتاكم عند الوفاة»') === 'درجة حديث «اقرؤوا يس على…»');
+      ok('B-3 two parts of one question that yield the same title keep a distinguishing clause',
+        (() => { const p = BW2.questionParts('هل عليه كفارة في الصيام؟ وهل عليه كفارة في النذر؟'); return p.length < 2 || p[0].title !== p[1].title; })());
+      const mTitle = await (async () => {
+        const src = read('lib/before-writing-v2.js');
+        const seam = '    let title = shortPartTitle(text);';
+        if (src.split(seam).length !== 2) return { ok: false };
+        const tmp = path.join(REPO, 'lib', '.mut-b3.mjs');
+        fs.writeFileSync(tmp, src.split(seam).join("    let title = 'مسألة «' + text + '»'; // mutant: the question comes back as the title")
+          .replace(/from\s+(['"])(\.[^'"]*)\1/gu, (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        try { return { ok: true, mod: await import(pathToFileURL(tmp).href + '?m=' + Date.now()) }; } finally { fs.rmSync(tmp, { force: true }); }
+      })();
+      ok('B-3 MUTANT seam applied', mTitle.ok);
+      ok('B-3 MUTANT KILLED: with the template back the title is the question text again',
+        mTitle.ok && mTitle.mod.questionParts(PT.cases[4].question)[0].title.startsWith('مسألة «'));
+    }
+    // ── brain35 B-2 (2026-11-06; DIAG 35.4) · WHAT THE LOCK AND THE HOLD LEAVE BEHIND ─────────────────────────────
+    // (a) the lock removed a credit and left its frame: the frame's sentence goes, unless a collector list follows it, in
+    // which case the frame alone goes and the list keeps its lead («أمّا من خرّجه: أبو داود والنسائي…» -- Q37). (b) an
+    // opening verb with its object pronoun («خالفه») or a plural verb with no subject («واستدلوا») is held unless the last
+    // two released sentences or the last released heading name the group or the man. (d) a «### » line welded to its
+    // paragraph is two units: the heading, then the prose.
+    {
+      const UNITS2 = await esm('lib/bw2-units.js');
+      const Q37_FRAME = 'أمّا من خرّجه، فقد، وأبو داود، والنسائي، وابن ماجه، وابن حبان، والحاكم.';
+      const Q32_FRAME = 'أما من خرجه، فقد، كلهم من حديث أبي عاتكة.';
+      const Q22_FRAME = 'فأمّا لفظ «الجنة تحت أقدام الأمهات» الذي رُوي عن أنس بن مالك رضي الله عنه، فقد.';
+      ok('B-2a the three delivered frame shapes all match EMPTIED_FRAME_RE', [Q37_FRAME, Q32_FRAME, Q22_FRAME].every((t) => UNITS2.EMPTIED_FRAME_RE.test(t)));
+      ok('B-2a Q37: the frame goes and the collector list keeps its lead, under a colon',
+        UNITS2.dropEmptiedFrameSentence(Q37_FRAME) === 'أمّا من خرّجه: أبو داود، والنسائي، وابن ماجه، وابن حبان، والحاكم.', ascii(UNITS2.dropEmptiedFrameSentence(Q37_FRAME)));
+      ok('B-2a Q32 and Q22: no collector list follows the frame, so the sentence goes whole and nothing substantive is left',
+        UNITS2.dropEmptiedFrameSentence(Q32_FRAME) === '' && UNITS2.dropEmptiedFrameSentence(Q22_FRAME) === ''
+        && UNITS2.onlyFrameWords('') === true);
+      ok('B-2a a sentence with no emptied frame is untouched', UNITS2.dropEmptiedFrameSentence('ورواه أبو داود في سننه من حديث أبي هريرة.') === 'ورواه أبو داود في سننه من حديث أبي هريرة.');
+      // wired: a unit whose credit the cited page does not carry loses it to the lock, and the frame it introduced goes with it
+      const PAGE_NO_CREDIT = { ...ROW_F1, text: MASAH_RULING + '. ' + MASAH_TERM + '.', passage: MASAH_RULING + '. ' + MASAH_TERM + '.' };
+      const framed = await run({ fatwa: [PAGE_NO_CREDIT], writerText: MASAH_RULING + ' [[1]].\nأمّا من خرّجه، فقد، ورواه الترمذي [[1]].' });
+      const framedText = framed.deltas.join('');
+      ok('B-2a wired: the lock takes the unsupported credit and the frame does not reach the reader',
+        !framedText.includes('فقد،') && !framedText.includes('الترمذي') && framedText.includes(MASAH_RULING), ascii(framedText));
+      // (b) the openings
+      ok('B-2b «خالفه X» and «ردّه X» are object-pronoun openings; «واستدلوا» and «زاد أكثرهم» are subjectless plurals',
+        UNITS2.subjectlessOpening('خالفه الملا علي القاري فرد تصحيح المعنى.') === 'object_pronoun'
+        && UNITS2.subjectlessOpening('ردّه ابن حجر في الفتح.') === 'object_pronoun'
+        && UNITS2.subjectlessOpening('واستدلوا بحديث ابن عباس.') === 'subjectless_plural'
+        && UNITS2.subjectlessOpening('زاد أكثرهم: فإن طلب العلم فريضة.') === 'subjectless_plural');
+      ok('B-2b ...and an ordinary opening is none of them',
+        UNITS2.subjectlessOpening('وذهب الحنفية إلى الجواز.') === '' && UNITS2.subjectlessOpening('والواجب عليه الاستماع والإنصات.') === ''
+        && UNITS2.subjectlessOpening('رواه أحمد بإسناد صحيح.') === '');
+      ok('B-2b namesASubject reads a school, a group and a man', UNITS2.namesASubject('المذهب المالكي') && UNITS2.namesASubject('وذهب الجمهور') && UNITS2.namesASubject('قال ابن باز') && !UNITS2.namesASubject('وهذا هو الأحوط'));
+      const opener = await run({ fatwa: [ROW_F1], writerText: 'خالفه الملا علي القاري فرد تصحيح المعنى [[1]].\n' + MASAH_RULING + ' [[1]].' });
+      ok('B-2b wired: «خالفه …» as the answer\'s first unit is held, and the unit after it opens the answer',
+        !opener.deltas.join('').includes('خالفه') && opener.deltas.join('').includes(MASAH_RULING)
+        && opener.out.telemetry.heldDependentOpening >= 1, ascii(opener.deltas.join('|')));
+      const ROW_GROUP = { ...ROW_F1, text: MASAH_RULING + '. واستدلوا بذلك على الجواز عند أهل العلم.', passage: MASAH_RULING + '. واستدلوا بذلك على الجواز عند أهل العلم.' };
+      const supplied = await run({ fatwa: [ROW_GROUP], writerText: 'وذهب أهل العلم إلى جواز المسح على الجوارب [[1]].\nواستدلوا بذلك على الجواز [[1]].' });
+      ok('B-2b wired: «واستدلوا …» after a released sentence that names the group goes out',
+        supplied.deltas.join('').includes('واستدلوا') && supplied.out.telemetry.unitsReleased === 2, ascii(supplied.deltas.join('|')) + ' ' + JSON.stringify(supplied.out.telemetry.heldDependentOpening));
+      const unsupplied = await run({ fatwa: [ROW_GROUP], writerText: 'واستدلوا بذلك على الجواز [[1]].\n' + MASAH_RULING + ' [[1]].' });
+      ok('B-2b wired: ...and with nothing named before it, it is held',
+        !unsupplied.deltas.join('').includes('واستدلوا') && unsupplied.out.telemetry.heldDependentOpening >= 1, ascii(unsupplied.deltas.join('|')));
+      // (d) the welded heading
+      const welded = await run({ fatwa: [ROW_F1], writerText: '### مسألة «حكم المسح على الجوارب» ' + MASAH_RULING + ' [[1]].' });
+      const wPieces = welded.deltas.filter((d) => d.trim() && !d.trim().startsWith('<'));
+      const wHeadAt = wPieces.findIndex((d) => d.trim().startsWith('### '));
+      const wProseAt = wPieces.findIndex((d) => d.includes(MASAH_RULING));
+      ok('B-2d wired: a «### » line welded to its paragraph reaches the reader as TWO pieces, the heading first, and neither carries the other',
+        wHeadAt >= 0 && wProseAt > wHeadAt && !wPieces[wHeadAt].includes(MASAH_RULING) && !/###/u.test(wPieces[wProseAt]),
+        ascii(JSON.stringify(wPieces)));
+      // mutants
+      const mutate = async (file, from, to, tag) => {
+        const src = read(file);
+        if (src.split(from).length !== 2) return { ok: false, reason: 'seam' };
+        const tmp = path.join(REPO, 'lib', '.mut-b2-' + tag + '.mjs');
+        fs.writeFileSync(tmp, src.split(from).join(to).replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        try { return { ok: true, mod: await import(pathToFileURL(tmp).href + '?m=' + Date.now()) }; } finally { fs.rmSync(tmp, { force: true }); }
+      };
+      const mFrame = await mutate('lib/bw2-units.js', 'export function dropEmptiedFrameSentence(text) {', 'export function dropEmptiedFrameSentence(text) {\n  return String(text == null ? \'\' : text); // mutant: the frame stays', 'frame');
+      ok('B-2 MUTANT frame seam applied', mFrame.ok, mFrame.reason);
+      ok('B-2 MUTANT KILLED: without the repair Q37\'s «فقد،» stub stays', mFrame.ok && mFrame.mod.dropEmptiedFrameSentence(Q37_FRAME).includes('فقد،'));
+      const mOpen = await mutate('lib/bw2-units.js', 'export function subjectlessOpening(text) {', 'export function subjectlessOpening() {\n  return \'\'; // mutant: no opening needs a subject\n}\nfunction subjectlessOpeningUnused(text) {', 'open');
+      ok('B-2 MUTANT opening seam applied', mOpen.ok, mOpen.reason);
+      ok('B-2 MUTANT KILLED: without the rule «خالفه …» opens the answer again', mOpen.ok && mOpen.mod.subjectlessOpening('خالفه الملا علي القاري فرد تصحيح المعنى.') === '');
+      const mWeld = await mutate('lib/bw2-units.js', "      const welded = /^(###\\s+[^\\n]*?[»”\"])\\s*(\\S[^\\n]*)$/u.exec(String((unit && unit.body) || '').trim());", '      const welded = null; // mutant: the welded heading is one unit again', 'weld');
+      ok('B-2 MUTANT weld seam applied', mWeld.ok, mWeld.reason);
+      if (mWeld.ok) {
+        const out = [];
+        const rel = mWeld.mod.createBw2Releaser({ rows: [{ ...ROW_F1, ref: 1 }], emit: (p) => { out.push(p); return true; }, cards: null });
+        rel.push('### مسألة «حكم المسح على الجوارب» ' + MASAH_RULING + ' [[1]].\n');
+        await rel.end();
+        ok('B-2 MUTANT KILLED: without the split the heading and its prose stay welded on one line', /###[^\n]*»\s+\S/u.test(out.join('')), ascii(out.join('|')));
+      }
+    }
+    // ── brain35 A-3 (b) (2026-11-06; DIAG 35.9) · A CARD IS BOUND TO THE SENTENCE IT SUPPORTS, NOT TO THE CITATION ──────
+    // MEASURED (Q25 line 10, CMP:751): the Ibn Uthaymin page about delaying jam' stood under a paragraph about the length of stay
+    // because the unit cited it. Now a page or book card goes out beside a unit only when the row's text supports the sentence
+    // (the encyclopedia test); an unsupported row is owed and shown under a later unit it supports; never supported, never shown;
+    // the cited row still counts as a source (no withdrawal for a deferred card).
+    {
+      const CC = JSON.parse(read('fixtures/brain35-card-cases.json'));
+      ok('A-3b the captured Q25 unit is not supported by the jam\' page\'s title (the only captured text of that <source> card)',
+        CC.q25.unit.length > 100 && CC.q25.cardTitle.length > 40 && !REVIEW.sentenceSupportedByText(CC.q25.unit, CC.q25.cardTitle));
+      // end to end: a fatwa page whose text is about fasting, cited by a masah sentence -> no card under it; cited again by a fasting
+      // sentence -> the card follows THAT unit; the masah sentence keeps its own supporting page's card
+      const FASTING_RULING_A3 = '\u0635\u0648\u0645\u0647 \u0635\u062d\u064a\u062d';
+      const bound = await run({ fatwa: [ROW_F1, ROW_F2], writerText: MASAH_RULING + ' [[1, 2]]. ' + FASTING_RULING_A3 + ' [[2]].' });
+      const dB = bound.deltas;
+      const jA = dB.findIndex((d) => d.includes('/fatwas/1234'));
+      const jB = dB.findIndex((d) => d.includes('/fatwas/5678'));
+      ok('A-3b wired: the masah page\'s card follows the masah sentence; the fasting page\'s card waits for the fasting sentence and follows it',
+        jA > 0 && jB > jA + 1 && dB[jA - 1].includes(MASAH_RULING) && dB[jB - 1].includes(FASTING_RULING_A3) && bound.out.telemetry.cardsSent === 2, ascii(JSON.stringify(dB)));
+      const never = await run({ fatwa: [ROW_F1, ROW_F2], writerText: MASAH_RULING + ' [[1, 2]]. ' + MASAH_TERM + ' [[2]].' });
+      const dN = never.deltas;
+      ok('A-3b wired: a row never supported by a sentence that cites it is never shown, and the answer is not withdrawn (the masah page stands)',
+        dN.join('').includes('/fatwas/1234') && !dN.join('').includes('/fatwas/5678') && never.out.telemetry.cardsSent === 1 && !dN.join('').includes(NOT_COVERED) && never.out.telemetry.unitsReleased === 2, ascii(JSON.stringify(dN)));
+      const onlyUnsupported = await run({ fatwa: [ROW_F2], writerText: MASAH_RULING + ' [[1]].' });
+      ok('A-3b wired: a unit whose only cited row does not support it keeps its row as evidence (no not-covered replace) and shows no card',
+        onlyUnsupported.deltas.join('').includes(MASAH_RULING) && !onlyUnsupported.deltas.join('').includes('<source') && !onlyUnsupported.deltas.join('').includes(NOT_COVERED) && onlyUnsupported.out.telemetry.readerSourceCount >= 1, ascii(JSON.stringify(onlyUnsupported.deltas)) + ' ' + JSON.stringify(onlyUnsupported.out.telemetry));
+      // mutant: the binding gone -> the fasting card follows the masah sentence again
+      const srcB = read('lib/bw2-units.js');
+      // the predicate itself is the seam: both the fresh-card test and the owed-card flush read it
+      const seamB = '    const supportsCard = (row) => cardSupportsUnit(row, unitText);';
+      ok('A-3b mutant seam present', srcB.split(seamB).length === 2);
+      const tmpB = path.join(REPO, 'lib', '.mut-bw2-units-a3b.mjs');
+      try {
+        fs.writeFileSync(tmpB, srcB.split(seamB).join('    const supportsCard = () => true; // mutant: every card follows its citation again'));
+        const MB = await import(pathToFileURL(tmpB).href + '?m=a3b');
+        const outB = [];
+        const relB = MB.createBw2Releaser({ rows: [{ ...ROW_F1, ref: 1 }, { ...ROW_F2, ref: 2 }], emit: (p) => { outB.push(p); return true; },
+          cards: { buildSourceTag: (row) => ({ tag: '<source url="' + row.url + '">x</source>', url: row.url }), buildBookTag: () => null, max: 5 } });
+        relB.push(MASAH_RULING + ' [[1, 2]].\n' + MASAH_TERM + ' [[2]].\n');
+        await relB.end();
+        ok('MUTANT KILLED: without the binding the fasting page\'s card follows the masah term again', outB.join('').includes('/fatwas/5678'), ascii(outB.join('|')));
+      } finally { try { fs.rmSync(tmpB, { force: true }); } catch { /* nothing to clean */ } }
+    }
+    // ── brain35 A-2 (2026-11-06; DIAG 35.3 / 35.11) · THE COMPLETION LEDGER ─────────────────────────────────
+    // What the question asked is checked after release: a school asked and not named gets its scoped absence sentence
+    // once; a collector / narrator / grader asked and not answered gets its role sentence. The captured battery texts
+    // (fixtures/brain35-ledger-cases.json) are the red cases: Q07 (three named, no sentence) was the order's RED today.
+    {
+      const LED = JSON.parse(read('fixtures/brain35-ledger-cases.json'));
+      const kind = (s) => (s.includes('\u0644\u0645\u0630\u0647\u0628') ? 'school:' + ['\u0627\u0644\u062d\u0646\u0641\u064a\u0629', '\u0627\u0644\u0645\u0627\u0644\u0643\u064a\u0629', '\u0627\u0644\u0634\u0627\u0641\u0639\u064a\u0629', '\u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629'].findIndex((l) => s.includes(l))
+        : s === BW2.LEDGER_COLLECTOR_SENTENCE ? 'collector' : s === BW2.LEDGER_NARRATOR_SENTENCE ? 'narrator' : s === BW2.LEDGER_GRADER_SENTENCE ? 'grader' : 'other');
+      ok('A-2 fixture carries the eleven captured texts', Array.isArray(LED.cases) && LED.cases.length === 11);
+      for (const c of LED.cases) {
+        const got = BW2.completionLedger({ question: c.question, released: c.input.released, aboveText: c.input.aboveText, leadLine: c.input.leadLine }).map(kind);
+        ok('A-2 ' + c.id + ': ' + c.note.slice(0, 70), JSON.stringify(got) === JSON.stringify(c.expect), JSON.stringify(got));
+      }
+      const Q4 = '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0631\u0628 \u0639\u0646\u062f \u0627\u0644\u0645\u0630\u0627\u0647\u0628 \u0627\u0644\u0623\u0631\u0628\u0639\u0629\u061f';
+      const Q1 = '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0631\u0628 \u0639\u0646\u062f \u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629\u061f';
+      const THREE = '\u0630\u0647\u0628 \u0627\u0644\u0645\u0627\u0644\u0643\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632. \u0648\u0630\u0647\u0628 \u0627\u0644\u0634\u0627\u0641\u0639\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632 \u0628\u0634\u0631\u0637. \u0648\u0630\u0647\u0628 \u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632.';
+      const FOUR = '\u0630\u0647\u0628 \u0627\u0644\u0645\u0627\u0644\u0643\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632. \u0648\u0630\u0647\u0628 \u0627\u0644\u0634\u0627\u0641\u0639\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632 \u0628\u0634\u0631\u0637. \u0648\u0630\u0647\u0628 \u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632. \u0648\u0630\u0647\u0628 \u0627\u0644\u062d\u0646\u0641\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632 \u0623\u064a\u0636\u0627.';
+      const HANAFI_IMAM = '\u0630\u0647\u0628 \u0627\u0644\u0645\u0627\u0644\u0643\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632. \u0648\u0630\u0647\u0628 \u0627\u0644\u0634\u0627\u0641\u0639\u064a\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632 \u0628\u0634\u0631\u0637. \u0648\u0630\u0647\u0628 \u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632. \u0648\u0642\u0627\u0644 \u0623\u0628\u0648 \u062d\u0646\u064a\u0641\u0629 \u0628\u0627\u0644\u062c\u0648\u0627\u0632.';
+      const three = BW2.completionLedger({ question: Q4, released: THREE });
+      ok('A-2 a four-school question whose released text names three -> the fourth school\'s sentence, exactly once',
+        three.length === 1 && three[0] === BW2.ledgerSchoolSentence('\u0627\u0644\u062d\u0646\u0641\u064a\u0629'), JSON.stringify(three.map(kind)));
+      ok('A-2 the sentence is the order\'s, byte for byte', BW2.ledgerSchoolSentence('X') === '\u0644\u0645 \u0623\u0642\u0641\u0652 \u0641\u064a \u0647\u0630\u0627 \u0627\u0644\u0628\u062d\u062b\u0650 \u0639\u0644\u0649 \u0646\u0635\u064d\u0651 \u0644\u0645\u0630\u0647\u0628\u0650 X \u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0645\u0633\u0623\u0644\u0629.');
+      ok('A-2 names four -> nothing', BW2.completionLedger({ question: Q4, released: FOUR }).length === 0);
+      ok('A-2 a school written under its imam\'s name counts as named («\u0623\u0628\u0648 \u062d\u0646\u064a\u0641\u0629»)', BW2.completionLedger({ question: Q4, released: HANAFI_IMAM }).length === 0);
+      ok('A-2 a one-school question -> at most that school', JSON.stringify(BW2.completionLedger({ question: Q1, released: THREE.replace('\u0648\u0630\u0647\u0628 \u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632.', '') }).map(kind)) === JSON.stringify(['school:3'])
+        && BW2.completionLedger({ question: Q1, released: THREE }).length === 0);
+      ok('A-2 an absence sentence already covering the school is not written twice', BW2.completionLedger({ question: Q4, released: THREE + ' ' + BW2.ledgerSchoolSentence('\u0627\u0644\u062d\u0646\u0641\u064a\u0629') }).length === 0);
+      // \u2500\u2500 brain35-5g K1 (2026-11-09; DIAG7 K1, from our batches a777687f A-2) \u00b7 THE LEDGER COUNTS A SCHOOL NAMED BY ITS IMAM OR HIS COMPANIONS \u2500\u2500
+      // MEASURED (DIAG7 K1-ledger-schools, preview Q8): three absence sentences for the schools the page quotes. Q8's question and its six
+      // released paragraphs are copied by code from DIAG7 pages/Q8.roles.txt (the EXT report's page); the one-line inputs are the order's.
+      {
+        const Q8_K1 = '\u0645\u0627 \u0623\u0642\u0648\u0627\u0644 \u0627\u0644\u0645\u0630\u0627\u0647\u0628 \u0627\u0644\u0641\u0642\u0647\u064a\u0629 \u0641\u064a \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u0649 \u0627\u0644\u062c\u0648\u0631\u0628\u064a\u0646\u061f';
+        const P8_K1 = ['\u0625\u0646 \u0643\u0627\u0646\u0627 \u0645\u062c\u0644\u062f\u064a\u0646 \u0623\u0648 \u0645\u0646\u0639\u0644\u064a\u0646\u060c \u064a\u062c\u0632\u0626\u0647 \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u064a\u0647\u0645\u0627 \u0628\u0644\u0627 \u062e\u0644\u0627\u0641 \u0639\u0646\u062f\u0647\u0645.', '\u0648\u0625\u0646 \u0644\u0645 \u064a\u0643\u0648\u0646\u0627 \u0645\u062c\u0644\u062f\u064a\u0646 \u0648\u0644\u0627 \u0645\u0646\u0639\u0644\u064a\u0646\u060c \u0641\u0625\u0646 \u0643\u0627\u0646\u0627 \u0631\u0642\u064a\u0642\u064a\u0646 \u064a\u0634\u0641\u0627\u0646 \u0627\u0644\u0645\u0627\u0621\u060c \u0644\u0627 \u064a\u062c\u0648\u0632 \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u064a\u0647\u0645\u0627 \u0628\u0627\u0644\u0625\u062c\u0645\u0627\u0639 \u2014 \u0628\u062f\u0627\u0626\u0639 \u0627\u0644\u0635\u0646\u0627\u0626\u0639 \u0641\u064a. \u0648\u0627\u062d\u062a\u062c \u0623\u0628\u0648 \u064a\u0648\u0633\u0641 \u0648\u0645\u062d\u0645\u062f \u0628\u062d\u062f\u064a\u062b \u0627\u0644\u0645\u063a\u064a\u0631\u0629 \u0628\u0646 \u0634\u0639\u0628\u0629\u060c \u0648\u0644\u0623\u0646 \u0627\u0644\u062c\u0648\u0627\u0632 \u0641\u064a \u0627\u0644\u062e\u0641 \u0644\u062f\u0641\u0639 \u0627\u0644\u062d\u0631\u062c \u0644\u0645\u0627 \u064a\u0644\u062d\u0642\u0647 \u0645\u0646 \u0627\u0644\u0645\u0634\u0642\u0629 \u0628\u0627\u0644\u0646\u0632\u0639\u060c \u0648\u0647\u0630\u0627 \u0627\u0644\u0645\u0639\u0646\u0649 \u0645\u0648\u062c\u0648\u062f \u0641\u064a \u0627\u0644\u062c\u0648\u0631\u0628. \u0648\u0644\u0623\u0628\u064a \u062d\u0646\u064a\u0641\u0629 \u0623\u0646 \u062c\u0648\u0627\u0632 \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u0649 \u0627\u0644\u062e\u0641\u064a\u0646 \u062b\u0628\u062a \u0646\u0635\u0627 \u0628\u062e\u0644\u0627\u0641 \u0627\u0644\u0642\u064a\u0627\u0633\u060c \u0648\u063a\u064a\u0631 \u0627\u0644\u0645\u062c\u0644\u062f \u0648\u0627\u0644\u0645\u0646\u0639\u0644 \u0645\u0646 \u0627\u0644\u062c\u0648\u0627\u0631\u0628 \u0644\u0627 \u064a\u0634\u0627\u0631\u0643 \u0627\u0644\u062e\u0641 \u0641\u064a \u0647\u0630\u0627 \u0627\u0644\u0645\u0639\u0646\u0649.', '\u0648\u0644\u062a\u0631\u062f\u062f \u0627\u0644\u062c\u0648\u0631\u0628\u064a\u0646 \u0627\u0644\u0645\u062c\u0644\u062f\u064a\u0646 \u0628\u064a\u0646 \u0627\u0644\u062e\u0641 \u0648\u0627\u0644\u062c\u0648\u0631\u0628 \u063a\u064a\u0631 \u0627\u0644\u0645\u062c\u0644\u062f\u060c \u0641\u0639\u0646 \u0645\u0627\u0644\u0643 \u0641\u064a \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u064a\u0647\u0645\u0627 \u0631\u0648\u0627\u064a\u062a\u0627\u0646: \u0625\u062d\u062f\u0627\u0647\u0645\u0627 \u0628\u0627\u0644\u0645\u0646\u0639 \u0648\u0627\u0644\u0623\u062e\u0631\u0649 \u0628\u0627\u0644\u062c\u0648\u0627\u0632.', '\u0648\u0645\u0646 \u0634\u0631\u0648\u0637 \u0627\u0644\u0645\u0633\u062d \u0639\u0646\u062f\u0647\u0645 \u0623\u0646 \u064a\u0643\u0648\u0646 \u0627\u0644\u0645\u0645\u0633\u0648\u062d \u0645\u0646 \u062c\u0644\u062f \u0644\u0627 \u0645\u0645\u0627 \u0635\u0646\u0639 \u0639\u0644\u0649 \u0647\u064a\u0626\u062a\u0647 \u0645\u0646 \u0644\u0628\u062f \u0648\u0642\u0637\u0646 \u0648\u0643\u062a\u0627\u0646\u060c \u0648\u0623\u0646 \u064a\u0633\u062a\u0631 \u0645\u062d\u0644 \u0627\u0644\u0641\u0631\u0636\u060c \u0648\u0623\u0646 \u064a\u0645\u0643\u0646 \u062a\u062a\u0627\u0628\u0639 \u0627\u0644\u0645\u0634\u064a \u0628\u0647.', '\u0648\u0646\u0635 \u0627\u0644\u0634\u0627\u0641\u0639\u064a \u0641\u064a \u0627\u0644\u0623\u0645 \u0623\u0646\u0647 \u064a\u062c\u0648\u0632 \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u0649 \u0627\u0644\u062c\u0648\u0631\u0628 \u0628\u0634\u0631\u0637 \u0623\u0646 \u064a\u0643\u0648\u0646 \u0635\u0641\u064a\u0642\u0627 \u0645\u0646\u0639\u0644\u0627 \u2014 \u0627\u0644\u0645\u062c\u0645\u0648\u0639 \u0634\u0631\u062d \u0627\u0644\u0645\u0647\u0630\u0628. \u0648\u0646\u0642\u0644 \u0627\u0644\u0645\u0632\u0646\u064a \u0623\u0646\u0647 \u0644\u0627 \u064a\u0645\u0633\u062d \u0639\u0644\u0649 \u0627\u0644\u062c\u0648\u0631\u0628\u064a\u0646 \u0625\u0644\u0627 \u0623\u0646 \u064a\u0643\u0648\u0646\u0627 \u0645\u062c\u0644\u062f\u064a \u0627\u0644\u0642\u062f\u0645\u064a\u0646. \u0648\u0627\u0644\u0635\u062d\u064a\u062d \u0639\u0646\u062f \u062c\u0645\u0627\u0639\u0629 \u0645\u0646 \u0627\u0644\u0645\u062d\u0642\u0642\u064a\u0646 \u0643\u0627\u0644\u0642\u0627\u0636\u064a \u0623\u0628\u064a \u0627\u0644\u0637\u064a\u0628 \u0648\u0627\u0644\u0642\u0641\u0627\u0644 \u0623\u0646\u0647 \u0625\u0646 \u0623\u0645\u0643\u0646 \u0645\u062a\u0627\u0628\u0639\u0629 \u0627\u0644\u0645\u0634\u064a \u0639\u0644\u064a\u0647 \u062c\u0627\u0632 \u0627\u0644\u0645\u0633\u062d \u0643\u064a\u0641 \u0643\u0627\u0646\u060c \u0648\u0625\u0644\u0627 \u0641\u0644\u0627.', '\u0645\u0630\u0647\u0628 \u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629: \u0623\u062c\u0627\u0632 \u0627\u0644\u0625\u0645\u0627\u0645 \u0623\u062d\u0645\u062f \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u0649 \u0627\u0644\u062c\u0648\u0631\u0628\u060c \u0648\u0644\u0627 \u064a\u0639\u062a\u0628\u0631 \u0623\u0646 \u064a\u0643\u0648\u0646\u0627 \u0645\u062c\u0644\u062f\u064a\u0646 \u2014 \u0628\u062f\u0627\u0626\u0639 \u0627\u0644\u0635\u0646\u0627\u0626\u0639 \u0641\u064a. \u0648\u0642\u0627\u0644 \u0623\u062d\u0645\u062f: \u064a\u0630\u0643\u0631 \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u0649 \u0627\u0644\u062c\u0648\u0631\u0628\u064a\u0646 \u0639\u0646 \u0633\u0628\u0639\u0629 \u0623\u0648 \u062b\u0645\u0627\u0646\u064a\u0629 \u0645\u0646 \u0623\u0635\u062d\u0627\u0628 \u0631\u0633\u0648\u0644 \u0627\u0644\u0644\u0647 \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645 \u2014 \u0627\u0644\u0645\u063a\u0646\u064a \u0644\u0627\u0628\u0646 \u0642\u062f\u0627\u0645\u0629. \u0648\u0627\u0633\u062a\u062f\u0644 \u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629 \u0628\u062d\u062f\u064a\u062b \u0627\u0644\u0645\u063a\u064a\u0631\u0629 \u0628\u0646 \u0634\u0639\u0628\u0629 \u0623\u0646 \u0627\u0644\u0646\u0628\u064a \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645 \u0645\u0633\u062d \u0639\u0644\u0649 \u0627\u0644\u062c\u0648\u0631\u0628\u064a\u0646 \u0648\u0627\u0644\u0646\u0639\u0644\u064a\u0646. \u0648\u0634\u0631\u0637 \u0623\u062d\u0645\u062f \u0641\u064a \u0645\u0648\u0636\u0639 \u0623\u0646 \u064a\u0643\u0648\u0646 \u0627\u0644\u062c\u0648\u0631\u0628 \u0635\u0641\u064a\u0642\u0627 \u064a\u0642\u0648\u0645 \u0642\u0627\u0626\u0645\u0627 \u0641\u064a \u0631\u062c\u0644\u0647 \u0644\u0627 \u064a\u0646\u0643\u0633\u0631 \u0645\u062b\u0644 \u0627\u0644\u062e\u0641\u064a\u0646. \u0648\u0625\u0646 \u0643\u0627\u0646 \u0627\u0644\u062c\u0648\u0631\u0628 \u064a\u062b\u0628\u062a \u0628\u0644\u0628\u0633 \u0627\u0644\u0646\u0639\u0644 \u0644\u0627 \u0628\u0646\u0641\u0633\u0647\u060c \u0623\u0628\u064a\u062d \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u064a\u0647\u060c \u0644\u0643\u0646 \u062a\u0646\u062a\u0642\u0636 \u0627\u0644\u0637\u0647\u0627\u0631\u0629 \u0628\u062e\u0644\u0639 \u0627\u0644\u0646\u0639\u0644 \u0644\u0632\u0648\u0627\u0644 \u0634\u0631\u0637 \u0627\u0644\u062b\u0628\u0648\u062a.'].join(String.fromCharCode(10));
+        const k1Kinds = (released, question = Q4, mod = BW2) => mod.completionLedger({ question, released }).map(kind);
+        const k1School = (label) => kind(BW2.ledgerSchoolSentence(label));
+        const k1Has = (released, label) => k1Kinds(released).includes(k1School(label));
+        ok('K1-1 Q8: the six released paragraphs with its question -> no school sentence', JSON.stringify(k1Kinds(P8_K1, Q8_K1)) === '[]', JSON.stringify(k1Kinds(P8_K1, Q8_K1)));
+        ok('K1-2 \u00ab\u0648\u0644\u0623\u0628\u064a \u062d\u0646\u064a\u0641\u0629 \u0623\u0646 \u062c\u0648\u0627\u0632 \u0627\u0644\u0645\u0633\u062d \u062b\u0628\u062a \u0646\u0635\u0627.\u00bb -> Hanafi counted', !k1Has('\u0648\u0644\u0623\u0628\u064a \u062d\u0646\u064a\u0641\u0629 \u0623\u0646 \u062c\u0648\u0627\u0632 \u0627\u0644\u0645\u0633\u062d \u062b\u0628\u062a \u0646\u0635\u0627.', '\u0627\u0644\u062d\u0646\u0641\u064a\u0629'), JSON.stringify(k1Kinds('\u0648\u0644\u0623\u0628\u064a \u062d\u0646\u064a\u0641\u0629 \u0623\u0646 \u062c\u0648\u0627\u0632 \u0627\u0644\u0645\u0633\u062d \u062b\u0628\u062a \u0646\u0635\u0627.')));
+        ok('K1-3 \u00ab\u0648\u0627\u062d\u062a\u062c \u0623\u0628\u0648 \u064a\u0648\u0633\u0641 \u0648\u0645\u062d\u0645\u062f \u0628\u062d\u062f\u064a\u062b \u0627\u0644\u0645\u063a\u064a\u0631\u0629.\u00bb -> Hanafi counted', !k1Has('\u0648\u0627\u062d\u062a\u062c \u0623\u0628\u0648 \u064a\u0648\u0633\u0641 \u0648\u0645\u062d\u0645\u062f \u0628\u062d\u062f\u064a\u062b \u0627\u0644\u0645\u063a\u064a\u0631\u0629.', '\u0627\u0644\u062d\u0646\u0641\u064a\u0629'), JSON.stringify(k1Kinds('\u0648\u0627\u062d\u062a\u062c \u0623\u0628\u0648 \u064a\u0648\u0633\u0641 \u0648\u0645\u062d\u0645\u062f \u0628\u062d\u062f\u064a\u062b \u0627\u0644\u0645\u063a\u064a\u0631\u0629.')));
+        ok('K1-4 \u00ab\u0641\u0639\u0646 \u0645\u0627\u0644\u0643 \u0641\u064a \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u064a\u0647\u0645\u0627 \u0631\u0648\u0627\u064a\u062a\u0627\u0646.\u00bb -> Maliki counted', !k1Has('\u0641\u0639\u0646 \u0645\u0627\u0644\u0643 \u0641\u064a \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u064a\u0647\u0645\u0627 \u0631\u0648\u0627\u064a\u062a\u0627\u0646.', '\u0627\u0644\u0645\u0627\u0644\u0643\u064a\u0629'), JSON.stringify(k1Kinds('\u0641\u0639\u0646 \u0645\u0627\u0644\u0643 \u0641\u064a \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u064a\u0647\u0645\u0627 \u0631\u0648\u0627\u064a\u062a\u0627\u0646.')));
+        ok('K1-5 \u00ab\u0648\u0646\u0635 \u0627\u0644\u0634\u0627\u0641\u0639\u064a \u0641\u064a \u0627\u0644\u0623\u0645 \u0639\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632.\u00bb -> Shafii counted', !k1Has('\u0648\u0646\u0635 \u0627\u0644\u0634\u0627\u0641\u0639\u064a \u0641\u064a \u0627\u0644\u0623\u0645 \u0639\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632.', '\u0627\u0644\u0634\u0627\u0641\u0639\u064a\u0629'), JSON.stringify(k1Kinds('\u0648\u0646\u0635 \u0627\u0644\u0634\u0627\u0641\u0639\u064a \u0641\u064a \u0627\u0644\u0623\u0645 \u0639\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632.')));
+        ok('K1-6 \u00ab\u062d\u062f\u062b\u0646\u0627 \u064a\u062d\u064a\u0649 \u0639\u0646 \u0645\u0627\u0644\u0643 \u0639\u0646 \u0646\u0627\u0641\u0639 \u0639\u0646 \u0627\u0628\u0646 \u0639\u0645\u0631\u00bb -> Maliki counted, as today (pinned as measured: the A-2 reader LEDGER_IMAM_FORMS reads the frame of a chain; the new reader alone does not, evidence k1-chain.out.txt)', !k1Has('\u062d\u062f\u062b\u0646\u0627 \u064a\u062d\u064a\u0649 \u0639\u0646 \u0645\u0627\u0644\u0643 \u0639\u0646 \u0646\u0627\u0641\u0639 \u0639\u0646 \u0627\u0628\u0646 \u0639\u0645\u0631', '\u0627\u0644\u0645\u0627\u0644\u0643\u064a\u0629'), JSON.stringify(k1Kinds('\u062d\u062f\u062b\u0646\u0627 \u064a\u062d\u064a\u0649 \u0639\u0646 \u0645\u0627\u0644\u0643 \u0639\u0646 \u0646\u0627\u0641\u0639 \u0639\u0646 \u0627\u0628\u0646 \u0639\u0645\u0631')));
+        ok('K1-7 a four-school question whose answer names only \u00ab\u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629\u00bb -> three school sentences, as today (pinned)', JSON.stringify(k1Kinds('\u0630\u0647\u0628 \u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632.')) === JSON.stringify([k1School('\u0627\u0644\u062d\u0646\u0641\u064a\u0629'), k1School('\u0627\u0644\u0645\u0627\u0644\u0643\u064a\u0629'), k1School('\u0627\u0644\u0634\u0627\u0641\u0639\u064a\u0629')]), JSON.stringify(k1Kinds('\u0630\u0647\u0628 \u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632.')));
+        // the mutant: the new forms removed (the reader's call line dropped) -> question 8 gets its three sentences again (K1-1 red)
+        const srcK1 = read('lib/completion-ledger.js');
+        const seamK1 = '  for (const key of ledgerImamSchools(sent)) named.add(key);';
+        ok('K1 MUTANT seam present (once)', srcK1.split(seamK1).length === 2);
+        const tmpK1 = path.join(REPO, 'lib', '.mut-k1-ledger.mjs');
+        try {
+          fs.writeFileSync(tmpK1, srcK1.split(seamK1).join('  // mutant: the imam forms are not read'), 'utf8');
+          const MK1 = await import(pathToFileURL(tmpK1).href + '?k1=' + Date.now());
+          ok('MUTANT KILLED: without the imam forms question 8 is denied its schools again (K1-1 red)', JSON.stringify(k1Kinds(P8_K1, Q8_K1, MK1)) !== '[]', JSON.stringify(k1Kinds(P8_K1, Q8_K1, MK1)));
+        } finally {
+          try { fs.unlinkSync(tmpK1); } catch { /* temp only */ }
+        }
+      }
+      // the wiring: a real turn on a four-school question whose writer names no school ends with the four sentences, once each
+      const wired = await run({ question: Q4, writerText: U.s1, judge: 'all' });
+      const text = wired.deltas.join('');
+      const counts = ['\u0627\u0644\u062d\u0646\u0641\u064a\u0629', '\u0627\u0644\u0645\u0627\u0644\u0643\u064a\u0629', '\u0627\u0644\u0634\u0627\u0641\u0639\u064a\u0629', '\u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629'].map((l) => text.split(BW2.ledgerSchoolSentence(l)).length - 1);
+      ok('A-2 wired: a four-school turn whose writer names no school ends with the four sentences, once each', JSON.stringify(counts) === '[1,1,1,1]' && text.includes(MASAH_RULING), ascii(text));
+      const wiredNone = await run({ question: Q_MASAH, writerText: U.s1, judge: 'all' });
+      ok('A-2 wired: a question that asks no school gets no school sentence', !wiredNone.deltas.join('').includes('\u0644\u0645\u0630\u0647\u0628'));
+      // the mutant: the call site gone -> the wired row fails
+      const src = read('lib/before-writing-v2.js');
+      const seam = '  for (const sentence of completionLedger({ question, released: String(wire.sent || \'\'), aboveText: directBlock, leadLine: gradeHeadLine })) {';
+      ok('A-2 mutant seam present', src.includes(seam));
+      const mutated = src.replace(seam, '  for (const sentence of []) { // mutant: the ledger is never consulted');
+      const os2 = require('os');
+      const tmp = fs.mkdtempSync(path.join(os2.tmpdir(), 'ustaz-a2-mut-'));
+      try {
+        const file = path.join(tmp, 'before-writing-v2.mjs');
+        fs.writeFileSync(file, mutated.replace(/from\s+(['"])(\.[^'"]*)\1/gu, (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q), 'utf8');
+        const M = await import(pathToFileURL(file).href);
+        const { deps } = makeDeps({ writerText: U.s1, judge: 'all' });
+        const { target, wire } = makeWire();
+        await M.runBw2Turn({
+          question: Q4, messages: [{ role: 'user', content: Q4 }], mode: 'brief', band: 'adult', system: 'SYSTEM', model: 'writer-model', maxTokens: 4096,
+          providerUrl: 'https://api.anthropic.invalid/v1/messages', headers: {}, libFlagValue: '', libToken: '', lessonsToken: '', onLessonRows: null,
+          takhrijWired: false, cards, wire, requestStartedAt: Date.now(), env: { BW2_RETRIEVAL_MS: '400', BW2_JUDGE_MS: '400' }, runtime: '', deps,
+        });
+        const mutantText = deltasOf(framesOf(target)).join('');
+        ok('MUTANT KILLED: with the ledger unconsulted the four-school turn ends without the school sentences', !mutantText.includes('\u0644\u0645\u0630\u0647\u0628') && mutantText.includes(MASAH_RULING), ascii(mutantText));
+      } finally {
+        try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+
     // ORDER 50 item 6, the real store: written LAST in this file, because loading the encyclopedia index here would end the C2g row (readiness before any build in this process) if it came earlier.
     {
       const BW5 = await esm('lib/before-writing-v2.js');
@@ -1965,6 +2373,976 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       rows6.forEach((row, i) => { row.ref = i + 1; });
       ok('ORDER50-6 the real store: its rows reach the writer as stored passages (the letters of the stored snippet), and the long folded text is not what the writer reads',
         rows6.length > 0 && rows6.every((row) => BW5.selectPinnedText(row, 'مسافة السفر') === row.text.slice(0, BW5.BW_ROW_CHARS) && /[ً-ْ]/u.test(row.text)), JSON.stringify(rows6.map((r) => [r.fullText.length, r.text.length])));
+    }
+    // ---------------------------------------------------------------- ITEM O-1 (brain35, 2026-11-06; DIAG ARBITER)
+    // MEASURED (Q30): a question naming TWO roster scholars and asking for the ascription retrieved 0 fatwas, while Q06
+    // and Q15 retrieved 4 and 6 of those same men's. resolveFatwaScholar answers only when exactly one alias matches, so
+    // the turn asked ONE man, with queries carrying the OTHER man's name and the imperative tail: «وابن عثيمين الجمع»
+    // and «والعصر انسب صاحبه» -- and the store ANDs every token.
+    {
+      const Q30 = 'ما أقوال ابن باز وابن عثيمين في الجمع بين الجمعة والعصر؟ انسب كل قول إلى صاحبه.';
+      const QT = 'ما قول ابن باز في حديث رواه الترمدي؟';
+      const QN = 'ما حكم الوضوء من لمس المرأة؟';
+      ok('O-1a Q30 names both roster scholars, in the order it names them (the welded waw of «وابن عثيمين» read)',
+        JSON.stringify(BW2.namedScholarsIn(Q30).map((n) => n.alias)) === JSON.stringify(['ابن باز', 'ابن عثيمين']),
+        ascii(JSON.stringify(BW2.namedScholarsIn(Q30).map((n) => n.alias))));
+      ok('O-1b the imperative that asks for the ascription is cut off, and nothing else is',
+        BW2.stripImperativeTail(Q30) === Q30.replace(/\s*انسب[^.]*\.$/u, '') && BW2.stripImperativeTail(QN) === QN,
+        ascii(JSON.stringify([BW2.stripImperativeTail(Q30), BW2.stripImperativeTail(QN)])));
+      const asks30 = BW2.namedFatwaAsks(Q30);
+      ok('O-1c one ask per named scholar, each with the issue\'s own words -- no name, no imperative',
+        asks30.length === 2 && asks30[0].scholar === 'ابن باز' && asks30[1].scholar === 'ابن عثيمين'
+        && asks30.every((a) => a.query === 'الجمع الجمعة والعصر'), ascii(JSON.stringify(asks30)));
+      const asksT = BW2.namedFatwaAsks(QT);
+      ok('O-1d one named scholar is one ask, and a collector the question names is no roster scholar and stays in the words',
+        asksT.length === 1 && asksT[0].scholar === 'ابن باز' && /ترمد|ترمذ/u.test(asksT[0].query)
+        && BW2.namedScholarsIn(QT).length === 1, ascii(JSON.stringify(asksT)));
+      ok('O-1e a question naming nobody asks as it always did',
+        BW2.namedFatwaAsks(QN).length === 0 && BW2.namedScholarsIn(QN).length === 0 && JSON.stringify(BW2.fatwaQueries(QN)).length > 2);
+      // the store is really asked once per named scholar, each with the issue, through gatherBw2 itself
+      const seen = [];
+      await BW2.gatherBw2({
+        question: Q30, band: 'adult', libFlagValue: '', libToken: '', lessonsToken: '', budgetMs: 600, encycColdMs: 50,
+        now: Date.now, onSource: () => {},
+        deps: {
+          runTool: async (name, input) => { if (name === 'search_fatawa') seen.push({ query: String(input.query || ''), scholar: String(input.scholar || '') }); return { text: '', added: [], calls: 1 }; },
+          searchStoredCorpus: async () => ({ records: [] }), encyclopediaReady: () => true, warmEncyclopedia: async () => true,
+        },
+      });
+      const withScholar = seen.filter((s) => s.scholar);
+      const issueAsks = withScholar.filter((s) => s.query === 'الجمع الجمعة والعصر');
+      ok('O-1f gatherBw2 asks the store once for each named scholar, with the issue as the words -- and no query of the turn carries a name or the imperative',
+        issueAsks.length === 2 && issueAsks[0].scholar === 'ابن باز' && issueAsks[1].scholar === 'ابن عثيمين'
+        && seen.every((s) => !s.query.includes('ابن باز') && !s.query.includes('عثيمين') && !s.query.includes('انسب')),
+        ascii(JSON.stringify(seen)));
+      ok('O-1f2 ...and the narrower retry, when the store answers nothing, goes to the first named scholar with the issue\'s first two words',
+        seen.length === 3 && seen[2].scholar === 'ابن باز' && seen[2].query === 'الجمع الجمعة', ascii(JSON.stringify(seen)));
+      // the judge's three emptinesses are three labels, and the wire carries the outcome it handed over on
+      const empties = [
+        ['judge_none', { judge: 'none' }],
+        ['judge_incomplete', { judge: () => '{"d":{}}' }],
+        ['judge_failed', { judge: () => new Promise(() => {}), fatwa: [ROW_F2] }],
+      ];
+      for (const [label, opts] of empties) {
+        const e = await run({ ...opts, writerText: U.s1, continueWhenNotCovered: true });
+        const judgeFrames = e.frames.filter((f) => f.type === 'ezik_status' && f.stage === 'judge');
+        ok('O-1g an empty judge hands over as ' + label + ', and its last judge status carries that outcome',
+          e.out.telemetry.continued === label && judgeFrames.length === 2
+          && judgeFrames[1].outcome === label.replace('judge_', '').replace('none', 'complete'),
+          ascii(JSON.stringify({ continued: e.out.telemetry.continued, judgeOutcome: e.out.telemetry.judgeOutcome, frames: judgeFrames })));
+      }
+      ok('O-1h the status frame is the same shape as before otherwise, and the client reads stage/hits/titles only (app.jsx)',
+        read('app.jsx').includes('function ezikReadingStatus(evt) {')
+        && /hasOwnProperty\.call\(EZIK_READING_STAGES, evt\.stage\)/u.test(read('app.jsx')));
+    }
+    // ---------------------------------------------------------------- ITEM O-2 (brain35, 2026-11-06; DIAG ZINA; owner: yes)
+    // MEASURED (Q34-Q36): a request for a chapter's hadiths went to the library as ONE query, and «الزينة» is not a chapter any
+    // store holds under that name, so the turn answered on whatever that query brought. The chapter is now unfolded into the
+    // senses it is written under (lib/data/chapter-meanings.json), each a part with its own queries, heading and absence.
+    {
+      const Q34 = 'أبي منك تعطيني كل الأحاديث الصحاح في باب الزينة';
+      const Q35 = 'اذكر لي ما صحّ من الأحاديث في باب التجمّل والزينة';
+      const QW = 'ما حكم الوضوء من لمس المرأة؟';
+      const req = BW2.isChapterHadithRequest(Q34);
+      ok('O-2a Q34 is read as a request for the chapter «الزينة», with the owner\'s own six senses',
+        !!req && req.chapter === 'الزينة' && req.source === 'owner' && req.meanings.length === 6 && req.meanings[0] === 'اللباس'
+        && req.meanings[5] === 'الذهب والحرير', ascii(JSON.stringify(req)));
+      ok('O-2b the chapter is found however the question writes it: «باب X», «X بأنواعها», a conjunction or the article before it',
+        !!BW2.isChapterHadithRequest(Q35) && BW2.isChapterHadithRequest(Q35).key === BW2.isChapterHadithRequest(Q34).key,
+        ascii(JSON.stringify(BW2.isChapterHadithRequest(Q35))));
+      ok('O-2c a question that is not a chapter request, and a chapter the file does not know, are read as before',
+        BW2.isChapterHadithRequest(QW) === null && BW2.isChapterHadithRequest('أعطني كل الأحاديث الصحيحة في باب الطائرات') === null);
+      const parts = BW2.chapterParts(req);
+      ok('O-2d each sense is a part: its own library and fatwa query, the chapter\'s own words beside the sense\'s, and the library\'s row cap',
+        parts.length === 6 && parts.every((pt) => pt.query && pt.fatwaQuery && pt.chapter === 'الزينة' && pt.rowCap === BW2.BW2_CAPS.library)
+        && parts[0].query.includes(BW2.libraryQuery('اللباس')), ascii(JSON.stringify(parts.map((pt) => pt.query))));
+      // the real retrieval: one member per sense, of every source that is open
+      const seen = { library: [], fatwa: [], encyclopedia: [] };
+      const chapterDeps = {
+        runTool: async (name, input) => {
+          if (name === 'search_library') seen.library.push(String(input.query || ''));
+          if (name === 'search_fatawa') seen.fatwa.push(String(input.query || ''));
+          return { text: '', added: [], calls: 1 };
+        },
+        searchStoredCorpus: async (query) => { seen.encyclopedia.push(String(query || '')); return { records: [] }; },
+        encyclopediaReady: () => true, warmEncyclopedia: async () => true,
+      };
+      const gotChapter = await BW2.gatherBw2({ question: Q34, band: 'adult', libFlagValue: 'on', libToken: 'guard-token', lessonsToken: '',
+        budgetMs: 900, encycColdMs: 50, now: Date.now, onSource: () => {}, deps: chapterDeps });
+      ok('O-2e the turn opens one library member for each of the six senses, and reports the chapter it unfolded',
+        parts.every((pt) => seen.library.includes(pt.query)) && gotChapter.chapter && gotChapter.chapter.meanings.length === 6
+        && (gotChapter.parts || []).map((pt) => pt.title).join('|') === req.meanings.join('|'), ascii(JSON.stringify(seen.library)));
+      const seenPlain = { library: [], fatwa: [] };
+      const gotPlain = await BW2.gatherBw2({ question: QW, band: 'adult', libFlagValue: 'on', libToken: 'guard-token', lessonsToken: '',
+        budgetMs: 900, encycColdMs: 50, now: Date.now, onSource: () => {},
+        deps: { ...chapterDeps, runTool: async (name, input) => { if (name === 'search_library') seenPlain.library.push(String(input.query || '')); if (name === 'search_fatawa') seenPlain.fatwa.push(String(input.query || '')); return { text: '', added: [], calls: 1 }; } } });
+      ok('O-2f a question that names no chapter asks exactly what it asked before: two library queries, two fatwa queries, no parts',
+        gotPlain.chapter === null && (gotPlain.parts || []).length === 0 && seenPlain.library.length === 2 && seenPlain.fatwa.length === 2,
+        ascii(JSON.stringify(seenPlain)));
+      // what the writer is told, and what the server says for a sense nothing proven was found in
+      const rule = BW2.bw2PartsRule(parts.slice(0, 4), parts.slice(4));
+      ok('O-2g the writer is told the chapter, a heading per sense, and one to three PROVEN hadiths under each',
+        rule.includes('«الزينة»') && rule.includes('### اللباس') && /أحاديثَ ثابتةٍ/u.test(rule)
+        && rule.split('### ').length === 6, ascii(rule)); // four answered headings + the empty-senses line that follows them
+      ok('O-2h a sense with no proven hadith is the server\'s one sentence, and it says hadith, not text',
+        BW2.questionPartSentence(parts[5], ['المكتبة']) === 'لم أقفْ على حديثٍ ثابتٍ في الذهب والحرير فيما بُحث فيه (المكتبة).'
+        && BW2.questionPartSentence({ title: 'المسح على الخفين' }, []).startsWith('لم أقف على نصٍ'),
+        ascii(BW2.questionPartSentence(parts[5], ['المكتبة'])));
+      // the file itself
+      const file = BW2.chapterMeaningsFile();
+      const entries = Object.entries(file.chapters || {});
+      ok('O-2i lib/data/chapter-meanings.json parses, every chapter has one to six senses, and the owner\'s seed is marked as his',
+        entries.length > 1000 && entries.every(([key, v]) => key && Array.isArray(v.meanings) && v.meanings.length >= 1 && v.meanings.length <= 6)
+        && entries.filter(([, v]) => v.source === 'owner').length >= 1 && file.schema === 'ezik.chapter-meanings.v1',
+        ascii(JSON.stringify(file.counts)));
+      ok('O-2j the file is what tools/build-chapter-meanings.cjs writes from the store (--check), and the builder reads no network',
+        (() => { try { require('child_process').execFileSync(process.execPath, [path.join(REPO, 'tools', 'build-chapter-meanings.cjs'), '--check'], { cwd: REPO, stdio: 'pipe' }); return true; } catch { return false; } })()
+        && !/fetch\(|https?:\/\//u.test(read('tools/build-chapter-meanings.cjs').replace(/^\/\/.*$/gmu, '')));
+      // ── brain35-5b W3 (2026-11-08; DIAG4 C1 (b); owner decision 2026-11-08: the table without related terms, minimum two senses) · THE CHAPTER TABLE REBUILT
+      // MEASURED (DIAG4 H1b): 2,313 of 6,745 "senses" were entries of the articles' related-terms section (terms an article DISTINGUISHES from its
+      // chapter), and 8 opened on a sentence connective. tools/build-chapter-meanings.cjs now skips that section and the fragments, and a chapter
+      // needs two senses (SUBSECTIONS_MIN 2). The file: 1205 chapters, 4971 meanings, 16 aliases (was 1361 / 6751 / 17); 231 chapters left
+      // (BRAIN35-FIX5-evidence/chapters-left.txt). F3a's sense pin below was RE-CUT with it (W3, named): الاستياك للصلاه for the related
+      // term تخليل الاسنان. The owner's seed is pinned byte for byte to the file before the rebuild. Q8 / Q9 / Q26 (Z2c) are unchanged.
+      {
+        const cm = file.chapters;
+        const K_ITIKAF = "اعتكاف", K_TATAYYUB = "تطيب", K_ZINAH = "الزينه";
+        const M_RIBAT = "الرباط والمرابطه", M_JIWAR = "الجوار", M_TAZAYYUN = "التزين";
+        ok('Z10a اعتكاف.meanings carries neither الرباط والمرابطه nor الجوار (entries of its related-terms section), and keeps two or more senses',
+          !!cm[K_ITIKAF] && !cm[K_ITIKAF].meanings.includes(M_RIBAT) && !cm[K_ITIKAF].meanings.includes(M_JIWAR) && cm[K_ITIKAF].meanings.length >= 2, ascii(JSON.stringify(cm[K_ITIKAF] ? cm[K_ITIKAF].meanings : null)));
+        ok('Z10b no meaning in the file opens on ومن or فانه (a fragment of the sentence before it)',
+          entries.every(([, v]) => v.meanings.every((m) => !/^(?:ومن|فانه)(?:\s|$)/u.test(m))), ascii(String(entries.reduce((n, [, v]) => n + v.meanings.filter((m) => /^(?:ومن|فانه)(?:\s|$)/u.test(m)).length, 0))));
+        ok('Z10c the owner\'s seed الزينه is byte-identical to the file before the rebuild (pinned)', JSON.stringify(cm[K_ZINAH]) === "{\"source\":\"owner\",\"written\":\"الزينة\",\"meanings\":[\"اللباس\",\"الترجل والشعر\",\"خصال الفطرة\",\"الخاتم والطيب\",\"زينة المرأة\",\"الذهب والحرير\"]}", ascii(JSON.stringify(cm[K_ZINAH])));
+        ok('Z10d تطيب.meanings carries no التزين (a related term), and keeps two or more senses',
+          !!cm[K_TATAYYUB] && !cm[K_TATAYYUB].meanings.includes(M_TAZAYYUN) && cm[K_TATAYYUB].meanings.length >= 2, ascii(JSON.stringify(cm[K_TATAYYUB] ? cm[K_TATAYYUB].meanings : null)));
+        // the mutant: the related-terms section state taken out of the builder -> the file it writes (to a temporary path; the committed file
+        // is untouched) gives اعتكاف its related terms again, so the Z10a row would be red
+        {
+          const srcB = read('tools/build-chapter-meanings.cjs');
+          const seamB1 = "    if (inRelated) { if (!relatedSeen || LETTERED_BEFORE.test(before)) { relatedSeen = true; continue; } inRelated = false; }";
+          const seamB2 = "    else if (RELATED_TITLE_BEFORE.test(before)) { inRelated = true; relatedSeen = true; continue; }";
+          const outLine = "const OUT = path.join(REPO, 'lib', 'data', 'chapter-meanings.json');";
+          ok('Z10 mutant seams present once (the two related-terms lines and the OUT line)', srcB.split(seamB1).length === 2 && srcB.split(seamB2).length === 2 && srcB.split(outLine).length === 2);
+          const outB = path.join(require('os').tmpdir(), 'ezik-z10-mutant-' + process.pid + '.json');
+          const tmpB = path.join(REPO, 'tools', '.mut-z10-related.cjs');
+          let MB = null;
+          try {
+            fs.writeFileSync(tmpB, srcB.split(seamB1).join('').split(seamB2).join('').split(outLine).join('const OUT = ' + JSON.stringify(outB) + ';'));
+            require('child_process').execFileSync(process.execPath, [tmpB], { cwd: REPO, stdio: 'pipe' });
+            MB = JSON.parse(fs.readFileSync(outB, 'utf8'));
+          } catch (e) { MB = null; } finally { fs.rmSync(tmpB, { force: true }); fs.rmSync(outB, { force: true }); }
+          ok('Z10 mutant builds (to a temporary file)', !!MB && !!MB.chapters && !!MB.chapters[K_ITIKAF], MB ? ascii(JSON.stringify(MB.counts)) : 'no file');
+          ok('Z10 MUTANT KILLED: without the related-terms state اعتكاف carries الرباط والمرابطه / الجوار again',
+            !!MB && !!MB.chapters[K_ITIKAF] && (MB.chapters[K_ITIKAF].meanings.includes(M_RIBAT) || MB.chapters[K_ITIKAF].meanings.includes(M_JIWAR)), MB && MB.chapters[K_ITIKAF] ? ascii(JSON.stringify(MB.chapters[K_ITIKAF].meanings)) : 'no file');
+        }
+      }
+      // ── brain35-2 F3 (2026-11-07; DIAG2 R9) · CHAPTER ALIASES, AND THE BUILDER'S STRUCTURAL FILTER ───────────────────
+      // MEASURED (DIAG2 R9): P24 «… في باب السواك» found no chapter: the encyclopedia's article is «اسْتِيَاك» (key «استياك»)
+      // and the file knew no plain form; «اللباس» missed «أَلْبِسَةٌ» (key «البسه») the same way. The file now carries
+      // "aliases" (folded form -> key), written by the builder from the definition head (a plural title's singular «جمع X»,
+      // the definition's «ولفظ الX») and the related-terms head (a single-word term the article calls a synonym), plus the
+      // owner's hand-written block that the builder never overwrites; the reader tries the key forms, then the aliases. The
+      // builder's structural filter also drops a heading opening on «حكمه» / «حكمها» or on «حكم» + a structural word, and
+      // a heading that is the article's own name.
+      const P24 = 'اذكر لي ما صح من الأحاديث في باب السواك';
+      const r24 = BW2.isChapterHadithRequest(P24);
+      ok('F3a P24 («… في باب السواك») is read as a request for the chapter «اسْتِيَاك» through its alias, with the article\'s senses',
+        !!r24 && r24.key === 'استياك' && r24.chapter === 'اسْتِيَاك' && r24.source === 'encyclopedia' && r24.meanings.length >= 3
+        && r24.meanings.includes('الاستياك للصلاه'), ascii(JSON.stringify(r24)));
+      const rLibas = BW2.isChapterHadithRequest('أبي أحاديث صحيحة في باب اللباس');
+      ok('F3b «… في باب اللباس» reaches «أَلْبِسَةٌ» (key «البسه»), and «الثياب» reaches it too',
+        !!rLibas && rLibas.key === 'البسه' && rLibas.meanings.length >= 3
+        && !!BW2.isChapterHadithRequest('أبي أحاديث صحيحة في باب الثياب') && BW2.isChapterHadithRequest('أبي أحاديث صحيحة في باب الثياب').key === 'البسه',
+        ascii(JSON.stringify(rLibas)));
+      ok('F3c a chapter the file does not know is still null, with or without a near miss',
+        BW2.isChapterHadithRequest('أعطني كل الأحاديث الصحيحة في باب الطائرات') === null && BW2.isChapterHadithRequest('اذكر لي ما صح من الأحاديث في باب السواكات') === null);
+      const fileA = BW2.chapterMeaningsFile();
+      ok('F3d the file carries the alias block: the owner\'s hand-written pairs stand, every alias points at a known chapter, and no alias shadows a key',
+        fileA.aliases && typeof fileA.aliases === 'object' && fileA.aliases['سواك'] === 'استياك' && fileA.aliases['لباس'] === 'البسه' && fileA.aliases['ثياب'] === 'البسه'
+        && Object.entries(fileA.aliases).every(([form, key]) => fileA.chapters[key] && !fileA.chapters[form])
+        && Number.isInteger(fileA.counts.aliases) && fileA.counts.aliases >= 8 && Number.isInteger(fileA.counts.aliasesOwner) && fileA.counts.aliasesOwner >= 5,
+        ascii(JSON.stringify(fileA.counts)));
+      ok('F3e no sense in the whole file opens on «حكمه» / «حكمها», none is «حكم / الحكم» + a structural word, and none is its own article\'s name',
+        Object.entries(fileA.chapters).every(([key, v]) => v.meanings.every((m) => !/^(?:حكمه|حكمها)(?:\s|$)/u.test(m)
+          && !/^(?:حكم|الحكم)\s+(?:التكليفي|الاجمالي|الشرعي)(?:\s|$)/u.test(m) && m !== key && m !== 'ال' + key && 'ال' + m !== key)),
+        ascii(JSON.stringify(Object.entries(fileA.chapters).flatMap(([key, v]) => v.meanings.filter((m) => /^(?:حكمه|حكمها)(?:\s|$)/u.test(m) || m === key || m === 'ال' + key).map((m) => key + ':' + m)).slice(0, 8))));
+      ok('F3e ...and the owner\'s seed «الزينة» is unchanged', fileA.chapters['الزينه'].source === 'owner' && fileA.chapters['الزينه'].meanings.join('|') === 'اللباس|الترجل والشعر|خصال الفطرة|الخاتم والطيب|زينة المرأة|الذهب والحرير');
+      // the mutant: the alias lookup removed from the reader -> P24 is null again (the file itself is unchanged)
+      {
+        const srcR = read('lib/before-writing-v2.js');
+        const seamR = "        const entry = chapters[key] || chapters[aliases[key]]; // ITEM 35-D2 R9 (brain35-2 F3): the key forms, then the aliases";
+        ok('F3 mutant seam present once', srcR.split(seamR).length === 2);
+        const tmpR = path.join(REPO, 'lib', '.mut-f3-alias.mjs');
+        fs.writeFileSync(tmpR, srcR.split(seamR).join('        const entry = chapters[key]; // mutant: no alias is consulted').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MR = null;
+        try { MR = await import(pathToFileURL(tmpR).href + '?m=' + Date.now()); } catch (e) { MR = null; } finally { fs.rmSync(tmpR, { force: true }); }
+        ok('F3 mutant loads', !!MR);
+        ok('F3 MUTANT KILLED: without the alias lookup P24 finds no chapter again, while «الزينة» (a key) still does',
+          !!MR && MR.isChapterHadithRequest(P24) === null && !!MR.isChapterHadithRequest(Q34), MR ? ascii(JSON.stringify(MR.isChapterHadithRequest(P24))) : 'no module');
+      }
+      // ── brain35-2 F11 (2026-11-07; DIAG2 R15; owner: yes) · AN EMPTY SENSE OF A CHAPTER REQUEST ALWAYS GETS ITS SENTENCE ──
+      // MEASURED (DIAG2 R15, HE): on a reconstructed zina answer whose ring section says «نهى عن خاتم الذهب … ولبس الحرير حرام»
+      // the sentence for the empty «الذهب والحرير» sense was withheld by the two-term valve. A chapter sense is a heading the
+      // reader was promised: its absence sentence is written whatever the other sections carry; a plain part keeps today's valves.
+      const partsZ = BW2.chapterParts(BW2.isChapterHadithRequest(Q34));
+      const RING = 'نهى النبي ﷺ عن خاتم الذهب للرجال، ولبس الحرير حرام على الرجال حلال للنساء.';
+      ok('F11a the «الذهب والحرير» sense over a text whose ring section mentions gold and silk still draws its sentence, byte for byte',
+        partsZ.length === 6 && partsZ[5].chapter === 'الزينة' && partsZ[5].title === 'الذهب والحرير' && BW2.partSentenceWanted(partsZ[5], RING) === true
+        && BW2.questionPartSentence(partsZ[5], ['المكتبة']) === 'لم أقفْ على حديثٍ ثابتٍ في الذهب والحرير فيما بُحث فيه (المكتبة).'
+        && partsZ.every((pt) => BW2.partSentenceWanted(pt, RING) === true), ascii(JSON.stringify(partsZ.map((pt) => BW2.partSentenceWanted(pt, RING)))));
+      ok('F11b a plain part (no chapter) is read by today\'s valves: the same text silences a part on gold and silk',
+        BW2.partSentenceWanted({ text: 'الذهب والحرير', title: 'الذهب والحرير' }, RING) === false);
+      {
+        const srcZ = read('lib/before-writing-v2.js');
+        const seamZ = "  if (part && part.chapter) return true; // ITEM 35-D2 R15 (brain35-2 F11): a chapter sense always gets its sentence";
+        ok('F11 mutant seam present once', srcZ.split(seamZ).length === 2);
+        const tmpZ = path.join(REPO, 'lib', '.mut-f11-chapter.mjs');
+        fs.writeFileSync(tmpZ, srcZ.split(seamZ).join('  // mutant: a chapter sense is read like any part').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MZ = null;
+        try { MZ = await import(pathToFileURL(tmpZ).href + '?m=' + Date.now()); } catch (e) { MZ = null; } finally { fs.rmSync(tmpZ, { force: true }); }
+        ok('F11 mutant loads', !!MZ);
+        ok('F11 MUTANT KILLED: without the line the gold-and-silk sense loses its sentence under the ring section again',
+          !!MZ && MZ.partSentenceWanted(partsZ[5], RING) === false);
+      }
+    }
+      // ── brain35-5 Z2 (2026-11-08; DIAG4 C1 (a)) · THE CHAPTER DETECTOR FIRES ON THE CHAPTER-REQUEST SHAPE ONLY ─────────
+      // MEASURED (DIAG4 H1/H1c, preview Q19): the gate carried the singular «حديث», so «هل حديث «صوموا لرؤيته …» صحيح؟ وما حكم
+      // الاعتماد على الحساب الفلكي في إثبات الشهر؟» matched «حديث», its tail «اثبات الشهر» shrank to the window «اثبات» -> the
+      // chapter «إِثْبَات» (judicial proof), and the chapter branch REPLACED the question's two compound parts with six judicial
+      // senses: eight fatwa queries, rule ١١, six absence sentences. The gate is the PLURAL request only («أحاديث» / «ما صح»),
+      // and a composite question (an inner «؟», or questionParts > 0) is never a chapter request. The strings are DIAG4 H1's.
+      {
+        const Q34 = 'أبي منك تعطيني كل الأحاديث الصحاح في باب الزينة';
+        const Q35 = 'اذكر لي ما صحّ من الأحاديث في باب التجمّل والزينة';
+        const QW = 'ما حكم الوضوء من لمس المرأة؟';
+        const Q19 = 'هل حديث «صوموا لرؤيته وأفطروا لرؤيته» صحيح؟ وما حكم الاعتماد على الحساب الفلكي في إثبات الشهر؟';
+        const S1 = 'هل حديث «إنما الأعمال بالنيات» صحيح وما معناه في الصوم؟';
+        const Q9 = 'اذكر لي ما صح من الأحاديث في باب الاعتكاف';
+        const Q8 = 'أبي أحاديث صحيحة في باب الطيب';
+        const Q26 = 'أبي أحاديث صحيحة في باب اللباس';
+        // SYNTHETIC: a plural request followed by a second question part (an inner «؟»); the composite test alone nulls it
+        const S4_SYNTHETIC = 'اذكر لي ما صح من الأحاديث في باب الاعتكاف؟ وما حكم الاعتكاف في البيت؟';
+        ok('Z2a Q19 (a composite question ending on «في إثبات الشهر») is NOT a chapter request: null, and its two compound parts stand',
+          BW2.isChapterHadithRequest(Q19) === null && BW2.questionParts(Q19).length === 2, ascii(JSON.stringify(BW2.isChapterHadithRequest(Q19))));
+        ok('Z2b S1 (a single-hadith question ending on «في الصوم») is NOT a chapter request: null',
+          BW2.isChapterHadithRequest(S1) === null, ascii(JSON.stringify(BW2.isChapterHadithRequest(S1))));
+        const r9 = BW2.isChapterHadithRequest(Q9), r8 = BW2.isChapterHadithRequest(Q8), r26 = BW2.isChapterHadithRequest(Q26);
+        // the written names are compared without their diacritics (the file's shadda/damma order is the store's, not the keyboard's)
+        const bare = (s) => String(s || '').replace(/[ً-ْ]/gu, '');
+        ok('Z2c the chapter requests are read as before: Q9 -> اعْتِكَافٌ, Q8 -> تَطَيُّبٌ, Q26 -> أَلْبِسَةٌ',
+          !!r9 && r9.key === 'اعتكاف' && bare(r9.chapter) === 'اعتكاف' && !!r8 && r8.key === 'تطيب' && bare(r8.chapter) === 'تطيب' && !!r26 && r26.key === 'البسه' && bare(r26.chapter) === 'ألبسة',
+          ascii(JSON.stringify([r9 && r9.chapter, r8 && r8.chapter, r26 && r26.chapter])));
+        ok('Z2d SYNTHETIC a plural request with a second part after an inner «؟» is NOT a chapter request: null (the composite test)',
+          BW2.isChapterHadithRequest(S4_SYNTHETIC) === null, ascii(JSON.stringify(BW2.isChapterHadithRequest(S4_SYNTHETIC))));
+        ok('Z2e the O-2 shapes unchanged: Q34 and Q35 still name «الزينة», QW and the unknown chapter still null',
+          !!BW2.isChapterHadithRequest(Q34) && !!BW2.isChapterHadithRequest(Q35) && BW2.isChapterHadithRequest(QW) === null && BW2.isChapterHadithRequest('أعطني كل الأحاديث الصحيحة في باب الطائرات') === null);
+        // the mutants: (1) the composite test removed -> the SYNTHETIC composite row red; (2) the whole change disarmed (the
+        // singular «حديث» back in the gate AND the composite test removed) -> the Q19 row red. (1) alone cannot redden Q19:
+        // MEASURED (DIAG4 H1 §4), the plural gate by itself already nulls Q19 («no plural request word»).
+        {
+          const srcC = read('lib/before-writing-v2.js');
+          const seamGate = 'const CHAPTER_REQUEST_RE = /(?:احاديث|ما\\s+صح)/u;';
+          const seamComp = '  if ((raw.match(/[؟?]/gu) || []).length > 0 || questionParts(raw).length) return null; // ITEM 35-D4 C1 (a) (brain35-5 Z2): a composite question keeps its own parts';
+          ok('Z2 mutant seams present once each', srcC.split(seamGate).length === 2 && srcC.split(seamComp).length === 2);
+          const loadC = async (tag, text) => {
+            const tmpC = path.join(REPO, 'lib', '.mut-z2-' + tag + '.mjs');
+            fs.writeFileSync(tmpC, text.replace(/from\s+(['"])(\.[^'"]*)\1/gu, (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+            let M = null;
+            try { M = await import(pathToFileURL(tmpC).href + '?m=' + Date.now()); } catch (e) { M = null; } finally { fs.rmSync(tmpC, { force: true }); }
+            return M;
+          };
+          const M1 = await loadC('composite', srcC.split(seamComp).join('  // mutant: no composite test'));
+          const M2 = await loadC('whole', srcC.split(seamComp).join('  // mutant: no composite test').split(seamGate).join('const CHAPTER_REQUEST_RE = /(?:احاديث|حديث|ما\\s+صح)/u; // mutant: the singular back'));
+          ok('Z2 mutants load', !!M1 && !!M2);
+          ok('Z2 MUTANT (1) KILLED: without the composite test the SYNTHETIC composite is a chapter request again, while Q19 stays null by the plural gate',
+            !!M1 && M1.isChapterHadithRequest(S4_SYNTHETIC) !== null && M1.isChapterHadithRequest(Q19) === null, M1 ? ascii(JSON.stringify(M1.isChapterHadithRequest(S4_SYNTHETIC))) : 'no module');
+          ok('Z2 MUTANT (2) KILLED: with the whole change disarmed Q19 is the chapter «إِثْبَات» again and S1 is «صَوْم»',
+            !!M2 && !!M2.isChapterHadithRequest(Q19) && M2.isChapterHadithRequest(Q19).key === 'اثبات' && !!M2.isChapterHadithRequest(S1) && M2.isChapterHadithRequest(S1).key === 'صوم',
+            M2 ? ascii(JSON.stringify([M2.isChapterHadithRequest(Q19) && M2.isChapterHadithRequest(Q19).key, M2.isChapterHadithRequest(S1) && M2.isChapterHadithRequest(S1).key])) : 'no module');
+        }
+      }
+    // ---------------------------------------------------------------- ITEM 35-D3 D5 (b) (brain35-3 X7, 2026-11-07): THE UNIT UNDER A HEADING STARTS A LINE
+    // MEASURED (DIAG3 H5 (b), preview Q14): «### التطيب لصلاه الجمعه» went out on ONE line with «وعن سلمان الفارسي…» -- the heading is
+    // released with the first unit that goes out under it, and that unit's own separator was a SPACE (the sentence before it in
+    // the same paragraph was held); the heading-release block cleared forceNewline before the unit's separator was computed.
+    // forceNewline is now set after a pending heading goes out, so sepFor gives «\n» when the unit's own sep carries none.
+    {
+      const UNITS_X7 = await esm('lib/bw2-units.js');
+      const MASAH7 = 'يجوز المسح على الجوربين إذا لبسهما على طهارة، ومدته يوم وليلة للمقيم وثلاثة أيام بلياليها للمسافر، وهذا مذهب الحنابلة.';
+      const EA7 = { ref: 1, kind: 'encyclopedia', title: 'الموسوعة الفقهية الكويتية — مسح على الخفين', recordId: 'enc:A7', publisher: 'الموسوعة الفقهية الكويتية', text: MASAH7, passage: MASAH7, part: 37 };
+      const cards7 = { buildSourceTag: (row) => ({ tag: '<source url="' + row.url + '"></source>', url: row.url }), buildBookTag: (row) => ({ tag: '<book book="' + row.recordId + '">' + row.bookTitle + '</book>' }), max: 3, encyclopediaCards: true };
+      const run7 = async (mod, text) => { const out = []; const rel = mod.createBw2Releaser({ rows: [EA7], emit: (p) => { out.push(p); return true; }, cards: cards7 }); rel.push(text + '\n'); const sum = await rel.end(); return { text: out.join(''), sum }; };
+      const HEAD7 = '### المسح على الجوربين';
+      const HELD7 = 'قال الشافعية: لا يجوز المسح على الجورب الرقيق.'; // an uncited attribution: held
+      const OUT7 = 'ويجوز المسح على الجوربين إذا لبسهما على طهارة [[1]].';
+      const glued = await run7(UNITS_X7, HEAD7 + '\n\n' + HELD7 + ' ' + OUT7);
+      ok('X7a a heading, its paragraph\'s first sentence held, the second released: a line break stands between the heading and the sentence',
+        glued.sum.holds.unsupported_attribution === 1 && glued.text.startsWith(HEAD7 + '\n') && !glued.text.includes(HEAD7 + ' و'), JSON.stringify(glued.text.slice(0, 80)));
+      const plain7 = await run7(UNITS_X7, HEAD7 + '\n\n' + OUT7);
+      ok('X7b a heading whose first sentence is released: the bytes unchanged (the paragraph break the writer wrote)',
+        plain7.text.startsWith(HEAD7 + '\n\n' + OUT7.replace(' [[1]]', '')), JSON.stringify(plain7.text.slice(0, 80)));
+      const paras7 = await run7(UNITS_X7, HEAD7 + '\n\n' + HELD7 + '\n\n' + OUT7);
+      ok('X7c a heading, a held paragraph, a released paragraph: unchanged (the unit\'s own separator already breaks the line)',
+        paras7.text.startsWith(HEAD7 + '\n\n' + OUT7.replace(' [[1]]', '')), JSON.stringify(paras7.text.slice(0, 80)));
+      {
+        const srcH = read('lib/bw2-units.js');
+        const seamH = "      pendingSep = '';\n      // ITEM 35-D3 D5 (b) (brain35-3 X7): the unit under a heading starts a line, whatever separator it carried after a held\n      // sentence of its own paragraph (MEASURED, preview Q14: «التطيب لصلاه الجمعه وعن سلمان الفارسي…» on one line).\n      forceNewline = true;";
+        ok('X7 mutant seam present once', srcH.split(seamH).length === 2);
+        const tmpH = path.join(REPO, 'lib', '.mut-x7-heading.mjs');
+        fs.writeFileSync(tmpH, srcH.split(seamH).join("      pendingSep = '';\n      forceNewline = false; // mutant: the heading leaves the unit its own separator").replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MH = null;
+        try { MH = await import(pathToFileURL(tmpH).href + '?m=' + Date.now()); } catch (e) { MH = null; } finally { fs.rmSync(tmpH, { force: true }); }
+        ok('X7 mutant loads', !!MH);
+        ok('X7 MUTANT KILLED: with forceNewline cleared the heading and the sentence are glued on one line again',
+          !!MH && (await run7(MH, HEAD7 + '\n\n' + HELD7 + ' ' + OUT7)).text.includes(HEAD7 + ' و'), MH ? JSON.stringify((await run7(MH, HEAD7 + '\n\n' + HELD7 + ' ' + OUT7)).text.slice(0, 80)) : 'no module');
+      }
+    }
+    // ---------------------------------------------------------------- ITEM 35-D3 D6 (ii) (brain35-3 X8, 2026-11-07; owner: (iii) with (ii) first): THE IMAM'S NAME IN THE ROW COUNTS FOR HIS SCHOOL WHEN THE UNIT NAMES THE IMAM
+    // MEASURED (DIAG3 H6 / H6b, live Q12): the Mawsu'a row writes «ذَهَبَ الشَّافِعِيُّ وَالإِْمَامُ مُحَمَّدُ بْنُ الْحَسَنِ …» -- the imam, never
+    // the plural -- so the live stance sentence «ذهب الشافعي، والإمام محمد بن الحسن، إلى أنه يجب على التراخي…» was held
+    // unsupported_school (ROW_SCHOOL_KEYS.shafii is ['شافعيه'] only). The imam's name in the row now counts for his school when
+    // the UNIT names the imam the same way (a whole word); a unit naming the SCHOOL is still held on that row. The passage is
+    // the live card's text (BRAIN35-DIAG3-evidence/L12.book-matn.txt), copied.
+    {
+      const UNITS_X8 = await esm('lib/bw2-units.js');
+      const MAWSUA12 = 'وُجُوبُ الْحَجِّ عَلَى الْفَوْرِ أَوِ التَّرَاخِي: 5 - اخْتَلَفُوا فِي وُجُوبِ الْحَجِّ عِنْدَ تَحَقُّقِ الشُّرُوطِ هَل هُوَ عَلَى الْفَوْرِ أَوْ عَلَى التَّرَاخِي؟ . ذَهَبَ أَبُو حَنِيفَةَ فِي أَصَحِّ الرِّوَايَتَيْنِ عَنْهُ وَأَبُو يُوسُفَ وَمَالِكٌ فِي الرَّاجِحِ عَنْهُ وَأَحْمَدُ (1) إِلَى أَنَّهُ يَجِبُ عَلَى الْفَوْرِ، فَمَنْ تَحَقَّقَ فَرْضُ الْحَجِّ عَلَيْهِ فِي عَامٍ فَأَخَّرَهُ يَكُونُ آثِمًا، وَإِذَا أَدَّاهُ بَعْدَ ذَلِكَ كَانَ أَدَاءً لاَ قَضَاءً، وَارْتَفَعَ الإِْثْمُ. وَذَهَبَ الشَّافِعِيُّ وَالإِْمَامُ مُحَمَّدُ بْنُ الْحَسَنِ إِلَى أَنَّهُ يَجِبُ عَلَى التَّرَاخِي، فَلاَ يَأْثَمُ الْمُسْتَطِيعُ بِتَأْخِيرِهِ.';
+      const rows12 = [{ ref: 1, kind: 'lib_book', title: 'الموسوعة الفقهية الكويتية · ج17 · ص24-25', bookTitle: 'الموسوعة الفقهية الكويتية', author: 'مجموعة من المؤلفين', locator: 'ج17 · ص24-25', recordId: 'FC-003910', fullText: MAWSUA12, text: MAWSUA12, passage: MAWSUA12 }];
+      const play12 = async (mod, writer) => { const out = []; const r = mod.createBw2Releaser({ rows: rows12, emit: (p) => { out.push(p); return true; } }); r.push(writer + '\n'); const sum = await r.end(); return { text: out.join(''), holds: sum.holds }; };
+      // the order's row, cut at «التراخي…»: the live unit's tail «فلا يأثم المستطيع بتأخيره» carries a negation the row's school clause does not (it stands in the
+      // row's NEXT clause, after «،»), so the unchanged sameStanceOnSchool still holds the full live unit (MEASURED; recorded under FOUND)
+      const IMAM_12 = 'ذهب الشافعي، والإمام محمد بن الحسن، إلى أنه يجب على التراخي [[1]].';
+      const SCHOOL_12 = 'ذهب الشافعية إلى أنه يجب على التراخي [[1]].';
+      const imam12 = await play12(UNITS_X8, IMAM_12);
+      ok('X8a the Q12 row + the live unit naming the imam («ذهب الشافعي، والإمام محمد بن الحسن، …») -> released', imam12.text.includes('ذهب الشافعي، والإمام محمد بن الحسن') && !imam12.holds.unsupported_school, JSON.stringify(imam12.holds));
+      const school12 = await play12(UNITS_X8, SCHOOL_12);
+      ok('X8b the same row + a unit naming the SCHOOL («ذهب الشافعية إلى …») -> still held unsupported_school', school12.holds.unsupported_school === 1 && !school12.text.includes('الشافعية'), JSON.stringify(school12.holds));
+      ok('X8c the plural in the row still names the school for a unit naming the school (ROW_SCHOOL_KEYS unchanged)',
+        (await play12(UNITS_X8, 'ذهب الشافعية إلى أنه يجب على التراخي [[1]].'.replace('[[1]]', '[[1]]'))).holds.unsupported_school === 1
+        && !(await (async () => { const out = []; const r = UNITS_X8.createBw2Releaser({ rows: [{ ...rows12[0], fullText: 'وذهب الشافعية إلى أنه يجب على التراخي.', text: 'وذهب الشافعية إلى أنه يجب على التراخي.', passage: 'وذهب الشافعية إلى أنه يجب على التراخي.' }], emit: (p) => { out.push(p); return true; } }); r.push(SCHOOL_12 + '\n'); return r.end(); })()).holds.unsupported_school);
+      {
+        const srcI = read('lib/bw2-units.js');
+        const seamI = "shafii: ['الشافعي'], hanbali: ['الامام احمد', 'قال احمد', 'ذهب احمد'] });";
+        ok('X8 mutant seam present once', srcI.split(seamI).length === 2);
+        const tmpI = path.join(REPO, 'lib', '.mut-x8-imam.mjs');
+        fs.writeFileSync(tmpI, srcI.split(seamI).join("shafii: [], hanbali: ['الامام احمد', 'قال احمد', 'ذهب احمد'] }); // mutant: the Shafi'i imam names no school").replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MI = null;
+        try { MI = await import(pathToFileURL(tmpI).href + '?m=' + Date.now()); } catch (e) { MI = null; } finally { fs.rmSync(tmpI, { force: true }); }
+        ok('X8 mutant loads', !!MI);
+        ok('X8 MUTANT KILLED: with the Shafi\'i imam key emptied the live unit is held unsupported_school again',
+          !!MI && (await play12(MI, IMAM_12)).holds.unsupported_school === 1, MI ? JSON.stringify((await play12(MI, IMAM_12)).holds) : 'no module');
+      }
+    }
+    // ── brain35-5 Z3 (2026-11-08; DIAG4 C6 (a)) · THE IMAM'S KUNYA IN ANY CASE IS ONE NAME ──────────────────────────────
+    // MEASURED (DIAG4 H6 / H6b, preview Q23): the store's «أُضْحِيَّةٌ» article (F00362) says «8 - وذهب ابو حنيفه الي انها واجبه.»
+    // (nominative) and the writer's second view says «وهو قول أبي حنيفة» (genitive): X8's imam reading needed the SAME folded form
+    // in the unit and in the row, so the second view was held unsupported_school on the row's own stance. namesSchool now
+    // compares the imam key through kunyaCase (ابي/ابا -> ابو) on both sides. The passage is read from the bundled store
+    // (lib/data/fiqh-search.json.gz) exactly as DIAG4 H6b cut it; the units are H6b's.
+    {
+      const UNITS_Z3 = await esm('lib/bw2-units.js');
+      const zlibZ3 = require('zlib');
+      const storeZ3 = JSON.parse(zlibZ3.gunzipSync(fs.readFileSync(path.join(REPO, 'lib/data/fiqh-search.json.gz'))).toString('utf8'));
+      const foldZ3 = (v) => String(v || '').replace(/[ً-ْٰـ]/gu, '').replace(/[آأإ]/gu, 'ا').replace(/ة/gu, 'ه').trim();
+      const recZ3 = storeZ3.find((r) => foldZ3(r.term) === 'اضحيه');
+      const atZ3 = recZ3 ? recZ3.search.indexOf('حكم الاضحيه') : -1;
+      const PASSAGE_Z3 = recZ3 && atZ3 >= 0 ? recZ3.search.slice(Math.max(0, atZ3 - 50), atZ3 + 1400) : '';
+      ok('Z3 the store\'s «أُضْحِيَّةٌ» passage is found and says «وذهب ابو حنيفه الي انها واجبه» (the row names the imam in the nominative only)',
+        !!recZ3 && PASSAGE_Z3.includes('وذهب ابو حنيفه الي انها واجبه') && !PASSAGE_Z3.includes('ابي حنيفه') && !PASSAGE_Z3.includes('الحنفيه'), ascii(recZ3 ? recZ3.id + ' ' + recZ3.term : 'no record'));
+      const rowsZ3 = [{ ref: 1, kind: 'lib_book', title: 'الموسوعة الفقهية الكويتية', bookTitle: 'الموسوعة الفقهية الكويتية', author: 'مجموعة من المؤلفين', locator: '', recordId: recZ3 ? recZ3.id : 'F00362', fullText: PASSAGE_Z3, text: PASSAGE_Z3, passage: PASSAGE_Z3 }];
+      const playZ3 = async (mod, writer) => { const out = []; const r = mod.createBw2Releaser({ rows: rowsZ3, emit: (p) => { out.push(p); return true; } }); r.push(writer + '\n'); const sum = await r.end(); return { text: out.join(''), holds: sum.holds }; };
+      const GEN_Z3 = 'القول الثاني: أنها واجبة على القادر، وهو قول أبي حنيفة [[1]].';
+      const NOM_Z3 = 'القول الثاني: أنها واجبة على القادر، وهو قول أبو حنيفة [[1]].';
+      const SCHOOL_Z3 = 'القول الثاني: أنها واجبة على القادر، وهو قول الحنفية [[1]].';
+      const gen = await playZ3(UNITS_Z3, GEN_Z3);
+      ok('Z3a the genitive «وهو قول أبي حنيفة» on the F00362 passage («وذهب ابو حنيفه …») -> released', gen.text.includes('وهو قول أبي حنيفة') && !gen.holds.unsupported_school, JSON.stringify(gen.holds));
+      const nom = await playZ3(UNITS_Z3, NOM_Z3);
+      ok('Z3b the nominative «وهو قول أبو حنيفة» on the same passage -> released (unchanged)', nom.text.includes('وهو قول أبو حنيفة') && !nom.holds.unsupported_school, JSON.stringify(nom.holds));
+      const sch = await playZ3(UNITS_Z3, SCHOOL_Z3);
+      ok('Z3c the school\'s plural «وهو قول الحنفية» on the same passage -> held unsupported_school (unchanged: the row names the imam only)', sch.holds.unsupported_school === 1 && !sch.text.includes('وهو قول الحنفية'), JSON.stringify(sch.holds));
+      // the mutant: kunyaCase removed from the unit side -> the genitive is held again
+      {
+        const srcK = read('lib/bw2-units.js');
+        const seamK = "  || (!!unitFolded && ROW_IMAM_KEYS[school].some((f) => unitNamesImam(kunyaCase(unitFolded), kunyaCase(f)) && kunyaCase(String(folded)).includes(kunyaCase(f))));";
+        ok('Z3 mutant seam present once', srcK.split(seamK).length === 2);
+        const tmpK = path.join(REPO, 'lib', '.mut-z3-kunya.mjs');
+        fs.writeFileSync(tmpK, srcK.split(seamK).join("  || (!!unitFolded && ROW_IMAM_KEYS[school].some((f) => unitNamesImam(unitFolded, kunyaCase(f)) && kunyaCase(String(folded)).includes(kunyaCase(f)))); // mutant: the unit's kunya keeps its case").replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MK = null;
+        try { MK = await import(pathToFileURL(tmpK).href + '?m=' + Date.now()); } catch (e) { MK = null; } finally { fs.rmSync(tmpK, { force: true }); }
+        ok('Z3 mutant loads', !!MK);
+        ok('Z3 MUTANT KILLED: with the unit\'s kunya left in its case the genitive «أبي حنيفة» is held unsupported_school again',
+          !!MK && (await playZ3(MK, GEN_Z3)).holds.unsupported_school === 1, MK ? JSON.stringify((await playZ3(MK, GEN_Z3)).holds) : 'no module');
+      }
+    }
+    // ── brain35-5 Z9 (2026-11-08; DIAG4 C8, the gap C3 met on the way) · THE ASKED MATN ENDS BEFORE THE NEXT QUESTION PART ─────
+    // MEASURED (DIAG4 H3 §3, preview Q1b «ما درجة حديث حب الوطن من الإيمان ومن أخرجه؟»): askedHadithOf read the matn as «حب الوطن من
+    // الإيمان ومن أخرجه» (no guillemets to stop it), so asksHadithSource found no source word in the rest and the collector sentence
+    // the guillemet form gets never came. With no guillemets the matn now stops before a second part opened by «ومن», «وما», «وهل»,
+    // «وكيف», «ومتى» or «وأين» (a «؟» already ends it); with guillemets nothing changes. The strings are DIAG4 H3's.
+    {
+      const UNITS_Z9 = await esm('lib/bw2-units.js');
+      const LEDGER_Z9 = await esm('lib/completion-ledger.js');
+      const Q1b = 'ما درجة حديث حب الوطن من الإيمان ومن أخرجه؟';
+      const Q1b_QUOTED = 'ما درجة حديث «حب الوطن من الإيمان» ومن أخرجه؟';
+      const HUBB = 'حب الوطن من الإيمان';
+      ok('Z9a Q1b (no guillemets) -> the matn is «حب الوطن من الإيمان» and the question asks the collector (asksHadithSource, asksCollectorName)',
+        UNITS_Z9.askedHadithOf(Q1b) === HUBB && UNITS_Z9.asksHadithSource(Q1b) === true && LEDGER_Z9.asksCollectorName(Q1b) === true,
+        ascii(JSON.stringify([UNITS_Z9.askedHadithOf(Q1b), UNITS_Z9.asksHadithSource(Q1b), LEDGER_Z9.asksCollectorName(Q1b)])));
+      ok('Z9b the same question with guillemets -> unchanged: the same matn, the collector asked',
+        UNITS_Z9.askedHadithOf(Q1b_QUOTED) === HUBB && UNITS_Z9.asksHadithSource(Q1b_QUOTED) === true);
+      const MUNKAR = 'من رأى منكم منكرا فليغيره بيده ومن لم يستطع فبلسانه';
+      ok('Z9c a matn that itself carries «ومن» inside guillemets («من رأى منكم منكرا … ومن لم يستطع …») -> unchanged, whole',
+        UNITS_Z9.askedHadithOf('ما درجة حديث «' + MUNKAR + '» ومن أخرجه؟') === MUNKAR && UNITS_Z9.asksHadithSource('ما درجة حديث «' + MUNKAR + '» ومن أخرجه؟') === true);
+      ok('Z9d the other openers, no guillemets: «وما معناه», «وهل», «وكيف», «ومتى», «وأين» end the matn too',
+        UNITS_Z9.askedHadithOf('ما درجة حديث حب الوطن من الإيمان وما معناه؟') === HUBB
+        && UNITS_Z9.askedHadithOf('ما درجة حديث حب الوطن من الإيمان وهل له أصل؟') === HUBB
+        && UNITS_Z9.askedHadithOf('ما درجة حديث حب الوطن من الإيمان وكيف نفهمه؟') === HUBB
+        && UNITS_Z9.askedHadithOf('ما درجة حديث حب الوطن من الإيمان ومتى قيل؟') === HUBB
+        && UNITS_Z9.askedHadithOf('ما درجة حديث حب الوطن من الإيمان وأين ورد؟') === HUBB,
+        ascii(JSON.stringify([UNITS_Z9.askedHadithOf('ما درجة حديث حب الوطن من الإيمان وما معناه؟'), UNITS_Z9.askedHadithOf('ما درجة حديث حب الوطن من الإيمان وأين ورد؟')])));
+      ok('Z9e a single-part unquoted question is unchanged: «ما درجة حديث حب الوطن من الإيمان؟» -> the same matn; «ما صحة حديث «حب الوطن من الإيمان»؟» -> the same',
+        UNITS_Z9.askedHadithOf('ما درجة حديث حب الوطن من الإيمان؟') === HUBB && UNITS_Z9.askedHadithOf('ما صحة حديث «حب الوطن من الإيمان»؟') === HUBB);
+      // the mutant: the cut removed -> Q1b's matn swallows «ومن أخرجه» again and no collector is asked
+      {
+        const srcQ = read('lib/bw2-units.js');
+        const seamQ = '    if (next && next.index > 0) m = m.slice(0, next.index);';
+        ok('Z9 mutant seam present once', srcQ.split(seamQ).length === 2);
+        const tmpQ = path.join(REPO, 'lib', '.mut-z9-cut.mjs');
+        fs.writeFileSync(tmpQ, srcQ.split(seamQ).join('    // mutant: the unquoted matn runs on').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MQ = null;
+        try { MQ = await import(pathToFileURL(tmpQ).href + '?m=' + Date.now()); } catch (e) { MQ = null; } finally { fs.rmSync(tmpQ, { force: true }); }
+        ok('Z9 mutant loads', !!MQ);
+        ok('Z9 MUTANT KILLED: without the cut Q1b\'s matn is «حب الوطن من الإيمان ومن أخرجه» again and asksHadithSource is false',
+          !!MQ && MQ.askedHadithOf(Q1b) === 'حب الوطن من الإيمان ومن أخرجه' && MQ.asksHadithSource(Q1b) === false, MQ ? ascii(MQ.askedHadithOf(Q1b)) : 'no module');
+      }
+    }
+    // ── brain35-5 Z7 / brain35-5b W2 (2026-11-08; DIAG4 C6 (b); owner decision 2026-11-08: an evidence block follows its stance; part (b) only) · THE SECOND
+    // VIEW'S LABEL AND ITS EVIDENCE. MEASURED (DIAG4 H6, preview Q23, on the store's «أُضْحِيَّةٌ» passage): the second view «القول
+    // الثاني: أنها واجبة على القادر، وهو قول أبي حنيفة.» was held whole (no label kind «القول» in F1), and «من أدلة القائلين بالوجوب: …»
+    // went out with no rule reading it as dependent on a stance -- the reader saw the evidence of a view never shown. Now:
+    // [the label widening -- F1's kinds + al-qawl / al-madhhab / al-ra'y -- was DROPPED by the owner (2026-11-08, brain35-5b W2): ORDER51-2's rule stands,; dependentKind knows the kind 'evidence' («(و)من أدلة القائلين بـX», «(و)أدلة القول
+    // an unsupported view is held whole, its label with it; the rows Z7c / Z7d of the fifth run are not written]
+    // الأول/الثاني», «(و)من حجج القائلين بـX»); such a unit is released only when its stance's word family (وجوب -> واجب/وجوب/يجب …)
+    // or its ordinal stands in the released text, else held evidence_of_held_stance (the enum and its pins gain the one label).
+    // The units are DIAG4 H6's; the passage is read from the bundled store as H6 cut it.
+    {
+      const UNITS_Z7 = await esm('lib/bw2-units.js');
+      const zlibZ7 = require('zlib');
+      const storeZ7 = JSON.parse(zlibZ7.gunzipSync(fs.readFileSync(path.join(REPO, 'lib/data/fiqh-search.json.gz'))).toString('utf8'));
+      const foldZ7 = (v) => String(v || '').replace(/[\u064B-\u0652\u0670\u0640]/gu, '').replace(/[\u0622\u0623\u0625]/gu, '\u0627').replace(/\u0629/gu, '\u0647').trim();
+      const recZ7 = storeZ7.find((r) => foldZ7(r.term) === 'اضحيه');
+      const atZ7 = recZ7 ? recZ7.search.indexOf('حكم الاضحيه') : -1;
+      const PASSAGE_Z7 = recZ7 && atZ7 >= 0 ? recZ7.search.slice(Math.max(0, atZ7 - 50), atZ7 + 1400) : '';
+      const rowsZ7 = [{ ref: 1, kind: 'lib_book', title: 'الموسوعة الفقهية الكويتية', bookTitle: 'الموسوعة الفقهية الكويتية', author: 'مجموعة من المؤلفين', locator: '', recordId: recZ7 ? recZ7.id : 'F00362', fullText: PASSAGE_Z7, text: PASSAGE_Z7, passage: PASSAGE_Z7 }];
+      const playZ7 = async (mod, units) => { const out = []; const r = mod.createBw2Releaser({ rows: rowsZ7, emit: (p) => { out.push(p); return true; } }); for (const u of units) r.push(u + '\n\n'); const sum = await r.end(); return { text: out.join(''), holds: sum.holds, released: sum.released, held: sum.held }; };
+      const U1 = 'اختلف العلماء في حكم الأضحية على قولين: الأول أنها سنة مؤكدة، وهو قول جمهور الفقهاء [[1]].';
+      const U2 = 'القول الثاني: أنها واجبة على القادر، وهو قول أبي حنيفة [[1]].';
+      const U3 = 'من أدلة القائلين بالوجوب: قوله تعالى: فصل لربك وانحر، والأمر يقتضي الوجوب [[1]].';
+      const U4 = 'ومن أدلة القائلين بالسنية: حديث أم سلمة رضي الله عنها: إذا دخل العشر وأراد أحدكم أن يضحي فلا يمس من شعره وبشره شيئا [[1]].';
+      const U5 = 'ووقت الذبح يبدأ بعد صلاة العيد وينتهي بغروب شمس آخر أيام التشريق [[1]].';
+      const srf = (u, t) => (typeof UNITS_Z7.stanceReleasedFor === 'function' ? UNITS_Z7.stanceReleasedFor(u, t) : null); // null on a HEAD without the helper (the RED run)
+      ok('Z7 the store\'s «أُضْحِيَّةٌ» passage is found and carries the two stances («سنه مؤكده», «وذهب ابو حنيفه الي انها واجبه»)', !!recZ7 && PASSAGE_Z7.includes('سنه مؤكده') && PASSAGE_Z7.includes('وذهب ابو حنيفه الي انها واجبه'));
+      const vA = await playZ7(UNITS_Z7, [U1, U2, U3, U4, U5]);
+      ok('Z7a variant A (U1, U2, U3, U4, U5): U2 released (Z3) and U3 «من أدلة القائلين بالوجوب» released after it; nothing held',
+        vA.held === 0 && vA.text.includes('وهو قول أبي حنيفة') && vA.text.includes('من أدلة القائلين بالوجوب') && vA.text.includes('ومن أدلة القائلين بالسنية'), JSON.stringify(vA.holds));
+      const vD = await playZ7(UNITS_Z7, [U1, U3, U4, U5]);
+      ok('Z7b variant D (the writer omits the second view): «من أدلة القائلين بالوجوب: …» HELD evidence_of_held_stance; «ومن أدلة القائلين بالسنية …» released (its stance «سنة مؤكدة» is in U1); the time released',
+        vD.holds.evidence_of_held_stance === 1 && !vD.text.includes('من أدلة القائلين بالوجوب') && vD.text.includes('ومن أدلة القائلين بالسنية') && vD.text.includes('ووقت الذبح'), JSON.stringify(vD.holds) + ' ' + ascii(vD.text.slice(0, 200)));
+      const k7 = (t) => UNITS_Z7.dependentKind(t);
+      ok('Z7e dependentKind: the evidence openings are \'evidence\'; the DIAG3 / X9 shapes are byte-identical (implicit, referral, backref, referral, backref)',
+        k7(U3) === 'evidence' && k7(U4) === 'evidence' && k7('وأدلة القول الثاني: قوله تعالى فصل لربك وانحر.') === 'evidence' && k7('ومن حجج القائلين بالتحريم: حديث أبي هريرة.') === 'evidence'
+        && k7('واستدلوا بقوله تعالى: فصل لربك وانحر.') === 'implicit' && k7('ودليلهم حديث أم سلمة.') === 'referral' && k7('وحجتهم أن الأمر يقتضي الوجوب.') === 'backref'
+        && k7('وأدلة هذا القول: قوله تعالى فصل لربك وانحر.') === 'referral' && k7('استدل هؤلاء بحديث: من رأى منكم منكرا فليغيره بيده.') === 'backref' && k7('الثاني: أنها واجبة.') === '',
+        JSON.stringify([k7(U3), k7(U4), k7('واستدلوا بقوله تعالى: فصل لربك وانحر.'), k7('ودليلهم حديث أم سلمة.'), k7('وحجتهم أن الأمر يقتضي الوجوب.'), k7('وأدلة هذا القول: قوله تعالى فصل لربك وانحر.'), k7('استدل هؤلاء بحديث: من رأى منكم منكرا فليغيره بيده.')]));
+      ok('Z7f stanceReleasedFor: the family (واجبة -> الوجوب), the ordinal, the unlisted stance word sought as itself, and a non-evidence unit is always true',
+        srf(U3, U1) === false && srf(U3, U1 + ' ' + U2) === true && srf(U4, U1) === true
+        && srf('وأدلة القول الثاني: قوله تعالى.', U1) === false && srf('وأدلة القول الثاني: قوله تعالى.', U1 + ' ' + U2) === true
+        && srf('ومن أدلة القائلين بالمنع: حديث.', 'ذهب الجمهور إلى المنع.') === true && srf('ومن أدلة القائلين بالمنع: حديث.', U1) === false
+        && srf(U5, '') === true);
+      ok('Z7g the hold-reason enum carries evidence_of_held_stance once; its field is heldEvidenceOfHeldStance; the two pins carry the label (telemetry-text-guard BW2_FIELDS, api/ask.js)',
+        UNITS_Z7.BW2_HOLD_REASONS.filter((r) => r === 'evidence_of_held_stance').length === 1 && UNITS_Z7.heldFieldOf('evidence_of_held_stance') === 'heldEvidenceOfHeldStance'
+        && read('guards/telemetry-text-guard.cjs').includes("  'heldEvidenceOfHeldStance',") && read('api/ask.js').includes('heldEvidenceOfHeldStance: t.heldEvidenceOfHeldStance,'));
+      // the mutant: the evidence regex emptied -> variant D releases the evidence of the held stance again
+      {
+        const srcE = read('lib/bw2-units.js');
+        const seamE = "const EVIDENCE_OPENING_RE = /^[وف]?(?:من\\s+)?(?:ادله|حجج|دليل|حجه)\\s+(?:القايلين\\s+ب(\\S+)|القول\\s+(الاول|الثاني|الثالث|الرابع|الخامس|الاخر))(?=\\s|$)/u;";
+        ok('Z7 mutant seam present once', srcE.split(seamE).length === 2);
+        const tmpE = path.join(REPO, 'lib', '.mut-z7-evidence.mjs');
+        fs.writeFileSync(tmpE, srcE.split(seamE).join('const EVIDENCE_OPENING_RE = /(?!)/u; // mutant: no opening is an evidence block').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let ME = null;
+        try { ME = await import(pathToFileURL(tmpE).href + '?m=' + Date.now()); } catch (e) { ME = null; } finally { fs.rmSync(tmpE, { force: true }); }
+        ok('Z7 mutant loads', !!ME);
+        const mD = ME ? await playZ7(ME, [U1, U3, U4, U5]) : null;
+        ok('Z7 MUTANT KILLED: with the evidence regex emptied variant D releases «من أدلة القائلين بالوجوب» under a view never shown again',
+          !!mD && !mD.holds.evidence_of_held_stance && mD.text.includes('من أدلة القائلين بالوجوب'), mD ? JSON.stringify(mD.holds) : 'no module');
+      }
+    }
+    // ---------------------------------------------------------------- ITEM 35-D3 D6 (i) (brain35-3 X9, 2026-11-07; owner: (iii) with (ii) first): A DEMONSTRATIVE AFTER A BARE VERB IS A BACK-REFERENCE
+    // MEASURED (DIAG3 H6 (b), preview Q12 / Q6): «استدل هؤلاء بحديث: …» and «يكون هذا أشد وأعظم…» were released with nothing naming
+    // «هؤلاء» / «هذا» before them: «استدل» is a bare five-letter verb in no set, and «هؤلاء» / «هذا» as the second word is in
+    // none of the pointer sets (POINTER_OBJECT_SET is distal only). A verb of three to five letters + one of
+    // هؤلاء / هذا / هذه / ذلك / تلك / أولئك as the second word is now 'backref'; a demonstrative as the FIRST word is unchanged.
+    {
+      const UNITS_X9 = await esm('lib/bw2-units.js');
+      const k9 = (t) => UNITS_X9.dependentKind(t);
+      ok('X9a «استدل هؤلاء بحديث…» -> backref', k9('استدل هؤلاء بحديث: من ملك زادا وراحلة تبلغه إلى بيت الله ولم يحج فلا عليه أن يموت يهوديا أو نصرانيا.') === 'backref', k9('استدل هؤلاء بحديث: من ملك زادا وراحلة.'));
+      ok('X9b «يكون هذا أشد» -> backref', k9('يكون هذا أشد وأعظم، لأن ولاة الأمور إذا اغتيبوا ترتب على ذلك مفاسد.') === 'backref', k9('يكون هذا أشد وأعظم.'));
+      ok('X9c «واستدل هؤلاء بأن الأمر…» (behind wa) and «قال هذا الشيخ» -> backref too', k9('واستدل هؤلاء بأن الأمر بالحج مطلق.') === 'backref' && k9('قال هذا الشيخ في موضع آخر: يجوز.') === 'backref', JSON.stringify([k9('واستدل هؤلاء بأن الأمر بالحج مطلق.'), k9('قال هذا الشيخ في موضع آخر: يجوز.')]));
+      ok('X9d «هذا الحديث ضعيف» unchanged (the demonstrative is the FIRST word: pronoun, as before)', k9('هذا الحديث ضعيف.') === 'pronoun', k9('هذا الحديث ضعيف.'));
+      ok('X9e «استدل العلماء بحديث» unchanged (no demonstrative), and «قيل هذا» (an impersonal verb) unchanged', k9('استدل العلماء بحديث ابن عباس.') === '' && k9('قيل هذا في غير موضع.') === '', JSON.stringify([k9('استدل العلماء بحديث ابن عباس.'), k9('قيل هذا في غير موضع.')]));
+      // DEVIATION from the DIAG3 diff, measured on this guard's C1c2 / C1e rows: «معنى هذا الحديث» after a held unit is independent
+      // (the proximal demonstrative + the hadith word names the question's own subject, POINTER_OBJECT_SET's own rule).
+      ok('X9f a demonstrative followed by the hadith word names the question\'s own hadith: «معنى هذا الحديث», «ورد هذا الحديث» unchanged', k9('معنى هذا الحديث أن الإيمان يزيد وينقص.') === '' && k9('ورد هذا الحديث في صحيح البخاري.') === '', JSON.stringify([k9('معنى هذا الحديث أن الإيمان يزيد وينقص.'), k9('ورد هذا الحديث في صحيح البخاري.')]));
+      {
+        const srcD = read('lib/bw2-units.js');
+        const seamD = "const DEMONSTRATIVE_AFTER_VERB_SET = foldSet(['هؤلاء', 'هذا', 'هذه', 'ذلك', 'تلك', 'أولئك']);";
+        ok('X9 mutant seam present once', srcD.split(seamD).length === 2);
+        const tmpD = path.join(REPO, 'lib', '.mut-x9-demonstrative.mjs');
+        fs.writeFileSync(tmpD, srcD.split(seamD).join("const DEMONSTRATIVE_AFTER_VERB_SET = foldSet([]); // mutant: no demonstrative points back after a verb").replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MD = null;
+        try { MD = await import(pathToFileURL(tmpD).href + '?m=' + Date.now()); } catch (e) { MD = null; } finally { fs.rmSync(tmpD, { force: true }); }
+        ok('X9 mutant loads', !!MD);
+        ok('X9 MUTANT KILLED: with the set emptied «استدل هؤلاء بحديث…» is no back-reference again', !!MD && MD.dependentKind('استدل هؤلاء بحديث: من ملك زادا وراحلة.') === '', MD ? MD.dependentKind('استدل هؤلاء بحديث: من ملك زادا وراحلة.') : 'no module');
+      }
+    }
+    // ---------------------------------------------------------------- brain35-3 X13 (2026-11-07; FIX-2 F4 risk): «حكم» IS A GRADE PART ONLY WHEN BOUND TO THE HADITH
+    // brain35-2 F4 put the bare «حكم» in GRADE_PART_RE, so a fiqh part «وما حكم العمل به» was silenced whenever a grader was named
+    // for the matn. The folded forms are now «حكمه», «درجته», «صحته», «حكم (هذا )?الحديث», «درجه (هذا )?الحديث», «صحه (هذا )?الحديث»;
+    // a bare «حكم» no longer matches.
+    {
+      const P12x = 'هل حديث «اقرؤوا على موتاكم يس» صحيح؟ ومن رواه وما حكمه عند أهل الحديث؟';
+      const parts12x = BW2.questionParts(P12x);
+      const SHAPE12 = 'الحديث ضعيف، ضعّفه ابن باز وابن عثيمين، وقال ابن باز: هذا الحديث ضعيف عند أهل العلم.';
+      ok('X13a P12\'s «وما حكمه عند أهل الحديث» is still silenced under a named grader', parts12x.length === 2 && BW2.partSentenceWanted(parts12x[1], SHAPE12) === false, ascii(JSON.stringify(parts12x.map((p) => p.text))));
+      ok('X13b a fiqh part «وما حكم العمل به» is NOT silenced by a grader named for the matn (the bare «حكم» no longer matches)', BW2.partSentenceWanted({ text: 'ما حكم العمل به', title: 'x' }, SHAPE12) === true);
+      ok('X13c «ما حكم هذا الحديث», «ما درجة الحديث», «ما صحة الحديث» are grade parts (bound to the hadith) and are silenced',
+        [{ text: 'ما حكم هذا الحديث', title: 'x' }, { text: 'ما درجة الحديث', title: 'x' }, { text: 'ما صحة الحديث', title: 'x' }].every((pt) => BW2.partSentenceWanted(pt, SHAPE12) === false));
+      {
+        const srcG = read('lib/before-writing-v2.js');
+        const seamG = "const GRADE_PART_RE = /(?:^|\\s)(?:حكمه|درجته|صحته|(?:حكم|درجه|صحه)\\s+(?:هذا\\s+)?الحديث)(?=\\s|$)/u;";
+        ok('X13 mutant seam present once', srcG.split(seamG).length === 2);
+        const tmpG = path.join(REPO, 'lib', '.mut-x13-bare-hukm.mjs');
+        fs.writeFileSync(tmpG, srcG.split(seamG).join("const GRADE_PART_RE = /(?:^|\\s)(?:حكمه|درجته|صحته|حكم|درجه|صحه)(?=\\s|$)/u; // mutant: the bare «حكم» restored").replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MG = null;
+        try { MG = await import(pathToFileURL(tmpG).href + '?m=' + Date.now()); } catch (e) { MG = null; } finally { fs.rmSync(tmpG, { force: true }); }
+        ok('X13 mutant loads', !!MG);
+        ok('X13 MUTANT KILLED: with the bare «حكم» restored the fiqh part «وما حكم العمل به» is silenced again', !!MG && MG.partSentenceWanted({ text: 'ما حكم العمل به', title: 'x' }, SHAPE12) === false);
+      }
+    }
+    // ---------------------------------------------------------------- ITEM 35-D2 R2 (brain35-2 F1, 2026-11-07): THE ENUMERATION LABEL IS RELEASED WITH ITS SUBJECT
+    // MEASURED (DIAG2 HB2 V10 / V17 on the real turn): «الشرط الأول: الإسلام، <clause>» was held whole when its clause failed (an
+    // unproven quoted matn, an uncited group view), and the answer opened on «الشرط الثاني». The label with its subject now goes
+    // out on its own («الشرط الأول: الإسلام.») when the clause after the comma is held; when the clause passes, the unit goes out
+    // byte for byte as before (the split is not visible). Never on a retry. A label line with nothing after its subject is unchanged.
+    {
+      const UNITS_F1 = await esm('lib/bw2-units.js');
+      const BOOK_F1 = { kind: 'lib_book', ref: 1, title: 'شرح كتاب الجامع لأحكام العمرة و الحج و الزيارة - حطيبة · ج1 · ص12', url: '',
+        bookTitle: 'شرح كتاب الجامع لأحكام العمرة و الحج و الزيارة - حطيبة', author: 'محمد حسن عبد الغفار', publisher: 'محمد حسن عبد الغفار',
+        recordId: 'FC-004377:0012', locator: 'ج1 · ص12', authorRole: 'author',
+        text: 'شروط وجوب الحج خمسة: الإسلام والعقل والبلوغ والحرية والاستطاعة، فلا يجب الحج على الكافر ولا على المجنون ولا على الصبي ولا على العبد ولا على غير المستطيع.' };
+      const C1 = 'الشرط الأول: الإسلام، فلا يجب الحج على الكافر ولا يصح منه [[1]].';
+      const C2 = 'الشرط الثاني: العقل، فلا يجب الحج على المجنون [[1]].';
+      const C3 = 'الشرط الثالث: البلوغ، فلا يجب على الصبي [[1]].';
+      const C4 = 'الشرط الرابع: الحرية، فلا يجب على العبد [[1]].';
+      const C5 = 'الشرط الخامس: الاستطاعة، فلا يجب على غير المستطيع [[1]].';
+      const V1 = [C1, C2, C3, C4, C5].join('\n\n');
+      const V17 = ['الشرط الأول: الإسلام، وقال جمهور الفقهاء: لا يصح الحج من الكافر ولا يجب عليه.', C2, C3, C4, C5].join('\n\n');
+      const V10 = ['الشرط الأول: الإسلام، لقوله ﷺ: «بني الإسلام على خمس: شهادة أن لا إله إلا الله وأن محمدا رسول الله، وإقام الصلاة، وإيتاء الزكاة، وحج البيت، وصوم رمضان» [[1]].', C2, C3, C4, C5].join('\n\n');
+      const LONE = ['الشرط الأول: الإسلام.', C2, C3].join('\n\n');
+      const LABEL1 = 'الشرط الأول: الإسلام.';
+      const silentTakhrij = async (text) => ({ text, entries: [] });
+      const deliver = async (mod, draft, takhrij = null) => {
+        const out = [];
+        const rel = mod.createBw2Releaser({ rows: [BOOK_F1], emit: (p) => { out.push(p); return true; }, cards: null, takhrij });
+        rel.push(draft);
+        const st = await rel.end();
+        return { text: out.join(''), st };
+      };
+      const plain = (t) => String(t).replace(/<[^>]+>/gu, '').trim();
+      // wired: the real turn, the library row pinned, V17's first clause uncited
+      const w17 = await run({ fatwa: [], library: [BOOK_F1], libOn: true, writerText: V17, question: 'ما هي شروط وجوب الحج؟' });
+      const t17 = plain(w17.deltas.join(''));
+      ok('F1a wired V17: the answer opens on «الشرط الأول: الإسلام.», the uncited group view does not go out, and the second condition follows',
+        t17.startsWith(LABEL1) && !t17.includes('جمهور الفقهاء') && t17.includes('الشرط الثاني: العقل، فلا يجب الحج على المجنون')
+        && w17.out.telemetry.unitsHeld === 1, ascii(t17) + ' ' + JSON.stringify(w17.out.telemetry.unitsHeld));
+      const r10 = await deliver(UNITS_F1, V10, silentTakhrij);
+      ok('F1b V10 (a quoted matn no row carries, the takhrij proving nothing): the label opens the answer, the matn clause is held',
+        plain(r10.text).startsWith(LABEL1) && !r10.text.includes('بني الإسلام على خمس') && r10.st.holds.unsupported_matn === 1
+        && r10.text.includes('الشرط الثاني: العقل، فلا يجب الحج على المجنون'), ascii(r10.text) + ' ' + JSON.stringify(r10.st.holds));
+      const r1 = await deliver(UNITS_F1, V1);
+      ok('F1c V1 (every clause cited): nothing is held and the first unit goes out whole, label and clause on one line',
+        r1.st.held === 0 && r1.text.startsWith('الشرط الأول: الإسلام، فلا يجب الحج على الكافر ولا يصح منه.') && !r1.text.includes(LABEL1), ascii(r1.text));
+      ok('F1e the shape: a label, an ordinal, a colon, a subject of two to forty letters, then a comma and a clause; a subject that quotes or attributes is refused',
+        UNITS_F1.LABELLED_UNIT_RE.test('الشرط الأول: الإسلام، فلا يجب الحج على الكافر.') && UNITS_F1.LABELLED_UNIT_RE.test('الركن الثالث: الركوع، وهو واجب.')
+        && !UNITS_F1.LABELLED_UNIT_RE.test('الشرط الأول: ما قاله الجمهور، وهو الإسلام.') && !UNITS_F1.LABELLED_UNIT_RE.test('الشرط الأول: الإسلام عند الجمهور، فلا يجب.')
+        && !UNITS_F1.LABELLED_UNIT_RE.test('الشرط الأول: الإسلام.') && !UNITS_F1.LABELLED_UNIT_RE.test('الشرط الأول: «الإسلام»، فلا يجب.')
+        && !UNITS_F1.LABELLED_UNIT_RE.test('الشرط الأول: الإسلام [[1]]، فلا يجب.'));
+      // the mutant: the split gone -> V17 opens on the second condition again; V1 and the lone label are the same bytes with and without it
+      const seamF1 = "      const labelled = retryAsked ? null : LABELLED_UNIT_RE.exec(String(current.body || '').trim());";
+      const srcF1 = read('lib/bw2-units.js');
+      ok('F1 mutant seam present once', srcF1.split(seamF1).length === 2);
+      {
+        const tmpF1 = path.join(REPO, 'lib', '.mut-f1-label.mjs');
+        fs.writeFileSync(tmpF1, srcF1.split(seamF1).join('      const labelled = null; // mutant: the labelled unit is one unit again').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MF1 = null;
+        try { MF1 = await import(pathToFileURL(tmpF1).href + '?m=' + Date.now()); } catch (e) { MF1 = null; } finally { fs.rmSync(tmpF1, { force: true }); }
+        ok('F1 mutant loads', !!MF1);
+        if (MF1) {
+          const m17 = await deliver(MF1, V17);
+          ok('F1 MUTANT KILLED: without the split V17 opens on «الشرط الثاني» and the first condition is lost', plain(m17.text).startsWith('الشرط الثاني') && !m17.text.includes('الإسلام'), ascii(m17.text));
+          const m1 = await deliver(MF1, V1);
+          ok('F1c V1 is byte-identical with and without the split', m1.text === r1.text && m1.st.released === r1.st.released, ascii(r1.text));
+          const rl = await deliver(UNITS_F1, LONE);
+          const ml = await deliver(MF1, LONE);
+          ok('F1d a label line with nothing after its subject is unchanged, byte for byte', rl.text === ml.text && rl.st.held === ml.st.held && rl.text.includes(LABEL1), ascii(rl.text));
+        }
+      }
+    }
+    // ---------------------------------------------------------------- brain35-4 Y3 (2026-11-07; FIX3 FOUND 2; owner: "yes to the four"): THE NEGATION IS SOUGHT IN THE REST OF THE ROW'S SENTENCE
+    // MEASURED (FIX3 H6.AFTER-X8.out.txt, live Q12): the full live stance sentence «ذهب الشافعي، والإمام محمد بن الحسن، إلى أنه يجب على
+    // التراخي، فلا يأثم المستطيع بتأخيره» stayed held unsupported_school after X8: its tail «فلا يأثم» is a negation and the row carries it in
+    // the clause AFTER the one naming the imam, inside the same sentence («… عَلَى التَّرَاخِي، فَلاَ يَأْثَمُ الْمُسْتَطِيعُ بِتَأْخِيرِهِ.»). sameStanceOnSchool
+    // now seeks the negation in the clause naming the school and the following clauses of that same sentence, up to the first
+    // sentence end («.», «؟», «!» or the row's end), never past it; what it matches is unchanged. The row is the live card's passage
+    // as the X8 rows carry it (MAWSUA12: BRAIN35-DIAG3-evidence/L12.book-matn.txt up to the stance sentence; the text after it names
+    // the imam again with a negation of its own, «… سنة عند الشافعي ما لم يمت», which releases by the rule whatever the window).
+    {
+      const UNITS_Y3 = await esm('lib/bw2-units.js');
+      const LIVE12 = "وُجُوبُ الْحَجِّ عَلَى الْفَوْرِ أَوِ التَّرَاخِي: 5 - اخْتَلَفُوا فِي وُجُوبِ الْحَجِّ عِنْدَ تَحَقُّقِ الشُّرُوطِ هَل هُوَ عَلَى الْفَوْرِ أَوْ عَلَى التَّرَاخِي؟ . ذَهَبَ أَبُو حَنِيفَةَ فِي أَصَحِّ الرِّوَايَتَيْنِ عَنْهُ وَأَبُو يُوسُفَ وَمَالِكٌ فِي الرَّاجِحِ عَنْهُ وَأَحْمَدُ (1) إِلَى أَنَّهُ يَجِبُ عَلَى الْفَوْرِ، فَمَنْ تَحَقَّقَ فَرْضُ الْحَجِّ عَلَيْهِ فِي عَامٍ فَأَخَّرَهُ يَكُونُ آثِمًا، وَإِذَا أَدَّاهُ بَعْدَ ذَلِكَ كَانَ أَدَاءً لاَ قَضَاءً، وَارْتَفَعَ الإِْثْمُ. وَذَهَبَ الشَّافِعِيُّ وَالإِْمَامُ مُحَمَّدُ بْنُ الْحَسَنِ إِلَى أَنَّهُ يَجِبُ عَلَى التَّرَاخِي، فَلاَ يَأْثَمُ الْمُسْتَطِيعُ بِتَأْخِيرِهِ."; // the X8 rows' MAWSUA12, the same literal
+      const NEG_CLAUSE = "، فَلاَ يَأْثَمُ الْمُسْتَطِيعُ بِتَأْخِيرِهِ";
+      const FULL_U1 = "ذهب الشافعي، والإمام محمد بن الحسن، إلى أنه يجب على التراخي، فلا يأثم المستطيع بتأخيره [[1]].";
+      const rowsY3 = (text) => [{ ref: 1, kind: 'lib_book', title: 'الموسوعة الفقهية الكويتية · ج17 · ص24-25', bookTitle: 'الموسوعة الفقهية الكويتية', author: 'مجموعة من المؤلفين', locator: 'ج17 · ص24-25', recordId: 'FC-003910', fullText: text, text, passage: text }];
+      const playY3 = async (mod, rowText, writer) => { const out = []; const r = mod.createBw2Releaser({ rows: rowsY3(rowText), emit: (p) => { out.push(p); return true; } }); r.push(writer + '\n'); const sum = await r.end(); return { text: out.join(''), holds: sum.holds }; };
+      const bare = (s) => s.replace(/\p{M}/gu, '');
+      ok('Y3 the passage is the X8 rows\' live card text (the same literal in this guard) and carries the negation clause once, after the clause naming the imam', /const MAWSUA12 = '([^']+)';/u.exec(read('guards/speed-bw2-guard.cjs'))[1] === LIVE12 && LIVE12.split(NEG_CLAUSE).length === 2 && bare(LIVE12).indexOf('الشافعي') < bare(LIVE12).indexOf('فلا يأثم'));
+      const a3 = await playY3(UNITS_Y3, LIVE12, FULL_U1);
+      ok('Y3a the full live stance sentence («… على التراخي، فلا يأثم المستطيع بتأخيره») against the live Q12 row -> released, school evidence found', a3.text.includes('فلا يأثم المستطيع بتأخيره') && !a3.holds.unsupported_school, JSON.stringify(a3.holds));
+      const b3 = await playY3(UNITS_Y3, LIVE12.replace(NEG_CLAUSE, '.' + NEG_CLAUSE.slice(1)), FULL_U1);
+      ok('Y3b the same unit against the row re-cut so the negation clause stands after a «.» (the next sentence) -> held unsupported_school', b3.holds.unsupported_school === 1 && !b3.text.includes('فلا يأثم'), JSON.stringify(b3.holds));
+      const c3 = await playY3(UNITS_Y3, LIVE12.replace(NEG_CLAUSE, ''), FULL_U1);
+      ok('Y3c the same unit against the row with its negation clause removed -> held unsupported_school', c3.holds.unsupported_school === 1 && !c3.text.includes('فلا يأثم'), JSON.stringify(c3.holds));
+      {
+        const srcY = read('lib/bw2-units.js');
+        const seamY = "clauses.slice(i).some((rest) => negatedTokens(rest.split(/\\s+/u)))";
+        ok('Y3 mutant seam present once', srcY.split(seamY).length === 2);
+        const tmpY = path.join(REPO, 'lib', '.mut-y3-window.mjs');
+        fs.writeFileSync(tmpY, srcY.split(seamY).join("clauses.slice(i, i + 1).some((rest) => negatedTokens(rest.split(/\\s+/u))) /* mutant: the window narrowed back to the school clause */").replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MY = null;
+        try { MY = await import(pathToFileURL(tmpY).href + '?m=' + Date.now()); } catch (e) { MY = null; } finally { fs.rmSync(tmpY, { force: true }); }
+        ok('Y3 mutant loads', !!MY);
+        ok('Y3 MUTANT KILLED: with the window narrowed back to the school clause the full live sentence is held unsupported_school again',
+          !!MY && (await playY3(MY, LIVE12, FULL_U1)).holds.unsupported_school === 1, MY ? JSON.stringify((await playY3(MY, LIVE12, FULL_U1)).holds) : 'no module');
+      }
+    }
+    // ---------------------------------------------------------------- FIX5D F-D3 (2026-11-09; DIAG5 D3, preview Q6): THE FIRST RELEASED SENTENCE AFTER A HOLD
+    // DOES NOT KEEP A DANGLING أيضا. MEASURED (DIAG5 H3 S1, offline): the obligation view held unsupported_attribution, its evidence held
+    // evidence_of_held_stance (W2), and the one surviving sentence went out as ابن باز أيضا أفتى بأن الأضحية سنة وليست بواجبة -- with nothing before it. The mark site now
+    // applies lib/opening-conjunction.js stripDanglingAlso after stripOpeningConjunction, afterRemoval only. The composition and the row are
+    // the H3 harness's (SYNTHETIC, the row's title copied from the page's card, the sentence from the EXT report question 6).
+    {
+      const UNITS_D3 = await esm('lib/bw2-units.js');
+      const ROW_D3 = {"kind":"fatwa","title":"الأضحية سنة وليست واجبة","url":"https://binbaz.org.sa/fatwas/SYNTHETIC-udhiyah","publisher":"ابن باز","scholarId":"binbaz","recordId":"SYNTHETIC-binbaz-udhiyah","text":"السؤال المنشور: هل الأضحية واجبة على القادر، ومن تركها هل يأثم؟ — الأضحية سنة مؤكدة وليست بواجبة في أصح قولي العلماء، فمن ضحى فقد أحسن وأصاب السنة، ومن تركها وهو قادر فلا إثم عليه، لكنه فاته خير كثير. وأما القول بوجوبها فهو قول مرجوح.","ref":1};
+      const S1_D3 = ["ذهب أبو حنيفة إلى أن الأضحية واجبة على القادر، فمن تركها وهو قادر فهو آثم [[1]].","ومن أدلة القائلين بالوجوب: قوله تعالى: فصل لربك وانحر، والأمر يقتضي الوجوب [[1]].","ابن باز أيضا أفتى بأن الأضحية سنة وليست بواجبة [[1]]."];
+      const S8_D3 = ["ابن باز أيضا أفتى بأن الأضحية سنة وليست بواجبة [[1]]."];
+      const EXPECT_D3 = "ابن باز أفتى بأن الأضحية سنة وليست بواجبة.";
+      const S8_PLAIN_D3 = "ابن باز أيضا أفتى بأن الأضحية سنة وليست بواجبة.";
+      const playD3 = async (mod, units) => { const out = []; const r = mod.createBw2Releaser({ rows: [ROW_D3], emit: (p) => { out.push(p); return true; } }); for (const u of units) r.push(u + '\n\n'); const sum = await r.end(); return { text: out.join(''), holds: sum.holds, released: sum.released, held: sum.held }; };
+      const s1D3 = await playD3(UNITS_D3, S1_D3);
+      ok('F-D3a S1 (the view held unsupported_attribution, its evidence held evidence_of_held_stance): the released Ibn Baz sentence opens without the dangling word, the rest byte for byte',
+        s1D3.holds.unsupported_attribution === 1 && s1D3.holds.evidence_of_held_stance === 1 && s1D3.released === 1 && s1D3.text.startsWith(EXPECT_D3), ascii(s1D3.text) + ' ' + JSON.stringify(s1D3.holds));
+      const s8D3 = await playD3(UNITS_D3, S8_D3);
+      ok('F-D3b S8 (the same sentence, nothing held before it): released byte-identical, the word kept', s8D3.held === 0 && s8D3.text.startsWith(S8_PLAIN_D3), ascii(s8D3.text));
+      {
+        const srcOC = read('lib/opening-conjunction.js');
+        const seamOC = "const POST_REMOVAL_ALSO_WORDS = new Set(['ايضا', 'كذلك']);";
+        ok('F-D3 mutant seam present once', srcOC.split(seamOC).length === 2);
+        const tmpOC = path.join(REPO, 'lib', '.mut-fd3-oc.mjs');
+        const tmpUD = path.join(REPO, 'lib', '.mut-fd3-units.mjs');
+        fs.writeFileSync(tmpOC, srcOC.split(seamOC).join('const POST_REMOVAL_ALSO_WORDS = new Set([]); // mutant: the word list emptied'));
+        fs.writeFileSync(tmpUD, read('lib/bw2-units.js').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + (spec === './opening-conjunction.js' ? pathToFileURL(tmpOC).href : pathToFileURL(path.resolve(REPO, 'lib', spec)).href) + q));
+        let MD3 = null;
+        try { MD3 = await import(pathToFileURL(tmpUD).href + '?m=' + Date.now()); } catch (e) { MD3 = null; } finally { fs.rmSync(tmpUD, { force: true }); fs.rmSync(tmpOC, { force: true }); }
+        ok('F-D3 mutant loads', !!MD3);
+        const m1D3 = MD3 ? await playD3(MD3, S1_D3) : null;
+        ok('F-D3 MUTANT KILLED: with the word list emptied S1\'s released sentence opens on the dangling word again',
+          !!m1D3 && m1D3.text.startsWith(S8_PLAIN_D3) && !m1D3.text.startsWith(EXPECT_D3), m1D3 ? ascii(m1D3.text) : 'no module');
+      }
+    }
+    // ---------------------------------------------------------------- FIX5D F-D2ii (2026-11-09; DIAG5 D2 (2), preview Q5; the X5 / F9 call site): A SHOWN LIBRARY
+    // CARD OF THE ENCYCLOPAEDIA NAMES IT. MEASURED (DIAG5 H2b variant H): the Mawsu'a paragraph cites the library row (its book card shown) and the store
+    // row (its card refused); the store row was in neither markedRows nor encyclopediaShown, so the global line «المصدر: الموسوعة الفقهية الكويتية.» went out
+    // under a card that already carried that name. A shown lib_book card whose work is the Mawsu'a now counts as naming it; a cited store row with
+    // no Mawsu'a card of any kind keeps its line. Rows, units and refs (salmajed 1, adawi 2, store 3, library 4) are the H2b harness's, embedded.
+    {
+      const Q5_D2II = "ما الذي يباح للزوج من زوجته أثناء الحيض؟";
+      const FATWA_D2II = [{"kind":"fatwa","title":"كفارة الجماع أثناء الحيض","url":"https://salmajed.com/fatwa/SYNTHETIC-1","publisher":"سليمان الماجد","scholarId":"salmajed","text":"السؤال المنشور: ما كفارة جماع الحائض؟ — أما الوطء في الفرج فمحرم؛ لقوله تعالى: يسألونك عن المحيض قل هو أذى فاعتزلوا النساء في المحيض ولا تقربوهن حتى يطهرن، وإذا جامعها عالما بالحكم فهو آثم وعليه التوبة، ويستحب له التصدق بقيمة دينار أو نصفه من الذهب.","recordId":"SYNTHETIC-salmajed"},{"kind":"fatwa","title":"هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام","url":"https://mostafaaladwy.com/fatwa/178351/هل-يجوز-للزوج-مباشرة-زوجته-أثناء-الحيض/","publisher":"مصطفى العدوي","scholarId":"aladawy","text":"السؤال المنشور: هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام — الحمد لله والصلاة والسلام على رسول الله صلى الله عليه وسلم، وبعد: الجواب: هذا جائز دون جماع، ولقد كان النبي المصطفى صلى الله عليه وسلم يقبل ويباشر وهو صائم دون جماع. والله تبارك وتعالى أعلم.","recordId":"aladawy:293","fatwaRecord":{"id":"aladawy:293","kind":"fatwa_service","sourceKind":"corpus","title":"هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام","url":"https://mostafaaladwy.com/fatwa/178351/هل-يجوز-للزوج-مباشرة-زوجته-أثناء-الحيض/","publisher":"مصطفى العدوي","authorityId":"","scholarId":"","directAttribution":false,"contentMode":"written_fatwa","actualContentType":"written_fatwa","question":"هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام","answer":"الحمد لله والصلاة والسلام على رسول الله صلى الله عليه وسلم، وبعد: الجواب: هذا جائز دون جماع، ولقد كان النبي المصطفى صلى الله عليه وسلم يقبل ويباشر وهو صائم دون جماع. والله تبارك وتعالى أعلم.","questionChars":47,"answerChars":190,"fullTextHash":"4b589d52c112799e1bb41b7ac18ebbf52e88b035756ce1137f45beb0dd84e7cd","fullTextComplete":true,"truncated":false,"omittedChars":0,"displayPolicy":"full","score":0,"supportText":"هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام\n\nالحمد لله والصلاة والسلام على رسول الله صلى الله عليه وسلم، وبعد: الجواب: هذا جائز دون جماع، ولقد كان النبي المصطفى صلى الله عليه وسلم يقبل ويباشر وهو صائم دون جماع. والله تبارك وتعالى أعلم.","passage":"السؤال المنشور: هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام\n\nالنص المنشور: الحمد لله والصلاة والسلام على رسول الله صلى الله عليه وسلم، وبعد: الجواب: هذا جائز دون جماع، ولقد كان النبي المصطفى صلى الله عليه وسلم يقبل ويباشر وهو صائم دون جماع. والله تبارك وتعالى أعلم.","localEntry":null,"liveSource":null,"raw":null}}];
+      const MAWSUA_LIB_D2II = {"kind":"lib_book","title":"الموسوعة الفقهية الكويتية","bookTitle":"الموسوعة الفقهية الكويتية","author":"مجموعة من المؤلفين","recordId":"SYNTHETIC-FC-MAWSUA-30-124","vol":"30","page":"124","text":"الموسوعة الفقهية الكويتية ج30 ص124: للزوج إجبار زوجته على الغسل من الحيض؛ لأن ذلك يمنع الاستمتاع الذي هو حق له، فملك إجبارها على إزالة ما يمنع حقه، كما يملك إجبار الذمية على الغسل من الحيض.","fullText":"الموسوعة الفقهية الكويتية ج30 ص124: للزوج إجبار زوجته على الغسل من الحيض؛ لأن ذلك يمنع الاستمتاع الذي هو حق له، فملك إجبارها على إزالة ما يمنع حقه، كما يملك إجبار الذمية على الغسل من الحيض."};
+      const OTHER_LIB_D2II = {"kind":"lib_book","title":"المغني لابن قدامة","bookTitle":"المغني لابن قدامة","author":"ابن قدامة","recordId":"SYNTHETIC-other-book","vol":"30","page":"124","text":"الموسوعة الفقهية الكويتية ج30 ص124: للزوج إجبار زوجته على الغسل من الحيض؛ لأن ذلك يمنع الاستمتاع الذي هو حق له، فملك إجبارها على إزالة ما يمنع حقه، كما يملك إجبار الذمية على الغسل من الحيض.","fullText":"الموسوعة الفقهية الكويتية ج30 ص124: للزوج إجبار زوجته على الغسل من الحيض؛ لأن ذلك يمنع الاستمتاع الذي هو حق له، فملك إجبارها على إزالة ما يمنع حقه، كما يملك إجبار الذمية على الغسل من الحيض."}; // SYNTHETIC title
+      const ENC_D2II = {"id":"F01299","part":18,"term":"حَيْضٌ","snippet":"حيض حيض التعريف: 1 - الحيض لغه مصدر حاض، يقال حاض السيل اذا فاض، وحاضت السمره اذا سال صمغها، وحاضت المراه: سال دمها. والمره حيضه، والجمع حيض، والقياس حيضات. والحياض: دم الحيضه. والحيضه بالكسر: الاسم، وخرقه الحيض، هي الخرقه التي تستثفر بها المراه. وكذلك المحيضه، والجمع المحايض. وفي حديث بئر بضاعه: «تلقي فيها المحايض». والمراه حائض، لانه وصف خاص. وجاء حائضه ايضا بناء له علي حاضت، وجمع الحائض حيض وحوائض، وجمع الحائضه حائضات. وتحيضت المراه قعدت عن الصلاه ايام حيضها. وللحيض في الاصطلاح تعريفات كثيره، وهي متقاربه في الغالب. وفيما يلي المشهور منها في كل مذهب. فقد عرفه صاحب الكنز من الحنفيه بقوله: هو دم ينفضه رحم امراه سليمه عن داء وصغر. وقال ابن عرفه من المالكيه: الحيض دم يلقيه رحم معتاد حملها دون ولاده. وعرفه الشافعيه بانه: دم جبله يخرج من اقصي رحم المراه بعد بلوغها علي سبيل الصحه من غير سبب في اوقات معلومه. وقال الحنابله: دم طبيعه يخرج مع الصحه من غير سبب ولاده من قعر الرحم يعتاد انثي اذا بلغت في اوقات معلومه. وللحيض اسماء منها: الطمث، والعراك، والنفاس. الالفاظ ذات الصله: ا - الطهر: 2 - الطهر لغه: النقاء من الدنس والنجس فهو نقيض النجاسه ونقيض الحيض والجمع اطهار. وطهرت المراه، وهي طاهر: انقطع عنها الدم ورات الطهر، فاذا اغتسلت قيل: تطهرت واطهرت. والمراه طاهر من الحيض، وطاهره من النجاسه ومن العيوب والطهر شرعا خلاف الحيض. قال البركوي: الطهر المطلق ما لا يكون حيضا ولا نفاسا. فالطهر في باب الحيض اخص من الطهر في اللغه. ب - القرء: 3 - القرء والقرء: الحيض، والطهر، فهو من الاضداد. والجمع اقرا"};
+      const W_H_D2II = "أما الوطء في الفرج فمحرم؛ لقوله تعالى: \"يسألونك عن المحيض قل هو أذى فاعتزلوا النساء في المحيض ولا تقربوهن حتى يطهرن\"، وإذا جامعها عالما بالحكم فهو آثم وعليه التوبة، ويستحب له التصدق بقيمة دينار أو نصفه من الذهب [[1]].\n\nكما أن للزوج إجبار زوجته على الغسل من الحيض؛ لأن ذلك يمنع الاستمتاع الذي هو حق له، فملك إجبارها على إزالة ما يمنع حقه [[4]] [[3]].\n\n<steps title=\"ما يباح وما يحرم\">\n- يباح الاستمتاع بها دون جماع، كالتقبيل والمباشرة.\n- يباح للزوج أن يرى منها كل شيء وإن كان الأفضل تجنب ما يستحيا منه.\n- يحرم الوطء في الفرج حتى تطهر وتغتسل.\n- إن وطئها عالماً بالتحريم فهو آثم وعليه التوبة ويستحب له التصدق بدينار أو نصفه.\n</steps> [[2]]";
+      const W_K_D2II = "أما الوطء في الفرج فمحرم؛ لقوله تعالى: \"يسألونك عن المحيض قل هو أذى فاعتزلوا النساء في المحيض ولا تقربوهن حتى يطهرن\"، وإذا جامعها عالما بالحكم فهو آثم وعليه التوبة، ويستحب له التصدق بقيمة دينار أو نصفه من الذهب [[1]].\n\nكما أن للزوج إجبار زوجته على الغسل من الحيض؛ لأن ذلك يمنع الاستمتاع الذي هو حق له، فملك إجبارها على إزالة ما يمنع حقه [[4]].\n\n<steps title=\"ما يباح وما يحرم\">\n- يباح الاستمتاع بها دون جماع، كالتقبيل والمباشرة.\n- يباح للزوج أن يرى منها كل شيء وإن كان الأفضل تجنب ما يستحيا منه.\n- يحرم الوطء في الفرج حتى تطهر وتغتسل.\n- إن وطئها عالماً بالتحريم فهو آثم وعليه التوبة ويستحب له التصدق بدينار أو نصفه.\n</steps> [[2]]";
+      const LINE_D2II = "المصدر: الموسوعة الفقهية الكويتية.";
+      const driveD2II = async (mod, writerText, library) => {
+        const { deps } = makeDeps({ fatwa: FATWA_D2II, library, encyclopedia: [ENC_D2II], writerText });
+        const target = makeTarget();
+        const facade = SSE.createFinalizedSseResponse(target, { finalize: (input) => ({ ok: true, text: String(input.text || ''), problems: [], replaced: false, drops: [], degraded: [] }),
+          context: () => ({ allowWireOwnedCards: true, sourceCards: [], readerCards: [], readerPrefix: '', readerSuffix: '' }), failureText: 'FACADE-FAILURE' });
+        const wire = mod.createBw2Wire(facade);
+        const out = await mod.runBw2Turn({ question: Q5_D2II, messages: [{ role: 'user', content: Q5_D2II }], mode: 'brief', band: 'adult', system: 'SYSTEM', model: 'writer-model', maxTokens: 4096,
+          providerUrl: 'https://api.anthropic.invalid/v1/messages', headers: {}, libFlagValue: 'on', libToken: 'guard-token', lessonsToken: '', onLessonRows: null, takhrijWired: false,
+          cards: { buildSourceTag: ASK.buildSourceTag, buildBookTag: ASK.buildBookTag, encyclopediaCards: true, max: 3 }, wire, requestStartedAt: Date.now(),
+          env: { BW2_RETRIEVAL_MS: '400', BW2_JUDGE_MS: '400' }, runtime: 'STORED_FIQH', continueWhenNotCovered: true, deps });
+        const text = deltasOf(framesOf(target)).join('');
+        return { out, text, line: text.includes(LINE_D2II), bookCard: text.includes('<book ') };
+      };
+      const h = await driveD2II(BW2, W_H_D2II, [MAWSUA_LIB_D2II]);
+      ok('F-D2ii-1 H2b variant H (the Mawsu\'a paragraph cites its library row, card shown, and the store row, card refused): no global encyclopaedia line',
+        h.bookCard && !h.line, JSON.stringify({ bookCard: h.bookCard, line: h.line, cards: h.out && h.out.telemetry && h.out.telemetry.cardsSent }));
+      const k = await driveD2II(BW2, W_K_D2II, [MAWSUA_LIB_D2II]);
+      ok('F-D2ii-2 H2b variant K (the store row cited nowhere): no line, as before', k.bookCard && !k.line, JSON.stringify({ bookCard: k.bookCard, line: k.line }));
+      const o = await driveD2II(BW2, W_H_D2II, [OTHER_LIB_D2II]);
+      ok('F-D2ii-3 the same paragraph with a library card of ANOTHER work (SYNTHETIC title) and the store row cited: no Mawsu\'a card of any kind -> the line',
+        o.bookCard && o.line, JSON.stringify({ bookCard: o.bookCard, line: o.line }));
+      {
+        const srcB = read('lib/before-writing-v2.js');
+        const seamB = '.concat(encycBookCards);';
+        ok('F-D2ii mutant seam present once', srcB.split(seamB).length === 2);
+        const tmpB = path.join(REPO, 'lib', '.mut-fd2ii-bw2.mjs');
+        fs.writeFileSync(tmpB, srcB.split(seamB).join('; // mutant: the lib_book test removed').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MB = null;
+        try { MB = await import(pathToFileURL(tmpB).href + '?m=' + Date.now()); } catch (e) { MB = null; } finally { fs.rmSync(tmpB, { force: true }); }
+        ok('F-D2ii mutant loads', !!MB);
+        const mh = MB ? await driveD2II(MB, W_H_D2II, [MAWSUA_LIB_D2II]) : null;
+        ok('F-D2ii MUTANT KILLED: with the lib_book test removed variant H draws the line beside the Mawsu\'a card again', !!mh && mh.line, mh ? JSON.stringify({ line: mh.line }) : 'no module');
+      }
+    }
+    // ---------------------------------------------------------------- FIX5D F-D2iv (2026-11-09; DIAG5 FOUND 1, preview Q5): THE CARD IS BOUND TO ITS ROW BY THE
+    // CANONICAL URL FORM. MEASURED (DIAG5 H2c variant N): the fixture row carries its url in literal Arabic, the card tag percent-encoded; rowOfPage
+    // compared them byte for byte, found no row, so cardSupportsUnit was never applied and the unsupported card shipped under the steps block. Both
+    // sides are now decoded (decodeURI, a malformed url compared as before) and trimmed. Rows and the block are the H2c harness's, embedded.
+    {
+      const UNITS_D2IV = await esm('lib/bw2-units.js');
+      const ADAWI_N_D2IV = {"kind":"fatwa","title":"هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام","url":"https://mostafaaladwy.com/fatwa/178351/هل-يجوز-للزوج-مباشرة-زوجته-أثناء-الحيض/","publisher":"مصطفى العدوي","scholarId":"aladawy","text":"السؤال المنشور: هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام — الحمد لله والصلاة والسلام على رسول الله صلى الله عليه وسلم، وبعد: الجواب: هذا جائز دون جماع، ولقد كان النبي المصطفى صلى الله عليه وسلم يقبل ويباشر وهو صائم دون جماع. والله تبارك وتعالى أعلم.","recordId":"aladawy:293","fatwaRecord":{"id":"aladawy:293","kind":"fatwa_service","sourceKind":"corpus","title":"هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام","url":"https://mostafaaladwy.com/fatwa/178351/هل-يجوز-للزوج-مباشرة-زوجته-أثناء-الحيض/","publisher":"مصطفى العدوي","authorityId":"","scholarId":"","directAttribution":false,"contentMode":"written_fatwa","actualContentType":"written_fatwa","question":"هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام","answer":"الحمد لله والصلاة والسلام على رسول الله صلى الله عليه وسلم، وبعد: الجواب: هذا جائز دون جماع، ولقد كان النبي المصطفى صلى الله عليه وسلم يقبل ويباشر وهو صائم دون جماع. والله تبارك وتعالى أعلم.","questionChars":47,"answerChars":190,"fullTextHash":"4b589d52c112799e1bb41b7ac18ebbf52e88b035756ce1137f45beb0dd84e7cd","fullTextComplete":true,"truncated":false,"omittedChars":0,"displayPolicy":"full","score":0,"supportText":"هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام\n\nالحمد لله والصلاة والسلام على رسول الله صلى الله عليه وسلم، وبعد: الجواب: هذا جائز دون جماع، ولقد كان النبي المصطفى صلى الله عليه وسلم يقبل ويباشر وهو صائم دون جماع. والله تبارك وتعالى أعلم.","passage":"السؤال المنشور: هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام\n\nالنص المنشور: الحمد لله والصلاة والسلام على رسول الله صلى الله عليه وسلم، وبعد: الجواب: هذا جائز دون جماع، ولقد كان النبي المصطفى صلى الله عليه وسلم يقبل ويباشر وهو صائم دون جماع. والله تبارك وتعالى أعلم.","localEntry":null,"liveSource":null,"raw":null},"ref":1};
+      const ADAWI_M_D2IV = {"kind":"fatwa","title":"هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام","url":"https://mostafaaladwy.com/fatwa/178351/%D9%87%D9%84-%D9%8A%D8%AC%D9%88%D8%B2-%D9%84%D9%84%D8%B2%D9%88%D8%AC-%D9%85%D8%A8%D8%A7%D8%B4%D8%B1%D8%A9-%D8%B2%D9%88%D8%AC%D8%AA%D9%87-%D8%A3%D8%AB%D9%86%D8%A7%D8%A1-%D8%A7%D9%84%D8%AD%D9%8A%D8%B6/","publisher":"مصطفى العدوي","scholarId":"aladawy","text":"السؤال المنشور: هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام — الحمد لله والصلاة والسلام على رسول الله صلى الله عليه وسلم، وبعد: الجواب: هذا جائز دون جماع، ولقد كان النبي المصطفى صلى الله عليه وسلم يقبل ويباشر وهو صائم دون جماع. والله تبارك وتعالى أعلم.","recordId":"aladawy:293","fatwaRecord":{"id":"aladawy:293","kind":"fatwa_service","sourceKind":"corpus","title":"هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام","url":"https://mostafaaladwy.com/fatwa/178351/هل-يجوز-للزوج-مباشرة-زوجته-أثناء-الحيض/","publisher":"مصطفى العدوي","authorityId":"","scholarId":"","directAttribution":false,"contentMode":"written_fatwa","actualContentType":"written_fatwa","question":"هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام","answer":"الحمد لله والصلاة والسلام على رسول الله صلى الله عليه وسلم، وبعد: الجواب: هذا جائز دون جماع، ولقد كان النبي المصطفى صلى الله عليه وسلم يقبل ويباشر وهو صائم دون جماع. والله تبارك وتعالى أعلم.","questionChars":47,"answerChars":190,"fullTextHash":"4b589d52c112799e1bb41b7ac18ebbf52e88b035756ce1137f45beb0dd84e7cd","fullTextComplete":true,"truncated":false,"omittedChars":0,"displayPolicy":"full","score":0,"supportText":"هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام\n\nالحمد لله والصلاة والسلام على رسول الله صلى الله عليه وسلم، وبعد: الجواب: هذا جائز دون جماع، ولقد كان النبي المصطفى صلى الله عليه وسلم يقبل ويباشر وهو صائم دون جماع. والله تبارك وتعالى أعلم.","passage":"السؤال المنشور: هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام\n\nالنص المنشور: الحمد لله والصلاة والسلام على رسول الله صلى الله عليه وسلم، وبعد: الجواب: هذا جائز دون جماع، ولقد كان النبي المصطفى صلى الله عليه وسلم يقبل ويباشر وهو صائم دون جماع. والله تبارك وتعالى أعلم.","localEntry":null,"liveSource":null,"raw":null},"ref":1};
+      const STEPS_D2IV = "<steps title=\"ما يباح وما يحرم\">\n- يباح الاستمتاع بها دون جماع، كالتقبيل والمباشرة.\n- يباح للزوج أن يرى منها كل شيء وإن كان الأفضل تجنب ما يستحيا منه.\n- يحرم الوطء في الفرج حتى تطهر وتغتسل.\n- إن وطئها عالماً بالتحريم فهو آثم وعليه التوبة ويستحب له التصدق بدينار أو نصفه.\n</steps> [[1]]";
+      const cardsD2IV = { buildSourceTag: ASK.buildSourceTag, buildBookTag: ASK.buildBookTag, encyclopediaCards: false, max: 3 };
+      const playD2IV = async (mod, row) => { const out = []; const r = mod.createBw2Releaser({ rows: [row], emit: (p) => { out.push(p); return true; }, cards: cardsD2IV }); r.push(STEPS_D2IV + '\n\n'); const sum = await r.end(); return { text: out.join(''), sum }; };
+      const nD2IV = await playD2IV(UNITS_D2IV, ADAWI_N_D2IV);
+      ok('F-D2iv-1 H2c variant N (row url literal Arabic, tag percent-encoded): the card is bound, judged unsupported and deferred -- not shipped under the block',
+        nD2IV.sum.cardsSent === 0 && !nD2IV.text.includes('mostafaaladwy.com'), JSON.stringify({ sent: nD2IV.sum.cardsSent }));
+      const mD2IV = await playD2IV(UNITS_D2IV, ADAWI_M_D2IV);
+      ok('F-D2iv-2 H2c variant M (encoded both sides): unchanged -- deferred, not shipped; N now reads as M', mD2IV.sum.cardsSent === 0 && !mD2IV.text.includes('mostafaaladwy.com') && nD2IV.text === mD2IV.text, JSON.stringify({ sent: mD2IV.sum.cardsSent }));
+      {
+        const srcV = read('lib/bw2-units.js');
+        const seamV = '    const rowOfPage = (card) => orderNow.find((row) => row && cardEligible(row) && row.url && card.url && canonicalUrl(row.url) === canonicalUrl(card.url)) || null;';
+        ok('F-D2iv mutant seam present once', srcV.split(seamV).length === 2);
+        const tmpV = path.join(REPO, 'lib', '.mut-fd2iv-url.mjs');
+        fs.writeFileSync(tmpV, srcV.split(seamV).join('    const rowOfPage = (card) => orderNow.find((row) => row && cardEligible(row) && row.url && card.url && String(row.url).trim() === String(card.url).trim()) || null; // mutant: the decode removed').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MV = null;
+        try { MV = await import(pathToFileURL(tmpV).href + '?m=' + Date.now()); } catch (e) { MV = null; } finally { fs.rmSync(tmpV, { force: true }); }
+        ok('F-D2iv mutant loads', !!MV);
+        const mv = MV ? await playD2IV(MV, ADAWI_N_D2IV) : null;
+        ok('F-D2iv MUTANT KILLED: with the decode removed variant N ships the unsupported card again', !!mv && mv.sum.cardsSent === 1 && mv.text.includes('mostafaaladwy.com'), mv ? JSON.stringify({ sent: mv.sum.cardsSent }) : 'no module');
+      }
+    }
+    // ---------------------------------------------------------------- brain35-5e J (2026-11-09; the owner: «أكيد مايجيب طاري الجعفري بالمره»): EZIK
+    // NEVER NAMES THE JA'FARI SCHOOL. A unit whose folded text carries a banned word, in a turn whose question carries none, is held
+    // 'banned_school' before the support tests (lib/bw2-units.js check(); the list in lib/free-brain/instructions.js). Q20's question
+    // and sentence copied from the EXT report (س20); the other units and the rows SYNTHETIC (each row carries its unit, so today's
+    // tests release it: BRAIN35-FIX5E-evidence/probe-j-head.out.txt).
+    {
+      const UJ = await esm('lib/bw2-units.js');
+      const Q20_J = "كيف يصلي المريض الذي لا يستطيع القيام ولا الجلوس؟";
+      const S20_J = "لم أقفْ في هذه المادّةِ على نصٍّ مفصَّلٍ خاصٍّ بالجعفريّةِ أو غيرِ المذاهبِ الأربعةِ في هذه المسألةِ بعينِها.";
+      const rowJ = (text) => ({ ref: 1, kind: 'lib_book', title: 'كتاب', bookTitle: 'كتاب', author: 'مؤلف', locator: '', recordId: 'SYN-J-1', subjectId: 'FC-009100', url: '', text, fullText: text, passage: text, locatorSpan: {} });
+      const citeJ = (s) => s.replace(/\.$/u, '') + ' [[1]].';
+      const playJ = async (mod, q, unit, rowText) => { const o = []; const r = mod.createBw2Releaser({ rows: [rowJ(rowText)], mode: 'brief', emit: (p) => { o.push(p); return true; }, takhrij: null, cards: null, askedMatn: '', sourceQuestion: false, leadLine: '', holdUncitedRulings: true, question: q }); r.push(citeJ(unit) + '\n\n'); const sum = await r.end(); return { text: o.join(''), sum }; };
+      const heldBanned = (r) => r.sum.released === 0 && !!r.sum.holds && r.sum.holds.banned_school === 1;
+      const j1 = await playJ(UJ, Q20_J, S20_J, S20_J);
+      ok('J-1 Q20\'s «لم أقفْ … خاصٍّ بالجعفريّةِ أو غيرِ المذاهبِ الأربعةِ …» cited, with Q20\'s question: held banned_school, not on the page', heldBanned(j1) && j1.text === '', ascii(JSON.stringify(j1.sum.holds)));
+      const j2 = await playJ(UJ, 'ما حكم الجمع بين الصلاتين في الحضر؟', 'وعند الإمامية يجوز الجمع بين الصلاتين في الحضر بلا عذر.', 'وعند الإمامية يجوز الجمع بين الصلاتين في الحضر بلا عذر.');
+      ok('J-2 SYNTHETIC «وعند الإمامية يجوز …» cited: held banned_school', heldBanned(j2), ascii(JSON.stringify(j2.sum.holds)));
+      const j3 = await playJ(UJ, 'ما حكم الجمع بين الصلاتين في الحضر؟', 'وقال أبو جعفر الطحاوي: يجوز الجمع بين الصلاتين في الحضر للحاجة.', 'قال أبو جعفر الطحاوي: يجوز الجمع بين الصلاتين في الحضر للحاجة.');
+      ok('J-3 SYNTHETIC «وقال أبو جعفر الطحاوي: …» -> as today: released byte for byte (pinned)', j3.text === 'وقال أبو جعفر الطحاوي: يجوز الجمع بين الصلاتين في الحضر للحاجة.' && !(j3.sum.holds || {}).banned_school, ascii(j3.text));
+      const j4 = await playJ(UJ, 'من روى حديث إنما الأعمال بالنيات؟', 'رواه محمد بن إسماعيل الجعفي في صحيحه.', 'رواه محمد بن إسماعيل الجعفي في صحيحه، حديث إنما الأعمال بالنيات.');
+      ok('J-4 SYNTHETIC «رواه محمد بن إسماعيل الجعفي في صحيحه.» -> as today: released byte for byte (pinned)', j4.text === 'رواه محمد بن إسماعيل الجعفي في صحيحه.' && !(j4.sum.holds || {}).banned_school, ascii(j4.text));
+      const j5 = await playJ(UJ, 'هل يجوز للمرأة أن تتزوج رجلا جعفريا؟', 'زواج المسلمة من رجل جعفري مسألة اختلف فيها أهل العلم المعاصرون.', 'زواج المسلمة من رجل جعفري مسألة اختلف فيها أهل العلم المعاصرون.');
+      ok('J-5 SYNTHETIC question «هل يجوز للمرأة أن تتزوج رجلا جعفريا؟», a cited unit carrying «جعفري» -> held banned_school (re-cut R12 2026-11-10: owner decision J2 (3); was: as today, pinned: the asker named it)', heldBanned(j5), ascii(JSON.stringify(j5.sum.holds)));
+      ok('J-6 the closed hold-reason registry names banned_school', Array.isArray(UJ.BW2_HOLD_REASONS) && UJ.BW2_HOLD_REASONS.includes('banned_school'));
+      {
+        // the mutant: the banned list emptied (a twin of lib/free-brain/instructions.js beside it, and a bw2-units twin importing it)
+        const instrSrc = read('lib/free-brain/instructions.js');
+        const unitsSrc = read('lib/bw2-units.js');
+        const seamJ = 'const BANNED_FOLDED = BANNED_SCHOOL_WORDS.map((w) => foldSchoolText(w).split(\' \'));';
+        const importJ = "from './free-brain/instructions.js';";
+        ok('J mutant seams present once', instrSrc.split(seamJ).length === 2 && unitsSrc.split(importJ).length === 2);
+        const tmpI = path.join(REPO, 'lib', 'free-brain', '.mut-j-instr.mjs');
+        const tmpU = path.join(REPO, 'lib', '.mut-j-units.mjs');
+        fs.writeFileSync(tmpI, instrSrc.split(seamJ).join('const BANNED_FOLDED = []; // mutant: the banned list emptied'));
+        fs.writeFileSync(tmpU, unitsSrc.split(importJ).join("from './free-brain/.mut-j-instr.mjs';"));
+        let MJ = null;
+        try { MJ = await import(pathToFileURL(tmpU).href + '?m=' + Date.now()); } catch (e) { MJ = null; } finally { fs.rmSync(tmpI, { force: true }); fs.rmSync(tmpU, { force: true }); }
+        ok('J mutant loads', !!MJ);
+        const mj = MJ ? await playJ(MJ, Q20_J, S20_J, S20_J) : null;
+        ok('J MUTANT KILLED: with the banned list emptied Q20\'s sentence is released again', !!mj && mj.sum.released === 1 && !heldBanned(mj), mj ? ascii(JSON.stringify(mj.sum.holds)) : 'no module');
+      }
+    }
+    // ---------------------------------------------------------------- brain35-ship J2 (2026-11-10; the owner): A QUESTION ABOUT THE
+    // JA'FARI SCHOOL GETS ONE SENTENCE AND NOTHING ELSE; a Sunni ruling question that names its followers keeps the normal path with
+    // the ban on; a word that only looks like the school's name is left alone. STEP A: the shared matcher (lib/free-brain/
+    // instructions.js namesBannedSchool) on the order's BANNED forms and NOT BANNED rows, in a question and in a cited unit (J's
+    // construction above, J-2's neutral question); STEP B: the classifier bannedSchoolQuestion on every DENY, SUNNI RULING and NOT
+    // BANNED row; R12 (a): in a SUNNI RULING turn a cited unit that names the school is held. The rows are the J2 order's own
+    // (EZIK-ORDER-BRAIN35-J2-2026-11-10.md, GUARD), copied by BRAIN35-J2-evidence/extract-rows.cjs; each cited unit is SYNTHETIC
+    // (the row, its question mark replaced by a full stop); the SUNNI RULING turns cite J-5's unit.
+    {
+      const UJ2 = await esm('lib/bw2-units.js');
+      const IJ2 = await esm('lib/free-brain/instructions.js');
+      const J2 = { DENY: ['\u0645\u0627 \u062d\u0643\u0645 \u0632\u0648\u0627\u062c \u0627\u0644\u0645\u062a\u0639\u0629 \u0639\u0646\u062f \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u0629\u061f', '\u0645\u0627 \u0631\u0623\u064a \u0627\u0644\u0645\u0630\u0647\u0628 \u0627\u0644\u062c\u0639\u0641\u0631\u064a \u0641\u064a \u0627\u0644\u062c\u0645\u0639 \u0628\u064a\u0646 \u0627\u0644\u0635\u0644\u0627\u062a\u064a\u0646\u061f', '\u0645\u0627 \u0647\u0648 \u0627\u0644\u0645\u0630\u0647\u0628 \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u061f', '\u062d\u062f\u062b\u0646\u064a \u0639\u0646 \u0627\u0644\u0625\u0645\u0627\u0645\u064a\u0629 \u0627\u0644\u0627\u062b\u0646\u064a \u0639\u0634\u0631\u064a\u0629', '\u0645\u0627 \u0627\u0644\u0641\u0631\u0642 \u0628\u064a\u0646 \u0623\u0647\u0644 \u0627\u0644\u0633\u0646\u0629 \u0648\u0627\u0644\u062c\u0639\u0641\u0631\u064a\u0629 \u0641\u064a \u0627\u0644\u0648\u0636\u0648\u0621\u061f', '\u0627\u0644\u062c\u0639\u0641\u0631\u064a\u0629', '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u0629\u061f', '\u0647\u0644 \u0627\u0644\u062c\u0639\u0641\u0631\u064a \u0645\u0633\u0644\u0645\u061f', '\u0645\u0627 \u0645\u0648\u0642\u0641 \u0623\u0647\u0644 \u0627\u0644\u0633\u0646\u0629 \u0645\u0646 \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u0629\u061f', '\u0647\u0644 \u064a\u062c\u0648\u0632 \u0627\u0644\u0639\u0645\u0644 \u0628\u0627\u0644\u0641\u0642\u0647 \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u061f', '\u0643\u064a\u0641 \u064a\u0635\u0644\u064a \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u0629\u061f', '\u0647\u0644 \u064a\u062c\u0648\u0632 \u0644\u0639\u0646 \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u0629\u061f', '\u0645\u0627 \u0642\u0648\u0644 \u0639\u0644\u0645\u0627\u0621 \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u0629 \u0641\u064a \u0627\u0644\u062e\u0645\u0633\u061f', '\u0647\u0644 \u064a\u062c\u0648\u0632 \u0627\u0644\u0623\u062e\u0630 \u0628\u0641\u062a\u0648\u0649 \u0645\u0631\u062c\u0639 \u062c\u0639\u0641\u0631\u064a\u061f', '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0645\u062a\u0639\u0629 \u0639\u0644\u0649 \u0627\u0644\u0645\u0630\u0647\u0628 \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u061f', '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0635\u0644\u0627\u0629 \u062e\u0644\u0641 \u0625\u0645\u0627\u0645 \u062c\u0639\u0641\u0631\u064a \u0639\u0646\u062f \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u0629\u061f', '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0632\u0648\u0627\u062c \u0645\u0646 \u062c\u0639\u0641\u0631\u064a\u0629 \u0639\u0646\u062f \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u0629\u061f', '\u0645\u0627 \u0642\u0648\u0644 \u0627\u0644\u0625\u0645\u0627\u0645\u064a\u0629 \u0641\u064a \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u0649 \u0627\u0644\u062e\u0641\u064a\u0646\u061f', '\u0642\u0627\u0644\u062a \u0627\u0644\u0627\u0645\u0627\u0645\u064a\u0629 \u0628\u062c\u0648\u0627\u0632 \u0627\u0644\u062c\u0645\u0639 \u0641\u0647\u0644 \u064a\u0635\u062d\u061f', '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0634\u064a\u0639\u0629 \u0627\u0644\u0625\u0645\u0627\u0645\u064a\u0629\u061f', '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0631\u062c\u0644 \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u061f', '\u0645\u0627 \u062d\u0643\u0645 \u062c\u0639\u0641\u0631\u064a \u064a\u0633\u0628 \u0627\u0644\u0635\u062d\u0627\u0628\u0629\u061f', '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0623\u062e\u0630 \u0639\u0646 \u0639\u0627\u0644\u0645 \u062c\u0639\u0641\u0631\u064a\u061f', '\u0647\u0644 \u0627\u0644\u0645\u0630\u0647\u0628 \u0627\u0644\u062c\u0639\u0641\u0631\u064a \u0645\u0646 \u0627\u0644\u0645\u0630\u0627\u0647\u0628 \u0627\u0644\u0645\u0639\u062a\u0628\u0631\u0629\u061f', '\u0623\u062e\u0628\u0631\u0646\u064a \u0639\u0646 \u0639\u0627\u0644\u0645 \u062c\u0639\u0641\u0631\u064a \u0645\u0634\u0647\u0648\u0631', '\u0645\u062a\u0649 \u0638\u0647\u0631 \u0627\u0644\u0645\u0630\u0647\u0628 \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u061f'],
+        SUNNI: ['\u0647\u0644 \u062a\u062c\u0648\u0632 \u0627\u0644\u0635\u0644\u0627\u0629 \u062e\u0644\u0641 \u0625\u0645\u0627\u0645 \u062c\u0639\u0641\u0631\u064a\u061f', '\u0647\u0644 \u064a\u062c\u0648\u0632 \u0644\u0644\u0645\u0631\u0623\u0629 \u0623\u0646 \u062a\u062a\u0632\u0648\u062c \u0631\u062c\u0644\u0627 \u062c\u0639\u0641\u0631\u064a\u0627\u061f', '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0635\u0644\u0627\u0629 \u062e\u0644\u0641 \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u0629\u061f', '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0635\u0644\u0627\u0629 \u062e\u0644\u0641 \u0627\u0644\u0625\u0645\u0627\u0645 \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u061f', '\u0647\u0644 \u064a\u062c\u0648\u0632 \u0627\u0644\u0632\u0648\u0627\u062c \u0645\u0646 \u062c\u0639\u0641\u0631\u064a\u0629\u061f', '\u0645\u0627 \u062d\u0643\u0645 \u0623\u0643\u0644 \u0630\u0628\u064a\u062d\u0629 \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u061f', '\u0647\u0644 \u064a\u062c\u0648\u0632 \u0623\u0646 \u0623\u062a\u0632\u0648\u062c \u062c\u0639\u0641\u0631\u064a\u0627\u061f', '\u062e\u0637\u0628\u0646\u064a \u0634\u0627\u0628 \u064a\u062a\u0628\u0639 \u0627\u0644\u0645\u0630\u0647\u0628 \u0627\u0644\u062c\u0639\u0641\u0631\u064a \u0641\u0647\u0644 \u064a\u062c\u0648\u0632 \u0644\u064a \u0627\u0644\u0632\u0648\u0627\u062c \u0645\u0646\u0647\u061f', '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0635\u0644\u0627\u0629 \u062e\u0644\u0641 \u0623\u062a\u0628\u0627\u0639 \u0627\u0644\u0645\u0630\u0647\u0628 \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u061f', '\u0645\u0627 \u0642\u0648\u0644 \u0627\u0644\u0639\u0644\u0645\u0627\u0621 \u0641\u064a \u0627\u0644\u0635\u0644\u0627\u0629 \u062e\u0644\u0641 \u0625\u0645\u0627\u0645 \u062c\u0639\u0641\u0631\u064a\u061f', '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0632\u0648\u0627\u062c \u0645\u0646 \u062c\u0639\u0641\u0631\u064a\u0629 \u0639\u0646\u062f \u0623\u0647\u0644 \u0627\u0644\u0633\u0646\u0629\u061f', '\u062c\u0627\u0631\u064a \u062c\u0639\u0641\u0631\u064a \u0641\u0647\u0644 \u0623\u0631\u062f \u0639\u0644\u064a\u0647 \u0627\u0644\u0633\u0644\u0627\u0645\u061f', '\u0632\u0648\u062c\u064a \u0645\u0646 \u0627\u0644\u0634\u064a\u0639\u0629 \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u0629 \u0641\u0647\u0644 \u0646\u0643\u0627\u062d\u064a \u0635\u062d\u064a\u062d\u061f', '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0635\u0644\u0627\u0629 \u0641\u064a \u0645\u0633\u0627\u062c\u062f \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u0629\u061f', '\u0647\u0644 \u062a\u062c\u0648\u0632 \u0627\u0644\u0635\u0644\u0627\u0629 \u062e\u0644\u0641 \u0625\u0645\u0627\u0645 \u062c\u0639\u0641\u0631\u0649\u061f', '\u062a\u0642\u062f\u0645 \u0644\u062e\u0637\u0628\u062a\u064a \u0623\u062d\u062f \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u0629 \u0641\u0645\u0627 \u0627\u0644\u062d\u0643\u0645\u061f', '\u0645\u0627 \u0631\u0623\u064a \u0627\u0628\u0646 \u0628\u0627\u0632 \u0641\u064a \u0627\u0644\u0632\u0648\u0627\u062c \u0645\u0646 \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u0629\u061f', '\u0632\u0645\u064a\u0644\u064a \u0641\u064a \u0627\u0644\u0639\u0645\u0644 \u0631\u062c\u0644 \u0625\u0645\u0627\u0645\u064a \u0641\u0647\u0644 \u064a\u062c\u0648\u0632 \u0623\u0646 \u0622\u0643\u0644 \u0645\u0646 \u0637\u0639\u0627\u0645\u0647\u061f', '\u0623\u0646\u0627 \u062c\u0639\u0641\u0631\u064a \u0648\u0623\u0631\u064a\u062f \u0623\u0646 \u0623\u0639\u0631\u0641 \u0635\u0641\u0629 \u0627\u0644\u0648\u0636\u0648\u0621 \u0639\u0646\u062f \u0623\u0647\u0644 \u0627\u0644\u0633\u0646\u0629', '\u0643\u064a\u0641 \u0623\u062f\u0639\u0648 \u062c\u0639\u0641\u0631\u064a\u0627 \u0625\u0644\u0649 \u0627\u0644\u0633\u0646\u0629\u061f', '\u0645\u0627 \u062d\u0643\u0645 \u0625\u0645\u0627\u0645\u0629 \u0627\u0644\u062c\u0639\u0641\u0631\u064a \u0641\u064a \u0627\u0644\u0635\u0644\u0627\u0629\u061f', '\u0647\u0644 \u064a\u062c\u0648\u0632 \u0623\u0646 \u0623\u0635\u0644\u064a \u062e\u0644\u0641 \u0645\u0646 \u064a\u062a\u0628\u0639 \u0627\u0644\u0645\u0630\u0647\u0628 \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u061f', '\u0647\u0644 \u0627\u0644\u0635\u0644\u0627\u0629 \u062e\u0644\u0641 \u0627\u0644\u062c\u0639\u0641\u0631\u064a \u0635\u062d\u064a\u062d\u0629\u061f', '\u0627\u0645\u0631\u0623\u0629 \u0645\u0646 \u0627\u0644\u0637\u0627\u0626\u0641\u0629 \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u0629 \u0623\u0633\u0644\u0645 \u0632\u0648\u062c\u0647\u0627 \u0641\u0647\u0644 \u062a\u062d\u0644 \u0644\u0647\u061f'],
+        NOT_BANNED: ['\u0645\u0646 \u0647\u0648 \u062c\u0639\u0641\u0631 \u0627\u0644\u0635\u0627\u062f\u0642\u061f', '\u0645\u0627 \u0641\u0636\u0644 \u062c\u0639\u0641\u0631 \u0628\u0646 \u0623\u0628\u064a \u0637\u0627\u0644\u0628\u061f', '\u0645\u0627 \u0645\u0639\u0646\u0649 \u0642\u0648\u0644 \u0623\u0628\u064a \u062c\u0639\u0641\u0631 \u0627\u0644\u0637\u062d\u0627\u0648\u064a \u0641\u064a \u0627\u0644\u0639\u0642\u064a\u062f\u0629\u061f', '\u0645\u0627 \u062f\u0631\u062c\u0629 \u062d\u062f\u064a\u062b \u0631\u0648\u0627\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a \u0627\u0644\u062c\u0639\u0641\u064a\u061f', '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0625\u0645\u0627\u0645\u0629 \u0641\u064a \u0627\u0644\u0635\u0644\u0627\u0629\u061f', '\u0645\u0627 \u0641\u0636\u0644 \u0627\u0644\u0635\u0644\u0627\u0629 \u0641\u064a \u0627\u0644\u0635\u0641\u0648\u0641 \u0627\u0644\u0623\u0645\u0627\u0645\u064a\u0629\u061f', '\u0645\u0627 \u062d\u0643\u0645 \u062a\u0642\u0648\u064a\u0645 \u0627\u0644\u0623\u0633\u0646\u0627\u0646 \u0627\u0644\u0627\u0645\u0627\u0645\u064a\u0629\u061f', '\u0647\u0644 \u064a\u062c\u0648\u0632 \u0623\u0643\u0644 \u0627\u0644\u0623\u0631\u062c\u0644 \u0627\u0644\u0623\u0645\u0627\u0645\u064a\u0629 \u0645\u0646 \u0627\u0644\u0630\u0628\u064a\u062d\u0629\u061f', '\u0625\u0645\u0627\u0645\u064a \u064a\u0637\u064a\u0644 \u0627\u0644\u0642\u0631\u0627\u0621\u0629 \u0641\u0647\u0644 \u0623\u0635\u0644\u064a \u062e\u0644\u0641\u0647\u061f', '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0635\u0644\u0627\u0629 \u062e\u0644\u0641 \u0625\u0645\u0627\u0645\u064a \u0625\u0630\u0627 \u0643\u0627\u0646 \u064a\u0644\u062d\u0646 \u0641\u064a \u0627\u0644\u0641\u0627\u062a\u062d\u0629\u061f', '\u0645\u0627 \u0631\u0623\u064a\u0643\u0645 \u0641\u064a \u0643\u062a\u0628 \u0627\u0644\u0634\u064a\u062e \u0635\u0627\u0644\u062d \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u061f', '\u0645\u0627 \u062f\u0631\u062c\u0629 \u062d\u062f\u064a\u062b \u0631\u0648\u0627\u0647 \u062f\u0627\u0648\u062f \u0628\u0646 \u0627\u0644\u0642\u0627\u0633\u0645 \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u061f', '\u0645\u0627 \u062d\u0643\u0645 \u0635\u0644\u0627\u0629 \u0627\u0644\u062c\u0645\u0639\u0629 \u062e\u0644\u0641 \u0625\u0645\u0627\u0645 \u0634\u0627\u0641\u0639\u064a\u061f'],
+        BANNED_FORMS: ['\u062c\u0639\u0641\u0631\u0649', '\u062c\u0639\u0641\u0631\u06cc', '\u062c\u0639\u0641\u0631\u064a\u0647', '\u0642\u0627\u0644\u062a \u0627\u0644\u0627\u0645\u0627\u0645\u064a\u0629', '\u0648\u0627\u0644\u0627\u0645\u0627\u0645\u064a\u0629', '\u0627\u0644\u0634\u064a\u0639\u0629 \u0627\u0644\u0627\u0645\u0627\u0645\u064a\u0629', '\u0631\u062c\u0644 \u0625\u0645\u0627\u0645\u064a', '\u0627\u0644\u0625\u0645\u0627\u0645\u064a'],
+        NEUTRAL_Q: '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u062c\u0645\u0639 \u0628\u064a\u0646 \u0627\u0644\u0635\u0644\u0627\u062a\u064a\u0646 \u0641\u064a \u0627\u0644\u062d\u0636\u0631\u061f', SENTENCE: '\u0647\u0630\u0627 \u0627\u0644\u0645\u0630\u0647\u0628 \u0644\u064a\u0633 \u0645\u0646 \u0645\u0630\u0627\u0647\u0628 \u0623\u0647\u0644 \u0627\u0644\u0633\u0646\u0629 \u0648\u0627\u0644\u062c\u0645\u0627\u0639\u0629\u060c \u0648\u0639\u0632\u0643 \u0644\u0627 \u064a\u0646\u0642\u0644 \u0639\u0646\u0647 \u0634\u064a\u0626\u064b\u0627. \u0648\u0625\u0646 \u0643\u0627\u0646 \u0633\u0624\u0627\u0644\u0643 \u0639\u0646 \u062d\u0643\u0645 \u0627\u0644\u0645\u0633\u0623\u0644\u0629 \u0646\u0641\u0633\u0647\u0627\u060c \u0641\u0627\u0633\u0623\u0644 \u0639\u0646\u0647\u0627 \u0648\u064a\u062c\u064a\u0628\u0643 \u0639\u0632\u0643 \u0645\u0646 \u0643\u0644\u0627\u0645 \u0639\u0644\u0645\u0627\u0621 \u0623\u0647\u0644 \u0627\u0644\u0633\u0646\u0629.', CONSTANT: '\u0644\u0627 \u062a\u0630\u0643\u0631\u0650 \u0627\u0644\u0645\u0630\u0647\u0628\u064e \u0627\u0644\u062c\u0639\u0641\u0631\u064a\u064e\u0651 (\u0627\u0644\u0625\u0645\u0627\u0645\u064a\u0651\u0629) \u0641\u064a \u0627\u0644\u062c\u0648\u0627\u0628\u0650 \u0628\u062d\u0627\u0644\u064d: \u0644\u0627 \u0642\u0648\u0644\u064b\u0627 \u0644\u0647 \u0648\u0644\u0627 \u0646\u0641\u064a\u064b\u0627 \u0639\u0646\u0647\u060c \u0648\u0644\u0627 \u062a\u0642\u0644\u0652 \u0641\u064a\u0647 \u00ab\u0644\u0645 \u0623\u0642\u0641\u00bb\u060c \u0648\u0644\u0627 \u062a\u0639\u0637\u0650 \u0639\u0646\u0647 \u0645\u0639\u0644\u0648\u0645\u0629. \u0641\u0625\u0646 \u0633\u0623\u0644 \u0627\u0644\u0633\u0627\u0626\u0644\u064f \u0639\u0646 \u062d\u0643\u0645\u064d \u0639\u0646\u062f \u0623\u0647\u0644 \u0627\u0644\u0633\u0646\u0629 \u0641\u064a\u0647 \u0630\u0643\u0631\u064f \u0623\u062a\u0628\u0627\u0639\u0650\u0647\u060c \u0641\u0623\u062c\u0628\u0652 \u0645\u0646 \u0643\u0644\u0627\u0645\u0650 \u0639\u0644\u0645\u0627\u0621\u0650 \u0623\u0647\u0644 \u0627\u0644\u0633\u0646\u0629 \u0641\u064a \u0627\u0644\u0646\u0635\u0648\u0635\u0650 \u0627\u0644\u0645\u0639\u0631\u0648\u0636\u0629\u0650 \u0647\u0646\u0627 \u062f\u0648\u0646 \u0623\u0646 \u062a\u0633\u0645\u0651\u064a\u064e \u0627\u0644\u0645\u0630\u0647\u0628\u064e.', SUNNI_UNIT: '\u0632\u0648\u0627\u062c \u0627\u0644\u0645\u0633\u0644\u0645\u0629 \u0645\u0646 \u0631\u062c\u0644 \u062c\u0639\u0641\u0631\u064a \u0645\u0633\u0623\u0644\u0629 \u0627\u062e\u062a\u0644\u0641 \u0641\u064a\u0647\u0627 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645 \u0627\u0644\u0645\u0639\u0627\u0635\u0631\u0648\u0646.' };
+      const rowJ2 = (text) => ({ ref: 1, kind: 'lib_book', title: '\u0643\u062a\u0627\u0628', bookTitle: '\u0643\u062a\u0627\u0628', author: '\u0645\u0624\u0644\u0641', locator: '', recordId: 'SYN-J2-1', subjectId: 'FC-009100', url: '', text, fullText: text, passage: text, locatorSpan: {} });
+      const playJ2 = async (mod, q, unit) => { const o = []; const r = mod.createBw2Releaser({ rows: [rowJ2(unit)], mode: 'brief', emit: (p) => { o.push(p); return true; }, takhrij: null, cards: null, askedMatn: '', sourceQuestion: false, leadLine: '', holdUncitedRulings: true, question: q }); r.push(unit.replace(/\.$/u, '') + ' [[1]].\n\n'); const sum = await r.end(); return { text: o.join(''), sum }; };
+      const unitJ2 = (s) => s.replace(/\u061f$/u, '').trim() + '.';
+      const heldJ2 = (r) => r.sum.released === 0 && !!r.sum.holds && r.sum.holds.banned_school === 1;
+      const namesJ2 = typeof IJ2.namesBannedSchool === 'function' ? IJ2.namesBannedSchool : () => null;
+      const classJ2 = typeof IJ2.bannedSchoolQuestion === 'function' ? IJ2.bannedSchoolQuestion : () => undefined;
+      for (const [i, form] of J2.BANNED_FORMS.entries()) {
+        const r = await playJ2(UJ2, J2.NEUTRAL_Q, unitJ2(form));
+        ok('J2-A' + (i + 1) + ' BANNED form \u00ab' + form + '\u00bb -> named in a question, and held banned_school in a cited unit', namesJ2(form) === true && heldJ2(r), ascii(JSON.stringify(r.sum.holds)));
+      }
+      for (const [i, row] of J2.NOT_BANNED.entries()) {
+        const r = await playJ2(UJ2, J2.NEUTRAL_Q, unitJ2(row));
+        ok('J2-N' + (i + 1) + ' NOT BANNED \u00ab' + row + '\u00bb -> not named in a question, and the same form in a cited unit is released, not held banned_school', namesJ2(row) === false && r.sum.released === 1 && !(r.sum.holds || {}).banned_school, ascii(JSON.stringify(r.sum.holds)));
+      }
+      for (const [i, row] of J2.DENY.entries()) ok('J2-D' + (i + 1) + ' DENY \u00ab' + row + '\u00bb -> deny', classJ2(row) === 'deny', String(classJ2(row)));
+      for (const [i, row] of J2.SUNNI.entries()) {
+        const r = await playJ2(UJ2, row, J2.SUNNI_UNIT);
+        ok('J2-S' + (i + 1) + ' SUNNI RULING \u00ab' + row + '\u00bb -> sunni_ruling, and in that turn a cited unit naming the school is held banned_school (R12 (a))', classJ2(row) === 'sunni_ruling' && heldJ2(r), String(classJ2(row)) + ' ' + ascii(JSON.stringify(r.sum.holds)));
+      }
+      for (const [i, row] of J2.NOT_BANNED.entries()) ok('J2-B' + (i + 1) + ' NOT BANNED \u00ab' + row + '\u00bb -> null', classJ2(row) === null, String(classJ2(row)));
+      {
+        // the mutants: a twin of lib/free-brain/instructions.js beside it, one line of the matcher or the classifier changed
+        const srcJ2 = read('lib/free-brain/instructions.js');
+        const twinJ2 = async (needle, replacement) => {
+          const lines = srcJ2.split('\n'); const at = lines.findIndex((l) => l.includes(needle));
+          if (at < 0 || lines.filter((l) => l.includes(needle)).length !== 1) return null;
+          lines[at] = replacement;
+          const tmp = path.join(REPO, 'lib', 'free-brain', '.mut-j2-' + process.pid + '-' + Math.random().toString(36).slice(2) + '.mjs');
+          fs.writeFileSync(tmp, lines.join('\n'));
+          try { return await import(pathToFileURL(tmp).href + '?m=' + Date.now()); } catch (e) { return null; } finally { fs.rmSync(tmp, { force: true }); }
+        };
+        const M = async (name, needle, replacement, killed) => { const mod = await twinJ2(needle, replacement); ok('J2 mutant seam and load: ' + name, !!mod); ok('J2 MUTANT KILLED: ' + name, !!mod && killed(mod.bannedSchoolQuestion)); };
+        await M('S0 removed -> \u00ab' + J2.DENY[20] + '\u00bb answers', "rule: 'S0' }", '', (c) => c(J2.DENY[20]) === 'sunni_ruling');
+        await M('the PERSON NOUN list emptied -> \u00ab' + J2.SUNNI[3] + '\u00bb denies', 'const SCHOOL_PERSON_NOUNS = ', 'const SCHOOL_PERSON_NOUNS = schoolList([]);', (c) => c(J2.SUNNI[3]) === 'deny');
+        await M('S2 removed -> \u00ab' + J2.SUNNI[7] + '\u00bb denies', "rule: 'S2' }", '', (c) => c(J2.SUNNI[7]) === 'deny');
+        await M('the ABOUT WORD list emptied -> \u00ab' + J2.DENY[13] + '\u00bb answers', 'const SCHOOL_ABOUT_WORDS = ', 'const SCHOOL_ABOUT_WORDS = schoolList([]);', (c) => c(J2.DENY[13]) === 'sunni_ruling');
+        await M('the RELATION WORD list emptied -> \u00ab' + J2.SUNNI[2] + '\u00bb denies', 'const SCHOOL_RELATION_WORDS = ', 'const SCHOOL_RELATION_WORDS = schoolList([]);', (c) => c(J2.SUNNI[2]) === 'deny');
+        await M('S5 removed -> \u00ab' + J2.SUNNI[6] + '\u00bb denies', "rule: 'S5' }", '', (c) => c(J2.SUNNI[6]) === 'deny');
+        await M('the RULING FORM list emptied -> every SUNNI RULING row denies', 'const SCHOOL_RULING_FORM = ', 'const SCHOOL_RULING_FORM = { words: [], pairs: [], hal: [], halNext: [], views: [] };', (c) => J2.SUNNI.every((q) => c(q) === 'deny'));
+        await M('the FRONT rule removed -> \u00ab' + J2.NOT_BANNED[6] + '\u00bb is no longer null', 'if (hit.imam && frontNotSchool(tokens, k, hit)) continue;', '', (c) => c(J2.NOT_BANNED[6]) !== null);
+        await M('the MY IMAM rule removed -> \u00ab' + J2.NOT_BANNED[8] + '\u00bb is no longer null', 'if (hit.imam && myImamNotSchool(tokens, k, hit)) continue;', '', (c) => c(J2.NOT_BANNED[8]) !== null);
+        await M('the FAMILY NAME rule removed -> \u00ab' + J2.NOT_BANNED[10] + '\u00bb is no longer null', 'if (hit.jafari && familyNameNotSchool(tokens, k, hit)) continue;', '', (c) => c(J2.NOT_BANNED[10]) !== null);
+      }
+    }
+    // ---------------------------------------------------------------- brain35-5e G5a (2026-11-09; DIAG6 G5 (A)): «وسئل X عن …؟» WAITS FOR ITS
+    // ANSWER. The DIAG6 G5 harness's Q14-b composition (the report followed directly by the next block): the report was released on
+    // its own (the glued «و» hid it from 'unanswered-report'); it now waits for its answer, none comes, and it is held.
+    {
+      const UG5 = await esm('lib/bw2-units.js');
+      const Q14B = {"q":"ما حكم صلاة الضحى، وما أفضل وقتها، وأبي أحاديث الباب","rows":[{"ref":1,"kind":"lib_book","title":"فتاوى البراك","bookTitle":"فتاوى البراك","author":"","locator":"","recordId":"SYN-1","url":"","text":"سئل الشيخ البراك عن صلاة الضحى. صلاة الضحى من النوافل المستحبة، وأقلها ركعتان.","fullText":"سئل الشيخ البراك عن صلاة الضحى. صلاة الضحى من النوافل المستحبة، وأقلها ركعتان.","passage":"سئل الشيخ البراك عن صلاة الضحى. صلاة الضحى من النوافل المستحبة، وأقلها ركعتان."}],"units":["صلاة الضحى نافلة مستحبة، وأقلها ركعتان [[1]].","وسئل البراك عن الأفضل: هل سردها ركعتين ركعتين في أوقات متفرقة أم صلاتها دفعة واحدة؟ [[1]]","أما الأحاديث الواردة في فضلها:","عن أبي هريرة رضي الله عنه: «أوصاني خليلي صلى الله عليه وسلم بثلاث» [[1]]."]};
+      const out = []; const rel = UG5.createBw2Releaser({ rows: Q14B.rows, mode: 'brief', emit: (p) => { out.push(p); return true; }, takhrij: null, cards: null, askedMatn: UG5.askedHadithOf(Q14B.q), sourceQuestion: UG5.asksHadithSource(Q14B.q), leadLine: '', holdUncitedRulings: true, question: Q14B.q });
+      for (const u of Q14B.units) rel.push(u + '\n\n');
+      const sumG5 = await rel.end();
+      const textG5 = out.join('');
+      ok('G5a-4 G5\'s Q14-b composition: the report «وسئل البراك عن الأفضل: …؟» is held (no answer came), the first unit released',
+        !textG5.includes('وسئل البراك') && textG5.includes('صلاة الضحى نافلة مستحبة') && sumG5.held >= 1, ascii(JSON.stringify(sumG5.holds)) + ' ' + ascii(textG5.slice(0, 120)));
+    }
+    // ---------------------------------------------------------------- brain35-5e G8 (2026-11-09; DIAG6 G8): NO UNIT OPENS ON A STRAY STOP. MEASURED
+    // (DIAG6 G8-period-line, preview Q12): «… أيضا. [[O]]\n. وقرر ابن باز …» -- the cutter ends a unit at the citations after its stop, and
+    // a SECOND stop the writer put after them heads the next unit: a line «. وقرر …» (V9) or «… أيضا. . وقرر …» (V6). A unit body that
+    // opens on one or more of «.» «،» «؛» followed by whitespace or a line end loses them and that whitespace at release (Claude's
+    // ruling: this release-time form, not a change to findUnitEnd); a unit left empty is dropped.
+    {
+      const UG8 = await esm('lib/bw2-units.js');
+      const D8 = {"Q12":"هل يجب على المرأة إخراج زكاة الذهب الذي تلبسه كل يوم؟","OTH":{"kind":"fatwa","title":"هل يجب عليه إخراج زكاة حليها وكم مقدار الزكاة ؟","url":"https://binothaimeen.net/content/SYNTHETIC-1","publisher":"ابن عثيمين","scholarId":"binothaimeen","recordId":"SYN-OTH","text":"السؤال المنشور: هل يجب على المرأة زكاة حليها؟ — المسألة فيها خلاف بين أهل العلم، والراجح عندي وجوب الزكاة في الحلي إذا بلغ النصاب، وهو مذهب الحنفية، ورواية عن الإمام أحمد بن حنبل، لأن النصوص ترجح القول بالوجوب."},"BAZ":{"kind":"fatwa","title":"زكاة الحلي الملبوس","url":"https://binbaz.org.sa/fatwas/SYNTHETIC-2","publisher":"ابن باز","scholarId":"binbaz","recordId":"SYN-BAZ","text":"السؤال المنشور: هل في الحلي زكاة؟ — الحلي يزكى سواء لبس أو لم يلبس، بالغا ما بلغ، إذا بلغ النصاب وحال عليه الحول."},"V6":"المسألة فيها خلاف بين أهل العلم، ولم يجمعوا على قول واحد فيها [[1]].\n\nوعند الحنفية: تجب الزكاة في الحلي ولو كان مستعملا للبس والزينة [[1]]. وهذا القول هو الذي رجحه ابن عثيمين، لأن النصوص عنده ترجح القول بالوجوب، وذكر أنه رواية عن الإمام أحمد بن حنبل أيضا. [[1]]. وقرر ابن باز أن الحلي يزكى سواء لبس أو لم يلبس، بالغا ما بلغ، إذا بلغ النصاب [[2]].","V8":"المسألة فيها خلاف بين أهل العلم، ولم يجمعوا على قول واحد فيها [[1]].\n\nوعند الحنفية: تجب الزكاة في الحلي ولو كان مستعملا للبس والزينة [[1]]. وهذا القول هو الذي رجحه ابن عثيمين، لأن النصوص عنده ترجح القول بالوجوب، وذكر أنه رواية عن الإمام أحمد بن حنبل أيضا [[1]]. وقرر ابن باز أن الحلي يزكى سواء لبس أو لم يلبس، بالغا ما بلغ، إذا بلغ النصاب [[2]].","V9":"المسألة فيها خلاف بين أهل العلم، ولم يجمعوا على قول واحد فيها [[1]].\n\nوعند الحنفية: تجب الزكاة في الحلي ولو كان مستعملا للبس والزينة [[1]]. وهذا القول هو الذي رجحه ابن عثيمين، لأن النصوص عنده ترجح القول بالوجوب، وذكر أنه رواية عن الإمام أحمد بن حنبل أيضا. [[1]]\n. وقرر ابن باز أن الحلي يزكى سواء لبس أو لم يلبس، بالغا ما بلغ، إذا بلغ النصاب [[2]]."};
+      const rowsG8 = [{ ...D8.OTH, ref: 1 }, { ...D8.BAZ, ref: 2 }];
+      const playG8 = async (mod, w) => { const o = []; const r = mod.createBw2Releaser({ rows: rowsG8, mode: 'brief', emit: (p) => { o.push(p); return true; }, takhrij: null, cards: null, askedMatn: '', sourceQuestion: false, leadLine: '', holdUncitedRulings: true, question: D8.Q12 }); r.push(w + '\n'); await r.end(); return o.join(''); };
+      const strayHead = (t) => /(?:^|\n)[ \t]*[.،؛]/u.test(t) || t.includes('. .');
+      const v9 = await playG8(UG8, D8.V9);
+      ok('G8-1 V9 («… أيضا. [[O]]\\n. وقرر …»): no line opens on «.» and the released text has no «. .»', !strayHead(v9) && v9.includes('أيضا.\nوقرر ابن باز'), ascii(v9.slice(-160)));
+      const v6 = await playG8(UG8, D8.V6);
+      ok('G8-2 V6 («… أيضا. [[O]]. وقرر …»): «… أيضا. وقرر …»', v6.includes('أيضا. وقرر ابن باز') && !v6.includes('. .'), ascii(v6.slice(-160)));
+      const v8 = await playG8(UG8, D8.V8);
+      ok('G8-3 V8 («… أيضا [[O]]. وقرر …», one stop): byte-identical (pinned)', v8 === "المسألة فيها خلاف بين أهل العلم، ولم يجمعوا على قول واحد فيها.\n\nوعند الحنفية: تجب الزكاة في الحلي ولو كان مستعملا للبس والزينة. وهذا القول هو الذي رجحه ابن عثيمين، لأن النصوص عنده ترجح القول بالوجوب، وذكر أنه رواية عن الإمام أحمد بن حنبل أيضا. وقرر ابن باز أن الحلي يزكى سواء لبس أو لم يلبس، بالغا ما بلغ، إذا بلغ النصاب.", ascii(v8.slice(-120)));
+      {
+        const srcG8 = read('lib/bw2-units.js');
+        const seamG8 = "    if (STRAY_STOP_HEAD_RE.test(verdict.text)) { verdict.text = verdict.text.replace(STRAY_STOP_HEAD_RE, '$1'); if (!verdict.text.trim()) return; }";
+        ok('G8 mutant seam present once', srcG8.split(seamG8).length === 2);
+        const tmpG8 = path.join(REPO, 'lib', '.mut-g8-stop.mjs');
+        fs.writeFileSync(tmpG8, srcG8.split(seamG8).join('    // mutant: the stray stop stays').replace(/from\s+(['"])(\.[^'"]*)\1/gu, (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MG8 = null;
+        try { MG8 = await import(pathToFileURL(tmpG8).href + '?m=' + Date.now()); } catch (e) { MG8 = null; } finally { fs.rmSync(tmpG8, { force: true }); }
+        ok('G8 mutant loads', !!MG8);
+        const m9 = MG8 ? await playG8(MG8, D8.V9) : '';
+        ok('G8 MUTANT KILLED: without the strip V9 has a line «. وقرر …» again', !!MG8 && strayHead(m9), ascii(m9.slice(-120)));
+      }
+    }
+    // ---------------------------------------------------------------- FIX5D F-D2i (2026-11-09; DIAG5 D2 (1), preview Q5; the B-4 / X6 mark site): THE SOURCE MARK
+    // FOLLOWS THE CARD'S SUPPORT VERDICT. MEASURED (DIAG5 H2c variant M): the steps block cites the al-Adawi row, cardSupportsUnit is false, the
+    // card is deferred (A-3 (b)) -- and the mark wrote « — مصطفى العدوي» under a block his text does not carry. A row the plan deferred as
+    // unsupported for THIS unit is no longer the mark's source; a unit whose every cited row is unsupported gets no mark; a supported row whose
+    // card was refused for another reason (shown already) keeps today's mark. Rows and units: the H2c harness's, embedded.
+    {
+      const UNITS_D2I = await esm('lib/bw2-units.js');
+      const ADAWI_D2I = {"kind":"fatwa","title":"هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام","url":"https://mostafaaladwy.com/fatwa/178351/%D9%87%D9%84-%D9%8A%D8%AC%D9%88%D8%B2-%D9%84%D9%84%D8%B2%D9%88%D8%AC-%D9%85%D8%A8%D8%A7%D8%B4%D8%B1%D8%A9-%D8%B2%D9%88%D8%AC%D8%AA%D9%87-%D8%A3%D8%AB%D9%86%D8%A7%D8%A1-%D8%A7%D9%84%D8%AD%D9%8A%D8%B6/","publisher":"مصطفى العدوي","scholarId":"aladawy","text":"السؤال المنشور: هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام — الحمد لله والصلاة والسلام على رسول الله صلى الله عليه وسلم، وبعد: الجواب: هذا جائز دون جماع، ولقد كان النبي المصطفى صلى الله عليه وسلم يقبل ويباشر وهو صائم دون جماع. والله تبارك وتعالى أعلم.","recordId":"aladawy:293","fatwaRecord":{"id":"aladawy:293","kind":"fatwa_service","sourceKind":"corpus","title":"هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام","url":"https://mostafaaladwy.com/fatwa/178351/هل-يجوز-للزوج-مباشرة-زوجته-أثناء-الحيض/","publisher":"مصطفى العدوي","authorityId":"","scholarId":"","directAttribution":false,"contentMode":"written_fatwa","actualContentType":"written_fatwa","question":"هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام","answer":"الحمد لله والصلاة والسلام على رسول الله صلى الله عليه وسلم، وبعد: الجواب: هذا جائز دون جماع، ولقد كان النبي المصطفى صلى الله عليه وسلم يقبل ويباشر وهو صائم دون جماع. والله تبارك وتعالى أعلم.","questionChars":47,"answerChars":190,"fullTextHash":"4b589d52c112799e1bb41b7ac18ebbf52e88b035756ce1137f45beb0dd84e7cd","fullTextComplete":true,"truncated":false,"omittedChars":0,"displayPolicy":"full","score":0,"supportText":"هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام\n\nالحمد لله والصلاة والسلام على رسول الله صلى الله عليه وسلم، وبعد: الجواب: هذا جائز دون جماع، ولقد كان النبي المصطفى صلى الله عليه وسلم يقبل ويباشر وهو صائم دون جماع. والله تبارك وتعالى أعلم.","passage":"السؤال المنشور: هل يجوز للزوج مباشرة زوجته أثناء الحيض أوالصيام\n\nالنص المنشور: الحمد لله والصلاة والسلام على رسول الله صلى الله عليه وسلم، وبعد: الجواب: هذا جائز دون جماع، ولقد كان النبي المصطفى صلى الله عليه وسلم يقبل ويباشر وهو صائم دون جماع. والله تبارك وتعالى أعلم.","localEntry":null,"liveSource":null,"raw":null},"ref":1};
+      const SAL_D2I = {"kind":"fatwa","title":"كفارة الجماع أثناء الحيض","url":"https://salmajed.com/fatwa/SYNTHETIC-1","publisher":"سليمان الماجد","scholarId":"salmajed","text":"السؤال المنشور: ما كفارة جماع الحائض؟ — أما الوطء في الفرج فمحرم؛ لقوله تعالى: يسألونك عن المحيض قل هو أذى فاعتزلوا النساء في المحيض ولا تقربوهن حتى يطهرن، وإذا جامعها عالما بالحكم فهو آثم وعليه التوبة، ويستحب له التصدق بقيمة دينار أو نصفه من الذهب.","recordId":"SYNTHETIC-salmajed","ref":2}; // SYNTHETIC (H2c)
+      const STEPS1_D2I = "<steps title=\"ما يباح وما يحرم\">\n- يباح الاستمتاع بها دون جماع، كالتقبيل والمباشرة.\n- يباح للزوج أن يرى منها كل شيء وإن كان الأفضل تجنب ما يستحيا منه.\n- يحرم الوطء في الفرج حتى تطهر وتغتسل.\n- إن وطئها عالماً بالتحريم فهو آثم وعليه التوبة ويستحب له التصدق بدينار أو نصفه.\n</steps> [[1]]";
+      const STEPS12_D2I = "<steps title=\"ما يباح وما يحرم\">\n- يباح الاستمتاع بها دون جماع، كالتقبيل والمباشرة.\n- يباح للزوج أن يرى منها كل شيء وإن كان الأفضل تجنب ما يستحيا منه.\n- يحرم الوطء في الفرج حتى تطهر وتغتسل.\n- إن وطئها عالماً بالتحريم فهو آثم وعليه التوبة ويستحب له التصدق بدينار أو نصفه.\n</steps> [[1]] [[2]]";
+      const U1_D2I = "أما الوطء في الفرج فمحرم؛ لقوله تعالى: \"يسألونك عن المحيض قل هو أذى فاعتزلوا النساء في المحيض ولا تقربوهن حتى يطهرن\"، وإذا جامعها عالما بالحكم فهو آثم وعليه التوبة، ويستحب له التصدق بقيمة دينار أو نصفه من الذهب [[2]].";
+      const U3_D2I = "كما أن للزوج إجبار زوجته على الغسل من الحيض؛ لأن ذلك يمنع الاستمتاع الذي هو حق له، فملك إجبارها على إزالة ما يمنع حقه [[2]].";
+      const MARK_ADAWI_D2I = " — مصطفى العدوي";
+      const MARK_SAL_D2I = " — سليمان الماجد";
+      const cardsD2I = { buildSourceTag: ASK.buildSourceTag, buildBookTag: ASK.buildBookTag, encyclopediaCards: false, max: 3 };
+      const playD2I = async (mod, rows, units) => { const out = []; const r = mod.createBw2Releaser({ rows, emit: (p) => { out.push(p); return true; }, cards: cardsD2I }); for (const u of units) r.push(u + '\n\n'); const sum = await r.end(); return { text: out.join(''), sum }; };
+      const afterSteps = (t) => { const i = t.indexOf('</steps>'); return i >= 0 ? t.slice(i + 8) : ''; };
+      const m1D2I = await playD2I(UNITS_D2I, [ADAWI_D2I], [STEPS1_D2I]);
+      ok('F-D2i-1 H2c variant M (the steps block cites only the al-Adawi row, its card deferred unsupported): no mark of his name after </steps>, no card',
+        m1D2I.sum.cardsSent === 0 && !afterSteps(m1D2I.text).includes(MARK_ADAWI_D2I) && !m1D2I.text.includes('<source'), ascii(afterSteps(m1D2I.text)));
+      const m2D2I = await playD2I(UNITS_D2I, [ADAWI_D2I, SAL_D2I], [U1_D2I, STEPS12_D2I]);
+      ok('F-D2i-2 the steps block cites the unsupported al-Adawi row and the supported salmajed row (its card shown above): the supported row\'s mark',
+        afterSteps(m2D2I.text).startsWith(MARK_SAL_D2I) && !afterSteps(m2D2I.text).includes(MARK_ADAWI_D2I), ascii(afterSteps(m2D2I.text)));
+      const m3D2I = await playD2I(UNITS_D2I, [ADAWI_D2I, SAL_D2I], [U1_D2I, U3_D2I]);
+      ok('F-D2i-3 a supported cited row whose card was refused (shown already under the unit above): the mark as today',
+        m3D2I.sum.cardsSent === 1 && m3D2I.text.includes(MARK_SAL_D2I + '.'), ascii(m3D2I.text.slice(-200)));
+      {
+        const srcI = read('lib/bw2-units.js');
+        const seamI = 'const mark = shortSourceMark(verdict.cited.find((row) => shortSourceMark(row) && !unsupportedHere.includes(row)));';
+        ok('F-D2i mutant seam present once', srcI.split(seamI).length === 2);
+        const tmpI = path.join(REPO, 'lib', '.mut-fd2i-mark.mjs');
+        fs.writeFileSync(tmpI, srcI.split(seamI).join('const mark = shortSourceMark(verdict.cited.find((row) => shortSourceMark(row))); // mutant: the support filter removed').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + pathToFileURL(path.resolve(REPO, 'lib', spec)).href + q));
+        let MI = null;
+        try { MI = await import(pathToFileURL(tmpI).href + '?m=' + Date.now()); } catch (e) { MI = null; } finally { fs.rmSync(tmpI, { force: true }); }
+        ok('F-D2i mutant loads', !!MI);
+        const mm = MI ? await playD2I(MI, [ADAWI_D2I], [STEPS1_D2I]) : null;
+        ok('F-D2i MUTANT KILLED: with the support filter removed variant M signs the steps block with the al-Adawi mark again', !!mm && afterSteps(mm.text).includes(MARK_ADAWI_D2I), mm ? ascii(afterSteps(mm.text)) : 'no module');
+      }
     }
   } catch (error) {
     ok('guard completed without exception', false, error && error.stack ? error.stack : String(error));

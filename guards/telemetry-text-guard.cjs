@@ -269,15 +269,26 @@ const BW2_FIELDS = [
   'heldRemovedPerson',
   'heldUnsupportedGroup', 'heldUnsupportedConsensus',
   'heldUnsupportedSchool', 'heldUnsupportedMatn', 'heldTakhrijRefused', 'heldTakhrijEmptied',
+  // ITEM B-6 (brain35, 2026-11-06): a count of units held because the takhrij lock emptied their frame. A count, no text.
+  'heldTakhrijEmptiedFrame',
   'heldGradeRuleFailed', 'heldGradeEmptied', 'heldRepeat', 'heldDependentOnHeld',
   'heldDependentOpening', 'heldDanglingLeadIn', 'heldNotCovered', 'heldNotCoveredSentence',
   // SPEED PIPES fix 7: a heading nothing released came under (BW2_HOLD_REASONS 'empty_heading').
   'heldEmptyHeading',
+  // ITEM 35-D4 C6 (b) (brain35-5 Z7): an evidence block whose stance never went out (BW2_HOLD_REASONS 'evidence_of_held_stance'). A count.
+  'heldEvidenceOfHeldStance',
+  // ITEM 35-D5 (brain35-5d F-D5, 2026-11-09; DIAG5 D5): the reviewer's khilaf trigger as a closed enum (none|both|source|opinions|prose)
+  // and why the answer footer was suppressed (none|truncated) -- lib/before-writing-v2.js BW2_KHILAF_TRIGGERS / BW2_FOOTER_SUPPRESSED_REASONS,
+  // mapped through bw2Enum so nothing outside the set is ever printed. Enums only, never text.
+  'khilafTrigger', 'answerFooterSuppressedReason',
+  // re-cut 2026-11-09 (brain35-5e J, R5 (b)): a unit that names the Ja'fari school (BW2_HOLD_REASONS 'banned_school'). A count.
+  'heldBannedSchool',
   // SPEED FIX 3, C4 (order EZIK-SPEED-FIX3-ORDER-2026-09-27): units released by a hadith proof (a kept
   // row carrying the text and every name, or the takhrij). A number.
   'unitsProvedHadith',
   // SPEED PIPES fix 3 (order EZIK-SPEED-PIPES-ORDER-2026-09-28): why the turn went on to today's path
-  // instead of the not-covered sentence -- a closed enum: '', no_rows, judge_none, marker, none_released.
+  // instead of the not-covered sentence -- a closed enum: '', no_rows, judge_none, marker, none_released, and
+  // (ITEM O-1, brain35 2026-11-06) judge_incomplete / judge_failed, which say which emptiness the judge's was.
   'continued',
 ];
 
@@ -405,6 +416,43 @@ const sweep = (source, file) => {
       const mutated = askSource.replace("answerLog.note({ path: 'ledger', cited: 0 });", "answerLog.note({ path: 'ledger', cited: 0, q: questionText });");
       ok('F: mutant -- a question field on a note() call is killed by both rules', mutated !== askSource
         && JSON.stringify([...new Set(sweepNotes(mutated, 'api/ask.js').map((x) => x.rule))].sort()) === JSON.stringify(['A', 'B']));
+    }
+
+    // ── brain35-5d F-D5 (2026-11-09; DIAG5 D5) · TWO ENUMS ON THE [bw2] LINE ──────────────────────────────────────────
+    // MEASURED (DIAG5 H5, preview Q2): the khilaf tail was absent live and FIRES on the same text offline; the [bw2] line could not
+    // say whether the reviewer's trigger was null or the footer was suppressed (`truncated`: stop_reason !== end_turn). Two closed
+    // enums now ride the line: khilafTrigger (the reviewer's verdict.khilafTrigger -- both|source|opinions|prose -- or none) and
+    // answerFooterSuppressedReason (truncated or none). Both are mapped through bw2Enum, so a value outside the set prints as none.
+    {
+      const bw2Src = fs.readFileSync(path.join(REPO, 'lib', 'before-writing-v2.js'), 'utf8');
+      const bw2Enums = (ask, lib) => {
+        const at = ask.indexOf("console.log('[bw2]', {");
+        const block = at >= 0 ? ask.slice(at, ask.indexOf('});', at)) : '';
+        const printed = ['khilafTrigger', 'answerFooterSuppressedReason'].every((name) => block.includes(name + ': t.' + name + ','));
+        const closed = lib.includes("export const BW2_KHILAF_TRIGGERS = Object.freeze(['none', 'both', 'source', 'opinions', 'prose']);")
+          && lib.includes("export const BW2_FOOTER_SUPPRESSED_REASONS = Object.freeze(['none', 'truncated']);")
+          && lib.includes('telemetry.khilafTrigger = bw2Enum(BW2_KHILAF_TRIGGERS, reviewed.verdict.khilafTrigger);')
+          && lib.includes('telemetry.answerFooterSuppressedReason = bw2Enum(BW2_FOOTER_SUPPRESSED_REASONS, reviewed.verdict.answerFooterSuppressedReason);');
+        return { printed, closed };
+      };
+      const enums = bw2Enums(askSource, bw2Src);
+      ok('F-D5a the [bw2] line prints khilafTrigger and answerFooterSuppressedReason straight from the telemetry object, name for name', enums.printed);
+      ok('F-D5b both values come from a closed set in lib/before-writing-v2.js (BW2_KHILAF_TRIGGERS, BW2_FOOTER_SUPPRESSED_REASONS, through bw2Enum)', enums.closed);
+      ok('F-D5c the two names are on the allow-list and the sweep accepts the line under rule B',
+        BW2_FIELDS.includes('khilafTrigger') && BW2_FIELDS.includes('answerFooterSuppressedReason') && sweep(askSource, 'api/ask.js').filter((x) => x.rule === 'B').length === 0);
+      let bwv2 = null;
+      try { bwv2 = await import('file://' + path.join(REPO, 'lib', 'before-writing-v2.js').replace(/\\/g, '/')); } catch { bwv2 = null; }
+      ok('F-D5d bw2Enum at runtime: a value in the set passes, null and an unknown string are none, and the sets are frozen ASCII tokens',
+        !!bwv2 && typeof bwv2.bw2Enum === 'function' && bwv2.bw2Enum(bwv2.BW2_KHILAF_TRIGGERS, 'prose') === 'prose' && bwv2.bw2Enum(bwv2.BW2_KHILAF_TRIGGERS, null) === 'none'
+        && bwv2.bw2Enum(bwv2.BW2_KHILAF_TRIGGERS, 'anything else') === 'none' && bwv2.bw2Enum(bwv2.BW2_FOOTER_SUPPRESSED_REASONS, 'truncated') === 'truncated'
+        && bwv2.bw2Enum(bwv2.BW2_FOOTER_SUPPRESSED_REASONS, undefined) === 'none'
+        && Object.isFrozen(bwv2.BW2_KHILAF_TRIGGERS) && Object.isFrozen(bwv2.BW2_FOOTER_SUPPRESSED_REASONS)
+        && [...bwv2.BW2_KHILAF_TRIGGERS, ...bwv2.BW2_FOOTER_SUPPRESSED_REASONS].every((v) => /^[a-z_]+$/.test(v)),
+        bwv2 ? 'module loaded' : 'module did not load');
+      // the mutant: one field removed from the [bw2] print -> F-D5a red
+      const mutatedD5 = askSource.replace('          khilafTrigger: t.khilafTrigger,\n', '');
+      ok('F-D5 MUTANT seam applied (the khilafTrigger field removed from the [bw2] print)', mutatedD5 !== askSource);
+      ok('F-D5 MUTANT KILLED: without the field the line no longer carries both names', mutatedD5 !== askSource && !bw2Enums(mutatedD5, bw2Src).printed);
     }
 
     // ── C. THE FIELDS THAT WERE DELETED ARE GONE, BY NAME ─────────────────────

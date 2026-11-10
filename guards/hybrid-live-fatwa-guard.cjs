@@ -957,6 +957,35 @@ async function runHybridGuard() {
     fs.rmSync(temp, { recursive: true, force: true });
   }
 
+  // ── brain35-3 X11 (2026-11-07; DIAG3 M1; FIX-2 request 2) · THE HYBRID BLOCK TAKES THE BRIEF FLAG ──────────────────
+  // MEASURED (DIAG3 HM1): api/ask.js built the hybrid caller's options (`shared`) with depth only, and lib/hybrid-deen.js reads
+  // options.brief alone for the one brief shape (F8), so the stored-deen hybrid block was never brief. One line in `shared`:
+  // brief: (band === 'adult' ? effectiveDepth : 'brief') === 'brief'.
+  console.log('\n--- brain35-3 X11 · THE HYBRID BLOCK TAKES THE BRIEF FLAG ---');
+  {
+    const LONG_ANSWER = 'المسافر يباح له الجمع بين الصلاتين عند الحاجة، والأفضل للنازل ترك الجمع. ' + 'وقد دلت السنة على أن النبي صلى الله عليه وسلم كان يجمع في السفر إذا جد به السير، وإذا نزل صلى كل صلاة في وقتها. '.repeat(8);
+    const fx = fatwaEvidence({ question: 'ما حكم الجمع بين الصلاتين للمسافر؟', answer: LONG_ANSWER });
+    const turnX11 = async (extra) => {
+      const r = await H.runHybridDeenTurn({
+        context: joinContext, band: 'adult', dailyBudget: budget,
+        localRetrieve: async () => ({ storedCorpusCalls: 1, candidateRecordIds: [], accepted: [] }),
+        fatwaSearch: async () => ({ calls: 1, verification: { status: 'OK', scholars: 19, total: 80435, ibnBaz: 24145, failures: [] }, records: [fx] }),
+        liveRetrieve: async (_q, opts) => { opts.diagnostics.search.planned++; opts.diagnostics.search.completed++; return { sources: [] }; },
+        generate: modelUsing(fx.id, fx.supportText), verify: verifyIds(fx.id),
+        ...extra,
+      });
+      return String(r && r.text || '');
+    };
+    const briefText = await turnX11({ depth: 'brief', brief: true });
+    ok('X11a runHybridDeenTurn({ depth: brief, brief: true }) with the long record: the block opens on «## نص الفتوى / الجواب (مختصرًا):» and carries <fatwafull',
+      briefText.includes('## نص الفتوى\n\nالجواب (مختصرًا):') && /<fatwafull\b/u.test(briefText), briefText.slice(0, 160).replace(/\n/gu, ' / '));
+    const plainText = await turnX11({ depth: 'brief', brief: false });
+    ok('X11b brief: false -> the question-first block («السؤال:»), no brief head', /\nالسؤال:\n/u.test(plainText) && !/الجواب \(مختصرًا\):/u.test(plainText), plainText.slice(0, 160).replace(/\n/gu, ' / '));
+    const askSrc = fs.readFileSync(path.join(ROOT, 'api', 'ask.js'), 'utf8');
+    ok('X11c api/ask.js: the one added line inside `shared`, right after depth (a mutant removing it reds this row)',
+      /const shared = \{\n\s+context: storedContext,\n\s+band,\n\s+depth: band === 'adult' \? effectiveDepth : 'brief',\n(?:\s+\/\/[^\n]*\n)?\s+brief: \(band === 'adult' \? effectiveDepth : 'brief'\) === 'brief',\n\s+model,/u.test(askSrc));
+  }
+
   console.log('\n--- IMMUTABLE DATA ---');
   const corpusAfter = fs.readFileSync(CORPUS);
   const livenessAfter = fs.readFileSync(LIVENESS);

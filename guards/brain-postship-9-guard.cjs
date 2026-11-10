@@ -118,7 +118,21 @@ function pairingChecks(src) {
     const brief = FF.serverOwnedBlock(rec, [], { brief: true });
     const tag = (r.id + ' (' + today.length + ' chars)').replace(/[^\x20-\x7e]/g, '.');
     if (today.length <= 600) {
-      ok(tag + ': a block of 600 or fewer is shown whole in the brief answer too', brief === today);
+      // re-cut 2026-11-07 (brain35-2 F8; owner decision R8, DIAG2): ONE brief shape whatever the length -- the heading, «الجواب (مختصرًا):»,
+      // the whole answer (it fits the budget, so no «…»), and the button carrying the whole block as served today.
+      const m0 = TAG_RE.exec(brief);
+      const shown0 = m0 ? brief.slice(0, m0.index) : brief;
+      const printed0 = FF.printedFatwaPair(rec);
+      // re-cut 2026-11-08 (brain35-5c W1; the owner's delegation of 2026-11-08 16:22, Claude's ruling): the owner's decision of 14:06 (the
+      // brief excerpt is the answer's BODY -- the opening formulas skipped, stopped before a speaker turn; lib/full-fatwa.js briefAnswerBody)
+      // has no exception for short blocks, and the spirit of R8 is kept: the whole BODY is shown, no …. A body under MIN_ANSWER_WORDS
+      // falls back to the whole answer, as serverOwnedBlock does (binothaimeen:6971: body = answer; aladawy:293: the hamdala is skipped).
+      const trimmed0 = FF.briefAnswerBody(printed0.answer);
+      const body0 = trimmed0.split(/\s+/u).filter(Boolean).length >= FF.MIN_ANSWER_WORDS ? trimmed0 : printed0.answer;
+      ok(tag + ': a block of 600 or fewer is the answer-first shape too: the whole body of the answer, no «…», the whole block in the button (re-cut 2026-11-07, owner decision R8; re-cut 2026-11-08, brain35-5c W1, owner\'s delegation)',
+        shown0 === '## ' + FF.HEADING_TEXT + '\n\n' + FF.BRIEF_ANSWER_HEAD + '\n' + body0 && !!m0 && Buffer.from(m0[1], 'base64').toString('utf8') === today,
+        shown0.slice(0, 60).replace(/[^\x20-\x7e]/g, '.'));
+      ok(tag + ': ...and the detailed depth is still the whole block', FF.serverOwnedBlock(rec, [], { band: 'adult' }) === today);
       continue;
     }
     long += 1;
@@ -126,7 +140,18 @@ function pairingChecks(src) {
     const visible = m ? brief.slice(0, m.index) : brief;
     ok(tag + ': the brief block shows 600 characters at most', visible.length <= 600, String(visible.length));
     ok(tag + ': ...ending at a sentence\'s end, closed by «…»', /[.؟!؛]…$|\n…$|…$/u.test(visible) && visible.endsWith('…'), visible.slice(-30).replace(/[^\x20-\x7e]/g, '.'));
-    ok(tag + ': ...an excerpt of the block as served, letter for letter', today.startsWith(visible.slice(0, -1).replace(/\s+$/u, '')));
+    // ITEM B-1 (brain35, 2026-11-06) BY THE OWNER'S DECISION (DIAG B-1: the brief block must give the ANSWER): the brief
+    // block is no longer the first 600 characters of the served sheet, because those characters were the QUESTION -- it is
+    // the sheet's own heading, then «الجواب (مختصرًا):», then an excerpt of the ANSWER. So «an excerpt of the block as
+    // served» is now read in two halves, and both are still letter for letter: the heading is the served block's own
+    // opening, and the shown answer text appears verbatim inside the served block.
+    ok(tag + ': ...the heading is the served block\'s own, and the shown answer is verbatim inside it',
+      (() => {
+        const parts = visible.split(FF.BRIEF_ANSWER_HEAD);
+        if (parts.length !== 2) return false;
+        const body = parts[1].replace(/^\s+/u, '').replace(/…\s*$/u, '');
+        return today.startsWith(parts[0]) && body.length > 40 && today.includes(body);
+      })(), visible.slice(0, 40).replace(/[^\x20-\x7e]/g, '.'));
     ok(tag + ': the button carries the full text, identical to what is served today', !!m && Buffer.from(m[1], 'base64').toString('utf8') === today);
     ok(tag + ': the detailed and student depths are as they are (no brief option)', FF.serverOwnedBlock(rec, [], { band: 'adult' }) === today);
   }
