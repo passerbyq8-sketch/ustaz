@@ -2102,7 +2102,7 @@ const SEALED = {
   // 2026-11-04 QAF-GAP-N2: ezik-v136; rebuild and CORE measurement, then LF worker seal.
   // 2026-11-04 INTEG1 preview: reserved ezik-v137; rebuilt app.js, measured CORE, LF worker seal.
   // 2026-11-06 BRAIN36 ship: reserved ezik-v139; app.js rebuilt at the same byte length; CORE unchanged; LF worker seal remeasured from the guard's printed digest.
-  'sw.js': 'dce25fca64957981f093f48c2f0bc654c02a47ece627462b9423b614a6495610',
+  'sw.js': 'e74563f0e6bb55b16992d1e8be2ab946c6642279d9b7a65fe2b75d242c5eb73e',
 };
 
 // ---------------------------------------------------------------------------
