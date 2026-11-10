@@ -587,22 +587,44 @@ test('trialfix-t4-c1-merge-outputs-only-0-1-and-both-copies-agree', async () => 
   } finally { w.restore(); }
 });
 
+// T4-F1: linkedom shares window expandos between windows, so only one page is ever alive here.
+// Each device closes before the other opens, and reopens on its own storage (`x.local`).
 test('trialfix-t4-c1-two-devices-each-drop-counts-on-both', async () => {
   const w = await T4.world();
   try {
     const account = 't4-two';
+    // the flags as stored in one device's own storage object, read without the page
+    const own = (local) => { const s = JSON.parse(local.getItem('ezik_dima_v2') || 'null'); const d = s && s.log && Object.values(s.log)[0]; return d ? [d.l, d.q, d.j] : null; };
+    const pulls = (page) => page.requests.filter(r => r.action === 'pull').length;
     const a = w.open({ name: 'a', storage: w.fakeLocal({ mrb_device_v1: 'two-a', child_profile: t4Owner() }) });
+    assert.throws(() => w.open({ name: 'b-too-early' }), /one live page/, 'the harness refuses a second live page');
     w.signIn(a, account); await w.advance(a, 10000);
     await w.openDima(a); w.begin(a); w.mark(a, 0); await w.advance(a, 10000);
+    assert.equal(w.view(a).todayDrops, 1, 'device a counts its own drop');
+    assert.deepEqual(own(a.local), [1, 0, 0], 'device a stores its own drop');
+    w.kill(a);
     const b = w.open({ name: 'b', storage: w.fakeLocal({ mrb_device_v1: 'two-b', child_profile: t4Owner() }) });
+    assert.notEqual(b.local, a.local, 'two storages');
     w.signIn(b, account); await w.advance(b, 10000);
     assert.equal(w.view(b).todayDrops, 1, 'device b sees the drop made on device a');
     await w.openDima(b); w.mark(b, 1); await w.advance(b, 10000);
     assert.equal(w.view(b).todayDrops, 2, 'device b counts both');
-    w.run(a, 'ezikSyncCycle()'); await w.advance(a, 5000);
-    assert.equal(w.view(a).todayDrops, 2, 'device a counts both');
-    await w.advance(a, 130000); await w.advance(b, 130000);
-    assert.deepEqual([w.view(a).todayDrops, w.view(b).todayDrops], [2, 2], 'stable across cycles');
+    assert.deepEqual(own(b.local), [1, 1, 0], 'device b stores both');
+    assert.deepEqual(own(a.local), [1, 0, 0], 'device a, closed, has not been written by device b');
+    w.kill(b);
+    // each device again, alone, on its own storage, for three cycles
+    for (const [label, dev] of [['a', a], ['b', b]]) {
+      const again = w.open({ name: label + '-again', storage: dev.local });
+      await w.advance(again, 10000);
+      assert.ok(pulls(again) >= 1, 'device ' + label + ' pulled with its own requests');
+      for (let cycle = 0; cycle <= 3; cycle++) {
+        assert.equal(w.view(again).todayDrops, 2, 'device ' + label + ' counts both, cycle ' + cycle);
+        assert.deepEqual(own(dev.local), [1, 1, 0], 'device ' + label + ' stores both in its own storage, cycle ' + cycle);
+        if (cycle < 3) await w.advance(again, 130000);
+      }
+      assert.ok(pulls(again) >= 3, 'device ' + label + ' kept pulling across cycles');
+      w.kill(again);
+    }
   } finally { w.restore(); }
 });
 

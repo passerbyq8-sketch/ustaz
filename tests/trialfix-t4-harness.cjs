@@ -1,8 +1,11 @@
 // ORDER T4: the real roads, as diagnosis D3 drove them. Pure ASCII; no network, no browser.
 // The built app.js (or an older build's text) runs in a linkedom window with React's root stubbed.
-// One fake clock serves the page and the server; each page has its own timer queue and only the
-// page being driven fires its timers. /api/sync is answered by the shipped lib/sync/service.js over
-// guards/sync-fake-store.cjs with the route's own reply shapes; /dima/* is read from the repo.
+// One fake clock serves the page and the server. Only one page may be alive at a time: linkedom shares
+// window expandos between windows, so a second page's localStorage, fetch and timers would replace the
+// first page's (order T4B, flag T4-F1). open() throws while another page is alive; kill() a page
+// before opening the next, and reopen a device on its own storage (`page.local`).
+// /api/sync is answered by the shipped lib/sync/service.js over guards/sync-fake-store.cjs with the
+// route's own reply shapes; /dima/* is read from the repo.
 'use strict';
 const fs = require('node:fs'), path = require('node:path'), vm = require('node:vm'), nodeCrypto = require('node:crypto');
 const { pathToFileURL } = require('node:url');
@@ -57,6 +60,8 @@ async function world(startIso) {
   function clearT(page, id) { page.timers = page.timers.filter((t) => t.id !== id); }
   /** Open the app on a storage. `app` is the built app.js text (default: this tree's app.js). */
   function open(opts) {
+    const live = pages.find((p) => p.alive);
+    if (live) throw new Error('one live page at a time: kill page "' + live.name + '" before opening another (linkedom shares window expandos)');
     const o = Object.assign({ storage: null, name: 'dev' }, opts || {});
     const { window } = parseHTML('<!DOCTYPE html><html lang="ar" dir="rtl"><body><div id="root"></div></body></html>');
     const page = { name: o.name, window, local: o.storage || fakeLocal({ mrb_device_v1: 'dev-' + (++seq) }), timers: [], seq: 0, alive: true, visible: true, requests: [] };
@@ -108,7 +113,7 @@ async function world(startIso) {
     pages.push(page);
     return page;
   }
-  /** Advance the shared clock, firing the driven page's timers in order (every other page is frozen). */
+  /** Advance the shared clock, firing the live page's timers in order. */
   async function advance(page, ms) {
     const end = clock.now + ms;
     let guard = 0;
