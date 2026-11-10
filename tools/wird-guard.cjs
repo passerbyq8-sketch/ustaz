@@ -2640,12 +2640,14 @@ if (oLifted) {
   ok('A-3: the alert strings name controls that exist and are drawn only behind the shell bridge',
     /function PrayerAlertsControl\(\) \{[\s\S]{0,500}?if \(!ezikSchedBridge\(\)\) return null;/.test(SRC)
     && (SRC.match(/<PrayerAlertsControl \/>/g) || []).length === 1);
+  // ORDER T1 D4: exact approved spend-alert wording; no other panel copy is exempt.
+  const SPEND_LINES = new Set(["\u0639\u062a\u0628\u0629 \u062a\u0646\u0628\u064a\u0647 \u0627\u0644\u0635\u0631\u0641 \u0627\u0644\u064a\u0648\u0645\u064a (\u0628\u0627\u0644\u062f\u0648\u0644\u0627\u0631\u060c \u0628\u062a\u0648\u0642\u064a\u062a \u062c\u0631\u064a\u0646\u062a\u0634)","\u0647\u0630\u0627 \u0625\u0639\u062f\u0627\u062f \u0644\u0644\u062a\u0646\u0628\u064a\u0647 \u0641\u0642\u0637\u060c \u0648\u0644\u0627 \u064a\u0648\u0642\u0641 \u0627\u0644\u0625\u062c\u0627\u0628\u0627\u062a \u0623\u0648 \u064a\u0628\u0637\u0626\u0647\u0627. \u062a\u0646\u0628\u064a\u0647\u0627\u062a \u0627\u0644\u0635\u0631\u0641 \u063a\u064a\u0631 \u0645\u062a\u0627\u062d\u0629 \u062d\u0627\u0644\u064a\u064b\u0627 \u0644\u0623\u0646 \u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u062a\u0643\u0644\u0641\u0629 \u063a\u064a\u0631 \u0645\u0643\u062a\u0645\u0644\u0629."]);
   const ALLOWED_IN = 'tadhkir';
   let promiseHits = 0;
   for (const w of PROMISE_WORDS) {
     const hits = visible.filter((t) => stripH(t).indexOf(stripH(w[1])) !== -1);
     const stray = w[0] === ALLOWED_IN ? hits.filter((t) => !NOTIFY_LINES.has(t) && !ALERT_LINES.has(t))
-      : (w[0] === 'tanbih' ? hits.filter((t) => !ALERT_LINES.has(t)) : hits);
+      : (w[0] === 'tanbih' ? hits.filter((t) => !ALERT_LINES.has(t) && !SPEND_LINES.has(t)) : hits);
     promiseHits += stray.length;
     ok('A-3: no visible string says ' + w[0] + ' outside the switch it names (matches=' + hits.length
       + ', outside=' + stray.length + ')', visible.length > 200 && stray.length === 0);

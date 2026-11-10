@@ -9,6 +9,7 @@
 //
 // No request leaves this harness: /places.json is served from the repository file, every other path is refused.
 'use strict';
+require('./prayer-current-contrast.cjs');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -63,6 +64,29 @@ function lifted(names, consts, env) {
   vm.createContext(ctx);
   vm.runInContext(code + '\n;this.__api = {' + names.join(',') + '};', ctx);
   return ctx.__api;
+}
+// The public settings exception is a request shape, not a URL-only exemption.
+function unexpectedRequest({ url, init = {} }) {
+  if (url === '/api/panel-settings') {
+    return (init.method === undefined ? 'GET' : String(init.method).toUpperCase()) !== 'GET'
+      || init.credentials !== 'omit' || init.body != null
+      || (init.headers != null && Array.from(new Headers(init.headers)).length !== 0);
+  }
+  return !/^\/[a-z0-9-]+\.json$/.test(url) && !/^\/api\/articles-list\?/.test(url) && url !== '/api/usage';
+}
+function checkRequestControls() {
+  const publicRead = { url: '/api/panel-settings', init: { credentials: 'omit' } };
+  t('public settings default GET is allowed', [publicRead].filter(unexpectedRequest), []);
+  t('public settings explicit GET is allowed', [{ ...publicRead, init: { ...publicRead.init, method: 'GET' } }].filter(unexpectedRequest), []);
+  for (const [name, change] of [
+    ['POST', { method: 'POST' }], ['credentials', { credentials: 'include' }],
+    ['body', { body: 'private' }], ['custom header', { headers: { 'x-private': 'private' } }],
+  ]) {
+    const request = { ...publicRead, init: { ...publicRead.init, ...change } };
+    t('request assertion rejects panel settings ' + name, [request].filter(unexpectedRequest), [request]);
+  }
+  const unrelated = { url: '/api/unrelated', init: { credentials: 'omit' } };
+  t('request assertion rejects unrelated URLs', [unrelated].filter(unexpectedRequest), [unrelated]);
 }
 function memStore(seed) {
   const m = new Map(Object.entries(seed || {}));
@@ -252,7 +276,7 @@ function boot(opts) {
   if (opts.shell) window.ReactNativeWebView = { postMessage: (wire) => posts.push(String(wire)) };
   const FIX = new Set(['/places.json', '/adhkar.json', '/adhkar-split-27.json', '/arbaeen.json']);
   window.fetch = (url, init) => {
-    const key = String(url); requests.push(key);
+    const key = String(url); requests.push({ url: key, init: { ...init, headers: init && init.headers != null ? Array.from(new Headers(init.headers)) : undefined } });
     if (key === '/api/usage') {
       let event = null;
       try { event = JSON.parse(init && init.body); } catch (_) {}
@@ -269,6 +293,7 @@ function boot(opts) {
     back: () => { if (at > 0) { at--; NODE_TICK(() => window.dispatchEvent(new window.Event('popstate')), 0); } } };
   global.window = window; global.document = window.document;
   Object.defineProperty(global, 'navigator', { configurable: true, value: window.navigator });
+  require('./helpers/auth-dom-fixture.cjs').installAuthDomFixture(window, {  });
   const ctx = vm.createContext(window);
   for (const f of ['react.umd.js', 'react-dom.umd.js']) vm.runInContext(fs.readFileSync(path.join(REPO, 'vendor', f), 'utf8'), ctx, { filename: f });
   let caught = null;
@@ -330,11 +355,11 @@ SCENES.place = async () => {
   const jakAr = JSON.parse(fs.readFileSync(path.join(REPO, 'places.json'), 'utf8')).p.find((r) => r[1] === 'Jakarta')[2];
   const c = boot({});
   await openPrayer(c);
-  t('no request for the places list before the search is opened', c.requests.filter((r) => r === '/places.json').length, 0);
+  t('no request for the places list before the search is opened', c.requests.filter((r) => r.url === '/places.json').length, 0);
   t('no place is chosen at first', c.q('[data-ezik-place="current"]'), null);
   await c.click(c.q('[data-ezik-place="toggle"]'));
   await c.waitFor(() => c.q('[data-ezik-place="input"]'));
-  t('opening the search loads the list once', c.requests.filter((r) => r === '/places.json').length, 1);
+  t('opening the search loads the list once', c.requests.filter((r) => r.url === '/places.json').length, 1);
   await c.type(c.q('[data-ezik-place="input"]'), 'jakarta');
   await c.waitFor(() => c.qa('[data-ezik-place="result"]').length > 0);
   const results = c.qa('[data-ezik-place="result"]');
@@ -363,7 +388,7 @@ SCENES.place = async () => {
     && c.usageEvents.every((e) => e && Object.keys(e).every((k) => ['section', 'anon', 'from', 'gap', 'boot', 'side', 'plat', 'appv', 'notif'].includes(k))
       && typeof e.section === 'string' && Object.hasOwn(sections, e.section)
       && typeof e.anon === 'string' && /^[a-f0-9]{32}$/.test(e.anon)));
-  t('the page only requested static corpora, home feeds and anonymous usage', c.requests.filter((r) => !/^\/[a-z0-9-]+\.json$/.test(r) && !/^\/api\/articles-list\?/.test(r) && r !== '/api/usage'), []);
+  t('the page only requested static corpora, home feeds and anonymous usage', c.requests.filter(unexpectedRequest), []);
   t('nothing threw', c.caught(), null);
 };
 SCENES.day = async () => {
@@ -846,6 +871,7 @@ SCENES['places-offline'] = async () => {
 };
 
 async function main() {
+  checkRequestControls();
   const which = process.argv[2];
   if (which && which !== '--all') {
     if (!SCENES[which]) throw new Error('no scene ' + which);

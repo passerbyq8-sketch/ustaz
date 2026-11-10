@@ -10,6 +10,8 @@
 'use strict';
 const path = require('path');
 const fs = require('fs');
+const vm = require('vm');
+const { parseHTML } = require('linkedom');
 
 const REPO = path.join(__dirname, '..');
 const esm = (rel) => import('file://' + path.join(REPO, rel).replace(/\\/g, '/'));
@@ -21,6 +23,87 @@ function ok(name, cond, detail) {
   failures += 1;
   console.log('  FAIL  ' + name + (detail ? '\n        ' + detail : ''));
   return false;
+}
+
+const React = require(path.join(REPO, 'node_modules', 'react'));
+const { renderToStaticMarkup } = require(path.join(REPO, 'node_modules', 'react-dom', 'server'));
+const ReactDOMClient = require(path.join(REPO, 'node_modules', 'react-dom', 'client'));
+const { flushSync } = require(path.join(REPO, 'node_modules', 'react-dom'));
+
+// one build of the client, in a window of its own; its root is not mounted
+function boot(src) {
+  const { window } = parseHTML('<!DOCTYPE html><html><body><div id="root"></div><div id="t"></div></body></html>');
+  window.self = window.self || window;
+  window.window = window.window || window;
+  window.matchMedia = window.matchMedia || (() => ({ matches: false, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} }));
+  window.scrollTo = window.scrollTo || (() => {});
+  { const store = {}; window.localStorage = { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); }, removeItem: (k) => { delete store[k]; }, clear: () => {} }; }
+  window.React = React;
+  window.ReactDOM = { createRoot: () => ({ render() {}, unmount() {} }) };
+  window.console.error = () => {};
+  global.window = window;
+  global.document = window.document;
+  try { global.navigator = window.navigator; } catch (e) { /* node 21+ owns a read-only navigator */ }
+  const ctx = vm.createContext(window);
+  vm.runInContext(src, ctx, { filename: 'app.js' });
+  const api = vm.runInContext('({ parse: parseRichMessage, render: ezikRenderSegments, serialize: serializeReply, makeFav: ezikMakeFav, favorite: FavoriteReplyBody, tts: formatForTTS,'
+    + ' log: formatForLog, preview: formatForStreamPreview, previewSegs: ezikStreamPreviewSegments, fold: ezikFoldSegments,'
+    + ' favSnippet: ezikFavSnippet, FOLD_MIN: EZIK_FOLD_MIN_CHARS, FOLD_HEAD: EZIK_FOLD_HEAD_CHARS })', ctx);
+  api.window = window;
+  return api;
+}
+
+// what the reader reads: the markup's text, block elements on their own lines
+const textOf = (html) => html.replace(/<(?:div|p|h[1-6]|li|br)\b[^>]*>/g, '\n').replace(/<[^>]+>/g, '').replace(/&quot;/g, '"').replace(/&#x27;|&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+const drawSegs = (api, segs) => renderToStaticMarkup(React.createElement('div', null, api.render(segs, { tashkeel: true, age: 30 })));
+function pressSegs(api, segs, favorite = false) {
+  global.window = api.window; global.document = api.window.document;
+  const host = api.window.document.getElementById('t');
+  const root = ReactDOMClient.createRoot(host);
+  flushSync(() => root.render((favorite ? React.createElement(api.favorite, { segments: segs, tashkeel: true, age: 30 }) : React.createElement('div', null, api.render(segs, { tashkeel: true, age: 30 })))));
+  const before = host.innerHTML;
+  const btn = Array.prototype.find.call(host.querySelectorAll('button'), (b) => b.textContent === 'النص الكامل');
+  if (btn) flushSync(() => btn.dispatchEvent(new api.window.Event('click', { bubbles: true })));
+  const after = host.innerHTML;
+  root.unmount();
+  return { before, after, pressed: !!btn };
+}
+
+
+// ORDER 15: position pairing, using the request's decoded strings exactly.
+const PAIR_WORDS = JSON.parse("{\"heading\":\"## \\u0646\\u0635 \\u0627\\u0644\\u0641\\u062a\\u0648\\u0649\",\"answer_label\":\"\\u0627\\u0644\\u062c\\u0648\\u0627\\u0628 (\\u0645\\u062e\\u062a\\u0635\\u0631\\u064b\\u0627):\",\"ellipsis\":\"\\u2026\",\"full_text_button\":\"\\u0627\\u0644\\u0646\\u0635 \\u0627\\u0644\\u0643\\u0627\\u0645\\u0644\",\"tag\":\"fatwafull\",\"brain_branch\":\"side/brain35-20261106\",\"brain_head_reported\":\"4c3e49d6\"}");
+function pairingChecks(src) {
+  const api = boot(src), rows = [];
+  const add = (name, cond) => rows.push({ name, cond: !!cond });
+  const w = PAIR_WORDS;
+  const question = 'Question: Where does the full text stand?';
+  const answer = 'Answer: The full answer replaces the brief at its original position.';
+  const full = w.heading + '\n\n' + question + '\n\n' + answer;
+  const tag = '<' + w.tag + ' matn="' + Buffer.from(full).toString('base64') + '">' + w.full_text_button + '</' + w.tag + '>';
+  const shapes = { prefix: full.slice(0, full.indexOf('original')) + w.ellipsis,
+    answerFirst: w.heading + '\n\n' + w.answer_label + '\n' + answer.slice(0, 32) + w.ellipsis };
+  for (const [shape, excerpt] of Object.entries(shapes)) {
+    const brief = excerpt + '\n' + tag;
+    const segs = api.parse(brief, 30).segments;
+    const decoded = segs.find(s => s.type === 'fatwafull').text;
+    add(shape + ': decoded payload equals full bytes', decoded === full);
+    const saved = JSON.parse(JSON.stringify(api.makeFav(brief, 'fixture', 'fixture-chat', 0)));
+    const favSegs = api.parse(saved.text, 30).segments;
+    for (const [surface, ss, favorite] of [['chat', segs, false], ['favorite', favSegs, true]]) {
+      const drawn = pressSegs(api, ss, favorite), text = textOf(drawn.after);
+      add(shape + ' ' + surface + ': button pressed', drawn.pressed);
+      add(shape + ' ' + surface + ': one heading, question and answer',
+        text.split(w.heading.slice(3)).length === 2 && text.split(question).length === 2 && text.split(answer).length === 2);
+      add(shape + ' ' + surface + ': no excerpt ellipsis', !text.includes(w.ellipsis));
+      add(shape + ' ' + surface + ': sheet equals detailed drawing', text === textOf(drawSegs(api, api.parse(full, 30).segments)));
+    }
+    for (const [surface, ss] of [['copy', segs], ['share', segs], ['favorite copy', favSegs]]) {
+      add(shape + ' ' + surface + ': decoded full text byte for byte', api.serialize(ss, { tashkeel: true, band: 'adult' }) === decoded);
+    }
+    const intro = 'Surrounding prose.\n\n';
+    add(shape + ': preceding prose preserved', api.serialize(api.parse(intro + brief, 30).segments, { tashkeel: true, band: 'adult' }) === intro + full);
+  }
+  return rows;
 }
 
 (async () => {
@@ -88,6 +171,25 @@ function ok(name, cond, detail) {
     && /<FatwaFullText key=\{i\} label=\{brief\.label\} shown=\{prose\(seg\)\} full=\{prose\(\{ type: 'text', content: brief\.content \}\)\} \/>/u.test(app));
   const lang = fs.readFileSync(path.join(REPO, 'lib/lang/answer.js'), 'utf8');
   ok('the translation step carries the tag untranslated', /'book', 'fatwafull'\]/u.test(lang));
+
+
+  const shipped = fs.readFileSync(path.join(REPO, 'app.js'), 'utf8');
+  for (const row of pairingChecks(shipped)) ok(row.name, row.cond);
+  ok('copy and share use the shared serializer', app.includes('const buildCopyText = () => serializeReply(segments, { tashkeel, band: deriveCaps(age).band });') && app.includes('<ShareReplyButton getText={buildCopyText} />') && app.includes('getText={buildCopyText} />'));
+  ok('favorites save the original reply and copy parsed segments', app.includes('ezikMakeFav(text, favPk, chatIdRef.current, idx)') && app.includes('const parsed = parseRichMessage(f.text, age);') && app.includes('getText={() => serializeReply(parsed.segments, { tashkeel, band: deriveCaps(age).band })}'));
+  const start = shipped.indexOf('function ezikFatwaBriefAt('), end = shipped.indexOf('function ezikRenderSegments(', start);
+  const body = shipped.slice(start, end);
+  for (const [name, from, to] of [
+    ['prefix matching restored', 'return{label:next.label', 'if(!next.text.startsWith(body.slice(at,-1)))return null;return{label:next.label'],
+    ['excerpt left in place', 'body.slice(0,at)+next.text', 'body+next.text']
+  ]) {
+    ok(name + ': mutation anchor present', body.includes(from));
+    if (!body.includes(from)) continue;
+    const mutant = shipped.slice(0,start) + body.replace(from,to) + shipped.slice(end);
+    const failed = pairingChecks(mutant).filter(r => !r.cond);
+    ok(name + ': crafted regression proof fails', failed.length > 0, failed.map(r => r.name).join('; '));
+    console.log('  MUTATION ' + name + ': ' + failed.length + ' failed assertions: ' + failed.map(r => r.name).join('; '));
+  }
 
   console.log('\n' + (checks - failures) + '/' + checks + ' checks passed');
   process.exit(failures ? 1 : 0);

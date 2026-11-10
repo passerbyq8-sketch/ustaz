@@ -1067,6 +1067,7 @@ const V = '﴿', W = '﴾';
           try {
             await p1.goto('http://127.0.0.1:' + port + '/', { waitUntil: 'load', timeout: 20000 });
             await p1.waitForSelector('button', { timeout: 15000 }); await p1.waitForTimeout(1500);
+            if (await p1.locator('[data-tour-active]').count()) await p1.locator('.ez-tour-actions button').first().click({ timeout: 3000 });
             await p1.locator('button').first().click({ timeout: 3000 }); await p1.waitForTimeout(400);
             const t0 = Date.now();
             await p1.locator('button', { hasText: /^Test$/ }).first().click({ timeout: 2500, noWaitAfter: true });
@@ -1078,6 +1079,7 @@ const V = '﴿', W = '﴾';
           try {
             await p2.goto('http://127.0.0.1:' + port + '/', { waitUntil: 'load', timeout: 20000 });
             await p2.waitForSelector('textarea', { timeout: 15000 }); await p2.waitForTimeout(1200);
+            if (await p2.locator('[data-tour-active]').count()) await p2.locator('.ez-tour-actions button').first().click({ timeout: 3000 });
             await p2.locator('textarea').first().click({ timeout: 3000 }); await p2.keyboard.insertText('x'); await p2.waitForTimeout(300); await p2.keyboard.press('Enter');
             await p2.waitForSelector('.ezc-acts button', { timeout: 8000 });
             if (!(await alive(p2))) answerFrozen.push(L);
@@ -1383,6 +1385,7 @@ const V = '﴿', W = '﴾';
               try {
                 await p.goto('http://127.0.0.1:' + port + '/', { waitUntil: 'load', timeout: 20000 });
                 await p.waitForSelector('textarea', { timeout: 15000 }); await p.waitForTimeout(1200);
+                if (await p.locator('[data-tour-active]').count()) await p.locator('.ez-tour-actions button').first().click({ timeout: 3000 });
                 await p.locator('textarea').first().click({ timeout: 3000 }); await p.keyboard.insertText('x'); await p.waitForTimeout(300); await p.keyboard.press('Enter');
                 let got = false; const t0 = Date.now();
                 while (Date.now() - t0 < 9000) { got = await p.evaluate((w) => document.body.innerText.replace(/[ً-ْٰ]/g, '').includes(w.replace(/[ً-ْٰ]/g, '')), want); if (got) break; await p.waitForTimeout(250); }

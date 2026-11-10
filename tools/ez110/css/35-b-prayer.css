@@ -97,6 +97,8 @@ html[data-ez110] .ez110-plist { display: flex; flex-direction: column; margin-to
 html[data-ez110] .ez110-prow { display: flex; align-items: center; gap: 8px; min-height: 50px; padding: 6px 12px 6px 6px; border-top: 1px solid var(--vt-line); }
 html[data-ez110] .ez110-prow:first-child { border-top: 0; }
 html[data-ez110] .ez110-prow.is-now { background: #EDF1FA; font-weight: 700; }
+/* Decision 55: pair the current row with the existing dark identity palette. */
+html[data-ez110][data-theme="dark"] .ez110-prow.is-now { background: var(--vt-soft); color: var(--vt-ink); }
 html[data-ez110] .ez110-prow-name { order: 1; flex: 1; min-width: 0; font-size: calc(15px * var(--ez-fs, 1)); color: var(--vt-ink); }
 html[data-ez110] .ez110-prow-badge { order: 2; padding: 2px 9px; border-radius: 999px; background: var(--vt-soft); color: var(--vt-accent-ink); font-size: calc(11.5px * var(--ez-fs, 1)); font-weight: 700; white-space: nowrap; }
 html[data-ez110] .ez110-prow-badge.is-now { background: #12327A; color: #FFFFFF; }

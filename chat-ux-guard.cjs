@@ -304,6 +304,7 @@ function buildContext(opts) {
   global.window = window;
   global.document = window.document;
 
+  require('./guards/helpers/auth-dom-fixture.cjs').installAuthDomFixture(window, {  });
   const ctx = vm.createContext(window);
   const loadUMD = (file) => vm.runInContext(fs.readFileSync(path.join(__dirname, 'vendor', file), 'utf8'), ctx, { filename: file });
   loadUMD('react.umd.js');
@@ -1971,6 +1972,57 @@ function partE() {
 }
 
 // ===========================================================================
+// Item 33 U2: measure the shipped composer in isolated Chromium, including an
+// empty field after editing (the original border/scrollHeight mismatch).
+async function partComposerFit() {
+  const assert = require('node:assert/strict');
+  let chromium;
+  for (const p of [process.env.EZIK_PLAYWRIGHT, 'playwright', 'C:/Users/passe/projects/ustaz-check88/check88/node_modules/playwright'].filter(Boolean)) {
+    try { chromium = require(p).chromium; break; } catch (_) {}
+  }
+  assert.ok(chromium, 'composer fit requires Chromium');
+  let browser;
+  try { browser = await chromium.launch({ headless: true, channel: 'msedge' }); }
+  catch (_) { browser = await chromium.launch({ headless: true }); }
+  try {
+    for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+      const ctx = await browser.newContext({ viewport, serviceWorkers: 'block' });
+      await ctx.route('**/*', route => {
+        const u = new URL(route.request().url());
+        const f = path.resolve(__dirname, '.' + (u.pathname === '/' ? '/index.html' : decodeURIComponent(u.pathname)));
+        if (u.origin !== 'http://composer.invalid' || u.pathname.startsWith('/api/') || !f.startsWith(__dirname + path.sep) || !fs.existsSync(f) || !fs.statSync(f).isFile()) return route.abort();
+        return route.fulfill({ body: fs.readFileSync(f), contentType: ({ '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.json': 'application/json', '.woff2': 'font/woff2' })[path.extname(f)] || 'application/octet-stream' });
+      });
+      await ctx.addInitScript(() => {
+        localStorage.setItem('child_profile', JSON.stringify({ name: 'TEST', age: 30, birthYear: 1990, pid: 'P1', gender: 'male' }));
+        localStorage.setItem('ezik_ai_consent_v1', JSON.stringify({ status: 'granted', version: '2026-11-02-1', pid: 'P1', grantedBy: 'user' }));
+        localStorage.setItem('ezik.tour.v1.seen', '1');
+      });
+      const page = await ctx.newPage();
+      await page.goto('http://composer.invalid/', { waitUntil: 'load' });
+      const input = page.locator('.ezc-dock textarea');
+      await input.waitFor();
+      await page.evaluate(() => document.fonts.ready);
+      for (const value of ['', 'one line', '']) {
+        await input.fill(value);
+        for (const focus of [false, true]) {
+          if (focus) await input.focus(); else await input.evaluate(el => el.blur());
+          const m = await input.evaluate(el => ({ scroll: el.scrollHeight, client: el.clientHeight, overflow: getComputedStyle(el).overflowY }));
+          assert.ok(m.scroll <= m.client, 'fitting composer overflows: ' + JSON.stringify({ viewport, value, focus, m }));
+          assert.equal(m.overflow, 'auto', 'long content retains scrolling');
+        }
+      }
+      await input.fill(Array(30).fill('a long line').join('\n'));
+      await input.focus();
+      const m = await input.evaluate(el => { el.scrollTop = 99999; return { scroll: el.scrollHeight, client: el.clientHeight, top: el.scrollTop, height: el.getBoundingClientRect().height }; });
+      assert.equal(m.height, 200, 'shipped maximum height preserved');
+      assert.ok(m.scroll > m.client && m.top > 0, 'overflowing content still scrolls');
+      await ctx.close();
+    }
+    ok('composer fits empty and one line, focused and blurred, and scrolls above its maximum', true);
+  } finally { await browser.close(); }
+}
+
 (async function main() {
   console.log('=== chat-ux-guard (S98) — ' + htmlFile + ' ===');
   partA();
@@ -1987,6 +2039,7 @@ function partE() {
   await partFDrawer();
   await partFFavs();
   partE();
+  await partComposerFit();
   console.log('');
   if (failures === 0) console.log('OK: ' + checks + '/' + checks + ' checks passed.');
   else console.log('FAILED: ' + failures + ' of ' + checks + ' checks failed.');

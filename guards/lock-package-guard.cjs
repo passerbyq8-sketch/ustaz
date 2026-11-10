@@ -72,6 +72,7 @@ async function reportHandlerWithLocalStubs() {
   const sourceArg = process.argv.indexOf('--report-source');
   const reportSource = sourceArg >= 0 ? fs.readFileSync(path.resolve(process.argv[sourceArg + 1]), 'utf8') : read('api/report.js');
   const source = reportSource
+    .replace("'../lib/report-intake.js'", `'${fileUrl('lib/report-intake.js')}'`)
     .replace("import { Redis } from '@upstash/redis';", `const Redis = globalThis.${stubName}.Redis;`)
     .replace(
       "import { checkReportLimit, applyCorsOrigin } from '../lib/ratelimit.js';",

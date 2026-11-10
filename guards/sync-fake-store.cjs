@@ -12,6 +12,26 @@ function autoParse(v) {
   try { const p = JSON.parse(v); return p; } catch (e) { return v; }
 }
 
+// Execute the shipped wipe statements, including missing/mutated statements. Unsupported Lua
+// fails closed instead of silently substituting an independent deletion implementation.
+function runWipeLua(script, keys, args, call) {
+  const expr = s => s.replace(/~=/g, '!==').replace(/\bor\b/g, '||');
+  const lines = script.split('\n').filter(s => !s.startsWith('--')).map(s => {
+    let m;
+    if ((m = /^local (\w+) = (.*)$/.exec(s))) return 'let ' + m[1] + '=' + expr(m[2]) + ';';
+    if ((m = /^if (.*) then (.*) end$/.exec(s))) return 'if(' + expr(m[1]) + '){' + expr(m[2]) + ';}';
+    if ((m = /^for (\w+), (\w+) in pairs\((\w+)\) do$/.exec(s))) return 'for(const ['+m[1]+','+m[2]+'] of Object.entries('+m[3]+')){';
+    if (s === 'end') return '}';
+    if (/^(return |redis.call)/.test(s)) return expr(s) + ';';
+    throw Error('unsupported wipe statement ' + s);
+  });
+  const array = a => Object.fromEntries(a.map((v,i) => [i+1,v]));
+  return require('node:vm').runInNewContext('(function(){'+lines.join('\n')+'})()', {
+    KEYS: array(keys), ARGV: array(args), redis: {call}, tonumber: Number,
+    cjson: {decode: JSON.parse}, string: {len: s => Buffer.byteLength(s)},
+  }, {timeout:1000});
+}
+
 function makeStore(opts) {
   const o = opts || {};
   const data = new Map();          // key -> { t: 'str'|'hash'|'set', v }
@@ -60,6 +80,20 @@ function makeStore(opts) {
           get(k) { const e = data.get(k); return e ? e.v : null; },
           set(k, v) { ops.push(['set', k]); data.set(k, { t: 'str', v }); return 'OK'; },
           del(k) { ops.push(['del', k]); return data.delete(k) ? 1 : 0; },
+        });
+      }
+      if (script.includes('-- sync-wipe-progress-v1')) {
+        return runWipeLua(script, keys, argv, (command, ...args) => {
+          const k = args.shift();
+          ops.push([command.toLowerCase(), k]);
+          if (command === 'HGET') return h(k)?.get(args[0]) ?? null;
+          if (command === 'HLEN') return h(k)?.size || 0;
+          if (command === 'DEL') return [k, ...args].reduce((n, key) => n + Number(data.delete(key)), 0);
+          if (command === 'HSET') {
+            for (let i=0; i<args.length; i+=2) hput(k).set(args[i], String(args[i+1]));
+            return 1;
+          }
+          throw Error('unsupported wipe command ' + command);
         });
       }
       if (/HSTRLEN/.test(script)) {

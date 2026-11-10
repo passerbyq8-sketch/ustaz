@@ -325,6 +325,7 @@
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
   }
   :root {
+  --ez-tour-ivory:#F4EDE0;--ez-tour-ink:#14211F;--ez-tour-gold:#D6B25E;--ez-tour-dim:rgba(5,11,13,0.82);--ez-tour-shadow:#0006;
     --red:#1D4ED8; --red-deep:#12327A; --red-lift:#2AA6DE; --red-soft:#E6EEFB;
     --black:#141414; --ink:#1A1A1A; --muted:#6E6E6E; --nav-off:#93A0B8;
     --mem86-w1:#CDEBD3; --mem86-w2:#F5E7A1; --mem86-w3:#F8D0A8; --mem86-w4:#F4B9B2;
@@ -1846,6 +1847,19 @@
   .ezlang-fail{margin-top:6px;font-size:12px;opacity:.85}
 
 
+</style>
+<style id="ezik-intro-tour">
+/* Intro tour: its overlay owns all input while existing entries remain inert. */
+.ez-tour{position:fixed;inset:0;z-index:2147483000;color:var(--ez-tour-ink);isolation:isolate}
+.ez-tour-shade{position:absolute;inset:0;pointer-events:auto}
+.ez-tour-bubble{position:absolute;box-sizing:border-box;width:min(380px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;padding:22px;background:var(--ez-tour-ivory);color:var(--ez-tour-ink);border:1px solid var(--ez-tour-gold);border-radius:18px;font-size:16px;line-height:1.65;box-shadow:0 8px 32px var(--ez-tour-shadow)}
+.ez-tour-bubble h2{font-size:21px;margin:8px 0}.ez-tour-bubble p{margin:8px 0 18px}
+.ez-tour-actions{display:flex;flex-wrap:wrap;gap:8px}.ez-tour-actions button{min-height:44px;min-width:44px;padding:8px 14px;background:var(--ez-tour-ivory);color:var(--ez-tour-ink);border:1px solid var(--ez-tour-ink);border-radius:10px;font:inherit;cursor:pointer}.ez-tour-actions button:last-child{background:var(--ez-tour-gold)}
+.ez-tour .ez-tour-actions button:focus-visible{outline:3px solid var(--ez-tour-ink);outline-offset:3px}
+.ez-tour-dots{display:flex;gap:7px;margin-top:8px}.ez-tour-dots span{width:7px;height:7px;border:1px solid var(--ez-tour-ink);border-radius:50%}.ez-tour-dots .active{background:var(--ez-tour-gold)}
+.ez-tour-arrow{position:absolute;width:14px;height:14px;background:var(--ez-tour-ivory);transform:rotate(45deg);border:1px solid var(--ez-tour-gold)}.ez-tour-arrow.above{top:-8px}.ez-tour-arrow.below{bottom:-8px}
+.ez-tour-info{min-width:44px;min-height:44px;font-size:25px}
+@media(prefers-reduced-motion:reduce){.ez-tour *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 </style>
 <style id="dima-home-layout">
 /* Item 5-a: home sentences occupy their own rows; the garden has reserved space below. */

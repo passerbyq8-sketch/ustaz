@@ -2,7 +2,7 @@
 const fs=require('fs'),path=require('path'),crypto=require('crypto'),z=require('zlib'),assert=require('assert/strict');
 const root=path.resolve(__dirname,'..');
 const languages=['fr','ur','id','ha','sw','zh','de','hi','ps','uz'];
-const BASE='09554894aeef74616a9e030f74f4542b83dc4a1aadf6220d427167c064dae15c';
+const BASE='93eae353c596799d82a7df576fc2632102f86198f7290c3f3c092d67a70cb8a6';
 const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
 const norm=s=>s.normalize('NFC').replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u0640\u200B-\u200F\uFEFF]/g,'').replace(/\s+/g,' ').trim();
 const hid=s=>'h:'+crypto.createHash('sha1').update(norm(s),'utf8').digest('hex').slice(0,12);
@@ -75,3 +75,5 @@ if(process.argv.includes('--self-test')){
  for(const [name,mutate]of mutations){const c=structuredClone(state);c.live=Buffer.from(c.live);mutate(c);assert.throws(()=>validate(c),'mutation must fail: '+name);console.log('REJECTED mutation: '+name);}
  console.log('Restored original inputs: '+validate(state)+' items PASS. No files mutated.');
 }
+
+require('../tools/item33-corrections.cjs').assertCurrent(require('path').resolve(__dirname, '..'));

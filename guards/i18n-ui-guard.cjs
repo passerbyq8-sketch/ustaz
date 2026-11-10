@@ -325,6 +325,7 @@ function buildContext(opts) {
   // evaluated are recorded so destroy() can remove the ones it added.
   const beforeKeys = new Set(Object.getOwnPropertyNames(global));
 
+  require('./helpers/auth-dom-fixture.cjs').installAuthDomFixture(window, { put, href: 'https://localhost/' });
   const ctx = vm.createContext(window);
   const loadUMD = (f) => vm.runInContext(fs.readFileSync(path.join(REPO, 'vendor', f), 'utf8'), ctx, { filename: f });
   loadUMD('react.umd.js'); loadUMD('react-dom.umd.js');

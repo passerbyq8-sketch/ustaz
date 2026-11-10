@@ -8,7 +8,7 @@ import { checkUsageLimit } from '../lib/ratelimit.js';
 import { __setRedisForTest, __resetRedis } from '../lib/ledger/redis.js';
 import { USAGE_SECTIONS, USAGE_TTL_SECONDS, USAGE_ACTIVE_TTL_SECONDS, WRITE_USAGE_SCRIPT, READ_USAGE_SCRIPT,
   READ_UNIONS_SCRIPT, READ_HASHES_SCRIPT, READ_RETURN_SCRIPT, writeUsage, readUsage, readUsageBoard, readUsageChat,
-  usageAnswerOutcome, usageWindow, usageKeys, usageStatsKey, usageActiveKey, usageFields, usageStay, validUsageEvent } from '../lib/usage.js';
+  usageAnswerOutcome, usageWindow, usageKeys, usageStatsKey, usageActiveKey, usageIntakeKey, usageFields, usageStay, validUsageEvent } from '../lib/usage.js';
 
 const require = createRequire(import.meta.url);
 const anon = 'a'.repeat(32);
@@ -121,7 +121,7 @@ test('daily counters and HLL membership get 400-day TTLs; ranges count returning
   try {
     // Midnight in Kuwait is still the preceding UTC day.
     await writeUsage(event, new Date('2026-10-30T00:30:00+03:00'));
-    assert.deepEqual(calls[0].keys, [...usageKeys('20261029', 'mushaf'), usageStatsKey('20261029'), usageActiveKey('20261029')]);
+    assert.deepEqual(calls[0].keys, [...usageKeys('20261029', 'mushaf'), usageStatsKey('20261029'), usageActiveKey('20261029'), usageIntakeKey('20261029')]);
     assert.deepEqual(calls[0].args, [anon, USAGE_TTL_SECONDS, USAGE_ACTIVE_TTL_SECONDS, 'h:0']);
     await writeUsage(event, new Date('2026-10-30T10:00:00Z'));
     await writeUsage({ ...event, anon: 'b'.repeat(32) }, new Date('2026-10-30T11:00:00Z'));
@@ -138,7 +138,7 @@ test('daily counters and HLL membership get 400-day TTLs; ranges count returning
       assert.ok(!JSON.stringify(range).includes(anon));
     }
     assert.match(WRITE_USAGE_SCRIPT, /PFADD/);
-    assert.equal((WRITE_USAGE_SCRIPT.match(/EXPIRE/g) || []).length, 4);
+    assert.equal((WRITE_USAGE_SCRIPT.match(/EXPIRE/g) || []).length, 7);
     assert.equal(USAGE_ACTIVE_TTL_SECONDS, 691200);
     assert.equal(one.board, null);
     assert.match(READ_USAGE_SCRIPT, /PFCOUNT', unpack\(devices\)/);
@@ -169,7 +169,7 @@ test('one event bumps closed fields only; a side event touches neither the day s
   __setRedisForTest({ async eval(script, keys, args) { calls.push({ keys, args }); return 1; } });
   try {
     await writeUsage({ section: 'qibla', anon, side: 1 }, new Date('2026-11-01T10:00:00Z'));
-    assert.deepEqual(calls[0].keys, usageKeys('20261101', 'qibla'));
+    assert.deepEqual(calls[0].keys, [...usageKeys('20261101', 'qibla'), usageIntakeKey('20261101')]);
     assert.deepEqual(calls[0].args, [anon, USAGE_TTL_SECONDS, USAGE_ACTIVE_TTL_SECONDS]);
   } finally { __resetRedis(); }
 });
@@ -334,7 +334,8 @@ test('usage list follows the existing owner gate; strangers, readers and editors
   const context = vm.createContext({
     process: { env: {} }, TEXT_CAP: 5000,
     Redis: class {}, applyCorsOrigin() {}, checkAuthLimit: async () => ({ ok: true }), clientAddress: () => 'test',
-    resolveActor: async () => actor, ROLE_OWNER: 'owner', DEVICE_HEADER: 'x-device',
+    resolveActorState: async () => ({ state: actor ? 'live' : 'absent', actor }), ROLE_OWNER: 'owner', DEVICE_HEADER: 'x-device',
+    resolvePanelViewer: async () => ({ state: 'denied' }),
     usageWindow, readUsage: async () => { reads++; if (unavailable) throw Error('offline'); return { ok: true, kind: 'usage', items: [] }; },
   });
   vm.runInContext(source + '\nglobalThis.runInbox = handler;', context);
@@ -360,7 +361,7 @@ test('the panel overview is one owner-only read, and each part fails alone', asy
   const context = vm.createContext({
     process: { env: {} }, TEXT_CAP: 5000, console: { error() {} },
     Redis: class {}, applyCorsOrigin() {}, checkAuthLimit: async () => ({ ok: true }), clientAddress: () => 'test',
-    resolveActor: async () => actor, ROLE_OWNER: 'owner', DEVICE_HEADER: 'x-device', usageWindow,
+    resolveActorState: async () => ({ state: actor ? 'live' : 'absent', actor }), ROLE_OWNER: 'owner', DEVICE_HEADER: 'x-device', usageWindow,
     readUsage: async () => { usageReads++; throw Error('offline'); },
     readUsageChat: async (b) => { chatDays.push(b.day); return { ok: true, read: 1 }; },
   });

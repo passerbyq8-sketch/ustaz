@@ -353,9 +353,11 @@ BRAIN36 FIX 2026-11-05: appended `securityadmission` (`guards/security-admission
 
 BRAIN35 FIX 2026-11-06: appended the seven gates of the item-35 fix batch -- `compilerrole` (`guards/compiler-role-guard.cjs`), `mediatedattribution` (`guards/mediated-attribution-guard.cjs`), `hadithblock` (`guards/hadith-block-guard.cjs`), `sourcemarks` (`guards/source-marks-guard.cjs`), `answerlogbound` (`guards/answer-log-bound-guard.cjs`), `turndeadline` (`guards/turn-deadline-guard.cjs`) and `safefetch` (`guards/safe-fetch-guard.cjs`); branch roster 278. They hold the fourteen items of EZIK-ORDER-BRAIN35-FIX-2026-11-06: the compiler role of a collected-fatwa row, the mediated-attribution licence, a hadith block as one quotation, the in-text source mark and the verse card, the answer-log flush bound, the whole turn's deadline, and safe-fetch address pinning with a parsing IPv6 test.
 
-Expected signature for the current integrated roster. CURRENT_RECON records the measured 363/0/0 pre-self-check counts from the order-7 focused recon run at 06d9b15369e229ed020b3e6e829aaaade7ae642d. The order-7 full run is pending; no green-suite result is claimed. Evidence: REPORT-C1-ORDER-7.md:
+BRAIN35 SHIP 2026-11-10 (merge of production 24992d44 into item 35): the seven item-35 gates above and production's eleven (`c1authproofclient`, `c1authproofwiring`, `c2authlifecycle`, `c1legacycancel`, `c1gamesgeneration`, `c1gamesdelivery`, `usage`, `trialfixcontent`, `trialfixui`, `trialfixsync`, `trialfixmerges`) are both kept; merged roster 289 = 271 at the merge base 6a587927 + 7 + 11. CURRENT_RECON is re-measured on the merged head.
 
-All 278 gates in the current roster run sequentially through tools/run-gates.cjs. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
+Expected signature for the current integrated roster. INTEG7 includes the independent usage gate. CURRENT_RECON records measured 375/0/0 pre-self-check counts from the clean-tree Order T1B focused audit. The audit adds its own pass after this record matches. This expected signature is not a full-run success claim.
+
+All 289 gates in the current roster run sequentially through tools/run-gates.cjs. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -389,7 +391,7 @@ iaplaunch 0
 brainlineb1 0  brainlineb2 0  brainlineb3 0  brainlinec1 0  brainlinec2 0  brainlinec3 0  brainlinec4 0  brainlinec5 0  brainlinec6 0  brainlinec7 0  brainlined1a 0  brainlined1b 0  brainlined2 0  brainlined3 0  brainlined4 0  brainlined5 0  brainlinee1 0  brainlinee2 0  brainlineo1 0  brainlineo2 0  brainlineo3a 0  brainlineo3b 0  brainlinez1 0  brainlinez2 0  brainlinez3 0  brainlineh1 0  brainlineh2 0  brainlineh3 0  brainlineh4 0  brainlinet1 0  harvesttools 0  brainliner21 0  brainliner22 0  brainliner23 0  brainliner24 0  brainliner25 0  brainliner26 0  brainliner27 0  brainliner28 0
 ```
 
-Every one **PASS**, exit code `0`.
+Expected roster signature: every entry has exit code `0`. This is not a new full-run result.
 
 ```
 assetversions 0
@@ -475,8 +477,19 @@ sourcemarks 0
 answerlogbound 0
 turndeadline 0
 safefetch 0
-TOTAL_GATES        278/278 PASS
-CURRENT_RECON PASS=371 WARN=0 FAIL=0
+c1authproofclient 0
+c1authproofwiring 0
+c2authlifecycle 0
+c1legacycancel 0
+c1gamesgeneration 0
+c1gamesdelivery 0
+usage 0
+trialfixcontent 0
+trialfixui 0
+trialfixsync 0
+trialfixmerges 0
+TOTAL_GATES        289/289 PASS
+CURRENT_RECON PASS=375 WARN=0 FAIL=0
 PRE_REBASE_UPSTREAM_TOTAL_GATES 206/206 PASS
 PRE_REBASE_UPSTREAM_RECON PASS=299 WARN=0 FAIL=0
 PRE_REBASE_BRANCH_TOTAL_GATES 208/208 PASS
@@ -662,3 +675,35 @@ To be run only after this review, with explicit authorisation.
    Then set `RFC_V05_MODE=off` in the preview and confirm both return `legacy:mode_off`.
 
 None of the above has been executed.
+
+## ORDER T1 validation status (2026-11-08)
+
+Roster: 282 gates. Added trialfixcontent, trialfixui, trialfixsync and trialfixmerges.
+Cache reservation: ezik-v146. Quest assets: 20261108-trialfix-1.
+The historical all-pass table above is not a certification of this branch.
+Order T1 prohibited browser execution; its final run passed 278/282, with chatux, lang and c1dimahome blocked and recon reporting drift.
+Do not publish an all-pass current-head claim until the permitted follow-up audit completes.
+See REPORT-C1-ORDER-T1.md in the session archive for the final measured result.
+
+## ORDER T1B validation measurements (2026-11-08)
+
+The stock chatux, lang and c1dimahome invocations passed on the T1 head using the existing headless browser tooling. The four trialfix groups passed in the follow-up checks.
+The current roster contains 282 entries. Clean-tree recon measured 375/0/0 before its report-facts check; that check was the sole failure before this report update. Section K records the expected complete signature, not an unmeasured full-suite success.
+The device-only design hint was removed in all 24 dictionaries; it contained no other clause. The standard app build and localization/UI/asset checks passed.
+See REPORT-C1-ORDER-T1B.md in the session archive for the final committed-head stock suite result and evidence paths.
+
+## ORDER T2 audit repairs (2026-11-09)
+
+C4 flags F1-F7 are addressed within the existing trialfix gate groups. Profiles preserve absent legacy years, merge saved fields independently, and reconcile pending year choices. Dima migrates frozen v1 days before sync and retains an atomic deletion generation after delete-all. Paused memorizer runs have stable-ID retirement and per-run sync records; oversize records emit an individual failure and do not stop unrelated sync.
+
+The standard app build, byte/digest records, focused sync and deletion checks were verified. No Arabic text, immutable quest asset URL, cache reservation or gate roster changed. The final committed-head stock suite measurements and per-file integrity table are recorded in the session archive REPORT-C1-ORDER-T2.md.
+
+## ORDER T2B index-zero repair (2026-11-09)
+
+The memorizer run reader accepts integer index zero by checking the invalid-value sentinel explicitly. All other run validation remains unchanged. Two regressions in the existing trialfixsync group cover reload and resume, sharded server round trips and retirements, and invalid index rejection. The standard build and dependent byte/digest records were verified; the roster remains 282. Final committed-head results and integrity measurements are recorded in the session archive REPORT-C1-ORDER-T2B.md.
+
+## ORDER T3 second-audit repairs (2026-11-09)
+
+C4 flags T2-F1 through T2-F4 are addressed in the existing gate groups. Profile application uses the winning year pair and its timestamp. Delete-all validates the exact sealed record snapshot inside the cursor-checked deletion transaction, rejecting torn reads and retrying. Memorizer begin, persist, resume and finish preserve one run ID, including old seed-ID saves. The sync fixture executes the shipped deletion statements; removing the real delete or cursor comparison fails both stock sync guards. Existing assertions remain.
+
+The standard build and byte/digest records were verified. The roster remains 282; privacy wording T2-F5 is unchanged. Final committed-head suite results, mutation outputs, C4 scenario replays and per-file integrity measurements are recorded in the session archive REPORT-C1-ORDER-T3.md.

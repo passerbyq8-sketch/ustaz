@@ -1395,5 +1395,60 @@
     "name": "safefetch",
     "script": "guards/safe-fetch-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "c1authproofclient",
+    "script": "guards/c1-auth-proof-client-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1authproofwiring",
+    "script": "guards/c1-auth-proof-wiring-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c2authlifecycle",
+    "script": "guards/c2-auth-lifecycle-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1legacycancel",
+    "script": "guards/c1-legacy-cancel-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1gamesgeneration",
+    "script": "guards/c1-games-generation-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "c1gamesdelivery",
+    "script": "guards/c1-games-delivery-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "usage",
+    "script": "tests/usage.test.js",
+    "args": ""
+  },
+  {
+    "name": "trialfixcontent",
+    "script": "tests/trialfix-content.test.cjs",
+    "args": ""
+  },
+  {
+    "name": "trialfixui",
+    "script": "tests/trialfix-ui.test.cjs",
+    "args": ""
+  },
+  {
+    "name": "trialfixsync",
+    "script": "tests/trialfix-sync.test.cjs",
+    "args": ""
+  },
+  {
+    "name": "trialfixmerges",
+    "script": "tests/trialfix-merges.test.js",
+    "args": ""
   }
 ]

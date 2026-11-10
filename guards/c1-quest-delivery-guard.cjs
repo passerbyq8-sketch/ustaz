@@ -23,4 +23,18 @@ async function verify(documents,source){
  assert.equal(disk.get(asset+'?v='+old),'OLD_JOURNEY','old key does not alias new bytes');
  handlers.fetch({request:new Request('https://fixture.invalid'+asset+'?v='+version),respondWith:p=>reply=p});assert.equal(await (await reply).text(),current);assert.equal(requests.length,1,'new bytes cached for later use');
 }
-(async()=>{await verify(html,worker);await assert.rejects(()=>verify({...html,'quest.html':html['quest.html'].replaceAll('20261105-c1d3-1',old)},worker));await assert.rejects(()=>verify(html,worker.replace("const VERSION = '20261105-c1d3-1';","const VERSION = '"+old+"';")));await assert.rejects(()=>verify(html,worker.replace("'/quest-theme/journey.js',",'')));await verify(html,worker);console.log('PASS R11: six pages, immutable hashes, versioned precache, old cache-first delivery; three regressions rejected.');})().catch(e=>{console.error(e);process.exitCode=1;});
+(async()=>{
+ await verify(html,worker);
+ const version=worker.match(/const VERSION = '([^']+)';/)[1];
+ const stalePage=html['quest.html'].replaceAll(version,old);
+ assert.notEqual(stalePage,html['quest.html'],'stale page mutation changes input');
+ await assert.rejects(()=>verify({...html,'quest.html':stalePage},worker));
+ const staleWorker=worker.replace("const VERSION = '"+version+"';","const VERSION = '"+old+"';");
+ assert.notEqual(staleWorker,worker,'stale worker mutation changes input');
+ await assert.rejects(()=>verify(html,staleWorker));
+ const missingAsset=worker.replace("'/quest-theme/journey.js',",'');
+ assert.notEqual(missingAsset,worker,'missing precache mutation changes input');
+ await assert.rejects(()=>verify(html,missingAsset));
+ await verify(html,worker);
+ console.log('PASS R11: six pages, immutable hashes, versioned precache, old cache-first delivery; three regressions rejected.');
+})().catch(e=>{console.error(e);process.exitCode=1;});

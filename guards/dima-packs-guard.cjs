@@ -2,7 +2,7 @@
 const fs=require('fs'),path=require('path'),crypto=require('crypto'),assert=require('assert/strict');
 const root=path.resolve(__dirname,'..');
 const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
-const BASE='09554894aeef74616a9e030f74f4542b83dc4a1aadf6220d427167c064dae15c';
+const BASE='93eae353c596799d82a7df576fc2632102f86198f7290c3f3c092d67a70cb8a6';
 const files=['pack-regular-002.json','pack-ramadan-001.json','pack-dhul-hijjah-001.json','pack-white-days-001.json','pack-regular-003.json'];
 function json(f){const b=fs.readFileSync(path.join(root,f));assert(!b.subarray(0,3).equals(Buffer.from([239,187,191])),f+' BOM');assert(!b.includes(13),f+' must be LF');return JSON.parse(b.toString('utf8'));}
 const norm=s=>s.normalize('NFC').replace(/[\u0610-\u061a\u064b-\u065f\u0670\u06d6-\u06ed\u0640]/g,'').replace(/[\u0623\u0625\u0622\u0671]/g,'\u0627').replace(/\u0629/g,'\u0647').replace(/\u0649/g,'\u064a').replace(/[^\u0621-\u064a0-9]/g,'');

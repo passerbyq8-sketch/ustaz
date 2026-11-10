@@ -95,6 +95,12 @@ function run() {
       fs.writeFileSync(file, JSON.stringify(p) + '\n');
     }
   }
+  const correction = require('./item33-corrections.cjs');
+  for (const file of new Set(require('./item33-corrections.json').patches.map(p => p.file).filter(f => f.startsWith('lang/content/')))) {
+    const full = path.join(ROOT, file), raw = fs.readFileSync(full, 'utf8');
+    const data = correction.apply(file, JSON.parse(raw));
+    fs.writeFileSync(full, JSON.stringify(data, null, raw.startsWith('{\n  ') ? 2 : undefined) + '\n');
+  }
   console.log(JSON.stringify(report));
 }
 if (require.main === module) run();
