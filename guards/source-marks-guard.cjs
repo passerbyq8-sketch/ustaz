@@ -161,6 +161,51 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e\n]/g, '~').slice(0, 200);
     ok('K2-6 \u00ab\u062c\u0627\u0645\u0639 \u0627\u0644\u0639\u0644\u0648\u0645 \u0648\u0627\u0644\u062d\u0643\u0645 \u062a \u0627\u0644\u0623\u0631\u0646\u0624\u0648\u0637\u00bb -> the mark of today (pinned)', U.shortSourceMark({ kind: 'lib_book', title: '\u062c\u0627\u0645\u0639 \u0627\u0644\u0639\u0644\u0648\u0645 \u0648\u0627\u0644\u062d\u0643\u0645 \u062a \u0627\u0644\u0623\u0631\u0646\u0624\u0648\u0637', bookTitle: '\u062c\u0627\u0645\u0639 \u0627\u0644\u0639\u0644\u0648\u0645 \u0648\u0627\u0644\u062d\u0643\u0645 \u062a \u0627\u0644\u0623\u0631\u0646\u0624\u0648\u0637', author: '', recordId: 'FC-999999:0001' }) === '\u062c\u0627\u0645\u0639 \u0627\u0644\u0639\u0644\u0648\u0645 \u0648\u0627\u0644\u062d\u0643\u0645', ascii(U.shortSourceMark({ kind: 'lib_book', bookTitle: '\u062c\u0627\u0645\u0639 \u0627\u0644\u0639\u0644\u0648\u0645 \u0648\u0627\u0644\u062d\u0643\u0645 \u062a \u0627\u0644\u0623\u0631\u0646\u0624\u0648\u0637', author: '', recordId: 'FC-999999:0001' })));
     K2_ROWS = { catRow };
   }
+  let C2_ROWS = null; // BRAIN-A C2: the rows the mutant below re-reads
+  // \u2500\u2500 BRAIN-A C2 (2026-11-11; order EZIK-ORDER-BRAIN-A section 4.2; report BRAIN-XRAY section 6, row 24) \u00b7 AN EDITOR'S WORD INSIDE THE
+  // BOOK'S OWN TITLE IS NOT AN EDITOR \u2500\u2500
+  // MEASURED (BRAIN-XRAY-evidence/SMALL-S2-repro2.out.md R24-b; BRAIN-A-evidence/C2-census.before.json): seven catalogue books got no
+  // source mark at all, because \u00ab\u062a\u062d\u0642\u064a\u0642 / \u0625\u0639\u062f\u0627\u062f\u00bb stands in their own title (\u00ab\u0623\u062b\u0631 \u0627\u0644\u0639\u0644\u0645\u0627\u0621 \u0641\u064a \u062a\u062d\u0642\u064a\u0642 \u0631\u0633\u0627\u0644\u0629 \u0627\u0644\u0645\u0633\u062c\u062f\u00bb, \u00ab\u0645\u0646\u0647\u062c \u0641\u064a \u0625\u0639\u062f\u0627\u062f
+  // \u062e\u0637\u0628\u0629 \u0627\u0644\u062c\u0645\u0639\u0629\u00bb, \u00ab\u0627\u0644\u062a\u062f\u0645\u0631\u064a\u0629: \u062a\u062d\u0642\u064a\u0642 \u0627\u0644\u0625\u062b\u0628\u0627\u062a\u2026\u00bb) and the floor read it as the word that introduces an editor. The word does not count
+  // when it stands straight after a preposition (\u0641\u064a\u060c \u0625\u0644\u0649\u060c \u0639\u0644\u0649\u060c \u0639\u0646\u060c \u0645\u0646) or a colon. Catalogue rows by id.
+  {
+    const { LIB_CATALOG } = await esm('lib/data/lib-catalog.js');
+    const catRow = (id) => { const e = LIB_CATALOG.find((x) => x[0] === id); return e ? { kind: 'lib_book', title: e[1], bookTitle: e[1], author: e[2], recordId: e[0] + ':0001' } : null; };
+    const eq = (name, actual, expected) => ok(name, JSON.stringify(actual) === JSON.stringify(expected), ascii('expected ' + JSON.stringify(expected) + ' actual ' + JSON.stringify(actual)));
+    const markOf = (id) => { const r = catRow(id); return r ? U.shortSourceMark(r) : null; };
+    // the five whose whole title fits the cap: the mark is the title
+    for (const id of ['FC-003998', 'FC-005720', 'FC-006040', 'FC-007194', 'FC-007344']) {
+      const r = catRow(id);
+      ok('C2-1 ' + id + ' (the word after a preposition) -> the mark is the whole title', !!r && U.shortSourceMark(r) === r.bookTitle, ascii(JSON.stringify(markOf(id))));
+    }
+    // the two over the cap: the ordinary cut, and it begins as the title begins
+    for (const id of ['FC-002530', 'FC-003416']) {
+      const r = catRow(id); const m = markOf(id);
+      ok('C2-2 ' + id + ' (over the cap) -> a cut mark that opens as the title opens and ends on the ellipsis',
+        !!r && typeof m === 'string' && m.length > 12 && m.length <= 41 && m.endsWith(String.fromCharCode(0x2026)) && r.bookTitle.startsWith(m.slice(0, -1)), ascii(JSON.stringify(m)));
+    }
+    eq('C2-3 FC-003416 -> the cut the order names', markOf('FC-003416'), '\u0625\u0631\u0634\u0627\u062f \u0627\u0644\u0641\u062d\u0648\u0644 \u0625\u0644\u0649 \u062a\u062d\u0642\u064a\u0642 \u0627\u0644\u062d\u0642 \u0645\u0646 \u0639\u0644\u0645\u2026');
+    eq('C2-4 FC-002530 (the word after a colon) -> the cut the order names', markOf('FC-002530'), '\u0627\u0644\u062a\u062f\u0645\u0631\u064a\u0629: \u062a\u062d\u0642\u064a\u0642 \u0627\u0644\u0625\u062b\u0628\u0627\u062a \u0644\u0644\u0623\u0633\u0645\u0627\u0621 \u0648\u0627\u0644\u0635\u0641\u0627\u062a\u2026');
+    // the census: no catalogue row is left without a mark
+    const unmarked = LIB_CATALOG.filter((e) => Array.isArray(e) && !U.shortSourceMark({ kind: 'lib_book', title: e[1], bookTitle: e[1], author: e[2], recordId: e[0] + ':0001' })).map((e) => e[0]);
+    eq('C2-5 census: no catalogue row is left without a source mark', unmarked, []);
+    // MUST NOT CHANGE: a real editor's tail. The four catalogue titles whose editorial word is NOT after a preposition or a colon keep
+    // today's mark (pinned from the tree before this change), and so does FC-004526 (named by its scholar).
+    const EDITORIAL = /\S\s+(?:\u0628\u0639\u0646\u0627\u064a\u0629|\u062a\u062d\u0642\u064a\u0642|\u0625\u0639\u062f\u0627\u062f|\u0627\u0639\u062f\u0627\u062f)(?=\s|$)/u;
+    const OWN_NOUN = /(?:^|\s)(?:\u0641\u064a|\u0625\u0644\u0649|\u0627\u0644\u0649|\u0639\u0644\u0649|\u0639\u0646|\u0645\u0646)\s+(?:\u0628\u0639\u0646\u0627\u064a\u0629|\u062a\u062d\u0642\u064a\u0642|\u0625\u0639\u062f\u0627\u062f|\u0627\u0639\u062f\u0627\u062f)(?=\s|$)|[:\uff1a]\s*(?:\u0628\u0639\u0646\u0627\u064a\u0629|\u062a\u062d\u0642\u064a\u0642|\u0625\u0639\u062f\u0627\u062f|\u0627\u0639\u062f\u0627\u062f)(?=\s|$)/u;
+    const tails = LIB_CATALOG.filter((e) => Array.isArray(e) && EDITORIAL.test(e[1]) && !OWN_NOUN.test(e[1])).map((e) => e[0]);
+    eq('C2-6 the catalogue holds exactly these four editor-tail titles', tails, ["FC-003265","FC-004526","FC-004527","FC-005413"]);
+    eq('C2-7 the four editor-tail titles keep the mark they had before this change', tails.map(markOf), ["\u0642\u0648\u0627\u0639\u062f \u0627\u0644\u0623\u0635\u0648\u0644","\u0627\u0628\u0646 \u0628\u0627\u0632","\u0627\u0628\u0646 \u0628\u0627\u0632","\u0627\u0644\u0645\u0646\u0647\u0644 \u0627\u0644\u0645\u0623\u0647\u0648\u0644 \u0628\u0627\u0644\u0628\u0646\u0627\u0621 \u0644\u0644\u0645\u062c\u0647\u0648\u0644 \u0644\u0623\u0628\u064a\u2026"]);
+    ok('C2-8 none of the four editor-tail marks carries the editor\'s word', tails.map(markOf).every((m) => typeof m === 'string' && m && !/(?:\u0628\u0639\u0646\u0627\u064a\u0629|\u062a\u062d\u0642\u064a\u0642|\u0625\u0639\u062f\u0627\u062f|\u0627\u0639\u062f\u0627\u062f)/u.test(m)), ascii(JSON.stringify(tails.map(markOf))));
+    eq('C2-9 FC-004526 \u00ab\u2026 \u0628\u0639\u0646\u0627\u064a\u0629 \u0627\u0644\u0634\u0648\u064a\u0639\u0631\u00bb is still named by its scholar', markOf('FC-004526'), "\u0627\u0628\u0646 \u0628\u0627\u0632");
+    // a synthetic editor's tail the tail drop does not reach (three words after the word) still gets NO mark: the floor stands
+    const SYN = { kind: 'lib_book', title: '\u0643\u062a\u0627\u0628 \u0627\u0644\u0641\u0648\u0627\u0626\u062f \u062a\u062d\u0642\u064a\u0642 \u0645\u062d\u0645\u062f \u0628\u0646 \u0639\u0628\u062f \u0627\u0644\u0644\u0647', bookTitle: '\u0643\u062a\u0627\u0628 \u0627\u0644\u0641\u0648\u0627\u0626\u062f \u062a\u062d\u0642\u064a\u0642 \u0645\u062d\u0645\u062f \u0628\u0646 \u0639\u0628\u062f \u0627\u0644\u0644\u0647', author: '\u0645\u0624\u0644\u0641', recordId: 'FC-999999:0001' };
+    eq('C2-10 a title that still carries an editor\'s word after a plain noun gets no mark, as before', U.shortSourceMark(SYN), '');
+    const SYN2 = { kind: 'lib_book', title: '\u0631\u0633\u0627\u0644\u0629 \u0641\u064a \u0623\u062d\u0643\u0627\u0645 \u0627\u0644\u0637\u0647\u0627\u0631\u0629 \u0628\u0639\u0646\u0627\u064a\u0629 \u0641\u0644\u0627\u0646 \u0628\u0646 \u0641\u0644\u0627\u0646 \u0627\u0644\u0641\u0644\u0627\u0646\u064a', bookTitle: '\u0631\u0633\u0627\u0644\u0629 \u0641\u064a \u0623\u062d\u0643\u0627\u0645 \u0627\u0644\u0637\u0647\u0627\u0631\u0629 \u0628\u0639\u0646\u0627\u064a\u0629 \u0641\u0644\u0627\u0646 \u0628\u0646 \u0641\u0644\u0627\u0646 \u0627\u0644\u0641\u0644\u0627\u0646\u064a', author: '\u0645\u0624\u0644\u0641', recordId: 'FC-999998:0001' };
+    eq('C2-11 \u00ab\u2026 \u0628\u0639\u0646\u0627\u064a\u0629 <three words>\u00bb after a plain noun gets no mark, as before', U.shortSourceMark(SYN2), '');
+    C2_ROWS = { catRow };
+  }
+
 
 
 
@@ -513,6 +558,14 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e\n]/g, '~').slice(0, 200);
     ok('K2 MUTANT refusal seam applied and loaded', mK2.changed && mK2.mod, mK2.error);
     const rowM = K2_ROWS && K2_ROWS.catRow('FC-003532');
     ok('K2 MUTANT KILLED: without the refusal the FC-003532 mark is no longer the whole title', !!mK2.mod && !!rowM && mK2.mod.shortSourceMark(rowM) !== rowM.bookTitle, mK2.mod && rowM ? ascii(mK2.mod.shortSourceMark(rowM)) : mK2.error);
+  }
+
+  // BRAIN-A C2: the own-noun exception removed -> the seven books lose their mark again
+  {
+    const mC2 = await twin((s) => s.replace('|| carriesEditorWord(cut)) return', '|| EDITORIAL_WORD_RE.test(cut)) return'), 'c2');
+    ok('C2 MUTANT own-noun seam applied and loaded', mC2.changed && mC2.mod, mC2.error);
+    const idsM = ['FC-002530', 'FC-003416', 'FC-003998', 'FC-005720', 'FC-006040', 'FC-007194', 'FC-007344'];
+    ok('C2 MUTANT KILLED: without the exception the seven books get no mark again', !!mC2.mod && !!C2_ROWS && idsM.every((id) => mC2.mod.shortSourceMark(C2_ROWS.catRow(id)) === ''), mC2.mod && C2_ROWS ? ascii(JSON.stringify(idsM.map((id) => mC2.mod.shortSourceMark(C2_ROWS.catRow(id))))) : mC2.error);
   }
 
   console.log('\n=== source-marks: ' + (checks - failures) + '/' + checks + (failures ? ' FAIL' : ' PASS') + ' ===');
