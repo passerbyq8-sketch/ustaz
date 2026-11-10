@@ -137,7 +137,10 @@ import {
   classifyReligiousRuntime,
   resolveStoredContext,
   runStoredFiqhTurn,
+  latestUserTurns, // ITEM 35 J2: the two user turns a carried follow-up joins
 } from '../lib/stored-deen.js';
+// ITEM 35 J2 (brain35-ship, 2026-11-10): the question classifier beside J's list, and THE SENTENCE a question about the school gets.
+import { bannedSchoolQuestion, BANNED_SCHOOL_DENY_TEXT } from '../lib/free-brain/instructions.js';
 import { runClosedDeenTurn } from '../lib/closed-deen.js';
 // جولة «الاستعادة»، الفرع أ. Only the SWITCH is imported at module top — it is three environment
 // reads and no I/O. The loop, the tools and the instruction are imported lazily inside the branch,
@@ -1230,13 +1233,24 @@ export default async function handler(req, res) {
   const supportContact = !pornBlocked && (isSupportContactRequest(currentQuestionText)
     || (readerOwnQuestionText !== currentQuestionText && isSupportContactRequest(readerOwnQuestionText)));
   const graveHazardClass = graveHazard(currentQuestionText);
+  // ITEM 35 J2 (brain35-ship, 2026-11-10; the owner): A QUESTION ABOUT THE JA'FARI SCHOOL GETS ONE SENTENCE AND NOTHING ELSE.
+  // Decided here, right after the fixed replies the server gives first (the grave hazard and the self-harm text, the pornography
+  // rule, the support address -- where one of them applies it stands), from the reader's own words and their Arabic: 'deny' on
+  // either denies (lib/free-brain/instructions.js bannedSchoolQuestion). 'sunni_ruling' and null go on unchanged; a unit or a
+  // sentence of the writer that names the school is held or dropped on every path (lib/bw2-units.js, lib/finalize-reader-text.js).
+  // J2 (2): a short follow-up the stored path carries onto the previous question (lib/stored-deen.js resolveStoredContext, `carried`)
+  // is answered as that standalone form -- the two user turns it joins -- so that form is classified here too, before every call.
+  const schoolDenied = !pornBlocked && !supportContact && !graveHazardClass
+    && ([...new Set([currentQuestionText, readerOwnQuestionText])].some((text) => bannedSchoolQuestion(text) === 'deny')
+      || (resolveStoredContext(body.messages, { currentPlan, lexicalRoute: effectiveRoute }).carried
+        && bannedSchoolQuestion(latestUserTurns(body.messages).join('\n')) === 'deny'));
   const impermissibleForWarmup = effectiveRoute === 'GEN'
     ? classifyImpermissibleRequest(currentQuestionText)
     : { blocked: false, kind: '' };
   const impermissibleCounselForWarmup = impermissibleForWarmup.blocked
     && !(impermissibleForWarmup.kind === 'pornography' && impermissibleEarlyDecision().enabled);
   // Do not make even a background service request for a fixed local refusal, safety redirect, or support reply.
-  if (!pornBlocked && !supportContact && !graveHazardClass && !impermissibleCounselForWarmup) {
+  if (!pornBlocked && !supportContact && !graveHazardClass && !impermissibleCounselForWarmup && !schoolDenied) {
     startFatwaServiceWarmup({ fetchImpl: globalThis.fetch });
   }
   const sorterPlan = sorterEligibility({
@@ -1271,6 +1285,18 @@ export default async function handler(req, res) {
       ...final,
     });
   };
+
+  // ITEM 35 J2: THE DENY SEAT. Before everything that reads the question for an answer -- the library-quote exit, the source
+  // follow-up, the sorter, the fatwa-service warm-up, the SSE commit, retrieval and every writer, on every route (BW2, legacy),
+  // every tier, every band and call mode alike. The reply is this handler's own fixed-text writer (sendSynthesizedText: one
+  // text delta and message_stop, as the throttle's and the day cap's), logged on the canned path with the flag `school_denied`,
+  // as the support address is logged; no card, no footer, no tail. A reader of another language gets the fixed-text lookup
+  // (lib/lang/fixed.js), whose text for it is the Arabic sentence.
+  if (schoolDenied) {
+    answerLog.note({ path: 'canned', flags: ['school_denied'] });
+    logRoute({ impermissible: 'none' });
+    return sendSynthesizedText(res, BANNED_SCHOOL_DENY_TEXT);
+  }
 
   // ── LIB_QUOTE_V1 · «انقل لي من كتاب …» ANSWERED WITH THE BOOK'S OWN WORDS ──────────────
   // An adult who asks for the text of a named book gets a SERVER-COMPOSED reply and no model

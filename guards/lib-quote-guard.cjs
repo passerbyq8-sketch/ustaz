@@ -133,9 +133,9 @@ const hit0 = (key) => FIX.atoms[key].response.hits[0];
     const block = askSrc.slice(at("if (libQuoteOn && "), seat);
     ok('A5  ...and it asks the two protections that run later on every path (hazard, health referral)',
       block.includes('!graveHazard(currentQuestionText)') && block.includes(".outcome !== 'REFER_ADULT'"));
-    ok('A6  the library call goes through runTool, and the quote writer is not sendSynthesizedText',
+    ok('A6  the library call goes through runTool, and the quote writer is not sendSynthesizedText (re-cut R12 (c) 2026-11-10: four matches, the J2 deny is its third caller)',
       /runTool\('search_library', \{ query \}, ctx\)/.test(quoteSrc) && !/sendSynthesizedText/.test(block)
-      && (askSrc.match(/sendSynthesizedText\(res,/g) || []).length === 3);
+      && (askSrc.match(/sendSynthesizedText\(res,/g) || []).length === 4);
     const callSites = [];
     const walk = (dir) => {
       for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
