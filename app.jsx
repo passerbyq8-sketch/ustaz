@@ -17299,6 +17299,9 @@ function dimaFreezePresented(store, record) {
   if (!record || !store.startDate || record.civilDate < store.startDate || store.presented?.[record.civilDate]) return store;
   const next = dimaUpgradeStore(store);
   next.presented[record.civilDate] = dimaClone(record);
+  // ORDER T4 (D13-C2): a re-freeze after an earlier account start names the exact snapshot it replaces.
+  const replacing = dimaObject(next.replacing) ? next.replacing[record.civilDate] : null;
+  if (typeof replacing === 'string') { next.presented[record.civilDate].replaces = replacing; delete next.replacing; }
   return dimaWriteStore(next);
 }
 function dimaResetSession() { __dimaSessionStore = null; __dimaStoreError = ''; }
@@ -34517,6 +34520,13 @@ function validCivilDay(v) {
   const date = new Date(v + 'T12:00:00Z');
   return Number.isFinite(+date) && date.toISOString().slice(0,10) === v;
 }
+// ORDER T4 (D13-C2): the exact identity of one frozen snapshot (its full stable JSON, hashed twice), so a device can name the one it replaced.
+function snapshotId(v) {
+  const text = stable(v);
+  let a = 0x811c9dc5, b = (0x9747b28c ^ text.length) >>> 0;
+  for (let i = 0; i < text.length; i++) { const c = text.charCodeAt(i); a = Math.imul(a ^ c, 0x01000193) >>> 0; b = Math.imul(b ^ c, 0x5bd1e995) >>> 0; }
+  return 'snap1:' + text.length + ':' + a.toString(16).padStart(8, '0') + b.toString(16).padStart(8, '0');
+}
 function mergeDima(a, b) {
   a = object(a) ? a : {}; b = object(b) ? b : {};
   const starts = [a.startDate, b.startDate].filter(validCivilDay).sort();
@@ -34530,7 +34540,10 @@ function mergeDima(a, b) {
   }
   for (const day of new Set([...Object.keys(a.presented || {}), ...Object.keys(b.presented || {}), ...Object.keys(a.conflicts || {}), ...Object.keys(b.conflicts || {})])) {
     if (!validCivilDay(day)) continue;
-    const values = unique([a.presented?.[day], b.presented?.[day], ...(Array.isArray(a.conflicts?.[day]) ? a.conflicts[day] : []), ...(Array.isArray(b.conflicts?.[day]) ? b.conflicts[day] : [])].filter(v => object(v) && v.civilDate === day));
+    let values = unique([a.presented?.[day], b.presented?.[day], ...(Array.isArray(a.conflicts?.[day]) ? a.conflicts[day] : []), ...(Array.isArray(b.conflicts?.[day]) ? b.conflicts[day] : [])].filter(v => object(v) && v.civilDate === day));
+    // ORDER T4 (D13-C2): a snapshot that names the exact snapshot it replaced (by snapshotId) retires that one, on its own day only.
+    const replaced = new Set(values.map(v => v.replaces).filter(r => typeof r === 'string'));
+    if (replaced.size) { const kept = values.filter(v => !replaced.has(snapshotId(v))); if (kept.length) values = kept; }
     if (values.length) out.presented[day] = values[0];
     // Preserve every conflicting frozen snapshot for review, including completed days.
     if (values.length > 1) out.conflicts[day] = values.slice(1);
@@ -34619,7 +34632,7 @@ function shardMemorizerRuns(value) {
   return parts;
 }
 
-return { mergeProfile, mergeDima, mergeMemorizer, shardMemorizerRuns };
+return { mergeProfile, mergeDima, mergeMemorizer, shardMemorizerRuns, snapshotId };
 })();
 const EZIK_SYNC_EXTRA_SETTINGS = [THEME_KEY, EZ110_FONT_KEY, EZ110_IDENTITY_KEY, EZ110_DIGITS_KEY, EZ110_BAR_KEY, EZIK_WM_KEY, EZIK_WM_HIDE_KEY, EZIK_ENTER_KEY];
 const EZIK_SYNC_MEM = ['held', 'ranges', 'words', 'tests', 'run', 'plans', 'days', 'prefs'];
@@ -34687,6 +34700,39 @@ function ezikSyncDimaClear() {
   dimaResetSession();
   window.dispatchEvent(new CustomEvent('ezik:dima:state'));
 }
+// ORDER T4 (D13-C2): Dima's start pressed as a guest, then an account whose start is earlier. The earliest start
+// wins (mergeDima), and TODAY's content follows it too: the snapshot frozen today under the later local start is
+// dropped and its exact identity kept in `replacing`, so the re-freeze (DimaScreen's freeze effect, or the end of
+// the sync cycle) names it as replaced and the account's merge retires exactly that one. Today's drops stay; every
+// other day keeps its frozen snapshot (order T1). Nothing is frozen here: a write made inside an apply is sealed
+// as synced and would never reach the account.
+function ezikSyncDimaToday(store, localStart) {
+  const today = dimaCivilDate(), key = dimaDateKey(today);
+  let gone = dimaObject(store.replacing) && typeof store.replacing[key] === 'string' ? store.replacing[key] : null;
+  const frozen = store.presented?.[key];
+  if (dimaValidDayKey(localStart) && dimaValidDayKey(store.startDate) && store.startDate < localStart && dimaObject(frozen) &&
+      frozen.index !== dimaIndexForDate(store.startDate, today)) gone = EZIK_PROGRESS.snapshotId(frozen);
+  if (gone) {
+    const same = v => dimaObject(v) && EZIK_PROGRESS.snapshotId(v) === gone;
+    if (same(store.presented?.[key])) delete store.presented[key];
+    if (Array.isArray(store.conflicts?.[key])) { store.conflicts[key] = store.conflicts[key].filter(v => !same(v)); if (!store.conflicts[key].length) delete store.conflicts[key]; }
+    if (store.presented?.[key]?.replaces === gone || [].concat(store.conflicts?.[key] || []).some(v => v?.replaces === gone)) gone = null;
+  }
+  if (gone) store.replacing = { [key]: gone }; else delete store.replacing;
+}
+/** ORDER T4 (D13-C2): after a cycle, freeze today again where an apply left it waiting (a watched write, so it is pushed). */
+function ezikSyncDimaRefreeze() {
+  const held = ezikSyncJson(localStorage.getItem(DIMA_V2_KEY));
+  const key = dimaDateKey(dimaCivilDate());
+  if (!dimaV2Valid(held) || !dimaObject(held.replacing) || typeof held.replacing[key] !== 'string' || held.presented[key]) return Promise.resolve(false);
+  return loadDimaPacks().then(() => {
+    dimaResetSession();
+    const store = dimaReadStore(), today = dimaCivilDate();
+    if (!store.startDate || dimaDateKey(today) !== key || store.presented?.[key] || !dimaObject(store.replacing) || typeof store.replacing[key] !== 'string') return false;
+    dimaFreezePresented(store, dimaResolveForDate(store, today));
+    return true;
+  }).catch(() => false);
+}
 function ezikSyncProgressApply(id, rec) {
   if (id === 'kv:dima_epoch') {
     const next = String(rec?.val || '0');
@@ -34706,10 +34752,12 @@ function ezikSyncProgressApply(id, rec) {
       if (day === 'start') { ezikSyncDimaClear(); return true; }
       delete current.log[day]; delete current.presented[day];
     } else {
+      const localStart = current.startDate;
       const merged = EZIK_PROGRESS.mergeDima(current, rec.val);
       // Reminder times and preferences remain on this device.
       for (const day of Object.keys(merged.log)) if (current.log?.[day]?.laterAt != null) merged.log[day].laterAt = current.log[day].laterAt;
       current = { ...current, ...merged };
+      ezikSyncDimaToday(current, localStart);
     }
     localStorage.setItem(DIMA_V2_KEY, JSON.stringify(current));
     localStorage.setItem(DIMA_KEY, JSON.stringify({ startDate: current.startDate, log: current.log, notify: current.notify, notifySeen: current.notifySeen }));
@@ -35104,6 +35152,7 @@ function ezikSyncCycle() {
       for (const id of Object.keys(latest)) if (!touched[id] && !(id in st.gone)) st.gone[id] = latest[id];
       ezikSyncWriteState(st);
       if (applied) { try { window.dispatchEvent(new CustomEvent('ezik:sync:applied', { detail: applied })); } catch (e) {} }
+      ezikSyncDimaRefreeze();
       ezikSyncArmNext();
       return 'ok';
     } catch (e) {

@@ -605,3 +605,158 @@ test('trialfix-t4-c1-two-devices-each-drop-counts-on-both', async () => {
     assert.deepEqual([w.view(a).todayDrops, w.view(b).todayDrops], [2, 2], 'stable across cycles');
   } finally { w.restore(); }
 });
+
+// ORDER T4 (D13-C2): Dima's start pressed as a guest, then an account whose start is earlier.
+const t4Agree = (v, label) => { assert.equal(v.contentIndex, v.titleIndex, label + ': content follows the title'); assert.equal(v.frozenIndex, v.titleIndex, label + ': today is frozen on the merged start'); };
+async function t4ScreenCard(w, p) {
+  await w.openDima(p);
+  const el = await w.render(p, 'EzikDimaSection', {});
+  const card = el.querySelector('.dimaCard');
+  const got = { index: Number(card.getAttribute('data-dima-index')), day: card.getAttribute('data-dima-day') };
+  w.unmount(p);
+  return got;
+}
+async function t4AccountDay(w, account, key) { return (await w.account(account)).find(c => c.id === 'ctr:dima.0.' + key).rec.val; }
+/** D3's P3: the account starts on one phone; two days later a fresh install presses start as a guest, then signs in. */
+async function t4GuestAfterAccount(w, account, o = {}) {
+  const old = w.open({ storage: w.fakeLocal({ mrb_device_v1: 'acct-' + (++t4Seq), child_profile: t4Owner() }) });
+  w.signIn(old, account); await w.advance(old, 10000); await w.openDima(old); w.begin(old); w.mark(old, 0); await w.advance(old, 60000); w.kill(old);
+  w.clock.now += (o.gapDays ?? 2) * T4_DAY;
+  const f = w.open({ storage: w.fakeLocal({ mrb_device_v1: 'guest-' + (++t4Seq) }) });
+  await w.advance(f, 3000); await w.openDima(f); w.begin(f); w.mark(f, 0); await w.advance(f, 3000);
+  return f;
+}
+
+test('trialfix-t4-c2-guest-start-then-earlier-account-P3-today-follows-merged-start', async () => {
+  const w = await T4.world();
+  try {
+    const account = 't4-p3';
+    const f = await t4GuestAfterAccount(w, account);
+    const guest = w.view(f);
+    assert.deepEqual([guest.titleIndex, guest.frozenIndex, guest.todayDrops], [1, 1, 1], 'the guest froze day one');
+    const before = w.readJSON(f, 'ezik_dima_v2');
+    w.signIn(f, account); w.onboard(f);
+    await w.advance(f, 2000);
+    const atOnce = w.view(f);
+    assert.equal(atOnce.startDate < guest.startDate, true, 'the earliest start wins');
+    assert.equal(atOnce.titleIndex, 3); t4Agree(atOnce, 'at once'); assert.equal(atOnce.todayDrops, 1, 'today drops unchanged at once');
+    assert.deepEqual(w.readJSON(f, 'ezik_dima_v2').log[guest.todayKey], before.log[guest.todayKey], 'the drop record is untouched');
+    await w.advance(f, 10000);
+    const echo = w.view(f); t4Agree(echo, 'after the push echo'); assert.equal(echo.todayDrops, 1);
+    const held = await t4AccountDay(w, account, guest.todayKey);
+    assert.equal(held.presented[guest.todayKey].index, 3, 'the account holds the new snapshot');
+    assert.equal(held.presented[guest.todayKey].replaces, T4.plain(w.run(f, 'EZIK_PROGRESS.snapshotId(' + JSON.stringify(before.presented[guest.todayKey]) + ')')), 'it names the exact snapshot it replaced');
+    assert.deepEqual(held.conflicts || {}, {}, 'the replaced snapshot is retired, not kept as a conflict');
+    await w.advance(f, 130000);
+    t4Agree(w.view(f), 'after one cycle');
+    assert.deepEqual(await t4ScreenCard(w, f), { index: 3, day: w.view(f).contentDayId }, 'the screen card shows day three');
+    w.kill(f);
+    const again = w.open({ storage: f.local }); await w.advance(again, 5000); await w.openDima(again);
+    const restart = w.view(again); t4Agree(restart, 'after a restart'); assert.equal(restart.todayDrops, 1);
+    await w.advance(again, 130000); t4Agree(w.view(again), 'restart plus a cycle'); w.kill(again);
+    const second = w.open({ storage: w.fakeLocal({ mrb_device_v1: 'second-' + (++t4Seq), child_profile: t4Owner() }) });
+    w.signIn(second, account); await w.advance(second, 10000); await w.openDima(second); await w.advance(second, 5000);
+    const sv = w.view(second); t4Agree(sv, 'second device'); assert.equal(sv.todayDrops, 1);
+    assert.deepEqual(w.readJSON(second, 'ezik_dima_v2').presented[guest.todayKey], restart && w.readJSON(again, 'ezik_dima_v2').presented[guest.todayKey], 'two devices end on the same snapshot');
+    w.kill(second);
+    const fresh = await t4Fresh(w, account, { openDima: true });
+    for (const [m, v] of t4Moments(fresh, ['atOnce', 'afterCycle', 'afterOpen'])) { assert.equal(v.titleIndex, 3, 'fresh ' + m); assert.equal(v.frozenIndex, 3, 'fresh ' + m); }
+    assert.equal(fresh.afterOpen.contentIndex, 3, 'fresh install content');
+  } finally { w.restore(); }
+});
+
+test('trialfix-t4-c2-J7-J4-guestStart-gap2d-title-and-content-agree', async () => {
+  const w = await T4.world();
+  try {
+    const account = 't4-J7-guest';
+    await t4Update(w, await t4V144Phase(w, account), 10 * T4_MIN);
+    const f = await t4Fresh(w, account, { gapMs: 2 * T4_DAY, guestStart: true, openDima: true });
+    for (const [m, v] of t4Moments(f, ['atOnce', 'afterCycle', 'afterOpen', 'afterRestart'])) {
+      assert.equal(v.titleIndex, 3, 'J7/J4 title ' + m); assert.equal(v.frozenIndex, 3, 'J7/J4 frozen ' + m);
+      assert.equal(v.todayDrops, 1, 'J7/J4 the guest drop stays ' + m); assert.deepEqual(v.plants.slice(0, 3), [1, 0, 1], 'J7/J4 plants ' + m);
+    }
+    assert.equal(f.afterOpen.contentIndex, 3, 'J7/J4 content');
+  } finally { w.restore(); }
+});
+
+test('trialfix-t4-c2-past-days-frozen-under-the-guest-start-keep-their-snapshots', async () => {
+  const w = await T4.world();
+  try {
+    const account = 't4-past';
+    const f = await t4GuestAfterAccount(w, account, { gapDays: 3 });
+    const day1 = w.view(f).todayKey;
+    await w.advance(f, T4_DAY); await w.openDima(f); w.mark(f, 0); w.mark(f, 1); w.mark(f, 2);
+    const day2 = w.view(f).todayKey;
+    await w.advance(f, T4_DAY); await w.openDima(f);
+    const today = w.view(f);
+    assert.deepEqual([today.titleIndex, today.frozenIndex], [3, 3], 'guest day three');
+    const before = w.readJSON(f, 'ezik_dima_v2');
+    w.signIn(f, account); w.onboard(f); await w.advance(f, 15000);
+    const after = w.readJSON(f, 'ezik_dima_v2'), v = w.view(f);
+    assert.equal(v.titleIndex, 6); t4Agree(v, 'today');
+    for (const k of [day1, day2]) {
+      assert.deepEqual(after.presented[k], before.presented[k], 'past day ' + k + ' keeps its snapshot');
+      assert.deepEqual(after.log[k], before.log[k], 'past day ' + k + ' keeps its drops');
+      assert.deepEqual((await t4AccountDay(w, account, k)).presented[k], before.presented[k], 'the account keeps ' + k);
+    }
+    assert.deepEqual([after.presented[day1].index, after.presented[day2].index], [1, 2], 'past days stay frozen under the guest start');
+  } finally { w.restore(); }
+});
+
+test('trialfix-t4-c2-guest-start-on-the-account-start-day-changes-nothing', async () => {
+  const w = await T4.world();
+  try {
+    const account = 't4-same';
+    const f = await t4GuestAfterAccount(w, account, { gapDays: 0 });
+    const before = w.readJSON(f, 'ezik_dima_v2'), key = w.view(f).todayKey;
+    w.signIn(f, account); w.onboard(f); await w.advance(f, 15000);
+    const after = w.readJSON(f, 'ezik_dima_v2');
+    assert.equal(after.startDate, before.startDate);
+    assert.equal(after.replacing, undefined, 'no replacement is waiting');
+    assert.equal(after.presented[key].replaces, undefined, 'no snapshot names a replacement');
+    assert.equal(after.presented[key].dayId, before.presented[key].dayId);
+    assert.equal(w.view(f).titleIndex, 1); t4Agree(w.view(f), 'same day');
+  } finally { w.restore(); }
+});
+
+test('trialfix-t4-c2-merge-honours-only-the-exact-replacement', async () => {
+  const P = await import('../lib/sync/trialfix-progress.js');
+  const snap = (i, extra) => ({ civilDate: '2026-11-10', index: i, packId: 'p', dayId: 'd' + i, version: 1, snapshot: { lisan: { text: 'l' + i }, qalb: { text: 'q' }, jawarih: { text: 'j' } }, ...extra });
+  const old = snap(1), fresh = snap(3, { replaces: P.snapshotId(snap(1)) }), stranger = snap(3, { replaces: P.snapshotId(snap(2)) });
+  const past = { civilDate: '2026-11-09', index: 1, packId: 'p', dayId: 'past', version: 1, snapshot: {} };
+  const a = { startDate: '2026-11-10', log: { '2026-11-10': { l: 1 } }, presented: { '2026-11-10': old, '2026-11-09': past } };
+  const b = { startDate: '2026-11-08', log: {}, presented: { '2026-11-10': fresh } };
+  const m = P.mergeDima(a, b);
+  assert.deepEqual(m.presented['2026-11-10'], fresh); assert.equal(m.conflicts['2026-11-10'], undefined, 'the named snapshot is retired');
+  assert.deepEqual(m.presented['2026-11-09'], past, 'another day is untouched');
+  assert.deepEqual(P.mergeDima(b, a), m, 'commutative'); assert.deepEqual(P.mergeDima(m, a), m, 'a stale old snapshot cannot come back'); assert.deepEqual(P.mergeDima(m, m), m, 'idempotent');
+  const s = P.mergeDima(a, { presented: { '2026-11-10': stranger } });
+  assert.equal([s.presented['2026-11-10'], ...(s.conflicts['2026-11-10'] || [])].length, 2, 'a replacement of another snapshot retires nothing');
+  assert.notEqual(P.snapshotId(snap(1)), P.snapshotId(snap(1, { index: 2 })));
+  assert.equal(P.snapshotId({ b: 1, a: [2] }), P.snapshotId({ a: [2], b: 1 }), 'key order does not change the identity');
+  const source = require('fs').readFileSync(require('path').join(__dirname, '../app.jsx'), 'utf8'), lib = require('fs').readFileSync(require('path').join(__dirname, '../lib/sync/trialfix-progress.js'), 'utf8');
+  const body = (x, k) => { const i = x.indexOf(k); return x.slice(i, x.indexOf('\n}\n', i) + 2); };
+  assert.equal(body(source, 'function snapshotId('), body(lib, 'export function snapshotId(').replace('export ', ''), 'the client copy is the server function');
+});
+
+test('trialfix-t4-c2-v146-client-reads-the-replacement-record', async () => {
+  const w = await T4.world();
+  try {
+    const account = 't4-v146';
+    const f = await t4GuestAfterAccount(w, account);
+    const key = w.view(f).todayKey, oldSnap = w.readJSON(f, 'ezik_dima_v2').presented[key];
+    w.signIn(f, account); w.onboard(f); await w.advance(f, 15000); w.kill(f);
+    const v146 = t4Git(T4_V146);
+    const d = w.open({ app: v146, storage: w.fakeLocal({ mrb_device_v1: 'v146-' + (++t4Seq), child_profile: t4Owner() }) });
+    w.signIn(d, account); await w.advance(d, 10000); await w.openDima(d); await w.advance(d, 5000);
+    const stored = w.readJSON(d, 'ezik_dima_v2');
+    assert.equal(stored.presented[key].index, 3); assert.equal(typeof stored.presented[key].replaces, 'string');
+    assert.equal(w.run(d, 'dimaV2Valid(' + JSON.stringify(stored) + ')'), true, 'the v146 store validator accepts the record');
+    assert.equal(w.run(d, '(dimaResetSession(), dimaReadStore(), __dimaStoreError)'), '', 'v146 reports no corrupt store');
+    const v = w.view(d); assert.deepEqual([v.titleIndex, v.contentIndex, v.frozenIndex], [3, 3, 3], 'v146 shows the replacement');
+    // a v146 device that still holds the old snapshot pushes it again: the account keeps the replacement
+    await w.service.push(account, [{ id: 'ctr:dima.0.' + key, rec: { u: w.clock.now + 9999, val: { schema: 2, startDate: null, log: {}, presented: { [key]: oldSnap }, conflicts: {} } } }], w.ENV);
+    const held = await t4AccountDay(w, account, key);
+    assert.equal(held.presented[key].index, 3); assert.deepEqual(held.conflicts || {}, {}, 'later syncs never switch today back');
+  } finally { w.restore(); }
+});
