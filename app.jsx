@@ -24660,6 +24660,9 @@ function App() {
   const saveProfileFields = (name, gender, birthYear, yearProvided) => {
     const base = profileRef.current;
     if (!base) return false;
+    // ORDER T4 (D14): Settings shows a year that was never entered as an EMPTY field. Left empty and untouched
+    // (yearProvided === false), the stored year is saved back exactly as before, still not entered, never the default.
+    if (yearProvided === false && !String(birthYear == null ? '' : birthYear).trim() && Number.isInteger(base.birthYear)) birthYear = String(base.birthYear);
     const raw = ezikLatinDigits(birthYear).trim();
     const yr = parseInt(raw, 10);
     const typed = raw.length > 0;
@@ -40089,7 +40092,8 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   const PF_UNSPECIFIED = null;
   const [pfName, setPfNameRaw] = useState(() => String((profile && profile.name) || ''));
   const [pfGender, setPfGenderRaw] = useState(() => (profile && profile.gender) || null);
-  const [pfYear, setPfYearRaw] = useState(() => (profile && profile.birthYear != null ? String(profile.birthYear) : ''));
+  // ORDER T4 (D14): the field shows a year only when the reader entered it; the first-run default stays stored, unshown.
+  const [pfYear, setPfYearRaw] = useState(() => (profile && profile.birthYearProvided === true && profile.birthYear != null ? String(profile.birthYear) : ''));
   const pfYearProvided = useRef(profile?.birthYearProvided === true);
   const pfDirty = useRef({});
   const setPfName = value => { pfDirty.current.name = true; setPfNameRaw(value); };
@@ -40097,7 +40101,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   useEffect(() => {
     if (!pfDirty.current.name) setPfNameRaw(String(profile?.name || ''));
     if (!pfDirty.current.gender) setPfGenderRaw(profile?.gender || null);
-    if (!pfDirty.current.year) { setPfYearRaw(profile?.birthYear == null ? '' : String(profile.birthYear)); pfYearProvided.current = profile?.birthYearProvided === true; }
+    if (!pfDirty.current.year) { setPfYearRaw(profile?.birthYearProvided !== true || profile?.birthYear == null ? '' : String(profile.birthYear)); pfYearProvided.current = profile?.birthYearProvided === true; }
   }, [profile]);
   const setPfYear = (value) => {
     pfDirty.current.year = true;

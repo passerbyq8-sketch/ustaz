@@ -1005,7 +1005,7 @@ async function partD() {
   console.log('\n=== D1. A RETURNING READER MEETS IT ONLY IN SETTINGS ===');
   const c = buildContext({
     seed: {
-      child_profile: JSON.stringify({ name: 'Noor', age: 30, gender: 'male', birthYear: 1996, pid: 'I18N-D1', createdAt: '2026-01-01T00:00:00.000Z' }),
+      child_profile: JSON.stringify({ name: 'Noor', age: 30, gender: 'male', birthYear: 1996, birthYearProvided: true, pid: 'I18N-D1', createdAt: '2026-01-01T00:00:00.000Z' }),
       disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED('I18N-D1'),
     },
     mount: true,

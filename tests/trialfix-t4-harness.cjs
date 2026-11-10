@@ -97,6 +97,8 @@ async function world(startIso) {
     page.ctx = ctx;
     vm.runInContext('(function(){var R=Date;function D(){if(!(this instanceof D))return new R(__now()).toString();var a=[].slice.call(arguments);return a.length?new (Function.prototype.bind.apply(R,[null].concat(a)))():new R(__now());}D.prototype=R.prototype;D.now=function(){return __now();};D.UTC=R.UTC;D.parse=R.parse;Date=D;})();', ctx);
     global.window = window; global.document = window.document;
+    // react-dom asks `'oninput' in document` once, at load; linkedom answers no, which sends text inputs down an IE-only path
+    if (!('oninput' in window.document)) window.document.oninput = null;
     vm.runInContext(VENDOR[0], ctx, { filename: 'react.umd.js' });
     vm.runInContext(VENDOR[1], ctx, { filename: 'react-dom.umd.js' });
     vm.runInContext('var __t4CreateRoot = ReactDOM.createRoot; ReactDOM.createRoot = function () { return { render: function () {}, unmount: function () {} }; };', ctx);

@@ -760,3 +760,109 @@ test('trialfix-t4-c2-v146-client-reads-the-replacement-record', async () => {
     assert.equal(held.presented[key].index, 3); assert.deepEqual(held.conflicts || {}, {}, 'later syncs never switch today back');
   } finally { w.restore(); }
 });
+
+// ORDER T4 (D14): the birth-year field in Settings, rendered with the real SettingsSheet and App's own writers.
+function t4SettingsHost(w, p) {
+  const src = require('fs').readFileSync(require('path').join(__dirname, '../app.jsx'), 'utf8');
+  const cut = (from, to) => { const a = src.indexOf(from); assert.ok(a >= 0, 'anchor ' + from); const b = src.indexOf(to, a) + to.length; return src.slice(a, b); };
+  const save = cut('  const saveProfileFields = (', '\n  };\n');
+  const gender = cut('  const ez110SaveGender = (g) => {', '\n  };\n');
+  const live = cut('  useEffect(() => {\n    const clearSignedOutProfile', "  }, []);\n");
+  w.run(p, 'globalThis.T4Host = function T4Host(props) {\n' +
+    '  const [profile, setProfile] = useState(props.initial);\n  const profileRef = useRef(props.initial), voiceProfileRef = { current: null };\n' +
+    save + gender + live +
+    '  globalThis.__t4Host = { saveGender: ez110SaveGender, profile: () => profileRef.current };\n' +
+    "  return React.createElement(SettingsSheet, { theme: 'light', onTheme() {}, onBack() {}, onOpenControl() {}, a11y: EZIK_A11Y_DEFAULTS, onA11y() {}, onA11yReset() {}, aiConsent: false, aiConsentBy: null, onWithdrawAI() {}, onReviewAI() {}, profile, onSaveProfile: saveProfileFields });\n};");
+}
+async function t4Settings(w, p, initial) {
+  // the sheet's sign-in row reads the page address; linkedom's bare window has none
+  if (!p.window.location) p.window.location = { href: 'https://ezik.app/', origin: 'https://ezik.app', protocol: 'https:', host: 'ezik.app', hostname: 'ezik.app', pathname: '/', search: '', hash: '' };
+  t4SettingsHost(w, p);
+  const el = await w.render(p, 'T4Host', { initial });
+  const label = w.run(p, "ezT('onboarding.birthYear')"), saveLabel = w.run(p, "ezT('settings.profileSave')");
+  const year = () => [...el.querySelectorAll('input')].find(i => i.getAttribute('placeholder') === label);
+  const flush = () => w.advance(p, 200);
+  return {
+    year, placeholder: label,
+    async type(v) {
+      // the native value setter (below React's tracker on the node), then the input event React listens to
+      const i = year(); let o = Object.getPrototypeOf(i), d = null; while (o && !(d = Object.getOwnPropertyDescriptor(o, 'value'))) o = Object.getPrototypeOf(o);
+      assert.ok(d && d.set, 'a native value setter'); d.set.call(i, v); i.dispatchEvent(new p.window.Event('input', { bubbles: true })); await flush();
+      assert.equal(year().value, v, 'the field took the typed text');
+    },
+    async save() { [...el.querySelectorAll('button')].find(b => b.textContent === saveLabel).click(); await flush(); },
+    async male() { el.querySelector('button[role="radio"]').click(); await flush(); },
+    stored: () => { const x = JSON.parse(p.local.getItem('child_profile')); return [x.birthYear, x.age, x.birthYearProvided]; },
+    flush,
+  };
+}
+const t4FirstRun = () => { const y = new Date().getFullYear(); return { name: '', age: 19, gender: null, birthYear: y - 19, birthYearProvided: false, pid: 'pid-d14', createdAt: '2026-11-01T00:00:00.000Z' }; };
+
+test('trialfix-t4-d14-first-run-default-shows-an-empty-field-and-saves-unchanged', async () => {
+  const w = await T4.world();
+  try {
+    const first = t4FirstRun();
+    const p = w.open({ storage: w.fakeLocal({ mrb_device_v1: 'd14-a', child_profile: JSON.stringify(first) }) });
+    await w.advance(p, 3000);
+    const s = await t4Settings(w, p, first);
+    assert.ok(s.year(), 'the birth-year field is on the sheet');
+    assert.equal(s.year().value, '', 'the default year is not shown'); assert.ok(s.placeholder.length > 0, 'its existing placeholder shows');
+    assert.equal(String(first.birthYear), '2007', 'the 2026 default the owner saw');
+    await s.save();
+    assert.deepEqual(s.stored(), [first.birthYear, 19, false], 'saving with the field empty keeps the default pair, not entered');
+    await s.male(); await s.save();
+    assert.deepEqual(s.stored(), [first.birthYear, 19, false], 'a gender change does not turn the default into an entered year');
+    assert.equal(s.year().value, '');
+    w.run(p, '__t4Host.saveGender("female")'); await s.flush();
+    assert.deepEqual(s.stored(), [first.birthYear, 19, false], 'the home gender writer keeps the provenance');
+    assert.equal(s.year().value, '', 'still empty after the reseed');
+    await s.type('1990'); await s.save();
+    assert.deepEqual(s.stored(), [1990, new Date().getFullYear() - 1990, true], 'typing sets an entered year');
+    assert.equal(s.year().value, '1990', 'a typed year shows');
+  } finally { w.restore(); }
+});
+
+test('trialfix-t4-d14-typed-year-shows-and-legacy-unentered-year-is-kept', async () => {
+  const w = await T4.world();
+  try {
+    const typed = { ...t4FirstRun(), name: 'R', birthYear: 1990, age: 36, birthYearProvided: true };
+    let p = w.open({ storage: w.fakeLocal({ mrb_device_v1: 'd14-b', child_profile: JSON.stringify(typed) }) });
+    await w.advance(p, 3000);
+    let s = await t4Settings(w, p, typed);
+    assert.equal(s.year().value, '1990', 'a typed year shows');
+    w.kill(p);
+    const legacy = { ...t4FirstRun(), birthYear: 2015, age: 11, birthYearProvided: false };
+    p = w.open({ storage: w.fakeLocal({ mrb_device_v1: 'd14-c', child_profile: JSON.stringify(legacy) }) });
+    await w.advance(p, 3000);
+    s = await t4Settings(w, p, legacy);
+    assert.equal(s.year().value, '', 'a year never entered is not shown');
+    await s.save();
+    assert.deepEqual(s.stored(), [2015, 11, false], 'an untouched empty field keeps the stored pair (no reset to the adult default)');
+    await s.type('2015'); await s.type(''); await s.save();
+    assert.deepEqual(s.stored(), [new Date().getFullYear() - 19, 19, false], 'clearing a typed field still declines, as before');
+  } finally { w.restore(); }
+});
+
+test('trialfix-t4-d14-after-sign-out-and-after-sign-in-to-an-unentered-account', async () => {
+  const w = await T4.world();
+  try {
+    for (const provided of [true, false]) {
+      const prof = { ...t4FirstRun(), name: 'Me', gender: 'male', birthYear: provided ? 1990 : 2007, age: provided ? 36 : 19, birthYearProvided: provided };
+      const p = w.open({ storage: w.fakeLocal({ mrb_device_v1: 'd14-out-' + provided, child_profile: JSON.stringify(prof) }) });
+      await w.advance(p, 3000);
+      const s = await t4Settings(w, p, prof);
+      w.run(p, 'ezikSyncSignOutWipe()'); await s.flush();
+      assert.equal(s.year().value, provided ? '1990' : '', 'after a sign-out the field shows only a typed kept year');
+      w.kill(p);
+    }
+    const account = 't4-d14-acct';
+    await w.service.push(account, [{ id: 'kv:profile', rec: { u: 10, val: { name: 'Account', gender: 'female', birthYear: 2007, birthYearProvided: false, _fields: { name: 10, gender: 10, year: 10 } } } }], w.ENV);
+    const first = t4FirstRun();
+    const p = w.open({ storage: w.fakeLocal({ mrb_device_v1: 'd14-in', child_profile: JSON.stringify(first) }) });
+    await w.advance(p, 3000);
+    const s = await t4Settings(w, p, first);
+    w.signIn(p, account); await w.advance(p, 8000);
+    assert.equal(w.run(p, '__t4Host.profile().name'), 'Account', 'the sign-in hydrated the profile through the real road');
+    assert.equal(s.year().value, '', 'an account whose year was never entered shows an empty field');
+  } finally { w.restore(); }
+});
