@@ -1017,6 +1017,14 @@ async function main() {
           ok('C4-12c (iii) no excerpt is shorter than it was: eleven answers, budgets 60 to 700', shorter.length === 0, JSON.stringify(shorter.slice(0, 10)));
           const NO_COMMA = 'نعم. ' + 'وقد ذكر أهل العلم في هذه المسألة تفصيلا طويلا منه أن المسافر يترخص برخص السفر ما دام مسافرا ومنه أن المقيم لا يترخص ومنه أن من نوى الإقامة مدة معلومة فله حكم المقيم عند جمهور الفقهاء في ذلك كله';
           ok('C4-13 (iii) control: with no comma after that sentence end the cut is exactly as before', FF.briefExcerpt(NO_COMMA, 200) === oldCut(NO_COMMA, 200));
+          // (HELPER-REFUTATION section 4) the two edges of the comma cut the refuting helper measured
+          const NEAR_COMMA = 'الجمع بين الصلاتين رخصة للمسافر عند جمهور أهل العلم ولا حرج عليه في ذلك. ثم، ' + 'إن المسافر يترخص برخص السفر ما دام مسافرا وإن المقيم لا يترخص بشيء منها عند جمهور الفقهاء في ذلك كله وهذا هو المعروف';
+          ok('C4-14 (iii) a comma that adds less than a sixth of the room past the sentence end does not take the cut: the excerpt ends on the full stop, never on «. ثم»',
+            FF.briefExcerpt(NEAR_COMMA, 200) === oldCut(NEAR_COMMA, 200) && FF.briefExcerpt(NEAR_COMMA, 200).endsWith('.'), FF.briefExcerpt(NEAR_COMMA, 200).slice(-20));
+          const QUOTED = 'الجمع بين الصلاتين رخصة للمسافر عند جمهور أهل العلم ولا حرج عليه في ذلك. ' + 'وقد قال بعض أهل العلم في بيان ذلك «إن المسافر يترخص برخص السفر، ما دام مسافرا في طريقه» وهذا هو المعروف عند جمهور الفقهاء في ذلك كله';
+          const quotedCut = FF.briefExcerpt(QUOTED, 200);
+          ok('C4-15 (iii) a comma inside an open quotation does not take the cut: the excerpt does not end inside «…», and is no shorter than it was',
+            (quotedCut.match(/«/gu) || []).length === (quotedCut.match(/»/gu) || []).length && quotedCut.length >= oldCut(QUOTED, 200).length, quotedCut.slice(-30));
           // the mutants
           const srcC4 = fs.readFileSync(path.join(REPO, 'lib/full-fatwa.js'), 'utf8');
           const mC4i = await mutate('lib/full-fatwa.js', '.replace(EXCERPT_LETTER_RE, excerptLetterWithMarks), \'u\');', ', \'u\'); // mutant: the formulas read no marks', 'c4marks');

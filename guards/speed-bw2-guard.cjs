@@ -64,12 +64,6 @@
 //   C8  the readers: a kunya holding a collection's word, a kunya's case, "rawa hadha al-hadith X" / "rawahu huwa X",
 //       and the question's own credit ("... fi al-sahihayn") read out of its hadith
 'use strict';
-// BRAIN-A (2026-11-11; order EZIK-ORDER-BRAIN-A section 5): THE ROWS OF THIS GUARD THAT DRIVE THE REAL HANDLER DESCRIBE TODAY'S READERS --
-// the front sorter's one word and the pattern readers -- with a provider whose replies are scripted in sequence. They run in the
-// FALLBACK CONFIGURATION, the reading switch off (REQUEST_PLAN_V1=off), where the handler is byte for byte what it was. No row
-// and no expected value is changed. The reading itself is guarded by guards/request-plan-guard.cjs (gate requestplan), which
-// also proves, on the 48 witness questions, that a failed reading is the turn of this configuration (its rows I4e to I4h).
-process.env.REQUEST_PLAN_V1 = 'off';
 
 const fs = require('fs');
 const path = require('path');
@@ -1774,7 +1768,9 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         'LIB_QUOTE_V1', 'LIB_MUJAZ_V1', 'ENCYC_V1', 'DEPTH_FREE_TRIAL', 'RFC_V05_MODE', 'RFC_V05_LEGACY_POLICY', 'LEDGER_RAG',
         'VERCEL_ENV', 'VERCEL_URL', 'FOUNDER_SECRET', 'KV_REST_API_URL', 'KV_REST_API_TOKEN', 'UPSTASH_REDIS_REST_URL',
         'UPSTASH_REDIS_REST_TOKEN', 'ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'LIVE_WORLD_V2', 'BW2_RETRIEVAL_MS', 'BW2_JUDGE_MS',
-        'BW_FAST_MODEL', 'PROPHET_ASCRIPTION_BLOCK', 'BW2_CONTINUE'];
+        'BW_FAST_MODEL', 'PROPHET_ASCRIPTION_BLOCK', 'BW2_CONTINUE',
+        // BRAIN-A: cleared before every drive, so the reading switch a tied row sets (REQUEST_PLAN_V1=off) does not stay for the next row
+        'REQUEST_PLAN_V1'];
       const saved = {};
       for (const k of ENV_KEYS) saved[k] = process.env[k];
       const realFetch = globalThis.fetch;
@@ -1927,7 +1923,11 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         // SPEED FIX 1, R1/R2: through the real handler, each question is a DEEN turn on the free-brain
         // seat that BW2 leaves alone -- today's tool loop answers it (its first round carries tools).
         const today = async (q) => {
-          const r = await drive(q);
+          // BRAIN-A (2026-11-11; order EZIK-ORDER-BRAIN-A section 5): R1a, R1b, R2a, R2b find today's tool loop as the FIRST model
+          // call of the turn (`r.model[0].tools`). With the reading on, the first model call is the reading's. These rows describe
+          // today's readers and run in the fallback configuration, the reading switch off; no expected value is changed. That a
+          // real text request keeps this route WITH the reading on is guards/request-plan-guard.cjs row I7f.
+          const r = await drive(q, { env: { REQUEST_PLAN_V1: 'off' } });
           const seat = r.logOf('[free-brain]');
           const route = r.logOf('[route]');
           return !r.crashed && !!seat && seat.bw2 === false && !!route && route.route === 'DEEN' && !r.logOf('[bw2]')

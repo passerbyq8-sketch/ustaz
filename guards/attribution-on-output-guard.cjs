@@ -531,28 +531,10 @@ const rejectsWrongScholar = (module) => {
       ok('C3 cost: the bare surname with nothing but a colon after it is no longer read as a credit',
         review('الخميس: يجوز ذلك.').text === 'الخميس: يجوز ذلك.' && !credits(review('الخميس: يجوز ذلك.')), review('الخميس: يجوز ذلك.').text);
 
-      // C3b (the second commit of this cure, after the automated security note on the first): THE BARE SURNAME AS A MAN. Ten shapes that
-      // were credits before the cure are credits after it -- four of them only since C3b (name first in front of a person's verb or of
-      // «رأيه», and «فضيلة» before the word). Expected values generated from the tree BEFORE the cure (C3b-probe.before-c3.json).
+      // C3b (the second commit of this cure, after the automated security note on the first): THE BARE SURNAME AS A MAN. Seven shapes
+      // that were credits before the cure are credits after it («فضيلة» before the word only since C3b). Expected values generated from
+      // the tree BEFORE the cure (C3b-probe.before-c3.json). The three shapes with the bare word FIRST and no title are in BARE_FIRST below.
       const BARE_MAN = [
-       [
-        "P4 name first, ruling verb",
-        "الخميس يحرّم ذلك.",
-        "يحرّم ذلك.",
-        "removed-unsupported-attribution"
-       ],
-       [
-        "P6 name first, yujiz",
-        "الخميس يجيز ذلك عند الحاجة.",
-        "يجيز ذلك عند الحاجة.",
-        "removed-unsupported-attribution"
-       ],
-       [
-        "P9 name first, ra'yuhu",
-        "الخميس رأيه أن ذلك جائز.",
-        "رأيه أن ذلك جائز.",
-        "removed-unsupported-attribution"
-       ],
        [
         "P7 fadila + surname",
         "فضيلة الخميس يجيز ذلك عند الحاجة.",
@@ -596,6 +578,35 @@ const rejectsWrongScholar = (module) => {
         "removed-unsupported-attribution"
        ]
       ];
+      // THE ORDER'S RULE (section 4, cure 3): the bare word names the man ONLY behind a title or his first name. These three shapes --
+      // the bare word first, in front of a verb or of the word for his view -- were read as the man by the first form of C3b; that form
+      // turned Thursday sentences of the same shape into credits (below, D9 to D11) and is gone. They are delivered as written: the
+      // stated cost of the rule.
+      const BARE_FIRST = [
+       [
+        "P4 name first, ruling verb",
+        "الخميس يحرّم ذلك.",
+        "يحرّم ذلك.",
+        "removed-unsupported-attribution"
+       ],
+       [
+        "P6 name first, yujiz",
+        "الخميس يجيز ذلك عند الحاجة.",
+        "يجيز ذلك عند الحاجة.",
+        "removed-unsupported-attribution"
+       ],
+       [
+        "P9 name first, ra'yuhu",
+        "الخميس رأيه أن ذلك جائز.",
+        "رأيه أن ذلك جائز.",
+        "removed-unsupported-attribution"
+       ]
+      ];
+      for (const [label, sentence] of BARE_FIRST) {
+        const out = review(sentence);
+        ok('C3b: the bare word first with no title and no first name (' + label + ') is not read as the man: delivered as written, no credit (the rule of the order)',
+          out.text === sentence && !credits(out), (out.annotations[0]?.action || '?') + ' | ' + out.text);
+      }
       for (const [label, sentence, expectedText, expectedAction] of BARE_MAN) {
         const out = review(sentence);
         ok('C3b: the bare surname as a man (' + label + ') is the credit it was before the cure (' + expectedAction + ')',
@@ -634,6 +645,14 @@ const rejectsWrongScholar = (module) => {
        [
         "D8 layla",
         "وفي ليلة الخميس قال لهم: اجتمعوا."
+       ],
+       // (HELPER-REFUTATION 2.8, MEASURED on the first form of C3b: delivered as «يقول الناس إنه يوم مبارك.», the day taken out as a
+       // credit. Its two siblings «الخميس قال فيه النبي ﷺ …» and «الخميس قال عنه أهل العلم …» are NOT rows here: they are turned into
+       // a credit by an older, general reading of ANY noun that opens a sentence before «قال» -- «الجمعة قال فيه النبي ﷺ …» and «اليوم
+       // قال عنه أهل العلم …» the same (BRAIN-A-evidence/C3c-probe.out.txt) -- which is not the registry alias and is reported as FOUND.)
+       [
+        "D9 day first, people say",
+        "الخميس يقول الناس إنه يوم مبارك."
        ]
       ];
       for (const [label, sentence] of DAY_SHAPES) {
@@ -665,7 +684,7 @@ const rejectsWrongScholar = (module) => {
         sourceFile: REVIEWER,
         name: 'thursday-is-a-credit-again',
         transform: (source) => source.replace(
-          'if (commonWordAlias(alias) && !commonAliasNamesAMan(before, after)) continue;',
+          'if (commonWordAlias(alias) && !commonAliasNamesAMan(before)) continue;',
           '/* mutant: a common word is a man */'),
         survives: (m) => { const out = m.reviewAnswer({ text: THURSDAY[0][1], evidence: [], domain: 'fiqh', mode: 'عادي' }); return out.text === THURSDAY[0][1] && !credits(out); },
       });

@@ -145,7 +145,7 @@ import { runClosedDeenTurn, closedWorshipCard } from '../lib/closed-deen.js';
 // BRAIN-A (2026-11-11): the reading -- one model step before retrieval writes a request plan in place of the sorter's one word.
 import {
   requestPlanDecision, readingEligibility, startReading, planModelChoice, planWorldlyClaim, exclusionAfterPlan, readingOf,
-  planLogFlags, readingStatusEvent,
+  planLogFlags, readingStatusEvent, readingFramesEnabled, planContext,
 } from '../lib/request-plan.js';
 // جولة «الاستعادة»، الفرع أ. Only the SWITCH is imported at module top — it is three environment
 // reads and no I/O. The loop, the tools and the instruction are imported lazily inside the branch,
@@ -1688,14 +1688,15 @@ export default async function handler(req, res) {
   });
   // A provisional status still precedes the sorter wait, through the finalized response.
   if (earlyRetrieve) res.write(`data: ${JSON.stringify({ type: 'ezik_status', stage: 'retrieve' })}\n\n`);
-  // BRAIN-A: THE READING IS TIMED IN THE STREAM, AND RETRIEVAL DOES NOT WAIT FOR IT. A status frame marks the reading's start
-  // (the client draws only the stages it knows, so this one is invisible to the reader; the recorder reads its arrival time).
+  // BRAIN-A: THE READING IS TIMED IN THE STREAM (on a preview deployment), AND RETRIEVAL DOES NOT WAIT FOR IT. A status frame
+  // marks the reading's start (the client draws only the stages it knows, so this one is invisible to the reader; the recorder
+  // reads its arrival time). On production the frame is not written.
   // And where the before-writing path would take the question as today's patterns read it, its retrieval starts NOW, beside
   // the reading (lib/before-writing-v2.js startBw2Pregather): the plan usually asks the sources the same things, and then the
   // reading has cost the turn nothing; a failed reading uses this gather as it is.
   let readingPregather = null;
   if (readingRun) {
-    res.write(`data: ${JSON.stringify(readingStatusEvent('start'))}\n\n`);
+    if (readingFramesEnabled(process.env)) res.write(`data: ${JSON.stringify(readingStatusEvent('start'))}\n\n`);
     if (earlyRetrieve) {
       const { startBw2Pregather } = await import('../lib/before-writing-v2.js');
       readingPregather = startBw2Pregather({
@@ -2000,7 +2001,10 @@ export default async function handler(req, res) {
     // plan's word stands. 'contested': the plan calls it worldly and the patterns find a religious word in it -- the plan's word is
     // not taken, and the sorter is asked now, as it is asked today (MEASURED: ten of the twelve worldly questions of the sorter's
     // own fixture carry such a word). Anything else is a religious turn.
-    const worldlyClaim = readingPlanned && sorterPlan.ask ? planWorldlyClaim(readingPlanOf) : 'none';
+    // (decided on the reader's own latest message and earlier turns as well as on the plan: a plan that left the reader's religious
+    // words out of its parts is contested, never clear)
+    const readerPrevious = readingPlanned ? planContext(body.messages).previous : [];
+    const worldlyClaim = readingPlanned && sorterPlan.ask ? planWorldlyClaim(readingPlanOf, { question: questionText, previous: readerPrevious }) : 'none';
     if (worldlyClaim === 'contested') answerLog.note({ flags: ['plan_worldly_contested'] });
     const sorterLate = readingOutcome && sorterPlan.ask && (!readingPlanned || worldlyClaim === 'contested')
       ? startSorter({ messages: body.messages, providerUrl: ANTHROPIC_URL, headers }) : null;
@@ -2014,10 +2018,11 @@ export default async function handler(req, res) {
       res.write(`data: ${JSON.stringify({ type: 'ezik_status', stage: 'general' })}\n\n`);
     }
     logRoute({ route: effectiveRoute, runtime: currentRuntime, sorter: sorterState, sorterMs: sorted ? sorted.ms : 0, frame: frameFor(currentRuntime, sorterState) });
-    // BRAIN-A: the reading's end, timed in the stream (the same invisible status frame as its start). Under the diagnostic header on a
-    // preview deployment it also carries the plan, the model and whether the fallback ran; on production it carries the duration and
-    // plan-or-fallback, nothing of the question.
-    if (readingOutcome) {
+    // BRAIN-A: the reading's end, timed in the stream (the same invisible status frame as its start), ON A PREVIEW DEPLOYMENT ONLY:
+    // the duration and plan-or-fallback, and under the diagnostic header also the plan, the model and the state. On production no
+    // such frame is written -- the stream is the stream it was (three standing rows pin its sequence of status frames); the
+    // duration is in the [reading] line above.
+    if (readingOutcome && readingFramesEnabled(process.env)) {
       const readingDiag = bw2DiagnosticEnabled(req)
         ? { model: readingOutcome.model, choice: readingOutcome.choice, state: readingOutcome.state, reason: readingOutcome.reason || '', plan: readingPlanOf }
         : {};
@@ -2025,7 +2030,7 @@ export default async function handler(req, res) {
     }
     // WHAT THE READING SETTLED FOR THIS TURN (null: no reading, and every line below is the line it was). The full question a
     // follow-up continues, what the sources are asked, the parts with their names, and the parts the server answers itself.
-    const reading = readingPlanned ? readingOf(readingPlanOf, { question: questionText }) : null;
+    const reading = readingPlanned ? readingOf(readingPlanOf, { question: questionText, previous: readerPrevious }) : null;
     // IT CAN ADD CARE AND NEVER REMOVE IT. The fixed replies of the server stood ahead of the reading and read the reader's last
     // message; they are asked again of the FULL question that message continues: «وما دليلهم على ذلك؟» after a question about the
     // banned school is that question (the fixed sentence), and a follow-up that completes a hazard or a request for pornography
@@ -2270,7 +2275,7 @@ export default async function handler(req, res) {
     // part served by the card beside another part, go to the before-writing path (lib/request-plan.js exclusionAfterPlan).
     const bw2Route = beforeWritingV2Takes({
       enabled: beforeWritingV2Decision().enabled, band, runtime: currentRuntime, liveSearch,
-      excluded: reading ? exclusionAfterPlan(lexicalExclusion, readingPlanOf) : bw2ScopeExclusion(currentQuestionText),
+      excluded: reading ? exclusionAfterPlan(lexicalExclusion, readingPlanOf, { question: questionText }) : bw2ScopeExclusion(currentQuestionText),
     });
     const bw2Taken = freeBrain.enabled && !childBenignReserved && bw2Route.takes;
     // BRAIN-A: the gather that ran beside the reading is read by the before-writing path alone

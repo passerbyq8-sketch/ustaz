@@ -8,12 +8,6 @@
 //       not query words; the verb and the noun they resemble stay issue words; every library member and the
 //       fatwa store are asked the issue itself (questions 1-3 and 22)
 'use strict';
-// BRAIN-A (2026-11-11; order EZIK-ORDER-BRAIN-A section 5): THE ROWS OF THIS GUARD THAT DRIVE THE REAL HANDLER DESCRIBE TODAY'S READERS --
-// the front sorter's one word and the pattern readers -- with a provider whose replies are scripted in sequence. They run in the
-// FALLBACK CONFIGURATION, the reading switch off (REQUEST_PLAN_V1=off), where the handler is byte for byte what it was. No row
-// and no expected value is changed. The reading itself is guarded by guards/request-plan-guard.cjs (gate requestplan), which
-// also proves, on the 48 witness questions, that a failed reading is the turn of this configuration (its rows I4e to I4h).
-process.env.REQUEST_PLAN_V1 = 'off';
 
 const path = require('path');
 const { pathToFileURL } = require('url');
@@ -2198,7 +2192,9 @@ function libraryPlain(markup) {
       'LIB_QUOTE_V1', 'LIB_MUJAZ_V1', 'ENCYC_V1', 'DEPTH_FREE_TRIAL', 'RFC_V05_MODE', 'RFC_V05_LEGACY_POLICY', 'LEDGER_RAG',
       'VERCEL_ENV', 'VERCEL_URL', 'FOUNDER_SECRET', 'KV_REST_API_URL', 'KV_REST_API_TOKEN', 'UPSTASH_REDIS_REST_URL',
       'UPSTASH_REDIS_REST_TOKEN', 'ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'LIVE_WORLD_V2', 'BW2_RETRIEVAL_MS', 'BW2_JUDGE_MS',
-      'BW_FAST_MODEL', 'PROPHET_ASCRIPTION_BLOCK', 'BW2_CONTINUE'];
+      'BW_FAST_MODEL', 'PROPHET_ASCRIPTION_BLOCK', 'BW2_CONTINUE',
+      // BRAIN-A: cleared before every drive, so the reading switch a tied row sets (REQUEST_PLAN_V1=off) does not stay for the next row
+      'REQUEST_PLAN_V1'];
     const saved = {};
     for (const k of ENV_KEYS) saved[k] = process.env[k];
     const realFetch = globalThis.fetch;
@@ -2266,7 +2262,10 @@ function libraryPlain(markup) {
       return { res, frames, model, logOf, crashed, text: frames.filter((f) => f.type === 'content_block_delta').map((f) => f.delta.text).join('') };
     };
     try {
-      const d = await drive(Q2);
+      // BRAIN-A (2026-11-11; order EZIK-ORDER-BRAIN-A section 5): P3d reads the FIRST model call of the turn as today's path's first
+      // round (`d.model[0].tool_choice`). With the reading on, the first model call is the reading's. The row describes today's
+      // readers and runs in the fallback configuration, the reading switch off; no expected value is changed.
+      const d = await drive(Q2, { env: { REQUEST_PLAN_V1: 'off' } });
       const t = d.logOf('[bw2]');
       const worked = d.model.filter((b) => b.system !== BW2.BW2_JUDGE_SYSTEM);
       // POSTSHIP ITEM 12 -- 2026-10-24: the turn still goes on by itself; the free brain's answer (the fake writer cites nothing)
@@ -2366,7 +2365,11 @@ function libraryPlain(markup) {
         return { ok: true, status: 200, url: u, redirected: false, headers: { get: (h) => (String(h).toLowerCase() === 'content-type' ? 'application/json' : null) },
           text: async () => JSON.stringify(WASL.w1.search), json: async () => WASL.w1.search };
       };
-      const LIBENV = { BEFORE_WRITING_V2: 'off', SHAMELA_BRAIN: 'on', SEARCH_API_TOKEN: 'tk-wasl-1' };
+      // BRAIN-A (2026-11-11; order EZIK-ORDER-BRAIN-A section 5): the W1, W2 and W3 rows find the writer's call as the first model
+      // call of the turn and count the calls of a scripted provider. With the reading on, the first call is the reading's. They
+      // describe today's readers and run in the fallback configuration, the reading switch off (one key in the environment the rows
+      // share); no expected value is changed.
+      const LIBENV = { BEFORE_WRITING_V2: 'off', SHAMELA_BRAIN: 'on', SEARCH_API_TOKEN: 'tk-wasl-1', REQUEST_PLAN_V1: 'off' };
       const lastUser = (b) => { const m = (b.messages || []).filter((x) => x.role === 'user').pop(); return m ? JSON.stringify(m.content) : ''; };
       const w1 = await drive(WASL.w1.question, { env: LIBENV, respond: libRespond });
       const w1First = w1.model.find((b) => b.system !== BW2.BW2_JUDGE_SYSTEM);
@@ -2439,7 +2442,8 @@ function libraryPlain(markup) {
       // library, lesson and fatwa rows the before-writing path gathered for the turn instead of asking again. Here the
       // before-writing path is on (the default), the fake judge keeps nothing, so the turn is handed on (judge_none); the
       // free-brain path's own asks are the ones in the reader's words (q = the question), the before-writing path's are not.
-      const HENV = { SHAMELA_BRAIN: 'on', SEARCH_API_TOKEN: 'tk-wasl-1' };
+      // BRAIN-A (2026-11-11): the W6A2 rows, for the same reason as the W1 to W3 rows above: the fallback configuration.
+      const HENV = { SHAMELA_BRAIN: 'on', SEARCH_API_TOKEN: 'tk-wasl-1', REQUEST_PLAN_V1: 'off' };
       for (const depth of ['', 'deep']) {
         libAsked.length = 0; lessonsAsked.length = 0; fatwaAsked.length = 0;
         const h = await drive(depth ? [{ role: 'user', content: WASL.w1.question }] : WASL.w1.question, { env: HENV, respond: storeRespond, depth });
