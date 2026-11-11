@@ -894,6 +894,25 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     }
     const user = (q) => [{ role: 'user', content: q }];
     const idealOf = (id) => JSON.stringify(byId[id].ideal);
+    // Two things vary between two drives of ONE configuration and are no part of what any row below compares (MEASURED after the
+    // PC's restart of 11 November, on battery and three times slower: rows I4e and I4a went red on them):
+    //   - the ORDER in which the sources report: a run of source-status frames (fatwa, library, encyclopedia, lessons) is compared
+    //     as a set, sorted by stage; every frame of it is still compared;
+    //   - whether the bundled encyclopedia was already loaded when the first turn of the process asked it: it is warmed once here.
+    const ENCYC = await esm('lib/encyclopedia.js');
+    for (let i = 0; i < 40 && !ENCYC.encyclopediaReady(); i += 1) { try { await ENCYC.warmEncyclopedia(); } catch { /* the turns below then all find it cold */ } }
+    const sourceStage = (f) => f && f.type === 'ezik_status' && BW.BW2_SOURCES.includes(f.stage);
+    const asSets = (frames) => {
+      const out = [];
+      for (let i = 0; i < frames.length;) {
+        if (!sourceStage(frames[i])) { out.push(frames[i]); i += 1; continue; }
+        let j = i;
+        while (j < frames.length && sourceStage(frames[j])) j += 1;
+        out.push(...frames.slice(i, j).sort((a, b) => String(a.stage).localeCompare(String(b.stage))));
+        i = j;
+      }
+      return out;
+    };
     try {
       // I1 a plan
       const b5 = await drive(user(byId.B5.q), { plan: idealOf('B5') });
@@ -906,7 +925,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         && same(Object.keys(b5Preview.reads[1]).sort(), ['ms', 'outcome', 'stage', 'state', 'type'])
         && b5Preview.frames.findIndex((f) => f === b5Preview.reads[0]) < b5Preview.frames.findIndex((f) => f.type === 'content_block_delta' || f.type === 'message_stop'), b5Preview.reads);
       const b5Off = await drive(user(byId.B5.q), { env: { REQUEST_PLAN_V1: 'off' } });
-      const shape = (d) => d.frames.map((f) => f.type + ':' + (f.stage || ''));
+      const shape = (d) => asSets(d.frames).map((f) => f.type + ':' + (f.stage || ''));
       ok('I1c on PRODUCTION (and wherever the deployment is not a preview) no reading frame is written: for a plain question the stream with the reading is, frame for frame, the stream without it',
         b5.reads.length === 0 && same(shape(b5), shape(b5Off)) && b5.text === b5Off.text, [shape(b5), shape(b5Off)]);
       const readingLog = b5.logOf('[reading]');
@@ -945,14 +964,14 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const firstDifference = (a, b, ra, rb) => { const i = a.findIndex((f, n) => !same(f, b[n])); return { frames: [a.length, b.length], at: i, on: i >= 0 ? a[i] : null, off: i >= 0 ? b[i] : null, routeOn: ra, routeOff: rb }; };
       ok('I4a a reply that is no plan: the sorter is asked, as it would have been, and the turn is the turn of the switch-off configuration -- the same frames, the same text',
         !junk.crashed && junk.counts.reading === 1 && junk.counts.sorter === 1 && junk.order.indexOf('sorter') > junk.order.indexOf('reading') && junkPreview.reads.length === 2 && junkPreview.reads[1].outcome === 'fallback'
-        && same(strip(junk.frames), off.frames) && junk.text === off.text && same(routeOf(junk), routeOf(off)), firstDifference(strip(junk.frames), off.frames, junk.logOf('[route]'), off.logOf('[route]')));
+        && same(asSets(strip(junk.frames)), asSets(off.frames)) && junk.text === off.text && same(routeOf(junk), routeOf(off)), firstDifference(asSets(strip(junk.frames)), asSets(off.frames), junk.logOf('[route]'), off.logOf('[route]')));
       ok('I4b ...and the event is logged with its reason', junk.logOf('[reading]').outcome === 'unparsable' && junk.logOf('[reading]').count === 0 && junk.logOf('[reading]').kind === null);
       const names = 'رتب لي أسماء الموظفين أبجديا: يوسف، إبراهيم، محمد';
       const junkWorldly = await drive(user(names), { plan: '', sorter: 'WORLDLY' });
       const offWorldly = await drive(user(names), { env: { REQUEST_PLAN_V1: 'off' }, sorter: 'WORLDLY' });
       ok('I4c the same for a worldly verdict: after a failed reading the sorter\'s WORLDLY makes the turn general, as with the switch off',
         junkWorldly.logOf('[route]').runtime === 'GENERAL' && junkWorldly.logOf('[route]').sorter === 'worldly' && same(routeOf(junkWorldly), routeOf(offWorldly)) && junkWorldly.text === offWorldly.text
-        && same(strip(junkWorldly.frames), offWorldly.frames));
+        && same(asSets(strip(junkWorldly.frames)), asSets(offWorldly.frames)));
       ok('I4d the switch off: no reading call, no reading frame, the sorter as before', off.counts.reading === 0 && off.reads.length === 0 && off.counts.sorter === 1 && off.logOf('[reading]') === null);
 
       // I4e-g ON EVERY QUESTION OF THE FIXTURE (the 48 witnesses and the four further baseline questions, each with its earlier
@@ -964,7 +983,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         if (!value || typeof value !== 'object') return value;
         return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, (typeof v === 'number' && /(?:^ms$|Ms$|^elapsed|At$)/.test(k)) ? 0 : noTimes(v)]));
       };
-      const digest = (d) => JSON.stringify({ status: d.res.statusCode, json: d.res.jsonBody || null, frames: noTimes(strip(d.frames)), text: d.text, route: routeOf(d),
+      const digest = (d) => JSON.stringify({ status: d.res.statusCode, json: d.res.jsonBody || null, frames: asSets(noTimes(strip(d.frames))), text: d.text, route: routeOf(d),
         calls: d.calls.filter((c) => c.startsWith('call:')).sort() });
       const convoOf = (item) => [...item.prev.flatMap((p) => [{ role: 'user', content: p }, { role: 'assistant', content: 'جواب سابق.' }]), { role: 'user', content: item.q }];
       const unequal = { control: [], failed: [], worldly: [], dropped: [] };
@@ -1020,7 +1039,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const refused = await drive(user(names), { plan: worldlyPlan(names), sorter: 'RELIGIOUS' });
       ok('I5a2 the same word for a question in which the patterns DO find a religious word: the plan\'s word is not taken -- the sorter is asked, as today, and ITS word decides (worldly: the turn of the switch-off configuration)',
         !agreed.crashed && RP.planWorldlyClaim(RP.parsePlan(worldlyPlan(names))) === 'contested' && agreed.counts.reading === 1 && agreed.counts.sorter === 1
-        && same(routeOf(agreed), routeOf(offWorldly)) && agreed.text === offWorldly.text && same(strip(agreed.frames), offWorldly.frames), [agreed.counts, agreed.logOf('[route]')]);
+        && same(routeOf(agreed), routeOf(offWorldly)) && agreed.text === offWorldly.text && same(asSets(strip(agreed.frames)), asSets(offWorldly.frames)), [agreed.counts, agreed.logOf('[route]')]);
       ok('I5a3 ...and when the sorter says religious the turn is religious, on the sources, whatever the plan said',
         !refused.crashed && refused.counts.sorter === 1 && refused.logOf('[route]').runtime === 'STORED_FIQH' && refused.logOf('[route]').sorter === 'religious' && refused.logOf('[route]').frame === 'sharia', refused.logOf('[route]'));
       const riba = 'ما حكم الربا في القروض؟';
@@ -1080,7 +1099,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         const sickOff = await drive(user(sickQ), { env: { REQUEST_PLAN_V1: 'off' } });
         const sickOn = await drive(user(sickQ), { plan: JSON.stringify(planWith([partOf('كيف أصلي؟', 'manner', { act: 'salah', name: 'صفة الصلاة' })])) });
         ok('I7e «أنا مريض لا أستطيع الوقوف، كيف أصلي؟» planned as the bare «كيف أصلي؟»: NOT the prayer card alone -- the turn is the turn of the switch-off configuration (the case was the reader\'s question)',
-          !sickOn.crashed && !sickOn.text.includes('<worship id="salah">') && sickOn.text === sickOff.text && same(strip(sickOn.frames), sickOff.frames), [sickOn.text.slice(0, 60), sickOff.text.slice(0, 60)]);
+          !sickOn.crashed && !sickOn.text.includes('<worship id="salah">') && sickOn.text === sickOff.text && same(asSets(strip(sickOn.frames)), asSets(sickOff.frames)), [sickOn.text.slice(0, 60), sickOff.text.slice(0, 60)]);
         const dua = 'أعطني دعاء الاستخارة';
         const duaOff = await drive(user(dua), { env: { REQUEST_PLAN_V1: 'off' } });
         const duaKinds = [];
