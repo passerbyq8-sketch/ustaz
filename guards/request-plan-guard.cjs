@@ -1456,6 +1456,12 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       ok('L6 [item 1] the line is decided from what was RELEASED for the part: P1\'s second part with nothing written for it gets its line, although its words stand in the first part\'s text (the old valve would have stood the line down)',
         cut.length > 200 && absent(alone, second.title) === 1 && heads(alone, second.title) === 0 && heads(alone, alone.parts[0].title) === 1
         && BW.partSentenceWanted({ text: second.text, title: second.title }, without) === false, [absent(alone, second && second.title), BW.partSentenceWanted({ text: second.text, title: second.title }, without)]);
+      // the second part of P1 with nothing under its name but the suggestions block the writer ends on
+      const chips = p1.raw.slice(p1.raw.indexOf('<suggestions>'));
+      const onlyChips = await replay('F-P1', { writer: cut + '### ' + second.title + '\n\n' + chips });
+      ok('L6b [item 1] a suggestions block is not text of a part: a part with nothing else under its name gets its line, and its name does not stand above the block',
+        chips.startsWith('<suggestions>') && onlyChips.text.includes('<suggestions>') && absent(onlyChips, second.title) === 1 && heads(onlyChips, second.title) === 0
+        && heads(onlyChips, onlyChips.parts[0].title) === 1, [absent(onlyChips, second.title), heads(onlyChips, second.title)]);
       // P7 with no heading line at all: nothing can be counted for a part
       const bare = await replay('F-P7', { writer: linesOf(p7.raw).filter((line) => !line.startsWith('### ')).join('\n') });
       ok('L7 [item 1] where the writer opens no part of the plan (it wrote no heading), nothing is counted and the lines are decided as before: no heading is invented, no line is added for a part the judge kept rows for',
@@ -1479,6 +1485,9 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const STRAY = 'يبدأ المتوضئ بغسل كفيه ثلاثا ثم يتمضمض ويستنشق';
       const at = b19w.raw.indexOf('### ' + (b19w.parts[0] ? b19w.parts[0].title : '~'));
       const again = await replay('F-B19w', { writer: b19w.raw.slice(0, at) + STRAY + ' [[1]].\n\n' + b19w.raw.slice(at) });
+      const cardOnly = await replay('F-B19w', { writer: linesOf(b19w.raw).filter((line) => line !== '### ' + servedTitle).join('\n') });
+      ok('L10b [item 5] the card of a served part written again with no heading above it is dropped too: one card, one heading of the server\'s',
+        count(cardOnly.text, card) === 1 && heads(cardOnly, servedTitle) === 1 && heads(cardOnly, cardOnly.parts[0].title) === 1, [count(cardOnly.text, card), heads(cardOnly, servedTitle)]);
       ok('L10 [item 5] the repeat is impossible, not discouraged: whatever the writer puts under the heading of a part the server answered is dropped with it, and the rest of the answer is the answer it was',
         at > 0 && !again.text.includes(STRAY) && heads(again, servedTitle) === 1 && count(again.text, card) === 1 && again.text === b19w.text);
     }
