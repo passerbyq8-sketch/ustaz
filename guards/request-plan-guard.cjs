@@ -1243,10 +1243,12 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     {
       const answer = 'الأجر في الحرم مضاعف <source url="https://x">بطاقة</source> [[1]] والصلاة فيه بمئة ألف صلاة';
       const input = RP.planInput([{ role: 'user', content: m2.c.prev[0] }, { role: 'assistant', content: answer }, { role: 'user', content: m2.c.q }]);
+      // a full question about something else, written anyway: it is not read (were it read, the plan would be refused as ungrounded)
+      const forced = RP.validatePlan(RP.parsePlan(JSON.stringify({ ...m2.c.plan, full: 'ما حكم الربا؟' })), { question: m2.c.q, previous: m2.c.prev });
       ok('K7 [item 4] the reading is shown the reader\'s turns and no word of the app\'s answer; a full question the model writes anyway is not read',
         !fold(input).includes(reward) && !input.includes('مضاعف') && input.includes(m2.c.prev[0]) && input.endsWith(m2.c.q)
-        && RP.validatePlan(RP.parsePlan(JSON.stringify({ ...m2.c.plan, full: 'ما حكم الربا؟' })), { question: m2.c.q, previous: m2.c.prev }).plan.full === m2.plan.full
-        && !RP.REQUEST_PLAN_SYSTEM.includes('"full"'));
+        && forced.ok === true && !!forced.plan && forced.plan.full === m2.plan.full
+        && !RP.REQUEST_PLAN_SYSTEM.includes('"full"'), [forced.ok, forced.reason]);
     }
     const p8 = recorded('F-P8');
     ok('K8 [item 4] P8, the recorded plan: the reader asked ONE question about the job and its pay and the plan made two parts of it -- they are one part again, asking both; the savings part is untouched',
@@ -1283,7 +1285,9 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     ok('K12 [item 6] the model is asked for six fields: the follow-up flag, and of a part its question, its kind, its name, the act of a card, the chapter of a collection',
       same(asked, ['followup', 'q', 'kind', 'name', 'act', 'chapter']) && exampleLines[0] === '{"parts":[{"q":"","kind":""}]}'
       && examples.length >= 12 && examples.every((plan) => keysOf(plan).every((k) => asked.includes(k)) && RP.parsePlan(JSON.stringify(plan)) !== null)
-      && !/"needs"|"source"|"c":|"full"|c\.form/.test(RP.REQUEST_PLAN_SYSTEM), examples.map(keysOf).flat().filter((k) => !asked.includes(k)));
+      && !/"needs"|"source"|"c":|"full"|c\.form/.test(RP.REQUEST_PLAN_SYSTEM)
+      && RP.REQUEST_PLAN_SYSTEM.split('\n').includes('Write a key only when it applies. Never write an empty key, and no key that is not named here.'),
+      examples.map(keysOf).flat().filter((k) => !asked.includes(k)));
     ok('K13 [item 6] no example writes an empty key, and a name stands only where there are two parts or more',
       examples.every((plan) => plan.parts.every((p) => Object.values(p).every((v) => v !== '' && !(Array.isArray(v) && !v.length)))
         && (plan.parts.length > 1 ? plan.parts.every((p) => p.name) : plan.parts.every((p) => !('name' in p)))));
