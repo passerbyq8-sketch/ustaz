@@ -902,6 +902,16 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       ok('I7c B19p (the bare request) is answered by the frozen dispatcher as it was: the card alone and no model call at all, the reading included',
         bare.text === '<worship id="tayammum"></worship>' && bare.counts.reading === 0 && bare.counts.sorter === 0 && bare.reads.length === 0 && bare.order.length === 0, bare.order);
 
+      {
+        // a registered hadith (the front sorter's own fixture): lexically HADITH, a runtime the reading takes -- and the closed
+        // dispatcher answers it with no model at all. The reading adds no call to a turn that makes none.
+        const registered = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures-front-sorter.json'), 'utf8')).hadithClosed;
+        const closed = await drive(user(registered), { plan: worldlyPlan(registered) });
+        const rt = closed.logOf('[route]');
+        ok('I7d a registered hadith the closed dispatcher answers (runtime HADITH, which the reading does take): no reading call, no reading frame, no model call at all',
+          !closed.crashed && !!rt && rt.lexicalRuntime === 'HADITH' && closed.counts.reading === 0 && closed.reads.length === 0 && closed.order.length === 0, [rt, closed.order]);
+      }
+
       // I8 children and teens
       const child = await drive(user(byId.B5.q), { plan: idealOf('B5'), band: 'young', age: 9 });
       const teen = await drive(user(byId.B5.q), { plan: idealOf('B5'), band: 'teen', age: 15 });
