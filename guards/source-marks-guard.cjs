@@ -87,11 +87,15 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e\n]/g, '~').slice(0, 200);
     && U.shortSourceMark({ kind: 'lib_book', bookTitle: 'الفتاوى الكبرى إعداد عامر الجزار', author: 'ابن تيمية', recordId: 'FC-000002:0001' }) === 'الفتاوى الكبرى'
     && U.shortSourceMark({ kind: 'lib_book', bookTitle: 'مجموع الفتاوى جمعه ابن قاسم', author: 'ابن تيمية', recordId: 'FC-000002:0001' }) === 'مجموع الفتاوى'
     && U.shortSourceMark({ kind: 'lib_book', bookTitle: 'الأم اعتنى به رفعت فوزي', author: 'الشافعي', recordId: 'FC-000002:0001' }) === '\u0627\u0644\u0623\u0645 \u0627\u0639\u062a\u0646\u0649 \u0628\u0647 \u0631\u0641\u0639\u062a \u0641\u0648\u0632\u064a');
+  // re-cut 2026-11-11 (BRAIN-A cure 2; the owner's named decision R15): the fourth clause pinned that FC-002530 («التدمرية: تحقيق
+  // الإثبات …», where «تحقيق» is the title's own noun after a colon, not an editor's word) has NO mark -- the defect cure 2 removes.
+  // It now expects the mark cure 2 gives that book (the title, cut as any long title is). That expectation moves, nothing else of
+  // the row; R15 covers this clause and nothing else.
   ok('F7c ...and a title that only STARTS with such a word keeps it («جمع الجوامع», «تخريج أحاديث الإحياء», «تحقيق رياض الصالحين»: 31 catalogue titles open on «تحقيق»)',
     U.shortSourceMark({ kind: 'lib_book', bookTitle: 'جمع الجوامع', author: 'السيوطي', recordId: 'FC-000002:0001' }) === 'جمع الجوامع'
     && U.shortSourceMark({ kind: 'lib_book', bookTitle: 'تخريج أحاديث الإحياء', author: 'العراقي', recordId: 'FC-000002:0001' }) === 'تخريج أحاديث الإحياء'
     && U.shortSourceMark({ kind: 'lib_book', bookTitle: 'تحقيق رياض الصالحين للألباني', author: 'النووي', recordId: 'FC-000778:0001' }) === 'تحقيق رياض الصالحين للألباني'
-    && U.shortSourceMark({ kind: 'lib_book', bookTitle: 'التدمرية: تحقيق الإثبات للأسماء والصفات وحقيقة الجمع بين القدر والشرع', author: 'ابن تيمية', recordId: 'FC-002530:0001' }) === '');
+    && U.shortSourceMark({ kind: 'lib_book', bookTitle: 'التدمرية: تحقيق الإثبات للأسماء والصفات وحقيقة الجمع بين القدر والشرع', author: 'ابن تيمية', recordId: 'FC-002530:0001' }) === 'التدمرية: تحقيق الإثبات للأسماء والصفات…');
   ok('F7d a mark that would be under three letters is no mark; one that opens on a conjunction is none',
     U.shortSourceMark({ kind: 'lib_book', bookTitle: 'في', author: '', recordId: 'FC-000002:0001' }) === ''
     && U.shortSourceMark({ kind: 'fatwa', publisher: 'و' }) === '' && U.shortSourceMark({ kind: 'lib_book', bookTitle: 'و كتاب', author: '', recordId: 'FC-000002:0001' }) === '');
