@@ -28,9 +28,12 @@ const entryText = (entry) => (Array.isArray(entry) ? entry.join(' | ') : String(
  * @param {object} plan  a normalised plan: { followup, full, parts: [{name, q, kind, needs, source, act, chapter}], c }
  * @param {object} must  the expectations of the fixture
  * @param {(s:string)=>string} fold  normalizeArabic
+ * @param {string[]|null} asked  the fields the model is asked to write (lib/request-plan.js PLAN_ASKED); a field that is not
+ *        asked is not scored (ORDER A2 item 6: `needs`, `source` and `c` wait for the batch that reads them). null = every field.
  * @returns {{ok:boolean, failures:string[]}}
  */
-export function scorePlan(plan, must, fold) {
+export function scorePlan(plan, must, fold, asked = null) {
+  const asks = (field) => !Array.isArray(asked) || asked.includes(field);
   const failures = [];
   const fail = (text) => failures.push(text);
   if (!plan || typeof plan !== 'object' || !Array.isArray(plan.parts)) return { ok: false, failures: ['no plan'] };
@@ -55,9 +58,9 @@ export function scorePlan(plan, must, fold) {
     for (const term of list(want.nameNone)) if (has(part.name || '', term, fold)) fail(`${at} name carries «${term}»`);
     if (list(want.qAny).length && !want.qAny.some((term) => has(part.q, term, fold))) fail(`${at} q has none of: ${want.qAny.join(' | ')}`);
     for (const term of list(want.qNone)) if (has(part.q, term, fold)) fail(`${at} q carries «${term}»`);
-    for (const need of list(want.needsAll)) if (!list(part.needs).includes(need)) fail(`${at} needs lacks ${need}`);
-    if (list(want.needsAny).length && !want.needsAny.some((need) => list(part.needs).includes(need))) fail(`${at} needs has none of: ${want.needsAny.join('|')}`);
-    if (list(want.sourceAny).length && !want.sourceAny.some((src) => list(part.source).includes(src))) fail(`${at} source has none of: ${want.sourceAny.join('|')}`);
+    if (asks('needs')) for (const need of list(want.needsAll)) if (!list(part.needs).includes(need)) fail(`${at} needs lacks ${need}`);
+    if (asks('needs') && list(want.needsAny).length && !want.needsAny.some((need) => list(part.needs).includes(need))) fail(`${at} needs has none of: ${want.needsAny.join('|')}`);
+    if (asks('source') && list(want.sourceAny).length && !want.sourceAny.some((src) => list(part.source).includes(src))) fail(`${at} source has none of: ${want.sourceAny.join('|')}`);
     if (typeof want.act === 'string' && String(part.act || '') !== want.act) fail(`${at} act «${part.act || ''}» (wanted «${want.act}»)`);
     if (list(want.chapterAny).length && !want.chapterAny.some((term) => has(part.chapter || '', term, fold))) fail(`${at} chapter «${part.chapter || ''}» has none of: ${want.chapterAny.join(' | ')}`);
     if (list(want.chapterNotEqual).length) {
@@ -66,8 +69,10 @@ export function scorePlan(plan, must, fold) {
     }
   });
   for (const want of list(must.anyPart)) {
-    const hit = parts.some((part) => (!list(want.needsAll).length || want.needsAll.every((need) => list(part.needs).includes(need)))
-      && (!list(want.needsAny).length || want.needsAny.some((need) => list(part.needs).includes(need)))
+    // an expectation that reads `needs` alone has nothing to read when `needs` is not asked
+    if (!asks('needs') && !list(want.kindAny).length) continue;
+    const hit = parts.some((part) => (!asks('needs') || !list(want.needsAll).length || want.needsAll.every((need) => list(part.needs).includes(need)))
+      && (!asks('needs') || !list(want.needsAny).length || want.needsAny.some((need) => list(part.needs).includes(need)))
       && (!list(want.kindAny).length || want.kindAny.includes(part.kind)));
     if (!hit) fail('no part has ' + JSON.stringify(want));
   }
@@ -76,7 +81,7 @@ export function scorePlan(plan, must, fold) {
     if (bad) fail(`a part is named «${bad.name}»`);
   }
   const c = plan.c && typeof plan.c === 'object' ? plan.c : {};
-  const wc = must.c && typeof must.c === 'object' ? must.c : {};
+  const wc = asks('c') && must.c && typeof must.c === 'object' ? must.c : {};
   if (wc.sahih === true && c.sahih !== true) fail('c.sahih is not true');
   if (wc.all === true && c.all !== true) fail('c.all is not true');
   for (const name of list(wc.coll)) if (!list(c.coll).includes(name)) fail(`c.coll lacks ${name}`);
@@ -98,7 +103,7 @@ export function readExpected() {
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const { normalizeArabic } = await lib('route-classify.js');
-  const { parsePlan, validatePlan } = await lib('request-plan.js');
+  const { parsePlan, validatePlan, PLAN_ASKED } = await lib('request-plan.js');
   const expected = readExpected();
   const captured = JSON.parse(readFileSync(process.argv[2], 'utf8'));
   let ok = 0; let bad = 0; let absent = 0;
@@ -109,7 +114,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
       const raw = captured[id];
       const parsed = typeof raw === 'string' ? parsePlan(raw) : raw;
       const valid = parsed ? validatePlan(parsed, { question: item.q, previous: item.prev }) : { ok: false, reason: 'unparsable' };
-      const scored = valid.ok ? scorePlan(valid.plan, item.must, normalizeArabic) : { ok: false, failures: ['invalid plan: ' + valid.reason] };
+      const scored = valid.ok ? scorePlan(valid.plan, item.must, normalizeArabic, PLAN_ASKED) : { ok: false, failures: ['invalid plan: ' + valid.reason] };
       if (scored.ok) ok += 1; else bad += 1;
       console.log((scored.ok ? 'OK   ' : 'FAIL ') + id.padEnd(6) + (scored.ok ? '' : ' ' + scored.failures.join('; ').replace(/[^\x20-\x7e]/g, '.')));
     }

@@ -1,0 +1,1060 @@
+{
+  "note": "ORDER A2 (2026-11-11). The plans recorded on the preview capture BRAIN-A-CAPTURE-20261111-1353Z (commit 06ee8909), one per captured turn that had a plan: the question (a witness question of the battery), the reader's earlier turns, and the plan as the model wrote it under the contract of that commit. guards/request-plan-guard.cjs section K feeds them to the real functions. F- = the fast model, S- = the standard model. Never edited by hand: BRAIN-A2-evidence/tools/make-capture-fixture.cjs writes it from the capture's diagnostic documents.",
+  "capture": "BRAIN-A-CAPTURE-20261111-1353Z",
+  "commit": "06ee8909f0ea9d8e80e1b043395ae8b3580280fa",
+  "cases": {
+    "F-B1": {
+      "id": "B1",
+      "model": "fast",
+      "q": "من راوي حديث: «من حسن إسلام المرء تركه ما لا يعنيه»؟",
+      "prev": [],
+      "plan": {
+        "followup": false,
+        "full": "",
+        "parts": [
+          {
+            "name": "راوي حديث «من حسن إسلام المرء تركه ما لا يعنيه»",
+            "q": "من راوي حديث «من حسن إسلام المرء تركه ما لا يعنيه»؟",
+            "kind": "hadith",
+            "needs": [
+              "narrator",
+              "collector",
+              "grade"
+            ],
+            "source": [
+              "hadith",
+              "takhrij"
+            ],
+            "act": "",
+            "chapter": ""
+          }
+        ],
+        "c": {
+          "sahih": false,
+          "all": false,
+          "coll": [],
+          "schools": [],
+          "scholar": "",
+          "book": "",
+          "count": 0,
+          "form": []
+        }
+      }
+    },
+    "F-B19": {
+      "id": "B19",
+      "model": "fast",
+      "q": "ما صفة التيمم؟ ومتى يُشرع؟",
+      "prev": [],
+      "plan": {
+        "followup": false,
+        "full": "",
+        "parts": [
+          {
+            "name": "صفة التيمم",
+            "q": "ما صفة التيمم؟",
+            "kind": "manner",
+            "needs": [
+              "steps"
+            ],
+            "source": [
+              "card"
+            ],
+            "act": "tayammum",
+            "chapter": ""
+          },
+          {
+            "name": "شروط مشروعية التيمم",
+            "q": "متى يُشرع التيمم؟",
+            "kind": "ruling",
+            "needs": [
+              "ruling",
+              "conditions"
+            ],
+            "source": [
+              "fatwa",
+              "school"
+            ],
+            "act": "",
+            "chapter": ""
+          }
+        ],
+        "c": {
+          "sahih": false,
+          "all": false,
+          "coll": [],
+          "schools": [],
+          "scholar": "",
+          "book": "",
+          "count": 0,
+          "form": []
+        }
+      }
+    },
+    "F-B19b": {
+      "id": "B19b",
+      "model": "fast",
+      "q": "كيف يكون التيمم؟ ومتى يشرع؟",
+      "prev": [],
+      "plan": {
+        "followup": false,
+        "full": "",
+        "parts": [
+          {
+            "name": "صفة التيمم",
+            "q": "كيف يكون التيمم؟",
+            "kind": "manner",
+            "needs": [
+              "steps"
+            ],
+            "source": [
+              "card"
+            ],
+            "act": "tayammum",
+            "chapter": ""
+          },
+          {
+            "name": "شروط مشروعية التيمم",
+            "q": "متى يشرع التيمم؟",
+            "kind": "ruling",
+            "needs": [
+              "ruling",
+              "conditions"
+            ],
+            "source": [
+              "fatwa",
+              "school"
+            ],
+            "act": "",
+            "chapter": ""
+          }
+        ],
+        "c": {
+          "sahih": false,
+          "all": false,
+          "coll": [],
+          "schools": [],
+          "scholar": "",
+          "book": "",
+          "count": 0,
+          "form": []
+        }
+      }
+    },
+    "F-B19w": {
+      "id": "B19w",
+      "model": "fast",
+      "q": "ما صفة الوضوء؟ وما نواقضه؟",
+      "prev": [],
+      "plan": {
+        "followup": false,
+        "full": "",
+        "parts": [
+          {
+            "name": "صفة الوضوء",
+            "q": "ما صفة الوضوء؟",
+            "kind": "manner",
+            "needs": [
+              "steps"
+            ],
+            "source": [
+              "card"
+            ],
+            "act": "wudu",
+            "chapter": ""
+          },
+          {
+            "name": "نواقض الوضوء",
+            "q": "ما نواقض الوضوء؟",
+            "kind": "definition",
+            "needs": [
+              "list"
+            ],
+            "source": [
+              "school",
+              "fatwa"
+            ],
+            "act": "",
+            "chapter": ""
+          }
+        ],
+        "c": {
+          "sahih": false,
+          "all": false,
+          "coll": [],
+          "schools": [],
+          "scholar": "",
+          "book": "",
+          "count": 0,
+          "form": []
+        }
+      }
+    },
+    "F-B22": {
+      "id": "B22",
+      "model": "fast",
+      "q": "ما أركان الإيمان؟ اذكرها مع الدليل.",
+      "prev": [],
+      "plan": {
+        "followup": false,
+        "full": "",
+        "parts": [
+          {
+            "name": "أركان الإيمان",
+            "q": "ما أركان الإيمان؟",
+            "kind": "definition",
+            "needs": [
+              "list",
+              "evidence"
+            ],
+            "source": [
+              "aqida",
+              "hadith"
+            ],
+            "act": "",
+            "chapter": ""
+          }
+        ],
+        "c": {
+          "sahih": false,
+          "all": false,
+          "coll": [],
+          "schools": [],
+          "scholar": "",
+          "book": "",
+          "count": 0,
+          "form": [
+            "list",
+            "evidence"
+          ]
+        }
+      }
+    },
+    "F-B22x": {
+      "id": "B22x",
+      "model": "fast",
+      "q": "ما أركان الإيمان؟",
+      "prev": [],
+      "plan": {
+        "followup": false,
+        "full": "",
+        "parts": [
+          {
+            "name": "أركان الإيمان",
+            "q": "ما أركان الإيمان؟",
+            "kind": "definition",
+            "needs": [
+              "list",
+              "count"
+            ],
+            "source": [
+              "aqida",
+              "quran"
+            ],
+            "act": "",
+            "chapter": ""
+          }
+        ],
+        "c": {
+          "sahih": false,
+          "all": false,
+          "coll": [],
+          "schools": [],
+          "scholar": "",
+          "book": "",
+          "count": 0,
+          "form": []
+        }
+      }
+    },
+    "F-K": {
+      "id": "K",
+      "model": "fast",
+      "q": "اذكر لي صفات صلاة الخوف حسب المذاهب الأربعة",
+      "prev": [],
+      "plan": {
+        "followup": false,
+        "full": "",
+        "parts": [
+          {
+            "name": "صفات صلاة الخوف",
+            "q": "ما صفات صلاة الخوف حسب المذاهب الأربعة؟",
+            "kind": "manner",
+            "needs": [
+              "steps",
+              "views"
+            ],
+            "source": [
+              "school",
+              "fatwa"
+            ],
+            "act": "",
+            "chapter": ""
+          }
+        ],
+        "c": {
+          "sahih": false,
+          "all": false,
+          "coll": [],
+          "schools": [
+            "hanafi",
+            "maliki",
+            "shafii",
+            "hanbali"
+          ],
+          "scholar": "",
+          "book": "",
+          "count": 0,
+          "form": [
+            "list"
+          ]
+        }
+      }
+    },
+    "F-M1": {
+      "id": "M1",
+      "model": "fast",
+      "q": "هل في فرق اني ادعي بصحن الحرم اي مقابل الكعبه او خارج سور الحرم كساحات الحرم الخارجيه او مسجد الفندق؟",
+      "prev": [],
+      "plan": {
+        "followup": false,
+        "full": "",
+        "parts": [
+          {
+            "name": "الفرق في الدعاء",
+            "q": "هل يختلف استجابة الدعاء إذا دعوت في صحن الحرم مقابل الكعبة أو خارج سور الحرم في ساحات الحرم الخارجية أو في مسجد الفندق؟",
+            "kind": "ruling",
+            "needs": [
+              "ruling",
+              "evidence",
+              "views"
+            ],
+            "source": [
+              "fatwa",
+              "hadith",
+              "tafsir"
+            ],
+            "act": "",
+            "chapter": ""
+          }
+        ],
+        "c": {
+          "sahih": false,
+          "all": false,
+          "coll": [],
+          "schools": [],
+          "scholar": "",
+          "book": "",
+          "count": 0,
+          "form": []
+        }
+      }
+    },
+    "F-M2": {
+      "id": "M2",
+      "model": "fast",
+      "q": "اقصد صحن المطاف نفسه اللي مقابل الكعبه والفنادق التي حوله، الدعاء هل مختلف؟ هل قيام الليل مختلف؟",
+      "prev": [
+        "هل في فرق اني ادعي بصحن الحرم اي مقابل الكعبه او خارج سور الحرم كساحات الحرم الخارجيه او مسجد الفندق؟"
+      ],
+      "plan": {
+        "followup": true,
+        "full": "هل يختلف الدعاء والأجر بين صحن المطاف مقابل الكعبة والفنادق التي حوله؟",
+        "parts": [
+          {
+            "name": "اختلاف الدعاء بين صحن المطاف والفنادق",
+            "q": "هل يختلف الدعاء بين صحن المطاف مقابل الكعبة والفنادق التي حوله؟",
+            "kind": "ruling",
+            "needs": [
+              "ruling",
+              "evidence"
+            ],
+            "source": [
+              "fatwa",
+              "hadith"
+            ],
+            "act": "",
+            "chapter": ""
+          },
+          {
+            "name": "اختلاف قيام الليل بين صحن المطاف والفنادق",
+            "q": "هل يختلف قيام الليل بين صحن المطاف مقابل الكعبة والفنادق التي حوله؟",
+            "kind": "ruling",
+            "needs": [
+              "ruling",
+              "evidence"
+            ],
+            "source": [
+              "fatwa",
+              "hadith"
+            ],
+            "act": "",
+            "chapter": ""
+          }
+        ],
+        "c": {
+          "sahih": false,
+          "all": false,
+          "coll": [],
+          "schools": [],
+          "scholar": "",
+          "book": "",
+          "count": 0,
+          "form": []
+        }
+      }
+    },
+    "F-P1": {
+      "id": "P1",
+      "model": "fast",
+      "q": "ما أدلة الحنفية على وجوب الوتر؟ وبماذا أجاب الجمهور عنها؟",
+      "prev": [],
+      "plan": {
+        "followup": false,
+        "full": "",
+        "parts": [
+          {
+            "name": "أدلة الحنفية على وجوب الوتر",
+            "q": "ما أدلة الحنفية على وجوب الوتر؟",
+            "kind": "evidence",
+            "needs": [
+              "evidence",
+              "text"
+            ],
+            "source": [
+              "hadith",
+              "school"
+            ],
+            "act": "",
+            "chapter": ""
+          },
+          {
+            "name": "الجمهور على أدلة الحنفية في وجوب الوتر",
+            "q": "بماذا أجاب الجمهور عن أدلة الحنفية على وجوب الوتر؟",
+            "kind": "views",
+            "needs": [
+              "views",
+              "replies",
+              "evidence"
+            ],
+            "source": [
+              "school",
+              "comparative"
+            ],
+            "act": "",
+            "chapter": ""
+          }
+        ],
+        "c": {
+          "sahih": false,
+          "all": false,
+          "coll": [],
+          "schools": [
+            "hanafi"
+          ],
+          "scholar": "",
+          "book": "",
+          "count": 0,
+          "form": []
+        }
+      }
+    },
+    "F-P10": {
+      "id": "P10",
+      "model": "fast",
+      "q": "اجمع لي أحاديث الصحيحين في فضل صلاة الفجر.",
+      "prev": [],
+      "plan": {
+        "followup": false,
+        "full": "",
+        "parts": [
+          {
+            "name": "أحاديث الصحيحين في فضل صلاة الفجر",
+            "q": "ما أحاديث الصحيحين في فضل صلاة الفجر؟",
+            "kind": "collection",
+            "needs": [
+              "list",
+              "collector",
+              "grade"
+            ],
+            "source": [
+              "hadith"
+            ],
+            "act": "",
+            "chapter": ""
+          }
+        ],
+        "c": {
+          "sahih": false,
+          "all": true,
+          "coll": [
+            "bukhari",
+            "muslim"
+          ],
+          "schools": [],
+          "scholar": "",
+          "book": "",
+          "count": 0,
+          "form": []
+        }
+      }
+    },
+    "F-P1s": {
+      "id": "P1s",
+      "model": "fast",
+      "q": "ما أدلة الحنفية على وجوب الوتر؟ وبماذا أجاب الجمهور عنها؟",
+      "prev": [],
+      "plan": {
+        "followup": false,
+        "full": "",
+        "parts": [
+          {
+            "name": "أدلة الحنفية على وجوب الوتر",
+            "q": "ما أدلة الحنفية على وجوب الوتر؟",
+            "kind": "evidence",
+            "needs": [
+              "evidence",
+              "text"
+            ],
+            "source": [
+              "hadith",
+              "school"
+            ],
+            "act": "",
+            "chapter": ""
+          },
+          {
+            "name": "الجمهور على أدلة الحنفية في وجوب الوتر",
+            "q": "بماذا أجاب الجمهور عن أدلة الحنفية على وجوب الوتر؟",
+            "kind": "views",
+            "needs": [
+              "views",
+              "replies",
+              "evidence"
+            ],
+            "source": [
+              "school",
+              "comparative"
+            ],
+            "act": "",
+            "chapter": ""
+          }
+        ],
+        "c": {
+          "sahih": false,
+          "all": false,
+          "coll": [],
+          "schools": [
+            "hanafi"
+          ],
+          "scholar": "",
+          "book": "",
+          "count": 0,
+          "form": []
+        }
+      }
+    },
+    "F-P2": {
+      "id": "P2",
+      "model": "fast",
+      "q": "خرّج حديث «لا نكاح إلا بولي»، واذكر من صحّحه ومن أعلّه ووجه إعلاله.",
+      "prev": [],
+      "plan": {
+        "followup": false,
+        "full": "",
+        "parts": [
+          {
+            "name": "تخريج حديث «لا نكاح إلا بولي»",
+            "q": "خرّج حديث «لا نكاح إلا بولي»، واذكر من صحّحه ومن أعلّه ووجه إعلاله.",
+            "kind": "hadith",
+            "needs": [
+              "collector",
+              "grade",
+              "graders",
+              "flaw"
+            ],
+            "source": [
+              "hadith",
+              "takhrij"
+            ],
+            "act": "",
+            "chapter": ""
+          }
+        ],
+        "c": {
+          "sahih": false,
+          "all": false,
+          "coll": [],
+          "schools": [],
+          "scholar": "",
+          "book": "",
+          "count": 0,
+          "form": []
+        }
+      }
+    },
+    "F-P3": {
+      "id": "P3",
+      "model": "fast",
+      "q": "ما الروايات عن الإمام أحمد في حكم تارك الصلاة تهاونًا؟ وما المعتمد عند متأخري الحنابلة؟",
+      "prev": [],
+      "plan": {
+        "followup": false,
+        "full": "",
+        "parts": [
+          {
+            "name": "روايات الإمام أحمد في حكم تارك الصلاة تهاونًا",
+            "q": "ما الروايات عن الإمام أحمد في حكم تارك الصلاة تهاونًا؟",
+            "kind": "views",
+            "needs": [
+              "views",
+              "owners",
+              "evidence"
+            ],
+            "source": [
+              "school",
+              "fatwa"
+            ],
+            "act": "",
+            "chapter": ""
+          },
+          {
+            "name": "المعتمد عند متأخري الحنابلة في حكم تارك الصلاة تهاونًا",
+            "q": "ما المعتمد عند متأخري الحنابلة في حكم تارك الصلاة تهاونًا؟",
+            "kind": "views",
+            "needs": [
+              "views",
+              "preferred",
+              "evidence"
+            ],
+            "source": [
+              "school",
+              "fatwa"
+            ],
+            "act": "",
+            "chapter": ""
+          }
+        ],
+        "c": {
+          "sahih": false,
+          "all": false,
+          "coll": [],
+          "schools": [
+            "hanbali"
+          ],
+          "scholar": "",
+          "book": "",
+          "count": 0,
+          "form": []
+        }
+      }
+    },
+    "F-P5a": {
+      "id": "P5a",
+      "model": "fast",
+      "q": "ما حكم صلاة التسابيح؟",
+      "prev": [],
+      "plan": {
+        "followup": false,
+        "full": "",
+        "parts": [
+          {
+            "name": "صلاة التسابيح",
+            "q": "ما حكم صلاة التسابيح؟",
+            "kind": "ruling",
+            "needs": [
+              "ruling",
+              "evidence"
+            ],
+            "source": [
+              "fatwa",
+              "hadith"
+            ],
+            "act": "",
+            "chapter": ""
+          }
+        ],
+        "c": {
+          "sahih": false,
+          "all": false,
+          "coll": [],
+          "schools": [],
+          "scholar": "",
+          "book": "",
+          "count": 0,
+          "form": []
+        }
+      }
+    },
+    "F-P5b": {
+      "id": "P5b",
+      "model": "fast",
+      "q": "لكن من أهل العلم من صحّح حديثها، فمن هم؟ وبماذا أجاب من ضعّفه؟",
+      "prev": [
+        "ما حكم صلاة التسابيح؟"
+      ],
+      "plan": {
+        "followup": true,
+        "full": "من هم أهل العلم الذين صحّحوا حديث صلاة التسابيح؟ وبماذا أجاب من ضعّفه على تصحيحهم؟",
+        "parts": [
+          {
+            "name": "العلماء الذين صحّحوا حديث صلاة التسابيح",
+            "q": "من هم أهل العلم الذين صحّحوا حديث صلاة التسابيح؟",
+            "kind": "views",
+            "needs": [
+              "views",
+              "owners"
+            ],
+            "source": [
+              "hadith",
+              "takhrij"
+            ],
+            "act": "",
+            "chapter": ""
+          },
+          {
+            "name": "المضعّفين على من صحّح حديث صلاة التسابيح",
+            "q": "بماذا أجاب من ضعّف حديث صلاة التسابيح على من صحّحه؟",
+            "kind": "views",
+            "needs": [
+              "views",
+              "replies"
+            ],
+            "source": [
+              "hadith",
+              "takhrij"
+            ],
+            "act": "",
+            "chapter": ""
+          }
+        ],
+        "c": {
+          "sahih": false,
+          "all": false,
+          "coll": [],
+          "schools": [],
+          "scholar": "",
+          "book": "",
+          "count": 0,
+          "form": []
+        }
+      }
+    },
+    "F-P7": {
+      "id": "P7",
+      "model": "fast",
+      "q": "ما أقوال السلف في تفسير «الكرسي» في آية الكرسي؟ وماذا رجّح الطبري وابن كثير؟",
+      "prev": [],
+      "plan": {
+        "followup": false,
+        "full": "",
+        "parts": [
+          {
+            "name": "أقوال السلف في تفسير الكرسي",
+            "q": "ما أقوال السلف في تفسير «الكرسي» في آية الكرسي؟",
+            "kind": "tafsir",
+            "needs": [
+              "views",
+              "owners",
+              "evidence"
+            ],
+            "source": [
+              "tafsir"
+            ],
+            "act": "",
+            "chapter": ""
+          },
+          {
+            "name": "ترجيح الطبري وابن كثير في تفسير الكرسي",
+            "q": "ماذا رجّح الطبري وابن كثير في تفسير «الكرسي» في آية الكرسي؟",
+            "kind": "tafsir",
+            "needs": [
+              "views",
+              "preferred"
+            ],
+            "source": [
+              "tafsir"
+            ],
+            "act": "",
+            "chapter": ""
+          }
+        ],
+        "c": {
+          "sahih": false,
+          "all": false,
+          "coll": [],
+          "schools": [],
+          "scholar": "الطبري",
+          "book": "",
+          "count": 0,
+          "form": []
+        }
+      }
+    },
+    "F-P8": {
+      "id": "P8",
+      "model": "fast",
+      "q": "أعمل مبرمجًا في شركة تأمين تجاري: ما حكم عملي وراتبي؟ وإن تركت العمل فكيف أتصرف فيما ادخرته منه؟",
+      "prev": [],
+      "plan": {
+        "followup": false,
+        "full": "",
+        "parts": [
+          {
+            "name": "حكم العمل في شركة تأمين تجاري",
+            "q": "ما حكم عملي مبرمجًا في شركة تأمين تجاري؟",
+            "kind": "ruling",
+            "needs": [
+              "ruling",
+              "evidence"
+            ],
+            "source": [
+              "fatwa",
+              "aqida"
+            ],
+            "act": "",
+            "chapter": ""
+          },
+          {
+            "name": "حكم راتب العامل في شركة تأمين",
+            "q": "ما حكم راتبي من العمل في شركة تأمين تجاري؟",
+            "kind": "ruling",
+            "needs": [
+              "ruling",
+              "evidence"
+            ],
+            "source": [
+              "fatwa"
+            ],
+            "act": "",
+            "chapter": ""
+          },
+          {
+            "name": "التصرف في المدخرات من عمل في التأمين",
+            "q": "إذا تركت العمل في شركة التأمين فكيف أتصرف فيما ادخرته من راتبي؟",
+            "kind": "ruling",
+            "needs": [
+              "ruling",
+              "evidence"
+            ],
+            "source": [
+              "fatwa"
+            ],
+            "act": "",
+            "chapter": ""
+          }
+        ],
+        "c": {
+          "sahih": false,
+          "all": false,
+          "coll": [],
+          "schools": [],
+          "scholar": "",
+          "book": "",
+          "count": 0,
+          "form": []
+        }
+      }
+    },
+    "F-P9": {
+      "id": "P9",
+      "model": "fast",
+      "q": "كم يبعد القمر عن الأرض؟ وهل ورد في القرآن ذكر لمنازله؟",
+      "prev": [],
+      "plan": {
+        "followup": false,
+        "full": "",
+        "parts": [
+          {
+            "name": "القمر والأرض",
+            "q": "كم يبعد القمر عن الأرض؟",
+            "kind": "worldly",
+            "needs": [
+              "fact"
+            ],
+            "source": [
+              "general"
+            ],
+            "act": "",
+            "chapter": ""
+          },
+          {
+            "name": "ذكر منازل القمر في القرآن",
+            "q": "هل ورد في القرآن ذكر لمنازل القمر؟",
+            "kind": "tafsir",
+            "needs": [
+              "meaning",
+              "text"
+            ],
+            "source": [
+              "quran",
+              "tafsir"
+            ],
+            "act": "",
+            "chapter": ""
+          }
+        ],
+        "c": {
+          "sahih": false,
+          "all": false,
+          "coll": [],
+          "schools": [],
+          "scholar": "",
+          "book": "",
+          "count": 0,
+          "form": []
+        }
+      }
+    },
+    "F-Z1o": {
+      "id": "Z1o",
+      "model": "fast",
+      "q": "أبي منك تعطيني كل الأحاديث الصحاح في باب الزينة",
+      "prev": [],
+      "plan": {
+        "followup": false,
+        "full": "",
+        "parts": [
+          {
+            "name": "أحاديث باب الزينة الصحاح",
+            "q": "ما كل الأحاديث الصحاح في باب الزينة؟",
+            "kind": "collection",
+            "needs": [
+              "list",
+              "collector",
+              "grade"
+            ],
+            "source": [
+              "hadith"
+            ],
+            "act": "",
+            "chapter": "الزينة"
+          }
+        ],
+        "c": {
+          "sahih": true,
+          "all": true,
+          "coll": [],
+          "schools": [],
+          "scholar": "",
+          "book": "",
+          "count": 0,
+          "form": []
+        }
+      }
+    },
+    "S-B21": {
+      "id": "B21",
+      "model": "standard",
+      "q": "ما عدة المطلقة التي تحيض؟ وما الدليل؟",
+      "prev": [],
+      "plan": {
+        "followup": false,
+        "full": "",
+        "parts": [
+          {
+            "name": "عدة المطلقة التي تحيض",
+            "q": "ما عدة المطلقة التي تحيض؟",
+            "kind": "ruling",
+            "needs": [
+              "ruling",
+              "evidence"
+            ],
+            "source": [
+              "fatwa",
+              "school"
+            ],
+            "act": "",
+            "chapter": ""
+          }
+        ],
+        "c": {
+          "sahih": false,
+          "all": false,
+          "coll": [],
+          "schools": [],
+          "scholar": "",
+          "book": "",
+          "count": 0,
+          "form": [
+            "evidence"
+          ]
+        }
+      }
+    },
+    "S-P5a": {
+      "id": "P5a",
+      "model": "standard",
+      "q": "ما حكم صلاة التسابيح؟",
+      "prev": [],
+      "plan": {
+        "followup": false,
+        "full": "",
+        "parts": [
+          {
+            "name": "صلاة التسابيح",
+            "q": "ما حكم صلاة التسابيح؟",
+            "kind": "ruling",
+            "needs": [
+              "ruling",
+              "evidence"
+            ],
+            "source": [
+              "fatwa",
+              "hadith"
+            ],
+            "act": "",
+            "chapter": ""
+          }
+        ],
+        "c": {
+          "sahih": false,
+          "all": false,
+          "coll": [],
+          "schools": [],
+          "scholar": "",
+          "book": "",
+          "count": 0,
+          "form": []
+        }
+      }
+    },
+    "S-Z1o": {
+      "id": "Z1o",
+      "model": "standard",
+      "q": "أبي منك تعطيني كل الأحاديث الصحاح في باب الزينة",
+      "prev": [],
+      "plan": {
+        "followup": false,
+        "full": "",
+        "parts": [
+          {
+            "name": "أحاديث باب الزينة",
+            "q": "ما صح من الأحاديث في باب الزينة؟",
+            "kind": "collection",
+            "needs": [
+              "list",
+              "collector",
+              "grade"
+            ],
+            "source": [
+              "hadith"
+            ],
+            "act": "",
+            "chapter": "الزينة"
+          }
+        ],
+        "c": {
+          "sahih": true,
+          "all": true,
+          "coll": [],
+          "schools": [],
+          "scholar": "",
+          "book": "",
+          "count": 0,
+          "form": []
+        }
+      }
+    }
+  }
+}

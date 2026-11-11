@@ -1,5 +1,5 @@
 {
- "note": "BRAIN-A (2026-11-11). The plan a strong reader would write for the 48 witness questions of the BRAIN-XRAY inspection and the four further questions of the 26 recorded on production, written BEFORE the reading's prompt and reviewed by a fresh-context helper. `ideal` is the plan; `must` is what any acceptable plan must satisfy (tools/request-plan-score.mjs). Built by BRAIN-A-evidence/build-expected-plans.mjs: the questions are copied by code from the inspection's witnesses.json and live-plan.json.",
+ "note": "BRAIN-A (2026-11-11). The plan a strong reader would write for the 48 witness questions of the BRAIN-XRAY inspection and the four further questions of the 26 recorded on production, written BEFORE the reading's prompt and reviewed by a fresh-context helper. `ideal` is the plan; `must` is what any acceptable plan must satisfy (tools/request-plan-score.mjs). Built by BRAIN-A-evidence/build-expected-plans.mjs: the questions are copied by code from the inspection's witnesses.json and live-plan.json. ORDER A2 (2026-11-11): the model is asked for `followup`, `q`, `kind`, `name`, `act`, `chapter` only (lib/request-plan.js PLAN_ASKED); the scorer scores those; the expectations on `needs`, `source` and `c` stay here for the batch that reads them. A follow-up's full question is built by the server from the parts' questions, so the ideal of Z6 states the reader's condition in its part's question (it stood in `full` alone). No `must` was changed.",
  "schema": "request-plan/1",
  "aliases": {
   "B22r": "B22",
@@ -300,7 +300,7 @@
     "parts": [
      {
       "name": "أحاديث الزينة",
-      "q": "الأحاديث التي تدور حول الزينة",
+      "q": "الأحاديث التي تدور حول الزينة وليس شرطا أن تذكر فيها كلمة الزينة",
       "kind": "collection",
       "needs": [
        "list",

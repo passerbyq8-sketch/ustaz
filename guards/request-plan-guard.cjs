@@ -14,6 +14,9 @@
 //      reading, and a failed reading (the turn of before)
 //   I  the real handler with a scripted plan: the stream's timing events, the diagnostic view, the fallback, the fixed
 //      sentence for a follow-up, the card alone, the switch off
+//   K  ORDER A2 (the repair round after the preview capture of 11 November): the plans that capture recorded
+//      (fixtures/request-plan-capture.json) fed to the real functions -- what the sources are asked, a follow-up's full
+//      question, a question the plan split in two, what the model is asked to write, the standard model's thinking setting
 //
 // Usage: node guards/request-plan-guard.cjs
 'use strict';
@@ -215,9 +218,12 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     const m2 = byId.M2;
     const convo = [{ role: 'user', content: m2.prev[0] }, { role: 'assistant', content: 'جواب <source url="https://x">بطاقة</source> سابق [[1]] ' + 'نص '.repeat(400) }, { role: 'user', content: m2.q }];
     const input = RP.planInput(convo);
-    ok('E7 a follow-up is shown with the earlier user turn and the head of the last answer (its tags and marks off, cut to 400 characters)',
-      input.includes(m2.prev[0]) && input.includes(m2.q) && input.includes('Beginning of the app\'s last answer:') && !input.includes('<source') && !input.includes('[[1]]')
-      && input.split('Beginning of the app\'s last answer:\n')[1].split('\n')[0].length <= 400);
+    // (ORDER A2 item 4, 2026-11-11: this row said the head of the app's last answer was shown; on the capture a word of that answer
+    // entered the question the turn used, and the order says nothing of it may. The row now says the opposite.)
+    ok('E7 a follow-up is shown with the reader\'s earlier turn and with NOTHING of the app\'s earlier answer (ORDER A2 item 4)',
+      input === 'Earlier messages of the reader (oldest first):\n1. ' + m2.prev[0] + '\n\nLatest message:\n' + m2.q
+      && !input.includes('answer') && !input.includes('<source') && !input.includes('[[1]]') && !input.includes('بطاقة') && !input.includes('سابق')
+      && same(Object.keys(RP.planContext(convo)).sort(), ['latest', 'previous']), input.length);
     ok('E8 the latest message is cut to 2000 characters, an earlier turn to 600',
       RP.planInput([{ role: 'user', content: 'س'.repeat(5000) }]).length <= 2000 + 20
       && RP.planInput([{ role: 'user', content: 'ق'.repeat(5000) }, { role: 'user', content: 'سؤال' }]).split('\n').find((line) => line.startsWith('1. ')).length <= 603);
@@ -743,9 +749,12 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     const p10Before = await turn({ question: byId.P10.q, deps: p10Lex.deps });
     const p10Plan = makeDeps({ rows: [] });
     const p10After = await turn({ question: byId.P10.q, reading: readingFor('P10'), deps: p10Plan.deps });
-    ok('H6 Z keeps its six chapter parts; P10 had three parts on subjects nobody asked and has none with the plan, and its queries no longer carry «اجمع»',
+    // (ORDER A2 item 3, 2026-11-11: this row's last clause said the plan's wording was what the sources were asked. On the capture that
+    // wording brought P10 a worse list and Z1o fewer rows; the order says a one-part question is searched with the reader's words.)
+    ok('H6 Z keeps its six chapter parts; P10 had three parts on subjects nobody asked and has none with the plan; its sources are asked the reader\'s own words, as before the batch (ORDER A2 item 3)',
       z.out.telemetry.parts === 6 && p10Before.out.telemetry.parts === 3 && p10After.out.telemetry.parts === 0
-      && p10Lex.calls.queries.some((q) => fold(q).includes(fold('اجمع'))) && !p10Plan.calls.queries.some((q) => fold(q).includes(fold('اجمع'))), [z.out.telemetry.parts, p10Before.out.telemetry.parts, p10After.out.telemetry.parts]);
+      && readingFor('P10').retrieval === byId.P10.q && same(p10Plan.calls.queries.filter((q) => fold(q).includes(fold('اجمع'))).length > 0, p10Lex.calls.queries.some((q) => fold(q).includes(fold('اجمع')))),
+      [z.out.telemetry.parts, p10Before.out.telemetry.parts, p10After.out.telemetry.parts]);
 
     // H7 -- every part the server's
     const twoCards = RP.readingOf(RP.validatePlan(RP.parsePlan(JSON.stringify({ followup: false, full: '', parts: [
@@ -1176,6 +1185,152 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     ok('J4 the fixed replies are asked again of the FULL question a follow-up continues (care added, none removed)',
       /if \(reading && reading\.question !== questionText\) \{[\s\S]{0,1400}graveHazard\(reading\.question\)[\s\S]{0,900}classifyPornographyRequest\(reading\.question\)\.blocked[\s\S]{0,600}bannedSchoolQuestion\(reading\.question\) === 'deny'/.test(askSource));
     ok('J5 the reading is asked for an adult only, by the handler\'s own band', /const readingPlan = readingEligibility\(\{\s*enabled: requestPlan\.enabled, band, freeBrainEnabled: freeBrainOnAtSorter/.test(askSource));
+  }
+
+  // ------------------------------------------------------------------------------------------------ K
+  console.log('\n=== K. ORDER A2: THE CAPTURE\'S OWN PLANS, FED TO THE REAL FUNCTIONS ===');
+  {
+    const CAP = JSON.parse(fs.readFileSync(path.join(REPO, 'fixtures', 'request-plan-capture.json'), 'utf8')).cases;
+    // the fields the model is asked to write (a tree that does not say is scored on every field)
+    const asked = Array.isArray(RP.PLAN_ASKED) ? [...RP.PLAN_ASKED] : [];
+    // a recorded plan as the server reads it today: parsed, validated against the reader's turns, turned into a reading
+    const recorded = (tag) => {
+      const c = CAP[tag];
+      const parsed = RP.parsePlan(JSON.stringify(c.plan));
+      const checked = RP.validatePlan(parsed, { question: c.q, previous: c.prev });
+      return { c, parsed, checked, plan: checked.plan, reading: checked.ok ? RP.readingOf(checked.plan, { question: c.q, previous: c.prev }) : null };
+    };
+    ok('K0 the fixture holds the plans of the capture of 11 November, each with its question: 23 turns, both models',
+      Object.keys(CAP).length === 23 && Object.values(CAP).every((c) => c.q && c.plan && Array.isArray(c.plan.parts) && Array.isArray(c.prev))
+      && Object.keys(CAP).filter((t) => t.startsWith('S-')).length >= 3 && Object.keys(CAP).every((t) => RP.validatePlan(RP.parsePlan(JSON.stringify(CAP[t].plan)), { question: CAP[t].q, previous: CAP[t].prev }).ok),
+      Object.keys(CAP).length);
+
+    // -- item 3: a question with one part is searched with the reader's own words
+    const z = recorded('F-Z1o');
+    ok('K1 [item 3] Z1o, the fast model\'s plan: it took three words away inside the reader\'s sentence and put one in -- the sources are asked the READER\'s words',
+      z.plan.parts.length === 1 && z.plan.parts[0].q !== z.c.q && z.reading.retrieval === z.c.q && z.reading.question === z.c.q, z.reading.retrieval === z.plan.parts[0].q ? 'the plan\'s wording is searched' : '');
+    const b22 = recorded('F-B22');
+    ok('K2 [item 3] B22: the plan\'s question is one WHOLE sentence of the reader\'s (the instruction is another sentence) -- the sources are asked that sentence, without the instruction',
+      b22.reading.retrieval === b22.plan.parts[0].q && RP.isReadersSentence(b22.plan.parts[0].q, b22.c.q) && b22.reading.retrieval !== b22.c.q && b22.c.q.startsWith(b22.reading.retrieval));
+    const p10 = recorded('F-P10');
+    const p2 = recorded('F-P2');
+    ok('K3 [item 3] P10 (the instruction stood inside the sentence) and P2 (the plan\'s question is the whole message): the reader\'s words',
+      p10.reading.retrieval === p10.c.q && p10.plan.parts[0].q !== p10.c.q && p2.reading.retrieval === p2.c.q);
+    {
+      const own = 'ما حكم صيام يوم السبت منفردا في غير الفريضة؟';
+      const tookAway = scripted(planWith([partOf('ما حكم صيام يوم السبت؟', 'ruling')]), own);
+      const putIn = scripted(planWith([partOf('ما حكم إفراد يوم السبت بالصيام في غير الفريضة؟', 'ruling')]), own);
+      const whole = scripted(planWith([partOf('ما حكم صيام يوم السبت منفردا في غير الفريضة؟', 'ruling')]), own + ' اذكر الدليل.');
+      ok('K4 [item 3] no subject is read: any plan that takes a word away inside the sentence (a qualifier lost) or puts one in is not searched; a whole sentence is',
+        tookAway.ok && tookAway.reading.retrieval === own && putIn.ok && putIn.reading.retrieval === own
+        && whole.ok && whole.reading.retrieval === own, [tookAway.ok, putIn.ok, whole.ok]);
+    }
+    const reused = ['F-Z1o', 'S-Z1o', 'F-P10', 'F-P2', 'F-B1', 'F-K', 'F-M1', 'F-P5a', 'F-B22x'].filter((t) => CAP[t] && CAP[t].plan.parts.length === 1 && !CAP[t].plan.followup);
+    ok('K5 [item 3] on the capture\'s one-part plans that are not follow-ups, what the sources are asked is the reader\'s message or one whole sentence of it -- never another wording',
+      reused.length >= 6 && reused.every((t) => { const r = recorded(t); return r.reading.retrieval === r.c.q || RP.isReadersSentence(r.reading.retrieval, r.c.q); }), reused);
+
+    // -- item 4: a follow-up that asks two things; nothing of the app's earlier answer
+    const m2 = recorded('F-M2');
+    const reward = fold('الأجر');
+    ok('K6 [item 4] M2, the recorded plan: the model\'s own full question had dropped night prayer and carried a word of the app\'s earlier answer; the question the turn uses is the two parts\' questions',
+      m2.parsed.followup === true && !fold(m2.parsed.full).includes(fold('قيام الليل')) && fold(m2.parsed.full).includes(reward)
+      && m2.plan.full === m2.plan.parts.map((p) => p.q).join(' ') && m2.plan.parts.length === 2
+      && fold(m2.reading.question).includes(fold('قيام الليل')) && fold(m2.reading.question).includes(fold('الدعاء')) && !fold(m2.reading.question).includes(reward)
+      && m2.reading.retrieval === m2.reading.question, [m2.plan.parts.length]);
+    {
+      const answer = 'الأجر في الحرم مضاعف <source url="https://x">بطاقة</source> [[1]] والصلاة فيه بمئة ألف صلاة';
+      const input = RP.planInput([{ role: 'user', content: m2.c.prev[0] }, { role: 'assistant', content: answer }, { role: 'user', content: m2.c.q }]);
+      ok('K7 [item 4] the reading is shown the reader\'s turns and no word of the app\'s answer; a full question the model writes anyway is not read',
+        !fold(input).includes(reward) && !input.includes('مضاعف') && input.includes(m2.c.prev[0]) && input.endsWith(m2.c.q)
+        && RP.validatePlan(RP.parsePlan(JSON.stringify({ ...m2.c.plan, full: 'ما حكم الربا؟' })), { question: m2.c.q, previous: m2.c.prev }).plan.full === m2.plan.full
+        && !RP.REQUEST_PLAN_SYSTEM.includes('"full"'));
+    }
+    const p8 = recorded('F-P8');
+    ok('K8 [item 4] P8, the recorded plan: the reader asked ONE question about the job and its pay and the plan made two parts of it -- they are one part again, asking both; the savings part is untouched',
+      p8.parsed.parts.length === 3 && p8.plan.parts.length === 2
+      && p8.plan.parts[0].q === p8.parsed.parts[0].q + ' ' + p8.parsed.parts[1].q && p8.plan.parts[0].kind === 'ruling'
+      && p8.plan.parts[1].q === p8.parsed.parts[2].q && p8.reading.parts.length === 2
+      && SCORE.scorePlan(p8.plan, byId.P8.must, fold, asked.length ? asked : null).ok, [p8.parsed.parts.length, p8.plan.parts.length]);
+    {
+      const merged = Object.keys(CAP).filter((t) => { const r = recorded(t); return r.parsed.parts.length !== r.plan.parts.length; });
+      const ideals = FIX.items.filter((item) => { const parsed = RP.parsePlan(JSON.stringify(item.ideal)); return RP.validatePlan(parsed, { question: item.q, previous: item.prev }).plan.parts.length !== parsed.parts.length; }).map((item) => item.id);
+      ok('K9 [item 4] it is fitted to no witness: of the capture\'s 23 plans it joins P8\'s alone, and of the 52 plans a strong reader would write it joins none',
+        same(merged, ['F-P8']) && ideals.length === 0, [merged, ideals]);
+      const twice = 'ما حكم الربا؟ وما حكم التأمين التجاري؟';
+      const two = scripted(planWith([partOf('ما حكم الربا؟', 'ruling'), partOf('ما حكم التأمين التجاري؟', 'ruling')]), twice);
+      const once = 'ما حكم الربا والتأمين التجاري؟';
+      const one = scripted(planWith([partOf('ما حكم الربا؟', 'ruling'), partOf('ما حكم التأمين التجاري؟', 'ruling')]), once);
+      const kinds = scripted(planWith([partOf('ما تعريف الربا؟', 'definition'), partOf('ما حكم الربا؟', 'ruling')]), 'ما تعريف الربا وحكمه؟');
+      const follow = scripted(planWith([partOf('ما حكم بيع الذهب بالتقسيط؟', 'ruling'), partOf('ما حكم شراء الذهب بالتقسيط؟', 'ruling')], { followup: true }), 'ما حكمه وحكم شرائه؟', ['ما حكم بيع الذهب بالتقسيط؟']);
+      const worldly = scripted(planWith([partOf('كم عدد سكان مصر؟', 'worldly'), partOf('كم عدد سكان تركيا؟', 'worldly')]), 'كم عدد سكان مصر وتركيا؟');
+      const otherWord = scripted(planWith([partOf('ما حكم الربا؟', 'ruling'), partOf('ما حكم التأمين التجاري؟', 'ruling')]), 'حكم الربا وحكم التأمين التجاري');
+      ok('K10 [item 4] the test reads the question words alone: written twice, two parts stay; written once, the second joins the first; another kind, a follow-up, a worldly part and a reader who wrote no such word are left as the plan had them',
+        two.plan.parts.length === 2 && one.plan.parts.length === 1 && kinds.plan.parts.length === 2 && follow.plan.parts.length === 2
+        && worldly.plan.parts.length === 2 && otherWord.plan.parts.length === 2,
+        [two.plan.parts.length, one.plan.parts.length, kinds.plan.parts.length, follow.plan.parts.length, worldly.plan.parts.length, otherWord.plan.parts.length]);
+      const stemsOf = (text) => QT.issueTerms(text).map(QT.stemWord);
+      ok('K11 [item 4] joining drops nothing: every issue word of both questions stands in the joined question, under the first part\'s name',
+        stemsOf('ما حكم الربا؟ ما حكم التأمين التجاري؟').every((w) => stemsOf(one.plan.parts[0].q).includes(w)) && one.plan.parts[0].q === 'ما حكم الربا؟ ما حكم التأمين التجاري؟');
+    }
+
+    // -- item 6: the model writes only what this batch's server reads
+    const exampleLines = RP.REQUEST_PLAN_SYSTEM.split('\n').filter((line) => line.startsWith('{"'));
+    const examples = exampleLines.slice(1).map((line) => JSON.parse(line));
+    const keysOf = (plan) => [...new Set([...Object.keys(plan).filter((k) => k !== 'parts'), ...plan.parts.flatMap((p) => Object.keys(p))])];
+    ok('K12 [item 6] the model is asked for six fields: the follow-up flag, and of a part its question, its kind, its name, the act of a card, the chapter of a collection',
+      same(asked, ['followup', 'q', 'kind', 'name', 'act', 'chapter']) && exampleLines[0] === '{"parts":[{"q":"","kind":""}]}'
+      && examples.length >= 12 && examples.every((plan) => keysOf(plan).every((k) => asked.includes(k)) && RP.parsePlan(JSON.stringify(plan)) !== null)
+      && !/"needs"|"source"|"c":|"full"|c\.form/.test(RP.REQUEST_PLAN_SYSTEM), examples.map(keysOf).flat().filter((k) => !asked.includes(k)));
+    ok('K13 [item 6] no example writes an empty key, and a name stands only where there are two parts or more',
+      examples.every((plan) => plan.parts.every((p) => Object.values(p).every((v) => v !== '' && !(Array.isArray(v) && !v.length)))
+        && (plan.parts.length > 1 ? plan.parts.every((p) => p.name) : plan.parts.every((p) => !('name' in p)))));
+    {
+      const lean = (ideal) => ({
+        ...(ideal.followup ? { followup: true } : {}),
+        parts: ideal.parts.map((p) => ({ ...(ideal.parts.length > 1 ? { name: p.name } : {}), q: p.q, kind: p.kind, ...(p.act ? { act: p.act } : {}), ...(p.chapter ? { chapter: p.chapter } : {}) })),
+      });
+      const bad = [];
+      let leanChars = 0; let fullChars = 0;
+      for (const item of FIX.items) {
+        const plan = lean(item.ideal);
+        leanChars += JSON.stringify(plan).length; fullChars += JSON.stringify(item.ideal).length;
+        const checked = RP.validatePlan(RP.parsePlan(JSON.stringify(plan)), { question: item.q, previous: item.prev });
+        const scored = checked.ok ? SCORE.scorePlan(checked.plan, item.must, fold, asked.length ? asked : null) : { ok: false, failures: [checked.reason] };
+        if (!scored.ok) bad.push(item.id + ': ' + scored.failures.join('; '));
+      }
+      ok('K14 [item 6] the 52 plans a strong reader would write, cut down to what is asked, still parse, hold together and satisfy the fixture\'s expectations on those fields (no expectation was changed)',
+        bad.length === 0, bad);
+      ok('K15 [item 6] and they are less than half as long (the reading\'s time grows with every character the model writes)', leanChars < 0.5 * fullChars, [leanChars, fullChars]);
+      const strict = FIX.items.filter((item) => { const checked = RP.validatePlan(RP.parsePlan(JSON.stringify(lean(item.ideal))), { question: item.q, previous: item.prev }); return checked.ok && !SCORE.scorePlan(checked.plan, item.must, fold).ok; }).length;
+      ok('K16 [item 6] the expectations on what is no longer asked are still in the fixture, for the batch that reads those fields: scored on every field, the cut plans fail', strict >= 40, strict);
+    }
+
+    // -- item 9: the standard model's reading sends the thinking setting
+    {
+      const LOOP = await esm('lib/free-brain/loop.js');
+      const bodies = [];
+      const provider = {
+        fetch: async (url, init) => { bodies.push(JSON.parse(init.body)); return { ok: true, status: 200, json: async () => ({ content: [{ type: 'text', text: JSON.stringify(byId.B21.ideal) }] }) }; },
+        error: (message) => new Error(message), failureOf: () => null,
+      };
+      // (no call leaves the process: the reading is handed its fetch; the platform's own is closed while these rows run)
+      const realFetch = globalThis.fetch;
+      globalThis.fetch = async () => { throw new Error('no network in a guard'); };
+      const read = (choice, thinking) => RP.startReading({ messages: [{ role: 'user', content: byId.B21.q }], providerUrl: 'https://provider.invalid/v1/messages', headers: {}, env: {}, timeoutMs: 500, choice, standardModel: 'x-standard', provider, thinking }).promise;
+      const std = await read('standard', LOOP.thinkingPolicy({}));
+      const stdLow = await read('standard', LOOP.thinkingPolicy({ FREE_BRAIN_THINKING: 'low' }));
+      const fast = await read('fast', LOOP.thinkingPolicy({}));
+      const bare = await read('standard', null);
+      globalThis.fetch = realFetch;
+      ok('K17 [item 9] the standard model\'s reading sends what the server\'s other calls to that model send (the loop\'s own thinking policy), and no temperature',
+        std.state === 'plan' && bodies.length === 4 && bodies[0].model === 'x-standard' && same(bodies[0].thinking, LOOP.thinkingPolicy({}).thinking) && same(bodies[0].thinking, { type: 'disabled' })
+        && !('temperature' in bodies[0]) && same(bodies[1].thinking, { type: 'adaptive' }) && same(bodies[1].output_config, { effort: 'low' }) && stdLow.state === 'plan', bodies.map((b) => Object.keys(b).join(',')));
+      ok('K18 [item 9] the fast model\'s body is the body it was (temperature 0, no thinking key), and a reading handed no setting sends none',
+        fast.state === 'plan' && bodies[2].temperature === 0 && !('thinking' in bodies[2]) && !('output_config' in bodies[2]) && bare.state === 'plan' && !('thinking' in bodies[3]) && !('temperature' in bodies[3]));
+      ok('K19 [item 9] the handler hands the reading that policy for the standard model only (the loop is loaded for it only then)',
+        askSource.includes("const readingThinking = readingPlan.ask && readingChoice === 'standard'\n    ? (await import('../lib/free-brain/loop.js')).thinkingPolicy() : null;")
+        && askSource.includes('standardModel: STANDARD_MODEL, provider: PROVIDER_CALLS, thinking: readingThinking })'));
+    }
   }
 
   console.log('\n=== request-plan: ' + (checks - failures) + '/' + checks + (failures ? ' FAIL' : ' PASS') + ' ===');

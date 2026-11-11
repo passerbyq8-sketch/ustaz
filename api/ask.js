@@ -1405,8 +1405,12 @@ export default async function handler(req, res) {
   // the plan, and the sorter is asked only if the reading fails (below, where the verdict is needed). The model is the fast one
   // unless REQUEST_PLAN_MODEL says standard; on a preview deployment the request header x-ezik-plan-model picks it per request.
   const readingChoice = planModelChoice(process.env, req.headers);
+  // ORDER A2 item 9: the standard model's reading sends the thinking setting every other call of this server sends that model
+  // (the loop's own policy function, loaded only when that model does the reading; the fast model is sent none, as before)
+  const readingThinking = readingPlan.ask && readingChoice === 'standard'
+    ? (await import('../lib/free-brain/loop.js')).thinkingPolicy() : null;
   const readingRun = readingPlan.ask
-    ? startReading({ messages: body.messages, providerUrl: ANTHROPIC_URL, headers, choice: readingChoice, standardModel: STANDARD_MODEL, provider: PROVIDER_CALLS }) : null;
+    ? startReading({ messages: body.messages, providerUrl: ANTHROPIC_URL, headers, choice: readingChoice, standardModel: STANDARD_MODEL, provider: PROVIDER_CALLS, thinking: readingThinking }) : null;
   const sorterRun = sorterPlan.ask && !readingRun ? startSorter({ messages: body.messages, providerUrl: ANTHROPIC_URL, headers, provider: PROVIDER_CALLS }) : null;
 
   // -- Commit to SSE now, then keep the socket warm during the byte-silent phase --
