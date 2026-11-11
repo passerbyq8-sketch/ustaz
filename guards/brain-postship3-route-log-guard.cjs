@@ -34,7 +34,8 @@ ok('route log guard is registered once', roster.filter((x) => x.name === 'postsh
 // BRAIN35 FIX (2026-11-06): 271 -> 278, the seven gates of the item-35 fix batch.
 // BRAIN35 SHIP 2026-11-10 (merge of production 24992d44 into item 35): 278 (ours) and 282 (production) -> 289, both sides' gates kept.
 // BRAIN-A (2026-11-11): 289 -> 290, requestplan (the reading).
-ok('gate inventory count is 290', roster.length === 290);
+// BRAIN-A2 (2026-11-11): 290 -> 291, providerfailure (order A2 item 8: a provider failure is told honestly).
+ok('gate inventory count is 291', roster.length === 291);
 const attrs = fs.readFileSync(path.join(ROOT, '.gitattributes'), 'utf8');
 ok('route helper and guard are pinned to LF', /lib\/route-log\.js text eol=lf/.test(attrs) && /guards\/brain-postship3-route-log-guard\.cjs text eol=lf/.test(attrs));
 console.log(String.fromCharCode(10) + (checks - failures) + '/' + checks + ' checks passed');

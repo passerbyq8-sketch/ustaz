@@ -795,10 +795,11 @@ async function runSuite() {
     // BRAIN35 SHIP 2026-11-10 (merge of production 24992d44 into item 35): 278 (ours) and 282 (production, its eleven gates c1authproofclient .. trialfixmerges)
     // -> 289: both rosters kept, the contract stays an exact count and an exact list.
     // BRAIN-A (2026-11-11): 289 -> 290, requestplan (guards/request-plan-guard.cjs), the reading. Same rule.
-function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 290; }
+    // BRAIN-A2 (2026-11-11): 290 -> 291, providerfailure (guards/provider-failure-guard.cjs), order A2 item 8. Same rule.
+function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 291; }
     ok('ORIGINAL_GATE_SET_MATCH', exactGateSet(EXPECTED_GATES));
-    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 290-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
-    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 290-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
+    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 291-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
+    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 291-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
 
     const m13 = await storedMutant(temp, 'fiqh-before-special', (source) => source.replace(
       "if (QURAN_REQUEST.test(folded)) return 'LOCAL_QURAN';",

@@ -1455,5 +1455,10 @@
     "name": "requestplan",
     "script": "guards/request-plan-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "providerfailure",
+    "script": "guards/provider-failure-guard.cjs",
+    "args": ""
   }
 ]

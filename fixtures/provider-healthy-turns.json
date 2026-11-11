@@ -1,0 +1,1617 @@
+{
+ "note": "The healthy-provider turns of the handler of the tree named by `tree`, the reading switch off; written by guards/provider-failure-guard.cjs --record. Durations are zeroed.",
+ "tree": "head-06ee8909",
+ "turns": {
+  "B21/RELIGIOUS": {
+   "crashed": "",
+   "status": 200,
+   "frames": [
+    {
+     "type": "ezik_status",
+     "stage": "retrieve"
+    },
+    {
+     "type": "ezik_status",
+     "stage": "retrieve"
+    },
+    {
+     "type": "ezik_status",
+     "stage": "encyclopedia",
+     "hits": 4,
+     "titles": [
+      "الموسوعة الفقهية الكويتية — عِدَّةٌ",
+      "الموسوعة الفقهية الكويتية — حَيْضٌ",
+      "الموسوعة الفقهية الكويتية — إِيَاسٌ",
+      "الموسوعة الفقهية الكويتية — طُهْرٌ"
+     ]
+    },
+    {
+     "type": "ezik_status",
+     "stage": "fatwa",
+     "hits": 0,
+     "titles": []
+    },
+    {
+     "type": "ezik_status",
+     "stage": "lessons",
+     "hits": 0,
+     "titles": []
+    },
+    {
+     "type": "ezik_status",
+     "stage": "library",
+     "hits": 0,
+     "titles": []
+    },
+    {
+     "type": "ezik_status",
+     "stage": "judge"
+    },
+    {
+     "type": "ezik_status",
+     "stage": "write"
+    },
+    {
+     "type": "message_start",
+     "message": {
+      "id": "server-finalized",
+      "type": "message",
+      "role": "assistant",
+      "content": []
+     }
+    },
+    {
+     "type": "content_block_start",
+     "index": 0,
+     "content_block": {
+      "type": "text",
+      "text": ""
+     }
+    },
+    {
+     "type": "content_block_delta",
+     "index": 0,
+     "delta": {
+      "type": "text_delta",
+      "text": "عدة المطلقة التي تحيض."
+     }
+    },
+    {
+     "type": "ezik_replace",
+     "text": "لم أجد في مصادر عزك نصا يجيب عن هذه المسألة بعينها."
+    },
+    {
+     "type": "ezik_live_offer"
+    },
+    {
+     "type": "content_block_stop",
+     "index": 0
+    },
+    {
+     "type": "message_stop"
+    }
+   ],
+   "text": "لم أجد في مصادر عزك نصا يجيب عن هذه المسألة بعينها.",
+   "calls": [
+    "fatwa GET /api/v1/fatwas/search?q=%D8%B9%D8%AF%D8%A9+%D8%A7%D9%84%D9%85%D8%B7%D9%84%D9%82%D8%A9&scholar=all&page=1&limit=12&view=full e3b0c44298fc1c14",
+    "fatwa GET /api/v1/fatwas/search?q=%D8%B9%D8%AF%D8%A9+%D8%A7%D9%84%D9%85%D8%B7%D9%84%D9%82%D8%A9+%D8%AA%D8%AD%D9%8A%D8%B6&scholar=all&page=1&limit=12&view=full e3b0c44298fc1c14",
+    "fatwa GET /api/v1/fatwas/search?q=%D8%B9%D8%AF%D8%A9+%D8%A7%D9%84%D9%85%D8%B7%D9%84%D9%82%D8%A9+%D8%AA%D8%AD%D9%8A%D8%B6&scholar=all&page=1&limit=12&view=full e3b0c44298fc1c14",
+    "model judge c1eb356948bdabef",
+    "model sorter 791f5eeafaca6926",
+    "model stream 0353f61832e37d31"
+   ],
+   "logs": [
+    [
+     "warn",
+     "[Upstash Redis] Redis client was initialized without url or token. Failed to execute command."
+    ],
+    [
+     "warn",
+     "[ratelimit] ask error, fail-open:",
+     "Unable to parse response body: "
+    ],
+    [
+     "warn",
+     "[Upstash Redis] Redis client was initialized without url or token. Failed to execute command."
+    ],
+    [
+     "warn",
+     "[ratelimit] ask global error, fail-open:",
+     "Unable to parse response body: "
+    ],
+    [
+     "log",
+     "[tier]",
+     {
+      "band": "adult",
+      "founderUnlocked": false,
+      "depthFreeTrial": false,
+      "usePremium": false,
+      "model": "claude-sonnet-5"
+     }
+    ],
+    [
+     "log",
+     "[route]",
+     {
+      "route": "DEEN",
+      "lexicalRoute": "DEEN",
+      "band": "adult",
+      "purpose": "fatwa",
+      "mode": "none",
+      "entity": null,
+      "officialDomain": null,
+      "lexicalRuntime": "STORED_FIQH",
+      "runtime": "STORED_FIQH",
+      "sorter": "religious",
+      "sorterMs": 0,
+      "frame": "sharia",
+      "impermissible": "none"
+     }
+    ],
+    [
+     "log",
+     "[policy]",
+     {
+      "topicClass": "general_knowledge",
+      "audienceBand": "adult",
+      "audienceSource": "client_claim",
+      "outcome": "ALLOW",
+      "sourcePolicy": "GENERAL_CHILD_BENIGN",
+      "relation": "NONE",
+      "path": "legacy",
+      "policyVersion": "ezik-policy-v0.5-r2-2026-08-04",
+      "policyEnabled": false,
+      "flag": "env_floor_off"
+     }
+    ],
+    [
+     "log",
+     "[free-brain]",
+     {
+      "enabled": true,
+      "reason": "env_on",
+      "childBenignReserved": false,
+      "lexicalRoute": "DEEN",
+      "band": "adult",
+      "audienceBand": "adult",
+      "bw2": true,
+      "liveSearch": false,
+      "runtime": "STORED_FIQH",
+      "frame": "sharia"
+     }
+    ],
+    [
+     "log",
+     "[bw2]",
+     {
+      "bw2": true,
+      "runtime": "STORED_FIQH",
+      "frame": "sharia",
+      "rerank_used": 0,
+      "rerank_ms": 0,
+      "rerank_units": 0,
+      "rerank_fallback_code": 0,
+      "rerank_timeouts": 0,
+      "rerank_errors": 0,
+      "fatwaMs": 0,
+      "fatwaHits": 0,
+      "fatwaTimedOut": false,
+      "fatwaVerifyMs": 0,
+      "fatwaSearchMs": 0,
+      "fatwaMembers": 2,
+      "fatwaLate": 0,
+      "libraryMs": 0,
+      "libraryHits": 0,
+      "libraryTimedOut": false,
+      "encyclopediaMs": 0,
+      "encyclopediaHits": 4,
+      "encyclopediaTimedOut": false,
+      "lessonsMs": 0,
+      "lessonsHits": 0,
+      "lessonsTimedOut": false,
+      "judgeMs": 0,
+      "judgeKept": 4,
+      "judgeComplete": true,
+      "unjudgedKept": 0,
+      "judgeOutcome": "complete",
+      "schools": [],
+      "writerCalls": 1,
+      "writerMs": 0,
+      "writerOutcome": "ok",
+      "firstReleaseMs": 0,
+      "unitsReleased": 1,
+      "unitsHeld": 0,
+      "cardsSent": 0,
+      "liveOffer": true,
+      "inTokens": 9,
+      "outTokens": 7,
+      "writerStartMs": 0,
+      "firstTokenMs": 0,
+      "heldBeforeFirst": 0,
+      "markerSeen": false,
+      "takhrijLookups": 0,
+      "takhrijMs": 0,
+      "takhrijMatched": 0,
+      "pinnedRows": 4,
+      "pinnedChars": 20523,
+      "encyclopediaCold": false,
+      "unitsProvedHadith": 0,
+      "heldEmpty": 0,
+      "heldToolAnnouncement": 0,
+      "heldReviewFailed": 0,
+      "heldUnsupportedAttribution": 0,
+      "heldSelfContradiction": 0,
+      "heldIncompleteSentence": 0,
+      "heldAnswerGenderMismatch": 0,
+      "heldGradeConflict": 0,
+      "heldUncitedAttribution": 0,
+      "heldUncitedRuling": 0,
+      "heldRemovedPerson": 0,
+      "heldUnsupportedGroup": 0,
+      "heldUnsupportedConsensus": 0,
+      "heldUnsupportedSchool": 0,
+      "heldUnsupportedMatn": 0,
+      "heldTakhrijRefused": 0,
+      "heldTakhrijEmptied": 0,
+      "heldTakhrijEmptiedFrame": 0,
+      "heldGradeRuleFailed": 0,
+      "heldGradeEmptied": 0,
+      "heldRepeat": 0,
+      "heldDependentOnHeld": 0,
+      "heldDependentOpening": 0,
+      "heldDanglingLeadIn": 0,
+      "heldNotCovered": 0,
+      "heldNotCoveredSentence": 0,
+      "heldEmptyHeading": 0,
+      "heldEvidenceOfHeldStance": 0,
+      "heldBannedSchool": 0,
+      "continued": "",
+      "khilafTrigger": "none",
+      "answerFooterSuppressedReason": "none"
+     }
+    ],
+    [
+     "warn",
+     "[answer-log] write_failed trace=#"
+    ]
+   ]
+  },
+  "B21/WORLDLY": {
+   "crashed": "",
+   "status": 200,
+   "frames": [
+    {
+     "type": "ezik_status",
+     "stage": "retrieve"
+    },
+    {
+     "type": "ezik_status",
+     "stage": "general"
+    },
+    {
+     "type": "message_start",
+     "message": {
+      "id": "server-finalized",
+      "type": "message",
+      "role": "assistant",
+      "content": []
+     }
+    },
+    {
+     "type": "content_block_start",
+     "index": 0,
+     "content_block": {
+      "type": "text",
+      "text": ""
+     }
+    },
+    {
+     "type": "content_block_delta",
+     "index": 0,
+     "delta": {
+      "type": "text_delta",
+      "text": "عدة المطلقة التي تحيض."
+     }
+    },
+    {
+     "type": "content_block_stop",
+     "index": 0
+    },
+    {
+     "type": "message_stop"
+    }
+   ],
+   "text": "عدة المطلقة التي تحيض.",
+   "calls": [
+    "model round e25f5f40c2d89084",
+    "model sorter 791f5eeafaca6926"
+   ],
+   "logs": [
+    [
+     "warn",
+     "[Upstash Redis] Redis client was initialized without url or token. Failed to execute command."
+    ],
+    [
+     "warn",
+     "[ratelimit] ask error, fail-open:",
+     "Unable to parse response body: "
+    ],
+    [
+     "warn",
+     "[Upstash Redis] Redis client was initialized without url or token. Failed to execute command."
+    ],
+    [
+     "warn",
+     "[ratelimit] ask global error, fail-open:",
+     "Unable to parse response body: "
+    ],
+    [
+     "log",
+     "[tier]",
+     {
+      "band": "adult",
+      "founderUnlocked": false,
+      "depthFreeTrial": false,
+      "usePremium": false,
+      "model": "claude-sonnet-5"
+     }
+    ],
+    [
+     "log",
+     "[route]",
+     {
+      "route": "GEN",
+      "lexicalRoute": "DEEN",
+      "band": "adult",
+      "purpose": "fatwa",
+      "mode": "none",
+      "entity": null,
+      "officialDomain": null,
+      "lexicalRuntime": "STORED_FIQH",
+      "runtime": "GENERAL",
+      "sorter": "worldly",
+      "sorterMs": 0,
+      "frame": "general",
+      "impermissible": "none"
+     }
+    ],
+    [
+     "log",
+     "[policy]",
+     {
+      "topicClass": "general_knowledge",
+      "audienceBand": "adult",
+      "audienceSource": "client_claim",
+      "outcome": "ALLOW",
+      "sourcePolicy": "GENERAL_CHILD_BENIGN",
+      "relation": "NONE",
+      "path": "legacy",
+      "policyVersion": "ezik-policy-v0.5-r2-2026-08-04",
+      "policyEnabled": false,
+      "flag": "env_floor_off"
+     }
+    ],
+    [
+     "log",
+     "[free-brain]",
+     {
+      "enabled": true,
+      "reason": "env_on",
+      "childBenignReserved": false,
+      "lexicalRoute": "GEN",
+      "band": "adult",
+      "audienceBand": "adult",
+      "bw2": false,
+      "liveSearch": false,
+      "runtime": "GENERAL",
+      "frame": "general"
+     }
+    ],
+    [
+     "log",
+     "[free-brain/round-ledger]",
+     "[{\"n\":1,\"phase\":\"tool\",\"ms\":0,\"stop\":\"end_turn\",\"shape\":\"text\",\"textChars\":22,\"toolUse\":0,\"tools\":[],\"outTokens\":1,\"inTokens\":1,\"cacheWriteTokens\":null,\"cacheReadTokens\":null}]"
+    ],
+    [
+     "log",
+     "[stored-injection]",
+     "{\"fired\":false,\"rows\":0,\"cited\":0,\"reason\":\"not_stored_fiqh\"}"
+    ],
+    [
+     "log",
+     "[free-brain/cited-delivery]",
+     "{\"cited\":0,\"cards\":0,\"books\":0,\"noUrl\":0,\"duplicate\":0,\"overCap\":0,\"footer\":0,\"rows\":[]}"
+    ],
+    [
+     "log",
+     "[free-brain/redactions]",
+     "{\"destructive\":0,\"carried\":0,\"minuteMissing\":false,\"rows\":[]}"
+    ],
+    [
+     "log",
+     "[free-brain/turn]",
+     {
+      "domain": "general",
+      "rounds": 1,
+      "modelCalls": 1,
+      "terminalWriteMs": null,
+      "terminalWriteUsage": null,
+      "streamRoundEligible": false,
+      "readerOwnsHead": false,
+      "streamedThisTurn": false,
+      "streamPrefixValid": true,
+      "streamViolations": 0,
+      "tools": [],
+      "providerCalls": 0,
+      "retrieved": 0,
+      "cited": [],
+      "cards": 0,
+      "khilafFromOpinions": null,
+      "opinionCount": 0,
+      "citationRetries": 0,
+      "truncated": false,
+      "deliveredStop": "end_turn",
+      "verdict": {
+       "version": "freebrain-b-v1",
+       "domain": "general",
+       "mode": "chat",
+       "sentences": [
+        {
+         "sentence": 1,
+         "domain": "general",
+         "action": "tagged-stable-general-knowledge",
+         "evidenceId": null
+        }
+       ],
+       "counts": {
+        "tagged-stable-general-knowledge": 1
+       },
+       "usedLastResort": false,
+       "khilafFromSource": false,
+       "khilafFromOpinions": null,
+       "khilafFromModelProse": false,
+       "opinionCount": 0,
+       "khilafTrigger": null,
+       "releasedViews": 0,
+       "answerFooterSuppressedReason": null,
+       "selfContradiction": {
+        "detected": false,
+        "shape": null,
+        "first": null,
+        "later": null,
+        "at": null
+       },
+       "sentenceIntegrity": {
+        "detected": false,
+        "findings": []
+       },
+       "gradeConsistency": {
+        "detected": false,
+        "rule": null,
+        "first": null,
+        "later": null
+       },
+       "requestedIdentityRespected": true,
+       "requestedIdentityReason": ""
+      },
+      "degraded": [],
+      "injectionMarkers": 0,
+      "elapsedMs": 0
+     }
+    ],
+    [
+     "warn",
+     "[answer-log] write_failed trace=#"
+    ]
+   ]
+  },
+  "P9/RELIGIOUS": {
+   "crashed": "",
+   "status": 200,
+   "frames": [
+    {
+     "type": "ezik_status",
+     "stage": "retrieve"
+    },
+    {
+     "type": "ezik_status",
+     "stage": "retrieve"
+    },
+    {
+     "type": "ezik_status",
+     "stage": "encyclopedia",
+     "hits": 4,
+     "titles": [
+      "الموسوعة الفقهية الكويتية — وِرْدٌ",
+      "الموسوعة الفقهية الكويتية — لَيْلَةُ الْقَدْرِ",
+      "الموسوعة الفقهية الكويتية — رَدٌّ",
+      "الموسوعة الفقهية الكويتية — دُعَاءٌ"
+     ]
+    },
+    {
+     "type": "ezik_status",
+     "stage": "fatwa",
+     "hits": 0,
+     "titles": []
+    },
+    {
+     "type": "ezik_status",
+     "stage": "lessons",
+     "hits": 0,
+     "titles": []
+    },
+    {
+     "type": "ezik_status",
+     "stage": "library",
+     "hits": 0,
+     "titles": []
+    },
+    {
+     "type": "ezik_status",
+     "stage": "judge"
+    },
+    {
+     "type": "ezik_status",
+     "stage": "write"
+    },
+    {
+     "type": "message_start",
+     "message": {
+      "id": "server-finalized",
+      "type": "message",
+      "role": "assistant",
+      "content": []
+     }
+    },
+    {
+     "type": "content_block_start",
+     "index": 0,
+     "content_block": {
+      "type": "text",
+      "text": ""
+     }
+    },
+    {
+     "type": "content_block_delta",
+     "index": 0,
+     "delta": {
+      "type": "text_delta",
+      "text": "عدة المطلقة التي تحيض."
+     }
+    },
+    {
+     "type": "ezik_replace",
+     "text": "لم أجد في مصادر عزك نصا يجيب عن هذه المسألة بعينها."
+    },
+    {
+     "type": "ezik_live_offer"
+    },
+    {
+     "type": "content_block_stop",
+     "index": 0
+    },
+    {
+     "type": "message_stop"
+    }
+   ],
+   "text": "لم أجد في مصادر عزك نصا يجيب عن هذه المسألة بعينها.",
+   "calls": [
+    "fatwa GET /api/v1/fatwas/search?q=%D9%88%D8%B1%D8%AF+%D8%A7%D9%84%D9%82%D8%B1%D8%A2%D9%86+%D9%84%D9%85%D9%86%D8%A7%D8%B2%D9%84%D9%87&scholar=all&page=1&limit=12&view=full e3b0c44298fc1c14",
+    "fatwa GET /api/v1/fatwas/search?q=%D9%8A%D8%A8%D8%B9%D8%AF+%D8%A7%D9%84%D9%82%D9%85%D8%B1&scholar=all&page=1&limit=12&view=full e3b0c44298fc1c14",
+    "fatwa GET /api/v1/fatwas/search?q=%D9%8A%D8%A8%D8%B9%D8%AF+%D8%A7%D9%84%D9%82%D9%85%D8%B1+%D8%A7%D9%84%D8%A3%D8%B1%D8%B6&scholar=all&page=1&limit=12&view=full e3b0c44298fc1c14",
+    "model judge b51e4907bc7bf868",
+    "model sorter 45d86d03e01b7021",
+    "model stream 3b523dab7f4868f1"
+   ],
+   "logs": [
+    [
+     "warn",
+     "[Upstash Redis] Redis client was initialized without url or token. Failed to execute command."
+    ],
+    [
+     "warn",
+     "[ratelimit] ask error, fail-open:",
+     "Unable to parse response body: "
+    ],
+    [
+     "warn",
+     "[Upstash Redis] Redis client was initialized without url or token. Failed to execute command."
+    ],
+    [
+     "warn",
+     "[ratelimit] ask global error, fail-open:",
+     "Unable to parse response body: "
+    ],
+    [
+     "log",
+     "[tier]",
+     {
+      "band": "adult",
+      "founderUnlocked": false,
+      "depthFreeTrial": false,
+      "usePremium": false,
+      "model": "claude-sonnet-5"
+     }
+    ],
+    [
+     "log",
+     "[route]",
+     {
+      "route": "DEEN",
+      "lexicalRoute": "DEEN",
+      "band": "adult",
+      "purpose": "general",
+      "mode": "none",
+      "entity": null,
+      "officialDomain": null,
+      "lexicalRuntime": "STORED_FIQH",
+      "runtime": "STORED_FIQH",
+      "sorter": "religious",
+      "sorterMs": 0,
+      "frame": "sharia",
+      "impermissible": "none"
+     }
+    ],
+    [
+     "log",
+     "[policy]",
+     {
+      "topicClass": "general_knowledge",
+      "audienceBand": "adult",
+      "audienceSource": "client_claim",
+      "outcome": "ALLOW",
+      "sourcePolicy": "GENERAL_CHILD_BENIGN",
+      "relation": "NONE",
+      "path": "legacy",
+      "policyVersion": "ezik-policy-v0.5-r2-2026-08-04",
+      "policyEnabled": false,
+      "flag": "env_floor_off"
+     }
+    ],
+    [
+     "log",
+     "[free-brain]",
+     {
+      "enabled": true,
+      "reason": "env_on",
+      "childBenignReserved": false,
+      "lexicalRoute": "DEEN",
+      "band": "adult",
+      "audienceBand": "adult",
+      "bw2": true,
+      "liveSearch": false,
+      "runtime": "STORED_FIQH",
+      "frame": "sharia"
+     }
+    ],
+    [
+     "log",
+     "[bw2]",
+     {
+      "bw2": true,
+      "runtime": "STORED_FIQH",
+      "frame": "sharia",
+      "rerank_used": 0,
+      "rerank_ms": 0,
+      "rerank_units": 0,
+      "rerank_fallback_code": 0,
+      "rerank_timeouts": 0,
+      "rerank_errors": 0,
+      "fatwaMs": 0,
+      "fatwaHits": 0,
+      "fatwaTimedOut": false,
+      "fatwaVerifyMs": 0,
+      "fatwaSearchMs": 0,
+      "fatwaMembers": 3,
+      "fatwaLate": 0,
+      "libraryMs": 0,
+      "libraryHits": 0,
+      "libraryTimedOut": false,
+      "encyclopediaMs": 0,
+      "encyclopediaHits": 4,
+      "encyclopediaTimedOut": false,
+      "lessonsMs": 0,
+      "lessonsHits": 0,
+      "lessonsTimedOut": false,
+      "judgeMs": 0,
+      "judgeKept": 4,
+      "judgeComplete": true,
+      "unjudgedKept": 0,
+      "judgeOutcome": "complete",
+      "schools": [],
+      "writerCalls": 1,
+      "writerMs": 0,
+      "writerOutcome": "ok",
+      "firstReleaseMs": 0,
+      "unitsReleased": 1,
+      "unitsHeld": 0,
+      "cardsSent": 0,
+      "liveOffer": true,
+      "inTokens": 9,
+      "outTokens": 7,
+      "writerStartMs": 0,
+      "firstTokenMs": 0,
+      "heldBeforeFirst": 0,
+      "markerSeen": false,
+      "takhrijLookups": 0,
+      "takhrijMs": 0,
+      "takhrijMatched": 0,
+      "pinnedRows": 4,
+      "pinnedChars": 24000,
+      "encyclopediaCold": false,
+      "unitsProvedHadith": 0,
+      "heldEmpty": 0,
+      "heldToolAnnouncement": 0,
+      "heldReviewFailed": 0,
+      "heldUnsupportedAttribution": 0,
+      "heldSelfContradiction": 0,
+      "heldIncompleteSentence": 0,
+      "heldAnswerGenderMismatch": 0,
+      "heldGradeConflict": 0,
+      "heldUncitedAttribution": 0,
+      "heldUncitedRuling": 0,
+      "heldRemovedPerson": 0,
+      "heldUnsupportedGroup": 0,
+      "heldUnsupportedConsensus": 0,
+      "heldUnsupportedSchool": 0,
+      "heldUnsupportedMatn": 0,
+      "heldTakhrijRefused": 0,
+      "heldTakhrijEmptied": 0,
+      "heldTakhrijEmptiedFrame": 0,
+      "heldGradeRuleFailed": 0,
+      "heldGradeEmptied": 0,
+      "heldRepeat": 0,
+      "heldDependentOnHeld": 0,
+      "heldDependentOpening": 0,
+      "heldDanglingLeadIn": 0,
+      "heldNotCovered": 0,
+      "heldNotCoveredSentence": 0,
+      "heldEmptyHeading": 0,
+      "heldEvidenceOfHeldStance": 0,
+      "heldBannedSchool": 0,
+      "continued": "",
+      "khilafTrigger": "none",
+      "answerFooterSuppressedReason": "none"
+     }
+    ],
+    [
+     "warn",
+     "[answer-log] write_failed trace=#"
+    ]
+   ]
+  },
+  "P9/WORLDLY": {
+   "crashed": "",
+   "status": 200,
+   "frames": [
+    {
+     "type": "ezik_status",
+     "stage": "retrieve"
+    },
+    {
+     "type": "ezik_status",
+     "stage": "general"
+    },
+    {
+     "type": "message_start",
+     "message": {
+      "id": "server-finalized",
+      "type": "message",
+      "role": "assistant",
+      "content": []
+     }
+    },
+    {
+     "type": "content_block_start",
+     "index": 0,
+     "content_block": {
+      "type": "text",
+      "text": ""
+     }
+    },
+    {
+     "type": "content_block_delta",
+     "index": 0,
+     "delta": {
+      "type": "text_delta",
+      "text": "عدة المطلقة التي تحيض."
+     }
+    },
+    {
+     "type": "content_block_stop",
+     "index": 0
+    },
+    {
+     "type": "message_stop"
+    }
+   ],
+   "text": "عدة المطلقة التي تحيض.",
+   "calls": [
+    "model round f33f72c645ab403f",
+    "model sorter 45d86d03e01b7021"
+   ],
+   "logs": [
+    [
+     "warn",
+     "[Upstash Redis] Redis client was initialized without url or token. Failed to execute command."
+    ],
+    [
+     "warn",
+     "[ratelimit] ask error, fail-open:",
+     "Unable to parse response body: "
+    ],
+    [
+     "warn",
+     "[Upstash Redis] Redis client was initialized without url or token. Failed to execute command."
+    ],
+    [
+     "warn",
+     "[ratelimit] ask global error, fail-open:",
+     "Unable to parse response body: "
+    ],
+    [
+     "log",
+     "[tier]",
+     {
+      "band": "adult",
+      "founderUnlocked": false,
+      "depthFreeTrial": false,
+      "usePremium": false,
+      "model": "claude-sonnet-5"
+     }
+    ],
+    [
+     "log",
+     "[route]",
+     {
+      "route": "GEN",
+      "lexicalRoute": "DEEN",
+      "band": "adult",
+      "purpose": "general",
+      "mode": "none",
+      "entity": null,
+      "officialDomain": null,
+      "lexicalRuntime": "STORED_FIQH",
+      "runtime": "GENERAL",
+      "sorter": "worldly",
+      "sorterMs": 0,
+      "frame": "general",
+      "impermissible": "none"
+     }
+    ],
+    [
+     "log",
+     "[policy]",
+     {
+      "topicClass": "general_knowledge",
+      "audienceBand": "adult",
+      "audienceSource": "client_claim",
+      "outcome": "ALLOW",
+      "sourcePolicy": "GENERAL_CHILD_BENIGN",
+      "relation": "NONE",
+      "path": "legacy",
+      "policyVersion": "ezik-policy-v0.5-r2-2026-08-04",
+      "policyEnabled": false,
+      "flag": "env_floor_off"
+     }
+    ],
+    [
+     "log",
+     "[free-brain]",
+     {
+      "enabled": true,
+      "reason": "env_on",
+      "childBenignReserved": false,
+      "lexicalRoute": "GEN",
+      "band": "adult",
+      "audienceBand": "adult",
+      "bw2": false,
+      "liveSearch": false,
+      "runtime": "GENERAL",
+      "frame": "general"
+     }
+    ],
+    [
+     "log",
+     "[free-brain/round-ledger]",
+     "[{\"n\":1,\"phase\":\"tool\",\"ms\":0,\"stop\":\"end_turn\",\"shape\":\"text\",\"textChars\":22,\"toolUse\":0,\"tools\":[],\"outTokens\":1,\"inTokens\":1,\"cacheWriteTokens\":null,\"cacheReadTokens\":null}]"
+    ],
+    [
+     "log",
+     "[stored-injection]",
+     "{\"fired\":false,\"rows\":0,\"cited\":0,\"reason\":\"not_stored_fiqh\"}"
+    ],
+    [
+     "log",
+     "[free-brain/cited-delivery]",
+     "{\"cited\":0,\"cards\":0,\"books\":0,\"noUrl\":0,\"duplicate\":0,\"overCap\":0,\"footer\":0,\"rows\":[]}"
+    ],
+    [
+     "log",
+     "[free-brain/redactions]",
+     "{\"destructive\":0,\"carried\":0,\"minuteMissing\":false,\"rows\":[]}"
+    ],
+    [
+     "log",
+     "[free-brain/turn]",
+     {
+      "domain": "general",
+      "rounds": 1,
+      "modelCalls": 1,
+      "terminalWriteMs": null,
+      "terminalWriteUsage": null,
+      "streamRoundEligible": false,
+      "readerOwnsHead": false,
+      "streamedThisTurn": false,
+      "streamPrefixValid": true,
+      "streamViolations": 0,
+      "tools": [],
+      "providerCalls": 0,
+      "retrieved": 0,
+      "cited": [],
+      "cards": 0,
+      "khilafFromOpinions": null,
+      "opinionCount": 0,
+      "citationRetries": 0,
+      "truncated": false,
+      "deliveredStop": "end_turn",
+      "verdict": {
+       "version": "freebrain-b-v1",
+       "domain": "general",
+       "mode": "chat",
+       "sentences": [
+        {
+         "sentence": 1,
+         "domain": "general",
+         "action": "tagged-stable-general-knowledge",
+         "evidenceId": null
+        }
+       ],
+       "counts": {
+        "tagged-stable-general-knowledge": 1
+       },
+       "usedLastResort": false,
+       "khilafFromSource": false,
+       "khilafFromOpinions": null,
+       "khilafFromModelProse": false,
+       "opinionCount": 0,
+       "khilafTrigger": null,
+       "releasedViews": 0,
+       "answerFooterSuppressedReason": null,
+       "selfContradiction": {
+        "detected": false,
+        "shape": null,
+        "first": null,
+        "later": null,
+        "at": null
+       },
+       "sentenceIntegrity": {
+        "detected": false,
+        "findings": []
+       },
+       "gradeConsistency": {
+        "detected": false,
+        "rule": null,
+        "first": null,
+        "later": null
+       },
+       "requestedIdentityRespected": true,
+       "requestedIdentityReason": ""
+      },
+      "degraded": [],
+      "injectionMarkers": 0,
+      "elapsedMs": 0
+     }
+    ],
+    [
+     "warn",
+     "[answer-log] write_failed trace=#"
+    ]
+   ]
+  },
+  "B1/RELIGIOUS": {
+   "crashed": "",
+   "status": 200,
+   "frames": [
+    {
+     "type": "ezik_status",
+     "stage": "retrieve"
+    },
+    {
+     "type": "ezik_status",
+     "stage": "retrieve"
+    },
+    {
+     "type": "ezik_status",
+     "stage": "encyclopedia",
+     "hits": 4,
+     "titles": [
+      "الموسوعة الفقهية الكويتية — تَرِكَةٌ",
+      "الموسوعة الفقهية الكويتية — إِسْلاَمٌ",
+      "الموسوعة الفقهية الكويتية — اسْتِلاَمٌ",
+      "الموسوعة الفقهية الكويتية — حَيَاءٌ"
+     ]
+    },
+    {
+     "type": "ezik_status",
+     "stage": "fatwa",
+     "hits": 0,
+     "titles": []
+    },
+    {
+     "type": "ezik_status",
+     "stage": "lessons",
+     "hits": 0,
+     "titles": []
+    },
+    {
+     "type": "ezik_status",
+     "stage": "library",
+     "hits": 0,
+     "titles": []
+    },
+    {
+     "type": "ezik_status",
+     "stage": "judge"
+    },
+    {
+     "type": "ezik_status",
+     "stage": "write"
+    },
+    {
+     "type": "ezik_status",
+     "stage": "retrieve"
+    },
+    {
+     "type": "ezik_live_offer"
+    },
+    {
+     "type": "message_start",
+     "message": {
+      "id": "server-finalized",
+      "type": "message",
+      "role": "assistant",
+      "content": []
+     }
+    },
+    {
+     "type": "content_block_start",
+     "index": 0,
+     "content_block": {
+      "type": "text",
+      "text": ""
+     }
+    },
+    {
+     "type": "content_block_delta",
+     "index": 0,
+     "delta": {
+      "type": "text_delta",
+      "text": "لم أجد في مصادر عزك نصا يجيب عن هذه المسألة بعينها."
+     }
+    },
+    {
+     "type": "content_block_stop",
+     "index": 0
+    },
+    {
+     "type": "message_stop"
+    }
+   ],
+   "text": "لم أجد في مصادر عزك نصا يجيب عن هذه المسألة بعينها.",
+   "calls": [
+    "fatwa GET /api/v1/fatwas/search?q=%D8%A7%D9%84%D9%85%D8%B1%D8%A1+%D8%AA%D8%B1%D9%83%D9%87+%D9%8A%D8%B9%D9%86%D9%8A%D9%87&scholar=all&page=1&limit=12&view=full e3b0c44298fc1c14",
+    "fatwa GET /api/v1/fatwas/search?q=%D8%B1%D8%A7%D9%88%D9%8A+%D8%AD%D8%AF%D9%8A%D8%AB&scholar=all&page=1&limit=12&view=full e3b0c44298fc1c14",
+    "fatwa GET /api/v1/fatwas/search?q=%D8%B1%D8%A7%D9%88%D9%8A+%D8%AD%D8%AF%D9%8A%D8%AB+%D8%AD%D8%B3%D9%86&scholar=all&page=1&limit=12&view=full e3b0c44298fc1c14",
+    "model judge a433241a941d0e90",
+    "model round c7e377e932c07960",
+    "model sorter 5b13a22a3d14be7d",
+    "model stream e5f3089672be8a0c"
+   ],
+   "logs": [
+    [
+     "warn",
+     "[Upstash Redis] Redis client was initialized without url or token. Failed to execute command."
+    ],
+    [
+     "warn",
+     "[ratelimit] ask error, fail-open:",
+     "Unable to parse response body: "
+    ],
+    [
+     "warn",
+     "[Upstash Redis] Redis client was initialized without url or token. Failed to execute command."
+    ],
+    [
+     "warn",
+     "[ratelimit] ask global error, fail-open:",
+     "Unable to parse response body: "
+    ],
+    [
+     "log",
+     "[tier]",
+     {
+      "band": "adult",
+      "founderUnlocked": false,
+      "depthFreeTrial": false,
+      "usePremium": false,
+      "model": "claude-sonnet-5"
+     }
+    ],
+    [
+     "log",
+     "[route]",
+     {
+      "route": "DEEN",
+      "lexicalRoute": "DEEN",
+      "band": "adult",
+      "purpose": "hadith",
+      "mode": "none",
+      "entity": null,
+      "officialDomain": null,
+      "lexicalRuntime": "HADITH",
+      "runtime": "HADITH",
+      "sorter": "religious",
+      "sorterMs": 0,
+      "frame": "sharia",
+      "impermissible": "none"
+     }
+    ],
+    [
+     "log",
+     "[policy]",
+     {
+      "topicClass": "hadith",
+      "audienceBand": "adult",
+      "audienceSource": "client_claim",
+      "outcome": "ALLOW",
+      "sourcePolicy": "SHARIA_CLOSED_RAG",
+      "relation": "NONE",
+      "path": "legacy",
+      "policyVersion": "ezik-policy-v0.5-r2-2026-08-04",
+      "policyEnabled": false,
+      "flag": "env_floor_off"
+     }
+    ],
+    [
+     "log",
+     "[free-brain]",
+     {
+      "enabled": true,
+      "reason": "env_on",
+      "childBenignReserved": false,
+      "lexicalRoute": "DEEN",
+      "band": "adult",
+      "audienceBand": "adult",
+      "bw2": true,
+      "liveSearch": false,
+      "runtime": "HADITH",
+      "frame": "sharia"
+     }
+    ],
+    [
+     "log",
+     "[bw2]",
+     {
+      "bw2": true,
+      "runtime": "HADITH",
+      "frame": "sharia",
+      "rerank_used": 0,
+      "rerank_ms": 0,
+      "rerank_units": 0,
+      "rerank_fallback_code": 0,
+      "rerank_timeouts": 0,
+      "rerank_errors": 0,
+      "fatwaMs": 0,
+      "fatwaHits": 0,
+      "fatwaTimedOut": false,
+      "fatwaVerifyMs": 0,
+      "fatwaSearchMs": 0,
+      "fatwaMembers": 3,
+      "fatwaLate": 0,
+      "libraryMs": 0,
+      "libraryHits": 0,
+      "libraryTimedOut": false,
+      "encyclopediaMs": 0,
+      "encyclopediaHits": 4,
+      "encyclopediaTimedOut": false,
+      "lessonsMs": 0,
+      "lessonsHits": 0,
+      "lessonsTimedOut": false,
+      "judgeMs": 0,
+      "judgeKept": 4,
+      "judgeComplete": true,
+      "unjudgedKept": 0,
+      "judgeOutcome": "complete",
+      "schools": [],
+      "writerCalls": 1,
+      "writerMs": 0,
+      "writerOutcome": "ok",
+      "firstReleaseMs": null,
+      "unitsReleased": 0,
+      "unitsHeld": 1,
+      "cardsSent": 0,
+      "liveOffer": false,
+      "inTokens": 9,
+      "outTokens": 7,
+      "writerStartMs": 0,
+      "firstTokenMs": 0,
+      "heldBeforeFirst": 1,
+      "markerSeen": false,
+      "takhrijLookups": 0,
+      "takhrijMs": 0,
+      "takhrijMatched": 0,
+      "pinnedRows": 4,
+      "pinnedChars": 18596,
+      "encyclopediaCold": false,
+      "unitsProvedHadith": 0,
+      "heldEmpty": 0,
+      "heldToolAnnouncement": 0,
+      "heldReviewFailed": 0,
+      "heldUnsupportedAttribution": 0,
+      "heldSelfContradiction": 0,
+      "heldIncompleteSentence": 0,
+      "heldAnswerGenderMismatch": 0,
+      "heldGradeConflict": 0,
+      "heldUncitedAttribution": 0,
+      "heldUncitedRuling": 0,
+      "heldRemovedPerson": 0,
+      "heldUnsupportedGroup": 0,
+      "heldUnsupportedConsensus": 0,
+      "heldUnsupportedSchool": 0,
+      "heldUnsupportedMatn": 0,
+      "heldTakhrijRefused": 0,
+      "heldTakhrijEmptied": 0,
+      "heldTakhrijEmptiedFrame": 0,
+      "heldGradeRuleFailed": 0,
+      "heldGradeEmptied": 0,
+      "heldRepeat": 0,
+      "heldDependentOnHeld": 0,
+      "heldDependentOpening": 1,
+      "heldDanglingLeadIn": 0,
+      "heldNotCovered": 0,
+      "heldNotCoveredSentence": 0,
+      "heldEmptyHeading": 0,
+      "heldEvidenceOfHeldStance": 0,
+      "heldBannedSchool": 0,
+      "continued": "none_released",
+      "khilafTrigger": "none",
+      "answerFooterSuppressedReason": "none"
+     }
+    ],
+    [
+     "log",
+     "[free-brain/round-ledger]",
+     "[{\"n\":1,\"phase\":\"tool\",\"ms\":0,\"stop\":\"end_turn\",\"shape\":\"text\",\"textChars\":22,\"toolUse\":0,\"tools\":[],\"outTokens\":1,\"inTokens\":1,\"cacheWriteTokens\":null,\"cacheReadTokens\":null}]"
+    ],
+    [
+     "log",
+     "[stored-injection]",
+     "{\"fired\":false,\"rows\":0,\"cited\":0,\"reason\":\"not_stored_fiqh\"}"
+    ],
+    [
+     "log",
+     "[free-brain/cited-delivery]",
+     "{\"cited\":0,\"cards\":0,\"books\":0,\"noUrl\":0,\"duplicate\":0,\"overCap\":0,\"footer\":0,\"rows\":[]}"
+    ],
+    [
+     "log",
+     "[free-brain/redactions]",
+     "{\"destructive\":0,\"carried\":0,\"minuteMissing\":false,\"rows\":[]}"
+    ],
+    [
+     "log",
+     "[free-brain/turn]",
+     {
+      "domain": "fiqh",
+      "rounds": 1,
+      "modelCalls": 1,
+      "terminalWriteMs": null,
+      "terminalWriteUsage": null,
+      "streamRoundEligible": false,
+      "readerOwnsHead": false,
+      "streamedThisTurn": false,
+      "streamPrefixValid": true,
+      "streamViolations": 0,
+      "tools": [],
+      "providerCalls": 0,
+      "retrieved": 0,
+      "cited": [],
+      "cards": 0,
+      "khilafFromOpinions": null,
+      "opinionCount": 0,
+      "citationRetries": 0,
+      "truncated": false,
+      "deliveredStop": "end_turn",
+      "verdict": {
+       "version": "freebrain-b-v1",
+       "domain": "fiqh",
+       "mode": "chat",
+       "sentences": [
+        {
+         "sentence": 1,
+         "domain": "fiqh",
+         "action": "tagged-fiqh-understanding",
+         "evidenceId": null
+        }
+       ],
+       "counts": {
+        "tagged-fiqh-understanding": 1
+       },
+       "usedLastResort": false,
+       "khilafFromSource": false,
+       "khilafFromOpinions": null,
+       "khilafFromModelProse": false,
+       "opinionCount": 0,
+       "khilafTrigger": null,
+       "releasedViews": 0,
+       "answerFooterSuppressedReason": null,
+       "selfContradiction": {
+        "detected": false,
+        "shape": null,
+        "first": null,
+        "later": null,
+        "at": null
+       },
+       "sentenceIntegrity": {
+        "detected": false,
+        "findings": []
+       },
+       "gradeConsistency": {
+        "detected": false,
+        "rule": null,
+        "first": null,
+        "later": null
+       },
+       "requestedIdentityRespected": true,
+       "requestedIdentityReason": ""
+      },
+      "degraded": [
+       "unsourced:not_covered"
+      ],
+      "injectionMarkers": 0,
+      "elapsedMs": 0
+     }
+    ],
+    [
+     "warn",
+     "[answer-log] write_failed trace=#"
+    ]
+   ]
+  },
+  "M2/RELIGIOUS": {
+   "crashed": "",
+   "status": 200,
+   "frames": [
+    {
+     "type": "ezik_live_offer"
+    },
+    {
+     "type": "message_start",
+     "message": {
+      "id": "server-finalized",
+      "type": "message",
+      "role": "assistant",
+      "content": []
+     }
+    },
+    {
+     "type": "content_block_start",
+     "index": 0,
+     "content_block": {
+      "type": "text",
+      "text": ""
+     }
+    },
+    {
+     "type": "ezik_status",
+     "stage": "write"
+    },
+    {
+     "type": "content_block_delta",
+     "index": 0,
+     "delta": {
+      "type": "text_delta",
+      "text": "لم أجد في مصادر عزك نصا يجيب عن هذه المسألة بعينها."
+     }
+    },
+    {
+     "type": "content_block_stop",
+     "index": 0
+    },
+    {
+     "type": "message_stop"
+    }
+   ],
+   "text": "لم أجد في مصادر عزك نصا يجيب عن هذه المسألة بعينها.",
+   "calls": [
+    "fatwa GET /api/v1/fatwas/search?q=%D8%A7%D9%82%D8%B5%D8%AF+%D8%B5%D8%AD%D9%86+%D8%A7%D9%84%D9%85%D8%B7%D8%A7%D9%81+%D9%86%D9%81%D8%B3%D9%87+%D8%A7%D9%84%D9%84%D9%8A+%D9%85%D9%82%D8%A7%D8%A8%D9%84+%D8%A7%D9%84%D9%83%D8%B9%D8%A8%D9%87+%D9%88%D8%A7%D9%84%D9%81%D9%86%D8%A7%D8%AF%D9%82+%D8%A7%D9%84%D8%AA%D9%8A+%D8%AD%D9%88%D9%84%D9%87%D8%8C+%D8%A7%D9%84%D8%AF%D8%B9%D8%A7%D8%A1+%D9%87%D9%84+%D9%85%D8%AE%D8%AA%D9%84%D9%81%D8%9F+%D9%87%D9%84+%D9%82%D9%8A%D8%A7%D9%85+%D8%A7%D9%84%D9%84%D9%8A%D9%84+%D9%85%D8%AE%D8%AA%D9%84%D9%81%D8%9F&scholar=all&page=1&limit=12&view=full e3b0c44298fc1c14",
+    "model round 49d7b78e8944a849"
+   ],
+   "logs": [
+    [
+     "warn",
+     "[Upstash Redis] Redis client was initialized without url or token. Failed to execute command."
+    ],
+    [
+     "warn",
+     "[ratelimit] ask error, fail-open:",
+     "Unable to parse response body: "
+    ],
+    [
+     "warn",
+     "[Upstash Redis] Redis client was initialized without url or token. Failed to execute command."
+    ],
+    [
+     "warn",
+     "[ratelimit] ask global error, fail-open:",
+     "Unable to parse response body: "
+    ],
+    [
+     "log",
+     "[tier]",
+     {
+      "band": "adult",
+      "founderUnlocked": false,
+      "depthFreeTrial": false,
+      "usePremium": false,
+      "model": "claude-sonnet-5"
+     }
+    ],
+    [
+     "log",
+     "[route]",
+     {
+      "route": "DEEN",
+      "lexicalRoute": "DEEN",
+      "band": "adult",
+      "purpose": "general",
+      "mode": "none",
+      "entity": null,
+      "officialDomain": null,
+      "lexicalRuntime": "STORED_FIQH",
+      "runtime": "STORED_FIQH",
+      "sorter": "not_asked",
+      "sorterMs": 0,
+      "frame": "sharia",
+      "impermissible": "none"
+     }
+    ],
+    [
+     "log",
+     "[policy]",
+     {
+      "topicClass": "general_knowledge",
+      "audienceBand": "adult",
+      "audienceSource": "client_claim",
+      "outcome": "ALLOW",
+      "sourcePolicy": "GENERAL_CHILD_BENIGN",
+      "relation": "NONE",
+      "path": "legacy",
+      "policyVersion": "ezik-policy-v0.5-r2-2026-08-04",
+      "policyEnabled": false,
+      "flag": "env_floor_off"
+     }
+    ],
+    [
+     "log",
+     "[free-brain]",
+     {
+      "enabled": true,
+      "reason": "env_on",
+      "childBenignReserved": false,
+      "lexicalRoute": "DEEN",
+      "band": "adult",
+      "audienceBand": "adult",
+      "bw2": false,
+      "liveSearch": false,
+      "runtime": "STORED_FIQH",
+      "frame": "sharia"
+     }
+    ],
+    [
+     "log",
+     "[free-brain/round-ledger]",
+     "[{\"n\":1,\"phase\":\"tool\",\"ms\":0,\"stop\":\"end_turn\",\"shape\":\"text\",\"textChars\":22,\"toolUse\":0,\"tools\":[],\"outTokens\":1,\"inTokens\":1,\"cacheWriteTokens\":null,\"cacheReadTokens\":null}]"
+    ],
+    [
+     "log",
+     "[stored-injection]",
+     "{\"fired\":true,\"rows\":0,\"cited\":0,\"reason\":\"no_rows\"}"
+    ],
+    [
+     "log",
+     "[free-brain/cited-delivery]",
+     "{\"cited\":0,\"cards\":0,\"books\":0,\"noUrl\":0,\"duplicate\":0,\"overCap\":0,\"footer\":0,\"rows\":[]}"
+    ],
+    [
+     "log",
+     "[free-brain/redactions]",
+     "{\"destructive\":0,\"carried\":0,\"minuteMissing\":false,\"rows\":[]}"
+    ],
+    [
+     "log",
+     "[free-brain/turn]",
+     {
+      "domain": "fiqh",
+      "rounds": 1,
+      "modelCalls": 1,
+      "terminalWriteMs": null,
+      "terminalWriteUsage": null,
+      "streamRoundEligible": false,
+      "readerOwnsHead": false,
+      "streamedThisTurn": false,
+      "streamPrefixValid": true,
+      "streamViolations": 0,
+      "tools": [
+       "search_fatawa:0"
+      ],
+      "providerCalls": 0,
+      "retrieved": 0,
+      "cited": [],
+      "cards": 0,
+      "khilafFromOpinions": null,
+      "opinionCount": 0,
+      "citationRetries": 0,
+      "truncated": false,
+      "deliveredStop": "end_turn",
+      "verdict": {
+       "version": "freebrain-b-v1",
+       "domain": "fiqh",
+       "mode": "chat",
+       "sentences": [
+        {
+         "sentence": 1,
+         "domain": "fiqh",
+         "action": "tagged-fiqh-understanding",
+         "evidenceId": null
+        }
+       ],
+       "counts": {
+        "tagged-fiqh-understanding": 1
+       },
+       "usedLastResort": false,
+       "khilafFromSource": false,
+       "khilafFromOpinions": null,
+       "khilafFromModelProse": false,
+       "opinionCount": 0,
+       "khilafTrigger": null,
+       "releasedViews": 0,
+       "answerFooterSuppressedReason": null,
+       "selfContradiction": {
+        "detected": false,
+        "shape": null,
+        "first": null,
+        "later": null,
+        "at": null
+       },
+       "sentenceIntegrity": {
+        "detected": false,
+        "findings": []
+       },
+       "gradeConsistency": {
+        "detected": false,
+        "rule": null,
+        "first": null,
+        "later": null
+       },
+       "requestedIdentityRespected": true,
+       "requestedIdentityReason": ""
+      },
+      "degraded": [
+       "fatwa:fatwa_http_503",
+       "unsourced:not_covered"
+      ],
+      "injectionMarkers": 0,
+      "elapsedMs": 0
+     }
+    ],
+    [
+     "warn",
+     "[answer-log] write_failed trace=#"
+    ]
+   ]
+  }
+ }
+}

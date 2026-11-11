@@ -357,9 +357,11 @@ BRAIN35 SHIP 2026-11-10 (merge of production 24992d44 into item 35): the seven i
 
 BRAIN-A 2026-11-11 (side/braina-20261111, order EZIK-ORDER-BRAIN-A-2026-11-11, the reading): one gate joined -- `requestplan` (guards/request-plan-guard.cjs: the request plan's switch and model choice, its parser and validator against the expected-plan fixture, the call and its fallback, each consumer of the plan fed a fixed plan, the limits, the before-writing turn and the real handler driven with a scripted plan) -- 289 -> 290. CURRENT_RECON moves by one with it.
 
+BRAIN-A2 2026-11-11 (side/braina-20261111, order EZIK-ORDER-BRAIN-A2-2026-11-11, item 8): one gate joined -- `providerfailure` (guards/provider-failure-guard.cjs: a provider failure is told honestly -- the one retry of lib/provider-call.js, the real handler with a provider stub that answers 400, 429 or cannot connect, and the healthy turn equal to the recorded turn of the commit before) -- 290 -> 291.
+
 Expected signature for the current integrated roster. INTEG7 includes the independent usage gate. CURRENT_RECON records measured 375/0/0 pre-self-check counts from the clean-tree Order T1B focused audit. The audit adds its own pass after this record matches. This expected signature is not a full-run success claim.
 
-All 290 gates in the current roster run sequentially through tools/run-gates.cjs. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
+All 291 gates in the current roster run sequentially through tools/run-gates.cjs. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -491,8 +493,9 @@ trialfixui 0
 trialfixsync 0
 trialfixmerges 0
 requestplan 0
-TOTAL_GATES        290/290 PASS
-CURRENT_RECON PASS=383 WARN=0 FAIL=0
+providerfailure 0
+TOTAL_GATES        291/291 PASS
+CURRENT_RECON PASS=384 WARN=0 FAIL=0
 PRE_REBASE_UPSTREAM_TOTAL_GATES 206/206 PASS
 PRE_REBASE_UPSTREAM_RECON PASS=299 WARN=0 FAIL=0
 PRE_REBASE_BRANCH_TOTAL_GATES 208/208 PASS

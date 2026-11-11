@@ -1191,4 +1191,9 @@ lib/request-plan.js text eol=lf
 guards/request-plan-guard.cjs text eol=lf
 fixtures/request-plan-expected.json text eol=lf
 tools/request-plan-score.mjs text eol=lf
+# BRAIN-A2 (order EZIK-ORDER-BRAIN-A2-2026-11-11, item 8): a provider failure is told honestly -- the one call, its guard,
+# and the recorded healthy turns the guard compares with.
+lib/provider-call.js text eol=lf
+guards/provider-failure-guard.cjs text eol=lf
+fixtures/provider-healthy-turns.json text eol=lf
 fixtures/brain-a-excerpt-binbaz-13610.json text eol=lf

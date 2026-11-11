@@ -32,6 +32,8 @@ import { visibleSourceCount } from '../lib/reader-sources.js';
 import { routeLogFields } from '../lib/route-log.js';
 import { createContinuationRelay } from '../lib/continuation.js';
 import { installAnswerStatus } from '../lib/answer-status.js';
+// ORDER A2 item 8 (2026-11-11): a provider failure is told honestly (the apology, the closed flag, the failed calls' status and type)
+import { PROVIDER_CALLS, PROVIDER_LOST_FLAG, isProviderFailureWord, providerFailureToken } from '../lib/provider-call.js';
 // ITEM 58 -- the address line from the gender the asker wrote in «ملفّك», behind SYNC_SWITCH.
 import { addresseeFor, addressLineFor } from '../lib/sync/memory.js';
 import { classifyRoute, createSourceFilter, isReligiousText, normalizeArabic, isRulingFrame } from '../lib/route-classify.js';
@@ -1404,8 +1406,8 @@ export default async function handler(req, res) {
   // unless REQUEST_PLAN_MODEL says standard; on a preview deployment the request header x-ezik-plan-model picks it per request.
   const readingChoice = planModelChoice(process.env, req.headers);
   const readingRun = readingPlan.ask
-    ? startReading({ messages: body.messages, providerUrl: ANTHROPIC_URL, headers, choice: readingChoice, standardModel: STANDARD_MODEL }) : null;
-  const sorterRun = sorterPlan.ask && !readingRun ? startSorter({ messages: body.messages, providerUrl: ANTHROPIC_URL, headers }) : null;
+    ? startReading({ messages: body.messages, providerUrl: ANTHROPIC_URL, headers, choice: readingChoice, standardModel: STANDARD_MODEL, provider: PROVIDER_CALLS }) : null;
+  const sorterRun = sorterPlan.ask && !readingRun ? startSorter({ messages: body.messages, providerUrl: ANTHROPIC_URL, headers, provider: PROVIDER_CALLS }) : null;
 
   // -- Commit to SSE now, then keep the socket warm during the byte-silent phase --
   // Round 1 is non-streamed, so a long fully-vocalized answer (e.g. the salah card)
@@ -2007,7 +2009,7 @@ export default async function handler(req, res) {
     const worldlyClaim = readingPlanned && sorterPlan.ask ? planWorldlyClaim(readingPlanOf, { question: questionText, previous: readerPrevious }) : 'none';
     if (worldlyClaim === 'contested') answerLog.note({ flags: ['plan_worldly_contested'] });
     const sorterLate = readingOutcome && sorterPlan.ask && (!readingPlanned || worldlyClaim === 'contested')
-      ? startSorter({ messages: body.messages, providerUrl: ANTHROPIC_URL, headers }) : null;
+      ? startSorter({ messages: body.messages, providerUrl: ANTHROPIC_URL, headers, provider: PROVIDER_CALLS }) : null;
     const sorted = sorterRun ? await sorterRun.promise : (sorterLate ? await sorterLate.promise : null);
     const sorterState = readingPlanned
       ? (sorterPlan.ask ? (worldlyClaim === 'clear' ? 'worldly' : (worldlyClaim === 'contested' && sorted ? sorted.sorter : 'religious')) : sorterPlan.sorter)
@@ -2018,6 +2020,12 @@ export default async function handler(req, res) {
       res.write(`data: ${JSON.stringify({ type: 'ezik_status', stage: 'general' })}\n\n`);
     }
     logRoute({ route: effectiveRoute, runtime: currentRuntime, sorter: sorterState, sorterMs: sorted ? sorted.ms : 0, frame: frameFor(currentRuntime, sorterState) });
+    // ORDER A2 item 8: the reading's and the sorter's calls, when the provider refused them or they could not connect: the status
+    // and the provider's closed error word (lib/provider-call.js), never its message and never the reader's text.
+    const earlyProviderFailures = [];
+    if (readingOutcome && readingOutcome.provider) earlyProviderFailures.push(providerFailureToken('reading', readingOutcome.provider));
+    if (sorted && sorted.provider) earlyProviderFailures.push(providerFailureToken('sorter', sorted.provider));
+    if (earlyProviderFailures.length) console.warn('[provider]', { degraded: earlyProviderFailures, outcome: 'failed' });
     // BRAIN-A: the reading's end, timed in the stream (the same invisible status frame as its start), ON A PREVIEW DEPLOYMENT ONLY:
     // the duration and plan-or-fallback, and under the diagnostic header also the plan, the model and the state. On production no
     // such frame is written -- the stream is the stream it was (three standing rows pin its sequence of status frames); the
@@ -2376,7 +2384,7 @@ export default async function handler(req, res) {
           path: 'bw2',
           hits: { fatwa: t.fatwaHits, library: t.libraryHits, encyclopedia: t.encyclopediaHits, lessons: t.lessonsHits },
           cited: t.readerSourceCount || 0, held: heldFromTelemetry(t), out_tokens: t.outTokens, continued: t.continuations,
-          flags: [t.liveOffer ? 'live_offer' : '', t.continued ? 'bw2_continued' : '', t.refusalFallback ? 'refusal_fallback' : '', t.unsourcedWithheld ? 'unsourced_withheld' : '', ...readerSourceKindsFromMask(t.readerSourceMask).map((kind) => `src:${kind}`),
+          flags: [t.liveOffer ? 'live_offer' : '', t.continued ? 'bw2_continued' : '', t.refusalFallback ? 'refusal_fallback' : '', t.unsourcedWithheld ? 'unsourced_withheld' : '', t.providerLost ? PROVIDER_LOST_FLAG : '', ...readerSourceKindsFromMask(t.readerSourceMask).map((kind) => `src:${kind}`),
             // BRAIN-A: the parts the server answered itself, and what became of the gather that ran beside the reading (number codes)
             t.servedWorship ? 'served_worship' : '', t.servedWorldly ? 'served_worldly' : '', readingPregather ? 'pregather:' + (t.pregather || 0) : ''],
         });
@@ -2423,6 +2431,10 @@ export default async function handler(req, res) {
           khilafTrigger: t.khilafTrigger,
           answerFooterSuppressedReason: t.answerFooterSuppressedReason,
         });
+      }
+      // ORDER A2 item 8: the judge's and the writer's calls the provider refused, each `call:status:type`
+      if (bw2Out && Array.isArray(bw2Out.providerFailures) && bw2Out.providerFailures.length) {
+        console.warn('[provider]', { degraded: bw2Out.providerFailures, outcome: t && t.providerLost ? 'lost' : 'failed' });
       }
       if (!(bw2Out && bw2Out.continued === true) || readerGone.aborted) return;
       // PIPES fix 3: nothing went out but status frames, which the facade passes through without opening
@@ -2830,6 +2842,24 @@ export default async function handler(req, res) {
           elapsedMs: out.elapsedMs,
         });
         readerText = FREE_BRAIN_EMPTY;
+      }
+      // ORDER A2 item 8 (2026-11-11; the owner's decision): A TURN LOST TO THE PROVIDER ENDS ON THE APOLOGY. MEASURED on the preview
+      // capture of 11 November (five turns, every model call answered HTTP 400) and offline on production's own code
+      // (BRAIN-A-evidence/provider-down-out): with no model text the reviewer delivered its last-resort line, and the seat below
+      // that withholds an unsourced religious answer replaced it with the sentence that no text was found in Ezik's sources,
+      // and sent the offer to search the web -- although the sources had answered and no model had read them. The turn is lost
+      // when a provider call of this path failed (lib/free-brain/loop.js `failure`) and no model prose reached the reviewer. The
+      // reader then gets the sentence this file already holds for an answer that could not be generated, with neither the
+      // not-found sentence nor the offer. The owner's rule (no religious answer without a shown source) is untouched: nothing
+      // religious is delivered. The answer log carries one closed flag, so that such turns can be counted.
+      const providerFailedCalls = Array.isArray(out.providerFailures) ? out.providerFailures : [];
+      const providerLost = isProviderFailureWord(out.failure)
+        && (!String(out.text || '').trim() || !!(out.verdict && out.verdict.usedLastResort === true));
+      if (providerFailedCalls.length || providerLost) console.warn('[provider]', { degraded: providerFailedCalls, outcome: providerLost ? 'lost' : 'failed' });
+      if (providerLost) {
+        answerLog.note({ flags: [PROVIDER_LOST_FLAG] });
+        out.degraded.push('provider_lost:apology');
+        return liveFreeBrainUnits.opened ? liveFreeBrainUnits.finish(FREE_BRAIN_EMPTY, { replace: true }) : emitOnce(FREE_BRAIN_EMPTY);
       }
       const takhrij = takhrijDecision();
       if (takhrij.enabled) {
