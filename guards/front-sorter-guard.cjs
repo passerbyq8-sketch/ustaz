@@ -315,7 +315,9 @@ async function main() {
   const WRITER_TEXT = '\u0647\u0630\u0627 \u062c\u0648\u0627\u0628 \u0627\u062e\u062a\u0628\u0627\u0631.';
   let ipSeq = 0;
   // scenario: { sorter: 'WORLDLY'|'RELIGIOUS'|'hang'|'http'|'junk' }, env, band, age, depth, messages
-  async function drive(messages, { sorter = 'RELIGIOUS', sorterDelayMs = 0, env = {}, band = 'adult', age = 35, body = {} } = {}) {
+  // (`store`, row E2b alone -- the owner's named decision R16 of 11 November 2026: a function that answers the fatwa store's URLs
+  // with recorded replies that hold rows; absent, the store is the empty one every other row has always had)
+  async function drive(messages, { sorter = 'RELIGIOUS', sorterDelayMs = 0, env = {}, band = 'adult', age = 35, body = {}, store = null } = {}) {
     for (const k of ENV_KEYS) delete process.env[k];
     process.env.ANTHROPIC_API_KEY = 'guard-not-a-real-key';
     process.env.BRAVE_API_KEY = 'guard-not-a-real-key';
@@ -328,10 +330,17 @@ async function main() {
     installDayCapStore();
     const model = [];
     const counts = { sorter: 0, fatwa: 0, warmup: 0, judge: 0, other: 0 };
+    const fatwaCalls = [];        // R16 (row E2b): when each search of the fatwa store was asked
+    let sorterAnsweredAt = null;  // R16 (row E2b): when the sorter's verdict was given
     globalThis.fetch = async (url, init) => {
       const u = String(url);
       if (u.startsWith(FC.FATWA_BASE)) {
         const pathname = new URL(u).pathname;
+        if (typeof store === 'function') {
+          const search = pathname.endsWith('/fatwas/search');
+          if (search) { counts.fatwa += 1; fatwaCalls.push({ at: performance.now() }); } else counts.warmup += 1;
+          return store(u, init) || { ok: false, status: 404, url: u, headers: { get: () => 'application/json' }, text: async () => '{}', json: async () => ({}) };
+        }
         if (init && init.method === 'GET' && ['/api/v1/health', '/api/v1/scholars'].includes(pathname)) {
           counts.warmup += 1;
           return jsonResponse(u, {}, 503);
@@ -348,6 +357,7 @@ async function main() {
           if (sorter === 'hang') return new Promise((_, rej) => { if (init.signal) init.signal.addEventListener('abort', () => rej(new Error('aborted'))); });
           if (sorter === 'http') return jsonResponse(u, { error: 'x' }, 529);
           const text = sorter === 'junk' ? 'It depends.' : sorter;
+          sorterAnsweredAt = performance.now();
           return jsonResponse(u, { content: [{ type: 'text', text }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
         }
         if (b.system === BW.BW2_JUDGE_SYSTEM) counts.judge += 1; else counts.other += 1;
@@ -390,7 +400,7 @@ async function main() {
     try { await handler(req, res); } catch (e) { crashed = e; } finally { Object.assign(console, keep); }
     globalThis.fetch = realFetch;
     const logOf = (tag) => (logs.find((a) => a[0] === tag) || [])[1] || null;
-    return { res, model, counts, logs, logOf, crashed };
+    return { res, model, counts, logs, logOf, crashed, fatwaCalls, sorterAnsweredAt };
   }
   const t1 = FIX.map[0].q;
   // QAF gap 4: drive the real handler with a deliberately slow sorter, measuring
@@ -429,7 +439,51 @@ async function main() {
         !d.crashed && d.counts.sorter === 1 && rt.sorter === 'worldly' && rt.runtime === 'GENERAL' && rt.lexicalRuntime === 'STORED_FIQH' && rt.route === 'GEN' && rt.frame === 'general'
         && fb.bw2 === false && fb.runtime === 'GENERAL' && fb.frame === 'general' && !d.logOf('[bw2]'),
         ascii(JSON.stringify({ crashed: d.crashed && String(d.crashed.stack).slice(0, 300), rt, fb })));
-      ok('E2b no fatwa prefetch, no judge: the storedContext follows the verdict', d.counts.fatwa === 0 && d.counts.judge === 0, JSON.stringify(d.counts));
+      // re-cut 2026-11-11 (BRAIN-A, the reading; the owner's named decision R16): WAS `d.counts.fatwa === 0 && d.counts.judge === 0`
+      // ("no fatwa prefetch, no judge"). With the reading, retrieval starts beside it and does not wait for the verdict, so a turn
+      // the verdict then calls WORLDLY has asked the fatwa store and DROPPED what came back. IS, by R16: on a WORLDLY verdict no
+      // judge runs, and nothing of the fatwa store is shown to the reader or handed to the writer; the only fatwa calls allowed are
+      // those of the retrieval that ran beside the reading and was dropped. The row proves it with a store that ANSWERS: every
+      // search is given a recorded reply of twelve real fatwas (guards/fixtures-speed-wasl-fatwas.json); no title of them is in any
+      // model call or in anything written to the reader; no search is asked after the verdict; with no reading (the switch off) no
+      // search is asked at all, as before; and the control -- the same store, a RELIGIOUS verdict -- shows the same titles do reach
+      // the judge and the writer, so their absence above is the drop and not a store nothing reads. R16 covers this row alone.
+      {
+        const STORE = require('./fixtures-speed-wasl-fatwas.json');
+        // the question is one of the fixture's own recorded queries: it carries no ruling word (so the sorter IS asked about it), and
+        // the store client keeps the rows recorded for it (it drops rows that do not match the question's topic)
+        const QZ = 'إخراج القيمة في زكاة المال';
+        const recorded = Object.keys(STORE).find((k) => k.includes('/fatwas/search') && STORE[k].status === 200 && new URL(k).searchParams.get('q') === QZ);
+        const rich = { k: recorded, rows: recorded ? (JSON.parse(STORE[recorded].body).results || []) : [] };
+        // what marks a row of the store: its title (where the question does not already hold it) and its address
+        const marks = [...new Set(rich.rows.flatMap((r) => [String(r.title || '').trim(), String((r.source && (r.source.canonicalUrl || r.source.url)) || '').trim()])
+          .filter((t) => t.length >= 12 && !QZ.includes(t)))];
+        const reply = (e, u) => ({ ok: e.status === 200, status: e.status, url: u, redirected: false,
+          headers: { get: (h) => (String(h).toLowerCase() === 'content-type' ? e.ct : null) }, text: async () => e.body, json: async () => JSON.parse(e.body) });
+        const store = (u) => {
+          const pathname = new URL(u).pathname;
+          const key = pathname.endsWith('/fatwas/search') ? rich.k : Object.keys(STORE).find((k) => new URL(k).pathname === pathname);
+          return key ? reply(STORE[key], u) : null;
+        };
+        const carried = (text) => marks.filter((m) => String(text).includes(m)).length;
+        const seen = (turn) => ({ writer: turn.model.reduce((n, b) => n + carried(JSON.stringify(b)), 0), reader: carried(turn.res.writes.join('')) });
+        const deepEnv = { DEPTH_FREE_TRIAL: 'on' };
+        const g = await drive(msgs(QZ), { sorter: 'WORLDLY', sorterDelayMs: 700, body: deepBody, env: deepEnv, store });
+        const control = await drive(msgs(QZ), { sorter: 'RELIGIOUS', sorterDelayMs: 700, body: deepBody, env: deepEnv, store });
+        const noReading = await drive(msgs(QZ), { sorter: 'WORLDLY', sorterDelayMs: 700, body: deepBody, env: { ...deepEnv, REQUEST_PLAN_V1: 'off' }, store });
+        delete process.env.REQUEST_PLAN_V1; // this row's own switch does not stay for the rows after it
+        const gRoute = g.logOf('[route]') || {};
+        const afterVerdict = g.sorterAnsweredAt === null ? -1 : g.fatwaCalls.filter((c) => c.at >= g.sorterAnsweredAt).length;
+        ok('E2b on a WORLDLY verdict no judge runs and nothing of the fatwa store is shown to the reader or handed to the writer; the only fatwa calls are those of the retrieval that ran beside the reading and was dropped',
+          !g.crashed && gRoute.runtime === 'GENERAL' && gRoute.sorter === 'worldly' && g.counts.judge === 0
+          && g.counts.sorter === 1 && rich.rows.length >= 8 && marks.length >= 8 && seen(g).writer === 0 && seen(g).reader === 0 && afterVerdict === 0
+          && !noReading.crashed && noReading.counts.fatwa === 0 && noReading.counts.judge === 0 && seen(noReading).writer === 0 && seen(noReading).reader === 0
+          && !control.crashed && control.counts.fatwa > 0 && seen(control).writer > 0,
+          JSON.stringify({ worldly: { counts: g.counts, seen: seen(g), afterVerdict, route: gRoute.runtime }, noReading: noReading.counts, control: { counts: control.counts, seen: seen(control) }, marks: marks.length }));
+        console.log('E2B_R16 ' + JSON.stringify({ worldly: { fatwaCalls: g.counts.fatwa, judge: g.counts.judge, marksToWriter: seen(g).writer, marksToReader: seen(g).reader, fatwaCallsAfterVerdict: afterVerdict },
+          noReading: { fatwaCalls: noReading.counts.fatwa, judge: noReading.counts.judge }, controlReligious: { fatwaCalls: control.counts.fatwa, judge: control.counts.judge, marksToWriter: seen(control).writer, marksToReader: seen(control).reader },
+          recordedRows: rich.rows.length, marks: marks.length }));
+      }
       const free = d.model.filter((b) => b.system !== FS.FRONT_SORTER_SYSTEM && Array.isArray(b.system));
       const text0 = free.length ? sysTextOf(free[0]) : '';
       ok('E2c the system the free brain got: the general line in place of the shari\'a one, the general deep instruction, not the fiqh one',
