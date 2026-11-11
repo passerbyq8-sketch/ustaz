@@ -14,6 +14,9 @@
 //      reading, and a failed reading (the turn of before)
 //   I  the real handler with a scripted plan: the stream's timing events, the diagnostic view, the fallback, the fixed
 //      sentence for a follow-up, the card alone, the switch off
+//   L  ORDER A2: five turns of that capture replayed through the real turn (fixtures/bw2-capture-turns.json: the recorded rows
+//      and the writer's recorded text) -- no part missing in silence, a part's name as its heading, a served part once,
+//      and the mixed question whose second half asks the Qur'an
 //   K  ORDER A2 (the repair round after the preview capture of 11 November): the plans that capture recorded
 //      (fixtures/request-plan-capture.json) fed to the real functions -- what the sources are asked, a follow-up's full
 //      question, a question the plan split in two, what the model is asked to write, the standard model's thinking setting
@@ -1330,6 +1333,178 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       ok('K19 [item 9] the handler hands the reading that policy for the standard model only (the loop is loaded for it only then)',
         askSource.includes("const readingThinking = readingPlan.ask && readingChoice === 'standard'\n    ? (await import('../lib/free-brain/loop.js')).thinkingPolicy() : null;")
         && askSource.includes('standardModel: STANDARD_MODEL, provider: PROVIDER_CALLS, thinking: readingThinking })'));
+    }
+  }
+
+  // ------------------------------------------------------------------------------------------------ L
+  console.log('\n=== L. ORDER A2: THE CAPTURE\'S OWN TURNS, THROUGH THE REAL TURN ===');
+  {
+    const CAP = JSON.parse(fs.readFileSync(path.join(REPO, 'fixtures', 'request-plan-capture.json'), 'utf8')).cases;
+    const TURNS = JSON.parse(fs.readFileSync(path.join(REPO, 'fixtures', 'bw2-capture-turns.json'), 'utf8')).turns;
+    const wireOf = () => {
+      const target = { writes: [], headersSent: false, writableEnded: false, write(chunk) { this.writes.push(String(chunk)); return true; }, end() { this.writableEnded = true; }, setHeader() {}, flushHeaders() {} };
+      const facade = SSE.createFinalizedSseResponse(target, {
+        finalize: (input) => ({ ok: true, text: String(input.text || ''), problems: [], replaced: false, drops: [], degraded: [] }),
+        context: () => ({ allowWireOwnedCards: true, sourceCards: [], readerCards: [], readerPrefix: '', readerSuffix: '' }),
+        failureText: 'FACADE-FAILURE',
+      });
+      return { target, wire: BW.createBw2Wire(facade) };
+    };
+    const sentOf = (target) => {
+      let text = '';
+      for (const frame of target.writes.join('').split('\n\n').filter((f) => f.startsWith('data: '))) {
+        let f = null; try { f = JSON.parse(frame.slice(6)); } catch { f = null; }
+        if (!f) continue;
+        if (f.type === 'content_block_delta') text += f.delta.text;
+        if (f.type === 'ezik_replace') text = String(f.text || '');
+      }
+      return text;
+    };
+    // ONE CAPTURED TURN THROUGH runBw2Turn. The recorded plan is read by today's functions; the recorded rows are the gather's
+    // result (all of them, in their recorded order, each part's rows tagged as recorded; where two recorded parts are one
+    // part today, their rows are that part's); the judge keeps every row (the recorded rows ARE the rows it kept); the writer
+    // writes the recorded text line by line, the queue drained between lines, as a stream arrives. No network, no model.
+    const replay = async (tag, { writer = null } = {}) => {
+      const c = CAP[tag];
+      const t = TURNS[tag];
+      const parsed = RP.parsePlan(JSON.stringify(c.plan));
+      const checked = RP.validatePlan(parsed, { question: c.q, previous: c.prev });
+      const reading = { ...RP.readingOf(checked.plan, { question: c.q, previous: c.prev }), worldlySystem: 'GENERAL-FRAME' };
+      const planParts = BW.bw2PlanParts(reading);
+      const was = RP.readingOf({ ...parsed, followup: checked.plan.followup, full: checked.plan.full }, { question: c.q, previous: c.prev }).parts.filter((p) => !p.served);
+      const partNow = (i) => (was[i] ? planParts.parts.findIndex((p) => p.text.includes(was[i].text)) : -1);
+      const all = t.rows.map((row) => { const { qpart, ...rest } = row; return { ...rest, fullText: rest.text }; });
+      const gathered = {
+        report: Object.fromEntries(BW.BW2_SOURCES.map((name) => [name, { ms: 1, hits: name === 'fatwa' ? all.length : 0, timedOut: false }])),
+        results: { fatwa: all, encyclopedia: [], library: [], lessons: [] },
+        libraryQuery: '', encyclopediaCold: false, chapter: null, fatwaVerifyMs: 0, fatwaSearchMs: 0, fatwaMembers: 0, fatwaLate: 0,
+        asked: { fatwa: true, library: false, lessons: false },
+        parts: planParts.parts.map((p, i) => ({ ...p, rows: t.rows.filter((row) => Number.isInteger(row.qpart) && partNow(row.qpart) === i).map((row) => ({ ...row, fullText: row.text, qpart: i })) })),
+      };
+      const pregather = { key: BW.bw2GatherKey(String(reading.retrieval || reading.question), planParts.parts), gathered: Promise.resolve(gathered), events: [], cancel() {} };
+      const { target, wire } = wireOf();
+      const deps = {
+        runTool: () => Promise.resolve({ text: '', added: [], calls: 1 }),
+        searchStoredCorpus: () => Promise.resolve({ records: [] }),
+        warmEncyclopedia: () => Promise.resolve(true), encyclopediaReady: () => true,
+        ask: async (call) => {
+          if (call.worldly === true) return 'WORLDLY-ANSWER.';
+          const count = (call.user.match(/^\[\d+\] /gmu) || []).length;
+          return JSON.stringify({ d: Object.fromEntries(Array.from({ length: count }, (_, i) => [String(i + 1), 1])) });
+        },
+        callWriter: async ({ onText }) => {
+          for (const piece of String(writer === null ? t.writer : writer).split(/(?<=\n)/u)) {
+            onText(piece);
+            await new Promise((resolve) => setImmediate(resolve));
+            await new Promise((resolve) => setImmediate(resolve));
+          }
+          return { usage: { input_tokens: 10, output_tokens: 10 }, stop_reason: 'end_turn', content: [] };
+        },
+        runnerLookup: () => async () => [],
+      };
+      const out = await BW.runBw2Turn({
+        question: reading.question, messages: [...c.prev.flatMap((turn) => [{ role: 'user', content: turn }, { role: 'assistant', content: 'PREVIOUS-ANSWER.' }]), { role: 'user', content: c.q }],
+        mode: 'brief', band: 'adult', system: 'SYSTEM', model: 'writer-model', maxTokens: 4096,
+        providerUrl: 'https://provider.invalid/v1/messages', headers: {}, libFlagValue: '', libToken: '', lessonsToken: '',
+        takhrijWired: false, cards: null, wire, requestStartedAt: Date.now(), env: { BW2_RETRIEVAL_MS: '400', BW2_JUDGE_MS: '400' }, runtime: 'STORED_FIQH',
+        continueWhenNotCovered: true, deps, reading, pregather,
+      });
+      return { out, text: sentOf(target), reading, parts: planParts.parts.length ? planParts.parts : (planParts.single ? [planParts.single] : []), served: reading.parts.filter((p) => p.served), recorded: t.recorded, raw: t.writer };
+    };
+    const ABSENT = 'لم أقف على نصٍّ في ';
+    const linesOf = (text) => String(text || '').split('\n').map((line) => line.trim());
+    const heads = (r, title) => linesOf(r.text).filter((line) => line === '### ' + title).length;
+    const absent = (r, title) => linesOf(r.text).filter((line) => line.startsWith(ABSENT + title + ' ')).length;
+    // a part is accounted for when its name stands once as a heading, or one line says by that name that no text was found: one of the two
+    const accounted = (r) => r.parts.length > 0 && r.parts.every((p) => heads(r, p.title) + absent(r, p.title) === 1);
+    const tags = ['F-P1', 'F-P5b', 'F-P7', 'F-P8', 'F-B19w'];
+    ok('L0 the fixture holds five turns of the capture, each with its rows (their text, the part each was gathered for) and the writer\'s text; their questions and plans are in the plans\' fixture',
+      same(Object.keys(TURNS).sort(), [...tags].sort()) && tags.every((tag) => CAP[tag] && TURNS[tag].writer.length > 100 && TURNS[tag].rows.length >= 5 && TURNS[tag].rows.every((row) => row.kind && row.text))
+      && TURNS['F-P8'].rows.some((row) => Number.isInteger(row.qpart)) && TURNS['F-P8'].writer.includes('@@EZIK_NOT_COVERED@@'));
+
+    const p1 = await replay('F-P1');
+    const p5b = await replay('F-P5b');
+    const p7 = await replay('F-P7');
+    const p8 = await replay('F-P8');
+    const b19w = await replay('F-B19w');
+    const turns = { 'F-P1': p1, 'F-P5b': p5b, 'F-P7': p7, 'F-P8': p8, 'F-B19w': b19w };
+
+    // -- item 1
+    ok('L1 [item 1] P1: each part\'s name stands as the heading of the text released for it -- the heading that names a school is no longer withheld as an attribution with no source',
+      p1.parts.length === 2 && heads(p1, p1.parts[0].title) === 1 && heads(p1, p1.parts[1].title) === 1 && absent(p1, p1.parts[0].title) + absent(p1, p1.parts[1].title) === 0
+      && p1.text.indexOf('### ' + p1.parts[0].title) < p1.text.indexOf('### ' + p1.parts[1].title), [heads(p1, p1.parts[0] && p1.parts[0].title), heads(p1, p1.parts[1] && p1.parts[1].title)]);
+    {
+      const own = (r) => linesOf(r.raw).filter((line) => line.startsWith('### ') && !r.parts.some((p) => line === '### ' + p.title));
+      ok('L2 [item 1] P1 and P5b: the writer reworded the second part\'s heading (P5b\'s said the opposite direction) -- what stands in the answer is the plan\'s name, and the writer\'s wording is not sent',
+        own(p1).length === 1 && own(p5b).length === 1 && !p1.text.includes(own(p1)[0]) && !p5b.text.includes(own(p5b)[0])
+        && heads(p5b, p5b.parts[0].title) === 1 && heads(p5b, p5b.parts[1].title) === 1, [own(p1).length, own(p5b).length]);
+    }
+    ok('L3 [item 1] P7: the judge had kept rows for the second part, the writer said they held nothing for it, and its sentences are withheld by design -- ONE server line now says, by the part\'s name, that no text was found',
+      p7.parts.length === 2 && p7.out.telemetry.emptyParts === 0 && heads(p7, p7.parts[0].title) === 1 && heads(p7, p7.parts[1].title) === 0 && absent(p7, p7.parts[1].title) === 1
+      && absent(p7, p7.parts[0].title) === 0 && p7.text.indexOf(ABSENT + p7.parts[1].title) > p7.text.indexOf('### ' + p7.parts[0].title), [p7.out.telemetry.emptyParts, absent(p7, p7.parts[1] && p7.parts[1].title)]);
+    ok('L4 [item 1] P8: the part about the savings ended on the writer\'s marker with rows kept for it -- its line stands by its name; the part about the job and its pay has its name above the text released for it',
+      p8.parts.length === 2 && p8.out.telemetry.emptyParts === 0 && heads(p8, p8.parts[0].title) === 1 && absent(p8, p8.parts[0].title) === 0
+      && heads(p8, p8.parts[1].title) === 0 && absent(p8, p8.parts[1].title) === 1 && p8.out.continued !== true, [p8.parts.length, p8.out.telemetry.emptyParts]);
+    ok('L5 [item 1] on all five turns every part the writer answers is accounted for: its name once as a heading above released text, or one line by its name -- never neither, never both',
+      tags.every((tag) => accounted(turns[tag])), tags.filter((tag) => !accounted(turns[tag])));
+    {
+      // the second part of P1 with nothing written for it: the writer's text cut where its second heading begins
+      const cut = p1.raw.slice(0, p1.raw.indexOf('### ', 5));
+      const alone = await replay('F-P1', { writer: cut });
+      const second = alone.parts[1];
+      const without = linesOf(alone.text).filter((line) => !line.startsWith(ABSENT)).join('\n');
+      ok('L6 [item 1] the line is decided from what was RELEASED for the part: P1\'s second part with nothing written for it gets its line, although its words stand in the first part\'s text (the old valve would have stood the line down)',
+        cut.length > 200 && absent(alone, second.title) === 1 && heads(alone, second.title) === 0 && heads(alone, alone.parts[0].title) === 1
+        && BW.partSentenceWanted({ text: second.text, title: second.title }, without) === false, [absent(alone, second && second.title), BW.partSentenceWanted({ text: second.text, title: second.title }, without)]);
+      // P7 with no heading line at all: nothing can be counted for a part
+      const bare = await replay('F-P7', { writer: linesOf(p7.raw).filter((line) => !line.startsWith('### ')).join('\n') });
+      ok('L7 [item 1] where the writer opens no part of the plan (it wrote no heading), nothing is counted and the lines are decided as before: no heading is invented, no line is added for a part the judge kept rows for',
+        !bare.text.includes('### ') && absent(bare, bare.parts[0].title) + absent(bare, bare.parts[1].title) === 0 && bare.out.telemetry.emptyParts === 0 && bare.text.length > 500);
+    }
+    {
+      const partsFor = (tag) => { const c = CAP[tag]; const checked = RP.validatePlan(RP.parsePlan(JSON.stringify(c.plan)), { question: c.q, previous: c.prev }); return BW.bw2PlanParts(RP.readingOf(checked.plan, { question: c.q, previous: c.prev })); };
+      ok('L8 [item 1] the lines this batch removed have no part to stand for: the recorded plans of B21\'s wording, B22 and P10 give the writer no part at all, and B19b one part beside the card (a dependent phrase, a form instruction: still no part)',
+        ['F-B22', 'F-P10', 'S-B21'].every((tag) => partsFor(tag).parts.length === 0 && partsFor(tag).single === null) && partsFor('F-B19b').parts.length === 0, ['F-B22', 'F-P10', 'S-B21', 'F-B19b'].map((tag) => partsFor(tag).parts.length));
+    }
+
+    // -- item 5
+    {
+      const servedTitle = b19w.served[0] ? b19w.served[0].title : '';
+      const card = '<worship id="wudu"></worship>';
+      const count = (text, needle) => String(text).split(needle).length - 1;
+      ok('L9 [item 5] B19w: the writer wrote the heading and the card of the part the server had already answered -- they stand ONCE in the answer, and the other part has its name',
+        b19w.served.length === 1 && count(b19w.raw, '### ' + servedTitle) === 1 && count(b19w.raw, card) === 1
+        && heads(b19w, servedTitle) === 1 && count(b19w.text, card) === 1 && b19w.parts.length === 1 && heads(b19w, b19w.parts[0].title) === 1
+        && b19w.text.indexOf(card) < b19w.text.indexOf('### ' + b19w.parts[0].title), [heads(b19w, servedTitle), count(b19w.text, card)]);
+      const STRAY = 'يبدأ المتوضئ بغسل كفيه ثلاثا ثم يتمضمض ويستنشق';
+      const at = b19w.raw.indexOf('### ' + (b19w.parts[0] ? b19w.parts[0].title : '~'));
+      const again = await replay('F-B19w', { writer: b19w.raw.slice(0, at) + STRAY + ' [[1]].\n\n' + b19w.raw.slice(at) });
+      ok('L10 [item 5] the repeat is impossible, not discouraged: whatever the writer puts under the heading of a part the server answered is dropped with it, and the rest of the answer is the answer it was',
+        at > 0 && !again.text.includes(STRAY) && heads(again, servedTitle) === 1 && count(again.text, card) === 1 && again.text === b19w.text);
+    }
+
+    // -- item 2
+    {
+      const c = CAP['F-P9'];
+      const parsed = RP.parsePlan(JSON.stringify(c.plan));
+      const checked = RP.validatePlan(parsed, { question: c.q, previous: c.prev });
+      const applies = (plan, question) => typeof RP.planApplies === 'function' && RP.planApplies(plan, { question });
+      const read = async (plan, question) => RP.startReading({ messages: [{ role: 'user', content: question }], ask: async () => JSON.stringify(plan), env: {}, timeoutMs: 300 }).promise;
+      const p9 = await read(c.plan, c.q);
+      ok('L11 [item 2] P9, the recorded plan: a good plan (it holds together, the scorer passes it, its worldly half would be the server\'s) that the server does NOT apply while its other half asks the Qur\'an -- the reading ends invalid, the turn of before',
+        checked.ok && SCORE.scorePlan(checked.plan, byId.P9.must, fold, Array.isArray(RP.PLAN_ASKED) ? [...RP.PLAN_ASKED] : null).ok
+        && same(RP.servedKinds(checked.plan, { question: c.q }), ['worldly', '']) && checked.plan.parts[1].kind === 'tafsir'
+        && applies(checked.plan, c.q) === false && p9.state === 'invalid' && p9.reason === 'quran_beside_served' && p9.plan === null, [p9.state, p9.reason]);
+      const mixedQ = 'كم عدد سكان إندونيسيا؟ وما حكم السفر إلى إندونيسيا للسياحة؟';
+      const mixed = planWith([partOf('كم عدد سكان إندونيسيا؟', 'worldly'), partOf('ما حكم السفر إلى إندونيسيا للسياحة؟', 'ruling')]);
+      const mixedRead = await read(mixed, mixedQ);
+      const p7plan = RP.validatePlan(RP.parsePlan(JSON.stringify(CAP['F-P7'].plan)), { question: CAP['F-P7'].q, previous: [] }).plan;
+      const b19wPlan = RP.validatePlan(RP.parsePlan(JSON.stringify(CAP['F-B19w'].plan)), { question: CAP['F-B19w'].q, previous: [] }).plan;
+      const alone = planWith([partOf('هل ورد في القرآن ذكر لمنازل القمر؟', 'tafsir')]);
+      ok('L12 [item 2] and only then: a worldly half beside a ruling is still the server\'s, two parts that ask the Qur\'an with none served are applied, so are a card beside a list and a Qur\'an question alone',
+        mixedRead.state === 'plan' && RP.servedKinds(mixedRead.plan, { question: mixedQ })[0] === 'worldly' && applies(mixedRead.plan, mixedQ) === true
+        && applies(p7plan, CAP['F-P7'].q) === true && applies(b19wPlan, CAP['F-B19w'].q) === true
+        && (await read(alone, 'هل ورد في القرآن ذكر لمنازل القمر؟')).state === 'plan' && same([...(RP.PLAN_QURAN_KINDS || [])], ['tafsir', 'quran_text']), [mixedRead.state, mixedRead.reason]);
     }
   }
 
