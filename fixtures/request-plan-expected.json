@@ -1,0 +1,3802 @@
+{
+ "note": "BRAIN-A (2026-11-11). The plan a strong reader would write for the 48 witness questions of the BRAIN-XRAY inspection and the four further questions of the 26 recorded on production, written BEFORE the reading's prompt and reviewed by a fresh-context helper. `ideal` is the plan; `must` is what any acceptable plan must satisfy (tools/request-plan-score.mjs). Built by BRAIN-A-evidence/build-expected-plans.mjs: the questions are copied by code from the inspection's witnesses.json and live-plan.json.",
+ "schema": "request-plan/1",
+ "aliases": {
+  "B22r": "B22",
+  "P1s": "P1"
+ },
+ "items": [
+  {
+   "id": "Z1",
+   "q": "أبي منك تعطيني كل الأحاديث الصحاح في باب الزينه، كل ماتجده عن باب الزينه هاته",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "أحاديث باب الزينة",
+      "q": "الأحاديث الصحيحة في باب الزينة",
+      "kind": "collection",
+      "needs": [
+       "list",
+       "collector",
+       "grade",
+       "count"
+      ],
+      "source": [
+       "hadith"
+      ],
+      "act": "",
+      "chapter": "الزينة"
+     }
+    ],
+    "c": {
+     "sahih": true,
+     "all": true
+    }
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "collection"
+      ],
+      "qAll": [
+       "زينه"
+      ],
+      "qNone": [
+       "تعطيني",
+       "هاته",
+       "تجده"
+      ],
+      "sourceAny": [
+       "hadith"
+      ],
+      "act": "",
+      "chapterAny": [
+       "زينه"
+      ]
+     }
+    ],
+    "c": {
+     "sahih": true,
+     "all": true
+    },
+    "worldly": 0
+   },
+   "why": "a request to COLLECT, with two constraints (only sahih, all); «أبي منك تعطيني», «هاته» are not subject words"
+  },
+  {
+   "id": "Z1o",
+   "q": "أبي منك تعطيني كل الأحاديث الصحاح في باب الزينة",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": true,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "أحاديث باب الزينة",
+      "q": "الأحاديث الصحيحة في باب الزينة",
+      "kind": "collection",
+      "needs": [
+       "list",
+       "collector",
+       "grade",
+       "count"
+      ],
+      "source": [
+       "hadith"
+      ],
+      "act": "",
+      "chapter": "الزينة"
+     }
+    ],
+    "c": {
+     "sahih": true,
+     "all": true
+    }
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "collection"
+      ],
+      "qAll": [
+       "زينه"
+      ],
+      "qNone": [
+       "تعطيني"
+      ],
+      "sourceAny": [
+       "hadith"
+      ],
+      "act": "",
+      "chapterAny": [
+       "زينه"
+      ]
+     }
+    ],
+    "c": {
+     "sahih": true,
+     "all": true
+    },
+    "worldly": 0
+   },
+   "why": "the same request in the order's wording"
+  },
+  {
+   "id": "Z4",
+   "q": "أبي الاحاديث بدون شروحات، فقط الاحاديث بدون شرح ولا ايات",
+   "prev": [
+    "أبي منك تعطيني كل الأحاديث الصحاح في باب الزينه، كل ماتجده عن باب الزينه هاته"
+   ],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": true,
+    "full": "أعطني كل الأحاديث الصحيحة في باب الزينة بلا شروح ولا آيات",
+    "parts": [
+     {
+      "name": "أحاديث باب الزينة",
+      "q": "الأحاديث الصحيحة في باب الزينة",
+      "kind": "collection",
+      "needs": [
+       "list",
+       "collector",
+       "grade"
+      ],
+      "source": [
+       "hadith"
+      ],
+      "act": "",
+      "chapter": "الزينة"
+     }
+    ],
+    "c": {
+     "sahih": true,
+     "all": true,
+     "form": [
+      "bare"
+     ]
+    }
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": true,
+    "fullAll": [
+     "زينه"
+    ],
+    "part": [
+     {
+      "kindAny": [
+       "collection"
+      ],
+      "qAll": [
+       "زينه"
+      ],
+      "qNone": [
+       "شرح",
+       "شروح",
+       "ايات"
+      ],
+      "sourceAny": [
+       "hadith"
+      ],
+      "act": "",
+      "chapterAny": [
+       "زينه"
+      ]
+     }
+    ],
+    "c": {
+     "sahih": true,
+     "all": true,
+     "formAny": [
+      "bare"
+     ]
+    },
+    "worldly": 0
+   },
+   "why": "a follow-up that only changes the FORM (no commentary, no verses): the same sahih hadiths of the same chapter, and the form words never enter the subject"
+  },
+  {
+   "id": "Z5",
+   "q": "في احاديث كثيره في موضوع الزينه،،،، اذكرها لي ابحث في كتب الاحاديث كلها وجيب كل حديث في موضوع الزينه",
+   "prev": [
+    "أبي منك تعطيني كل الأحاديث الصحاح في باب الزينه، كل ماتجده عن باب الزينه هاته"
+   ],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": true,
+    "full": "اذكر كل الأحاديث الصحيحة في موضوع الزينة من كتب الحديث كلها",
+    "parts": [
+     {
+      "name": "أحاديث الزينة",
+      "q": "الأحاديث الصحيحة في موضوع الزينة",
+      "kind": "collection",
+      "needs": [
+       "list",
+       "collector",
+       "grade"
+      ],
+      "source": [
+       "hadith"
+      ],
+      "act": "",
+      "chapter": "الزينة"
+     }
+    ],
+    "c": {
+     "sahih": true,
+     "all": true
+    }
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "fullAll": [
+     "زينه"
+    ],
+    "part": [
+     {
+      "kindAny": [
+       "collection"
+      ],
+      "qAll": [
+       "زينه"
+      ],
+      "qNone": [
+       "ابحث",
+       "جيب",
+       "اذكر"
+      ],
+      "sourceAny": [
+       "hadith"
+      ],
+      "act": ""
+     }
+    ],
+    "c": {
+     "sahih": true,
+     "all": true
+    },
+    "worldly": 0
+   },
+   "why": "the reader widens the SEARCH («كتب الأحاديث كلها», «كل حديث»); he does not lift the condition: the owner's own witness counts a book of fabricated hadith in this round as a defect of a request for sahih; «ابحث … وجيب» is an instruction"
+  },
+  {
+   "id": "Z6",
+   "q": "لي بشرط يكون فيها ذكر كلمة الزينه بالحديث، الاحاديث فيها مايدور حول الزينه",
+   "prev": [
+    "في احاديث كثيره في موضوع الزينه،،،، اذكرها لي ابحث في كتب الاحاديث كلها وجيب كل حديث في موضوع الزينه"
+   ],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": true,
+    "full": "اذكر الأحاديث التي تدور حول الزينة، وليس شرطا أن تذكر فيها كلمة الزينة",
+    "parts": [
+     {
+      "name": "أحاديث الزينة",
+      "q": "الأحاديث التي تدور حول الزينة",
+      "kind": "collection",
+      "needs": [
+       "list",
+       "collector",
+       "grade"
+      ],
+      "source": [
+       "hadith"
+      ],
+      "act": "",
+      "chapter": "الزينة"
+     }
+    ],
+    "c": {
+     "sahih": true,
+     "all": true
+    }
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": true,
+    "fullAll": [
+     "زينه"
+    ],
+    "fullAny": [
+     "ليس شرط",
+     "ليس بشرط",
+     "ليس من شرط",
+     "ليس بلازم",
+     "لا يشترط",
+     "لا تشترط",
+     "لا اشترط",
+     "اشتراط",
+     "غير شرط",
+     "بلا شرط",
+     "لا يلزم",
+     "وان لم",
+     "ولو لم",
+     "لو لم",
+     "ام لم",
+     "او لم",
+     "ام لا",
+     "بمعناها",
+     "بالمعني"
+    ],
+    "fullNone": [
+     "التي ليس فيها"
+    ],
+    "part": [
+     {
+      "kindAny": [
+       "collection"
+      ],
+      "qAll": [
+       "زينه"
+      ],
+      "sourceAny": [
+       "hadith"
+      ],
+      "act": ""
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "the negation is read as stated («لي بشرط» = it is NOT a condition that the word appears): the reader's text holds no negation word, the plan writes one"
+  },
+  {
+   "id": "M1",
+   "q": "هل في فرق اني ادعي بصحن الحرم اي مقابل الكعبه او خارج سور الحرم كساحات الحرم الخارجيه او مسجد الفندق؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": true,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "الدعاء في صحن الحرم وخارجه",
+      "q": "هل يختلف الدعاء في صحن الحرم مقابل الكعبة عنه خارج سور الحرم كساحات الحرم الخارجية أو مسجد الفندق؟",
+      "kind": "ruling",
+      "needs": [
+       "ruling",
+       "evidence",
+       "views"
+      ],
+      "source": [
+       "fatwa",
+       "hadith"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "ruling",
+       "views"
+      ],
+      "qAny": [
+       "دعاء",
+       "ادعي",
+       "دعو"
+      ],
+      "qAll": [
+       "حرم"
+      ],
+      "sourceAny": [
+       "fatwa",
+       "hadith"
+      ],
+      "act": ""
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "the subject is SUPPLICATION compared across places; it is one question, not a dhikr-text request"
+  },
+  {
+   "id": "M2",
+   "q": "اقصد صحن المطاف نفسه اللي مقابل الكعبه والفنادق التي حوله، الدعاء هل مختلف؟ هل قيام الليل مختلف؟",
+   "prev": [
+    "هل في فرق اني ادعي بصحن الحرم اي مقابل الكعبه او خارج سور الحرم كساحات الحرم الخارجيه او مسجد الفندق؟"
+   ],
+   "questionFrom": "witnesses.json",
+   "baseline": true,
+   "ideal": {
+    "followup": true,
+    "full": "هل يختلف الدعاء في صحن المطاف مقابل الكعبة عنه في الفنادق التي حوله؟ وهل يختلف قيام الليل في صحن المطاف عنه في الفنادق التي حوله؟",
+    "parts": [
+     {
+      "name": "الدعاء في صحن المطاف والفنادق",
+      "q": "هل يختلف الدعاء في صحن المطاف مقابل الكعبة عنه في الفنادق التي حوله؟",
+      "kind": "ruling",
+      "needs": [
+       "ruling",
+       "evidence",
+       "views"
+      ],
+      "source": [
+       "fatwa",
+       "hadith"
+      ],
+      "act": "",
+      "chapter": ""
+     },
+     {
+      "name": "قيام الليل في صحن المطاف والفنادق",
+      "q": "هل يختلف قيام الليل في صحن المطاف مقابل الكعبة عنه في الفنادق التي حوله؟",
+      "kind": "ruling",
+      "needs": [
+       "ruling",
+       "evidence",
+       "views"
+      ],
+      "source": [
+       "fatwa",
+       "hadith"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     2,
+     2
+    ],
+    "followup": true,
+    "fullAll": [
+     "قيام الليل",
+     "مطاف"
+    ],
+    "fullAny": [
+     "دعاء",
+     "ادعي",
+     "دعو"
+    ],
+    "part": [
+     {
+      "kindAny": [
+       "ruling",
+       "views"
+      ],
+      "qAny": [
+       "دعاء",
+       "ادعي",
+       "دعو"
+      ],
+      "qAll": [
+       "مطاف"
+      ],
+      "act": ""
+     },
+     {
+      "kindAny": [
+       "ruling",
+       "views"
+      ],
+      "qAll": [
+       "قيام الليل",
+       [
+        "مطاف",
+        "فنادق",
+        "حرم"
+       ]
+      ],
+      "act": ""
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "a refinement of M1 read with it: the full question names the place; two parts, and the night-prayer part carries the places; «الدعاء» here is a fiqh subject, not a request for a supplication text"
+  },
+  {
+   "id": "K",
+   "q": "اذكر لي صفات صلاة الخوف حسب المذاهب الأربعة",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": true,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "صفة صلاة الخوف عند المذاهب",
+      "q": "ما صفة صلاة الخوف عند المذاهب الأربعة؟",
+      "kind": "manner",
+      "needs": [
+       "steps",
+       "schools"
+      ],
+      "source": [
+       "school"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {
+     "schools": [
+      "hanafi",
+      "maliki",
+      "shafii",
+      "hanbali"
+     ]
+    }
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "manner",
+       "views"
+      ],
+      "qAll": [
+       "صلاه الخوف"
+      ],
+      "qNone": [
+       "اذكر"
+      ],
+      "sourceAny": [
+       "school"
+      ],
+      "act": ""
+     }
+    ],
+    "c": {
+     "schools": [
+      "hanafi",
+      "maliki",
+      "shafii",
+      "hanbali"
+     ]
+    },
+    "worldly": 0
+   },
+   "why": "the manner of a SPECIAL prayer, per school: never the fixed card of the general prayer (act empty); each school from its own book"
+  },
+  {
+   "id": "P1",
+   "q": "ما أدلة الحنفية على وجوب الوتر؟ وبماذا أجاب الجمهور عنها؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": true,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "أدلة الحنفية على وجوب الوتر",
+      "q": "ما أدلة الحنفية على وجوب الوتر؟",
+      "kind": "evidence",
+      "needs": [
+       "evidence",
+       "owners"
+      ],
+      "source": [
+       "school",
+       "hadith"
+      ],
+      "act": "",
+      "chapter": ""
+     },
+     {
+      "name": "أجوبة الجمهور عن أدلة الحنفية",
+      "q": "بماذا أجاب الجمهور عن أدلة الحنفية على وجوب الوتر؟",
+      "kind": "views",
+      "needs": [
+       "replies",
+       "owners"
+      ],
+      "source": [
+       "school",
+       "comparative"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     2,
+     2
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "evidence",
+       "views"
+      ],
+      "qAll": [
+       "الوتر",
+       [
+        "الحنفيه",
+        "الاحناف",
+        "حنيفه"
+       ]
+      ],
+      "sourceAny": [
+       "school",
+       "comparative",
+       "hadith"
+      ],
+      "act": ""
+     },
+     {
+      "kindAny": [
+       "views",
+       "evidence"
+      ],
+      "qAll": [
+       "الوتر",
+       "جمهور"
+      ],
+      "nameNone": [
+       "عنها"
+      ],
+      "needsAny": [
+       "replies",
+       "views",
+       "evidence"
+      ],
+      "sourceAny": [
+       "school",
+       "comparative",
+       "hadith"
+      ],
+      "act": ""
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "the second part («وبماذا أجاب الجمهور عنها؟») carries its subject: the Hanafi evidences for the obligation of witr. The school is in each part's question, not a constraint on the whole request: the second part is the other schools' reply"
+  },
+  {
+   "id": "P2",
+   "q": "خرّج حديث «لا نكاح إلا بولي»، واذكر من صحّحه ومن أعلّه ووجه إعلاله.",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": true,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "تخريج حديث «لا نكاح إلا بولي»",
+      "q": "تخريج حديث «لا نكاح إلا بولي» ومن صححه ومن أعله ووجه إعلاله",
+      "kind": "hadith",
+      "needs": [
+       "collector",
+       "graders",
+       "flaw",
+       "grade"
+      ],
+      "source": [
+       "takhrij",
+       "hadith"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     1,
+     3
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "hadith"
+      ],
+      "qAll": [
+       "نكاح"
+      ],
+      "qNone": [
+       "اذكر"
+      ],
+      "sourceAny": [
+       "takhrij",
+       "hadith"
+      ],
+      "act": ""
+     },
+     {
+      "kindAny": [
+       "hadith"
+      ],
+      "qAll": [
+       "نكاح"
+      ],
+      "qNone": [
+       "اذكر"
+      ],
+      "act": ""
+     },
+     {
+      "kindAny": [
+       "hadith"
+      ],
+      "qAll": [
+       "نكاح"
+      ],
+      "qNone": [
+       "اذكر"
+      ],
+      "act": ""
+     }
+    ],
+    "anyPart": [
+     {
+      "needsAny": [
+       "collector"
+      ]
+     },
+     {
+      "needsAny": [
+       "graders",
+       "grade"
+      ]
+     },
+     {
+      "needsAny": [
+       "flaw"
+      ]
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "one hadith; the collectors, who authenticated, who found a flaw and why are what a complete takhrij NEEDS (if split, every part carries the hadith)"
+  },
+  {
+   "id": "P3",
+   "q": "ما الروايات عن الإمام أحمد في حكم تارك الصلاة تهاونًا؟ وما المعتمد عند متأخري الحنابلة؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": true,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "الروايات عن أحمد في تارك الصلاة تهاونا",
+      "q": "ما الروايات عن الإمام أحمد في حكم تارك الصلاة تهاونا؟",
+      "kind": "views",
+      "needs": [
+       "views",
+       "owners",
+       "ruling"
+      ],
+      "source": [
+       "school"
+      ],
+      "act": "",
+      "chapter": ""
+     },
+     {
+      "name": "المعتمد عند متأخري الحنابلة في تارك الصلاة",
+      "q": "ما المعتمد عند متأخري الحنابلة في حكم تارك الصلاة تهاونا؟",
+      "kind": "ruling",
+      "needs": [
+       "relied",
+       "ruling"
+      ],
+      "source": [
+       "school"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {
+     "schools": [
+      "hanbali"
+     ],
+     "scholar": "الإمام أحمد"
+    }
+   },
+   "must": {
+    "parts": [
+     2,
+     2
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "views",
+       "ruling"
+      ],
+      "qAll": [
+       "احمد",
+       "الصلاه",
+       [
+        "تارك",
+        "ترك"
+       ]
+      ],
+      "sourceAny": [
+       "school"
+      ],
+      "act": ""
+     },
+     {
+      "kindAny": [
+       "ruling",
+       "views"
+      ],
+      "qAll": [
+       [
+        "الحنابله",
+        "حنابله",
+        "الحنبلي"
+       ],
+       "الصلاه",
+       [
+        "تارك",
+        "ترك"
+       ]
+      ],
+      "sourceAny": [
+       "school"
+      ],
+      "act": ""
+     }
+    ],
+    "c": {
+     "schools": [
+      "hanbali"
+     ]
+    },
+    "worldly": 0
+   },
+   "why": "the second part («وما المعتمد عند متأخري الحنابلة؟») carries its subject: the ruling on one who abandons prayer out of laziness"
+  },
+  {
+   "id": "P4",
+   "q": "ما الفرق بين العام والمطلق عند الأصوليين؟ مع مثال لكل منهما من آيات الأحكام.",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": true,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "الفرق بين العام والمطلق",
+      "q": "ما الفرق بين العام والمطلق عند الأصوليين؟",
+      "kind": "definition",
+      "needs": [
+       "difference",
+       "definition",
+       "examples"
+      ],
+      "source": [
+       "usul"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {
+     "form": [
+      "examples"
+     ]
+    }
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "definition"
+      ],
+      "qAll": [
+       "عام",
+       "مطلق"
+      ],
+      "needsAny": [
+       "examples"
+      ],
+      "sourceAny": [
+       "usul"
+      ],
+      "act": ""
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "«مع مثال لكل منهما من آيات الأحكام» is what the answer needs (examples), not a second part"
+  },
+  {
+   "id": "P5a",
+   "q": "ما حكم صلاة التسابيح؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": true,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "حكم صلاة التسابيح",
+      "q": "ما حكم صلاة التسابيح؟",
+      "kind": "ruling",
+      "needs": [
+       "ruling",
+       "evidence",
+       "views"
+      ],
+      "source": [
+       "fatwa",
+       "hadith"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "ruling",
+       "views"
+      ],
+      "qAny": [
+       "التسابيح",
+       "التسبيح"
+      ],
+      "sourceAny": [
+       "fatwa",
+       "school",
+       "hadith"
+      ],
+      "act": ""
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "a plain ruling question; the special prayer is not the fixed card"
+  },
+  {
+   "id": "P5b",
+   "q": "لكن من أهل العلم من صحّح حديثها، فمن هم؟ وبماذا أجاب من ضعّفه؟",
+   "prev": [
+    "ما حكم صلاة التسابيح؟"
+   ],
+   "questionFrom": "witnesses.json",
+   "baseline": true,
+   "ideal": {
+    "followup": true,
+    "full": "من هم أهل العلم الذين صححوا حديث صلاة التسابيح؟ وبماذا أجاب من ضعف حديث صلاة التسابيح عن تصحيح من صححه؟",
+    "parts": [
+     {
+      "name": "من صحح حديث صلاة التسابيح",
+      "q": "من هم أهل العلم الذين صححوا حديث صلاة التسابيح؟",
+      "kind": "hadith",
+      "needs": [
+       "graders",
+       "grade"
+      ],
+      "source": [
+       "takhrij",
+       "hadith"
+      ],
+      "act": "",
+      "chapter": ""
+     },
+     {
+      "name": "جواب من ضعف حديث صلاة التسابيح",
+      "q": "بماذا أجاب من ضعف حديث صلاة التسابيح عن تصحيح من صححه؟",
+      "kind": "hadith",
+      "needs": [
+       "replies",
+       "flaw"
+      ],
+      "source": [
+       "takhrij",
+       "hadith"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     1,
+     2
+    ],
+    "followup": true,
+    "fullAll": [
+     "حديث",
+     "صح",
+     "ضع"
+    ],
+    "fullAny": [
+     "التسابيح",
+     "التسبيح"
+    ],
+    "part": [
+     {
+      "kindAny": [
+       "hadith",
+       "views"
+      ],
+      "qAny": [
+       "التسابيح",
+       "التسبيح"
+      ],
+      "sourceAny": [
+       "takhrij",
+       "hadith",
+       "fatwa"
+      ],
+      "act": ""
+     },
+     {
+      "kindAny": [
+       "hadith",
+       "views"
+      ],
+      "qAny": [
+       "التسابيح",
+       "التسبيح"
+      ],
+      "act": ""
+     }
+    ],
+    "anyPart": [
+     {
+      "needsAny": [
+       "graders",
+       "grade",
+       "owners"
+      ]
+     },
+     {
+      "needsAny": [
+       "replies",
+       "flaw",
+       "evidence"
+      ]
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "turn 2 is about the HADITH of salat al-tasabih of turn 1: who authenticated it and what those who weakened it replied; the full question says so (the earlier question alone is not it), and every part carries the hadith"
+  },
+  {
+   "id": "P6",
+   "q": "مسافر نوى الإقامة أربعة أيام ثم صار يمدّدها يومًا بيوم: متى ينقطع ترخّصه بالقصر عند المذاهب الأربعة؟ وما سبب اختلافهم؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": true,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "انقطاع ترخص المسافر بالقصر عند المذاهب",
+      "q": "مسافر نوى الإقامة أربعة أيام ثم صار يمددها يوما بيوم: متى ينقطع ترخصه بالقصر عند المذاهب الأربعة؟",
+      "kind": "views",
+      "needs": [
+       "views",
+       "schools"
+      ],
+      "source": [
+       "school"
+      ],
+      "act": "",
+      "chapter": ""
+     },
+     {
+      "name": "سبب اختلاف المذاهب في انقطاع ترخص المسافر",
+      "q": "ما سبب اختلاف المذاهب الأربعة في انقطاع ترخص المسافر بالقصر إذا نوى الإقامة؟",
+      "kind": "views",
+      "needs": [
+       "reason"
+      ],
+      "source": [
+       "comparative",
+       "school"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {
+     "schools": [
+      "hanafi",
+      "maliki",
+      "shafii",
+      "hanbali"
+     ]
+    }
+   },
+   "must": {
+    "parts": [
+     1,
+     2
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "views",
+       "ruling"
+      ],
+      "qAll": [
+       "قصر"
+      ],
+      "qAny": [
+       "مسافر",
+       "سفر",
+       "الاقامه"
+      ],
+      "sourceAny": [
+       "school",
+       "comparative"
+      ],
+      "act": ""
+     },
+     {
+      "kindAny": [
+       "views",
+       "ruling",
+       "evidence"
+      ],
+      "qAny": [
+       "مسافر",
+       "سفر",
+       "قصر",
+       "اقامه",
+       "ترخص"
+      ],
+      "needsAny": [
+       "reason"
+      ],
+      "act": ""
+     }
+    ],
+    "anyPart": [
+     {
+      "needsAny": [
+       "reason"
+      ]
+     }
+    ],
+    "c": {
+     "schools": [
+      "hanafi",
+      "maliki",
+      "shafii",
+      "hanbali"
+     ]
+    },
+    "worldly": 0
+   },
+   "why": "the cause of the difference is asked: a need of the views part (one part), or a part that carries the traveller's case (two); both are sound"
+  },
+  {
+   "id": "P7",
+   "q": "ما أقوال السلف في تفسير «الكرسي» في آية الكرسي؟ وماذا رجّح الطبري وابن كثير؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": true,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "أقوال السلف في تفسير الكرسي",
+      "q": "ما أقوال السلف في تفسير «الكرسي» في آية الكرسي؟",
+      "kind": "tafsir",
+      "needs": [
+       "views",
+       "owners"
+      ],
+      "source": [
+       "tafsir"
+      ],
+      "act": "",
+      "chapter": ""
+     },
+     {
+      "name": "ترجيح الطبري وابن كثير في تفسير الكرسي",
+      "q": "ماذا رجح الطبري وابن كثير في تفسير «الكرسي» في آية الكرسي؟",
+      "kind": "tafsir",
+      "needs": [
+       "preferred",
+       "owners"
+      ],
+      "source": [
+       "tafsir"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     2,
+     3
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "tafsir",
+       "views"
+      ],
+      "qAll": [
+       "كرسي"
+      ],
+      "sourceAny": [
+       "tafsir"
+      ],
+      "act": ""
+     },
+     {
+      "kindAny": [
+       "tafsir",
+       "views"
+      ],
+      "qAll": [
+       "كرسي",
+       [
+        "الطبري",
+        "ابن كثير"
+       ]
+      ],
+      "sourceAny": [
+       "tafsir"
+      ],
+      "act": ""
+     },
+     {
+      "kindAny": [
+       "tafsir",
+       "views"
+      ],
+      "qAll": [
+       "كرسي",
+       [
+        "الطبري",
+        "ابن كثير"
+       ]
+      ],
+      "act": ""
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "tafsir of a word at its verse; the second part («وماذا رجّح الطبري وابن كثير؟») carries «الكرسي» (each of the two men may be a part of his own); it is not a request for the verse's text"
+  },
+  {
+   "id": "P8",
+   "q": "أعمل مبرمجًا في شركة تأمين تجاري: ما حكم عملي وراتبي؟ وإن تركت العمل فكيف أتصرف فيما ادخرته منه؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": true,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "حكم العمل في شركة تأمين تجاري وراتبه",
+      "q": "ما حكم عملي مبرمجا في شركة تأمين تجاري وراتبي منه؟",
+      "kind": "ruling",
+      "needs": [
+       "ruling",
+       "evidence"
+      ],
+      "source": [
+       "fatwa"
+      ],
+      "act": "",
+      "chapter": ""
+     },
+     {
+      "name": "التصرف في المدخر من راتب شركة التأمين",
+      "q": "إن تركت العمل في شركة التأمين التجاري فكيف أتصرف فيما ادخرته من راتبي منه؟",
+      "kind": "ruling",
+      "needs": [
+       "ruling",
+       "evidence"
+      ],
+      "source": [
+       "fatwa"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     2,
+     2
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "ruling"
+      ],
+      "qAll": [
+       "تامين"
+      ],
+      "sourceAny": [
+       "fatwa"
+      ],
+      "act": ""
+     },
+     {
+      "kindAny": [
+       "ruling"
+      ],
+      "qAll": [
+       "تامين"
+      ],
+      "qAny": [
+       "ادخر",
+       "المدخر",
+       "مدخرات",
+       "المال",
+       "اموال"
+      ],
+      "nameNone": [
+       "منه"
+      ],
+      "sourceAny": [
+       "fatwa"
+      ],
+      "act": ""
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "the second part («فكيف أتصرف فيما ادخرته منه؟») carries the work it refers to: money saved from working for a commercial insurer"
+  },
+  {
+   "id": "P9",
+   "q": "كم يبعد القمر عن الأرض؟ وهل ورد في القرآن ذكر لمنازله؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": true,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "بعد القمر عن الأرض",
+      "q": "كم يبعد القمر عن الأرض؟",
+      "kind": "worldly",
+      "needs": [
+       "fact"
+      ],
+      "source": [
+       "general"
+      ],
+      "act": "",
+      "chapter": ""
+     },
+     {
+      "name": "منازل القمر في القرآن",
+      "q": "هل ورد في القرآن ذكر لمنازل القمر؟",
+      "kind": "tafsir",
+      "needs": [
+       "text",
+       "meaning"
+      ],
+      "source": [
+       "quran",
+       "tafsir"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     2,
+     2
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "worldly"
+      ],
+      "qAll": [
+       "قمر"
+      ],
+      "sourceAny": [
+       "general"
+      ],
+      "act": ""
+     },
+     {
+      "kindAny": [
+       "tafsir",
+       "quran_text",
+       "definition"
+      ],
+      "qAll": [
+       "قمر",
+       [
+        "القران",
+        "ايات",
+        "ايه"
+       ]
+      ],
+      "sourceAny": [
+       "quran",
+       "tafsir"
+      ],
+      "act": ""
+     }
+    ],
+    "worldly": 1
+   },
+   "why": "a MIXED question: a worldly fact and a Qur'anic question; the second part carries «القمر» («لمنازله»)"
+  },
+  {
+   "id": "P10",
+   "q": "اجمع لي أحاديث الصحيحين في فضل صلاة الفجر.",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": true,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "أحاديث فضل صلاة الفجر في الصحيحين",
+      "q": "أحاديث فضل صلاة الفجر في الصحيحين",
+      "kind": "collection",
+      "needs": [
+       "list",
+       "collector"
+      ],
+      "source": [
+       "hadith"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {
+     "coll": [
+      "bukhari",
+      "muslim"
+     ],
+     "all": true
+    }
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "collection"
+      ],
+      "qAny": [
+       "الفجر",
+       "الصبح"
+      ],
+      "qNone": [
+       "اجمع"
+      ],
+      "sourceAny": [
+       "hadith"
+      ],
+      "act": "",
+      "chapterNotEqual": [
+       "الصلاه",
+       "صلاه"
+      ]
+     }
+    ],
+    "c": {
+     "coll": [
+      "bukhari",
+      "muslim"
+     ]
+    },
+    "worldly": 0
+   },
+   "why": "a collection limited to the two Sahihs, on the VIRTUE OF FAJR: never the chapter «الصلاة» (nor «باب الصلاة», «كتاب الصلاة»); «اجمع لي» is the form"
+  },
+  {
+   "id": "B1",
+   "q": "من راوي حديث: «من حسن إسلام المرء تركه ما لا يعنيه»؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": true,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "راوي حديث «من حسن إسلام المرء»",
+      "q": "من راوي حديث «من حسن إسلام المرء تركه ما لا يعنيه»؟",
+      "kind": "hadith",
+      "needs": [
+       "narrator",
+       "collector"
+      ],
+      "source": [
+       "hadith",
+       "takhrij"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "hadith"
+      ],
+      "qAll": [
+       "حسن اسلام المرء"
+      ],
+      "needsAll": [
+       "narrator"
+      ],
+      "sourceAny": [
+       "hadith",
+       "takhrij"
+      ],
+      "act": ""
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "the Companion who narrated it is what is asked; the matn stays whole in the part"
+  },
+  {
+   "id": "B2",
+   "q": "اذكر الحديث الثالث عشر من الأربعين النووية مع راويه.",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "الحديث الثالث عشر من الأربعين النووية",
+      "q": "ما نص الحديث الثالث عشر من الأربعين النووية ومن راويه؟",
+      "kind": "hadith",
+      "needs": [
+       "text",
+       "narrator"
+      ],
+      "source": [
+       "hadith"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {
+     "book": "الأربعين النووية"
+    }
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "hadith"
+      ],
+      "qAll": [
+       "الاربع"
+      ],
+      "qAny": [
+       "الثالث عشر",
+       "13",
+       "١٣"
+      ],
+      "qNone": [
+       "اذكر"
+      ],
+      "needsAll": [
+       "narrator"
+      ],
+      "needsAny": [
+       "text"
+      ],
+      "sourceAny": [
+       "hadith"
+      ],
+      "act": ""
+     }
+    ],
+    "c": {
+     "bookAny": [
+      "النوويه",
+      "الاربع"
+     ]
+    },
+    "worldly": 0
+   },
+   "why": "«مع راويه» is a need (the narrator), not a part; the book is named"
+  },
+  {
+   "id": "B3",
+   "q": "جاء رجل إلى النبي ﷺ فقال: قل لي في الإسلام قولًا لا أسأل عنه أحدًا غيرك، فبماذا أجابه؟ ومن روى الحديث؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "حديث «قل لي في الإسلام قولا»",
+      "q": "جاء رجل إلى النبي ﷺ فقال: قل لي في الإسلام قولا لا أسأل عنه أحدا غيرك، فبماذا أجابه النبي ﷺ؟ ومن روى هذا الحديث؟",
+      "kind": "hadith",
+      "needs": [
+       "text",
+       "narrator",
+       "collector"
+      ],
+      "source": [
+       "hadith"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     1,
+     2
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "hadith"
+      ],
+      "qAll": [
+       "الاسلام"
+      ],
+      "qAny": [
+       "قولا",
+       "قل لي"
+      ],
+      "sourceAny": [
+       "hadith",
+       "takhrij"
+      ],
+      "act": ""
+     },
+     {
+      "kindAny": [
+       "hadith"
+      ],
+      "qAny": [
+       "قولا",
+       "قل لي",
+       "الاسلام"
+      ],
+      "needsAny": [
+       "narrator"
+      ],
+      "act": ""
+     }
+    ],
+    "anyPart": [
+     {
+      "needsAny": [
+       "narrator"
+      ]
+     },
+     {
+      "needsAny": [
+       "text",
+       "meaning"
+      ]
+     }
+    ],
+    "noPartNamed": [
+     "من روي الحديث",
+     "روي الحديث",
+     "راوي الحديث"
+    ],
+    "worldly": 0
+   },
+   "why": "one hadith: the reply and its narrator; «ومن روى الحديث؟» is the narrator OF that hadith (if split, the second part carries the hadith)"
+  },
+  {
+   "id": "B4",
+   "q": "ما حكم من نسي التشهد الأول وقام إلى الركعة الثالثة ولم يتذكر إلا بعد أن استتمّ قائمًا؟ ومتى يسجد للسهو: قبل السلام أم بعده؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "من نسي التشهد الأول حتى استتم قائما",
+      "q": "ما حكم من نسي التشهد الأول وقام إلى الركعة الثالثة ولم يتذكر إلا بعد أن استتم قائما؟",
+      "kind": "ruling",
+      "needs": [
+       "ruling",
+       "evidence"
+      ],
+      "source": [
+       "fatwa",
+       "school"
+      ],
+      "act": "",
+      "chapter": ""
+     },
+     {
+      "name": "موضع سجود السهو لمن نسي التشهد الأول",
+      "q": "متى يسجد للسهو من نسي التشهد الأول واستتم قائما: قبل السلام أم بعده؟",
+      "kind": "ruling",
+      "needs": [
+       "ruling",
+       "evidence",
+       "views"
+      ],
+      "source": [
+       "fatwa",
+       "school"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     1,
+     2
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "ruling",
+       "views"
+      ],
+      "qAll": [
+       "التشهد"
+      ],
+      "sourceAny": [
+       "fatwa",
+       "school",
+       "hadith"
+      ],
+      "act": ""
+     },
+     {
+      "kindAny": [
+       "ruling",
+       "views"
+      ],
+      "qAll": [
+       "سهو"
+      ],
+      "qAny": [
+       "تشهد",
+       "الجلوس الاول",
+       "الثالثه"
+      ],
+      "act": ""
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "the place of the prostration is asked for THIS case; if it is a part of its own it carries the forgotten tashahhud («السلام» alone is the bare second question)"
+  },
+  {
+   "id": "B5",
+   "q": "امرأة عندها حليّ من الفضة تتزيّن به، فهل تجب فيه الزكاة؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "زكاة حلي الفضة المستعمل",
+      "q": "هل تجب الزكاة في حلي الفضة الذي تتزين به المرأة؟",
+      "kind": "ruling",
+      "needs": [
+       "ruling",
+       "evidence",
+       "views"
+      ],
+      "source": [
+       "fatwa",
+       "school"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "ruling",
+       "views"
+      ],
+      "qAll": [
+       "زكاه",
+       "حلي"
+      ],
+      "sourceAny": [
+       "fatwa",
+       "school"
+      ],
+      "act": ""
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "a plain ruling question told as a case"
+  },
+  {
+   "id": "B6",
+   "q": "ما فضل صيام يوم عرفة لغير الحاج؟ اذكر الدليل.",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "فضل صيام يوم عرفة لغير الحاج",
+      "q": "ما فضل صيام يوم عرفة لغير الحاج؟",
+      "kind": "ruling",
+      "needs": [
+       "virtue",
+       "evidence"
+      ],
+      "source": [
+       "hadith",
+       "fatwa"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {
+     "form": [
+      "evidence"
+     ]
+    }
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "ruling",
+       "evidence"
+      ],
+      "qAll": [
+       "يوم عرفه",
+       [
+        "صيام",
+        "صوم"
+       ]
+      ],
+      "qNone": [
+       "اذكر",
+       "دليل"
+      ],
+      "nameNone": [
+       "دليل",
+       "اذكر"
+      ],
+      "needsAll": [
+       "evidence"
+      ],
+      "sourceAny": [
+       "hadith",
+       "fatwa"
+      ],
+      "act": ""
+     }
+    ],
+    "noPartNamed": [
+     "الدليل",
+     "اذكر الدليل"
+    ],
+    "worldly": 0
+   },
+   "why": "«اذكر الدليل» asks for the evidence OF that virtue: a need, never a part and never a subject word (neither the verb nor «الدليل»)"
+  },
+  {
+   "id": "B7",
+   "q": "ما أقوال المذاهب الأربعة في قراءة المأموم الفاتحة خلف الإمام؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "قراءة المأموم الفاتحة خلف الإمام",
+      "q": "ما أقوال المذاهب الأربعة في قراءة المأموم الفاتحة خلف الإمام؟",
+      "kind": "views",
+      "needs": [
+       "views",
+       "schools",
+       "evidence"
+      ],
+      "source": [
+       "school"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {
+     "schools": [
+      "hanafi",
+      "maliki",
+      "shafii",
+      "hanbali"
+     ]
+    }
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "views"
+      ],
+      "qAll": [
+       "فاتحه",
+       "ماموم"
+      ],
+      "sourceAny": [
+       "school",
+       "comparative"
+      ],
+      "act": ""
+     }
+    ],
+    "c": {
+     "schools": [
+      "hanafi",
+      "maliki",
+      "shafii",
+      "hanbali"
+     ]
+    },
+    "worldly": 0
+   },
+   "why": "the views with their owners, the four schools named as a constraint"
+  },
+  {
+   "id": "B8",
+   "q": "ما حكم الترتيب بين أعضاء الوضوء عند الفقهاء؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "الترتيب بين أعضاء الوضوء",
+      "q": "ما حكم الترتيب بين أعضاء الوضوء عند الفقهاء؟",
+      "kind": "views",
+      "needs": [
+       "ruling",
+       "views",
+       "owners",
+       "evidence"
+      ],
+      "source": [
+       "school",
+       "fatwa"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "ruling",
+       "views"
+      ],
+      "qAll": [
+       "ترتيب",
+       "وضوء"
+      ],
+      "sourceAny": [
+       "school",
+       "comparative",
+       "fatwa"
+      ],
+      "act": ""
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "a ruling question about wudu, not the manner of wudu: no card"
+  },
+  {
+   "id": "B9",
+   "q": "هل يمتد وقت صلاة المغرب إلى مغيب الشفق عند الشافعية؟ وما قولا الشافعي في القديم والجديد؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "وقت المغرب عند الشافعية",
+      "q": "هل يمتد وقت صلاة المغرب إلى مغيب الشفق عند الشافعية؟",
+      "kind": "ruling",
+      "needs": [
+       "ruling",
+       "evidence"
+      ],
+      "source": [
+       "school"
+      ],
+      "act": "",
+      "chapter": ""
+     },
+     {
+      "name": "قولا الشافعي في وقت المغرب",
+      "q": "ما قولا الشافعي في القديم والجديد في وقت صلاة المغرب؟",
+      "kind": "views",
+      "needs": [
+       "views",
+       "owners"
+      ],
+      "source": [
+       "school"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {
+     "schools": [
+      "shafii"
+     ]
+    }
+   },
+   "must": {
+    "parts": [
+     2,
+     2
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "ruling",
+       "views"
+      ],
+      "qAll": [
+       "مغرب",
+       "الشافعي"
+      ],
+      "sourceAny": [
+       "school"
+      ],
+      "act": ""
+     },
+     {
+      "kindAny": [
+       "views",
+       "ruling"
+      ],
+      "qAll": [
+       "مغرب",
+       [
+        "القديم",
+        "الجديد"
+       ]
+      ],
+      "sourceAny": [
+       "school"
+      ],
+      "act": ""
+     }
+    ],
+    "c": {
+     "schools": [
+      "shafii"
+     ]
+    },
+    "worldly": 0
+   },
+   "why": "the second part («وما قولا الشافعي في القديم والجديد؟») carries its subject: the time of Maghrib"
+  },
+  {
+   "id": "B10",
+   "q": "هل الحجامة تفطّر الصائم؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "الحجامة للصائم",
+      "q": "هل الحجامة تفطر الصائم؟",
+      "kind": "ruling",
+      "needs": [
+       "ruling",
+       "evidence",
+       "views"
+      ],
+      "source": [
+       "fatwa",
+       "school"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "ruling",
+       "views"
+      ],
+      "qAll": [
+       "حجامه"
+      ],
+      "sourceAny": [
+       "fatwa",
+       "school",
+       "hadith"
+      ],
+      "act": ""
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "a plain ruling question"
+  },
+  {
+   "id": "B11",
+   "q": "ما حكم الوضوء من مس الذكر؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "الوضوء من مس الذكر",
+      "q": "ما حكم الوضوء من مس الذكر؟",
+      "kind": "ruling",
+      "needs": [
+       "ruling",
+       "evidence",
+       "views"
+      ],
+      "source": [
+       "fatwa",
+       "school"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "ruling",
+       "views"
+      ],
+      "qAll": [
+       "مس",
+       [
+        "الذكر",
+        "ذكره",
+        "الفرج"
+       ]
+      ],
+      "sourceAny": [
+       "fatwa",
+       "school",
+       "hadith"
+      ],
+      "act": ""
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "a ruling about what breaks wudu, not the manner of wudu: no card"
+  },
+  {
+   "id": "B12",
+   "q": "ماذا قال ابن قدامة في المغني عن حكم الأضحية؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": true,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "حكم الأضحية في المغني",
+      "q": "ماذا قال ابن قدامة في المغني عن حكم الأضحية؟",
+      "kind": "ruling",
+      "needs": [
+       "ruling",
+       "text",
+       "evidence"
+      ],
+      "source": [
+       "school"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {
+     "scholar": "ابن قدامة",
+     "book": "المغني"
+    }
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "ruling",
+       "views"
+      ],
+      "qAll": [
+       "اضحيه"
+      ],
+      "sourceAny": [
+       "school",
+       "comparative"
+      ],
+      "act": ""
+     }
+    ],
+    "c": {
+     "scholarAny": [
+      "قدامه"
+     ],
+     "bookAny": [
+      "المغني"
+     ]
+    },
+    "worldly": 0
+   },
+   "why": "a named scholar and a named book are constraints; the source is that book"
+  },
+  {
+   "id": "B13",
+   "q": "ما حكم تغميض العينين في الصلاة؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "تغميض العينين في الصلاة",
+      "q": "ما حكم تغميض العينين في الصلاة؟",
+      "kind": "ruling",
+      "needs": [
+       "ruling",
+       "evidence"
+      ],
+      "source": [
+       "fatwa",
+       "school"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "ruling",
+       "views"
+      ],
+      "qAll": [
+       "العين",
+       [
+        "تغميض",
+        "اغماض"
+       ]
+      ],
+      "sourceAny": [
+       "fatwa",
+       "school"
+      ],
+      "act": ""
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "a ruling about an act inside prayer, not the manner of prayer: no card"
+  },
+  {
+   "id": "B15",
+   "q": "وما دليلهم على ذلك؟",
+   "prev": [
+    "ما قول المذهب الجعفري في مسح الرجلين في الوضوء؟"
+   ],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": true,
+    "full": "ما دليل المذهب الجعفري على قوله في مسح الرجلين في الوضوء؟",
+    "parts": [
+     {
+      "name": "دليل القول بمسح الرجلين في الوضوء",
+      "q": "ما دليل المذهب الجعفري على قوله في مسح الرجلين في الوضوء؟",
+      "kind": "evidence",
+      "needs": [
+       "evidence"
+      ],
+      "source": [
+       "school",
+       "hadith"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": true,
+    "fullAll": [
+     "الجعفري",
+     "الرجلين",
+     "مسح"
+    ],
+    "part": [
+     {
+      "kindAny": [
+       "evidence",
+       "views"
+      ],
+      "qAll": [
+       "الرجلين",
+       "مسح"
+      ],
+      "act": ""
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "«دليلهم» is the evidence OF the school asked about in the turn before, on wiping the feet; the full question names both (the server then gives the fixed sentence)"
+  },
+  {
+   "id": "B16",
+   "q": "هل تصح صلاتي خلف إمام جعفري إذا لم أجد مسجدًا غيره؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "الصلاة خلف إمام جعفري",
+      "q": "هل تصح صلاتي خلف إمام جعفري إذا لم أجد مسجدا غيره؟",
+      "kind": "ruling",
+      "needs": [
+       "ruling",
+       "evidence"
+      ],
+      "source": [
+       "fatwa"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "ruling",
+       "views"
+      ],
+      "qAll": [
+       "جعفري",
+       [
+        "خلف",
+        "وراء",
+        "اقتداء",
+        "ايتمام",
+        "امامه"
+       ]
+      ],
+      "sourceAny": [
+       "fatwa",
+       "school"
+      ],
+      "act": ""
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "a Sunni ruling question that mentions the school's followers: one part, a ruling, and the word that makes the question what it is stays in it"
+  },
+  {
+   "id": "B17",
+   "q": "من هو الإمام جعفر الصادق؟ وما منزلته عند أهل السنة؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "الإمام جعفر الصادق ومنزلته عند أهل السنة",
+      "q": "من هو الإمام جعفر الصادق وما منزلته عند أهل السنة؟",
+      "kind": "biography",
+      "needs": [
+       "identity",
+       "standing"
+      ],
+      "source": [
+       "tarajim"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     1,
+     2
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "biography",
+       "definition"
+      ],
+      "qAll": [
+       "جعفر",
+       "الصادق"
+      ],
+      "sourceAny": [
+       "tarajim",
+       "sira",
+       "fatwa",
+       "aqida"
+      ],
+      "act": ""
+     },
+     {
+      "kindAny": [
+       "biography",
+       "definition",
+       "views"
+      ],
+      "qAll": [
+       "جعفر",
+       "الصادق"
+      ],
+      "act": ""
+     }
+    ],
+    "noPartNamed": [
+     "منزلته",
+     "ما منزلته"
+    ],
+    "worldly": 0
+   },
+   "why": "who a man is and his standing: «منزلته» belongs to him (if split, the second part names him)"
+  },
+  {
+   "id": "B18",
+   "q": "ما فضل الصلاة في الصفوف الامامية في المسجد؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "فضل الصلاة في الصفوف الأمامية",
+      "q": "ما فضل الصلاة في الصفوف الأمامية في المسجد؟",
+      "kind": "ruling",
+      "needs": [
+       "virtue",
+       "evidence"
+      ],
+      "source": [
+       "hadith",
+       "fatwa"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "ruling",
+       "evidence"
+      ],
+      "qAll": [
+       "الصف"
+      ],
+      "qNone": [
+       "شيع",
+       "مذهب",
+       "طايف",
+       "جعفر",
+       "رافض",
+       "مع الاماميه"
+      ],
+      "sourceAny": [
+       "hadith",
+       "fatwa"
+      ],
+      "act": ""
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "«الأمامية» here is the FRONT rows, not a school (the folded text cannot tell the two spellings apart, so the plan must not speak of a sect); a virtue question, not the manner of prayer"
+  },
+  {
+   "id": "B19",
+   "q": "ما صفة التيمم؟ ومتى يُشرع؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": true,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "صفة التيمم",
+      "q": "ما صفة التيمم؟",
+      "kind": "manner",
+      "needs": [
+       "steps"
+      ],
+      "source": [
+       "card"
+      ],
+      "act": "tayammum",
+      "chapter": ""
+     },
+     {
+      "name": "أحوال مشروعية التيمم",
+      "q": "متى يشرع التيمم؟",
+      "kind": "ruling",
+      "needs": [
+       "conditions",
+       "evidence"
+      ],
+      "source": [
+       "fatwa",
+       "school"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     2,
+     2
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "manner"
+      ],
+      "qAll": [
+       "تيمم"
+      ],
+      "sourceAny": [
+       "card"
+      ],
+      "act": "tayammum"
+     },
+     {
+      "kindAny": [
+       "ruling",
+       "definition"
+      ],
+      "qAll": [
+       "تيمم"
+      ],
+      "sourceAny": [
+       "fatwa",
+       "school",
+       "quran",
+       "hadith"
+      ],
+      "act": ""
+     }
+    ],
+    "noPartNamed": [
+     "يشرع"
+    ],
+    "worldly": 0
+   },
+   "why": "the manner is a part of its own, served by the fixed card; «ومتى يُشرع؟» carries «التيمم»"
+  },
+  {
+   "id": "B20",
+   "q": "ما حكم البيع بالتقسيط مع زيادة الثمن عن سعر النقد؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "البيع بالتقسيط مع زيادة الثمن",
+      "q": "ما حكم البيع بالتقسيط مع زيادة الثمن عن سعر النقد؟",
+      "kind": "ruling",
+      "needs": [
+       "ruling",
+       "evidence"
+      ],
+      "source": [
+       "fatwa"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "ruling",
+       "views"
+      ],
+      "qAny": [
+       "تقسيط",
+       "اقساط"
+      ],
+      "sourceAny": [
+       "fatwa",
+       "school"
+      ],
+      "act": ""
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "a plain ruling question"
+  },
+  {
+   "id": "B21",
+   "q": "ما عدة المطلقة التي تحيض؟ وما الدليل؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": true,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "عدة المطلقة التي تحيض",
+      "q": "ما عدة المطلقة التي تحيض؟",
+      "kind": "ruling",
+      "needs": [
+       "ruling",
+       "evidence"
+      ],
+      "source": [
+       "fatwa",
+       "quran",
+       "school"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {
+     "form": [
+      "evidence"
+     ]
+    }
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "ruling"
+      ],
+      "qAll": [
+       "عده",
+       "مطلق"
+      ],
+      "qNone": [
+       "دليل"
+      ],
+      "nameNone": [
+       "دليل"
+      ],
+      "needsAll": [
+       "evidence"
+      ],
+      "sourceAny": [
+       "fatwa",
+       "school",
+       "quran"
+      ],
+      "act": ""
+     }
+    ],
+    "noPartNamed": [
+     "الدليل",
+     "ما الدليل"
+    ],
+    "worldly": 0
+   },
+   "why": "«وما الدليل؟» is the evidence OF that ruling: exactly one part, evidence among its needs, and «الدليل» in neither its question nor its name"
+  },
+  {
+   "id": "B22",
+   "q": "ما أركان الإيمان؟ اذكرها مع الدليل.",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": true,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "أركان الإيمان",
+      "q": "ما أركان الإيمان؟",
+      "kind": "definition",
+      "needs": [
+       "list",
+       "evidence"
+      ],
+      "source": [
+       "aqida",
+       "hadith",
+       "fatwa"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {
+     "form": [
+      "evidence"
+     ]
+    }
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "definition",
+       "ruling"
+      ],
+      "qAll": [
+       "اركان الايمان"
+      ],
+      "qNone": [
+       "اذكر",
+       "دليل"
+      ],
+      "nameNone": [
+       "دليل",
+       "اذكر"
+      ],
+      "needsAll": [
+       "evidence"
+      ],
+      "sourceAny": [
+       "aqida",
+       "hadith",
+       "fatwa",
+       "quran"
+      ],
+      "act": ""
+     }
+    ],
+    "noPartNamed": [
+     "اذكرها",
+     "الدليل"
+    ],
+    "worldly": 0
+   },
+   "why": "the whole of «اذكرها مع الدليل» is an instruction about the form: neither the verb nor «الدليل» is a subject word, and it is no part; evidence is a need"
+  },
+  {
+   "id": "B23",
+   "q": "ما تفسير قوله تعالى: ﴿وَمَن يَتَّقِ اللَّهَ يَجْعَل لَّهُ مَخْرَجًا﴾؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "تفسير «ومن يتق الله يجعل له مخرجا»",
+      "q": "ما تفسير قوله تعالى: ﴿وَمَن يَتَّقِ اللَّهَ يَجْعَل لَّهُ مَخْرَجًا﴾؟",
+      "kind": "tafsir",
+      "needs": [
+       "meaning"
+      ],
+      "source": [
+       "tafsir"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "tafsir"
+      ],
+      "qAny": [
+       "يتق الله",
+       "مخرجا"
+      ],
+      "sourceAny": [
+       "tafsir"
+      ],
+      "act": ""
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "the tafsir of a verse: the source is a tafsir at the verse, and it is not a request for the verse's text"
+  },
+  {
+   "id": "B24",
+   "q": "ما درجة حديث: «اطلبوا العلم ولو في الصين»؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "درجة حديث «اطلبوا العلم ولو في الصين»",
+      "q": "ما درجة حديث «اطلبوا العلم ولو في الصين»؟",
+      "kind": "hadith",
+      "needs": [
+       "grade",
+       "graders"
+      ],
+      "source": [
+       "takhrij"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "hadith"
+      ],
+      "qAll": [
+       "اطلبوا العلم"
+      ],
+      "needsAll": [
+       "grade"
+      ],
+      "sourceAny": [
+       "takhrij",
+       "hadith"
+      ],
+      "act": ""
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "the grade of a quoted hadith: from the takhrij books"
+  },
+  {
+   "id": "C1",
+   "q": "من راوي حديث: «ازهد في الدنيا يحبك الله، وازهد فيما عند الناس يحبوك»؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "راوي حديث «ازهد في الدنيا يحبك الله»",
+      "q": "من راوي حديث «ازهد في الدنيا يحبك الله، وازهد فيما عند الناس يحبوك»؟",
+      "kind": "hadith",
+      "needs": [
+       "narrator",
+       "collector"
+      ],
+      "source": [
+       "hadith",
+       "takhrij"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "hadith"
+      ],
+      "qAll": [
+       "ازهد في الدنيا"
+      ],
+      "needsAll": [
+       "narrator"
+      ],
+      "sourceAny": [
+       "hadith",
+       "takhrij"
+      ],
+      "act": ""
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "as B1"
+  },
+  {
+   "id": "C2",
+   "q": "اذكر الحديث الحادي والثلاثين من الأربعين النووية مع راويه.",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "الحديث الحادي والثلاثون من الأربعين النووية",
+      "q": "ما نص الحديث الحادي والثلاثين من الأربعين النووية ومن راويه؟",
+      "kind": "hadith",
+      "needs": [
+       "text",
+       "narrator"
+      ],
+      "source": [
+       "hadith"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {
+     "book": "الأربعين النووية"
+    }
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "hadith"
+      ],
+      "qAll": [
+       "الاربع"
+      ],
+      "qAny": [
+       "الحادي والثلاث",
+       "31",
+       "٣١"
+      ],
+      "qNone": [
+       "اذكر"
+      ],
+      "needsAll": [
+       "narrator"
+      ],
+      "needsAny": [
+       "text"
+      ],
+      "sourceAny": [
+       "hadith"
+      ],
+      "act": ""
+     }
+    ],
+    "c": {
+     "bookAny": [
+      "النوويه",
+      "الاربع"
+     ]
+    },
+    "worldly": 0
+   },
+   "why": "as B2"
+  },
+  {
+   "id": "C3",
+   "q": "جاء رجل إلى النبي ﷺ يسأله عن عمل إذا عمله أحبه الله وأحبه الناس، فبماذا أجابه؟ ومن روى الحديث؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "حديث العمل الذي يحبه الله والناس",
+      "q": "جاء رجل إلى النبي ﷺ يسأله عن عمل إذا عمله أحبه الله وأحبه الناس، فبماذا أجابه النبي ﷺ؟ ومن روى هذا الحديث؟",
+      "kind": "hadith",
+      "needs": [
+       "text",
+       "narrator",
+       "collector"
+      ],
+      "source": [
+       "hadith"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     1,
+     2
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "hadith"
+      ],
+      "qAny": [
+       "احبه الله",
+       "عمل"
+      ],
+      "sourceAny": [
+       "hadith",
+       "takhrij"
+      ],
+      "act": ""
+     },
+     {
+      "kindAny": [
+       "hadith"
+      ],
+      "qAny": [
+       "احبه الله",
+       "عمل"
+      ],
+      "needsAny": [
+       "narrator"
+      ],
+      "act": ""
+     }
+    ],
+    "anyPart": [
+     {
+      "needsAny": [
+       "narrator"
+      ]
+     },
+     {
+      "needsAny": [
+       "text",
+       "meaning"
+      ]
+     }
+    ],
+    "noPartNamed": [
+     "من روي الحديث",
+     "روي الحديث",
+     "راوي الحديث"
+    ],
+    "worldly": 0
+   },
+   "why": "as B3"
+  },
+  {
+   "id": "C4",
+   "q": "ما حكم من نسي سجدة من صلاته ولم يتذكرها إلا بعد السلام؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "من نسي سجدة وتذكرها بعد السلام",
+      "q": "ما حكم من نسي سجدة من صلاته ولم يتذكرها إلا بعد السلام؟",
+      "kind": "ruling",
+      "needs": [
+       "ruling",
+       "evidence"
+      ],
+      "source": [
+       "fatwa",
+       "school"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "ruling",
+       "views"
+      ],
+      "qAll": [
+       "سجده"
+      ],
+      "sourceAny": [
+       "fatwa",
+       "school"
+      ],
+      "act": ""
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "a plain ruling question about a case in prayer: no card"
+  },
+  {
+   "id": "C5",
+   "q": "هل تجب الزكاة في ذهب المرأة الذي تلبسه؟",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "زكاة ذهب المرأة الملبوس",
+      "q": "هل تجب الزكاة في ذهب المرأة الذي تلبسه؟",
+      "kind": "ruling",
+      "needs": [
+       "ruling",
+       "evidence",
+       "views"
+      ],
+      "source": [
+       "fatwa",
+       "school"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "ruling",
+       "views"
+      ],
+      "qAll": [
+       "زكاه",
+       "ذهب"
+      ],
+      "sourceAny": [
+       "fatwa",
+       "school"
+      ],
+      "act": ""
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "a plain ruling question"
+  },
+  {
+   "id": "C6",
+   "q": "ما فضل صيام ستة أيام من شوال؟ اذكر الدليل.",
+   "prev": [],
+   "questionFrom": "witnesses.json",
+   "baseline": false,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "فضل صيام ستة أيام من شوال",
+      "q": "ما فضل صيام ستة أيام من شوال؟",
+      "kind": "ruling",
+      "needs": [
+       "virtue",
+       "evidence"
+      ],
+      "source": [
+       "hadith",
+       "fatwa"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {
+     "form": [
+      "evidence"
+     ]
+    }
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "ruling",
+       "evidence"
+      ],
+      "qAll": [
+       "شوال"
+      ],
+      "qNone": [
+       "اذكر",
+       "دليل"
+      ],
+      "nameNone": [
+       "دليل",
+       "اذكر"
+      ],
+      "needsAll": [
+       "evidence"
+      ],
+      "sourceAny": [
+       "hadith",
+       "fatwa"
+      ],
+      "act": ""
+     }
+    ],
+    "noPartNamed": [
+     "الدليل",
+     "اذكر الدليل"
+    ],
+    "worldly": 0
+   },
+   "why": "as B6"
+  },
+  {
+   "id": "B19b",
+   "q": "كيف يكون التيمم؟ ومتى يشرع؟",
+   "prev": [],
+   "questionFrom": "live-plan.json",
+   "baseline": true,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "صفة التيمم",
+      "q": "كيف يكون التيمم؟",
+      "kind": "manner",
+      "needs": [
+       "steps"
+      ],
+      "source": [
+       "card"
+      ],
+      "act": "tayammum",
+      "chapter": ""
+     },
+     {
+      "name": "أحوال مشروعية التيمم",
+      "q": "متى يشرع التيمم؟",
+      "kind": "ruling",
+      "needs": [
+       "conditions",
+       "evidence"
+      ],
+      "source": [
+       "fatwa",
+       "school"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     2,
+     2
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "manner"
+      ],
+      "qAll": [
+       "تيمم"
+      ],
+      "sourceAny": [
+       "card"
+      ],
+      "act": "tayammum"
+     },
+     {
+      "kindAny": [
+       "ruling",
+       "definition"
+      ],
+      "qAll": [
+       "تيمم"
+      ],
+      "sourceAny": [
+       "fatwa",
+       "school",
+       "quran",
+       "hadith"
+      ],
+      "act": ""
+     }
+    ],
+    "noPartNamed": [
+     "يكون التيمم",
+     "يشرع"
+    ],
+    "worldly": 0
+   },
+   "why": "the same request as B19 in another wording: the manner by the card, and no part named «يكون التيمم» or «يشرع»"
+  },
+  {
+   "id": "B19p",
+   "q": "ما صفة التيمم؟",
+   "prev": [],
+   "questionFrom": "live-plan.json",
+   "baseline": true,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "صفة التيمم",
+      "q": "ما صفة التيمم؟",
+      "kind": "manner",
+      "needs": [
+       "steps"
+      ],
+      "source": [
+       "card"
+      ],
+      "act": "tayammum",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "manner"
+      ],
+      "qAll": [
+       "تيمم"
+      ],
+      "sourceAny": [
+       "card"
+      ],
+      "act": "tayammum"
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "the bare manner request (on production the frozen dispatcher answers it before any reading; the plan is stated for completeness)"
+  },
+  {
+   "id": "B19w",
+   "q": "ما صفة الوضوء؟ وما نواقضه؟",
+   "prev": [],
+   "questionFrom": "live-plan.json",
+   "baseline": true,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "صفة الوضوء",
+      "q": "ما صفة الوضوء؟",
+      "kind": "manner",
+      "needs": [
+       "steps"
+      ],
+      "source": [
+       "card"
+      ],
+      "act": "wudu",
+      "chapter": ""
+     },
+     {
+      "name": "نواقض الوضوء",
+      "q": "ما نواقض الوضوء؟",
+      "kind": "ruling",
+      "needs": [
+       "list",
+       "evidence"
+      ],
+      "source": [
+       "fatwa",
+       "school"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     2,
+     2
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "manner"
+      ],
+      "qAll": [
+       "وضوء"
+      ],
+      "sourceAny": [
+       "card"
+      ],
+      "act": "wudu"
+     },
+     {
+      "kindAny": [
+       "ruling",
+       "definition"
+      ],
+      "qAll": [
+       "وضوء",
+       [
+        "نواقض",
+        "ينقض",
+        "ناقض",
+        "مبطلات"
+       ]
+      ],
+      "sourceAny": [
+       "fatwa",
+       "school",
+       "hadith"
+      ],
+      "act": ""
+     }
+    ],
+    "noPartNamed": [
+     "نواقضه"
+    ],
+    "worldly": 0
+   },
+   "why": "the manner of wudu by the card; «وما نواقضه؟» carries «الوضوء»"
+  },
+  {
+   "id": "B22x",
+   "q": "ما أركان الإيمان؟",
+   "prev": [],
+   "questionFrom": "live-plan.json",
+   "baseline": true,
+   "ideal": {
+    "followup": false,
+    "full": "",
+    "parts": [
+     {
+      "name": "أركان الإيمان",
+      "q": "ما أركان الإيمان؟",
+      "kind": "definition",
+      "needs": [
+       "list",
+       "evidence"
+      ],
+      "source": [
+       "aqida",
+       "hadith",
+       "fatwa"
+      ],
+      "act": "",
+      "chapter": ""
+     }
+    ],
+    "c": {}
+   },
+   "must": {
+    "parts": [
+     1,
+     1
+    ],
+    "followup": false,
+    "part": [
+     {
+      "kindAny": [
+       "definition",
+       "ruling"
+      ],
+      "qAll": [
+       "اركان الايمان"
+      ],
+      "sourceAny": [
+       "aqida",
+       "hadith",
+       "fatwa",
+       "quran"
+      ],
+      "act": ""
+     }
+    ],
+    "worldly": 0
+   },
+   "why": "the control for B22: the same subject with no form instruction"
+  }
+ ]
+}
