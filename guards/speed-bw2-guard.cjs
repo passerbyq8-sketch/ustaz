@@ -64,6 +64,12 @@
 //   C8  the readers: a kunya holding a collection's word, a kunya's case, "rawa hadha al-hadith X" / "rawahu huwa X",
 //       and the question's own credit ("... fi al-sahihayn") read out of its hadith
 'use strict';
+// BRAIN-A (2026-11-11; order EZIK-ORDER-BRAIN-A section 5): THE ROWS OF THIS GUARD THAT DRIVE THE REAL HANDLER DESCRIBE TODAY'S READERS --
+// the front sorter's one word and the pattern readers -- with a provider whose replies are scripted in sequence. They run in the
+// FALLBACK CONFIGURATION, the reading switch off (REQUEST_PLAN_V1=off), where the handler is byte for byte what it was. No row
+// and no expected value is changed. The reading itself is guarded by guards/request-plan-guard.cjs (gate requestplan), which
+// also proves, on the 48 witness questions, that a failed reading is the turn of this configuration (its rows I4e to I4h).
+process.env.REQUEST_PLAN_V1 = 'off';
 
 const fs = require('fs');
 const path = require('path');

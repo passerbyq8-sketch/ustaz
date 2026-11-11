@@ -1450,5 +1450,10 @@
     "name": "trialfixmerges",
     "script": "tests/trialfix-merges.test.js",
     "args": ""
+  },
+  {
+    "name": "requestplan",
+    "script": "guards/request-plan-guard.cjs",
+    "args": ""
   }
 ]

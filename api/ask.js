@@ -141,7 +141,12 @@ import {
 } from '../lib/stored-deen.js';
 // ITEM 35 J2 (brain35-ship, 2026-11-10): the question classifier beside J's list, and THE SENTENCE a question about the school gets.
 import { bannedSchoolQuestion, BANNED_SCHOOL_DENY_TEXT } from '../lib/free-brain/instructions.js';
-import { runClosedDeenTurn } from '../lib/closed-deen.js';
+import { runClosedDeenTurn, closedWorshipCard } from '../lib/closed-deen.js';
+// BRAIN-A (2026-11-11): the reading -- one model step before retrieval writes a request plan in place of the sorter's one word.
+import {
+  requestPlanDecision, readingEligibility, startReading, planModelChoice, planWorldlyClaim, exclusionAfterPlan, readingOf,
+  planLogFlags, readingStatusEvent,
+} from '../lib/request-plan.js';
 // جولة «الاستعادة»، الفرع أ. Only the SWITCH is imported at module top — it is three environment
 // reads and no I/O. The loop, the tools and the instruction are imported lazily inside the branch,
 // so a deployment with FREE_BRAIN_V1 off never loads a byte of them.
@@ -152,7 +157,7 @@ import { runClosedDeenTurn } from '../lib/closed-deen.js';
 import { LIB_MAX_CHARS_PER_HIT_DEFAULT } from '../lib/lib-contract.js';
 import { freeBrainDecision, beforeWritingV2Decision, beforeWritingV2Takes, readLiveSearch, bw2ContinueDecision } from '../lib/free-brain/flag.js';
 import { bw2ScopeExclusion } from '../lib/bw2-scope.js';
-import { createBw2Diagnostic } from '../lib/bw2-diagnostic.js';
+import { createBw2Diagnostic, bw2DiagnosticEnabled } from '../lib/bw2-diagnostic.js';
 // THE FRONT SORTER AND THE GENERAL FRAME (order EZIK-SORTER-ORDER-2026-10-01). One fast-model call
 // separates a worldly request that carries a religious-looking word from a religious one BEFORE it is
 // framed; a turn that ends GENERAL is then answered in the general frame. Both modules are pure.
@@ -1262,6 +1267,20 @@ export default async function handler(req, res) {
     closedDeen: closedDeenAnswers, hazard: !!graveHazardClass, porn: pornBlocked, support: supportContact,
     removedIdentity: !!removedIdentityQuestion,
   });
+  // ── BRAIN-A (2026-11-11): THE READING (lib/request-plan.js) ──────────────────────────────────────────
+  // For an adult's text question that reaches the sorter, the before-writing path or the older path, ONE model step before
+  // retrieval writes a request plan in place of the sorter's one word. Decided here, beside the sorter's own plan and from
+  // the same facts; it differs in two places only: a message with a ruling word is read too, and so is a message the
+  // canonical-store rule keeps off the before-writing path. Every fixed reply and every frozen answer above stays ahead of
+  // it. With REQUEST_PLAN_V1 off, or when the reading fails, the sorter runs as it did and nothing below changes.
+  const requestPlan = requestPlanDecision();
+  const lexicalExclusion = bw2ScopeExclusion(currentQuestionText);
+  const readingPlan = readingEligibility({
+    enabled: requestPlan.enabled, band, freeBrainEnabled: freeBrainOnAtSorter, runtime: lexicalRuntimeOfRequest,
+    liveSearch: readLiveSearch(body), excluded: lexicalExclusion,
+    closedDeen: closedDeenAnswers, hazard: !!graveHazardClass, porn: pornBlocked, support: supportContact,
+    removedIdentity: !!removedIdentityQuestion, schoolDenied,
+  });
   // The frame the free-brain seat answers in: the general one for an adult whose FINAL runtime is GENERAL
   // (and never with the switch off).
   // ITEM C1 (axis row 1) -- 2026-10-15 brain-line: and only where the sorter itself said WORLDLY. A turn the
@@ -1380,7 +1399,13 @@ export default async function handler(req, res) {
   // and must not start one), and is awaited at the top of the try block below, right before the first consumer
   // of the runtime. Nothing is cancelled: the only exits between are failures, and the call carries its own
   // fixed budget.
-  const sorterRun = sorterPlan.ask ? startSorter({ messages: body.messages, providerUrl: ANTHROPIC_URL, headers }) : null;
+  // BRAIN-A: THE READING STARTS AT THE SAME SEAT. When it is asked, the sorter's own call is not made now: its word comes from
+  // the plan, and the sorter is asked only if the reading fails (below, where the verdict is needed). The model is the fast one
+  // unless REQUEST_PLAN_MODEL says standard; on a preview deployment the request header x-ezik-plan-model picks it per request.
+  const readingChoice = planModelChoice(process.env, req.headers);
+  const readingRun = readingPlan.ask
+    ? startReading({ messages: body.messages, providerUrl: ANTHROPIC_URL, headers, choice: readingChoice, standardModel: STANDARD_MODEL }) : null;
+  const sorterRun = sorterPlan.ask && !readingRun ? startSorter({ messages: body.messages, providerUrl: ANTHROPIC_URL, headers }) : null;
 
   // -- Commit to SSE now, then keep the socket warm during the byte-silent phase --
   // Round 1 is non-streamed, so a long fully-vocalized answer (e.g. the salah card)
@@ -1663,6 +1688,25 @@ export default async function handler(req, res) {
   });
   // A provisional status still precedes the sorter wait, through the finalized response.
   if (earlyRetrieve) res.write(`data: ${JSON.stringify({ type: 'ezik_status', stage: 'retrieve' })}\n\n`);
+  // BRAIN-A: THE READING IS TIMED IN THE STREAM, AND RETRIEVAL DOES NOT WAIT FOR IT. A status frame marks the reading's start
+  // (the client draws only the stages it knows, so this one is invisible to the reader; the recorder reads its arrival time).
+  // And where the before-writing path would take the question as today's patterns read it, its retrieval starts NOW, beside
+  // the reading (lib/before-writing-v2.js startBw2Pregather): the plan usually asks the sources the same things, and then the
+  // reading has cost the turn nothing; a failed reading uses this gather as it is.
+  let readingPregather = null;
+  if (readingRun) {
+    res.write(`data: ${JSON.stringify(readingStatusEvent('start'))}\n\n`);
+    if (earlyRetrieve) {
+      const { startBw2Pregather } = await import('../lib/before-writing-v2.js');
+      readingPregather = startBw2Pregather({
+        question: currentQuestionText,
+        runtime: lexicalRuntimeOfRequest === 'GENERAL' ? 'STORED_FIQH' : lexicalRuntimeOfRequest,
+        band, libFlagValue, libToken, lessonsToken: band === 'adult' ? libToken : '',
+        takhrijWired: takhrijDecision().enabled && band === 'adult' && libFlagValue === 'on' && libToken !== '',
+        signal: readerGone,
+      });
+    }
+  }
   const ownedSourceTag = (source) => {
     const card = buildSourceTag({ ...source, kind: source && (source.kind || source.sourceKind) || 'card' });
     if (card && card.tag && !finalizerContext.sourceCards.some((item) => item.tag === card.tag)) {
@@ -1935,14 +1979,75 @@ export default async function handler(req, res) {
     // THE SORTER'S VERDICT, NEEDED NOW. Everything below this line reads `currentRuntime` and `effectiveRoute` and
     // finds the values AFTER the sorter: the two names are declared again here, in this block, so the lexical
     // pair at the top of the handler (read by the two early exits above) is untouched and no consumer below is.
-    const sorted = sorterRun ? await sorterRun.promise : null;
-    const sorterState = sorted ? sorted.sorter : sorterPlan.sorter;
+    //
+    // BRAIN-A: THE READING'S OUTCOME COMES FIRST. A plan gives the sorter's word (worldly only when every part of it may be
+    // answered as worldly, and only where the sorter itself would have been asked; a message with a ruling word, or one the
+    // canonical-store rule holds, keeps the state it had). A FAILED READING COSTS NOTHING: on a timeout, an error, a reply that
+    // does not parse or a plan that does not hold together, the sorter is asked now, as it would have been, and everything
+    // below runs as before; the reason is printed and kept in the answer log.
+    const readingOutcome = readingRun ? await readingRun.promise : null;
+    const readingPlanned = !!readingOutcome && readingOutcome.state === 'plan' && !!readingOutcome.plan;
+    const readingPlanOf = readingPlanned ? readingOutcome.plan : null;
+    if (readingOutcome) {
+      console.log('[reading]', {
+        outcome: readingOutcome.state, reason: readingOutcome.reason || null, elapsedMs: readingOutcome.ms, model: readingOutcome.choice,
+        kind: readingPlanOf ? (new Set(readingPlanOf.parts.map((p) => p.kind)).size === 1 ? readingPlanOf.parts[0].kind : 'mixed') : null,
+        count: readingPlanOf ? readingPlanOf.parts.length : 0,
+      });
+      answerLog.note({ flags: planLogFlags(readingOutcome) });
+    }
+    // The plan's word for the whole question. 'clear': every part is worldly and the patterns find nothing religious in it -- the
+    // plan's word stands. 'contested': the plan calls it worldly and the patterns find a religious word in it -- the plan's word is
+    // not taken, and the sorter is asked now, as it is asked today (MEASURED: ten of the twelve worldly questions of the sorter's
+    // own fixture carry such a word). Anything else is a religious turn.
+    const worldlyClaim = readingPlanned && sorterPlan.ask ? planWorldlyClaim(readingPlanOf) : 'none';
+    if (worldlyClaim === 'contested') answerLog.note({ flags: ['plan_worldly_contested'] });
+    const sorterLate = readingOutcome && sorterPlan.ask && (!readingPlanned || worldlyClaim === 'contested')
+      ? startSorter({ messages: body.messages, providerUrl: ANTHROPIC_URL, headers }) : null;
+    const sorted = sorterRun ? await sorterRun.promise : (sorterLate ? await sorterLate.promise : null);
+    const sorterState = readingPlanned
+      ? (sorterPlan.ask ? (worldlyClaim === 'clear' ? 'worldly' : (worldlyClaim === 'contested' && sorted ? sorted.sorter : 'religious')) : sorterPlan.sorter)
+      : (sorted ? sorted.sorter : sorterPlan.sorter);
     const currentRuntime = runtimeAfterSorter(lexicalRuntimeOfRequest, sorterState);
     const effectiveRoute = currentRuntime === 'GENERAL' ? 'GEN' : 'DEEN';
     if (earlyRetrieve && currentRuntime === 'GENERAL') {
       res.write(`data: ${JSON.stringify({ type: 'ezik_status', stage: 'general' })}\n\n`);
     }
     logRoute({ route: effectiveRoute, runtime: currentRuntime, sorter: sorterState, sorterMs: sorted ? sorted.ms : 0, frame: frameFor(currentRuntime, sorterState) });
+    // BRAIN-A: the reading's end, timed in the stream (the same invisible status frame as its start). Under the diagnostic header on a
+    // preview deployment it also carries the plan, the model and whether the fallback ran; on production it carries the duration and
+    // plan-or-fallback, nothing of the question.
+    if (readingOutcome) {
+      const readingDiag = bw2DiagnosticEnabled(req)
+        ? { model: readingOutcome.model, choice: readingOutcome.choice, state: readingOutcome.state, reason: readingOutcome.reason || '', plan: readingPlanOf }
+        : {};
+      res.write(`data: ${JSON.stringify(readingStatusEvent('end', { ms: readingOutcome.ms, outcome: readingPlanned ? 'plan' : 'fallback', ...readingDiag }))}\n\n`);
+    }
+    // WHAT THE READING SETTLED FOR THIS TURN (null: no reading, and every line below is the line it was). The full question a
+    // follow-up continues, what the sources are asked, the parts with their names, and the parts the server answers itself.
+    const reading = readingPlanned ? readingOf(readingPlanOf, { question: questionText }) : null;
+    // IT CAN ADD CARE AND NEVER REMOVE IT. The fixed replies of the server stood ahead of the reading and read the reader's last
+    // message; they are asked again of the FULL question that message continues: «وما دليلهم على ذلك؟» after a question about the
+    // banned school is that question (the fixed sentence), and a follow-up that completes a hazard or a request for pornography
+    // gets the fixed text it would have got in one message. Nothing here can open a door the last message did not open.
+    if (reading && reading.question !== questionText) {
+      const fullHazard = graveHazard(reading.question);
+      if (fullHazard) {
+        if (readingPregather) readingPregather.cancel();
+        console.warn('[policy] SAFETY_REDIRECT', { topic: fullHazard, band: audienceBand, path: ledgerPath.path, policyVersion: POLICY_VERSION });
+        return emitOnce(fullHazard === 'self_harm' ? WARM_TEMPLATES.SELFHARM_SUPPORT : WARM_TEMPLATES.SAFETY_REDIRECT);
+      }
+      if (impermissibleEarlyDecision().enabled && classifyPornographyRequest(reading.question).blocked) {
+        if (readingPregather) readingPregather.cancel();
+        console.warn('[policy] IMPERMISSIBLE_EARLY', { kind: 'pornography', band: audienceBand, path: ledgerPath.path, policyVersion: POLICY_VERSION });
+        return emitOnce(PORN_REFUSAL_TEXT);
+      }
+      if (bannedSchoolQuestion(reading.question) === 'deny') {
+        if (readingPregather) readingPregather.cancel();
+        answerLog.note({ path: 'canned', flags: ['school_denied'] });
+        return emitOnce(BANNED_SCHOOL_DENY_TEXT);
+      }
+    }
 
     const topicClass = classifyTopic(questionText, currentPlan, effectiveRoute);
     const ageAccess = access({ topicClass, audienceBand });
@@ -2038,6 +2143,27 @@ export default async function handler(req, res) {
         model: closedOut.modelCallsForReligiousAnswer,
       });
       return emitOnce(closedOut.text);
+    }
+
+    // BRAIN-A: A MANNER REQUEST THE READING NAMED, AND NOTHING ELSE IN THE QUESTION. The frozen dispatcher above takes the bare
+    // request by a whole-sentence grammar («ما صفة التيمم؟»); every other wording of the same request («ما صفة غسل الجنابة؟»,
+    // «اذكر لي خطوات الوضوء مرقمة») went to a writer, and on the older path lost its card. When the plan has ONE part, the general
+    // manner of prayer, wudu, ghusl or tayammum, and the part holds nothing but that act (lib/request-plan.js worshipCardAct),
+    // the answer is the same closed one: the card alone, no retrieval and no writer.
+    if (reading && reading.parts.length === 1 && reading.parts[0].served === 'worship') {
+      const cardOut = closedWorshipCard(reading.parts[0].act);
+      if (cardOut) {
+        if (readingPregather) readingPregather.cancel();
+        finalizerContext.allowWireOwnedCards = false;
+        finalizerContext.consistencyContext = null;
+        answerLog.note({ path: 'closed', ...sourceNoteFields(readerSources('closed', cardOut.finalizerSources), ['plan_card_only']) });
+        console.log('[closed-deen]', {
+          route: 'LOCAL_WORSHIP', sourceIds: cardOut.sourceIds || [], outcome: cardOut.outcome,
+          corpusCalls: cardOut.storedCorpusCalls, fatwaSearch: cardOut.fatwaSearchCalls, braveSearch: cardOut.braveSearchCalls,
+          liveFetch: cardOut.livePageFetchCalls, model: cardOut.modelCallsForReligiousAnswer,
+        });
+        return emitOnce(cardOut.text);
+      }
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -2138,11 +2264,26 @@ export default async function handler(req, res) {
     // true, a boolean and nothing else) or BEFORE_WRITING_V2 is off. The frozen dispatcher above has
     // already had its turn and keeps its priority; the reserved child path never reaches here.
     const liveSearch = readLiveSearch(body);
+    // BRAIN-A: THE PATH IS CHOSEN BY THE KIND OF REQUEST. Without a plan the canonical-store rule reads the reader's words, as
+    // before. With one, that rule stands only where the request really is one for a frozen text (a dhikr, a supplication, a
+    // verse) or is a manner request the fixed card does not serve; a fiqh question that mentions supplication, and a manner
+    // part served by the card beside another part, go to the before-writing path (lib/request-plan.js exclusionAfterPlan).
     const bw2Route = beforeWritingV2Takes({
       enabled: beforeWritingV2Decision().enabled, band, runtime: currentRuntime, liveSearch,
-      excluded: bw2ScopeExclusion(currentQuestionText),
+      excluded: reading ? exclusionAfterPlan(lexicalExclusion, readingPlanOf) : bw2ScopeExclusion(currentQuestionText),
     });
     const bw2Taken = freeBrain.enabled && !childBenignReserved && bw2Route.takes;
+    // BRAIN-A: the gather that ran beside the reading is read by the before-writing path alone
+    if (readingPregather && !bw2Taken) readingPregather.cancel();
+    // A worldly part is answered under the GENERAL frame of the system already built (lib/general-frame.js); where that frame
+    // cannot be derived the part is not served and stays under the religious rules.
+    const worldlyFrame = reading && reading.parts.some((p) => p.served === 'worldly')
+      ? generalizeSystemBlocks(system, depthInstruction, effectiveDepth) : null;
+    const readingForPath = reading ? {
+      ...reading,
+      parts: reading.parts.map((p) => (p.served === 'worldly' && !(worldlyFrame && worldlyFrame.replaced) ? { ...p, served: '' } : p)),
+      worldlySystem: worldlyFrame && worldlyFrame.replaced ? worldlyFrame.blocks : null,
+    } : null;
     // THE GENERAL FRAME (order EZIK-SORTER-ORDER-2026-10-01, part 2): the system of an adult whose final runtime
     // is GENERAL, derived from the very system built above (so the date block is not built twice) and chosen
     // where the free brain is called. Null means the shari'a frame, exactly as before.
@@ -2186,7 +2327,9 @@ export default async function handler(req, res) {
       let bw2Out = null;
       try {
         bw2Out = await runBw2Turn({
-          question: questionText,
+          // BRAIN-A: with a reading, the FULL question (a follow-up's standalone form); retrieval, the judge, the unit checks
+          // and the ledger read it where they read the last message alone
+          question: readingForPath ? readingForPath.question : questionText,
           diagnostic,
           messages: body.messages,
           mode: readRequestedDepth(body.depth) || 'brief',
@@ -2214,6 +2357,9 @@ export default async function handler(req, res) {
           aiConsentVersion: req.headers?.[AI_CONSENT_HEADER] || '',
           // SPEED W6B B5: the lessons block under the answer is the lessons it rests on (lib/finalized-sse-writer.js).
           onLessonRows: (rows) => { finalizerContext.lessonRows = rows; },
+          // BRAIN-A: what the reading settled (null: none), and the gather that ran beside it
+          reading: readingForPath,
+          pregather: readingPregather,
         });
       } finally {
         bw2Upstream.cleanup();
@@ -2225,7 +2371,9 @@ export default async function handler(req, res) {
           path: 'bw2',
           hits: { fatwa: t.fatwaHits, library: t.libraryHits, encyclopedia: t.encyclopediaHits, lessons: t.lessonsHits },
           cited: t.readerSourceCount || 0, held: heldFromTelemetry(t), out_tokens: t.outTokens, continued: t.continuations,
-          flags: [t.liveOffer ? 'live_offer' : '', t.continued ? 'bw2_continued' : '', t.refusalFallback ? 'refusal_fallback' : '', t.unsourcedWithheld ? 'unsourced_withheld' : '', ...readerSourceKindsFromMask(t.readerSourceMask).map((kind) => `src:${kind}`)],
+          flags: [t.liveOffer ? 'live_offer' : '', t.continued ? 'bw2_continued' : '', t.refusalFallback ? 'refusal_fallback' : '', t.unsourcedWithheld ? 'unsourced_withheld' : '', ...readerSourceKindsFromMask(t.readerSourceMask).map((kind) => `src:${kind}`),
+            // BRAIN-A: the parts the server answered itself, and what became of the gather that ran beside the reading (number codes)
+            t.servedWorship ? 'served_worship' : '', t.servedWorldly ? 'served_worldly' : '', readingPregather ? 'pregather:' + (t.pregather || 0) : ''],
         });
         console.log('[bw2]', {
           bw2: t.bw2, runtime: currentRuntime, frame: answerFrame,

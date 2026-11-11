@@ -1184,3 +1184,11 @@ tests/trialfix-merges.test.js text eol=lf
 tests/trialfix-client-harness.cjs text eol=lf
 tests/trialfix-content-baseline.json text eol=lf
 lib/sync/trialfix-progress.js text eol=lf
+
+# BRAIN-A (order EZIK-ORDER-BRAIN-A-2026-11-11): the reading -- the request plan, its expected-plan fixture and scorer, the guard
+# that drives them, and the fixture of the brief-excerpt cure.
+lib/request-plan.js text eol=lf
+guards/request-plan-guard.cjs text eol=lf
+fixtures/request-plan-expected.json text eol=lf
+tools/request-plan-score.mjs text eol=lf
+fixtures/brain-a-excerpt-binbaz-13610.json text eol=lf
