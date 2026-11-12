@@ -1370,7 +1370,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     // result (all of them, in their recorded order, each part's rows tagged as recorded); the judge keeps every row (the
     // recorded rows ARE the rows it kept); the writer writes the recorded text line by line, the queue drained between lines,
     // as a stream arrives (`writer` replaces that text, `stop` the reason the writer stopped). No network, no model.
-    const replay = async (tag, { writer = null, stop = 'end_turn' } = {}) => {
+    const replay = async (tag, { writer = null, stop = 'end_turn', untag = -1 } = {}) => {
       const c = CAP[tag];
       const t = TURNS[tag];
       const parsed = RP.parsePlan(JSON.stringify(c.plan));
@@ -1385,7 +1385,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         results: { fatwa: all, encyclopedia: [], library: [], lessons: [] },
         libraryQuery: '', encyclopediaCold: false, chapter: null, fatwaVerifyMs: 0, fatwaSearchMs: 0, fatwaMembers: 0, fatwaLate: 0,
         asked: { fatwa: true, library: false, lessons: false },
-        parts: planParts.parts.map((p, i) => ({ ...p, rows: t.rows.filter((row) => Number.isInteger(row.qpart) && partNow(row.qpart) === i).map((row) => ({ ...row, fullText: row.text, qpart: i })) })),
+        parts: planParts.parts.map((p, i) => ({ ...p, rows: t.rows.filter((row) => Number.isInteger(row.qpart) && row.qpart !== untag && partNow(row.qpart) === i).map((row) => ({ ...row, fullText: row.text, qpart: i })) })),
       };
       const pregather = { key: BW.bw2GatherKey(String(reading.retrieval || reading.question), planParts.parts), gathered: Promise.resolve(gathered), events: [], cancel() {} };
       const { target, wire } = wireOf();
@@ -1478,6 +1478,9 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       ok('L5b [item 1] the writer is handed EVERY part of the plan by its name, the parts the judge kept rows for first (P1: the part with no row is listed second, with its name, not as a part to leave alone)',
         first > 0 && p7.writerUser.indexOf('### ' + p7.parts[1].title) > first && p1.out.telemetry.emptyParts === 1
         && p1.writerUser.includes('### ' + p1.parts[0].title + '\n### ' + p1.parts[1].title) && !p1.writerUser.includes('ليس لها نصٌّ في الصفوف'), p1.out.telemetry.emptyParts);
+      const noRowFirst = await replay('F-P7', { untag: 0 });
+      ok('L5c [item 1] a part the judge kept no row for is not handed to the writer to open the answer with: P7 with no row tagged for its FIRST part lists the second part\'s name first',
+        noRowFirst.out.telemetry.emptyParts === 1 && noRowFirst.writerUser.includes('### ' + p7.parts[1].title + '\n### ' + p7.parts[0].title), noRowFirst.out.telemetry.emptyParts);
     }
     {
       // the second part of P1 with nothing written for it: the writer's text cut where its second heading begins
@@ -1539,8 +1542,9 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       // the helper's case on P1: a heading of the writer's own INSIDE the first part, before the part's first released paragraph
       const firstOut = prose(p1)[0];
       const inside = await replay('F-P1', { writer: p1.raw.split(firstOut.slice(0, 24)).join('### خلافهم مع الجمهور\n\n' + firstOut.slice(0, 24)) });
-      ok('L14b [item 1, after the helper] a part opened by its name whose text then goes out under a heading of the writer\'s own is NOT said to have no text: the prose is the prose it was and no line is added',
-        p1.raw.includes(firstOut.slice(0, 24)) && same(prose(inside), prose(p1)) && absent(inside, inside.parts[0].title) === 0 && absent(inside, inside.parts[1].title) === 0, [absent(inside, inside.parts[0].title), prose(inside).length, prose(p1).length]);
+      ok('L14b [item 1, after the helper] a part opened by its name whose text then goes out under a heading of the writer\'s own is NOT said to have no text, and its name is not put above that other section: the prose is the prose it was and no line is added',
+        p1.raw.includes(firstOut.slice(0, 24)) && same(prose(inside), prose(p1)) && absent(inside, inside.parts[0].title) === 0 && absent(inside, inside.parts[1].title) === 0
+        && heads(inside, inside.parts[0].title) === 0, [absent(inside, inside.parts[0].title), prose(inside).length, prose(p1).length]);
       // a writer that was cut
       const firstOnly = p7.raw.slice(0, p7.raw.indexOf('### ' + p7.parts[1].title));
       const budget = await replay('F-P7', { writer: firstOnly, stop: 'max_tokens' });
@@ -1548,6 +1552,14 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const midPart = await replay('F-P7', { writer: firstOnly + '### ' + p7.parts[1].title + '\n\n', stop: 'max_tokens' });
       ok('L15 [item 1, after the helper] a writer that was cut (its budget, the provider) before it reached a part, or while that part was open, is not said to have found nothing for it',
         [budget, failed, midPart].every((r) => absent(r, r.parts[1].title) === 0 && heads(r, r.parts[0].title) === 1), [budget, failed, midPart].map((r) => absent(r, r.parts[1].title)));
+      // P8 written in another order: the second part first (its fatwa goes out), then the marker, then the first part's section
+      const h1 = '### ' + p8.parts[0].title; const h2 = '### ' + p8.parts[1].title;
+      const sec1 = p8.raw.slice(p8.raw.indexOf(h1), p8.raw.indexOf(h2));
+      const sec2 = p8.raw.slice(p8.raw.indexOf(h2), p8.raw.indexOf('### ', p8.raw.indexOf(h2) + 5));
+      const afterMarker = await replay('F-P8', { writer: sec2 + '\n\n@@EZIK_NOT_COVERED@@\n\n' + sec1 });
+      ok('L15b [item 1, after the helper] what the writer writes after its not-covered marker is not read, so a part that stands after the marker is not said to have no text',
+        sec1.length > 100 && sec2.length > 100 && heads(afterMarker, p8.parts[1].title) === 1 && absent(afterMarker, p8.parts[0].title) === 0 && absent(afterMarker, p8.parts[2].title) === 0,
+        [heads(afterMarker, p8.parts[1].title), absent(afterMarker, p8.parts[0].title), absent(afterMarker, p8.parts[2].title)]);
       // a part whose only released unit is an enumeration label
       const label = await replay('F-P1', { writer: p1.raw.slice(0, p1.raw.indexOf('### ', 5)) + '### ' + p1.parts[1].title + '\n\nالسبب الأول: ضعف الحديث، وذهب الجمهور إلى أنه لا يثبت.\n' });
       ok('L16 [item 1, after the helper] a part whose only released unit is a label has its name above that label (it had neither name nor line)',
@@ -1578,6 +1590,22 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         stated.every((r) => r.sent === false && r.holds.uncited_ruling === 1 && r.opened === false && r.unplaced === 1)
         && whether.every((r) => r.sent === false && r.holds.uncited_attribution === 1 && r.opened === false)
         && subject.sent === true && subject.opened === true && subject.unplaced === 0, [stated.map((r) => r.sent), whether.map((r) => r.sent), subject.sent]);
+    }
+
+    {
+      const direct = async (reader, title) => {
+        const out = [];
+        const releaser = UNITS.createBw2Releaser({ rows: [], emit: (t) => { out.push(t); return true; }, holdUncitedRulings: true, compoundParts: true, question: reader,
+          planParts: { reader, parts: [{ title, text: title, served: '', act: '', written: 0 }, { title: 'الجزء الآخر', text: 'الجزء الآخر', served: '', act: '', written: 1 }] } });
+        releaser.push('### ' + title + '\n\nهذه جملة اختبار قصيرة لا تنسب شيئا.\n');
+        const sum = await releaser.end();
+        return { sent: out.join('').includes('### ' + title), opened: sum.parts ? sum.parts.opened[0] : null };
+      };
+      const title = 'أدلة الحنفية على وجوب الوتر';
+      const named = await direct('ما أدلة الحنفية على وجوب الوتر؟ وبماذا أجاب الجمهور عنها؟', title);
+      const notNamed = await direct('ما أدلة وجوب الوتر؟ وبماذا أجيب عنها؟', title);
+      ok('L17b [item 1, after the helper] the naming of a school is let through only where the READER named that school: the same name under a question that names no school is withheld',
+        named.sent === true && named.opened === true && notNamed.sent === false && notNamed.opened === false, [named.sent, notNamed.sent]);
     }
 
     // -- item 2
