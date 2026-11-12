@@ -472,6 +472,14 @@ const sha = (text) => crypto.createHash('sha256').update(String(text || '')).dig
     const worldly = await drive(user(mixedQ), { plan: mixedPlan, provider: (kind, nth) => (kind === 'write' && nth === 1 ? 400 : 'ok') });
     ok('D12 [after the second helper] a worldly part\'s call the provider refused leaves its token in the turn\'s line',
       worldly.crashed === '' && allTokens(worldly).includes('worldly:400:invalid_request_error'), [worldly.asked, allTokens(worldly)]);
+    // a card, a worldly part and a written part: the worldly part's call refused (429) with the card already out
+    const tripleQ = 'ما صفة الوضوء؟ وكم عدد سكان إندونيسيا؟ وما نواقض الوضوء؟';
+    const triplePlan = JSON.stringify({ followup: false, parts: [{ q: 'ما صفة الوضوء؟', kind: 'manner', act: 'wudu', name: 'صفة الوضوء' },
+      { q: 'كم عدد سكان إندونيسيا؟', kind: 'worldly', name: 'عدد سكان إندونيسيا' }, { q: 'ما نواقض الوضوء؟', kind: 'definition', name: 'نواقض الوضوء' }] });
+    const cardThenWorldly = await drive(user(tripleQ), { plan: triplePlan, provider: (kind, nth) => (kind === 'write' && nth === 1 ? 429 : 'ok') });
+    ok('D13 [after the second helper] a card, then a worldly part whose call the provider refuses with 429: the card is on the reader\'s page when the second try is decided, so that call is asked ONCE; its token is in the turn\'s line',
+      cardThenWorldly.crashed === '' && cardThenWorldly.text.includes('<worship id="wudu"></worship>') && cardThenWorldly.asked.write === 1
+      && allTokens(cardThenWorldly).includes('worldly:429:rate_limit_error'), [cardThenWorldly.asked, allTokens(cardThenWorldly), cardThenWorldly.text.includes('<worship')]);
   }
 
   for (const k of ENV_KEYS) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; }
