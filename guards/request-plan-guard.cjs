@@ -2063,6 +2063,23 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
           const read = await readOf(x);
           seen.push([x.id, checked.ok === true, checked.ok ? notApplied(checked.plan, x.q) : null, checked.ok ? applies(checked.plan, x.q) : null, read.state, read.reason || '', read.plan ? read.plan.parts.length : 0]);
         }
+        // ORDER A3-CAPTURE, after its helper (HELPER-REFUTATION-A3C.md, O3): NOTHING THE MODEL REPLIES IS THROWN OUT OF THE READING. A reply
+        // with a field that cannot be read as text (an object whose `toString` is not a function) made the parser throw inside the
+        // reading's own handler: the reading then ended at its budget, not at once, and the process was left an unhandled rejection.
+        const thrown = [];
+        const onThrown = (e) => { thrown.push(String(e && e.message).slice(0, 60)); };
+        process.on('unhandledRejection', onThrown);
+        const oddSeen = [];
+        try {
+          for (const raw of ['{"parts":[{"q":{"toString":1},"kind":"ruling"}]}', '{"parts":[{"q":"ما حكم صلاة الضحى؟","name":{"toString":1},"kind":"ruling"}]}',
+            '{"full":{"toString":2},"parts":[{"q":"ما حكم صلاة الضحى؟","kind":"ruling"}]}', '{"parts":[{"q":"ما حكم صلاة الضحى؟","kind":{"toString":3}}]}']) {
+            const o = await RP.startReading({ messages: [{ role: 'user', content: 'ما حكم صلاة الضحى؟' }], ask: async () => raw, env: {}, timeoutMs: 400 }).promise;
+            oddSeen.push([o.state, o.plan === null, o.ms < 300]);
+          }
+          await new Promise((r) => setTimeout(r, 40));
+        } finally { process.removeListener('unhandledRejection', onThrown); }
+        ok('N10 [A3-CAPTURE, after its helper] a reply whose field cannot be read as text (the question, the name, the full question or the kind is an object with no usable `toString`) is no plan, at once: the reading ends unparsable well inside its budget, with no plan, and nothing is thrown out of it',
+          oddSeen.length === 4 && oddSeen.every(([state, noPlan, atOnce]) => state === 'unparsable' && noPlan && atOnce) && thrown.length === 0, [oddSeen, thrown]);
         ok('N9 [A3-CAPTURE section 4] on follow-ups that are not the capture\'s questions the rule is the count of the parts and nothing else: two parts, three parts, and a card\'s act beside a ruling are good plans the server does not apply (the reading ends invalid, no plan, followup_written_parts); the same conversations with ONE part end as a plan; the same two questions in one message with no earlier turn keep the other reason (written_parts)',
           seen.length === 7 && synth.every((x, i) => seen[i][1] === true && seen[i][2] === x.want && seen[i][3] === (x.want === '')
             && (x.want === '' ? (seen[i][4] === 'plan' && seen[i][5] === '' && seen[i][6] === 1) : (seen[i][4] === 'invalid' && seen[i][5] === x.want && seen[i][6] === 0))), seen);
