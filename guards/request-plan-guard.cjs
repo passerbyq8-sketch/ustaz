@@ -1089,6 +1089,10 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         const differs = [];
         const lines = [];
         const asked = [];
+        const worldlyDiffers = [];
+        const sourceMissing = [];
+        const sourceOther = [];
+        const gatherDropped = [];
         for (const x of shaped) {
           const convo = convoOf({ prev: x.prev, q: x.q });
           const offTurn = await drive(convo, { env: { REQUEST_PLAN_V1: 'off' } });
@@ -1097,7 +1101,20 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
           lines.push(String(line.outcome) + ':' + String(line.reason) + ':' + String(line.count) + ':' + String(line.kind));
           asked.push(onTurn.counts.reading === 1 && offTurn.counts.reading === 0 && onTurn.counts.sorter === offTurn.counts.sorter && onTurn.counts.writer === offTurn.counts.writer);
           if (onTurn.crashed || offTurn.crashed || digest(onTurn) !== digest(offTurn)) differs.push(x.id);
+          // (after the round's helper, finding 2) the sorter's word WORLDLY -- it is asked only where the patterns do not decide. What the
+          // reader is sent, the route and every MODEL call are compared whole; the source calls apart.
+          const offW = await drive(convo, { env: { REQUEST_PLAN_V1: 'off' }, sorter: 'WORLDLY' });
+          const onW = await drive(convo, { plan: JSON.stringify(x.raw), sorter: 'WORLDLY' });
+          const whole = (d) => { const o = JSON.parse(digest(d)); return JSON.stringify({ ...o, calls: o.calls.filter((c) => c.includes('api.anthropic.com')) }); };
+          const srcs = (d) => JSON.parse(digest(d)).calls.filter((c) => !c.includes('api.anthropic.com'));
+          if (offW.crashed || onW.crashed || whole(onW) !== whole(offW)) worldlyDiffers.push(x.id);
+          const extra = [...srcs(onW)];
+          for (const c of srcs(offW)) { const i = extra.indexOf(c); if (i < 0) sourceMissing.push(x.id); else extra.splice(i, 1); }
+          if (extra.some((c) => !c.startsWith('call:GET ' + FC.FATWA_BASE))) sourceOther.push(x.id);
+          if (extra.length) gatherDropped.push(x.id);
         }
+        ok('N5d [A3 item 1, after its helper] ...and when the sorter\'s word is then WORLDLY: the same frames, the same text, the same route, the same calls to every model; every source call of the switch-off turn is made, and the only calls it did not make are the queries of the gather that ran beside the reading and was dropped -- the cost stated for a failed reading (I4h), which a plan that is not applied shares',
+          worldlyDiffers.length === 0 && sourceMissing.length === 0 && sourceOther.length === 0 && gatherDropped.length > 0, [worldlyDiffers, sourceMissing, sourceOther, gatherDropped]);
         ok('N5 [A3 item 1] THROUGH THE REAL HANDLER, on each of them (' + shaped.length + '): the reading is asked once, its plan is not applied, and the turn is the switch-off turn frame for frame -- what the reader is sent (the reader\'s own status frames among them), the text, the route, every call to a source and to a model; the sorter and the writer are asked as often as with the switch off',
           shaped.length === 13 && differs.length === 0 && asked.every(Boolean), [differs, asked]);
         ok('N5a [A3 item 1] ...and the [reading] line says why, in closed words: invalid, written_parts, no part and no kind',
@@ -1822,6 +1839,14 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
           !admitLabel.includes('### ') && !admitLabel.includes(PLAIN.slice(0, 12)) && admitName.includes('### نواقض الوضوء') && admitName.includes(PLAIN.slice(0, 12))
           && !plainLabel.includes('### ') && plainLabel.includes(PLAIN.slice(0, 12)),
           [admitLabel.includes('### '), admitLabel.includes(PLAIN.slice(0, 12)), admitName.includes(PLAIN.slice(0, 12)), plainLabel.includes('### ')]);
+        // ORDER A3, after its helper (finding 1): the writer opens the written part by its name, its first sentence is withheld, then
+        // it writes the SERVED part's name again and a sentence under it
+        const underServed = await underOne('نواقض الوضوء', 'ما نواقض الوضوء؟', '### نواقض الوضوء\n\n' + UNCITED + '\n\n### صفة الوضوء\n\n' + PLAIN + '\n');
+        const ownText = await underOne('نواقض الوضوء', 'ما نواقض الوضوء؟', '### نواقض الوضوء\n\n' + PLAIN + '\n\n### صفة الوضوء\n\n' + LEANS + '\n');
+        ok('N8 [A3, after its helper] THE ONE CASE LEFT: what the writer puts under the SERVED part\'s name, written again, does not go out under the WRITTEN part\'s name. That name, with nothing of its own released under it, is withheld as at the commit before the round; the served name is not printed a second time; the sentence goes out with no heading. Where the written part has text of its own, its name stands above that text, once',
+          !underServed.includes('### ') && underServed.includes(PLAIN.slice(0, 12)) && !underServed.includes(UNCITED.slice(13))
+          && ownText.split('\n').filter((line) => line.startsWith('### ')).join('|') === '### نواقض الوضوء' && ownText.indexOf('### نواقض الوضوء') < ownText.indexOf(PLAIN.slice(0, 12)) && ownText.includes(LEANS.slice(0, 8)),
+          [underServed.includes('### '), underServed.includes(PLAIN.slice(0, 12)), ownText.split('\n').filter((line) => line.startsWith('### ')).length, ownText.includes(LEANS.slice(0, 8))]);
       }
       const row = { ref: 1, kind: 'fatwa', title: 'عنوان', url: 'https://example.invalid/f/1', text: 'نص قصير عن الوتر.', fullText: 'نص قصير عن الوتر.', publisher: 'ناشر' };
       const citedName = await direct('هل الوتر واجب أم سنة؟ وما وقته؟', 'الوتر واجب', { rows: [row], suffix: ' [[1]]' });
