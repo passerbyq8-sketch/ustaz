@@ -600,7 +600,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     const judgedOff = makeDeps({ rows: [fatwaRow('حديث صلاة التسابيح', 'حديث صلاة التسابيح صححه جماعة من أهل العلم وضعفه آخرون.', 5)], writerText: 'حديث صلاة التسابيح صححه جماعة من أهل العلم وضعفه آخرون [[1]].' });
     const p5bOff = await turn({ question: rP5b.question, messages: convo, reading: null, deps: judgedOff.deps });
     ok('H2c [A3 item 1] ...the judge is shown the full question, and from that question on the parts are production\'s own: the plan\'s parts are handed to nothing -- the judge, the writer and every source are asked what the turn with no reading asks on the same question, the frames are the same frames, and no name of the plan is handed to the writer as a heading',
-      judged.calls.judgeUser.includes(rP5b.question.slice(0, 60)) && rP5b.parts.length === 2 && BW.bw2PartsReading(rP5b) === null
+      judged.calls.judgeUser.includes(rP5b.question.slice(0, 60)) && rP5b.parts.length === 2 && typeof BW.bw2PartsReading === 'function' && BW.bw2PartsReading(rP5b) === null
       && judged.calls.judgeUser === judgedOff.calls.judgeUser && writerMessage(judged.calls) === writerMessage(judgedOff.calls) && writerMessage(judged.calls).length > 0
       && same(judged.calls.queries, judgedOff.calls.queries) && same(p5bTurn.frames, p5bOff.frames) && p5bTurn.text === p5bOff.text && p5bTurn.text.length > 0
       && p5bTurn.out.telemetry.parts === BW.questionParts(rP5b.question).length
@@ -722,7 +722,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const graveTwo = await careTurn(planWith([partOf('هل يأثم الميت؟', 'ruling', { name: 'إثم الميت' }), partOf('ما حكم الصلاة على الميت؟', 'ruling', { name: 'الصلاة على الميت' })], { followup: true, full: 'هل يأثم الميت؟ ما حكم الصلاة على الميت؟' }),
         'وهل يأثم المنتحر؟ وما حكم الصلاة عليه؟', ['ما حكم الصلاة على الميت؟'], 'حكم الصلاة على الميت', 'الصلاة على الميت فرض كفاية يأثم بتركها الجميع.');
       ok('N6 [A3 item 1] a follow-up about suicide whose plan has TWO parts, neither of which carries the word: the turn takes no part of that reading, and the comfort sentence is still the answer\'s last line -- the reader\'s own message is read for care beside the resolved question, as it was',
-        !!graveTwo.reading && graveTwo.reading.parts.length === 2 && BW.bw2PartsReading(graveTwo.reading) === null && !fold(graveTwo.full).includes(fold('المنتحر'))
+        !!graveTwo.reading && graveTwo.reading.parts.length === 2 && typeof BW.bw2PartsReading === 'function' && BW.bw2PartsReading(graveTwo.reading) === null && !fold(graveTwo.full).includes(fold('المنتحر'))
         && graveTwo.without.includes(POLICY.SUICIDE_COMFORT_SENTENCE) && graveTwo.withReading.includes(POLICY.SUICIDE_COMFORT_SENTENCE), [graveTwo.full, graveTwo.withReading.slice(-120)]);
     }
 
@@ -1901,7 +1901,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       // (ORDER A3, re-cut: two parts that ask the Qur'an with none served were applied; they are two parts for the writer, and are not -- N1)
       ok('L12 [item 2; A3 item 1] and only then: a worldly half beside a ruling is still the server\'s, so are a card beside a list and a Qur\'an question alone; two parts that ask the Qur\'an with none served are not applied for ANOTHER reason (two parts for the writer: written_parts), not for this one; and it is the READER\'s words that name the Qur\'an, whatever kind the model wrote for that half',
         mixedRead.state === 'plan' && RP.servedKinds(mixedRead.plan, { question: mixedQ })[0] === 'worldly' && applies(mixedRead.plan, mixedQ) === true
-        && applies(p7plan, CAP['F-P7'].q) === false && RP.planNotApplied(p7plan, { question: CAP['F-P7'].q }) === 'written_parts' && applies(b19wPlan, CAP['F-B19w'].q) === true
+        && applies(p7plan, CAP['F-P7'].q) === false && typeof RP.planNotApplied === 'function' && RP.planNotApplied(p7plan, { question: CAP['F-P7'].q }) === 'written_parts' && applies(b19wPlan, CAP['F-B19w'].q) === true
         && (await read(alone, 'هل ورد في القرآن ذكر لمنازل القمر؟')).state === 'plan' && same([...(RP.PLAN_QURAN_KINDS || [])], ['tafsir', 'quran_text'])
         && relabelled.every((r) => r.state === 'invalid' && r.reason === 'quran_beside_served'), [mixedRead.state, relabelled.map((r) => r.state)]);
       const verseQ = 'كم عدد سكان إندونيسيا؟ وما معنى قوله تعالى ﴿وأذن في الناس بالحج﴾؟';
