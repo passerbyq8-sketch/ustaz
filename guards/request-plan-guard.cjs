@@ -1686,7 +1686,8 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
           planParts: { reader, parts: [{ title, text: title, served: '', act: '', written: 0 }, { title: 'الجزء الآخر', text: 'الجزء الآخر', served: '', act: '', written: 1 }] } });
         releaser.push('### ' + title + suffix + '\n\n' + probe + '\n');
         const sum = await releaser.end();
-        return { sent: out.join('').includes('### ' + title), probeOut: out.join('').includes(probe.slice(0, 14)), opened: sum.parts ? sum.parts.opened[0] : null, holds: sum.holds || {} };
+        return { sent: out.join('').includes('### ' + title), probeOut: out.join('').includes(probe.slice(0, 14)), opened: sum.parts ? sum.parts.opened[0] : null, holds: sum.holds || {},
+          text: out.join(''), declared: sum.parts && Array.isArray(sum.parts.declared) ? sum.parts.declared[0] : null };
       };
       const title = 'أدلة الحنفية على وجوب الوتر';
       const openQ = 'ما أدلة الحنفية على وجوب الوتر؟ وبماذا أجاب الجمهور عنها؟';
@@ -1698,6 +1699,14 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const leansFree = await direct('ما حكم الوتر؟ وما وقته؟', 'حكم الوتر', { probe: LEANS });
       ok('L17f [item 1, after the second helper] a name let through although it names a school is a label and nothing more: a sentence that leans on what came before it («هذه …») is withheld under it, as it was when the name itself was withheld, and the name with it; under a name that names no party the same sentence goes out',
         leansOn.probeOut === false && leansOn.sent === false && leansFree.probeOut === true && leansFree.sent === true, [leansOn.probeOut, leansOn.sent, leansFree.probeOut, leansFree.sent]);
+      const fastQ = 'ما حكم صيام يوم السبت؟ وما حكم صيام الجمعة؟';
+      const reported = await direct(fastQ, 'حكم صيام يوم السبت', { probe: 'لم يرد نهي عن ذلك.\n\n' + PLAIN });
+      const searched = await direct(fastQ, 'حكم صيام يوم السبت', { probe: 'لم أقف على نص في ذلك.\n\n' + PLAIN });
+      const agreed = await direct(fastQ, 'حكم صيام يوم السبت', { probe: 'لم أقف على خلاف في ذلك.\n\n' + PLAIN });
+      ok('L4b [item 1, after the second helper] only the writer speaking of its OWN search closes a part: «لم أقف على نص …» as the first sentence under a name closes it (the name is not printed above what follows, and the part is the writer\'s to be said empty); «لم يرد نهي …» and «لم أقف على خلاف …» are statements -- withheld by the standing rule as before the round, and the name still stands above the next sentence',
+        searched.sent === false && searched.declared === true && searched.text.includes(PLAIN.slice(0, 12))
+        && reported.sent === true && reported.declared === false && reported.text.includes(PLAIN.slice(0, 12)) && !reported.text.includes('لم يرد نهي')
+        && agreed.sent === true && agreed.declared === false, [searched.sent, searched.declared, reported.sent, reported.declared, agreed.sent, agreed.declared]);
       const group = 'الجمهور على تحريم المعازف';
       const asked = [await direct('أصحيح أن الجمهور على تحريم المعازف؟ وما دليلهم؟', group), await direct('الجمهور على تحريم المعازف، صح؟ وما دليلهم؟', group), await direct('أليس الجمهور على تحريم المعازف؟ وما دليلهم؟', group)];
       const open = await direct('ما قول الجمهور في المعازف؟ وما دليلهم؟', 'قول الجمهور في المعازف');
