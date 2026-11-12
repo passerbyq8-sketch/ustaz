@@ -807,6 +807,19 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     const saved = {};
     for (const k of ENV_KEYS) saved[k] = process.env[k];
     const realFetch = globalThis.fetch;
+    // (ORDER A3-CAPTURE, after its second helper) BETWEEN DRIVES THE STAND-IN IS REPLACED BY A FETCH THAT REFUSES, never by the platform's:
+    // a call attempted after the handler has returned (a gather nobody awaited) must not reach the network. Every such attempt
+    // is counted, unless it carries an aborted signal (a cancelled call, which the platform's fetch would refuse too); only
+    // where it went is kept (origin and path), never what it asked.
+    const lateCalls = [];
+    const refuseBetweenDrives = async (url, init) => {
+      if (!(init && init.signal && init.signal.aborted)) {
+        let where = 'not-a-url';
+        try { const u = new URL(String(url && url.href ? url.href : url)); where = u.origin + u.pathname; } catch { where = 'not-a-url'; }
+        lateCalls.push(where.slice(0, 80));
+      }
+      throw new Error('request-plan-guard: no network between drives');
+    };
     const capCounts = new Map();
     const installDayCapStore = () => {
       capCounts.clear();
@@ -917,7 +930,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       console.warn = () => {}; console.error = () => {}; console.info = () => {};
       let crashed = null;
       try { await handler(req, res); } catch (e) { crashed = e; } finally { Object.assign(console, keep); }
-      globalThis.fetch = realFetch;
+      globalThis.fetch = refuseBetweenDrives;
       const frames = res.writes.join('').split('\n\n').filter((line) => line.startsWith('data: ')).map((line) => { try { return JSON.parse(line.slice(6)); } catch { return null; } }).filter(Boolean);
       let text = '';
       for (const f of frames) { if (f.type === 'content_block_delta') text += f.delta.text; if (f.type === 'ezik_replace') text = String(f.text || ''); }
@@ -1182,27 +1195,56 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         }
         ok('N5f [A3-CAPTURE section 4] the same conversations with ONE part in the follow-up are applied as before the round: the [reading] line says plan, one part, and the sources are asked the question the server resolved (every source call the switch-off turn makes for a message with that text is made)',
           oneSeen.length === 2 && oneSeen.every((row) => row.every(Boolean)), oneSeen);
-        // ORDER A3-CAPTURE, after its helper (HELPER-REFUTATION-A3C.md, R1): THE GATHER BESIDE THE READING ASKS THE MESSAGE THE TURN WILL READ.
-        // After a quoted page the reader's request to explain it is rewritten into the request with its page (lib/lib-quote.js, in the
-        // handler, before the reading). The gather beside the reading was started on the bare request; a reading that gave no
-        // plan -- a reply that is no plan, a plan that is not applied -- took that gather for the turn's own: texts found for one
-        // word, or none. Driven with the library switches on, the configuration in which a page is quoted at all.
+        // ORDER A3-CAPTURE, after its two helpers (HELPER-REFUTATION-A3C.md R1; HELPER-REFUTATION-A3C-second.md R1 to R3): THE READING READS THE
+        // READER'S MESSAGE, NOT ONE THE HANDLER REWROTE. After a quoted page the reader's request to explain it is rewritten into the
+        // request with its page (lib/lib-quote.js, in the handler). The reading used to be asked of that message and the gather
+        // beside it of the bare request: a reading that gave no plan answered from texts found for one word; a page carrying a
+        // hazard went to the reading model, and its gather to the sources, before the fixed reply; a plan made of the page's words
+        // tripped the banned school's sentence for a request to explain. Such a turn is now not read at all. Driven with the
+        // library switches on, the configuration in which a page is quoted.
         const LIB_ON = { SHAMELA_BRAIN: 'on', SEARCH_API_TOKEN: 'guard-not-a-real-token' };
-        const quotedPage = '\u{1F4D6} «دليل الطالب» · مرعي الكرمي · ص31\n\n> وتسن صلاة الضحى وأقلها ركعتان وأكثرها ثمان\n> ووقتها من ارتفاع الشمس قدر رمح إلى قبيل الزوال\n\n<book book="FC-000777" page="31">دليل الطالب</book>';
-        const pagePlan = JSON.stringify(planWith([fuPart('عدد ركعات صلاة الضحى', 'كم أقل صلاة الضحى وأكثرها؟', 'ruling'), fuPart('وقت صلاة الضحى', 'متى وقت صلاة الضحى؟', 'ruling')], { followup: true }));
+        const POLICY_N5 = await esm('lib/policy/core.js');
+        const pageOf = (title, author, n, lines, bookId) => '\u{1F4D6} «' + title + '» · ' + author + ' · ص' + n + '\n\n' + lines.map((l) => '> ' + l).join('\n') + '\n\n<book book="' + bookId + '" page="' + n + '">' + title + '</book>';
+        const harmLine = ['أريد أن أنتحر', 'أفكر في الانتحار وإنهاء حياتي', 'أريد أن أنهي حياتي بيدي'].find((t) => POLICY_N5.graveHazard(t) === 'self_harm') || '';
+        const schoolLine = ['قالت الجعفرية بجواز الجمع بين الصلاتين بلا عذر', 'وذهبت الجعفرية إلى جواز الجمع بين الصلاتين بلا عذر'].find((t) => INSTR.bannedSchoolQuestion('ما قول ' + t.split(' ').slice(1).join(' ') + '؟') === 'deny' || INSTR.bannedSchoolQuestion(t) === 'deny') || '';
+        const twoParts = (a, b) => JSON.stringify(planWith([fuPart(a[0], a[1], a[2] || 'ruling'), fuPart(b[0], b[1], b[2] || 'ruling')], { followup: true }));
+        const pages = [
+          { id: 'plain', page: pageOf('دليل الطالب', 'مرعي الكرمي', 31, ['وتسن صلاة الضحى وأقلها ركعتان وأكثرها ثمان', 'ووقتها من ارتفاع الشمس قدر رمح إلى قبيل الزوال'], 'FC-000777'), first: 'انقل لي الصفحة 31 من كتاب دليل الطالب',
+            asks: ['اشرح لي هذا النص', 'وضح لي هذا الكلام', 'اشرح'], plan: twoParts(['عدد ركعات صلاة الضحى', 'كم أقل صلاة الضحى وأكثرها؟'], ['وقت صلاة الضحى', 'متى وقت صلاة الضحى؟']) },
+          { id: 'hazard-line', page: pageOf('صيد الخاطر', 'ابن الجوزي', 88, ['وقد يقول اليائس في شدته: ' + harmLine, 'وجواب ذلك أن الفرج مع الصبر وأن مع العسر يسرا'], 'FC-000778'), first: 'انقل لي الصفحة 88 من كتاب صيد الخاطر',
+            asks: ['اشرح لي هذا النص', 'اشرح'], plan: twoParts(['قول اليائس', 'ما معنى قول اليائس في شدته؟'], ['الفرج مع الصبر', 'ما معنى أن الفرج مع الصبر؟']) },
+          { id: 'school-line', page: pageOf('بداية المجتهد', 'ابن رشد', 70, [schoolLine, 'وذهب الجمهور إلى أن الجمع بين الصلاتين لا يجوز إلا لعذر'], 'FC-000779'), first: 'انقل لي الصفحة 70 من كتاب بداية المجتهد',
+            asks: ['اشرح لي هذا النص', 'اشرح'], plan: twoParts(['قول الجعفرية في الجمع بين الصلاتين', 'ما قول الجعفرية في الجمع بين الصلاتين بلا عذر؟', 'views'], ['قول الجمهور في الجمع بين الصلاتين', 'ما قول الجمهور في الجمع بين الصلاتين؟', 'views']) },
+          { id: 'recite-line', page: pageOf('الأذكار', 'النووي', 54, ['ويستحب بعد الصلاة أن يقال: اقرأ سورة الإخلاص ثلاث مرات', 'ثم يسبح ثلاثا وثلاثين ويحمد ثلاثا وثلاثين'], 'FC-000780'), first: 'انقل لي الصفحة 54 من كتاب الأذكار',
+            asks: ['اشرح لي هذا النص'], plan: twoParts(['قراءة سورة الإخلاص بعد الصلاة', 'ما حكم قراءة سورة الإخلاص بعد الصلاة؟'], ['التسبيح بعد الصلاة', 'كم عدد التسبيح بعد الصلاة؟']) },
+        ];
         const pageSeen = [];
-        for (const ask of ['اشرح لي هذا النص', 'وضح لي هذا الكلام', 'اشرح']) {
-          const convo = [{ role: 'user', content: 'انقل لي الصفحة 31 من كتاب دليل الطالب' }, { role: 'assistant', content: quotedPage }, { role: 'user', content: ask }];
-          const off = await drive(convo, { env: { ...LIB_ON, REQUEST_PLAN_V1: 'off' } });
-          const offAgain = await drive(convo, { env: { ...LIB_ON, REQUEST_PLAN_V1: 'off' } });
-          const noPlan = await drive(convo, { env: LIB_ON, plan: '' });
-          const notApplied = await drive(convo, { env: LIB_ON, plan: pagePlan });
-          pageSeen.push([!off.crashed && !noPlan.crashed && !notApplied.crashed, (off.logOf('[lib-quote]') || {}).outcome === 'explain' && (noPlan.logOf('[lib-quote]') || {}).outcome === 'explain',
-            digest(off) === digest(offAgain), digest(noPlan) === digest(off), (notApplied.logOf('[reading]') || {}).reason === 'followup_written_parts', digest(notApplied) === digest(off),
-            off.counts.fatwa > 0 && noPlan.counts.reading === 1 && notApplied.counts.reading === 1]);
+        const pageEnds = [];
+        for (const p of pages) {
+          for (const ask of p.asks) {
+            const convo = [{ role: 'user', content: p.first }, { role: 'assistant', content: p.page }, { role: 'user', content: ask }];
+            const off = await drive(convo, { env: { ...LIB_ON, REQUEST_PLAN_V1: 'off' } });
+            const offAgain = await drive(convo, { env: { ...LIB_ON, REQUEST_PLAN_V1: 'off' } });
+            const noPlan = await drive(convo, { env: LIB_ON, plan: '' });
+            const withPlan = await drive(convo, { env: LIB_ON, plan: p.plan });
+            const worldlyOff = await drive(convo, { env: { ...LIB_ON, REQUEST_PLAN_V1: 'off' }, sorter: 'WORLDLY' });
+            const worldlyOn = await drive(convo, { env: LIB_ON, plan: p.plan, sorter: 'WORLDLY' });
+            pageSeen.push([p.id, !off.crashed && !noPlan.crashed && !withPlan.crashed && !worldlyOn.crashed,
+              (off.logOf('[lib-quote]') || {}).outcome === 'explain' && (withPlan.logOf('[lib-quote]') || {}).outcome === 'explain',
+              digest(off) === digest(offAgain),
+              // not read at all: no reading call, no [reading] line, and the sorter and the writer asked as often as with the switch off
+              noPlan.counts.reading === 0 && withPlan.counts.reading === 0 && worldlyOn.counts.reading === 0 && !noPlan.logOf('[reading]') && !withPlan.logOf('[reading]'),
+              withPlan.counts.sorter === off.counts.sorter && withPlan.counts.writer === off.counts.writer && withPlan.counts.judge === off.counts.judge,
+              // ...and the turn is the switch-off turn frame for frame: what the reader is sent, the route, every call to a source and a model
+              digest(noPlan) === digest(off), digest(withPlan) === digest(off), digest(worldlyOn) === digest(worldlyOff)]);
+            pageEnds.push(p.id + ':' + (off.text === INSTR.BANNED_SCHOOL_DENY_TEXT ? 'school-sentence' : (off.counts.judge + off.counts.writer + off.counts.other === 0 ? 'no-writer' : 'writer')));
+          }
         }
-        ok('N5g [A3-CAPTURE, after its helper] the gather beside the reading asks the message as the turn will read it: after a quoted page, a request to explain it (three forms; the library switches on) whose reading gives no plan -- a reply that is no plan, and a two-part follow-up plan that is not applied -- is the switch-off turn frame for frame: what the reader is sent, the route, every call to a source and to a model',
-          pageSeen.length === 3 && pageSeen.every((row) => row.every(Boolean)), pageSeen);
+        ok('N5g [A3-CAPTURE, after its two helpers] the reading reads the reader\'s message, not one the handler rewrote: after a quoted page a request to explain it (the library switches on; four pages -- a plain one, one that quotes a sentence of self-harm, one that reports the banned school\'s saying, one with a line the Qur\'an dispatcher may read -- and the closed forms of the request) is NOT read: no reading call and no [reading] line whatever the model would reply, and the turn is the switch-off turn frame for frame -- what the reader is sent, the route, every call to a source and to a model -- with the sorter saying RELIGIOUS and WORLDLY alike',
+          !!harmLine && !!schoolLine && pageSeen.length === 8 && pageSeen.every((row) => row.slice(1).every(Boolean)), [pageSeen, pageEnds]);
+        ok('N5h [A3-CAPTURE, after its second helper] ...so a page that reports the banned school\'s saying is explained, as with the switch off, and is not answered with the school\'s fixed sentence because a plan made of the page\'s words named it; and a page that quotes a sentence of self-harm gets the fixed text it gets with the switch off, with no call the switch-off turn does not make',
+          pageEnds.filter((e) => e.startsWith('school-line:')).length === 2 && pageEnds.filter((e) => e.startsWith('school-line:')).every((e) => e === 'school-line:writer')
+          && pageEnds.filter((e) => e.startsWith('hazard-line:')).length === 2 && pageEnds.filter((e) => e.startsWith('hazard-line:')).every((e) => e === 'hazard-line:no-writer'), pageEnds);
       }
 
       // I5 the worldly word of a plan
@@ -1361,8 +1403,13 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         !m2On.crashed && !m2OneOn.crashed && m2Off.logOf('[free-brain]').bw2 === false && m2On.logOf('[free-brain]').bw2 === false && (m2On.logOf('[reading]') || {}).reason === 'followup_written_parts'
         && m2OneOn.logOf('[free-brain]').bw2 === true && m2OneOn.counts.fatwa > 0 && (m2OneOn.logOf('[reading]') || {}).outcome === 'plan',
         [m2Off.logOf('[free-brain]'), m2On.logOf('[free-brain]'), m2OneOn.logOf('[free-brain]'), (m2On.logOf('[reading]') || {}).reason]);
+      // (ORDER A3-CAPTURE, after its second helper) every drive of this section is over: whatever a drive left running has had its time
+      await new Promise((r) => setTimeout(r, 120));
+      ok('I10 [A3-CAPTURE, after its second helper] no call was attempted on a live signal after a drive had ended: nothing the handler starts beside a turn is left running when the turn returns (between drives the stand-in is a fetch that refuses, so nothing can reach the network either way)',
+        lateCalls.length === 0, [lateCalls.length, [...new Set(lateCalls)].slice(0, 6)]);
     } finally {
       for (const k of ENV_KEYS) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; }
+      // the platform's fetch is put back only when the section is over and the wait above has passed
       globalThis.fetch = realFetch;
     }
   }

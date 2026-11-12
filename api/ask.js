@@ -1333,6 +1333,13 @@ export default async function handler(req, res) {
   // protections that run later on every path are asked here too: a grave hazard or a health
   // referral is never answered by a quotation, so those requests go on down the ordinary path.
   // Anything the detector does not claim goes on unchanged; with the flag off nothing is loaded.
+  // ORDER A3-CAPTURE (2026-11-12, after its two helpers): THE READING READS THE READER'S MESSAGE, NOT ONE THIS HANDLER REWROTE. A request
+  // to explain a quoted page is rewritten below into the request with the page -- the app's own text, not the reader's words.
+  // The reading was asked of that message, and the gather beside it of the bare request: a reading that gave no plan answered
+  // from texts found for one word; a page that carries a hazard was sent to the reading model before the fixed reply; a plan
+  // made of the page's words could trip a fixed reply the reader's request does not. For such a turn the reading is not run:
+  // no reading call, no gather beside it, the sorter asked where it is asked with the switch off -- production's turn.
+  let pageFollowUpExplain = false;
   if (libQuoteOn && band === 'adult' && libFlagValue === 'on' && libToken !== '' && !pornBlocked) {
     const libQuote = await import('../lib/lib-quote.js');
     // SPEED WASL W4: a page is read from the live library's pages (lib/lib-service.js readLibraryPage, public GET), and
@@ -1348,6 +1355,7 @@ export default async function handler(req, res) {
       const { previousAnswerOf } = await import('../lib/source-followup.js');
       const follow = await libQuote.answerPageFollowUp(currentQuestionText, { ...pageDeps, previousAnswer: previousAnswerOf(body.messages) });
       if (follow && follow.outcome === 'explain') {
+        pageFollowUpExplain = true;
         const lastUser = Array.isArray(body.messages) ? [...body.messages].reverse().find((m) => m && m.role === 'user') : null;
         if (lastUser && typeof lastUser.content === 'string') lastUser.content = follow.question;
         console.log('[lib-quote]', { outcome: 'explain' });
@@ -1409,7 +1417,7 @@ export default async function handler(req, res) {
   // (the loop's own policy function, loaded only when that model does the reading; the fast model is sent none, as before)
   const readingThinking = readingPlan.ask && readingChoice === 'standard'
     ? (await import('../lib/free-brain/loop.js')).thinkingPolicy() : null;
-  const readingRun = readingPlan.ask
+  const readingRun = readingPlan.ask && !pageFollowUpExplain
     ? startReading({ messages: body.messages, providerUrl: ANTHROPIC_URL, headers, choice: readingChoice, standardModel: STANDARD_MODEL, provider: PROVIDER_CALLS, thinking: readingThinking }) : null;
   const sorterRun = sorterPlan.ask && !readingRun ? startSorter({ messages: body.messages, providerUrl: ANTHROPIC_URL, headers, provider: PROVIDER_CALLS }) : null;
 
@@ -1706,10 +1714,7 @@ export default async function handler(req, res) {
     if (earlyRetrieve) {
       const { startBw2Pregather } = await import('../lib/before-writing-v2.js');
       readingPregather = startBw2Pregather({
-        // (ORDER A3-CAPTURE, after its helper) the last message AS THE TURN WILL READ IT. `currentQuestionText` was taken before a
-        // page follow-up is rewritten into the request with its page (lib-quote, above); a gather started on it asked the bare
-        // request, and a reading that gave no plan took that gather for the turn's own.
-        question: lastUserText(body.messages),
+        question: currentQuestionText,
         runtime: lexicalRuntimeOfRequest === 'GENERAL' ? 'STORED_FIQH' : lexicalRuntimeOfRequest,
         band, libFlagValue, libToken, lessonsToken: band === 'adult' ? libToken : '',
         takhrijWired: takhrijDecision().enabled && band === 'adult' && libFlagValue === 'on' && libToken !== '',
