@@ -1124,17 +1124,62 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         ok('N5b [A3 item 1] on a preview deployment under the diagnostic header the reading\'s end frame says it too -- the fallback ran, state invalid, reason written_parts, no plan -- and without the header: the fallback ran, and no more',
           !shown.crashed && shown.reads.length === 2 && shown.reads[1].outcome === 'fallback' && shown.reads[1].state === 'invalid' && shown.reads[1].reason === 'written_parts' && shown.reads[1].plan === null
           && plainPreview.reads.length === 2 && plainPreview.reads[1].outcome === 'fallback' && !('reason' in plainPreview.reads[1]) && !('plan' in plainPreview.reads[1]), [shown.reads[1], plainPreview.reads[1]]);
-        // a FOLLOW-UP with two parts is applied: the question is the one the server resolved, and from it on the sources are asked
-        // what the switch-off turn asks when the reader's last message IS that question
-        const fu = byId.P5b;
-        const fuPlan = planOf('P5b');
-        const fuFull = RP.readingOf(fuPlan, { question: fu.q, previous: fu.prev }).question;
-        const fuOn = await drive(convoOf(fu), { plan: JSON.stringify(fu.ideal) });
-        const fuAsFull = await drive(convoOf({ prev: fu.prev, q: fuFull }), { env: { REQUEST_PLAN_V1: 'off' } });
+        // ORDER A3-CAPTURE (2026-11-12, section 4): a FOLLOW-UP with two or more parts is not applied either. Through the real handler,
+        // on follow-ups that are NOT the capture's questions (two parts, three parts, a card's act beside a ruling) and on the two
+        // the capture asked (the fixture's M2 and P5b): the turn is the switch-off turn; the same conversation whose follow-up
+        // has ONE part is still applied.
+        const fuPart = (name, q, kind, extra = {}) => ({ name, q, kind, needs: [], source: [], act: '', chapter: '', ...extra });
+        const fuTwo = [
+          { id: 'khuff-two', prev: ['ما حكم المسح على الخفين؟'], q: 'وما مدته للمسافر؟ وهل يبطل بخلع الخف؟',
+            raw: planWith([fuPart('مدة المسح على الخفين للمسافر', 'ما مدة المسح على الخفين للمسافر؟', 'ruling'), fuPart('بطلان المسح بخلع الخف', 'هل يبطل المسح على الخفين بخلع الخف؟', 'ruling')], { followup: true }) },
+          { id: 'witr-three', prev: ['ما حكم صلاة الوتر؟'], q: 'وكم ركعاته؟ ومتى وقته؟ وهل يقضى؟',
+            raw: planWith([fuPart('عدد ركعات الوتر', 'كم عدد ركعات صلاة الوتر؟', 'ruling'), fuPart('وقت صلاة الوتر', 'متى وقت صلاة الوتر؟', 'ruling'), fuPart('قضاء الوتر', 'هل تقضى صلاة الوتر؟', 'ruling')], { followup: true }) },
+          { id: 'wudu-card-two', prev: ['ما حكم الوضوء لقراءة القرآن؟'], q: 'وكيف أتوضأ؟ وهل يجب الترتيب فيه؟',
+            raw: planWith([fuPart('صفة الوضوء', 'كيف أتوضأ؟', 'manner', { act: 'wudu' }), fuPart('الترتيب في الوضوء', 'هل يجب الترتيب في الوضوء؟', 'ruling')], { followup: true }) },
+          { id: 'M2', prev: byId.M2.prev, q: byId.M2.q, raw: byId.M2.ideal },
+          { id: 'P5b', prev: byId.P5b.prev, q: byId.P5b.q, raw: byId.P5b.ideal },
+        ];
+        const fuDiffers = []; const fuLines = []; const fuAsked = []; const fuWorldly = []; const fuMissing = []; const fuOther = [];
+        for (const x of fuTwo) {
+          const convo = convoOf({ prev: x.prev, q: x.q });
+          const offTurn = await drive(convo, { env: { REQUEST_PLAN_V1: 'off' } });
+          const onTurn = await drive(convo, { plan: JSON.stringify(x.raw) });
+          const line = onTurn.logOf('[reading]') || {};
+          fuLines.push(String(line.outcome) + ':' + String(line.reason) + ':' + String(line.count) + ':' + String(line.kind));
+          fuAsked.push(onTurn.counts.reading === 1 && offTurn.counts.reading === 0 && onTurn.counts.sorter === offTurn.counts.sorter && onTurn.counts.writer === offTurn.counts.writer);
+          if (onTurn.crashed || offTurn.crashed || digest(onTurn) !== digest(offTurn)) fuDiffers.push(x.id);
+          const offW = await drive(convo, { env: { REQUEST_PLAN_V1: 'off' }, sorter: 'WORLDLY' });
+          const onW = await drive(convo, { plan: JSON.stringify(x.raw), sorter: 'WORLDLY' });
+          const whole = (d) => { const o = JSON.parse(digest(d)); return JSON.stringify({ ...o, calls: o.calls.filter((c) => c.includes('api.anthropic.com')) }); };
+          const srcs = (d) => JSON.parse(digest(d)).calls.filter((c) => !c.includes('api.anthropic.com'));
+          if (offW.crashed || onW.crashed || whole(onW) !== whole(offW)) fuWorldly.push(x.id);
+          const extra = [...srcs(onW)];
+          for (const c of srcs(offW)) { const i = extra.indexOf(c); if (i < 0) fuMissing.push(x.id); else extra.splice(i, 1); }
+          if (extra.some((c) => !c.startsWith('call:GET ' + FC.FATWA_BASE))) fuOther.push(x.id);
+        }
+        ok('N5c [A3-CAPTURE section 4] THROUGH THE REAL HANDLER, a FOLLOW-UP whose plan has two or more parts (' + fuTwo.length + ': three that are not the capture\'s questions -- two parts, three parts, a card\'s act beside a ruling -- and the fixture\'s M2 and P5b): the reading is asked once, its plan is not applied, and the turn is the switch-off turn frame for frame -- what the reader is sent, the text, the route, every call to a source and to a model; the [reading] line says why in closed words (invalid, followup_written_parts, no part and no kind)',
+          fuTwo.length === 5 && fuDiffers.length === 0 && fuAsked.every(Boolean) && fuLines.every((line) => line === 'invalid:followup_written_parts:0:null'), [fuDiffers, fuAsked, fuLines]);
+        ok('N5e [A3-CAPTURE section 4] ...and when the sorter\'s word is then WORLDLY: the same frames, the same text, the same route, the same calls to every model; every source call of the switch-off turn is made, and any call beside them is a query of the gather that ran beside the reading (the cost of a failed reading, I4h)',
+          fuWorldly.length === 0 && fuMissing.length === 0 && fuOther.length === 0, [fuWorldly, fuMissing, fuOther]);
+        // the SAME conversations with ONE part in the follow-up: applied as before the round -- the [reading] line says plan, one part,
+        // and the sources are asked the question the server resolved (every source call of the switch-off turn of a message with
+        // that text is made)
+        const fuOne = [
+          { id: 'khuff-one', prev: ['ما حكم المسح على الخفين؟'], q: 'وما مدته للمسافر؟', raw: planWith([fuPart('مدة المسح على الخفين للمسافر', 'ما مدة المسح على الخفين للمسافر؟', 'ruling')], { followup: true }) },
+          { id: 'arafa-one', prev: ['ما حكم صيام يوم عرفة؟'], q: 'وهل يصومه الحاج؟', raw: planWith([fuPart('صيام الحاج يوم عرفة', 'هل يصوم الحاج يوم عرفة؟', 'ruling')], { followup: true }) },
+        ];
         const sources = (d) => d.calls.filter((c) => c.startsWith('call:') && !c.includes('api.anthropic.com')).sort();
-        ok('N5c [A3 item 1] a FOLLOW-UP whose plan has two parts is applied (its resolved question is the batch\'s): the [reading] line says plan, two parts -- and from that question on the sources are asked what the switch-off turn asks of a message with that text: every source call of that turn is made (beside them, only the gather that ran beside the reading on the reader\'s short message)',
-          !fuOn.crashed && !fuAsFull.crashed && (fuOn.logOf('[reading]') || {}).outcome === 'plan' && (fuOn.logOf('[reading]') || {}).count === 2 && fuFull !== fu.q && fuFull.length > fu.q.length
-          && sources(fuAsFull).length > 0 && sources(fuAsFull).every((c) => sources(fuOn).includes(c)), [sources(fuAsFull).length, sources(fuOn).length, sources(fuAsFull).filter((c) => !sources(fuOn).includes(c)).length]);
+        const oneSeen = [];
+        for (const x of fuOne) {
+          const plan = RP.validatePlan(RP.parsePlan(JSON.stringify(x.raw)), { question: x.q, previous: x.prev }).plan;
+          const full = RP.readingOf(plan, { question: x.q, previous: x.prev }).question;
+          const on = await drive(convoOf({ prev: x.prev, q: x.q }), { plan: JSON.stringify(x.raw) });
+          const asFull = await drive(convoOf({ prev: x.prev, q: full }), { env: { REQUEST_PLAN_V1: 'off' } });
+          const line = on.logOf('[reading]') || {};
+          oneSeen.push([!on.crashed && !asFull.crashed, line.outcome === 'plan' && line.count === 1, full !== x.q && full.length > x.q.length, sources(asFull).length > 0 && sources(asFull).every((c) => sources(on).includes(c))]);
+        }
+        ok('N5f [A3-CAPTURE section 4] the same conversations with ONE part in the follow-up are applied as before the round: the [reading] line says plan, one part, and the sources are asked the question the server resolved (every source call the switch-off turn makes for a message with that text is made)',
+          oneSeen.length === 2 && oneSeen.every((row) => row.every(Boolean)), oneSeen);
       }
 
       // I5 the worldly word of a plan
@@ -1249,8 +1294,15 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const m2Convo = [{ role: 'user', content: m2.prev[0] }, { role: 'assistant', content: 'جواب سابق عن الحرم.' }, { role: 'user', content: m2.q }];
       const m2On = await drive(m2Convo, { plan: idealOf('M2') });
       const m2Off = await drive(m2Convo, { env: { REQUEST_PLAN_V1: 'off' } });
-      ok('I9 M2: the word «الدعاء» kept the follow-up off the main path (the switch off: the older path); read as the fiqh question it is, the before-writing path takes it',
-        !m2On.crashed && m2Off.logOf('[free-brain]').bw2 === false && m2On.logOf('[free-brain]').bw2 === true && m2On.counts.fatwa > 0, [m2Off.logOf('[free-brain]'), m2On.logOf('[free-brain]')]);
+      // (ORDER A3-CAPTURE, section 4: M2's plan has two parts, so it is not applied and M2 keeps production's path. What the row held --
+      // a follow-up the word «الدعاء» keeps off the main path is taken by the before-writing path once it is read as the fiqh
+      // question it is -- is held on the same conversation with ONE part in the follow-up's plan.)
+      const m2One = JSON.stringify({ followup: true, full: '', parts: [byId.M2.ideal.parts.find((p) => p.q.includes('الدعاء')) || byId.M2.ideal.parts[0]], c: {} });
+      const m2OneOn = await drive(m2Convo, { plan: m2One });
+      ok('I9 M2: the word «الدعاء» keeps the follow-up off the main path (the switch off: the older path). With its two-part plan the plan is not applied and the path is production\'s; read with ONE part as the fiqh question it is, the before-writing path takes it',
+        !m2On.crashed && !m2OneOn.crashed && m2Off.logOf('[free-brain]').bw2 === false && m2On.logOf('[free-brain]').bw2 === false && (m2On.logOf('[reading]') || {}).reason === 'followup_written_parts'
+        && m2OneOn.logOf('[free-brain]').bw2 === true && m2OneOn.counts.fatwa > 0 && (m2OneOn.logOf('[reading]') || {}).outcome === 'plan',
+        [m2Off.logOf('[free-brain]'), m2On.logOf('[free-brain]'), m2OneOn.logOf('[free-brain]'), (m2On.logOf('[reading]') || {}).reason]);
     } finally {
       for (const k of ENV_KEYS) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; }
       globalThis.fetch = realFetch;
@@ -1942,27 +1994,58 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         .map((x) => ({ ...x, plan: (RP.validatePlan(RP.parsePlan(JSON.stringify(x.raw)), { question: x.q, previous: x.prev }) || {}).plan || null })).filter((x) => x.plan);
       const writtenOf = (x) => RP.servedKinds(x.plan, { question: x.q }).filter((kind) => !kind).length;
       const several = everyPlan.filter((x) => x.plan.followup !== true && writtenOf(x) >= 2);
-      const rest = everyPlan.filter((x) => !several.includes(x));
+      // ORDER A3-CAPTURE (2026-11-12, section 4): a follow-up of that shape is not applied either, for a closed reason of its own
+      const followSeveral = everyPlan.filter((x) => x.plan.followup === true && writtenOf(x) >= 2);
+      const rest = everyPlan.filter((x) => !several.includes(x) && !followSeveral.includes(x));
       const planById = (id) => everyPlan.find((x) => x.id === id);
-      ok('N1 [A3 item 1] a plan with two or more parts for the writer that is not a follow-up is a good plan the server does NOT apply, for a closed reason of its own (written_parts): the capture\'s recorded P1, P1s, P3, P7 and P8 and the fixture\'s plans of that shape (P1, P3, P6, P7, P8, B4, B9) -- and no other plan of the capture or the fixture. One part, one written part beside a part the server serves (B19, B19b, B19w) and a follow-up with two parts (M2, P5b) are applied as they were; P9 keeps the reason it had',
+      ok('N1 [A3 item 1; A3-CAPTURE section 4] a plan with two or more parts for the writer is a good plan the server does NOT apply, for a closed reason of its own: written_parts where it is not a follow-up (the capture\'s recorded P1, P1s, P3, P7 and P8 and the fixture\'s plans of that shape: P1, P3, P6, P7, P8, B4, B9), followup_written_parts where it is one (M2 and P5b, recorded and in the fixture) -- and no other plan of the capture or the fixture. One part, and one written part beside a part the server serves (B19, B19b, B19w), are applied as they were; P9 keeps the reason it had',
         everyPlan.length === Object.keys(CAP).length + FIX.items.length
         && same(several.map((x) => x.id).sort(), ['B4', 'B9', 'F-P1', 'F-P1s', 'F-P3', 'F-P7', 'F-P8', 'P1', 'P3', 'P6', 'P7', 'P8'])
         && several.every((x) => notApplied(x.plan, x.q) === 'written_parts' && applies(x.plan, x.q) === false)
-        && rest.every((x) => notApplied(x.plan, x.q) !== 'written_parts')
-        && ['F-B19', 'F-B19b', 'F-B19w', 'B19', 'B19b', 'B19w', 'F-M2', 'F-P5b', 'M2', 'P5b'].every((id) => { const x = planById(id); return !!x && x.plan.parts.length === 2 && notApplied(x.plan, x.q) === '' && applies(x.plan, x.q) === true; })
-        && ['F-M2', 'F-P5b', 'M2', 'P5b'].every((id) => planById(id).plan.followup === true)
+        && same(followSeveral.map((x) => x.id).sort(), ['F-M2', 'F-P5b', 'M2', 'P5b'])
+        && followSeveral.every((x) => x.plan.parts.length === 2 && notApplied(x.plan, x.q) === 'followup_written_parts' && applies(x.plan, x.q) === false)
+        && rest.every((x) => !['written_parts', 'followup_written_parts'].includes(notApplied(x.plan, x.q)))
+        && ['F-B19', 'F-B19b', 'F-B19w', 'B19', 'B19b', 'B19w'].every((id) => { const x = planById(id); return !!x && x.plan.parts.length === 2 && notApplied(x.plan, x.q) === '' && applies(x.plan, x.q) === true; })
         && ['F-P9', 'P9'].every((id) => notApplied(planById(id).plan, planById(id).q) === 'quran_beside_served')
-        && same([...(RP.PLAN_NOT_APPLIED || [])], ['quran_beside_served', 'written_parts']),
-        [several.map((x) => x.id).sort().join(' '), several.map((x) => notApplied(x.plan, x.q)), everyPlan.length]);
+        && same([...(RP.PLAN_NOT_APPLIED || [])], ['quran_beside_served', 'written_parts', 'followup_written_parts']),
+        [several.map((x) => x.id).sort().join(' '), followSeveral.map((x) => x.id).sort().join(' '), followSeveral.map((x) => notApplied(x.plan, x.q)), everyPlan.length]);
       const readOf = (x) => RP.startReading({ messages: [...x.prev.flatMap((p) => [{ role: 'user', content: p }, { role: 'assistant', content: 'PREVIOUS-ANSWER.' }]), { role: 'user', content: x.q }], ask: async () => JSON.stringify(x.raw), env: {}, timeoutMs: 300 }).promise;
       const severalRead = [];
       for (const x of several) severalRead.push(await readOf(x));
       const followRead = [];
       for (const id of ['F-M2', 'F-P5b', 'M2', 'P5b']) followRead.push(await readOf(planById(id)));
       const SAFE_FLAG = /^[A-Za-z0-9_:.-]{1,40}$/;
-      ok('N2 [A3 item 1] the reading of such a plan ends as the mixed Qur\'an case ends -- not applied: state invalid, no plan, the reason written_parts -- and the answer log keeps it as a failed reading, in closed words; a follow-up with two parts ends as a plan (its resolved question is the batch\'s)',
+      ok('N2 [A3 item 1; A3-CAPTURE section 4] the reading of such a plan ends as the mixed Qur\'an case ends -- not applied: state invalid, no plan, the reason written_parts -- and the answer log keeps it as a failed reading, in closed words; a follow-up with two parts ends the same way, with its own reason (followup_written_parts)',
         severalRead.length === 12 && severalRead.every((o) => o.state === 'invalid' && o.plan === null && o.reason === 'written_parts' && same(RP.planLogFlags(o), ['plan:invalid', 'plan_model:' + o.choice]) && RP.planLogFlags(o).every((flag) => SAFE_FLAG.test(flag)))
-        && followRead.every((o) => o.state === 'plan' && !!o.plan && o.plan.followup === true && o.plan.parts.length === 2), [severalRead.map((o) => o.state + ':' + o.reason), followRead.map((o) => o.state)]);
+        && followRead.length === 4 && followRead.every((o) => o.state === 'invalid' && o.plan === null && o.reason === 'followup_written_parts' && same(RP.planLogFlags(o), ['plan:invalid', 'plan_model:' + o.choice]) && RP.planLogFlags(o).every((flag) => SAFE_FLAG.test(flag))),
+        [severalRead.map((o) => o.state + ':' + o.reason), followRead.map((o) => o.state + ':' + o.reason)]);
+      // ...and the rule on follow-ups that are NOT the capture's questions: by the count of the parts alone, whatever their kinds
+      {
+        const fPart = (name, q, kind, extra = {}) => ({ name, q, kind, needs: [], source: [], act: '', chapter: '', ...extra });
+        const khuffTwo = [fPart('مدة المسح على الخفين للمسافر', 'ما مدة المسح على الخفين للمسافر؟', 'ruling'), fPart('بطلان المسح بخلع الخف', 'هل يبطل المسح على الخفين بخلع الخف؟', 'ruling')];
+        const synth = [
+          { id: 'khuff-two', prev: ['ما حكم المسح على الخفين؟'], q: 'وما مدته للمسافر؟ وهل يبطل بخلع الخف؟', raw: planWith(khuffTwo, { followup: true }), want: 'followup_written_parts' },
+          { id: 'khuff-one', prev: ['ما حكم المسح على الخفين؟'], q: 'وما مدته للمسافر؟', raw: planWith([khuffTwo[0]], { followup: true }), want: '' },
+          { id: 'arafa-two', prev: ['ما حكم صيام يوم عرفة؟'], q: 'وهل يصومه الحاج؟ وما فضله؟',
+            raw: planWith([fPart('صيام الحاج يوم عرفة', 'هل يصوم الحاج يوم عرفة؟', 'ruling'), fPart('فضل صيام يوم عرفة', 'ما فضل صيام يوم عرفة؟', 'other')], { followup: true }), want: 'followup_written_parts' },
+          { id: 'arafa-one', prev: ['ما حكم صيام يوم عرفة؟'], q: 'وهل يصومه الحاج؟', raw: planWith([fPart('صيام الحاج يوم عرفة', 'هل يصوم الحاج يوم عرفة؟', 'ruling')], { followup: true }), want: '' },
+          { id: 'witr-three', prev: ['ما حكم صلاة الوتر؟'], q: 'وكم ركعاته؟ ومتى وقته؟ وهل يقضى؟',
+            raw: planWith([fPart('عدد ركعات الوتر', 'كم عدد ركعات صلاة الوتر؟', 'ruling'), fPart('وقت صلاة الوتر', 'متى وقت صلاة الوتر؟', 'ruling'), fPart('قضاء الوتر', 'هل تقضى صلاة الوتر؟', 'ruling')], { followup: true }), want: 'followup_written_parts' },
+          { id: 'wudu-card-two', prev: ['ما حكم الوضوء لقراءة القرآن؟'], q: 'وكيف أتوضأ؟ وهل يجب الترتيب فيه؟',
+            raw: planWith([fPart('صفة الوضوء', 'كيف أتوضأ؟', 'manner', { act: 'wudu' }), fPart('الترتيب في الوضوء', 'هل يجب الترتيب في الوضوء؟', 'ruling')], { followup: true }), want: 'followup_written_parts' },
+          // the same two questions asked in ONE message, with no earlier turn: not a follow-up, and the reason is the other one
+          { id: 'khuff-alone', prev: [], q: 'ما مدة المسح على الخفين للمسافر؟ وهل يبطل المسح على الخفين بخلع الخف؟', raw: planWith(khuffTwo), want: 'written_parts' },
+        ];
+        const seen = [];
+        for (const x of synth) {
+          const checked = RP.validatePlan(RP.parsePlan(JSON.stringify(x.raw)), { question: x.q, previous: x.prev });
+          const read = await readOf(x);
+          seen.push([x.id, checked.ok === true, checked.ok ? notApplied(checked.plan, x.q) : null, checked.ok ? applies(checked.plan, x.q) : null, read.state, read.reason || '', read.plan ? read.plan.parts.length : 0]);
+        }
+        ok('N9 [A3-CAPTURE section 4] on follow-ups that are not the capture\'s questions the rule is the count of the parts and nothing else: two parts, three parts, and a card\'s act beside a ruling are good plans the server does not apply (the reading ends invalid, no plan, followup_written_parts); the same conversations with ONE part end as a plan; the same two questions in one message with no earlier turn keep the other reason (written_parts)',
+          seen.length === 7 && synth.every((x, i) => seen[i][1] === true && seen[i][2] === x.want && seen[i][3] === (x.want === '')
+            && (x.want === '' ? (seen[i][4] === 'plan' && seen[i][5] === '' && seen[i][6] === 1) : (seen[i][4] === 'invalid' && seen[i][5] === x.want && seen[i][6] === 0))), seen);
+      }
       // a part the server serves beside two written parts: the card of B19 beside the two rulings of B4; a worldly half beside them
       const besideCard = { q: byId.B19.q + ' ' + byId.B4.q, raw: planWith([...byId.B19.ideal.parts, ...byId.B4.ideal.parts]) };
       const besideWorldly = { q: mixedQ + ' ' + byId.B4.q, raw: planWith([...mixed.parts, ...byId.B4.ideal.parts]) };
