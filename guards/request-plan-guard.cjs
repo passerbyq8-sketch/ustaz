@@ -1561,7 +1561,8 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         const releaser = UNITS.createBw2Releaser({ rows: [], emit: (t) => { out.push(t); return true; }, holdUncitedRulings: true, compoundParts: true, question, planParts: { reader: s2.reading.reader, parts } });
         releaser.push('### ' + parts[0].title + '\n\nهذه جملة اختبار قصيرة لا تنسب شيئا.\n');
         const sum = await releaser.end();
-        return { sent: out.join('').includes('### ' + parts[0].title), holds: sum.holds, kept: parts[0].title, opened: sum.parts.opened[0], unplaced: sum.parts.unplaced };
+        // (a tree whose releaser is told nothing of a plan's parts has no count to give)
+        return { sent: out.join('').includes('### ' + parts[0].title), holds: sum.holds, kept: parts[0].title, opened: sum.parts ? sum.parts.opened[0] : null, unplaced: sum.parts ? sum.parts.unplaced : null };
       };
       const witr = 'هل الوتر واجب أم سنة عند الحنفية؟ وبماذا أجاب الجمهور عنها؟';
       const stated = [await nameTurn(witr, 'الوتر واجب', 'هل الوتر واجب أم سنة عند الحنفية؟'), await nameTurn(witr, 'الوتر سنة لا واجب', 'هل الوتر واجب أم سنة عند الحنفية؟'),
