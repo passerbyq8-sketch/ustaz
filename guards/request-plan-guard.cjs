@@ -1536,6 +1536,11 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const nameAt = under.indexOf('### ' + sub.parts[1].title);
       ok('L14 [item 1, after the helper] a heading of the writer\'s own that names another part\'s scholar opens no part: the second part\'s name is put above nothing, the prose is the prose it was, and the honest line for the second part stands',
         second > 0 && nameAt === -1 && absent(sub, sub.parts[1].title) === 1 && same(prose(sub).filter((line) => line !== 'ما رواه الطبري'), prose(p7)) && heads(sub, sub.parts[0].title) === 1, [nameAt, absent(sub, sub.parts[1].title)]);
+      // the helper's case on P1: a heading of the writer's own INSIDE the first part, before the part's first released paragraph
+      const firstOut = prose(p1)[0];
+      const inside = await replay('F-P1', { writer: p1.raw.split(firstOut.slice(0, 24)).join('### خلافهم مع الجمهور\n\n' + firstOut.slice(0, 24)) });
+      ok('L14b [item 1, after the helper] a part opened by its name whose text then goes out under a heading of the writer\'s own is NOT said to have no text: the prose is the prose it was and no line is added',
+        p1.raw.includes(firstOut.slice(0, 24)) && same(prose(inside), prose(p1)) && absent(inside, inside.parts[0].title) === 0 && absent(inside, inside.parts[1].title) === 0, [absent(inside, inside.parts[0].title), prose(inside).length, prose(p1).length]);
       // a writer that was cut
       const firstOnly = p7.raw.slice(0, p7.raw.indexOf('### ' + p7.parts[1].title));
       const budget = await replay('F-P7', { writer: firstOnly, stop: 'max_tokens' });
