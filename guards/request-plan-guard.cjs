@@ -1318,7 +1318,9 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       ok('K11d [item 4, after the second helper] the turn put before a bare follow-up is the reader\'s PREVIOUS turn, not an older one',
         bareTwo.ok && bareTwo.plan.full === earlierTurn + ' ' + 'وبماذا استدلوا على ذلك؟', [bareTwo.ok && bareTwo.plan.full.length, (earlierTurn + ' ' + 'وبماذا استدلوا على ذلك؟').length]);
       ok('K11e [item 3, after the third helper] an instruction word is read as it stands: «ما لهو؟» is not «ما» and «هو», so the sentence is part of what the reader asked; «اذكرها مع الدليل باختصار» and «بالتفصيل» are instructions as they were',
-        RP.restIsInstruction('ما حكم الغناء؟', 'ما حكم الغناء؟ ما لهو؟') === false && RP.restIsInstruction('ما أركان الإيمان؟', 'ما أركان الإيمان؟ اذكرها مع الدليل باختصار.') === true
+        // (a tree without the function -- the commit before the round -- fails this row as a row; it does not throw)
+        typeof RP.restIsInstruction === 'function'
+        && RP.restIsInstruction('ما حكم الغناء؟', 'ما حكم الغناء؟ ما لهو؟') === false && RP.restIsInstruction('ما أركان الإيمان؟', 'ما أركان الإيمان؟ اذكرها مع الدليل باختصار.') === true
         && RP.restIsInstruction('ما أركان الإيمان؟', 'ما أركان الإيمان؟ بالتفصيل.') === true);
     }
 
@@ -1549,10 +1551,12 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const cut = p1.raw.slice(0, p1.raw.indexOf('### ', 5));
       const alone = await replay('F-P1', { writer: cut });
       const second = alone.parts[1];
-      const without = linesOf(alone.text).filter((line) => !line.startsWith(ABSENT)).join('\n');
-      ok('L6 [item 1, after the second helper] a part the writer never opened is decided as before the round: P1 with nothing written for its second part gets no line where the valve stands it down (the first form wrote one from the count -- and the same count wrote a false line whenever the writer went on with no # heading: L6c)',
-        cut.length > 200 && absent(alone, second.title) === 0 && heads(alone, second.title) === 0 && qheads(alone, P1Q) === 1
-        && BW.partSentenceWanted({ text: second.text, title: second.title }, without) === false, [absent(alone, second && second.title), BW.partSentenceWanted({ text: second.text, title: second.title }, without)]);
+      const without = linesOf(alone.text).filter((line) => !line.startsWith(ABSENT) && line !== P1Q).join('\n');
+      ok('L6 [item 1, after the fourth helper] a part the writer never opened is decided as before the round: P1 with nothing written for its second part gets the line the commit before the round writes there -- the judge kept no row for the part, and the valve, which reads the answer WITHOUT the reader\'s question that stands as the first part\'s heading, lets the line stand (read with that heading the valve stood the line down, and the part went unsaid)',
+        cut.length > 200 && absent(alone, second.title) === 1 && heads(alone, second.title) === 0 && qheads(alone, P1Q) === 1
+        && BW.partSentenceWanted({ text: second.text, title: second.title }, without) === true
+        && BW.partSentenceWanted({ text: second.text, title: second.title }, without + '\n' + P1Q) === false,
+        [absent(alone, second && second.title), BW.partSentenceWanted({ text: second.text, title: second.title }, without), BW.partSentenceWanted({ text: second.text, title: second.title }, without + '\n' + P1Q)]);
       // the second helper's case: the second part written with NO # heading of its own (the line removed; a bold title; an ordinal title)
       const own2 = ownHeading(p1)[0];
       const noHash = [p1.raw.split(own2 + '\n\n').join(''), p1.raw.split(own2).join('**' + own2.slice(4) + '**'), p1.raw.split(own2).join('ثانيًا: ' + own2.slice(4))];
@@ -1702,11 +1706,11 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       // the releaser itself. The sentence under the name opens with a noun and leans on nothing, unless a row says otherwise.
       const PLAIN = 'جملة اختبار قصيرة لا تنسب شيئا.';
       const LEANS = 'هذه جملة اختبار قصيرة لا تنسب شيئا.';
-      const direct = async (reader, title, { probe = PLAIN, rows = [], suffix = '', q = '' } = {}) => {
+      const direct = async (reader, title, { probe = PLAIN, rows = [], suffix = '', q = '', written = '' } = {}) => {
         const out = [];
         const releaser = UNITS.createBw2Releaser({ rows, emit: (t) => { out.push(t); return true; }, holdUncitedRulings: true, compoundParts: true, question: reader,
           planParts: { reader, parts: [{ title, text: q || title, served: '', act: '', written: 0 }, { title: 'الجزء الآخر', text: 'الجزء الآخر', served: '', act: '', written: 1 }] } });
-        releaser.push('### ' + title + suffix + '\n\n' + probe + '\n');
+        releaser.push('### ' + (written || title) + suffix + '\n\n' + probe + '\n');
         const sum = await releaser.end();
         return { sent: out.join('').split('\n').includes('### ' + title), asked: !!q && out.join('').split('\n').includes('### ' + q), probeOut: out.join('').includes(probe.slice(0, 14)), opened: sum.parts ? sum.parts.opened[0] : null, holds: sum.holds || {},
           text: out.join(''), declared: sum.parts && Array.isArray(sum.parts.declared) ? sum.parts.declared[0] : null };
@@ -1772,6 +1776,11 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         ['ما قول الحنابلة في حديث «من زار قبري وجبت له شفاعتي»؟ وما وقته؟', 'قول الحنابلة في حديث الزيارة', 'ما قول الحنابلة في حديث «من زار قبري وجبت له شفاعتي»؟'], // a matn
         ['ما قول الحنفية في إجماع العلماء على وجوب الوتر؟ وما وقته؟', 'قول الحنفية في الإجماع', 'ما قول الحنفية في إجماع العلماء على وجوب الوتر؟'], // a consensus
         ['هل يحرم عند الحنفية أكل لحم الخيل؟ وما حكم الحمار؟', 'تحريم لحم الخيل عند الحنفية', 'هل يحرم عند الحنفية أكل لحم الخيل؟'], // a ruling word
+        // (after the fourth helper, G1a: the reader's sentences were cut at a full stop, and a part of one was printed)
+        ['هل صحيح أن زكاة المال 2.5 بالمئة عند الحنفية؟ وما وقت إخراجها؟', 'نسبة الزكاة عند الحنفية', '5 بالمئة عند الحنفية؟'], // what follows a decimal point
+        ['ذكر د. أحمد أن الحنفية يوجبون الوتر؟ وما وقت الوتر؟', 'إيجاب الحنفية الوتر', 'أحمد أن الحنفية يوجبون الوتر؟'], // what follows an abbreviation
+        ['لا أصدق أن ... الحنفية يوجبون الوتر؟ وما وقت الوتر؟', 'إيجاب الحنفية الوتر', 'الحنفية يوجبون الوتر؟'], // what follows an ellipsis
+        ['هل صحيح أن زكاة المال 2.5 بالمئة عند الحنفية؟ وما وقت إخراجها؟', 'نسبة الزكاة عند الحنفية', 'هل صحيح أن زكاة المال 2.5 بالمئة عند الحنفية؟'], // the whole sentence holds a full stop: not plain text
       ];
       const withheld = []; for (const [reader, name, q] of never) withheld.push(await direct(reader, name, { q }));
       ok('L21b [item 1, the fourth form] nothing stands in the place of a name that names a school when the plan\'s question for the part is not, word for word, one whole sentence of the reader\'s that the reader ended with a question mark (a statement ended with a full stop or with nothing -- the reader\'s «لم يوجب الشافعية الوتر» does not become «يوجب الشافعية الوتر» -- a premise, a reworded question, the name itself, a part of a sentence), when that sentence is not plain text (a tag, a citation mark, markup) or is longer than a heading, or when it fails another check of a name (a verb of saying, a matn, a consensus, a ruling word): no heading at all is printed, and the unit under it goes out under no part',
@@ -1817,6 +1826,13 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const citedName = await direct('هل الوتر واجب أم سنة؟ وما وقته؟', 'الوتر واجب', { rows: [row], suffix: ' [[1]]' });
       ok('L22 [item 1, after the second helper] a part\'s name is read as an UNCITED line whatever the writer puts after it: a name that states a ruling is withheld although the writer\'s line carries a citation (what would be printed is the bare name)',
         citedName.sent === false && citedName.opened === false && citedName.holds.uncited_ruling === 1, [citedName.sent, Object.keys(citedName.holds).join(',')]);
+      const quotedTitle = 'معنى حديث «من زار قبري وجبت له شفاعتي»';
+      const asWritten = await direct('ما معنى حديث الزيارة؟ وما حكم شد الرحال؟', quotedTitle, { written: 'معنى حديث من زار قبري وجبت له شفاعتي' });
+      const notReported = await direct('ما حكم العمل بما لم يرد فيه نص؟ وما حكم البدعة؟', 'حكم العمل بما لم يرد فيه نص');
+      ok('L30 [item 1, after the fourth helper] a part\'s name is checked as it would be PRINTED, and by the standing rule of a question with parts: a title that carries a hadith\'s words in quote marks is withheld although the writer wrote the line without the marks (the match folds them); a name with «لم يرد» in it is withheld as the writer\'s own heading was before the round',
+        asWritten.sent === false && !asWritten.text.includes('«') && asWritten.opened === false && asWritten.probeOut === true
+        && notReported.sent === false && notReported.opened === false && notReported.holds.not_covered_sentence === 1,
+        [asWritten.sent, asWritten.text.includes('«'), notReported.sent, Object.keys(notReported.holds).join(',')]);
     }
 
     {
@@ -1881,6 +1897,36 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       ok('L20b [item 1, after the third helper] the name written twice gives a sentence no more than the name written once: a sentence that leans on what came before it («وهو واجبٌ عند …») is withheld under the heading, and the sentence after it goes out under it',
         !twiceNamed.text.includes('فكان مضمون') && twiceNamed.text.includes(s1.slice(0, 20)) && qheads(twiceNamed, P1Q) === 1 && heads(twiceNamed, p1.parts[0].title) === 0,
         [twiceNamed.text.includes('فكان مضمون'), twiceNamed.text.includes(s1.slice(0, 20)), qheads(twiceNamed, P1Q)]);
+      // -- after the fourth refuting helper: its own cases, on the capture's own sentences of F-P1
+      const rawLines = p1.raw.split('\n');
+      const P_D = rawLines.find((line) => line.includes('[[4]]') && !line.startsWith('#')) || ''; // goes out wherever it stands
+      const E1 = (() => { const line = rawLines.find((l) => l.includes('[[2]].')) || ''; return line.slice(0, line.indexOf('[[2]].') + 6); })(); // so does this
+      const T0H = '### ' + p1.parts[0].title;
+      const HELD = 'والوتر واجبٌ عند أبي حنيفة.'; // no citation: withheld
+      const onlyFirst = await replay('F-P1', { writer: T0H + '\n\n' + P_D + '\n' });
+      ok('L27 [item 1, after the fourth helper] the reader\'s question printed as the first part\'s heading is not text of the answer: the writer wrote the first part only, and the line that no text was found for the SECOND part is written, as before the round (the heading carries the words of the second part\'s name, and the valve took them for that part\'s answer)',
+        P_D.length > 60 && qheads(onlyFirst, P1Q) === 1 && absent(onlyFirst, p1.parts[1].title) === 1 && absent(onlyFirst, p1.parts[0].title) === 0 && onlyFirst.text.includes(P_D.slice(0, 30)),
+        [qheads(onlyFirst, P1Q), absent(onlyFirst, p1.parts[1].title), absent(onlyFirst, p1.parts[0].title)]);
+      const above = await replay('F-P1', { writer: E1 + '\n\n' + P_D + '\n\n' + T0H + '\n\n' + HELD + '\n' });
+      // (P7: one released paragraph of the first part moved above the first part's name -- the second part's line must stay)
+      const para7 = p7.raw.split('\n').find((line) => line.length > 80 && !line.startsWith('#') && !line.startsWith('<') && p7.text.includes(line.slice(0, 20))) || '';
+      const moved7 = await replay('F-P7', { writer: para7 + '\n\n' + p7.raw.split(para7 + '\n\n').join('') });
+      ok('L28 [item 1, after the fourth helper] a part\'s text written ABOVE its name, and nothing that can be released under the name: the part is not said to have no text beneath its own text (what went out before the answer\'s first part name may be that part\'s); a LATER part that the writer opened and left empty still has its line (P7 with a paragraph moved above the first name)',
+        E1.length > 60 && absent(above, p1.parts[0].title) === 0 && above.text.includes(E1.slice(0, 30)) && above.text.includes(P_D.slice(0, 30))
+        && para7.length > 80 && moved7.text.includes(para7.slice(0, 20)) && absent(moved7, p7.parts[1].title) === 1 && absent(moved7, p7.parts[0].title) === 0 && qheads(moved7, P7Q) === 1,
+        [absent(above, p1.parts[0].title), above.text.includes(E1.slice(0, 30)), para7.length, absent(moved7, p7.parts[1].title), qheads(moved7, P7Q)]);
+      const again = await replay('F-P1', { writer: T0H + '\n\n' + P_D + '\n\n' + HELD + '\n\n' + T0H + '\n\nوكذلك ' + E1 + '\n' });
+      const againNow = await replay('F-P1', { writer: T0H + '\n\n' + P_D + '\n\n' + T0H + '\n\nوهذا لأنّ ' + E1 + '\n' });
+      const straight = await replay('F-P1', { writer: T0H + '\n\n' + P_D + '\n\nوهذا لأنّ ' + E1 + '\n' });
+      ok('L20d [item 1, after the fourth helper] the part\'s name written AGAIN in the middle of its section, where its heading is the reader\'s question in the place of a name the server does not print: the line is dropped, and a sentence after it that leans on what came before («وكذلك …», «وهذا لأنّ …») is withheld, as it was when that second heading line was itself withheld -- after a withheld sentence and after a released one; with no second name line the same sentence goes out after the released one',
+        !again.text.includes('وكذلك') && !againNow.text.includes('وهذا لأن') && straight.text.includes('وهذا لأن')
+        && [again, againNow, straight].every((r) => qheads(r, P1Q) === 1 && r.text.includes(P_D.slice(0, 30))),
+        [again.text.includes('وكذلك'), againNow.text.includes('وهذا لأن'), straight.text.includes('وهذا لأن')]);
+      const pointer = await replay('F-P1', { writer: T0H + '\n\n' + E1.replace('الحنفية يقولون', 'الحنفية كما تقدم يقولون') + '\n' });
+      const pointerCtl = await replay('F-P1', { writer: T0H + '\n\n' + E1 + '\n' });
+      ok('L29 [item 1, after the fourth helper] a sentence that points back («كما تقدم») at words only the part\'s withheld name carried is withheld under the reader\'s question, as it was under the withheld heading; the same sentence without the pointer goes out',
+        E1.includes('الحنفية يقولون') && !pointer.text.includes('كما تقدم') && qheads(pointer, P1Q) === 0 && pointerCtl.text.includes(E1.slice(0, 30)) && qheads(pointerCtl, P1Q) === 1,
+        [pointer.text.includes('كما تقدم'), qheads(pointer, P1Q), pointerCtl.text.includes(E1.slice(0, 30))]);
     }
 
     // -- item 2
