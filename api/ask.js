@@ -2050,19 +2050,24 @@ export default async function handler(req, res) {
     // message; they are asked again of the FULL question that message continues: «وما دليلهم على ذلك؟» after a question about the
     // banned school is that question (the fixed sentence), and a follow-up that completes a hazard or a request for pornography
     // gets the fixed text it would have got in one message. Nothing here can open a door the last message did not open.
-    if (reading && reading.question !== questionText) {
-      const fullHazard = graveHazard(reading.question);
+    // (ORDER A3-CAPTURE, after its helper) ...whether the plan is applied or not. A follow-up whose plan has two or more parts is no
+    // longer applied (lib/request-plan.js planNotApplied); the question it resolved is still the question the last message
+    // continues, and the three fixed replies below are asked of it as before. Nothing else reads it: the turn is the turn
+    // of a failed reading, on the reader's own message.
+    const fullAsked = reading ? reading.question : (readingOutcome && typeof readingOutcome.full === 'string' ? readingOutcome.full : '');
+    if (fullAsked && fullAsked !== questionText) {
+      const fullHazard = graveHazard(fullAsked);
       if (fullHazard) {
         if (readingPregather) readingPregather.cancel();
         console.warn('[policy] SAFETY_REDIRECT', { topic: fullHazard, band: audienceBand, path: ledgerPath.path, policyVersion: POLICY_VERSION });
         return emitOnce(fullHazard === 'self_harm' ? WARM_TEMPLATES.SELFHARM_SUPPORT : WARM_TEMPLATES.SAFETY_REDIRECT);
       }
-      if (impermissibleEarlyDecision().enabled && classifyPornographyRequest(reading.question).blocked) {
+      if (impermissibleEarlyDecision().enabled && classifyPornographyRequest(fullAsked).blocked) {
         if (readingPregather) readingPregather.cancel();
         console.warn('[policy] IMPERMISSIBLE_EARLY', { kind: 'pornography', band: audienceBand, path: ledgerPath.path, policyVersion: POLICY_VERSION });
         return emitOnce(PORN_REFUSAL_TEXT);
       }
-      if (bannedSchoolQuestion(reading.question) === 'deny') {
+      if (bannedSchoolQuestion(fullAsked) === 'deny') {
         if (readingPregather) readingPregather.cancel();
         answerLog.note({ path: 'canned', flags: ['school_denied'] });
         return emitOnce(BANNED_SCHOOL_DENY_TEXT);
