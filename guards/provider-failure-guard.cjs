@@ -459,13 +459,15 @@ const sha = (text) => crypto.createHash('sha256').update(String(text || '')).dig
       && allTokens(partialOld).includes('round:400:invalid_request_error') && allTokens(partialOld).includes('judge:400:invalid_request_error'), [partialOld.text, partialOld.flags, allTokens(partialOld)]);
     // the older path: its round stops on its budget and the call that continues it is refused
     const olderMore = await drive(user(q), { provider: (kind) => (kind === 'judge' || kind === 'stream' ? 400 : (kind === 'write' ? 529 : 'ok')), roundStop: (nth) => (nth === 1 ? 'max_tokens' : 'end_turn'), env: { REQUEST_PLAN_V1: 'off' } });
-    ok('D10 [after the second helper] the older path: a round stopped by its budget, the call that continues it refused (529): that call leaves its token, and it is asked ONCE -- the round\'s text is already the reader\'s, so nothing is tried again',
+    ok('D10 [after the second helper] the older path: a round stopped by its budget, the call that continues it refused (529): that call leaves its token, and it is asked ONCE (a continuation is never tried again)',
       olderMore.crashed === '' && allTokens(olderMore).includes('write:529:overloaded_error') && olderMore.asked.write === 1 && olderMore.asked.round === 1, [olderMore.asked, allTokens(olderMore)]);
     // the before-writing path: the judge refused, the writer asked, and it answers that the texts do not cover the question
     const judgeOnly = await drive(user(q), { provider: (kind) => (kind === 'judge' ? 400 : 'ok'), writerText: '@@EZIK_NOT_COVERED@@', env: { BW2_CONTINUE: 'off', REQUEST_PLAN_V1: 'off' } });
     ok('D11 [after the second helper] the before-writing path: a judge the provider refused keeps no row, and the path ends there -- the writer is NOT asked (so "the judge failed and the writer answered" is no state of a turn); with the hand-over off that is a lost turn: the apology, the flag, the judge\'s token',
       judgeOnly.crashed === '' && !judgeOnly.asked.stream && judgeOnly.text === LOST_TEXT && !judgeOnly.offer && judgeOnly.flags.includes(LOST_FLAG)
       && allTokens(judgeOnly).includes('judge:400:invalid_request_error'), [judgeOnly.asked, judgeOnly.text, judgeOnly.flags, allTokens(judgeOnly)]);
+    // (the older path's own rule for a second try -- none once its stream is the reader's or the turn's time is spent -- has no row:
+    // see BRAIN-A2-evidence/tools/patch-provider-guard-d14.cjs for what was tried)
     // a worldly part beside a ruling: the worldly part's call refused
     const mixedQ = 'كم عدد سكان إندونيسيا؟ وما حكم السفر إلى إندونيسيا للسياحة؟';
     const mixedPlan = JSON.stringify({ followup: false, parts: [{ q: 'كم عدد سكان إندونيسيا؟', kind: 'worldly', name: 'عدد سكان إندونيسيا' }, { q: 'ما حكم السفر إلى إندونيسيا للسياحة؟', kind: 'ruling', name: 'حكم السفر إلى إندونيسيا للسياحة' }] });
