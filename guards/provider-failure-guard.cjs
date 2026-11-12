@@ -158,9 +158,11 @@ const sha = (text) => crypto.createHash('sha256').update(String(text || '')).dig
   let seq = 0;
   /**
    * One turn through the real handler. `provider(kind, nthOfKind)` says what the provider does for that call:
-   *   'ok' | a status (400, 429, 500, 529) | 'throw'
+   *   'ok' | a status (400, 429, 500, 529) | 'throw' (the connection fails) | 'drop' (the reply's headers arrive, its body cannot
+   *   be read) | 'stream_error' (a stream that writes its first sentence and ends on the provider's error event)
+   * `streamStop(nth)` is the reason a healthy stream stops (default end_turn).
    */
-  async function drive(messages, { provider = () => 'ok', plan = '', sorter = 'RELIGIOUS', env = {}, device = null } = {}) {
+  async function drive(messages, { provider = () => 'ok', plan = '', sorter = 'RELIGIOUS', env = {}, device = null, streamStop = () => 'end_turn' } = {}) {
     for (const k of ENV_KEYS) delete process.env[k];
     process.env.ANTHROPIC_API_KEY = KEY;
     process.env.BRAVE_API_KEY = KEY;
@@ -190,7 +192,12 @@ const sha = (text) => crypto.createHash('sha256').update(String(text || '')).dig
         calls.push('model ' + kind + ' ' + sha(init.body));
         const does = provider(kind, asked[kind]);
         if (does === 'throw') throw new TypeError('fetch failed');
-        if (does !== 'ok') return jsonResponse(u, { type: 'error', error: { type: ERR[does] || 'api_error', message: 'the request said: ' + String(init.body).slice(0, 200) } }, does);
+        if (does === 'drop') {
+          const terminated = async () => { throw new TypeError('terminated'); };
+          if (b.stream) return { ok: true, status: 200, headers: { get: () => 'text/event-stream' }, text: terminated, body: { getReader: () => ({ read: terminated }), cancel: async () => {} } };
+          return { ok: true, status: 200, url: u, headers: { get: () => 'application/json' }, text: terminated, json: terminated };
+        }
+        if (does !== 'ok' && does !== 'stream_error') return jsonResponse(u, { type: 'error', error: { type: ERR[does] || 'api_error', message: 'the request said: ' + String(init.body).slice(0, 200) } }, does);
         if (kind === 'reading') return jsonResponse(u, { content: [{ type: 'text', text: plan || 'I cannot.' }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
         if (kind === 'sorter') return jsonResponse(u, { content: [{ type: 'text', text: sorter }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
         if (b.stream) {
@@ -202,8 +209,10 @@ const sha = (text) => crypto.createHash('sha256').update(String(text || '')).dig
               const frames = 'data: ' + JSON.stringify({ type: 'message_start', message: { usage: { input_tokens: 9 } } }) + '\n\n'
                 + 'data: ' + JSON.stringify({ type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } }) + '\n\n'
                 + 'data: ' + JSON.stringify({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: WRITER_TEXT } }) + '\n\n'
-                + 'data: ' + JSON.stringify({ type: 'message_delta', delta: { stop_reason: 'end_turn' }, usage: { output_tokens: 7 } }) + '\n\n'
-                + 'data: {"type":"message_stop"}\n\n';
+                + (does === 'stream_error'
+                  ? 'data: ' + JSON.stringify({ type: 'error', error: { type: 'overloaded_error', message: 'the request said: ' + String(init.body).slice(0, 200) } }) + '\n\n'
+                  : 'data: ' + JSON.stringify({ type: 'message_delta', delta: { stop_reason: streamStop(asked[kind]) }, usage: { output_tokens: 7 } }) + '\n\n'
+                    + 'data: {"type":"message_stop"}\n\n');
               return { done: false, value: new TextEncoder().encode(frames) };
             } }), cancel: async () => {} } };
         }
@@ -368,6 +377,46 @@ const sha = (text) => crypto.createHash('sha256').update(String(text || '')).dig
     const partial = await drive(user(q), { provider: (kind) => (kind === 'judge' || kind === 'stream' ? 400 : 'ok'), env: { REQUEST_PLAN_V1: 'off' } });
     ok('R2 the judge refused (400) and the older path healthy: not a lost turn (no apology, no flag); the judge\'s failure is still logged',
       partial.crashed === '' && partial.text !== LOST_TEXT && !partial.flags.includes(LOST_FLAG) && allTokens(partial).includes('judge:400:invalid_request_error'), [partial.text, allTokens(partial)]);
+  }
+
+  console.log('\n=== D. AFTER THE REFUTING HELPER: A BODY THAT DROPS, AN ERROR AFTER THE FIRST SENTENCE, A CARD ALREADY OUT ===');
+  {
+    const q = byId.B21.q;
+    const b19 = byId.B19;
+    const card = '<worship id="tayammum"></worship>';
+    // every model call's reply loses its body after the headers
+    const dropped = await drive(user(q), { provider: () => 'drop' });
+    ok('D1 every call\'s body dropped after its headers: the reader gets the apology and nothing else, no offer, the flag; each call is logged as a lost connection',
+      dropped.crashed === '' && dropped.text === LOST_TEXT && !dropped.offer && dropped.flags.includes(LOST_FLAG) && lostSaid(dropped)
+      && ['reading', 'sorter', 'judge', 'round', 'write'].every((call) => allTokens(dropped).includes(call + ':0:connection')) && !leak(dropped, q), [dropped.text, allTokens(dropped)]);
+    // the before-writing writer's stream drops while it is read
+    const alone = await drive(user(q), { provider: (kind) => (kind === 'stream' ? 'drop' : 'ok'), env: { BW2_CONTINUE: 'off', REQUEST_PLAN_V1: 'off' } });
+    ok('D2 the writer\'s stream drops while it is read (hand-over off): the apology, not the sentence that no text was found, and no offer',
+      alone.crashed === '' && alone.text === LOST_TEXT && !alone.text.includes(NOT_FOUND) && !alone.offer && alone.flags.includes(LOST_FLAG) && allTokens(alone).includes('writer:0:connection'), [alone.text, allTokens(alone)]);
+    const served = await drive(user(b19.q), { plan: JSON.stringify(b19.ideal), provider: (kind) => (kind === 'stream' ? 'drop' : 'ok') });
+    ok('D3 the same beside a card the server served: the card stays, then the apology; no line that no text was found, no offer',
+      served.crashed === '' && served.text.includes(card) && served.text.trim().endsWith(LOST_TEXT) && !served.text.includes('لم أقف') && !served.text.includes(NOT_FOUND) && !served.offer
+      && served.flags.includes(LOST_FLAG) && allTokens(served).includes('writer:0:connection'), [served.text, allTokens(served)]);
+    // the writer releases a sentence with no source, then the provider's stream ends on its error event
+    const cutShort = await drive(user(q), { provider: (kind) => (kind === 'stream' ? 'stream_error' : 'ok'), env: { BW2_CONTINUE: 'off', REQUEST_PLAN_V1: 'off' } });
+    ok('D4 the writer wrote a sentence with no source and its stream then ended on the provider\'s error: the sentence is withdrawn and the reader gets the apology -- lost to the provider, not unsourced; no offer; the provider\'s own word is logged, never its message',
+      cutShort.crashed === '' && cutShort.text === LOST_TEXT && !cutShort.offer && cutShort.flags.includes(LOST_FLAG) && !cutShort.flags.includes('unsourced_withheld')
+      && allTokens(cutShort).includes('writer:0:overloaded_error') && !leak(cutShort, q), [cutShort.text, cutShort.flags, allTokens(cutShort)]);
+    // nothing is tried again once something is on the reader's page
+    const judgeOut = await drive(user(b19.q), { plan: JSON.stringify(b19.ideal), provider: (kind, nth) => (kind === 'judge' && nth === 1 ? 429 : 'ok') });
+    const writerOut = await drive(user(b19.q), { plan: JSON.stringify(b19.ideal), provider: (kind, nth) => (kind === 'stream' && nth === 1 ? 429 : 'ok') });
+    ok('D5 a card of the server\'s is already on the reader\'s page: the judge, refused with 429, is NOT tried again, and neither is the writer (with nothing out they are: rows R); the card stays and the apology follows it',
+      judgeOut.crashed === '' && judgeOut.text.includes(card) && judgeOut.asked.judge === 1 && judgeOut.text.trim().endsWith(LOST_TEXT) && allTokens(judgeOut).includes('judge:429:rate_limit_error')
+      && writerOut.crashed === '' && writerOut.text.includes(card) && writerOut.asked.judge === 1 && writerOut.asked.stream === 1 && writerOut.text.trim().endsWith(LOST_TEXT)
+      && allTokens(writerOut).includes('writer:429:rate_limit_error'), [judgeOut.asked, writerOut.asked, allTokens(writerOut)]);
+    // a continuation the provider refuses
+    const more = await drive(user(q), { provider: (kind, nth) => (kind === 'stream' && nth === 2 ? 529 : 'ok'), streamStop: (nth) => (nth === 1 ? 'max_tokens' : 'end_turn'), env: { BW2_CONTINUE: 'off', REQUEST_PLAN_V1: 'off' } });
+    ok('D6 the writer stopped on its budget and the call that continues it was refused (529): that call is logged too, and the turn is not counted as lost (a model answered)',
+      more.crashed === '' && more.asked.stream === 2 && allTokens(more).includes('writer:529:overloaded_error') && !more.flags.includes(LOST_FLAG), [more.asked, allTokens(more), more.flags]);
+    // the judge's body drops, everything else healthy
+    const judge = await drive(user(q), { provider: (kind) => (kind === 'judge' ? 'drop' : 'ok'), env: { REQUEST_PLAN_V1: 'off' } });
+    ok('D7 the judge\'s reply loses its body, the rest healthy: logged as the judge\'s lost connection, not a lost turn',
+      judge.crashed === '' && judge.text !== LOST_TEXT && !judge.flags.includes(LOST_FLAG) && allTokens(judge).includes('judge:0:connection'), [judge.text, allTokens(judge)]);
   }
 
   for (const k of ENV_KEYS) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; }
