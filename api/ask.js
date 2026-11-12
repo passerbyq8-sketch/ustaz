@@ -1706,7 +1706,10 @@ export default async function handler(req, res) {
     if (earlyRetrieve) {
       const { startBw2Pregather } = await import('../lib/before-writing-v2.js');
       readingPregather = startBw2Pregather({
-        question: currentQuestionText,
+        // (ORDER A3-CAPTURE, after its helper) the last message AS THE TURN WILL READ IT. `currentQuestionText` was taken before a
+        // page follow-up is rewritten into the request with its page (lib-quote, above); a gather started on it asked the bare
+        // request, and a reading that gave no plan took that gather for the turn's own.
+        question: lastUserText(body.messages),
         runtime: lexicalRuntimeOfRequest === 'GENERAL' ? 'STORED_FIQH' : lexicalRuntimeOfRequest,
         band, libFlagValue, libToken, lessonsToken: band === 'adult' ? libToken : '',
         takhrijWired: takhrijDecision().enabled && band === 'adult' && libFlagValue === 'on' && libToken !== '',

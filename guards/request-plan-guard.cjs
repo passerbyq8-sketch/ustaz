@@ -1180,6 +1180,27 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         }
         ok('N5f [A3-CAPTURE section 4] the same conversations with ONE part in the follow-up are applied as before the round: the [reading] line says plan, one part, and the sources are asked the question the server resolved (every source call the switch-off turn makes for a message with that text is made)',
           oneSeen.length === 2 && oneSeen.every((row) => row.every(Boolean)), oneSeen);
+        // ORDER A3-CAPTURE, after its helper (HELPER-REFUTATION-A3C.md, R1): THE GATHER BESIDE THE READING ASKS THE MESSAGE THE TURN WILL READ.
+        // After a quoted page the reader's request to explain it is rewritten into the request with its page (lib/lib-quote.js, in the
+        // handler, before the reading). The gather beside the reading was started on the bare request; a reading that gave no
+        // plan -- a reply that is no plan, a plan that is not applied -- took that gather for the turn's own: texts found for one
+        // word, or none. Driven with the library switches on, the configuration in which a page is quoted at all.
+        const LIB_ON = { SHAMELA_BRAIN: 'on', SEARCH_API_TOKEN: 'guard-not-a-real-token' };
+        const quotedPage = '\u{1F4D6} «دليل الطالب» · مرعي الكرمي · ص31\n\n> وتسن صلاة الضحى وأقلها ركعتان وأكثرها ثمان\n> ووقتها من ارتفاع الشمس قدر رمح إلى قبيل الزوال\n\n<book book="FC-000777" page="31">دليل الطالب</book>';
+        const pagePlan = JSON.stringify(planWith([fuPart('عدد ركعات صلاة الضحى', 'كم أقل صلاة الضحى وأكثرها؟', 'ruling'), fuPart('وقت صلاة الضحى', 'متى وقت صلاة الضحى؟', 'ruling')], { followup: true }));
+        const pageSeen = [];
+        for (const ask of ['اشرح لي هذا النص', 'وضح لي هذا الكلام', 'اشرح']) {
+          const convo = [{ role: 'user', content: 'انقل لي الصفحة 31 من كتاب دليل الطالب' }, { role: 'assistant', content: quotedPage }, { role: 'user', content: ask }];
+          const off = await drive(convo, { env: { ...LIB_ON, REQUEST_PLAN_V1: 'off' } });
+          const offAgain = await drive(convo, { env: { ...LIB_ON, REQUEST_PLAN_V1: 'off' } });
+          const noPlan = await drive(convo, { env: LIB_ON, plan: '' });
+          const notApplied = await drive(convo, { env: LIB_ON, plan: pagePlan });
+          pageSeen.push([!off.crashed && !noPlan.crashed && !notApplied.crashed, (off.logOf('[lib-quote]') || {}).outcome === 'explain' && (noPlan.logOf('[lib-quote]') || {}).outcome === 'explain',
+            digest(off) === digest(offAgain), digest(noPlan) === digest(off), (notApplied.logOf('[reading]') || {}).reason === 'followup_written_parts', digest(notApplied) === digest(off),
+            off.counts.fatwa > 0 && noPlan.counts.reading === 1 && notApplied.counts.reading === 1]);
+        }
+        ok('N5g [A3-CAPTURE, after its helper] the gather beside the reading asks the message as the turn will read it: after a quoted page, a request to explain it (three forms; the library switches on) whose reading gives no plan -- a reply that is no plan, and a two-part follow-up plan that is not applied -- is the switch-off turn frame for frame: what the reader is sent, the route, every call to a source and to a model',
+          pageSeen.length === 3 && pageSeen.every((row) => row.every(Boolean)), pageSeen);
       }
 
       // I5 the worldly word of a plan
