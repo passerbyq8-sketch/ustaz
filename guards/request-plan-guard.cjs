@@ -1523,13 +1523,20 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const cardOnly = await replay('F-B19w', { writer: linesOf(b19w.raw).filter((line) => line !== '### ' + servedTitle).join('\n') });
       ok('L10 [item 5, after the helper] the card is taken out in every spelling of its tag, with or without the name line above it, and the answer is the answer it was',
         [spaced, dotted, single, cardOnly].every((r) => count(r.text, '<worship') === 1 && heads(r, servedTitle) === 1 && same(prose(r), prose(b19w))), [spaced, dotted, single, cardOnly].map((r) => count(r.text, '<worship')));
+      // the served part's name written AGAIN in the middle of the written part (another part is open)
+      const mid = b19w.raw.indexOf('\n\n', b19w.raw.indexOf(own) + own.length + 2);
+      const again = await replay('F-B19w', { writer: b19w.raw.slice(0, mid) + '\n\n### ' + servedTitle + b19w.raw.slice(mid) });
+      ok('L9b [item 5, after the helper] the name of the part the server answered, written again while the written part is open, is dropped alone: it is not printed a second time, and the written part goes on under its own name with the prose it had',
+        mid > b19w.raw.indexOf(own) && heads(again, servedTitle) === 1 && heads(again, b19w.parts[0].title) === 1 && same(prose(again), prose(b19w)) && !again.text.includes(ABSENT),
+        [heads(again, servedTitle), heads(again, b19w.parts[0].title), prose(again).length, prose(b19w).length]);
       // the helper's case: the written part under a heading of the writer's own wording that shares a word with BOTH parts
       const at = b19w.raw.indexOf(own);
       const reworded = await replay('F-B19w', { writer: b19w.raw.slice(at).split(own).join('### مبطلات الوضوء') });
       const unheaded = await replay('F-B19w', { writer: b19w.raw.split(own + '\n').join('') });
-      ok('L13 [item 1, after the helper] nothing is dropped on a guess: the written part under a heading of the writer\'s own wording, or under no heading after the served part\'s name and card, is delivered whole -- the same prose, no line that no text was found, no offer to search',
+      ok('L13 [item 1, after the helper] nothing is dropped on a guess: the written part under a heading of the writer\'s own wording, or under no heading after the served part\'s name and card, is delivered whole -- the same prose, no line that no text was found, no offer to search -- and the served part\'s name stands once, not a second time above the writer\'s text',
         at > 0 && same(prose(reworded), prose(b19w)) && same(prose(unheaded), prose(b19w)) && !reworded.text.includes(ABSENT) && !unheaded.text.includes(ABSENT)
-        && reworded.offer === false && unheaded.offer === false && count(unheaded.text, '<worship') === 1, [prose(reworded).length, prose(unheaded).length, prose(b19w).length]);
+        && reworded.offer === false && unheaded.offer === false && count(unheaded.text, '<worship') === 1
+        && heads(unheaded, servedTitle) === 1 && heads(reworded, servedTitle) === 1, [prose(reworded).length, prose(unheaded).length, prose(b19w).length, heads(unheaded, servedTitle)]);
     }
     {
       // the helper's case: a heading of the writer's own inside the first part that names the OTHER part's scholar
@@ -1606,6 +1613,40 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const notNamed = await direct('ما أدلة وجوب الوتر؟ وبماذا أجيب عنها؟', title);
       ok('L17b [item 1, after the helper] the naming of a school is let through only where the READER named that school: the same name under a question that names no school is withheld',
         named.sent === true && named.opened === true && notNamed.sent === false && notNamed.opened === false, [named.sent, notNamed.sent]);
+    }
+
+    {
+      // the releaser itself, the switch of uncited rulings OFF (as on a runtime that does not hold them): a part's NAME is a label
+      const nameOut = async (reader, title, hold = false) => {
+        const out = [];
+        const releaser = UNITS.createBw2Releaser({ rows: [], emit: (t) => { out.push(t); return true; }, holdUncitedRulings: hold, compoundParts: true, question: reader,
+          planParts: { reader, parts: [{ title, text: title, served: '', act: '', written: 0 }, { title: 'الجزء الآخر', text: 'الجزء الآخر', served: '', act: '', written: 1 }] } });
+        releaser.push('### ' + title + '\n\nهذه جملة اختبار قصيرة لا تنسب شيئا.\n');
+        const sum = await releaser.end();
+        return { sent: out.join('').includes('### ' + title), opened: sum.parts ? sum.parts.opened[0] : null, holds: sum.holds || {} };
+      };
+      const halal = await nameOut('هل الموسيقى حرام أم حلال؟ وما حكم الأناشيد؟', 'الموسيقى حلال');
+      const wajib = await nameOut('هل الوتر واجب أم سنة؟ وما وقته؟', 'الوتر واجب');
+      const neutral = await nameOut('ما حكم الموسيقى؟ وما حكم الأناشيد؟', 'حكم الموسيقى');
+      ok('L17c [item 1, after the helper] a part\'s NAME that states a ruling is withheld whatever the switch of uncited rulings says, by the unit words (wajib) and by the name\'s own (halal); a name that states none is printed',
+        halal.sent === false && halal.opened === false && wajib.sent === false && wajib.opened === false && neutral.sent === true && neutral.opened === true,
+        [halal.sent, wajib.sent, neutral.sent]);
+      const said = await nameOut('هل قال ابن باز إن الموسيقى من اللهو؟ وما حكم الأناشيد؟', 'قال ابن باز إن الموسيقى من اللهو', true);
+      const saying = await nameOut('ما قول ابن باز في الموسيقى؟ وما حكم الأناشيد؟', 'قول ابن باز في الموسيقى', true);
+      ok('L17d [item 1, after the helper] a part\'s NAME that carries a verb of saying is a report and is withheld; the same subject named with no verb is not withheld for that',
+        said.sent === false && said.opened === false && saying.sent === true && saying.opened === true,
+        [said.sent, saying.sent, Object.keys(said.holds).join(','), Object.keys(saying.holds).join(',')]);
+      // a UNIT (not a name) with the name's own ruling word is read by the unit vocabulary as before the round
+      const unitOut = async (hold) => {
+        const out = [];
+        const releaser = UNITS.createBw2Releaser({ rows: [], emit: (t) => { out.push(t); return true; }, holdUncitedRulings: hold, compoundParts: true, question: 'ما حكم الأناشيد؟' });
+        releaser.push('الأناشيد حلال في الأصل.\n');
+        const sum = await releaser.end();
+        return { sent: out.join('').includes('الأناشيد حلال'), ruling: (sum.holds || {}).uncited_ruling || 0 };
+      };
+      const unitOn = await unitOut(true);
+      ok('L17e [item 1, after the helper] the name\'s own ruling words are read in a NAME only: a unit that carries one is not withheld as an uncited ruling (the unit vocabulary is left as it stood)',
+        unitOn.ruling === 0, [unitOn.sent, unitOn.ruling]);
     }
 
     // -- item 2
