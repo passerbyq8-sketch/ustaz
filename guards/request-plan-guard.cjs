@@ -593,9 +593,19 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       && !same(BW.fatwaQueries(rP5b.question), BW.fatwaQueries(p5b.q)), full.calls.queries);
     const judged = makeDeps({ rows: [fatwaRow('حديث صلاة التسابيح', 'حديث صلاة التسابيح صححه جماعة من أهل العلم وضعفه آخرون.', 5)], writerText: 'حديث صلاة التسابيح صححه جماعة من أهل العلم وضعفه آخرون [[1]].' });
     const p5bTurn = await turn({ question: rP5b.question, messages: convo, reading: rP5b, deps: judged.deps });
-    ok('H2c ...the judge is shown the full question and the plan\'s parts, and the writer the plan\'s names as headings',
-      judged.calls.judgeUser.includes(rP5b.question.slice(0, 60)) && rP5b.parts.every((p) => judged.calls.judgeUser.includes(p.text))
-      && rP5b.parts.filter((p) => writerMessage(judged.calls).includes('### ' + p.title)).length >= 1 && p5bTurn.out.telemetry.parts === 2, judged.calls.judgeUser.slice(0, 200));
+    // ORDER A3 (2026-11-12), THE NARROWING: P5b's plan has two parts for the writer. The question the turn uses stays the one the server
+    // resolved; from it on the parts are the patterns' own, and the plan's parts are handed to nothing: the turn handed the
+    // reading is the turn handed none and that question. (Before the narrowing this row said: the judge is shown the plan's
+    // parts and the writer the plan's names as headings.)
+    const judgedOff = makeDeps({ rows: [fatwaRow('حديث صلاة التسابيح', 'حديث صلاة التسابيح صححه جماعة من أهل العلم وضعفه آخرون.', 5)], writerText: 'حديث صلاة التسابيح صححه جماعة من أهل العلم وضعفه آخرون [[1]].' });
+    const p5bOff = await turn({ question: rP5b.question, messages: convo, reading: null, deps: judgedOff.deps });
+    ok('H2c [A3 item 1] ...the judge is shown the full question, and from that question on the parts are production\'s own: the plan\'s parts are handed to nothing -- the judge, the writer and every source are asked what the turn with no reading asks on the same question, the frames are the same frames, and no name of the plan is handed to the writer as a heading',
+      judged.calls.judgeUser.includes(rP5b.question.slice(0, 60)) && rP5b.parts.length === 2 && BW.bw2PartsReading(rP5b) === null
+      && judged.calls.judgeUser === judgedOff.calls.judgeUser && writerMessage(judged.calls) === writerMessage(judgedOff.calls) && writerMessage(judged.calls).length > 0
+      && same(judged.calls.queries, judgedOff.calls.queries) && same(p5bTurn.frames, p5bOff.frames) && p5bTurn.text === p5bOff.text && p5bTurn.text.length > 0
+      && p5bTurn.out.telemetry.parts === BW.questionParts(rP5b.question).length
+      && rP5b.parts.every((p) => !writerMessage(judged.calls).includes('### ' + p.title) || BW.questionParts(rP5b.question).some((cut) => cut.title === p.title)),
+      [judged.calls.judgeUser === judgedOff.calls.judgeUser, writerMessage(judged.calls) === writerMessage(judgedOff.calls), same(judged.calls.queries, judgedOff.calls.queries), same(p5bTurn.frames, p5bOff.frames), p5bTurn.out.telemetry.parts]);
 
     // H3 -- B19: the card for the manner AND the answer to the other part
     const WHEN = 'يشرع التيمم عند فقد الماء أو العجز عن استعماله.';
@@ -697,7 +707,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         const writerText = text.replace(/\.$/u, '') + ' [[1]].';
         const without = await turn({ question: latest, messages: convoCare, deps: makeDeps({ rows, writerText }).deps });
         const withReading = s.ok ? await turn({ question: s.reading.question, messages: convoCare, reading: s.reading, deps: makeDeps({ rows, writerText }).deps }) : { text: 'invalid:' + s.reason };
-        return { full: s.ok ? s.reading.question : '', without: without.text, withReading: withReading.text };
+        return { full: s.ok ? s.reading.question : '', without: without.text, withReading: withReading.text, reading: s.ok ? s.reading : null };
       };
       const grave = await careTurn(planWith([partOf('هل يأثم الميت؟', 'ruling', { name: 'إثم الميت' })], { followup: true, full: 'هل يأثم الميت؟' }),
         'وهل يأثم المنتحر؟', ['ما حكم الصلاة على الميت؟'], 'حكم الصلاة على الميت', 'الصلاة على الميت فرض كفاية يأثم بتركها الجميع.');
@@ -707,6 +717,13 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         'وإذا كنت مريضا بالسكري فهل أفطر؟', ['ما حكم صيام رمضان؟'], 'حكم الإفطار في رمضان', 'يجوز الإفطار في رمضان للمريض الذي يشق عليه الصوم.');
       ok('H4j a follow-up from a patient whose full question left the illness out: the patient\'s referral is still appended, as it is without a reading',
         !fold(ill.full).includes(fold('مريض')) && ill.without.includes(POLICY.PATIENT_REFERRAL_SENTENCE) && ill.withReading.includes(POLICY.PATIENT_REFERRAL_SENTENCE), [ill.full, ill.without.slice(-100), ill.withReading.slice(-100)]);
+      // ORDER A3 (2026-11-12): the same follow-up with a plan of TWO parts. The turn takes no part of such a reading (it composes the
+      // resolved question as production does), and of the reading it was given it still reads the reader's own message for care.
+      const graveTwo = await careTurn(planWith([partOf('هل يأثم الميت؟', 'ruling', { name: 'إثم الميت' }), partOf('ما حكم الصلاة على الميت؟', 'ruling', { name: 'الصلاة على الميت' })], { followup: true, full: 'هل يأثم الميت؟ ما حكم الصلاة على الميت؟' }),
+        'وهل يأثم المنتحر؟ وما حكم الصلاة عليه؟', ['ما حكم الصلاة على الميت؟'], 'حكم الصلاة على الميت', 'الصلاة على الميت فرض كفاية يأثم بتركها الجميع.');
+      ok('N6 [A3 item 1] a follow-up about suicide whose plan has TWO parts, neither of which carries the word: the turn takes no part of that reading, and the comfort sentence is still the answer\'s last line -- the reader\'s own message is read for care beside the resolved question, as it was',
+        !!graveTwo.reading && graveTwo.reading.parts.length === 2 && BW.bw2PartsReading(graveTwo.reading) === null && !fold(graveTwo.full).includes(fold('المنتحر'))
+        && graveTwo.without.includes(POLICY.SUICIDE_COMFORT_SENTENCE) && graveTwo.withReading.includes(POLICY.SUICIDE_COMFORT_SENTENCE), [graveTwo.full, graveTwo.withReading.slice(-120)]);
     }
 
     // H5 -- the gather beside the reading
@@ -1058,6 +1075,50 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       ok('I4h ...and the only calls the switch-off turn did not make are the source queries of the gather that ran beside the reading and was dropped (no model call, nothing else); every call of the switch-off turn is made',
         unequal.dropped.length === 0 && gathersDropped.length > 0, [unequal.dropped, gathersDropped.length]);
       console.log('  NOTE  I4h a gather was dropped on ' + gathersDropped.length + ' of ' + FIX.items.length + ' questions when the sorter was scripted to say WORLDLY: ' + gathersDropped.join(' '));
+      // ORDER A3 (2026-11-12), THE NARROWING -- N5, THROUGH THE REAL HANDLER. The reading's reply is a good plan with two or more parts
+      // for the writer: the capture's recorded P1, P1s, P3, P7 and P8; the fixture's plans of that shape; the card of B19 beside
+      // the two rulings of B4. The plan is not applied and the turn is the switch-off turn: what the reader is sent, the route,
+      // every call to a source and to a model (the reading's own call apart, and its two frames on a preview).
+      {
+        const CAPI = JSON.parse(fs.readFileSync(path.join(REPO, 'fixtures', 'request-plan-capture.json'), 'utf8')).cases;
+        const shaped = [
+          ...['F-P1', 'F-P1s', 'F-P3', 'F-P7', 'F-P8'].map((tag) => ({ id: tag, q: CAPI[tag].q, prev: CAPI[tag].prev, raw: CAPI[tag].plan })),
+          ...['P1', 'P3', 'P6', 'P7', 'P8', 'B4', 'B9'].map((id) => ({ id, q: byId[id].q, prev: byId[id].prev, raw: byId[id].ideal })),
+          { id: 'B19+B4', q: byId.B19.q + ' ' + byId.B4.q, prev: [], raw: planWith([...byId.B19.ideal.parts, ...byId.B4.ideal.parts]) },
+        ];
+        const differs = [];
+        const lines = [];
+        const asked = [];
+        for (const x of shaped) {
+          const convo = convoOf({ prev: x.prev, q: x.q });
+          const offTurn = await drive(convo, { env: { REQUEST_PLAN_V1: 'off' } });
+          const onTurn = await drive(convo, { plan: JSON.stringify(x.raw) });
+          const line = onTurn.logOf('[reading]') || {};
+          lines.push(String(line.outcome) + ':' + String(line.reason) + ':' + String(line.count) + ':' + String(line.kind));
+          asked.push(onTurn.counts.reading === 1 && offTurn.counts.reading === 0 && onTurn.counts.sorter === offTurn.counts.sorter && onTurn.counts.writer === offTurn.counts.writer);
+          if (onTurn.crashed || offTurn.crashed || digest(onTurn) !== digest(offTurn)) differs.push(x.id);
+        }
+        ok('N5 [A3 item 1] THROUGH THE REAL HANDLER, on each of them (' + shaped.length + '): the reading is asked once, its plan is not applied, and the turn is the switch-off turn frame for frame -- what the reader is sent (the reader\'s own status frames among them), the text, the route, every call to a source and to a model; the sorter and the writer are asked as often as with the switch off',
+          shaped.length === 13 && differs.length === 0 && asked.every(Boolean), [differs, asked]);
+        ok('N5a [A3 item 1] ...and the [reading] line says why, in closed words: invalid, written_parts, no part and no kind',
+          lines.every((line) => line === 'invalid:written_parts:0:null'), lines);
+        const shown = await drive(user(CAPI['F-P7'].q), { plan: JSON.stringify(CAPI['F-P7'].plan), env: PREVIEW, headers: { 'x-ezik-diag': '1' } });
+        const plainPreview = await drive(user(CAPI['F-P7'].q), { plan: JSON.stringify(CAPI['F-P7'].plan), env: PREVIEW });
+        ok('N5b [A3 item 1] on a preview deployment under the diagnostic header the reading\'s end frame says it too -- the fallback ran, state invalid, reason written_parts, no plan -- and without the header: the fallback ran, and no more',
+          !shown.crashed && shown.reads.length === 2 && shown.reads[1].outcome === 'fallback' && shown.reads[1].state === 'invalid' && shown.reads[1].reason === 'written_parts' && shown.reads[1].plan === null
+          && plainPreview.reads.length === 2 && plainPreview.reads[1].outcome === 'fallback' && !('reason' in plainPreview.reads[1]) && !('plan' in plainPreview.reads[1]), [shown.reads[1], plainPreview.reads[1]]);
+        // a FOLLOW-UP with two parts is applied: the question is the one the server resolved, and from it on the sources are asked
+        // what the switch-off turn asks when the reader's last message IS that question
+        const fu = byId.P5b;
+        const fuPlan = planOf('P5b');
+        const fuFull = RP.readingOf(fuPlan, { question: fu.q, previous: fu.prev }).question;
+        const fuOn = await drive(convoOf(fu), { plan: JSON.stringify(fu.ideal) });
+        const fuAsFull = await drive(convoOf({ prev: fu.prev, q: fuFull }), { env: { REQUEST_PLAN_V1: 'off' } });
+        const sources = (d) => d.calls.filter((c) => c.startsWith('call:') && !c.includes('api.anthropic.com')).sort();
+        ok('N5c [A3 item 1] a FOLLOW-UP whose plan has two parts is applied (its resolved question is the batch\'s): the [reading] line says plan, two parts -- and from that question on the sources are asked what the switch-off turn asks of a message with that text: every source call of that turn is made (beside them, only the gather that ran beside the reading on the reader\'s short message)',
+          !fuOn.crashed && !fuAsFull.crashed && (fuOn.logOf('[reading]') || {}).outcome === 'plan' && (fuOn.logOf('[reading]') || {}).count === 2 && fuFull !== fu.q && fuFull.length > fu.q.length
+          && sources(fuAsFull).length > 0 && sources(fuAsFull).every((c) => sources(fuOn).includes(c)), [sources(fuAsFull).length, sources(fuOn).length, sources(fuAsFull).filter((c) => !sources(fuOn).includes(c)).length]);
+      }
 
       // I5 the worldly word of a plan
       const worldlyPlan = (q) => JSON.stringify({ followup: false, full: '', parts: [{ name: 'سؤال دنيوي', q, kind: 'worldly', needs: ['fact'], source: ['general'] }], c: {} });
@@ -1415,7 +1476,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     // result (all of them, in their recorded order, each part's rows tagged as recorded); the judge keeps every row (the
     // recorded rows ARE the rows it kept); the writer writes the recorded text line by line, the queue drained between lines,
     // as a stream arrives (`writer` replaces that text, `stop` the reason the writer stopped). No network, no model.
-    const replay = async (tag, { writer = null, stop = 'end_turn', untag = -1, plan = null, q = null } = {}) => {
+    const replay = async (tag, { writer = null, stop = 'end_turn', untag = -1, plan = null, q = null, none = false } = {}) => {
       // (plan / q: the captured turn's rows and writer under another plan or question -- the second helper's constructed cases)
       const c = plan ? { ...CAP[tag], plan, q: q === null ? CAP[tag].q : q } : CAP[tag];
       const t = TURNS[tag];
@@ -1426,14 +1487,21 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const was = RP.readingOf({ ...parsed, followup: checked.plan.followup, full: checked.plan.full }, { question: c.q, previous: c.prev }).parts.filter((p) => !p.served);
       const partNow = (i) => (was[i] ? planParts.parts.findIndex((p) => p.text.includes(was[i].text)) : -1);
       const all = t.rows.map((row) => { const { qpart, ...rest } = row; return { ...rest, fullText: rest.text }; });
+      // ORDER A3 (2026-11-12): a plan with two or more written parts hands its parts to nothing in the turn (BW.bw2PartsReading). Its
+      // replay is the turn production composes on the same question: the parts are the patterns' (BW.questionParts), each recorded
+      // row tagged for its part only where the patterns cut as many parts as the plan had, and the gather that ran beside the
+      // reading is the gather of that question. `none: true` hands the turn no reading at all, on the same question and gather.
+      const many = reading.parts.filter((p) => !p.served).length >= 2;
+      const cut = many ? BW.questionParts(reading.question) : [];
+      const rowsOf = (i) => t.rows.filter((row) => Number.isInteger(row.qpart) && row.qpart !== untag && partNow(row.qpart) === i).map((row) => ({ ...row, fullText: row.text, qpart: i }));
       const gathered = {
         report: Object.fromEntries(BW.BW2_SOURCES.map((name) => [name, { ms: 1, hits: name === 'fatwa' ? all.length : 0, timedOut: false }])),
         results: { fatwa: all, encyclopedia: [], library: [], lessons: [] },
         libraryQuery: '', encyclopediaCold: false, chapter: null, fatwaVerifyMs: 0, fatwaSearchMs: 0, fatwaMembers: 0, fatwaLate: 0,
         asked: { fatwa: true, library: false, lessons: false },
-        parts: planParts.parts.map((p, i) => ({ ...p, rows: t.rows.filter((row) => Number.isInteger(row.qpart) && row.qpart !== untag && partNow(row.qpart) === i).map((row) => ({ ...row, fullText: row.text, qpart: i })) })),
+        parts: many ? cut.map((p, i) => ({ ...p, rows: cut.length === planParts.parts.length ? rowsOf(i) : [] })) : planParts.parts.map((p, i) => ({ ...p, rows: rowsOf(i) })),
       };
-      const pregather = { key: BW.bw2GatherKey(String(reading.retrieval || reading.question), planParts.parts), gathered: Promise.resolve(gathered), events: [], cancel() {} };
+      const pregather = { question: reading.question, key: many ? BW.bw2GatherKey(reading.question) : BW.bw2GatherKey(String(reading.retrieval || reading.question), planParts.parts), gathered: Promise.resolve(gathered), events: [], cancel() {} };
       const { target, wire } = wireOf();
       let writerUser = '';
       let writerAsked = 0;
@@ -1466,10 +1534,10 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         mode: 'brief', band: 'adult', system: 'SYSTEM', model: 'writer-model', maxTokens: 4096,
         providerUrl: 'https://provider.invalid/v1/messages', headers: {}, libFlagValue: '', libToken: '', lessonsToken: '',
         takhrijWired: false, cards: null, wire, requestStartedAt: Date.now(), env: { BW2_RETRIEVAL_MS: '400', BW2_JUDGE_MS: '400' }, runtime: 'STORED_FIQH',
-        continueWhenNotCovered: true, deps, reading, pregather,
+        continueWhenNotCovered: true, deps, reading: none ? null : reading, pregather,
       });
       const delivered = sentOf(target);
-      return { out, text: delivered.text, offer: delivered.offer, reading, parts: planParts.parts.length ? planParts.parts : (planParts.single ? [planParts.single] : []), served: reading.parts.filter((p) => p.served), recorded: t.recorded, raw: t.writer, writerUser };
+      return { out, text: delivered.text, offer: delivered.offer, reading, parts: planParts.parts.length ? planParts.parts : (planParts.single ? [planParts.single] : []), served: reading.parts.filter((p) => p.served), recorded: t.recorded, raw: t.writer, writerUser, frames: target.writes.join(''), cut };
     };
     const ABSENT = 'لم أقف على نصٍّ في ';
     const linesOf = (text) => String(text || '').split('\n').map((line) => line.trim());
@@ -1494,88 +1562,44 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     const p7 = await replay('F-P7');
     const p8 = await replay('F-P8');
     const b19w = await replay('F-B19w');
-    // the heading the writer wrote for a part in its OWN wording (the capture: P1 and P5b, the second part), and the same text
-    // with that line written as the name the writer was given
-    const ownHeading = (r) => linesOf(r.raw).filter((line) => line.startsWith('### ') && !r.parts.some((p) => line === '### ' + p.title));
-    const asGiven = (r) => r.raw.split(ownHeading(r)[0]).join('### ' + r.parts[1].title);
-    const p1Given = await replay('F-P1', { writer: asGiven(p1) });
-    const p5bGiven = await replay('F-P5b', { writer: asGiven(p5b) });
-
-    // -- item 1: the name
-    ok('L1 [item 1, the fourth form] P1 as the capture recorded it: the first part\'s NAME names a school and is not printed (the writer\'s heading there was withheld as an attribution with no source, and a name still is); in its place stands the reader\'s own question, which the plan says the part is, whole and with its question mark; the units released are the capture\'s and that one line more',
-      p1.parts.length === 2 && heads(p1, p1.parts[0].title) === 0 && qheads(p1, P1Q) === 1 && P1Q === '### ' + CAP['F-P1'].plan.parts[0].q
-      && p1.out.telemetry.unitsReleased === p1.recorded.released + 1 && p1.out.telemetry.unitsHeld === p1.recorded.held - 1,
-      [heads(p1, p1.parts[0] && p1.parts[0].title), qheads(p1, P1Q), p1.out.telemetry.unitsReleased, p1.recorded.released]);
-    ok('L1b [item 1, the fourth form] P5b as the capture recorded it: its first name names a group, and the plan\'s question for that part is not a sentence of the reader\'s (the model completed the follow-up in its own words) -- the name is withheld as before the round, nothing stands in its place, and the units are the capture\'s',
-      p5b.parts.length === 2 && heads(p5b, p5b.parts[0].title) === 0 && p5b.out.telemetry.unitsReleased === p5b.recorded.released && p5b.out.telemetry.unitsHeld === p5b.recorded.held,
-      [heads(p5b, p5b.parts[0] && p5b.parts[0].title), p5b.out.telemetry.unitsReleased, p5b.recorded.released]);
-    ok('L2 [item 1, after the helper] a part is opened only by its own name: the heading the writer worded itself (P1, P5b: the second part; P5b\'s said the opposite direction) opens no part -- the second part\'s name is put above nothing, and no line is added about a part the server cannot place',
-      ownHeading(p1).length === 1 && ownHeading(p5b).length === 1 && heads(p1, p1.parts[1].title) === 0 && heads(p5b, p5b.parts[1].title) === 0
-      && absent(p1, p1.parts[1].title) === 0 && absent(p5b, p5b.parts[1].title) === 0, [heads(p1, p1.parts[1].title), absent(p1, p1.parts[1].title)]);
-    ok('L2b [item 1] the same two answers with the second heading written as the name the writer was given: in P1 the reader\'s question stands for the first part, and the second name, which names a group and whose question in the plan is not a sentence of the reader\'s, is withheld as before the round; in P5b the second name stands (it names no party) and the first is withheld (L1b); the prose is the prose it was and no line is added',
-      qheads(p1Given, P1Q) === 1 && heads(p1Given, p1.parts[0].title) === 0 && heads(p1Given, p1.parts[1].title) === 0 && heads(p5bGiven, p5b.parts[0].title) === 0 && heads(p5bGiven, p5b.parts[1].title) === 1
-      && absent(p1Given, p1.parts[1].title) + absent(p5bGiven, p5b.parts[1].title) === 0 && same(prose(p1Given), prose(p1)),
-      [qheads(p1Given, P1Q), heads(p1Given, p1.parts[1].title), heads(p5bGiven, p5b.parts[1].title), prose(p1Given).length, prose(p1).length]);
-
-    // -- item 1: the line
-    ok('L3 [item 1] P7: the judge had kept rows for the second part, the writer opened it by its name and said the rows held nothing for it, and its sentences are withheld by design -- ONE server line now says, by the part\'s name, that no text was found; for the first part, whose name names a group, the reader\'s own question stands as the heading',
-      p7.parts.length === 2 && p7.out.telemetry.emptyParts === 0 && qheads(p7, P7Q) === 1 && heads(p7, p7.parts[0].title) === 0 && heads(p7, p7.parts[1].title) === 0 && absent(p7, p7.parts[1].title) === 1
-      && absent(p7, p7.parts[0].title) === 0 && p7.text.indexOf(P7Q) >= 0 && p7.text.indexOf(ABSENT + p7.parts[1].title) > p7.text.indexOf(P7Q), [p7.out.telemetry.emptyParts, qheads(p7, P7Q), absent(p7, p7.parts[1] && p7.parts[1].title)]);
-    ok('L4 [item 1, after the third helper] P8: three parts, rows kept for each. The first was opened and everything under it withheld: its line. Under the second part\'s name the writer\'s first unit OPENS with its own search («لم أقف على نص …»), then it gives a fatwa on a near matter: the name is NOT put above that fatwa (it goes out under no heading), and NOTHING is said for the part -- a line written from that sentence was a line written from a pattern of words. The third, which the writer headed in its own words, was never opened: nothing is said, as before the round',
-      p8.parts.length === 3 && p8.out.telemetry.emptyParts === 0 && p8.out.continued !== true
-      && absent(p8, p8.parts[0].title) === 1 && heads(p8, p8.parts[0].title) === 0 && heads(p8, p8.parts[1].title) === 0 && absent(p8, p8.parts[1].title) === 0
-      && absent(p8, p8.parts[2].title) === 0 && heads(p8, p8.parts[2].title) === 0 && !p8.text.includes('### ') && prose(p8).length === 1 && p8.out.telemetry.unitsReleased === p8.recorded.released - 1,
-      [p8.parts.length, absent(p8, p8.parts[0].title), heads(p8, p8.parts[1].title), absent(p8, p8.parts[1].title), absent(p8, p8.parts[2].title), prose(p8).length, p8.out.telemetry.unitsReleased]);
+    // -- ORDER A3 (2026-11-12), THE NARROWING: a plan with two or more parts for the writer hands its parts to nothing in the turn.
+    // The rows of the repair round that drove such a plan through the turn (L1 to L7, L14 to L16, L18 to L20b, L24 to L29, L31 to
+    // L36) asserted what the releaser's part logic did with it; no turn reaches that logic with such a plan any more, and they
+    // are gone with the consumer. What stands in their place: the turn handed such a reading IS the turn handed none.
     {
-      const told = [p7, p8, p1Given, p5bGiven];
-      // what each part has: its name above released text, one line by its name, or neither -- never both, never two lines
-      // (the first part of P7, and of P1 so written: the reader's own question in the place of the name)
-      const ownQ = new Map([[p7, P7Q], [p1Given, P1Q]]);
-      const stateOf = (r, p, i) => {
-        const q = i === 0 && ownQ.has(r) && qheads(r, ownQ.get(r)) >= 1; const n = heads(r, p.title) >= 1; const l = absent(r, p.title);
-        return (n || q) && l >= 1 ? 'BOTH' : l > 1 ? 'TWO LINES' : n && q ? 'TWO HEADINGS' : n ? 'name' : q ? 'question' : l === 1 ? 'line' : 'neither';
+      const noTimes = (value) => {
+        if (Array.isArray(value)) return value.map(noTimes);
+        if (!value || typeof value !== 'object') return value;
+        return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, (typeof v === 'number' && /(?:^ms$|Ms$|^elapsed|At$)/.test(k)) ? 0 : noTimes(v)]));
       };
-      const states = told.map((r) => r.parts.map((p, i) => stateOf(r, p, i)));
-      ok('L5 [item 1, the fourth form] where the writer wrote the names it was given (P7, P8, and P1 and P5b so written), part by part: a name above released text, or the reader\'s own question in the place of a name that names a party, or one line by the name -- never two of them. The parts that have nothing, and why: P8\'s second (its name is not put above a near-matter text) and third (the writer headed it in its own words), P1\'s second and P5b\'s first (names that name a party, and the plan\'s question for them is not a sentence of the reader\'s: withheld as before the round)',
-        same(states, [['question', 'line'], ['line', 'neither', 'neither'], ['question', 'neither'], ['neither', 'name']]), states);
-      const first = p7.writerUser.indexOf('### ' + p7.parts[0].title);
-      ok('L5b [item 1] the writer is handed EVERY part of the plan by its name, the parts the judge kept rows for first (P1: the part with no row is listed second, with its name, not as a part to leave alone)',
-        first > 0 && p7.writerUser.indexOf('### ' + p7.parts[1].title) > first && p1.out.telemetry.emptyParts === 1
-        && p1.writerUser.includes('### ' + p1.parts[0].title + '\n### ' + p1.parts[1].title) && !p1.writerUser.includes('ليس لها نصٌّ في الصفوف'), p1.out.telemetry.emptyParts);
-      const noRowFirst = await replay('F-P7', { untag: 0 });
-      ok('L5c [item 1] a part the judge kept no row for is not handed to the writer to open the answer with: P7 with no row tagged for its FIRST part lists the second part\'s name first',
-        noRowFirst.out.telemetry.emptyParts === 1 && noRowFirst.writerUser.includes('### ' + p7.parts[1].title + '\n### ' + p7.parts[0].title), noRowFirst.out.telemetry.emptyParts);
-    }
-    {
-      // the second part of P1 with nothing written for it: the writer's text cut where its second heading begins
-      const cut = p1.raw.slice(0, p1.raw.indexOf('### ', 5));
-      const alone = await replay('F-P1', { writer: cut });
-      const second = alone.parts[1];
-      const without = linesOf(alone.text).filter((line) => !line.startsWith(ABSENT) && line !== P1Q).join('\n');
-      ok('L6 [item 1, after the fourth helper] a part the writer never opened is decided as before the round: P1 with nothing written for its second part gets the line the commit before the round writes there -- the judge kept no row for the part, and the valve, which reads the answer WITHOUT the reader\'s question that stands as the first part\'s heading, lets the line stand (read with that heading the valve stood the line down, and the part went unsaid)',
-        cut.length > 200 && absent(alone, second.title) === 1 && heads(alone, second.title) === 0 && qheads(alone, P1Q) === 1
-        && BW.partSentenceWanted({ text: second.text, title: second.title }, without) === true
-        && BW.partSentenceWanted({ text: second.text, title: second.title }, without + '\n' + P1Q) === false,
-        [absent(alone, second && second.title), BW.partSentenceWanted({ text: second.text, title: second.title }, without), BW.partSentenceWanted({ text: second.text, title: second.title }, without + '\n' + P1Q)]);
-      // the second helper's case: the second part written with NO # heading of its own (the line removed; a bold title; an ordinal title)
-      const own2 = ownHeading(p1)[0];
-      const noHash = [p1.raw.split(own2 + '\n\n').join(''), p1.raw.split(own2).join('**' + own2.slice(4) + '**'), p1.raw.split(own2).join('ثانيًا: ' + own2.slice(4))];
-      const goesOn = [];
-      for (const text of noHash) goesOn.push(await replay('F-P1', { writer: text }));
-      ok('L6c [item 1, after the second helper] the second part written under no # heading (none at all, a bold title, an ordinal title): its text goes out below the first part\'s, and NO line says that no text was found for it',
-        !!own2 && noHash.every((text) => text !== p1.raw) && goesOn.every((r) => absent(r, r.parts[1].title) === 0 && absent(r, r.parts[0].title) === 0 && qheads(r, P1Q) === 1 && prose(r).length >= prose(p1).length - 1),
-        goesOn.map((r) => [absent(r, r.parts[1].title), prose(r).length, prose(p1).length]));
-      const chips = p1.raw.slice(p1.raw.indexOf('<suggestions>'));
-      // (on P7: its second part's name names no party, so it is printed wherever text stands under it)
-      const upTo7 = p7.raw.slice(0, p7.raw.indexOf('### ' + p7.parts[1].title));
-      const onlyChips = await replay('F-P7', { writer: upTo7 + '### ' + p7.parts[1].title + '\n\n' + chips });
-      ok('L6b [item 1] a suggestions block is not text of a part: a part with nothing else under its name gets its line, and its name does not stand above the block',
-        chips.startsWith('<suggestions>') && upTo7.length > 100 && onlyChips.text.includes('<suggestions>') && absent(onlyChips, p7.parts[1].title) === 1 && heads(onlyChips, p7.parts[1].title) === 0
-        && qheads(onlyChips, P7Q) === 1, [absent(onlyChips, p7.parts[1].title), heads(onlyChips, p7.parts[1].title)]);
-      // P7 with no heading line at all: nothing can be counted for a part
-      const bare = await replay('F-P7', { writer: linesOf(p7.raw).filter((line) => !line.startsWith('### ')).join('\n') });
-      ok('L7 [item 1] where the writer opens no part of the plan (it wrote no heading), what it released stands under no part and the lines are decided as before the round: no heading is invented, no line is added for a part the judge kept rows for',
-        !bare.text.includes('### ') && absent(bare, bare.parts[0].title) + absent(bare, bare.parts[1].title) === 0 && bare.out.telemetry.emptyParts === 0 && bare.text.length > 500);
+      const recorded = { 'F-P1': p1, 'F-P5b': p5b, 'F-P7': p7, 'F-P8': p8 };
+      const pairs = [];
+      for (const tag of Object.keys(recorded)) {
+        const base = recorded[tag];
+        // three texts of the writer: as the capture recorded it; with no heading line at all; with every name of the plan written
+        // as a heading above it (a writer that was never handed those names does not write them: the turn must not read them)
+        const writers = [null, base.raw.split('\n').filter((line) => !line.startsWith('### ')).join('\n'), base.parts.map((p) => '### ' + p.title + '\n\n').join('') + base.raw];
+        for (const writer of writers) {
+          const given = writer === null ? base : await replay(tag, { writer });
+          const none = await replay(tag, { writer, none: true });
+          pairs.push({ tag, frames: given.frames === none.frames && given.frames.length > 0, writer: given.writerUser === none.writerUser, out: same(noTimes(given.out.telemetry), noTimes(none.out.telemetry)),
+            released: given.out.telemetry.unitsReleased, lines: linesOf(given.text), names: base.parts.map((p) => '### ' + p.title), told: given.writerUser, parts: given.out.telemetry.parts });
+        }
+      }
+      ok('N4 [A3 items 1 and 3] the capture\'s recorded turns whose plan has two or more parts for the writer (P1, P7, P8, and the follow-up P5b), each with its recorded rows and three texts of the writer (as recorded; with no heading line; with every name of the plan written as a heading above it): the turn handed the plan\'s reading is, frame for frame, the turn handed no reading on the same question -- the same frames, the same message to the writer, the same telemetry -- and sourced text goes out in every one',
+        pairs.length === 12 && pairs.every((p) => p.frames && p.writer && p.out) && pairs.every((p) => p.released > 0), pairs.map((p) => [p.tag, p.frames, p.writer, p.out, p.released]));
+      ok('N4b [A3 items 1 and 2] ...and what such a turn is given and prints is production\'s: the parts are the patterns\' parts of the question (none for P1, two for P7, P8 and P5b -- P8\'s plan had three), no heading of the answer is the reader\'s own question, and a name of the plan stands as a heading only where the writer itself wrote that line (the third text), never by the server\'s hand',
+        same(Object.keys(recorded).map((tag) => recorded[tag].out.telemetry.parts), [0, 2, 2, 2]) && same(Object.keys(recorded).map((tag) => recorded[tag].cut.length), [0, 2, 2, 2]) && p8.parts.length === 3
+        && pairs.every((p) => !p.lines.includes(P1Q) && !p.lines.includes(P7Q))
+        && pairs.filter((p, i) => i % 3 !== 2).every((p) => p.names.every((name) => !p.lines.includes(name) || recorded[p.tag].raw.split('\n').map((l) => l.trim()).includes(name))),
+        [Object.keys(recorded).map((tag) => recorded[tag].out.telemetry.parts), pairs.map((p) => p.lines.includes(P1Q) || p.lines.includes(P7Q))]);
+      // (ORDER A2 item 8, kept: it was driven on P7's turn, which is now the turn production composes)
+      let LOST = '';
+      try { LOST = String((await esm('lib/provider-call.js')).PROVIDER_LOST_TEXT || ''); } catch { LOST = ''; }
+      const cutThenRefused = await replay('F-P7', { stop: 'max_then_refused' });
+      ok('L23 [item 8, after the second helper] the writer stopped on its budget AFTER sourced text went out, and the call that continues it was refused: the answer stands as it is, the refused call leaves its token, and the turn is not lost -- no apology (with nothing sourced out it is lost: providerfailure D6)',
+        !!LOST && prose(p7).length > 0 && same(prose(cutThenRefused), prose(p7)) && !cutThenRefused.text.includes(LOST) && cutThenRefused.out.telemetry.providerLost !== true
+        && (cutThenRefused.out.providerFailures || []).includes('writer:529:overloaded_error'), [prose(cutThenRefused).length, prose(p7).length, cutThenRefused.out.providerFailures]);
     }
     {
       const partsFor = (tag) => { const c = CAP[tag]; const checked = RP.validatePlan(RP.parsePlan(JSON.stringify(c.plan)), { question: c.q, previous: c.prev }); return BW.bw2PlanParts(RP.readingOf(checked.plan, { question: c.q, previous: c.prev })); };
@@ -1615,66 +1639,6 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         && heads(unheaded, servedTitle) === 1 && heads(reworded, servedTitle) === 1, [prose(reworded).length, prose(unheaded).length, prose(b19w).length, heads(unheaded, servedTitle)]);
     }
     {
-      // the helper's case: a heading of the writer's own inside the first part that names the OTHER part's scholar
-      const second = p7.raw.indexOf('\n\n', p7.raw.indexOf('\n\n') + 2);
-      const sub = await replay('F-P7', { writer: p7.raw.slice(0, second) + '\n\n### ما رواه الطبري' + p7.raw.slice(second) });
-      const under = linesOf(sub.text);
-      const nameAt = under.indexOf('### ' + sub.parts[1].title);
-      ok('L14 [item 1, after the fifth helper] a heading of the writer\'s own that names another part\'s scholar opens no part: the second part\'s name is put above nothing and the prose is the prose it was. The line for the second part is NOT written here, as before the round: the first part\'s paragraphs under the writer\'s own heading stand under no part, just before the second part\'s name, and the server cannot know whose they are',
-        second > 0 && nameAt === -1 && absent(sub, sub.parts[1].title) === 0 && absent(sub, sub.parts[0].title) === 0 && same(prose(sub).filter((line) => line !== 'ما رواه الطبري'), prose(p7)) && qheads(sub, P7Q) === 1, [nameAt, absent(sub, sub.parts[1].title)]);
-      // the helper's case on P1: a heading of the writer's own INSIDE the first part, before the part's first released paragraph
-      const firstOut = prose(p1)[0];
-      const inside = await replay('F-P1', { writer: p1.raw.split(firstOut.slice(0, 24)).join('### خلافهم مع الجمهور\n\n' + firstOut.slice(0, 24)) });
-      ok('L14b [item 1, after the helper] a part opened by its name whose text then goes out under a heading of the writer\'s own is NOT said to have no text, and its name is not put above that other section: the prose is the prose it was and no line is added',
-        p1.raw.includes(firstOut.slice(0, 24)) && same(prose(inside), prose(p1)) && absent(inside, inside.parts[0].title) === 0 && absent(inside, inside.parts[1].title) === 0
-        && heads(inside, inside.parts[0].title) === 0 && qheads(inside, P1Q) === 0, [absent(inside, inside.parts[0].title), prose(inside).length, prose(p1).length]);
-      // a writer that was cut
-      const firstOnly = p7.raw.slice(0, p7.raw.indexOf('### ' + p7.parts[1].title));
-      const budget = await replay('F-P7', { writer: firstOnly, stop: 'max_tokens' });
-      const failed = await replay('F-P7', { writer: firstOnly, stop: 'throw' });
-      const midPart = await replay('F-P7', { writer: firstOnly + '### ' + p7.parts[1].title + '\n\n', stop: 'max_tokens' });
-      ok('L15 [item 1, after the helper] a writer that was cut (its budget, the provider) before it reached a part, or while that part was open, is not said to have found nothing for it',
-        [budget, failed, midPart].every((r) => absent(r, r.parts[1].title) === 0 && qheads(r, P7Q) === 1), [budget, failed, midPart].map((r) => absent(r, r.parts[1].title)));
-      {
-        // (after the second helper, DX.3: logic its own mutants showed no row saw)
-        // (a tree without lib/provider-call.js -- the commit before the round -- fails this row as a row; it does not throw)
-        let LOST = '';
-        try { LOST = String((await esm('lib/provider-call.js')).PROVIDER_LOST_TEXT || ''); } catch { LOST = ''; }
-        const cutThenRefused = await replay('F-P7', { stop: 'max_then_refused' });
-        ok('L23 [item 8, after the second helper] the writer stopped on its budget AFTER sourced text went out, and the call that continues it was refused: the answer stands as it is, the refused call leaves its token, and the turn is not lost -- no apology (with nothing sourced out it is lost: providerfailure D6)',
-          !!LOST && same(prose(cutThenRefused), prose(p7)) && !cutThenRefused.text.includes(LOST) && cutThenRefused.out.telemetry.providerLost !== true
-          && (cutThenRefused.out.providerFailures || []).includes('writer:529:overloaded_error'), [prose(cutThenRefused).length, prose(p7).length, cutThenRefused.out.providerFailures]);
-        const asProse = await replay('F-P1', { writer: p1.raw.split('### ' + p1.parts[0].title).join(p1.parts[0].title + '.') });
-        ok('L24 [item 1, after the second helper] only a HEADING line that is a part\'s name opens the part: the same words written as a sentence of prose open nothing and print no heading (neither the name nor the reader\'s question)',
-          asProse.text !== p1.text && heads(asProse, p1.parts[0].title) === 0 && qheads(asProse, P1Q) === 0, [heads(asProse, p1.parts[0].title), qheads(asProse, P1Q)]);
-        const h7 = '### ' + p7.parts[0].title;
-        const mid7 = p7.raw.indexOf('\n\n', p7.raw.indexOf(h7) + h7.length + 2);
-        const twice = await replay('F-P7', { writer: p7.raw.slice(0, mid7) + '\n\n' + h7 + p7.raw.slice(mid7) });
-        ok('L25 [item 1, after the second helper] the open part\'s own name written again is dropped alone: the part\'s heading stands once, and the prose is the prose it was',
-          mid7 > p7.raw.indexOf(h7) && qheads(twice, P7Q) === 1 && heads(twice, p7.parts[0].title) === 0 && same(prose(twice), prose(p7)), [qheads(twice, P7Q), prose(twice).length, prose(p7).length]);
-        const reopened = await replay('F-P7', { writer: p7.raw.slice(0, mid7) + '\n\n### فائدة\n\n' + h7 + p7.raw.slice(mid7) });
-        ok('L25b [item 1] a heading of the writer\'s own closes the open part: the part\'s name written again after it opens the part again and its heading stands above what follows, and the writer\'s own empty heading is not printed',
-          qheads(reopened, P7Q) === 2 && !reopened.text.includes('### فائدة') && same(prose(reopened), prose(p7)), [qheads(reopened, P7Q), reopened.text.includes('### فائدة')]);
-        const ownFirst = await replay('F-P5b', { writer: asGiven(p5b).split('### ' + p5b.parts[1].title).join('### تمهيد\n\n### ' + p5b.parts[1].title) });
-        ok('L26 [item 1, after the second helper] a heading of the writer\'s own that waits with nothing under it is dropped when the next part\'s name opens: it is not printed under that name',
-          !ownFirst.text.includes('### تمهيد') && heads(ownFirst, p5b.parts[1].title) === 1 && same(prose(ownFirst), prose(p5bGiven)), [ownFirst.text.includes('### تمهيد'), heads(ownFirst, p5b.parts[1].title)]);
-      }
-      // P8 written in another order: the second part first (its fatwa goes out), then the marker, then the first part's section
-      const h1 = '### ' + p8.parts[0].title; const h2 = '### ' + p8.parts[1].title;
-      const sec1 = p8.raw.slice(p8.raw.indexOf(h1), p8.raw.indexOf(h2));
-      const sec2 = p8.raw.slice(p8.raw.indexOf(h2), p8.raw.indexOf('### ', p8.raw.indexOf(h2) + 5));
-      const afterMarker = await replay('F-P8', { writer: sec2 + '\n\n@@EZIK_NOT_COVERED@@\n\n' + sec1 });
-      ok('L15b [item 1, after the helper] what the writer writes after its not-covered marker is not read: a part that stands after the marker is not said to have no text; and of the part written before the marker, whose first unit opens with the writer\'s own search and is followed by a near-matter fatwa, the name is not put above that fatwa and nothing is said',
-        sec1.length > 100 && sec2.length > 100 && heads(afterMarker, p8.parts[1].title) === 0 && absent(afterMarker, p8.parts[1].title) === 0 && absent(afterMarker, p8.parts[0].title) === 0 && absent(afterMarker, p8.parts[2].title) === 0
-        && prose(afterMarker).length === 1,
-        [heads(afterMarker, p8.parts[1].title), absent(afterMarker, p8.parts[1].title), absent(afterMarker, p8.parts[0].title), absent(afterMarker, p8.parts[2].title), prose(afterMarker).length]);
-      // a part whose only released unit is an enumeration label
-      const label = await replay('F-P7', { writer: p7.raw.slice(0, p7.raw.indexOf('### ' + p7.parts[1].title)) + '### ' + p7.parts[1].title + '\n\nالسبب الأول: ضعف الحديث، وذهب الجمهور إلى أنه لا يثبت.\n' });
-      ok('L16 [item 1, after the helper] a part whose only released unit is a label has its name above that label (it had neither name nor line)',
-        heads(label, label.parts[1].title) === 1 && absent(label, label.parts[1].title) === 0
-        && label.text.indexOf('### ' + label.parts[1].title) < label.text.indexOf('السبب الأول'), [heads(label, label.parts[1].title), absent(label, label.parts[1].title), label.text.includes('السبب الأول')]);
-    }
-    {
       // the name is checked as the writer's line was: a name that states a ruling, or names a party under a yes/no question, is withheld
       const nameTurn = async (question, name, q1) => {
         const second = question.slice(question.indexOf('؟') + 1).trim().replace(/^و/u, '');
@@ -1695,11 +1659,12 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         await nameTurn('هل يجوز الربا للضرورة؟ وما حكم العمل في البنوك؟', 'لا يجوز الربا إلا للضرورة', 'هل يجوز الربا للضرورة؟')];
       const whether = [await nameTurn(witr, 'الوتر واجب عند الحنفية', 'هل الوتر واجب أم سنة عند الحنفية؟'), await nameTurn('هل صح أن الجمهور على تحريم المعازف؟ وما دليلهم؟', 'الجمهور على تحريم المعازف', 'هل صح أن الجمهور على تحريم المعازف؟')];
       const subject = await nameTurn('ما أدلة الحنفية على وجوب الوتر؟ وبماذا أجاب الجمهور عنها؟', 'أدلة الحنفية على وجوب الوتر', 'ما أدلة الحنفية على وجوب الوتر؟');
-      ok('L17 [item 1, the fourth form] the name is checked as the writer\'s line was: a name that states a ruling is withheld as an uncited ruling and the unit after it stands under no part; a name that names a party is withheld as an uncited attribution, under a yes/no question and under an open one alike. In its place: nothing where the reader\'s own question states a ruling («هل الوتر واجب أم سنة عند الحنفية؟»); the reader\'s question itself where it does not («هل صح أن الجمهور على تحريم المعازف؟», «ما أدلة الحنفية على وجوب الوتر؟»)',
+      // (ORDER A3 item 2, re-cut: at the repair round's last commit the reader's own question stood in the place of the last two names)
+      ok('L17 [item 1; A3 item 2] the name is checked as the writer\'s line was: a name that states a ruling is withheld as an uncited ruling and the unit after it stands under no part; a name that names a party is withheld as an uncited attribution, under a yes/no question and under an open one alike. NOTHING stands in its place -- not the reader\'s own question either, whether it states a ruling («هل الوتر واجب أم سنة عند الحنفية؟») or does not («هل صح أن الجمهور على تحريم المعازف؟», «ما أدلة الحنفية على وجوب الوتر؟»): the part has no heading and the unit after it stands under no part, as on the first capture',
         stated.every((r) => r.sent === false && r.asked === false && r.holds.uncited_ruling === 1 && r.opened === false && r.unplaced === 1)
         && whether[0].sent === false && whether[0].asked === false && whether[0].holds.uncited_attribution === 1 && whether[0].opened === false
-        && whether[1].sent === false && whether[1].asked === true && whether[1].opened === true
-        && subject.sent === false && subject.asked === true && subject.opened === true && subject.unplaced === 0, [stated.map((r) => r.sent), whether.map((r) => r.asked), subject.sent, subject.asked]);
+        && whether[1].sent === false && whether[1].asked === false && whether[1].opened === false && whether[1].holds.uncited_attribution === 1 && whether[1].unplaced === 1
+        && subject.sent === false && subject.asked === false && subject.opened === false && subject.holds.uncited_attribution === 1 && subject.unplaced === 1, [stated.map((r) => r.sent), whether.map((r) => r.asked), subject.sent, subject.asked, subject.unplaced]);
     }
 
     {
@@ -1723,15 +1688,16 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const noQuestion = await direct(openQ, title);
       // a name withheld for ANOTHER reason (it states a ruling) under a question of the reader's that would pass: nothing in its place
       const ruled = await direct('ما حكم الموسيقى؟ وما حكم الأناشيد؟', 'الموسيقى حلال', { q: 'ما حكم الموسيقى؟' });
-      ok('L17b [item 1, the fourth form] a NAME that names a school is never printed. In its place the server puts the reader\'s own question when the plan says the part is that question -- whether or not that question names the school: the heading is the reader\'s words, not the model\'s -- and nothing when the plan\'s question for the part is reworded or is no sentence of the reader\'s: then the unit after it stands under no part, as before the round. Only a name withheld as an attribution is so replaced: a name that states a ruling is withheld and nothing stands in its place',
-        [named, notNamed].every((r) => r.sent === false && r.asked === true && r.opened === true && r.probeOut === true)
-        && [reworded, noQuestion].every((r) => r.sent === false && r.asked === false && r.opened === false && r.holds.uncited_attribution === 1 && r.probeOut === true && !r.text.includes('### '))
+      // (ORDER A3 item 2, re-cut: at the repair round's last commit the reader's own question was printed for the first two)
+      ok('L17b [item 1; A3 item 2] a NAME that names a school is never printed, and THE READER\'S OWN QUESTION IS NOT PRINTED IN ITS PLACE: not when the plan says the part is that question, word for word (whether or not that question names the school), and not when the plan\'s question is reworded or is no sentence of the reader\'s. The part has no heading, the unit after it goes out and stands under no part, as before the round. A name that states a ruling is withheld the same way',
+        [named, notNamed, reworded, noQuestion].every((r) => r.sent === false && r.asked === false && r.opened === false && r.holds.uncited_attribution === 1 && r.probeOut === true && !r.text.includes('### '))
         && ruled.sent === false && ruled.asked === false && ruled.opened === false && ruled.holds.uncited_ruling === 1 && !ruled.text.includes('### '),
         [[named, notNamed, reworded, noQuestion, ruled].map((r) => r.sent), [named, notNamed, reworded, noQuestion, ruled].map((r) => r.asked)]);
       const leansOn = await direct(openQ, title, { probe: LEANS, q: 'ما أدلة الحنفية على وجوب الوتر؟' });
       const leansFree = await direct('ما حكم الوتر؟ وما وقته؟', 'حكم الوتر', { probe: LEANS });
-      ok('L17f [item 1, after the second helper] the reader\'s question in the place of a name that names a school is a label and nothing more: a sentence that leans on what came before it («هذه …») is withheld under it, as it was when the writer\'s heading was withheld, and the heading with it; under a name that names no party the same sentence goes out',
-        leansOn.probeOut === false && leansOn.sent === false && leansOn.asked === false && leansOn.opened === true && !leansOn.text.includes('### ') && leansFree.probeOut === true && leansFree.sent === true,
+      // (ORDER A3 item 2, re-cut: the part is not opened any more -- there is no heading for it to be opened by)
+      ok('L17f [item 1; A3 item 2] under a name that names a school, which is withheld with nothing in its place, a sentence that leans on what came before it («هذه …») is withheld too, as it was when the writer\'s heading was withheld; under a name that names no party the same sentence goes out',
+        leansOn.probeOut === false && leansOn.sent === false && leansOn.asked === false && leansOn.opened === false && !leansOn.text.includes('### ') && leansFree.probeOut === true && leansFree.sent === true,
         [leansOn.probeOut, leansOn.sent, leansOn.asked, leansFree.probeOut, leansFree.sent]);
       const fastQ = 'ما حكم صيام يوم السبت؟ وما حكم صيام الجمعة؟';
       const sat = 'حكم صيام يوم السبت';
@@ -1754,10 +1720,11 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const asked = []; for (const q of yesNo) asked.push(await direct(q + ' وما دليلهم؟', group, { q }));
       const notPlanned = []; for (const q of yesNo) notPlanned.push(await direct(q + ' وما دليلهم؟', group));
       const open = await direct('ما قول الجمهور في المعازف؟ وما دليلهم؟', 'قول الجمهور في المعازف', { q: 'ما قول الجمهور في المعازف؟' });
-      ok('L21 [item 1, the fourth form] the naming of a group in a NAME is never let through, under an open question or under a yes/no one («أصحيح أن …؟», «… صح؟», «أليس …؟»): the name «الجمهور على تحريم المعازف», which states what the reader only asked, is not printed. What stands in its place is the reader\'s question itself, word for word and with its question mark, where the plan says the part is that question; nothing where it does not. No heading goes out that does not end with the reader\'s question mark',
-        asked.every((r) => r.sent === false && r.asked === true && r.opened === true) && notPlanned.every((r) => r.sent === false && r.asked === false && r.opened === false && r.holds.uncited_attribution === 1)
-        && open.sent === false && open.asked === true && !asked.concat(notPlanned, [open]).some((r) => r.text.split('\n').some((line) => line.startsWith('### ') && !line.endsWith('؟'))),
-        [asked.map((r) => r.asked), notPlanned.map((r) => r.asked), open.asked]);
+      // (ORDER A3 item 2, re-cut: at the repair round's last commit the reader's question stood in the name's place where the plan
+      // said the part was that question)
+      ok('L21 [item 1; A3 item 2] the naming of a group in a NAME is never let through, under an open question or under a yes/no one («أصحيح أن …؟», «… صح؟», «أليس …؟»): the name «الجمهور على تحريم المعازف», which states what the reader only asked, is not printed -- and nothing stands in its place, whether or not the plan says the part is the reader\'s own question: no heading at all goes out, the name is withheld as an attribution with no source, and the part is not opened',
+        asked.concat(notPlanned, [open]).every((r) => r.sent === false && r.asked === false && r.opened === false && r.holds.uncited_attribution === 1 && !r.text.includes('### ') && r.probeOut === true),
+        [asked.map((r) => r.asked), notPlanned.map((r) => r.asked), open.asked, asked.concat(notPlanned, [open]).map((r) => r.text.includes('### '))]);
       const shQ = 'ما قول الشافعية في الوتر؟ وما دليلهم؟';
       const longQ = 'ما قول الشافعية في ' + 'صلاة الوتر في السفر والحضر '.repeat(6) + 'عند المتأخرين؟';
       // [the reader's message, the part's name, the plan's question for the part]: nothing may be printed for any of them
@@ -1799,9 +1766,10 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const printed = []; for (const [reader, name, q] of stands) printed.push(await direct(reader, name, { q }));
       const latin = await direct('ما قول الشافعية في الوتر? وما دليلهم?', 'قول الشافعية في الوتر', { q: 'ما قول الشافعية في الوتر?' });
       const headings = (r) => r.text.split('\n').filter((line) => line.startsWith('### '));
-      ok('L21c [item 1, the fourth form] what stands in the place of a name that names a school is the reader\'s own question and nothing else: whole, in the reader\'s words and order, with its question mark -- the reader\'s negated question with its negation, a premise inside the reader\'s question with the question, a question of an earlier turn; never the name, never a line without a question mark, and one heading only',
-        printed.every((r) => r.sent === false && r.asked === true && r.opened === true && headings(r).length === 1 && r.probeOut === true)
-        && latin.sent === false && same(headings(latin), ['### ما قول الشافعية في الوتر؟']),
+      // (ORDER A3 item 2, re-cut: these are the five cases in which the repair round's last commit printed the reader's own question, to
+      // the letter, and the sixth in which it printed it with the Arabic question mark)
+      ok('L21c [A3 item 2] THE READER\'S OWN QUESTION IS NOT PRINTED AS A HEADING, in any of the cases in which it was: whole and word for word the plan\'s question for the part, the reader\'s negated question, a premise inside the reader\'s question, a question of an earlier turn, a question ended with a Latin question mark. The name that names a school is withheld, no heading at all goes out, the part is not opened, and the unit under it goes out under no part',
+        printed.length === 5 && printed.concat([latin]).every((r) => r.sent === false && r.asked === false && r.opened === false && headings(r).length === 0 && r.holds.uncited_attribution === 1 && r.probeOut === true),
         [printed.map((r) => r.asked), printed.map((r) => headings(r).length), headings(latin).length]);
       {
         // a part the server answered with its card (wudu), and a part whose name names a school in the reader's own words
@@ -1819,10 +1787,12 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         };
         const afterCard = await under('### ' + nameB + '\n\n<worship id="wudu"></worship>\n\n' + PRON + '\n\n' + PLAIN + '\n');
         const alone = await under('### ' + nameB + '\n\n' + PRON + '\n\n' + PLAIN + '\n');
-        ok('L20c [item 1, after the third helper] a served card written again under the reader\'s question that stands for a name that names a school gives a sentence no more than the heading alone: a sentence that leans on what came before it («وهو …») is withheld, the card is not sent a second time, and the sentence after it goes out under the heading',
-          !afterCard.includes(PRON.slice(0, 10)) && !afterCard.includes('<worship') && afterCard.includes('### ' + askedB) && !afterCard.includes('### ' + nameB) && afterCard.includes(PLAIN.slice(0, 12))
-          && !alone.includes(PRON.slice(0, 10)) && alone.includes('### ' + askedB) && alone.includes(PLAIN.slice(0, 12)),
-          [afterCard.includes(PRON.slice(0, 10)), afterCard.includes('<worship'), afterCard.includes('### ' + askedB), alone.includes(PRON.slice(0, 10))]);
+        // (ORDER A3 item 2, re-cut -- THE ONE CASE LEFT, one written part beside a part the server answered: at the repair round's last
+        // commit the reader's own question was printed above the written part here)
+        ok('L20c [A3 item 2] one written part beside a part the server answered, its name naming a school in the reader\'s own words: NO HEADING is printed for it -- not the name, not the reader\'s question the plan says the part is. A served card written again under that name is not sent a second time, a sentence that leans on what came before it («وهو …») is withheld, and the sentence after it goes out',
+          !afterCard.includes(PRON.slice(0, 10)) && !afterCard.includes('<worship') && !afterCard.includes('### ') && afterCard.includes(PLAIN.slice(0, 12))
+          && !alone.includes(PRON.slice(0, 10)) && !alone.includes('### ') && alone.includes(PLAIN.slice(0, 12)),
+          [afterCard.includes(PRON.slice(0, 10)), afterCard.includes('<worship'), afterCard.includes('### '), alone.includes(PRON.slice(0, 10)), alone.includes('### '), afterCard.includes(PLAIN.slice(0, 12))]);
         // (mutant C35 survived the row above: a waiting heading of that kind now excuses no leaning sentence by itself. The card
         // written again in the MIDDLE of the section, after a sentence that was withheld: the hold that sentence left must stand)
         const UNCITED = 'نواقض الوضوء عند الشافعية أربعة.';
@@ -1847,10 +1817,11 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         const admitLabel = await underOne('نواقض الوضوء عند الحنفية', 'ما نواقض الوضوء عند الحنفية؟', '### نواقض الوضوء عند الحنفية\n\n' + ADMIT + '\n\n' + PLAIN + '\n');
         const admitName = await underOne('نواقض الوضوء', 'ما نواقض الوضوء؟', '### نواقض الوضوء\n\n' + ADMIT + '\n\n' + PLAIN + '\n');
         const plainLabel = await underOne('نواقض الوضوء عند الحنفية', 'ما نواقض الوضوء عند الحنفية؟', '### نواقض الوضوء عند الحنفية\n\n' + PLAIN + '\n');
-        ok('L34 [item 1, after the fifth helper] an opening that admits the texts do not treat the question ends the answer, as before the round, also where the reader\'s question waits in the place of a name the server does not print: nothing of the answer goes out under that question (before the round the writer\'s heading there was withheld and the admission was the answer\'s opening). Under a name that passes, which waits as the writer\'s own heading waited, the answer goes on as it did',
+        // (ORDER A3 item 2, re-cut: no question of the reader's waits in the name's place any more; the last case had that question as its heading)
+        ok('L34 [item 1; A3 item 2] an opening that admits the texts do not treat the question ends the answer, as before the round, under a name that names a school (withheld, with nothing in its place: the admission is the answer\'s opening). Under a name that passes, which waits as the writer\'s own heading waited, the answer goes on as it did. And with no admission, the text under a name that names a school goes out with no heading above it',
           !admitLabel.includes('### ') && !admitLabel.includes(PLAIN.slice(0, 12)) && admitName.includes('### نواقض الوضوء') && admitName.includes(PLAIN.slice(0, 12))
-          && plainLabel.includes('### ما نواقض الوضوء عند الحنفية؟') && plainLabel.includes(PLAIN.slice(0, 12)),
-          [admitLabel.includes('### '), admitLabel.includes(PLAIN.slice(0, 12)), admitName.includes(PLAIN.slice(0, 12)), plainLabel.includes('### ما نواقض الوضوء عند الحنفية؟')]);
+          && !plainLabel.includes('### ') && plainLabel.includes(PLAIN.slice(0, 12)),
+          [admitLabel.includes('### '), admitLabel.includes(PLAIN.slice(0, 12)), admitName.includes(PLAIN.slice(0, 12)), plainLabel.includes('### ')]);
       }
       const row = { ref: 1, kind: 'fatwa', title: 'عنوان', url: 'https://example.invalid/f/1', text: 'نص قصير عن الوتر.', fullText: 'نص قصير عن الوتر.', publisher: 'ناشر' };
       const citedName = await direct('هل الوتر واجب أم سنة؟ وما وقته؟', 'الوتر واجب', { rows: [row], suffix: ' [[1]]' });
@@ -1907,93 +1878,6 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         unitOn.ruling === 0, [unitOn.sent, unitOn.ruling]);
     }
 
-    {
-      // the second helper's cases, on the capture's own turns
-      const c1 = CAP['F-P1'];
-      const t0 = c1.plan.parts[0].name;
-      const sameName = await replay('F-P1', { plan: { ...c1.plan, parts: [c1.plan.parts[0], { ...c1.plan.parts[1], name: t0 }] }, writer: p1.raw.split(ownHeading(p1)[0]).join('### ' + t0) });
-      ok('L18 [item 1, after the second helper] two parts with ONE name: the line names neither of them, so it opens nothing -- no name is printed, and no line says that no text was found for a part whose text is on the page',
-        sameName.parts.length === 2 && sameName.parts[0].title === sameName.parts[1].title && !sameName.text.includes('### ') && !sameName.text.includes(ABSENT) && prose(sameName).length >= 3,
-        [sameName.parts.map((p) => p.title === t0), count(sameName.text, '### '), count(sameName.text, ABSENT), prose(sameName).length]);
-      const c7 = CAP['F-P7'];
-      const name2 = 'نص آية الكرسي';
-      const head7 = p7.raw.slice(0, p7.raw.indexOf('### ' + p7.parts[1].title));
-      const cardOnly = await replay('F-P7', { q: 'ما أقوال السلف في تفسير «الكرسي» في آية الكرسي؟ وما نص آية الكرسي؟',
-        plan: { ...c7.plan, parts: [c7.plan.parts[0], { ...c7.plan.parts[1], name: name2, q: 'ما نص آية الكرسي؟', kind: 'tafsir' }] }, writer: head7 + '### ' + name2 + '\n\n<verse surah_num="112" ayah="1"></verse>\n' });
-      // (the card is of a verse the released text does not quote, so it WAITS to the end of the answer in every tree, with or without
-      // the mushaf data: that is the path the row is for)
-      ok('L19 [item 1, after the second helper] a part whose only text is a verse card: the card stands under the part\'s name, and no line says that no text was found for it',
-        head7.length > 100 && cardOnly.parts.length === 2 && cardOnly.text.includes('<verse') && heads(cardOnly, name2) === 1 && absent(cardOnly, name2) === 0 && cardOnly.text.indexOf('### ' + name2) < cardOnly.text.indexOf('<verse'),
-        [cardOnly.parts.length, cardOnly.text.includes('<verse'), heads(cardOnly, name2), absent(cardOnly, name2)]);
-      const s1 = 'ورد في الباب حديث في عدد الصلوات المفروضة [[1]].';
-      const s2 = 'واستدلوا به على أن الوتر ليس بفرض [[1]].';
-      const leaning = await replay('F-P1', { writer: '### ' + p1.parts[0].title + '\n\n' + s1 + '\n\n' + s2 + '\n' });
-      ok('L20 [item 1, after the second helper] the reader\'s question that stands for a name that names a school gives a sentence no subject: under it a sentence with no subject of its own («واستدلوا به على …») is withheld, as it was when the writer\'s heading was withheld; the sentence before it goes out under the heading',
-        qheads(leaning, P1Q) === 1 && heads(leaning, p1.parts[0].title) === 0 && leaning.text.includes(s1.slice(0, 20)) && !leaning.text.includes(s2.slice(0, 18)),
-        [qheads(leaning, P1Q), leaning.text.includes(s1.slice(0, 20)), leaning.text.includes(s2.slice(0, 18))]);
-      const twiceNamed = await replay('F-P1', { writer: '### ' + p1.parts[0].title + '\n### ' + p1.parts[0].title + '\n\nوهو واجبٌ عند أبي حنيفة فكان مضمونًا بالقضاء كالفرض [[4]].\n\n' + s1 + '\n' });
-      ok('L20b [item 1, after the third helper] the name written twice gives a sentence no more than the name written once: a sentence that leans on what came before it («وهو واجبٌ عند …») is withheld under the heading, and the sentence after it goes out under it',
-        !twiceNamed.text.includes('فكان مضمون') && twiceNamed.text.includes(s1.slice(0, 20)) && qheads(twiceNamed, P1Q) === 1 && heads(twiceNamed, p1.parts[0].title) === 0,
-        [twiceNamed.text.includes('فكان مضمون'), twiceNamed.text.includes(s1.slice(0, 20)), qheads(twiceNamed, P1Q)]);
-      // -- after the fourth refuting helper: its own cases, on the capture's own sentences of F-P1
-      const rawLines = p1.raw.split('\n');
-      const P_D = rawLines.find((line) => line.includes('[[4]]') && !line.startsWith('#')) || ''; // goes out wherever it stands
-      const E1 = (() => { const line = rawLines.find((l) => l.includes('[[2]].')) || ''; return line.slice(0, line.indexOf('[[2]].') + 6); })(); // so does this
-      const T0H = '### ' + p1.parts[0].title;
-      const HELD = 'والوتر واجبٌ عند أبي حنيفة.'; // no citation: withheld
-      const onlyFirst = await replay('F-P1', { writer: T0H + '\n\n' + P_D + '\n' });
-      ok('L27 [item 1, after the fourth helper] the reader\'s question printed as the first part\'s heading is not text of the answer: the writer wrote the first part only, and the line that no text was found for the SECOND part is written, as before the round (the heading carries the words of the second part\'s name, and the valve took them for that part\'s answer)',
-        P_D.length > 60 && qheads(onlyFirst, P1Q) === 1 && absent(onlyFirst, p1.parts[1].title) === 1 && absent(onlyFirst, p1.parts[0].title) === 0 && onlyFirst.text.includes(P_D.slice(0, 30)),
-        [qheads(onlyFirst, P1Q), absent(onlyFirst, p1.parts[1].title), absent(onlyFirst, p1.parts[0].title)]);
-      const above = await replay('F-P1', { writer: E1 + '\n\n' + P_D + '\n\n' + T0H + '\n\n' + HELD + '\n' });
-      // (P7: one released paragraph of the first part moved above the first part's name -- the second part's line must stay)
-      const para7 = p7.raw.split('\n').find((line) => line.length > 80 && !line.startsWith('#') && !line.startsWith('<') && p7.text.includes(line.slice(0, 20))) || '';
-      const moved7 = await replay('F-P7', { writer: para7 + '\n\n' + p7.raw.split(para7 + '\n\n').join('') });
-      ok('L28 [item 1, after the fourth helper] a part\'s text written ABOVE its name, and nothing that can be released under the name: the part is not said to have no text beneath its own text (what went out before the answer\'s first part name may be that part\'s); a LATER part that the writer opened and left empty still has its line (P7 with a paragraph moved above the first name)',
-        E1.length > 60 && absent(above, p1.parts[0].title) === 0 && above.text.includes(E1.slice(0, 30)) && above.text.includes(P_D.slice(0, 30))
-        && para7.length > 80 && moved7.text.includes(para7.slice(0, 20)) && absent(moved7, p7.parts[1].title) === 1 && absent(moved7, p7.parts[0].title) === 0 && qheads(moved7, P7Q) === 1,
-        [absent(above, p1.parts[0].title), above.text.includes(E1.slice(0, 30)), para7.length, absent(moved7, p7.parts[1].title), qheads(moved7, P7Q)]);
-      const again = await replay('F-P1', { writer: T0H + '\n\n' + P_D + '\n\n' + HELD + '\n\n' + T0H + '\n\nوكذلك ' + E1 + '\n' });
-      const againNow = await replay('F-P1', { writer: T0H + '\n\n' + P_D + '\n\n' + T0H + '\n\nوهذا لأنّ ' + E1 + '\n' });
-      const straight = await replay('F-P1', { writer: T0H + '\n\n' + P_D + '\n\nوهذا لأنّ ' + E1 + '\n' });
-      ok('L20d [item 1, after the fourth helper] the part\'s name written AGAIN in the middle of its section, where its heading is the reader\'s question in the place of a name the server does not print: the line is dropped, and a sentence after it that leans on what came before («وكذلك …», «وهذا لأنّ …») is withheld, as it was when that second heading line was itself withheld -- after a withheld sentence and after a released one; with no second name line the same sentence goes out after the released one',
-        !again.text.includes('وكذلك') && !againNow.text.includes('وهذا لأن') && straight.text.includes('وهذا لأن')
-        && [again, againNow, straight].every((r) => qheads(r, P1Q) === 1 && r.text.includes(P_D.slice(0, 30))),
-        [again.text.includes('وكذلك'), againNow.text.includes('وهذا لأن'), straight.text.includes('وهذا لأن')]);
-      const pointer = await replay('F-P1', { writer: T0H + '\n\n' + E1.replace('الحنفية يقولون', 'الحنفية كما تقدم يقولون') + '\n' });
-      const pointerCtl = await replay('F-P1', { writer: T0H + '\n\n' + E1 + '\n' });
-      ok('L29 [item 1, after the fourth helper] a sentence that points back («كما تقدم») at words only the part\'s withheld name carried is withheld under the reader\'s question, as it was under the withheld heading; the same sentence without the pointer goes out',
-        E1.includes('الحنفية يقولون') && !pointer.text.includes('كما تقدم') && qheads(pointer, P1Q) === 0 && pointerCtl.text.includes(E1.slice(0, 30)) && qheads(pointerCtl, P1Q) === 1,
-        [pointer.text.includes('كما تقدم'), qheads(pointer, P1Q), pointerCtl.text.includes(E1.slice(0, 30))]);
-      // -- after the fifth refuting helper: a part's name goes down the standing path as the heading it is
-      const T1H = '### ' + p1.parts[1].title;
-      const leadIn = await replay('F-P1', { writer: E1.replace(/\.$/u, ':') + '\n\n' + T0H + '\n\n' + P_D + '\n' });
-      ok('L31 [item 1, after the fifth helper] a cited sentence that ends in a colon, directly above a part\'s name: the sentence is not withheld as a dangling lead-in. The name line is joined to it, as every heading was before the round, and is then the writer\'s own heading: the sentence, the heading as the writer wrote it and the text under it go out as at the commit before the round, and the server prints nothing of its own',
-        leadIn.text.includes(E1.slice(0, 30)) && heads(leadIn, p1.parts[0].title) === 1 && qheads(leadIn, P1Q) === 0 && leadIn.text.includes(P_D.slice(0, 30)),
-        [leadIn.text.includes(E1.slice(0, 30)), heads(leadIn, p1.parts[0].title), qheads(leadIn, P1Q)]);
-      const colonName = await replay('F-P1', { writer: T1H + ':\n\n' + E1 + '\n' });
-      const colonLean = await replay('F-P1', { writer: T0H + ':\n\nوكذلك ' + E1 + '\n' });
-      ok('L32 [item 1, after the fifth helper] a part\'s name written with a colon after it is a lead-in, as before the round: it is joined to the unit after it and decided with it -- the heading with its colon and the sentence go out as at the commit before the round, a leaning sentence too -- and no part is opened',
-        linesOf(colonName.text).includes(T1H + ':') && colonName.text.includes(E1.slice(0, 30)) && linesOf(colonLean.text).includes(T0H + ':') && colonLean.text.includes('وكذلك') && qheads(colonLean, P1Q) === 0,
-        [linesOf(colonName.text).includes(T1H + ':'), colonName.text.includes(E1.slice(0, 30)), linesOf(colonLean.text).includes(T0H + ':'), colonLean.text.includes('وكذلك')]);
-      const evPlan = { ...c1.plan, parts: [{ ...c1.plan.parts[0], name: 'حكم الوتر', q: 'ما حكم الوتر؟' }, { ...c1.plan.parts[1], name: 'أدلة القائلين بوجوب الوتر', q: 'ما أدلة القائلين بوجوب الوتر؟' }] };
-      const evidenceName = await replay('F-P1', { q: 'ما حكم الوتر؟ وما أدلة القائلين بوجوب الوتر؟', plan: evPlan, writer: '### أدلة القائلين بوجوب الوتر\n\nولذلك ' + E1 + '\n' });
-      ok('L33 [item 1, after the fifth helper] a part\'s name that reads as the evidence of a stance («أدلة القائلين بوجوب …») is withheld while that stance is not out, as the writer\'s own heading was before the round, and the sentence that leans on it («ولذلك …») goes with it: nothing is delivered on this path, as at the commit before the round',
-        evidenceName.parts.length === 2 && !evidenceName.text.includes('ولذلك') && !evidenceName.text.includes('### '),
-        [evidenceName.parts.length, evidenceName.text.includes('ولذلك'), evidenceName.text.includes('### ')]);
-      const JUM = 'الوتر عند الجمهور سنةٌ مؤكدة [[1]][[3]].';
-      const ledgerTurn = await replay('F-P1', { writer: T0H + '\n\n' + JUM + '\n' });
-      const ledgerSays = typeof BW.completionLedger === 'function' ? BW.completionLedger({ question: CAP['F-P1'].q, released: 'الوتر عند الجمهور سنة مؤكدة.' }) : [];
-      ok('L35 [item 1, after the fifth helper] the reader\'s question printed as a part\'s heading is not text of the answer for the ledger either: the answer under it gives the majority\'s view only, and the ledger\'s sentence that no text was found for the school the reader asked about is written, as before the round (read with the heading, which names that school, the ledger wrote nothing)',
-        ledgerSays.length === 1 && ledgerTurn.text.includes(ledgerSays[0]) && qheads(ledgerTurn, P1Q) === 1 && count(ledgerTurn.text, ledgerSays[0]) === 1,
-        [ledgerSays.length, ledgerSays.length === 1 && ledgerTurn.text.includes(ledgerSays[0]), qheads(ledgerTurn, P1Q)]);
-      const afterWithheld = await replay('F-P1', { writer: T1H + '\n\n' + E1 + '\n\n' + P_D + '\n\n' + T0H + '\n\n' + HELD + '\n' });
-      const emptyBetween = await replay('F-P7', { writer: para7 + '\n\n### ' + p7.parts[1].title + '\n\n### ' + p7.parts[0].title + '\n\n' + HELD + '\n' });
-      ok('L36 [item 1, after the fifth helper] a part\'s text written after ANOTHER part\'s name that was withheld, or above an empty part\'s name, and before its own name: the part is not said to have no text beneath its own text (text under no part counts against every part opened after it, until a unit goes out under a part)',
-        absent(afterWithheld, p1.parts[0].title) === 0 && afterWithheld.text.includes(E1.slice(0, 30)) && afterWithheld.text.includes(P_D.slice(0, 30))
-        && emptyBetween.text.includes(para7.slice(0, 20)) && absent(emptyBetween, p7.parts[0].title) === 0,
-        [absent(afterWithheld, p1.parts[0].title), afterWithheld.text.includes(E1.slice(0, 30)), emptyBetween.text.includes(para7.slice(0, 20)), absent(emptyBetween, p7.parts[0].title)]);
-    }
 
     // -- item 2
     {
@@ -2014,9 +1898,10 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const p7plan = RP.validatePlan(RP.parsePlan(JSON.stringify(CAP['F-P7'].plan)), { question: CAP['F-P7'].q, previous: [] }).plan;
       const b19wPlan = RP.validatePlan(RP.parsePlan(JSON.stringify(CAP['F-B19w'].plan)), { question: CAP['F-B19w'].q, previous: [] }).plan;
       const alone = planWith([partOf('هل ورد في القرآن ذكر لمنازل القمر؟', 'tafsir')]);
-      ok('L12 [item 2] and only then: a worldly half beside a ruling is still the server\'s, two parts that ask the Qur\'an with none served are applied, so are a card beside a list and a Qur\'an question alone; and it is the READER\'s words that name the Qur\'an, whatever kind the model wrote for that half',
+      // (ORDER A3, re-cut: two parts that ask the Qur'an with none served were applied; they are two parts for the writer, and are not -- N1)
+      ok('L12 [item 2; A3 item 1] and only then: a worldly half beside a ruling is still the server\'s, so are a card beside a list and a Qur\'an question alone; two parts that ask the Qur\'an with none served are not applied for ANOTHER reason (two parts for the writer: written_parts), not for this one; and it is the READER\'s words that name the Qur\'an, whatever kind the model wrote for that half',
         mixedRead.state === 'plan' && RP.servedKinds(mixedRead.plan, { question: mixedQ })[0] === 'worldly' && applies(mixedRead.plan, mixedQ) === true
-        && applies(p7plan, CAP['F-P7'].q) === true && applies(b19wPlan, CAP['F-B19w'].q) === true
+        && applies(p7plan, CAP['F-P7'].q) === false && RP.planNotApplied(p7plan, { question: CAP['F-P7'].q }) === 'written_parts' && applies(b19wPlan, CAP['F-B19w'].q) === true
         && (await read(alone, 'هل ورد في القرآن ذكر لمنازل القمر؟')).state === 'plan' && same([...(RP.PLAN_QURAN_KINDS || [])], ['tafsir', 'quran_text'])
         && relabelled.every((r) => r.state === 'invalid' && r.reason === 'quran_beside_served'), [mixedRead.state, relabelled.map((r) => r.state)]);
       const verseQ = 'كم عدد سكان إندونيسيا؟ وما معنى قوله تعالى ﴿وأذن في الناس بالحج﴾؟';
@@ -2025,6 +1910,61 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const surasRead = await read(planWith([partOf('كم عدد سكان إندونيسيا؟', 'worldly'), partOf('ما السور المدنية؟', 'definition')]), surasQ);
       ok('L12b [item 2, after the second helper] the reader\'s words name the Qur\'an by a verse\'s own brackets, by «قوله تعالى» and by the suras in the plural too: with the model\'s label wrong, such a half beside a served part is not applied',
         verseRead.state === 'invalid' && verseRead.reason === 'quran_beside_served' && surasRead.state === 'invalid' && surasRead.reason === 'quran_beside_served', [verseRead.state, verseRead.reason, surasRead.state, surasRead.reason]);
+      // -- ORDER A3 (2026-11-12), THE NARROWING: a plan with two or more parts for the writer is a good plan the server does not apply
+      const notApplied = (plan, question) => (typeof RP.planNotApplied === 'function' ? RP.planNotApplied(plan, { question }) : null);
+      // every recorded plan of the capture and every plan a strong reader would write, read by the validator as the handler reads it
+      const everyPlan = [...Object.keys(CAP).map((tag) => ({ id: tag, q: CAP[tag].q, prev: CAP[tag].prev, raw: CAP[tag].plan })), ...FIX.items.map((item) => ({ id: item.id, q: item.q, prev: item.prev, raw: item.ideal }))]
+        .map((x) => ({ ...x, plan: (RP.validatePlan(RP.parsePlan(JSON.stringify(x.raw)), { question: x.q, previous: x.prev }) || {}).plan || null })).filter((x) => x.plan);
+      const writtenOf = (x) => RP.servedKinds(x.plan, { question: x.q }).filter((kind) => !kind).length;
+      const several = everyPlan.filter((x) => x.plan.followup !== true && writtenOf(x) >= 2);
+      const rest = everyPlan.filter((x) => !several.includes(x));
+      const planById = (id) => everyPlan.find((x) => x.id === id);
+      ok('N1 [A3 item 1] a plan with two or more parts for the writer that is not a follow-up is a good plan the server does NOT apply, for a closed reason of its own (written_parts): the capture\'s recorded P1, P1s, P3, P7 and P8 and the fixture\'s plans of that shape (P1, P3, P6, P7, P8, B4, B9) -- and no other plan of the capture or the fixture. One part, one written part beside a part the server serves (B19, B19b, B19w) and a follow-up with two parts (M2, P5b) are applied as they were; P9 keeps the reason it had',
+        everyPlan.length === Object.keys(CAP).length + FIX.items.length
+        && same(several.map((x) => x.id).sort(), ['B4', 'B9', 'F-P1', 'F-P1s', 'F-P3', 'F-P7', 'F-P8', 'P1', 'P3', 'P6', 'P7', 'P8'])
+        && several.every((x) => notApplied(x.plan, x.q) === 'written_parts' && applies(x.plan, x.q) === false)
+        && rest.every((x) => notApplied(x.plan, x.q) !== 'written_parts')
+        && ['F-B19', 'F-B19b', 'F-B19w', 'B19', 'B19b', 'B19w', 'F-M2', 'F-P5b', 'M2', 'P5b'].every((id) => { const x = planById(id); return !!x && x.plan.parts.length === 2 && notApplied(x.plan, x.q) === '' && applies(x.plan, x.q) === true; })
+        && ['F-M2', 'F-P5b', 'M2', 'P5b'].every((id) => planById(id).plan.followup === true)
+        && ['F-P9', 'P9'].every((id) => notApplied(planById(id).plan, planById(id).q) === 'quran_beside_served')
+        && same([...(RP.PLAN_NOT_APPLIED || [])], ['quran_beside_served', 'written_parts']),
+        [several.map((x) => x.id).sort().join(' '), several.map((x) => notApplied(x.plan, x.q)), everyPlan.length]);
+      const readOf = (x) => RP.startReading({ messages: [...x.prev.flatMap((p) => [{ role: 'user', content: p }, { role: 'assistant', content: 'PREVIOUS-ANSWER.' }]), { role: 'user', content: x.q }], ask: async () => JSON.stringify(x.raw), env: {}, timeoutMs: 300 }).promise;
+      const severalRead = [];
+      for (const x of several) severalRead.push(await readOf(x));
+      const followRead = [];
+      for (const id of ['F-M2', 'F-P5b', 'M2', 'P5b']) followRead.push(await readOf(planById(id)));
+      const SAFE_FLAG = /^[A-Za-z0-9_:.-]{1,40}$/;
+      ok('N2 [A3 item 1] the reading of such a plan ends as the mixed Qur\'an case ends -- not applied: state invalid, no plan, the reason written_parts -- and the answer log keeps it as a failed reading, in closed words; a follow-up with two parts ends as a plan (its resolved question is the batch\'s)',
+        severalRead.length === 12 && severalRead.every((o) => o.state === 'invalid' && o.plan === null && o.reason === 'written_parts' && same(RP.planLogFlags(o), ['plan:invalid', 'plan_model:' + o.choice]) && RP.planLogFlags(o).every((flag) => SAFE_FLAG.test(flag)))
+        && followRead.every((o) => o.state === 'plan' && !!o.plan && o.plan.followup === true && o.plan.parts.length === 2), [severalRead.map((o) => o.state + ':' + o.reason), followRead.map((o) => o.state)]);
+      // a part the server serves beside two written parts: the card of B19 beside the two rulings of B4; a worldly half beside them
+      const besideCard = { q: byId.B19.q + ' ' + byId.B4.q, raw: planWith([...byId.B19.ideal.parts, ...byId.B4.ideal.parts]) };
+      const besideWorldly = { q: mixedQ + ' ' + byId.B4.q, raw: planWith([...mixed.parts, ...byId.B4.ideal.parts]) };
+      const shapeOf = (x) => { const checked = RP.validatePlan(RP.parsePlan(JSON.stringify(x.raw)), { question: x.q, previous: [] }); return checked.ok ? RP.servedKinds(checked.plan, { question: x.q }) : []; };
+      const cardRead = await read(besideCard.raw, besideCard.q);
+      const worldlyRead = await read(besideWorldly.raw, besideWorldly.q);
+      ok('N3 [A3 item 1] a part the server serves beside two or more written parts: the plan is not applied either (the card of B19 beside the two rulings of B4; a worldly half beside them) -- while the same served part beside ONE written part is applied (B19; the worldly half beside a ruling, L12)',
+        shapeOf(besideCard)[0] === 'worship' && shapeOf(besideCard).filter((kind) => !kind).length >= 2 && cardRead.state === 'invalid' && cardRead.reason === 'written_parts' && cardRead.plan === null
+        && shapeOf(besideWorldly)[0] === 'worldly' && shapeOf(besideWorldly).filter((kind) => !kind).length >= 2 && worldlyRead.state === 'invalid' && worldlyRead.reason === 'written_parts'
+        && mixedRead.state === 'plan' && notApplied(planOf('B19'), byId.B19.q) === '', [shapeOf(besideCard), cardRead.state, cardRead.reason, shapeOf(besideWorldly), worldlyRead.state, worldlyRead.reason]);
+      // -- A3 item 3: what the TURN takes of a reading
+      const taken = (reading) => (typeof BW.bw2PartsReading === 'function' ? BW.bw2PartsReading(reading) : undefined);
+      const readingOfX = (x) => RP.readingOf(x.plan, { question: x.q, previous: x.prev });
+      const manyWritten = everyPlan.filter((x) => writtenOf(x) >= 2);
+      // the handler takes a worldly part back when the general frame cannot be derived (api/ask.js): that part is then the writer's
+      const mixedReading = RP.readingOf(mixedRead.plan, { question: mixedQ, previous: [] });
+      const takenBack = { ...mixedReading, parts: mixedReading.parts.map((p) => ({ ...p, served: '' })) };
+      const turnSource = fs.readFileSync(path.join(REPO, 'lib', 'before-writing-v2.js'), 'utf8');
+      const givenLines = turnSource.split('\n').map((line) => line.trim()).filter((line) => line.includes('readingGiven') && !line.startsWith('//') && !line.startsWith('*'));
+      ok('N7 [A3 item 3] NO PLAN WITH TWO OR MORE WRITTEN PARTS REACHES THE TURN\'S PART LOGIC. The reading whose parts the turn takes (bw2PartsReading) is null for every such plan of the capture and the fixture, the follow-ups among them (16), and for a reading the handler handed on with its worldly part taken back (two written parts then); it is the reading itself for every other plan. And the turn reads the reading it was GIVEN in three places only -- the narrowing, the reader\'s own message for the care readers, the gather beside the reading -- so the searches, the judge, the writer\'s rule and the releaser read the narrowed one',
+        manyWritten.length === 16 && manyWritten.every((x) => taken(readingOfX(x)) === null)
+        && everyPlan.filter((x) => !manyWritten.includes(x)).every((x) => { const r = readingOfX(x); return taken(r) === r; })
+        && mixedReading.parts[0].served === 'worldly' && taken(mixedReading) === mixedReading && taken(takenBack) === null && taken(null) === null
+        && givenLines.length === 4 && givenLines.some((line) => line.startsWith('reading: readingGiven = null')) && givenLines.includes('const reading = bw2PartsReading(readingGiven);')
+        && givenLines.some((line) => line.startsWith('const ownQuestion = readingGiven &&')) && givenLines.some((line) => line.startsWith('if (wanted.base !== pregather.key.base || (!reading && !!readingGiven && pregather.question !== String(question'))
+        && /const planMode = !!reading && /u.test(turnSource) && /if \(!planMode\) return null;/u.test(turnSource),
+        [manyWritten.length, manyWritten.filter((x) => taken(readingOfX(x)) !== null).map((x) => x.id), givenLines.length]);
     }
   }
 
