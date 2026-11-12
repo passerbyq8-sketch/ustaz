@@ -113,6 +113,26 @@ const sha = (text) => crypto.createHash('sha256').update(String(text || '')).dig
     globalThis.fetch = realFetch;
     ok('P11 a rejection that carries its own status is asked once, keeps that status and is not marked a connection failure',
       nOwn === 1 && !!own && own.status === 529 && own.providerType === undefined, [nOwn, own && own.status, own && own.providerType]);
+    {
+      // the page fills while the first try is in flight: the caller's function is asked when the second try is decided
+      let page = '';
+      let n = 0;
+      globalThis.fetch = async () => { n += 1; page = 'a card'; return reply(429, 'rate_limit_error'); };
+      const filled = await PC.providerFetch('https://provider.invalid/v1/messages', { method: 'POST', headers: {}, body: '{}' }, { retry: () => !page });
+      const nFilled = n;
+      n = 0;
+      globalThis.fetch = async () => { n += 1; return reply(429, 'rate_limit_error'); };
+      await PC.providerFetch('https://provider.invalid/v1/messages', { method: 'POST', headers: {}, body: '{}' }, { retry: () => true });
+      globalThis.fetch = realFetch;
+      ok('P9d [after the second helper] the caller may hand a function, asked when the second try is decided: a page that filled while the first try was in flight forbids the second; a page still empty allows it',
+        nFilled === 1 && filled.status === 429 && n === 2, [nFilled, n]);
+    }
+    ok('P13 [after the second helper] a body that cannot be read: dropped mid-way it is a lost connection; arrived whole and not JSON it is the word body; an aborted read is neither, and an error that carries its own status keeps it',
+      same(PC.providerFailureOf(PC.providerBodyLost(new TypeError('terminated'))), { status: 0, type: 'connection' })
+      && same(PC.providerFailureOf(PC.providerBodyLost(new SyntaxError('Unexpected token <'))), { status: 0, type: 'body' })
+      && PC.providerFailureOf(PC.providerBodyLost(new TypeError('terminated'), { aborted: true })) === null
+      && PC.providerFailureOf(PC.providerBodyLost(new SyntaxError('Unexpected token <'), { aborted: true })) === null
+      && same(PC.providerFailureOf(PC.providerBodyLost(Object.assign(new Error('x'), { status: 529 }))), { status: 529, type: '' }));
     ok('P12 what a module is handed instead of importing: the fetch, the error, the reader of the error',
       PC.PROVIDER_CALLS.fetch === PC.providerFetch && PC.PROVIDER_CALLS.error === PC.providerError && PC.PROVIDER_CALLS.failureOf === PC.providerFailureOf);
   }
@@ -162,7 +182,7 @@ const sha = (text) => crypto.createHash('sha256').update(String(text || '')).dig
    *   be read) | 'stream_error' (a stream that writes its first sentence and ends on the provider's error event)
    * `streamStop(nth)` is the reason a healthy stream stops (default end_turn).
    */
-  async function drive(messages, { provider = () => 'ok', plan = '', sorter = 'RELIGIOUS', env = {}, device = null, streamStop = () => 'end_turn' } = {}) {
+  async function drive(messages, { provider = () => 'ok', plan = '', sorter = 'RELIGIOUS', env = {}, device = null, streamStop = () => 'end_turn', roundStop = () => 'end_turn', writerText = WRITER_TEXT } = {}) {
     for (const k of ENV_KEYS) delete process.env[k];
     process.env.ANTHROPIC_API_KEY = KEY;
     process.env.BRAVE_API_KEY = KEY;
@@ -197,6 +217,12 @@ const sha = (text) => crypto.createHash('sha256').update(String(text || '')).dig
           if (b.stream) return { ok: true, status: 200, headers: { get: () => 'text/event-stream' }, text: terminated, body: { getReader: () => ({ read: terminated }), cancel: async () => {} } };
           return { ok: true, status: 200, url: u, headers: { get: () => 'application/json' }, text: terminated, json: terminated };
         }
+        if (does === 'notjson') {
+          // a 200 whose body arrives whole and is not JSON (a gateway's page); as a stream, one chunk that is no event
+          const page = '<html>gateway</html>';
+          if (b.stream) { let sent = false; return { ok: true, status: 200, headers: { get: () => 'text/event-stream' }, text: async () => page, body: { getReader: () => ({ read: async () => { if (sent) return { done: true, value: undefined }; sent = true; return { done: false, value: new TextEncoder().encode(page) }; } }), cancel: async () => {} } }; }
+          return { ok: true, status: 200, url: u, headers: { get: () => 'text/html' }, text: async () => page, json: async () => JSON.parse(page) };
+        }
         if (does !== 'ok' && does !== 'stream_error') return jsonResponse(u, { type: 'error', error: { type: ERR[does] || 'api_error', message: 'the request said: ' + String(init.body).slice(0, 200) } }, does);
         if (kind === 'reading') return jsonResponse(u, { content: [{ type: 'text', text: plan || 'I cannot.' }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
         if (kind === 'sorter') return jsonResponse(u, { content: [{ type: 'text', text: sorter }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
@@ -208,7 +234,7 @@ const sha = (text) => crypto.createHash('sha256').update(String(text || '')).dig
               done = true;
               const frames = 'data: ' + JSON.stringify({ type: 'message_start', message: { usage: { input_tokens: 9 } } }) + '\n\n'
                 + 'data: ' + JSON.stringify({ type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } }) + '\n\n'
-                + 'data: ' + JSON.stringify({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: WRITER_TEXT } }) + '\n\n'
+                + 'data: ' + JSON.stringify({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: writerText } }) + '\n\n'
                 + (does === 'stream_error'
                   ? 'data: ' + JSON.stringify({ type: 'error', error: { type: 'overloaded_error', message: 'the request said: ' + String(init.body).slice(0, 200) } }) + '\n\n'
                   : 'data: ' + JSON.stringify({ type: 'message_delta', delta: { stop_reason: streamStop(asked[kind]) }, usage: { output_tokens: 7 } }) + '\n\n'
@@ -217,7 +243,7 @@ const sha = (text) => crypto.createHash('sha256').update(String(text || '')).dig
             } }), cancel: async () => {} } };
         }
         if (!b.tools) return jsonResponse(u, { content: [{ type: 'text', text: JSON.stringify({ d: Object.fromEntries(Array.from({ length: 40 }, (_, i) => [String(i + 1), 1])) }) }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
-        return jsonResponse(u, { content: [{ type: 'text', text: WRITER_TEXT }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
+        return jsonResponse(u, { content: [{ type: 'text', text: WRITER_TEXT }], stop_reason: roundStop(asked[kind]), usage: { input_tokens: 1, output_tokens: 1 } });
       }
       calls.push('other ' + ((init && init.method) || 'GET') + ' ' + u.split('?')[0] + ' ' + sha(u + '|' + ((init && init.body) || '')));
       if (u.includes('api.search.brave.com')) return jsonResponse(u, { web: { results: [] } });
@@ -411,12 +437,41 @@ const sha = (text) => crypto.createHash('sha256').update(String(text || '')).dig
       && allTokens(writerOut).includes('writer:429:rate_limit_error'), [judgeOut.asked, writerOut.asked, allTokens(writerOut)]);
     // a continuation the provider refuses
     const more = await drive(user(q), { provider: (kind, nth) => (kind === 'stream' && nth === 2 ? 529 : 'ok'), streamStop: (nth) => (nth === 1 ? 'max_tokens' : 'end_turn'), env: { BW2_CONTINUE: 'off', REQUEST_PLAN_V1: 'off' } });
-    ok('D6 the writer stopped on its budget and the call that continues it was refused (529): that call is logged too, and the turn is not counted as lost (a model answered)',
-      more.crashed === '' && more.asked.stream === 2 && allTokens(more).includes('writer:529:overloaded_error') && !more.flags.includes(LOST_FLAG), [more.asked, allTokens(more), more.flags]);
+    ok('D6 [after the second helper] the writer stopped on its budget with nothing sourced released, and the call that continues it was refused (529): that call is logged, and the turn is lost to the provider -- the apology, not the sentence that no text was found, and no offer (where sourced text is already out the answer stands, cut: requestplan L23)',
+      more.crashed === '' && more.asked.stream === 2 && allTokens(more).includes('writer:529:overloaded_error') && more.text === LOST_TEXT && !more.offer
+      && more.flags.includes(LOST_FLAG) && !more.flags.includes('unsourced_withheld'), [more.asked, allTokens(more), more.flags, more.text]);
     // the judge's body drops, everything else healthy
     const judge = await drive(user(q), { provider: (kind) => (kind === 'judge' ? 'drop' : 'ok'), env: { REQUEST_PLAN_V1: 'off' } });
     ok('D7 the judge\'s reply loses its body, the rest healthy: logged as the judge\'s lost connection, not a lost turn',
       judge.crashed === '' && judge.text !== LOST_TEXT && !judge.flags.includes(LOST_FLAG) && allTokens(judge).includes('judge:0:connection'), [judge.text, allTokens(judge)]);
+
+    // -- after the SECOND refuting helper
+    // a 200 whose body is not JSON, on every call
+    const pages = [await drive(user(q), { provider: () => 'notjson' }), await drive(user(q), { provider: () => 'notjson', env: { REQUEST_PLAN_V1: 'off' } }),
+      await drive(user(q), { provider: () => 'notjson', env: { REQUEST_PLAN_V1: 'off', BW2_CONTINUE: 'off' } })];
+    ok('D8 [after the second helper] every call answered 200 with a body that is not JSON (a gateway\'s page): the apology on every path -- the reading on, off, and the hand-over off -- with the flag, and each failed call logged under the word body',
+      pages.every((t) => t.crashed === '' && t.text === LOST_TEXT && !t.offer && t.flags.includes(LOST_FLAG) && lostSaid(t) && allTokens(t).length > 0 && allTokens(t).every((tok) => /:0:body$/.test(tok)) && !leak(t, q)),
+      pages.map((t) => [t.text === LOST_TEXT, t.flags.includes(LOST_FLAG), allTokens(t)]));
+    // the older path, a partial failure: its round refused, its closing write answering
+    const partialOld = await drive(user(q), { provider: (kind) => (kind === 'write' || kind === 'sorter' ? 'ok' : 400), env: { REQUEST_PLAN_V1: 'off' } });
+    ok('D9 [after the second helper] the older path: the round refused (400) and the closing write answering is NOT a lost turn -- no apology, no flag; the refused calls are logged',
+      partialOld.crashed === '' && !partialOld.text.includes(LOST_TEXT) && !partialOld.flags.includes(LOST_FLAG) && !lostSaid(partialOld)
+      && allTokens(partialOld).includes('round:400:invalid_request_error') && allTokens(partialOld).includes('judge:400:invalid_request_error'), [partialOld.text, partialOld.flags, allTokens(partialOld)]);
+    // the older path: its round stops on its budget and the call that continues it is refused
+    const olderMore = await drive(user(q), { provider: (kind) => (kind === 'judge' || kind === 'stream' ? 400 : (kind === 'write' ? 529 : 'ok')), roundStop: (nth) => (nth === 1 ? 'max_tokens' : 'end_turn'), env: { REQUEST_PLAN_V1: 'off' } });
+    ok('D10 [after the second helper] the older path: a round stopped by its budget, the call that continues it refused (529): that call leaves its token, and it is asked ONCE -- the round\'s text is already the reader\'s, so nothing is tried again',
+      olderMore.crashed === '' && allTokens(olderMore).includes('write:529:overloaded_error') && olderMore.asked.write === 1 && olderMore.asked.round === 1, [olderMore.asked, allTokens(olderMore)]);
+    // the before-writing path: the judge refused, the writer asked, and it answers that the texts do not cover the question
+    const judgeOnly = await drive(user(q), { provider: (kind) => (kind === 'judge' ? 400 : 'ok'), writerText: '@@EZIK_NOT_COVERED@@', env: { BW2_CONTINUE: 'off', REQUEST_PLAN_V1: 'off' } });
+    ok('D11 [after the second helper] the before-writing path: a judge the provider refused keeps no row, and the path ends there -- the writer is NOT asked (so "the judge failed and the writer answered" is no state of a turn); with the hand-over off that is a lost turn: the apology, the flag, the judge\'s token',
+      judgeOnly.crashed === '' && !judgeOnly.asked.stream && judgeOnly.text === LOST_TEXT && !judgeOnly.offer && judgeOnly.flags.includes(LOST_FLAG)
+      && allTokens(judgeOnly).includes('judge:400:invalid_request_error'), [judgeOnly.asked, judgeOnly.text, judgeOnly.flags, allTokens(judgeOnly)]);
+    // a worldly part beside a ruling: the worldly part's call refused
+    const mixedQ = 'كم عدد سكان إندونيسيا؟ وما حكم السفر إلى إندونيسيا للسياحة؟';
+    const mixedPlan = JSON.stringify({ followup: false, parts: [{ q: 'كم عدد سكان إندونيسيا؟', kind: 'worldly', name: 'عدد سكان إندونيسيا' }, { q: 'ما حكم السفر إلى إندونيسيا للسياحة؟', kind: 'ruling', name: 'حكم السفر إلى إندونيسيا للسياحة' }] });
+    const worldly = await drive(user(mixedQ), { plan: mixedPlan, provider: (kind, nth) => (kind === 'write' && nth === 1 ? 400 : 'ok') });
+    ok('D12 [after the second helper] a worldly part\'s call the provider refused leaves its token in the turn\'s line',
+      worldly.crashed === '' && allTokens(worldly).includes('worldly:400:invalid_request_error'), [worldly.asked, allTokens(worldly)]);
   }
 
   for (const k of ENV_KEYS) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; }
