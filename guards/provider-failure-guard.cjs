@@ -468,20 +468,28 @@ const sha = (text) => crypto.createHash('sha256').update(String(text || '')).dig
       && allTokens(judgeOnly).includes('judge:400:invalid_request_error'), [judgeOnly.asked, judgeOnly.text, judgeOnly.flags, allTokens(judgeOnly)]);
     // (the older path's own rule for a second try -- none once its stream is the reader's or the turn's time is spent -- has no row:
     // see BRAIN-A2-evidence/tools/patch-provider-guard-d14.cjs for what was tried)
-    // a worldly part beside a ruling: the worldly part's call refused
-    const mixedQ = 'كم عدد سكان إندونيسيا؟ وما حكم السفر إلى إندونيسيا للسياحة؟';
+    // ORDER BATTERY2 (2026-11-14), re-cut of D12 and D13. They held what became of a worldly part's own call when the provider refused
+    // it. The handler no longer has the server make that call: a worldly part beside another part is a plan it does not apply
+    // (lib/request-plan.js planNotApplied, worldly_beside_other). There is no such failure to tell; what the rows hold now is
+    // that the call is not made and the reader is sent the switch-off turn's text. (The call's own token is still written by
+    // the turn's code for whoever hands it such a part: lib/before-writing-v2.js.)
+    // a worldly part beside a ruling
+    const mixedQ ='كم عدد سكان إندونيسيا؟ وما حكم السفر إلى إندونيسيا للسياحة؟';
     const mixedPlan = JSON.stringify({ followup: false, parts: [{ q: 'كم عدد سكان إندونيسيا؟', kind: 'worldly', name: 'عدد سكان إندونيسيا' }, { q: 'ما حكم السفر إلى إندونيسيا للسياحة؟', kind: 'ruling', name: 'حكم السفر إلى إندونيسيا للسياحة' }] });
     const worldly = await drive(user(mixedQ), { plan: mixedPlan, provider: (kind, nth) => (kind === 'write' && nth === 1 ? 400 : 'ok') });
-    ok('D12 [after the second helper] a worldly part\'s call the provider refused leaves its token in the turn\'s line',
-      worldly.crashed === '' && allTokens(worldly).includes('worldly:400:invalid_request_error'), [worldly.asked, allTokens(worldly)]);
-    // a card, a worldly part and a written part: the worldly part's call refused (429) with the card already out
+    const worldlyOff = await drive(user(mixedQ), { provider: (kind, nth) => (kind === 'write' && nth === 1 ? 400 : 'ok'), env: { REQUEST_PLAN_V1: 'off' } });
+    ok('D12 [after the second helper; BATTERY2 re-cut] a worldly part beside a ruling: no call is made for the worldly part (nothing of it to refuse, no token of it), and the reader is sent the text of the switch-off turn',
+      worldly.crashed === '' && worldlyOff.crashed === '' && !allTokens(worldly).some((t) => String(t).startsWith('worldly:')) && (worldly.asked.write || 0) === (worldlyOff.asked.write || 0)
+      && worldly.text === worldlyOff.text && worldly.text.length > 8, [worldly.asked, worldlyOff.asked, allTokens(worldly)]);
+    // a card, a worldly part and a written part
     const tripleQ = 'ما صفة الوضوء؟ وكم عدد سكان إندونيسيا؟ وما نواقض الوضوء؟';
     const triplePlan = JSON.stringify({ followup: false, parts: [{ q: 'ما صفة الوضوء؟', kind: 'manner', act: 'wudu', name: 'صفة الوضوء' },
       { q: 'كم عدد سكان إندونيسيا؟', kind: 'worldly', name: 'عدد سكان إندونيسيا' }, { q: 'ما نواقض الوضوء؟', kind: 'definition', name: 'نواقض الوضوء' }] });
     const cardThenWorldly = await drive(user(tripleQ), { plan: triplePlan, provider: (kind, nth) => (kind === 'write' && nth === 1 ? 429 : 'ok') });
-    ok('D13 [after the second helper] a card, then a worldly part whose call the provider refuses with 429: the card is on the reader\'s page when the second try is decided, so that call is asked ONCE; its token is in the turn\'s line',
-      cardThenWorldly.crashed === '' && cardThenWorldly.text.includes('<worship id="wudu"></worship>') && cardThenWorldly.asked.write === 1
-      && allTokens(cardThenWorldly).includes('worldly:429:rate_limit_error'), [cardThenWorldly.asked, allTokens(cardThenWorldly), cardThenWorldly.text.includes('<worship')]);
+    const cardThenWorldlyOff = await drive(user(tripleQ), { provider: (kind, nth) => (kind === 'write' && nth === 1 ? 429 : 'ok'), env: { REQUEST_PLAN_V1: 'off' } });
+    ok('D13 [after the second helper; BATTERY2 re-cut] a card, a worldly part and a written part: the plan is not applied, so no call is made for the worldly part (no token of it) and the reader is sent the text of the switch-off turn',
+      cardThenWorldly.crashed === '' && cardThenWorldlyOff.crashed === '' && !allTokens(cardThenWorldly).some((t) => String(t).startsWith('worldly:')) && (cardThenWorldly.asked.write || 0) === (cardThenWorldlyOff.asked.write || 0)
+      && cardThenWorldly.text === cardThenWorldlyOff.text && cardThenWorldly.text.length > 8, [cardThenWorldly.asked, cardThenWorldlyOff.asked, allTokens(cardThenWorldly), cardThenWorldly.text.includes('<worship')]);
   }
 
   for (const k of ENV_KEYS) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; }

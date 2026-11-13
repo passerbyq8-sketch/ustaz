@@ -1565,6 +1565,113 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         }
         ok('N5f [A3-CAPTURE section 4] the same conversations with ONE part in the follow-up are applied as before the round: the [reading] line says plan, one part, and the sources are asked the question the server resolved (every source call the switch-off turn makes for a message with that text is made)',
           oneSeen.length === 2 && oneSeen.every((row) => row.every(Boolean)), oneSeen);
+        // ORDER BATTERY2 (2026-11-14, section 5): A WORLDLY PART BESIDE ANOTHER PART IS NOT APPLIED (worldly_beside_other), AND NO PART IS
+        // HANDED ON AS WORLDLY. Until this round the server answered such a part itself, from general knowledge; wherever its reply
+        // was not delivered (refused by the filter, empty, late, the call refused) the reader was sent a line that named no part,
+        // and production's writer answers the part (MEASURED through the real handler, BRAIN-A-BATTERY2-evidence). The rule is the
+        // SHAPE of the plan and nothing else. The sentences below were written for these rows: none is a question that a capture,
+        // a box or a battery asked.
+        {
+          const bPart = (name, q, kind, extra = {}) => ({ name, q, kind, needs: [], source: [], act: '', chapter: '', ...extra });
+          const and = (q) => 'و' + q;
+          const RAINBOW = 'كم لونا في قوس قزح؟';
+          const NILE = 'ما أعلى جبل في آسيا؟';
+          const GOLD = 'ما حكم بيع الذهب بالتقسيط؟';
+          const RAIN = 'هل يجوز بيع الثمر قبل نضجه؟';
+          const TAYAMMUM = 'كيف أتيمم؟';
+          const pRainbow = (q) => bPart('ألوان قوس قزح', q, 'worldly');
+          const pNile = (q) => bPart('أعلى جبل في آسيا', q, 'worldly');
+          const pGold = (q) => bPart('بيع الذهب بالتقسيط', q, 'ruling');
+          const pRain = (q) => bPart('بيع الثمر قبل نضجه', q, 'ruling');
+          const pTayammum = (q) => bPart('صفة التيمم', q, 'manner', { act: 'tayammum' });
+          const beside = [
+            { id: 'ruling+worldly', q: GOLD + ' ' + and(RAINBOW), raw: planWith([pGold(GOLD), pRainbow(and(RAINBOW))]), served: ['', 'worldly'] },
+            { id: 'worldly+ruling', q: NILE + ' ' + and(RAIN), raw: planWith([pNile(NILE), pRain(and(RAIN))]), served: ['worldly', ''] },
+            { id: 'worldly+card', q: RAINBOW + ' ' + and(TAYAMMUM), raw: planWith([pRainbow(RAINBOW), pTayammum(and(TAYAMMUM))]), served: ['worldly', 'worship'] },
+            { id: 'card+worldly', q: TAYAMMUM + ' ' + and(NILE), raw: planWith([pTayammum(TAYAMMUM), pNile(and(NILE))]), served: ['worship', 'worldly'] },
+            { id: 'card+worldly+ruling', q: TAYAMMUM + ' ' + and(RAINBOW) + ' ' + and(GOLD), raw: planWith([pTayammum(TAYAMMUM), pRainbow(and(RAINBOW)), pGold(and(GOLD))]), served: ['worship', 'worldly', ''] },
+          ];
+          const checkedOf = (x) => RP.validatePlan(RP.parsePlan(JSON.stringify(x.raw)), { question: x.q, previous: x.prev || [] });
+          const shapeRow = (x) => { const c = checkedOf(x); return [x.id, c.ok, c.ok ? RP.servedKinds(c.plan, { question: x.q }) : [], c.ok ? RP.planNotApplied(c.plan, { question: x.q }) : null, c.ok ? RP.planApplies(c.plan, { question: x.q }) : null]; };
+          const besideShapes = beside.map(shapeRow);
+          ok('W1 [BATTERY2 section 5] a part the server WOULD answer as worldly (the reader\'s own plain sentence) beside any part that is not one -- a ruling before it, a ruling after it, a card before it, a card after it, a card and a ruling -- is a good plan the server does not apply: the closed reason worldly_beside_other',
+            beside.every((x, i) => besideShapes[i][1] === true && same(besideShapes[i][2], x.served) && besideShapes[i][3] === 'worldly_beside_other' && besideShapes[i][4] === false), besideShapes);
+          const others = [
+            { id: 'worldly-alone', q: RAINBOW, raw: planWith([pRainbow(RAINBOW)]), served: ['worldly'], want: '' },
+            { id: 'worldly+worldly', q: RAINBOW + ' ' + and(NILE), raw: planWith([pRainbow(RAINBOW), pNile(and(NILE))]), served: ['worldly', 'worldly'], want: '' },
+            { id: 'ruling+card', q: GOLD + ' ' + and(TAYAMMUM), raw: planWith([pGold(GOLD), pTayammum(and(TAYAMMUM))]), served: ['', 'worship'], want: '' },
+            { id: 'ruling+ruling+worldly', q: GOLD + ' ' + and(RAIN) + ' ' + and(RAINBOW), raw: planWith([pGold(GOLD), pRain(and(RAIN)), pRainbow(and(RAINBOW))]), served: ['', '', 'worldly'], want: 'written_parts' },
+          ];
+          const otherShapes = others.map(shapeRow);
+          // (the worldly half REWORDED by the plan is no sentence of the reader's: never the server's, so never this reason)
+          const rewordedPlan = checkedOf({ q: GOLD + ' ' + and(RAINBOW), raw: planWith([pGold(GOLD), bPart('ألوان قوس قزح', 'ما عدد ألوان قوس قزح؟', 'worldly')]) });
+          const rewordedReason = rewordedPlan.ok ? RP.planNotApplied(rewordedPlan.plan, { question: GOLD + ' ' + and(RAINBOW) }) : 'invalid:' + rewordedPlan.reason;
+          ok('W2 [BATTERY2 section 5] ...and nothing else is: worldly parts alone (one, two) are applied as before (their word for the whole question is planWorldlyClaim\'s), a card beside a ruling is applied as before, a worldly part beside TWO written parts keeps the older reason (written_parts), and a worldly half the plan reworded was never the server\'s (' + rewordedReason + ')',
+            others.every((x, i) => otherShapes[i][1] === true && same(otherShapes[i][2], x.served) && otherShapes[i][3] === x.want && otherShapes[i][4] === (x.want === ''))
+            && rewordedReason !== 'worldly_beside_other' && rewordedReason !== '', [otherShapes, rewordedReason]);
+          const readOfShape = (x) => RP.startReading({ messages: user(x.q), ask: async () => JSON.stringify(x.raw), env: {}, timeoutMs: 300 }).promise;
+          const besideReads = [];
+          for (const x of beside) { const r = await readOfShape(x); besideReads.push([x.id, r.state, r.reason, r.plan === null, r.full]); }
+          ok('W3 [BATTERY2 section 5] the reading of such a message ends invalid, with that reason, no plan and no question of its own (it is no follow-up): what the handler is given is the outcome of a failed reading',
+            besideReads.every((row) => row[1] === 'invalid' && row[2] === 'worldly_beside_other' && row[3] === true && row[4] === ''), besideReads.map((row) => row.slice(0, 4)));
+          // through the real handler: the turn with that plan against the turn of the switch-off configuration, the sorter's word either way
+          const wholeOf = (d) => { const o = JSON.parse(digest(d)); return JSON.stringify({ ...o, calls: o.calls.filter((c) => c.includes('api.anthropic.com')) }); };
+          const srcsOf = (d) => JSON.parse(digest(d)).calls.filter((c) => !c.includes('api.anthropic.com'));
+          const bDiffers = []; const bLines = []; const bAsked = []; const bWorldlyCalls = []; const bFailedLine = []; const bMissing = []; const bOther = []; const bStrict = [];
+          for (const x of beside) {
+            for (const word of ['RELIGIOUS', 'WORLDLY']) {
+              const offTurn = await drive(user(x.q), { env: { REQUEST_PLAN_V1: 'off' }, sorter: word });
+              const onTurn = await drive(user(x.q), { plan: JSON.stringify(x.raw), sorter: word });
+              const line = onTurn.logOf('[reading]') || {};
+              bLines.push(String(line.outcome) + ':' + String(line.reason) + ':' + String(line.count) + ':' + String(line.kind));
+              bAsked.push(onTurn.counts.reading === 1 && offTurn.counts.reading === 0 && onTurn.counts.sorter === offTurn.counts.sorter && onTurn.counts.writer === offTurn.counts.writer);
+              if (onTurn.crashed || offTurn.crashed || wholeOf(onTurn) !== wholeOf(offTurn)) bDiffers.push(x.id + ':' + word);
+              if (digest(onTurn) === digest(offTurn)) bStrict.push(x.id + ':' + word);
+              if ((onTurn.counts.worldly || 0) + (offTurn.counts.worldly || 0) > 0) bWorldlyCalls.push(x.id + ':' + word);
+              if (onTurn.text.includes(BW.BW2_WORLDLY_FAILED) || onTurn.text.length < 8) bFailedLine.push(x.id + ':' + word);
+              const extra = [...srcsOf(onTurn)];
+              for (const c of srcsOf(offTurn)) { const i = extra.indexOf(c); if (i < 0) bMissing.push(x.id + ':' + word); else extra.splice(i, 1); }
+              if (extra.some((c) => !c.startsWith('call:GET ' + FC.FATWA_BASE))) bOther.push(x.id + ':' + word);
+            }
+          }
+          ok('W4 [BATTERY2 section 5] THROUGH THE REAL HANDLER, on each of the five shapes, the sorter\'s word RELIGIOUS and WORLDLY: the reading is asked once, its plan is not applied, and the turn is the switch-off turn -- the reader\'s frames, the text, the route, every call to a model; the sorter and the writer are asked as often as with the switch off; every source call of the switch-off turn is made, and any call beside them is a query of the gather that ran beside the reading (the cost of a failed reading, I4h)',
+            beside.length === 5 && bDiffers.length === 0 && bAsked.every(Boolean) && bMissing.length === 0 && bOther.length === 0, [bDiffers, bAsked, bMissing, bOther, 'strictly equal, source calls too: ' + bStrict.length + ' of 10']);
+          ok('W5 [BATTERY2 section 5] ...NO general-knowledge call is made for the worldly half in any of them (the server answers no part as worldly), the line that a part could not be answered now is nowhere in what the reader is sent, and the [reading] line says why in closed words (invalid, worldly_beside_other, no part and no kind)',
+            bWorldlyCalls.length === 0 && bFailedLine.length === 0 && bLines.length === 10 && bLines.every((line) => line === 'invalid:worldly_beside_other:0:null'), [bWorldlyCalls, bFailedLine, bLines]);
+          const bShown = await drive(user(beside[0].q), { plan: JSON.stringify(beside[0].raw), env: PREVIEW, headers: { 'x-ezik-diag': '1' } });
+          const bPlain = await drive(user(beside[0].q), { plan: JSON.stringify(beside[0].raw), env: PREVIEW });
+          ok('W6 [BATTERY2 section 5] on a preview deployment under the diagnostic header the reading\'s end frame says it too -- the fallback ran, state invalid, reason worldly_beside_other, no plan -- and without the header: the fallback ran, and no more',
+            !bShown.crashed && bShown.reads.length === 2 && bShown.reads[1].outcome === 'fallback' && bShown.reads[1].state === 'invalid' && bShown.reads[1].reason === 'worldly_beside_other' && bShown.reads[1].plan === null
+            && bPlain.reads.length === 2 && bPlain.reads[1].outcome === 'fallback' && !('reason' in bPlain.reads[1]) && !('plan' in bPlain.reads[1]), [bShown.reads[1], bPlain.reads[1]]);
+          // WORLDLY PARTS AND NOTHING ELSE, in a turn that is religious all the same: asked after a religious turn, the plan calls the
+          // message worldly and no follow-up, and the sorter (asked, the claim being contested) says RELIGIOUS. Until this round the
+          // server answered such a turn itself from general knowledge, with no source and no writer (MEASURED, the same evidence).
+          const afterConvo = (q) => [{ role: 'user', content: GOLD }, { role: 'assistant', content: 'جواب سابق.' }, { role: 'user', content: q }];
+          const loneShapes = [
+            { id: 'one-worldly-after-a-religious-turn', q: RAINBOW, raw: planWith([pRainbow(RAINBOW)]) },
+            { id: 'two-worldly-after-a-religious-turn', q: RAINBOW + ' ' + and(NILE), raw: planWith([pRainbow(RAINBOW), pNile(and(NILE))]) },
+          ];
+          const loneSeen = [];
+          for (const x of loneShapes) {
+            const claim = RP.planWorldlyClaim(checkedOf({ ...x, prev: [GOLD] }).plan, { question: x.q, previous: [GOLD] });
+            const offTurn = await drive(afterConvo(x.q), { env: { REQUEST_PLAN_V1: 'off' }, sorter: 'RELIGIOUS' });
+            const onTurn = await drive(afterConvo(x.q), { plan: JSON.stringify(x.raw), sorter: 'RELIGIOUS' });
+            const route = onTurn.logOf('[route]') || {};
+            loneSeen.push([x.id, !offTurn.crashed && !onTurn.crashed, claim === 'contested', (onTurn.logOf('[reading]') || {}).outcome === 'plan', onTurn.counts.sorter === 1 && route.sorter === 'religious',
+              (onTurn.logOf('[free-brain]') || {}).bw2 === true && (offTurn.logOf('[free-brain]') || {}).bw2 === true, (onTurn.counts.worldly || 0) === 0, onTurn.counts.writer === offTurn.counts.writer && onTurn.counts.writer >= 1,
+              onTurn.text === offTurn.text && onTurn.text.length > 8 && !onTurn.text.includes(BW.BW2_WORLDLY_FAILED)]);
+          }
+          ok('W7 [BATTERY2 section 5] a plan made of worldly parts ALONE (one, two), asked after a religious turn, the sorter saying RELIGIOUS: the plan is applied, its word for the whole question is not taken (contested: the sorter is asked and decides), and NOTHING is answered from general knowledge -- no such call is made, the writer is asked as with the switch off, and the reader is sent the text of the switch-off turn',
+            loneSeen.length === 2 && loneSeen.every((row) => row.slice(1).every(Boolean)), loneSeen);
+          const allWorldly = others.slice(0, 2).map((x) => RP.exclusionAfterPlan('canonical_store', checkedOf(x).plan, { question: x.q }));
+          ok('W8 [BATTERY2 section 5] a worldly part no longer lifts the canonical-store route (it did while the server answered such a part): a plan of worldly parts keeps the route its words had; the card still lifts it beside a ruling',
+            same(allWorldly, ['canonical_store', 'canonical_store']) && RP.exclusionAfterPlan('canonical_store', checkedOf(others[2]).plan, { question: others[2].q }) === ''
+            && source.includes("return plan.parts.every((p, i) => served[i] === 'worship' || PLAN_PATH_KINDS.includes(p.kind)) ? '' : 'canonical_store';"), allWorldly);
+          ok('W9 [BATTERY2 section 5] the two lines that hold it: the plan\'s closed reason reads the served kinds alone, and the handler hands no part on as worldly and derives no frame for one',
+            source.includes("if (served.includes('worldly') && served.some((kind) => kind !== 'worldly')) return 'worldly_beside_other';")
+            && askSource.includes("parts: reading.parts.map((p) => (p.served === 'worldly' ? { ...p, served: '' } : p)),") && askSource.includes('worldlySystem: null,') && !askSource.includes('worldlyFrame'),
+            [askSource.includes('worldlyFrame')]);
+        }
         // ORDER A3-CAPTURE, after its two helpers (HELPER-REFUTATION-A3C.md R1; HELPER-REFUTATION-A3C-second.md R1 to R3): THE READING READS THE
         // READER'S MESSAGE, NOT ONE THE HANDLER REWROTE. After a quoted page the reader's request to explain it is rewritten into the
         // request with its page (lib/lib-quote.js, in the handler). The reading used to be asked of that message and the gather
@@ -2455,8 +2562,11 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const b19wPlan = RP.validatePlan(RP.parsePlan(JSON.stringify(CAP['F-B19w'].plan)), { question: CAP['F-B19w'].q, previous: [] }).plan;
       const alone = planWith([partOf('هل ورد في القرآن ذكر لمنازل القمر؟', 'tafsir')]);
       // (ORDER A3, re-cut: two parts that ask the Qur'an with none served were applied; they are two parts for the writer, and are not -- N1)
-      ok('L12 [item 2; A3 item 1] and only then: a worldly half beside a ruling is still the server\'s, so are a card beside a list and a Qur\'an question alone; two parts that ask the Qur\'an with none served are not applied for ANOTHER reason (two parts for the writer: written_parts), not for this one; and it is the READER\'s words that name the Qur\'an, whatever kind the model wrote for that half',
-        mixedRead.state === 'plan' && RP.servedKinds(mixedRead.plan, { question: mixedQ })[0] === 'worldly' && applies(mixedRead.plan, mixedQ) === true
+      // (ORDER BATTERY2, re-cut: a worldly half beside a ruling was applied, the worldly half the server's; such a plan is not applied
+      // any more, for a reason of its own -- worldly_beside_other, rows W1 to W9)
+      const mixedPlan = RP.validatePlan(RP.parsePlan(JSON.stringify(mixed)), { question: mixedQ, previous: [] }).plan;
+      ok('L12 [item 2; A3 item 1; BATTERY2] and only then: a card beside a list and a Qur\'an question alone are still applied; a worldly half beside a ruling is not applied for ANOTHER reason (worldly_beside_other), and two parts that ask the Qur\'an with none served for another still (two parts for the writer: written_parts), not for this one; and it is the READER\'s words that name the Qur\'an, whatever kind the model wrote for that half',
+        mixedRead.state === 'invalid' && mixedRead.reason === 'worldly_beside_other' && mixedRead.plan === null && RP.servedKinds(mixedPlan, { question: mixedQ })[0] === 'worldly' && applies(mixedPlan, mixedQ) === false
         && applies(p7plan, CAP['F-P7'].q) === false && typeof RP.planNotApplied === 'function' && RP.planNotApplied(p7plan, { question: CAP['F-P7'].q }) === 'written_parts' && applies(b19wPlan, CAP['F-B19w'].q) === true
         && (await read(alone, 'هل ورد في القرآن ذكر لمنازل القمر؟')).state === 'plan' && same([...(RP.PLAN_QURAN_KINDS || [])], ['tafsir', 'quran_text'])
         && relabelled.every((r) => r.state === 'invalid' && r.reason === 'quran_beside_served'), [mixedRead.state, relabelled.map((r) => r.state)]);
@@ -2486,7 +2596,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         && rest.every((x) => !['written_parts', 'followup_written_parts'].includes(notApplied(x.plan, x.q)))
         && ['F-B19', 'F-B19b', 'F-B19w', 'B19', 'B19b', 'B19w'].every((id) => { const x = planById(id); return !!x && x.plan.parts.length === 2 && notApplied(x.plan, x.q) === '' && applies(x.plan, x.q) === true; })
         && ['F-P9', 'P9'].every((id) => notApplied(planById(id).plan, planById(id).q) === 'quran_beside_served')
-        && same([...(RP.PLAN_NOT_APPLIED || [])], ['quran_beside_served', 'written_parts', 'followup_written_parts']),
+        && same([...(RP.PLAN_NOT_APPLIED || [])], ['quran_beside_served', 'written_parts', 'followup_written_parts', 'worldly_beside_other']),
         [several.map((x) => x.id).sort().join(' '), followSeveral.map((x) => x.id).sort().join(' '), followSeveral.map((x) => notApplied(x.plan, x.q)), everyPlan.length]);
       const readOf = (x) => RP.startReading({ messages: [...x.prev.flatMap((p) => [{ role: 'user', content: p }, { role: 'assistant', content: 'PREVIOUS-ANSWER.' }]), { role: 'user', content: x.q }], ask: async () => JSON.stringify(x.raw), env: {}, timeoutMs: 300 }).promise;
       const severalRead = [];
@@ -2548,16 +2658,16 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const shapeOf = (x) => { const checked = RP.validatePlan(RP.parsePlan(JSON.stringify(x.raw)), { question: x.q, previous: [] }); return checked.ok ? RP.servedKinds(checked.plan, { question: x.q }) : []; };
       const cardRead = await read(besideCard.raw, besideCard.q);
       const worldlyRead = await read(besideWorldly.raw, besideWorldly.q);
-      ok('N3 [A3 item 1] a part the server serves beside two or more written parts: the plan is not applied either (the card of B19 beside the two rulings of B4; a worldly half beside them) -- while the same served part beside ONE written part is applied (B19; the worldly half beside a ruling, L12)',
+      ok('N3 [A3 item 1; BATTERY2] a part the server serves beside two or more written parts: the plan is not applied either (the card of B19 beside the two rulings of B4; a worldly half beside them, which keeps this older reason) -- while a card beside ONE written part is applied (B19), and a worldly half beside one ruling is not, for its own reason (L12)',
         shapeOf(besideCard)[0] === 'worship' && shapeOf(besideCard).filter((kind) => !kind).length >= 2 && cardRead.state === 'invalid' && cardRead.reason === 'written_parts' && cardRead.plan === null
         && shapeOf(besideWorldly)[0] === 'worldly' && shapeOf(besideWorldly).filter((kind) => !kind).length >= 2 && worldlyRead.state === 'invalid' && worldlyRead.reason === 'written_parts'
-        && mixedRead.state === 'plan' && notApplied(planOf('B19'), byId.B19.q) === '', [shapeOf(besideCard), cardRead.state, cardRead.reason, shapeOf(besideWorldly), worldlyRead.state, worldlyRead.reason]);
+        && mixedRead.state === 'invalid' && mixedRead.reason === 'worldly_beside_other' && notApplied(planOf('B19'), byId.B19.q) === '', [shapeOf(besideCard), cardRead.state, cardRead.reason, shapeOf(besideWorldly), worldlyRead.state, worldlyRead.reason]);
       // -- A3 item 3: what the TURN takes of a reading
       const taken = (reading) => (typeof BW.bw2PartsReading === 'function' ? BW.bw2PartsReading(reading) : undefined);
       const readingOfX = (x) => RP.readingOf(x.plan, { question: x.q, previous: x.prev });
       const manyWritten = everyPlan.filter((x) => writtenOf(x) >= 2);
-      // the handler takes a worldly part back when the general frame cannot be derived (api/ask.js): that part is then the writer's
-      const mixedReading = RP.readingOf(mixedRead.plan, { question: mixedQ, previous: [] });
+      // the handler takes every worldly part back (api/ask.js; since ORDER BATTERY2 whatever the frame): that part is then the writer's
+      const mixedReading = RP.readingOf(mixedPlan, { question: mixedQ, previous: [] });
       const takenBack = { ...mixedReading, parts: mixedReading.parts.map((p) => ({ ...p, served: '' })) };
       const turnSource = fs.readFileSync(path.join(REPO, 'lib', 'before-writing-v2.js'), 'utf8');
       const givenLines = turnSource.split('\n').map((line) => line.trim()).filter((line) => line.includes('readingGiven') && !line.startsWith('//') && !line.startsWith('*'));

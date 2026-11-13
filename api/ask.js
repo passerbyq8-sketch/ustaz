@@ -2305,14 +2305,17 @@ export default async function handler(req, res) {
     const bw2Taken = freeBrain.enabled && !childBenignReserved && bw2Route.takes;
     // BRAIN-A: the gather that ran beside the reading is read by the before-writing path alone
     if (readingPregather && !bw2Taken) readingPregather.cancel();
-    // A worldly part is answered under the GENERAL frame of the system already built (lib/general-frame.js); where that frame
-    // cannot be derived the part is not served and stays under the religious rules.
-    const worldlyFrame = reading && reading.parts.some((p) => p.served === 'worldly')
-      ? generalizeSystemBlocks(system, depthInstruction, effectiveDepth) : null;
+    // ORDER BATTERY2 (2026-11-14): NO PART IS HANDED ON AS WORLDLY. The server answered such a part itself, from general
+    // knowledge under the GENERAL frame; where its reply was not delivered the reader was sent a line that named no part, and
+    // production's writer answers the part (MEASURED, BRAIN-A-BATTERY2-evidence). A worldly part beside another part is now a
+    // plan the server does not apply (lib/request-plan.js planNotApplied, `worldly_beside_other`): the turn of before. What
+    // can still reach this line is a plan made of worldly parts alone in a turn that is religious all the same (the sorter said
+    // so, or was not to be asked): its parts are the writer's, under the religious rules, and nothing is answered from
+    // general knowledge in a turn the sorter called religious (the frame is no longer derived here at all).
     const readingForPath = reading ? {
       ...reading,
-      parts: reading.parts.map((p) => (p.served === 'worldly' && !(worldlyFrame && worldlyFrame.replaced) ? { ...p, served: '' } : p)),
-      worldlySystem: worldlyFrame && worldlyFrame.replaced ? worldlyFrame.blocks : null,
+      parts: reading.parts.map((p) => (p.served === 'worldly' ? { ...p, served: '' } : p)),
+      worldlySystem: null,
     } : null;
     // THE GENERAL FRAME (order EZIK-SORTER-ORDER-2026-10-01, part 2): the system of an adult whose final runtime
     // is GENERAL, derived from the very system built above (so the date block is not built twice) and chosen
