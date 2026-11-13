@@ -850,6 +850,36 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const ghR = ghPlan.reading ? await turn({ question: GH_Q, reading: ghPlan.reading, deps: ghRepeat.deps }) : { text: '' };
       ok('HD4 [A-TAKHRIJ 4.1] the writer repeats the served part\'s name as a heading: it is dropped as it was (the name is the server\'s part), the card stands bare and once, and the written part\'s text goes out',
         ghR.text.startsWith(GH_CARD + '\n\n') && ghR.text.split(GH_CARD).length === 2 && !headingAbove(ghR.text, GH_CARD) && !/^#+\s*أغتسل\s*$/mu.test(ghR.text) && ghR.text.includes('يجب الغسل'), ghR.text.slice(0, 120));
+
+      // -- AFTER THE SECOND HELPER (HELPER-REFUTATION-TAKHRIJ-2 2.6): the rows above use one act and two of the places a served block
+      // goes out from; a heading put above the card of another act, or at another exit, passed them all. HD8: every act, the card first
+      // and second, with a row for the written part and with none (the lead, the append after the writer's text, the close when the
+      // writer's parts end with nothing). HD9: every part the server's, the worldly sentence late and the card after it.
+      const ACT_Q = { salah: 'كيف أصلي؟', wudu: 'كيف أتوضأ؟', ghusl: 'كيف أغتسل؟', tayammum: 'كيف أتيمم؟' };
+      const GOLD_Q = 'ما حكم بيع الذهب بالتقسيط؟'; const GOLD_TEXT = 'لا يجوز بيع الذهب بالتقسيط إلا يدا بيد.';
+      const shapes = [];
+      for (const act of RP.PLAN_ACTS) for (const first of [true, false]) for (const withRow of [true, false]) {
+        const tagOf = '<worship id="' + act + '"></worship>';
+        const q = first ? ACT_Q[act] + ' و' + GOLD_Q : GOLD_Q + ' و' + ACT_Q[act];
+        const two = [partOf(ACT_Q[act], 'manner', { name: 'الطريقة', act }), partOf(GOLD_Q, 'ruling', { name: 'بيع الذهب' })];
+        const made = scripted(planWith(first ? two : [two[1], two[0]]), q);
+        const deps = makeDeps({ rows: withRow ? [fatwaRow('بيع الذهب بالتقسيط', GOLD_TEXT, 33)] : [], writerText: GOLD_TEXT.replace(/\.$/u, '') + ' [[1]].' });
+        const got = made.reading ? await turn({ question: q, reading: made.reading, deps: deps.deps, continueWhenNotCovered: true }) : { text: '', out: {} };
+        const servedPart = made.reading ? made.reading.parts.find((p) => p.served) : null;
+        shapes.push({ act, first, withRow, served: made.reading ? made.reading.parts.map((p) => p.served).join(',') : 'no reading', once: got.text.split(tagOf).length === 2,
+          bare: !headingAbove(got.text, tagOf), lead: !first || got.text.startsWith(tagOf + '\n\n'),
+          unnamed: !!servedPart && !new RegExp('^#+\\s*' + String(servedPart.title).replace(/[.*+?^${}()|[\]\\]/gu, '\\$&') + '\\s*$', 'mu').test(got.text), stayed: got.out.continued !== true });
+      }
+      ok('HD8 [A-TAKHRIJ 4.1, after the second helper] EVERY ACT, EVERY PLACE: the card of each of the four acts beside a written part, first and second, with a row for the written part and with none -- sixteen turns: the card once, no heading directly above it, its part\'s name in no heading, and no hand-over to the older path',
+        shapes.length === 16 && shapes.every((s) => s.served === (s.first ? 'worship,' : ',worship') && s.once && s.bare && s.lead && s.unnamed && s.stayed),
+        shapes.filter((s) => !(s.served === (s.first ? 'worship,' : ',worship') && s.once && s.bare && s.lead && s.unnamed && s.stayed)));
+      const LATE_Q = 'ما عاصمة اليابان؟ وكيف أغتسل؟';
+      const latePlan = scripted(planWith([partOf('ما عاصمة اليابان؟', 'worldly', { name: 'عاصمة اليابان' }), partOf('كيف أغتسل؟', 'manner', { name: 'أغتسل', act: 'ghusl' })]), LATE_Q);
+      const lateDeps = makeDeps({ rows: [], worldlyText: WL_WORLD, worldlyDelayMs: 60 });
+      const late = latePlan.reading ? await turn({ question: LATE_Q, reading: { ...latePlan.reading, worldlySystem: 'GENERAL-FRAME' }, deps: lateDeps.deps, startedAgoMs: 7000 }) : { text: '' };
+      ok('HD9 [A-TAKHRIJ 4.1, after the second helper] every part the server\'s, the worldly sentence not ready when the turn starts: the sentence, then the card, each bare, and nothing else',
+        !!latePlan.reading && same(latePlan.reading.parts.map((p) => p.served), ['worldly', 'worship']) && late.text === WL_WORLD + '\n\n' + GH_CARD + '\n\n' && lateDeps.calls.writer === 0,
+        { served: latePlan.reading && latePlan.reading.parts.map((p) => p.served), text: late.text });
     }
 
     // H8 -- ORDER A-TAKHRIJ (2026-11-13): THE TAKHRIJ LOOKUP STARTED BESIDE THE READING IS THE TURN'S OWN WHENEVER THE TURN TAKES IT,
@@ -986,6 +1016,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       // -- AFTER THE HELPER (HELPER-REFUTATION-TAKHRIJ 2.3 to 2.6, 4.1): T1 to T6 ran on one runtime with one written part, passed no
       // request signal, drove no served-only exit and looked at no ladder passage; four regressions of the cure passed them all.
       const outcomes8 = (r) => r.log.lookups.map((l) => l.outcome);
+      const TK8 = await esm('lib/takhrij.js');
       // T7: the STORED_FIQH runtime, where the grade head alone is wanted
       const offFiqh = await without8({ message: INSTR8, delay: LATE8, runtime: 'STORED_FIQH' });
       const onFiqh = await withReading8({ message: INSTR8, planQ: ONE8, delay: LATE8, runtime: 'STORED_FIQH' });
@@ -1028,21 +1059,62 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       await sleep8(LATE8 + 60);
       ok('T11 [A-TAKHRIJ, after the helper] the turn\'s own gather throws after it discarded the gather beside the reading: the turn ends there, and the lookup it had taken is aborted, not left running to its budget',
         threw11 && made11.log.lookups.length >= 1 && made11.log.lookups.every((l) => l.outcome === 'aborted'), { threw: threw11, lookups: made11.log.lookups.map((l) => l.outcome) });
-      // T12: a follow-up whose OWN message asks the grade of a text it quotes (the full question is the message less its welded «و»):
-      // the lookup beside the reading reads the reader's message and is the turn's -- one lookup, none aborted, none asked twice
+      // (T12, T13, T13b, T15 on BOTH runtimes: HELPER-REFUTATION-TAKHRIJ-2 2.6 -- the rule read on one runtime only passed every row)
+      const RUNTIMES8 = ['HADITH', 'STORED_FIQH'];
+      // T12: a follow-up whose own message AND whose full question both ask the grade of the quoted text (the full question is the
+      // message less its welded «و»). The turn reads its question, as it always did; the lookup that had started beside the reading
+      // on the message is not the turn's, and is aborted AT ONCE although the gather is kept (it was left running to its end).
       const QB2 = 'وهل يصح حديث «' + MATN8 + '»؟'; const FULLB2 = 'هل يصح حديث «' + MATN8 + '»؟';
-      const onB2 = await withReading8({ message: QB2, planQ: FULLB2, previous: [FIRST8], followup: true, full: FULLB2, delay: LATE8 });
-      ok('T12 [A-TAKHRIJ, after the helper] a follow-up whose own message asks the grade of a text it quotes: the lookup beside the reading IS the turn\'s -- asked once, on the reader\'s own message, one lookup, none aborted -- and the head is the first line',
-        !!onB2.reading && onB2.reading.question === FULLB2 && onB2.reading.own === QB2 && headFirst(onB2) && same(onB2.log.headAsked, [QB2]) && same(outcomes8(onB2), ['answered']),
-        { head: headFirst(onB2), asked: onB2.log.headAsked.map((q) => q === QB2 ? 'own' : q === FULLB2 ? 'full' : 'other'), lookups: outcomes8(onB2) });
+      const b2 = [];
+      for (const runtime of RUNTIMES8) b2.push(await withReading8({ message: QB2, planQ: FULLB2, previous: [FIRST8], followup: true, full: FULLB2, delay: LATE8, runtime }));
+      ok('T12 [A-TAKHRIJ, after the helpers] a follow-up whose full question still quotes the asked text: the turn asks the head of ITS question, once, and writes it first; the lookup started beside the reading on the reader\'s message is not taken and is aborted at once, the gather being KEPT (on both runtimes)',
+        b2.every((r) => !!r.reading && r.reading.question === FULLB2 && r.reading.own === QB2 && r.out.telemetry.pregather !== BW.BW2_PREGATHER.discarded && headFirst(r)
+          && r.log.headAsked.filter((q) => q === FULLB2).length === 1 && r.log.headAsked[r.log.headAsked.length - 1] === FULLB2 && same(outcomes8(r), ['aborted', 'answered'])),
+        b2.map((r) => ({ head: headFirst(r), pregather: r.out && r.out.telemetry.pregather, asked: r.log.headAsked.map((q) => q === QB2 ? 'own' : q === FULLB2 ? 'full' : 'other'), lookups: outcomes8(r) })));
       // T13: the plan calls a standalone grade question a follow-up and writes its full question WITHOUT the reader's quotation marks: the
-      // rewrite is no grade question any more. The lookup reads the reader's own quotation, and the head is written as with no reading.
+      // rewrite quotes no text whose grade it asks. The lookup reads the reader's own message, and the head is written as with no reading.
       const QB = 'هل يصح حديث «' + MATN8 + '»؟'; const BARE_B = 'هل يصح حديث ' + MATN8 + '؟'; const PREV_B = 'ما معنى النصيحة في الدين؟';
-      const offB = await without8({ message: QB, previous: [PREV_B], delay: LATE8 });
-      const onB = await withReading8({ message: QB, planQ: BARE_B, previous: [PREV_B], followup: true, full: BARE_B, delay: LATE8 });
-      ok('T13 [A-TAKHRIJ, after the helper] THE MODEL\'S REWRITE DROPS THE READER\'S QUOTATION MARKS: the plan calls a standalone grade question a follow-up and its full question quotes nothing; the head is still the first line, asked once, on the READER\'S message, as in the turn with no reading',
-        !!onB.reading && onB.reading.question === BARE_B && onB.reading.own === QB && headFirst(offB) && headFirst(onB) && same(onB.log.headAsked, [QB]) && !outcomes8(onB).includes('aborted'),
-        { reading: !!onB.reading, off: headFirst(offB), on: headFirst(onB), asked: onB.log.headAsked.map((q) => q === QB ? 'own' : q === BARE_B ? 'full' : 'other'), lookups: outcomes8(onB) });
+      const dropped = [];
+      for (const runtime of RUNTIMES8) dropped.push({ off: await without8({ message: QB, previous: [PREV_B], delay: LATE8, runtime }), on: await withReading8({ message: QB, planQ: BARE_B, previous: [PREV_B], followup: true, full: BARE_B, delay: LATE8, runtime }) });
+      ok('T13 [A-TAKHRIJ, after the helpers] THE MODEL\'S REWRITE DROPS THE READER\'S QUOTATION MARKS: the full question quotes nothing; the head is still the first line, asked once, on the READER\'S message, the lookup beside the reading being the turn\'s -- as in the turn with no reading (on both runtimes)',
+        dropped.every(({ off, on }) => !!on.reading && on.reading.question === BARE_B && on.reading.own === QB && headFirst(off) && headFirst(on) && same(on.log.headAsked, [QB]) && same(outcomes8(on), ['answered'])),
+        dropped.map(({ off, on }) => ({ reading: !!on.reading, off: headFirst(off), on: headFirst(on), asked: on.log.headAsked.map((q) => q === QB ? 'own' : q === BARE_B ? 'full' : 'other'), lookups: outcomes8(on) })));
+      // T13b: the same with NO gather beside the reading (the turn starts the lookup itself): it asks the reader's message, not the rewrite
+      const fresh = [];
+      for (const runtime of RUNTIMES8) { const made = deps8(LATE8); const reading = plan8(BARE_B, { message: QB, previous: [PREV_B], followup: true, full: BARE_B }); fresh.push({ log: made.log, ...(reading ? await turn8({ message: QB, previous: [PREV_B], reading, deps: made.deps, runtime }) : { text: '' }) }); }
+      ok('T13b [A-TAKHRIJ, after the helpers] ...and with no gather beside the reading: the lookup the turn starts itself reads the reader\'s message, once, and the head is the first line (on both runtimes)',
+        fresh.every((r) => headFirst(r) && same(r.log.headAsked, [QB]) && same(outcomes8(r), ['answered'])), fresh.map((r) => ({ head: headFirst(r), asked: r.log.headAsked.map((q) => q === QB ? 'own' : 'other'), lookups: outcomes8(r) })));
+      // T15: THE READER'S FOLLOW-UP QUOTES SOMETHING THAT IS NOT THE ASKED TEXT (a book's title) beside a word about the earlier text, and the
+      // full question quotes the asked text. The takhrij's reader holds for both. The lookup reads the turn's question -- never the
+      // reader's message in its place, which would head the answer with a verdict on the title (HELPER-REFUTATION-TAKHRIJ-2 2.1).
+      const TITLE_Q = 'قرأته في كتاب «روضة الأخبار» فمن رواه؟'; const TITLE_FULL = 'من روى حديث «' + MATN8 + '» في كتاب روضة الأخبار؟';
+      const titled = [];
+      for (const runtime of RUNTIMES8) titled.push(await withReading8({ message: TITLE_Q, planQ: TITLE_FULL, previous: [FIRST8], followup: true, full: TITLE_FULL, delay: LATE8, runtime }));
+      ok('T15 [A-TAKHRIJ, after the second helper] THE READER\'S MESSAGE QUOTES A BOOK\'S TITLE, THE FULL QUESTION THE ASKED TEXT (the takhrij\'s reader holds for both): the head is asked on the turn\'s question, once, and written first; the lookup started on the reader\'s message is aborted and its result is never used (on both runtimes)',
+        TK8.asksGradeOfQuotedText(TITLE_Q) === true && TK8.asksGradeOfQuotedText(TITLE_FULL) === true
+        && titled.every((r) => !!r.reading && r.reading.question === TITLE_FULL && r.reading.own === TITLE_Q && headFirst(r) && r.log.headAsked.filter((q) => q === TITLE_FULL).length === 1
+          && r.log.headAsked[r.log.headAsked.length - 1] === TITLE_FULL
+          // (every lookup started on the reader's message aborted -- on HADITH there are two, the head's and the passages' -- then the turn's own, answered)
+          && outcomes8(r).length >= 2 && outcomes8(r).slice(0, -1).every((o) => o === 'aborted') && outcomes8(r)[outcomes8(r).length - 1] === 'answered'),
+        [TK8.asksGradeOfQuotedText(TITLE_Q), TK8.asksGradeOfQuotedText(TITLE_FULL), ...titled.map((r) => ({ reading: !!r.reading, head: headFirst(r), asked: r.log.headAsked.map((q) => q === TITLE_Q ? 'own' : q === TITLE_FULL ? 'full' : 'other'), lookups: outcomes8(r) }))]);
+      // T11b: the turn's own gather throws where the gather beside the reading was KEPT and only the parts are asked anew (a collection
+      // request whose plan names another chapter than the reader's): the lookup is cancelled there too, not only after a discard
+      {
+        const CHQ = 'اجمع لي ما صح من الأحاديث في باب السواك';
+        const chPlan = scripted(planWith([partOf(CHQ, 'collection', { name: 'الأحاديث', chapter: 'اللباس' })]), CHQ);
+        const made = deps8(LATE8);
+        const pre = BW.startBw2Pregather({ question: CHQ, runtime: 'HADITH', band: 'adult', ...wired8, env: env8, deps: made.deps });
+        await sleep8(READ8);
+        const planParts = chPlan.reading ? BW.bw2PlanParts(chPlan.reading) : null;
+        const wanted = chPlan.reading ? BW.bw2GatherKey(String(chPlan.reading.retrieval || CHQ), planParts.parts) : { base: '', parts: '' };
+        const kept = !!chPlan.reading && wanted.base === pre.key.base && wanted.parts !== pre.key.parts;
+        made.deps.runTool = () => { throw new Error('the tool runner is down'); };
+        let threw = false;
+        try { if (chPlan.reading) await turn8({ message: CHQ, reading: chPlan.reading, pregather: pre, deps: made.deps }); } catch { threw = true; }
+        await sleep8(LATE8 + 60);
+        ok('T11b [A-TAKHRIJ, after the second helper] the turn\'s own gather throws where the gather beside the reading was KEPT (the four sources kept, the parts asked anew): the lookup the turn had taken is aborted there too',
+          kept && threw && made.log.lookups.length >= 1 && made.log.lookups.every((l) => l.outcome === 'aborted'), { kept, threw, sameBase: wanted.base === pre.key.base, partsDiffer: wanted.parts !== pre.key.parts, lookups: made.log.lookups.map((l) => l.outcome) });
+      }
       // T14: the ladder's passages -- the gather discarded, the library later than the reading: they reach the judge in both turns
       const offRows = await without8({ message: INSTR8, delay: LATE8, ladder: true });
       const onRows = await withReading8({ message: INSTR8, planQ: ONE8, delay: LATE8, ladder: true });
@@ -1078,6 +1150,12 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         aloneW.ok === true && RP.planWorldlyClaim(aloneW.plan, { question: GRADE_W }) === 'contested'
         && meanW.ok === true && RP.planWorldlyClaim(meanW.plan, { question: MEAN_W }) === (lexiconFindsNothing(MEAN_W) ? 'clear' : 'contested'),
         [aloneW.ok && RP.planWorldlyClaim(aloneW.plan, { question: GRADE_W }), meanW.ok && RP.planWorldlyClaim(meanW.plan, { question: MEAN_W })]);
+      // TW5: every form the takhrij's reader holds for, not one sentence (HELPER-REFUTATION-TAKHRIJ-2 2.6: the limit kept for one word,
+      // for one kind of marks, or for a short sentence only, passed TW1 to TW4): a source phrase, curly marks, a long sentence
+      const FORMS_W = ['من روى «' + SAYING8 + '»؟', 'ما صحة “' + SAYING8 + '”؟', 'ما صحة «' + SAYING8 + '» التي تتردد كثيرا على ألسنة العامة في الأسواق؟'];
+      const formsW = FORMS_W.map((t) => [TK.asksGradeOfQuotedText(t), lexiconFindsNothing(t), RP.patternsFindNothingReligious(t), RP.worldlyPartAllowed({ kind: 'worldly', q: t }, { question: t }), t.length]);
+      ok('TW5 [A-TAKHRIJ, after the second helper] the limit holds for every form the takhrij\'s reader holds for -- a source phrase with no word of grade, curly quotation marks, a sentence of more than 40 characters: none is "nothing religious", none is a worldly part, and the lexicon finds nothing in any of them',
+        formsW.every((f) => f[0] === true && f[1] === true && f[2] === false && f[3] === false) && formsW[2][4] > 40 && !FORMS_W[0].includes('صحة') && !FORMS_W[1].includes('«'), formsW);
     }
   }
 
