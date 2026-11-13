@@ -420,7 +420,7 @@
     }).join('') + '</div><div class="j-actions">' + button('الفرق والإعدادات', 'leave', 'j-secondary') + '</div>';
   }
   function hannaCategories() {
-    return '<section class="j-hanna-list"><h2>اختاروا الفئة</h2><div class="j-category-picker">' + M.cats.map(c => button(catIcon(c) + '<b>' + esc(catName(c)) + '</b>', 'hanna-category', 'j-cat-pick', 'data-cat="' + c + '"')).join('') + '</div>' + teamBar() + '<div class="j-actions">' + button('إنهاء الجولة', 'leave', 'j-secondary') + '</div></section>';
+    return '<section class="j-hanna-list"><h2>اختاروا الفئة</h2><div class="j-category-picker">' + M.cats.map(c => button(catIcon(c) + '<b>' + esc(catName(c)) + '</b>', 'hanna-category', 'j-cat-pick', 'data-cat="' + c + '"')).join('') + '</div>' + teamBar() + '<div class="j-actions">' + button('إنهاء الجولة', 'hanna-finish', 'j-secondary') + '</div></section>';
   }
   function openHannaCategory(cat) {
     let index = M.slots.findIndex(slot => slot.cat === cat && !slot.used);
@@ -1383,6 +1383,7 @@
     else if (action === 'quiz-count' && game === 'test' && M.stage === 'settings' && quizCounts().includes(+el.dataset.count)) { M.quizCustomCount = false; M.quizCount = +el.dataset.count; render(); }
     else if (action === 'quiz-options' && game === 'test' && M.stage === 'settings') { M.settings.options = M.settings.options === 'shown' ? 'hidden' : 'shown'; render(); }
     else if (action === 'hanna-category' && game === 'hanna') openHannaCategory(+el.dataset.cat);
+    else if (action === 'hanna-finish' && game === 'hanna' && M.running && !M.question) askDialog('تنهون الجولة وتعرضون النتائج؟', finishBoard);
     else if (action === 'quiz-all' && game === 'test' && M.stage === 'categories') { M.cats = quizCatalog().map(c => c.index); render(); }
     else if (action === 'quiz-clear' && game === 'test' && M.stage === 'categories') { M.cats = []; render(); }
     else if (action === 'quiz-start' && game === 'test') { if (M.ready) beginQuiz(); else M.pendingStartupAction = 'quiz-start'; }
