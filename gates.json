@@ -1465,5 +1465,10 @@
     "name": "kfx-moderation",
     "script": "guards/kfx-moderation-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "kfx-choice-coverage",
+    "script": "guards/kfx-choice-coverage-guard.cjs",
+    "args": ""
   }
 ]

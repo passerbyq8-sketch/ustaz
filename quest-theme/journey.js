@@ -19,7 +19,7 @@
   const roomCategoryIds = new Set();
   async function loadRoomCategories() {
     const origin = global.KUNUZ_ROOM_API_ORIGIN || "https://hanna-laha.hl-worker.workers.dev";
-    const response = await fetch(origin + "/api/categories", { cache: "no-store" });
+    const response = await fetch(origin + "/api/categories", { cache: "no-store", signal: AbortSignal.timeout(10000) });
     if (!response.ok) throw new Error("room-catalog-unavailable");
     const catalog = await response.json();
     roomCategoryIds.clear();
@@ -98,7 +98,7 @@
   const app = document.createElement('div'); app.className = 'journey-app'; app.dataset.game = game;
   document.body.classList.add('ezik-treasure-theme'); document.body.append(app);
   const themeMeta = document.querySelector('meta[name="theme-color"]'); if (themeMeta) themeMeta.content = '#082c38';
-  const OFFLINE_VERSION = '20261102-tr4';
+  const OFFLINE_VERSION = '20261113-kfx-1';
   const THEME_VERSION = OFFLINE_VERSION;
   const IAP_HOST_RESUME_KEY = 'kunuz_iap_host_resume_v1';
   const IAP_EXPIRED_NOTICE_KEY = 'kunuz_iap_expired_notice_v1';
@@ -151,7 +151,7 @@
       if ((hasRooms || game === 'test') && M.offlineReady) {
         // These two entry pages version their new screens independently. Cache
         // them after the first worker takes control, including a first visit.
-        const screenAssets = ['theme.css?v=20261108-trialfix-1', 'journey.js?v=20261108-trialfix-1', 'room-categories.js?v=20261022-roomsfix2', 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
+        const screenAssets = ['theme.css?v=20261108-trialfix-1', 'journey.js?v=20261113-kfx-1', 'model.js?v=20261113-kfx-1', 'room-features.js?v=20261113-kfx-1', 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
         if (game === 'board') screenAssets.push('board-rooms.js?v=20261108-trialfix-1');
         if (navigator.serviceWorker.controller) await Promise.all(screenAssets.map(async file => {
           const response = await fetch('/quest-theme/' + file);
@@ -472,7 +472,7 @@
   function quizCatalog() {
     if (!Array.isArray(global.DATA?.qs)) return Model.categories().map(c => ({ ...c, count: null }));
     const counts = global.DATA.cats.map(() => 0);
-    global.DATA.qs.forEach((q, i) => { if (Model.live(i) && q[4].length === 4) counts[q[0]]++; });
+    global.DATA.qs.forEach((q, i) => { if (Model.live(i)) counts[q[0]]++; });
     return Model.categories().map(c => ({ ...c, count: counts[c.index] })).filter(c => c.count > 0);
   }
   function quizAvailable() { return quizCatalog().filter(c => M.cats.includes(c.index)).reduce((n, c) => n + c.count, 0); }
@@ -900,8 +900,8 @@
     const unseen = [], oldest = [];
     for (const cat of M.cats) {
       const candidates = Model.candidates(cat, M.history);
-      unseen.push(...candidates.unseen.filter(i => global.DATA.qs[i][4].length === 4));
-      oldest.push(...candidates.oldest.filter(i => global.DATA.qs[i][4].length === 4));
+      unseen.push(...candidates.unseen);
+      oldest.push(...candidates.oldest);
     }
     oldest.sort((a, b) => M.history.last(a) - M.history.last(b) || a - b);
     const target = { easy: 1, medium: 2, hard: 3 }[M.settings.difficulty];
@@ -918,18 +918,6 @@
     for (const cat of replayed) M.history.restart(cat, indices.filter(i => global.DATA.qs[i][0] === cat));
     const slots = indices.map(index => { const actual = Model.level(index) || 1, desired = target || actual; return { index, cat: global.DATA.qs[index][0], pts: Model.POINTS[desired - 1], desired, actual, used: false, by: -1 }; });
     return { indices, slots, shortage: [], fallback: [] };
-  }
-  function fourChoiceSlots(slots) {
-    const reserved = new Set(slots.filter(slot => global.DATA.qs[slot.index][4].length === 4).map(slot => slot.index));
-    return slots.map(slot => {
-      if (global.DATA.qs[slot.index][4].length === 4) return slot;
-      const candidates = Model.candidates(slot.cat, M.history, Math.random, reserved);
-      const unseen = candidates.unseen.filter(i => global.DATA.qs[i][4].length === 4);
-      unseen.sort((a, b) => Math.abs((Model.level(a) || slot.desired) - slot.desired) - Math.abs((Model.level(b) || slot.desired) - slot.desired));
-      const index = unseen[0] ?? candidates.oldest.find(i => global.DATA.qs[i][4].length === 4);
-      if (index === undefined) return null;
-      reserved.add(index); return { ...slot, index, actual: Model.level(index) };
-    });
   }
   function begin() {
     const s = M.settings;
@@ -949,11 +937,6 @@
     if (pool.shortage.length) { M.error = 'فئة «' + catName(pool.shortage[0]) + '» غير متاحة حاليًا؛ ارجعوا واختاروا فئة أخرى.'; render(); return false; }
     M.error = ''; M.pool = pool.indices; M.slots = pool.slots; M.fallback = pool.fallback; M.excluded = all.filter(c => c.count === 0);
     if (game === 'hanna') M.slots = M.cats.flatMap(cat => M.slots.filter(slot => slot.cat === cat).sort((a, b) => a.pts - b.pts));
-    if (game === 'hanna' || game === 'test') {
-      const slots = fourChoiceSlots(M.slots);
-      if (slots.some(slot => !slot)) { M.error = 'إحدى الفئات لا تحتوي أسئلة بأربعة خيارات؛ اختاروا فئة أخرى.'; render(); return false; }
-      M.slots = slots; M.pool = M.slots.map(slot => slot.index);
-    }
     if ((game === 'hanna' || game === 'test') && !M.slots.length) { M.error = 'لا توجد أسئلة متاحة حاليًا.'; render(); return false; }
     M.used = new Set(); M.question = null; M.questionHistory = false; M.result = null;
     M.teams.forEach((t, i) => { t.n = t.n.trim() || defaults[i]; t.shows = s.reveals; t.score = 0; t.p = 0; t.d = 0; });
@@ -991,7 +974,6 @@
       // Another Kunuz tab may have consumed this reservation since setup.
       const excluded = new Set([...M.used, ...M.slots.filter(other => other !== slot && !other.used).map(other => other.index)]);
       let { unseen, oldest } = Model.candidates(slot.cat, M.history, Math.random, excluded);
-      if (game === 'hanna' || game === 'test') { unseen = unseen.filter(i => global.DATA.qs[i][4].length === 4); oldest = oldest.filter(i => global.DATA.qs[i][4].length === 4); }
       unseen.sort((a, b) => Math.abs((Model.level(a) || slot.desired) - slot.desired) - Math.abs((Model.level(b) || slot.desired) - slot.desired));
       oldest.sort((a, b) => Math.abs((Model.level(a) || slot.desired) - slot.desired) - Math.abs((Model.level(b) || slot.desired) - slot.desired) || M.history.last(a) - M.history.last(b) || a - b);
       slot.index = unseen[0] ?? oldest[0];
@@ -1679,11 +1661,11 @@
     const resumeWarOnReload = game === 'harb' && entryHistory?.kunuzWarRoom === String(savedWarRoom()?.code) && global.performance.getEntriesByType('navigation')[0]?.type === 'reload';
     document.querySelectorAll('#qvis').forEach(el => { el.id = 'legacy-qvis'; });
     if (game === 'hub') {
-      render();
       try {
         const notice = sessionStorage.getItem('kunuz_kicked_notice');
-        if (notice) { sessionStorage.removeItem('kunuz_kicked_notice'); const p = document.createElement('p'); p.className = 'j-note'; p.setAttribute('role', 'status'); p.textContent = notice; app.querySelector('main')?.prepend(p); }
+        if (notice) { sessionStorage.removeItem('kunuz_kicked_notice'); M.roomClosedNotice = notice; }
       } catch (_) {}
+      render();
       if (typeof global.ezikIapEnterHome === 'function') global.ezikIapEnterHome(setHomeNotice).catch(() => {});
       await prepareOffline();
       M.ready = true; return;

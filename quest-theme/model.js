@@ -135,7 +135,9 @@
       const distance = i => desired ? Math.abs((level(i) || desired) - desired) : 0;
       unseen.sort((a, b) => distance(a) - distance(b));
       oldest.sort((a, b) => distance(a) - distance(b) || seen.last(a) - seen.last(b));
-      const indices = unseen.concat(oldest).slice(0, count);
+      // Open-ended games draw from the remaining cycle; reserving the whole bank must
+      // not reset history merely because some old questions exist.
+      const indices = (count === Infinity && unseen.length ? unseen : unseen.concat(oldest)).slice(0, count);
       if (!indices.length) shortage.push(cat);
       if (indices.some(i => seen.has(i))) restarts.push(cat);
       fallback.push({ cat, missing: desired ? indices.filter(i => level(i) !== desired).length : 0 });

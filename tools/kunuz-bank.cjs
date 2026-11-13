@@ -11,6 +11,6 @@ async function loadKunuzBank(root = path.join(__dirname, '..')) {
   await ctx.KZV.ready;
   vm.runInContext(read('quest-theme/model.js'), ctx);
   const questions = ctx.DATA.qs.map((q, index) => ({ index, id: String(q[8]), cat: q[0], level: ctx.KunuzModel.level(index), row: q, visual: q.kzPack?.vis, live: ctx.KunuzModel.live(index) }));
-  return { cats: ctx.KunuzModel.categories().filter(c => c.count > 0), questions: questions.filter(q => q.live), total: ctx.DATA.qs.length };
+  return { cats: ctx.KunuzModel.categories().filter(c => c.count > 0).map(c => ({...c, group: ctx.DATA.cats[c.index][2]})), questions: questions.filter(q => q.live), inactive: questions.filter(q => !q.live), total: ctx.DATA.qs.length, model: ctx.KunuzModel };
 }
 module.exports = { loadKunuzBank };

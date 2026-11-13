@@ -1184,3 +1184,8 @@ tests/trialfix-merges.test.js text eol=lf
 tests/trialfix-client-harness.cjs text eol=lf
 tests/trialfix-content-baseline.json text eol=lf
 lib/sync/trialfix-progress.js text eol=lf
+
+guards/kfx-categories-guard.cjs text eol=lf
+guards/kfx-difficulty-guard.cjs text eol=lf
+guards/kfx-moderation-guard.cjs text eol=lf
+guards/kfx-choice-coverage-guard.cjs text eol=lf

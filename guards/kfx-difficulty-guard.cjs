@@ -14,6 +14,8 @@ const result = ctx.KunuzModel.difficultyPool([0], {has:i=>i<3,last:i=>i}, 'easy'
 assert.ok(result.indices.every(i=>i>=3), 'unseen nearest must precede seen exact');
 const exhausted = ctx.KunuzModel.difficultyPool([0], {has:()=>true,last:i=>i}, 'mixed', 6, ()=>.3);
 assert.equal(exhausted.indices.length,6);assert.deepEqual([...exhausted.restarts],[0]);
+const openEnded = ctx.KunuzModel.difficultyPool([0], {has:i=>i<3,last:i=>i}, 'hard', Infinity, ()=>.3);
+assert.equal(openEnded.indices.length,6);assert.equal(openEnded.restarts.length,0);assert.ok(openEnded.indices.every(i=>i>=3));
 const j=read('quest-theme/journey.js');assert.ok(!j.includes('const pointOrder = [600, 600, 400, 400, 200, 200]'));
 assert.ok(j.includes("'hanna-category'"));
 console.log('PASS KFX difficulty, shortage, history, fixed Hanna value and category flow');

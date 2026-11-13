@@ -95,22 +95,42 @@ async function sync(hanna) {
   const { loadKunuzBank } = require('./kunuz-bank.cjs');
   const source = await loadKunuzBank(ROOT);
   const save = (file, value) => fs.writeFileSync(path.join(hanna, file), value);
-  // Preserve the established IDs for base rows so previous account/device history still applies.
-  const bank = { v: 1, cats: source.cats.map(c => ({ id: c.slug, name: c.name, group: 'general' })), qs: source.questions.map(q => ({
-    id: q.row.kzPack ? q.id : roomId(source.cats.find(c => c.index === q.cat).slug, q.row[3]),
-    cat: source.cats.find(c => c.index === q.cat).slug, type: 'mcq', prompt: q.row[3], options: q.row[4], answer: q.row[5], why: q.row[6], src: q.row[7], level: q.level,
-    ...(q.visual ? { visual: q.visual } : {})
-  })) };
+  const esbuild = require(path.join(hanna, 'node_modules/esbuild'));
+  const built = esbuild.buildSync({entryPoints:[path.join(hanna,'packages/bank/src/build.ts')],bundle:true,platform:'node',format:'cjs',write:false});
+  const mod={exports:{}}; new Function('require','module','exports',built.outputFiles[0].text)(require,mod,mod.exports);
+  const snapshot = {schema:'kunuz-20261113-kfx-1',categories:source.cats.map(c=>({id:c.slug,name:c.name,group:c.group})),questions:source.questions.map(q=>({id:q.row.kzPack?q.id:roomId(source.cats.find(c=>c.index===q.cat).slug,q.row[3]),cat:source.cats.find(c=>c.index===q.cat).slug,type:'mcq',q:q.row[3],choices:q.row[4],answer:q.row[5],why:q.row[6],src:q.row[7],level:q.level,visual:q.visual}))};
+  const referenceFile='data/reference/kunuz-20261113-kfx-1.json',referenceBytes=JSON.stringify(snapshot);
+  fs.mkdirSync(path.join(hanna,'data/reference'),{recursive:true}); save(referenceFile,referenceBytes);
+  const result=mod.exports.buildGameBank(snapshot,{ids:'source'});
+  assert.equal(result.rejections.length,0,'shared bank fails room structural validation');
+  const bank={...result.bank,qs:result.bank.qs.map((q,i)=>({...q,level:snapshot.questions[i].level,...(snapshot.questions[i].visual?{visual:snapshot.questions[i].visual}:{})}))};
   const bytes = JSON.stringify(bank), stamp = sha(bytes);
   save('apps/worker/src/generated/bank.txt', bytes);
   save('apps/worker/src/generated/bank-meta.ts', '// Generated from the shared Kunuz bank.\nexport const BANK_SHA256 = ' + JSON.stringify(stamp) + ';\nexport const BANK_SHA8 = ' + JSON.stringify(stamp.slice(0, 8)) + ';\n');
   save('apps/worker/src/generated/categories.ts', '// Generated from the shared Kunuz bank.\nexport const CATEGORIES = ' + JSON.stringify(bank.cats) + ' as const;\n');
   const boardFile = 'apps/worker/src/generated/points-board-bank.json';
-  const previous = JSON.parse(fs.readFileSync(path.join(hanna, boardFile), 'utf8'));
+
   // Publish a fresh stamp: the current live website already has corrected rows.
   const board = { stamp: '20261113-kfx-1:' + stamp.slice(0, 16), version: '20261113-kfx-1', cats: source.cats.map(c => ({ index: c.index, slug: c.slug, name: c.name })), qs: source.questions.map(q => [q.index, q.id, q.cat, q.level, q.row[4].length, q.row[5]]) };
   save(boardFile, JSON.stringify(board, null, 2) + '\n');
-  const record = { version: '20261113-kfx-1', source: 'tools/kunuz-bank.cjs (base + live manifest)', categories: bank.cats.length, liveRows: bank.qs.length, bankSha256: stamp };
+  const held=recoverHeld(parseBank(fs.readFileSync(path.join(ROOT,BANK))), 'origin/main');
+  const referenceSha=sha(referenceBytes);
+  const lock={generatorVersion:'kunuz-shared/1',rule:'all live base and manifest rows',idMode:'source',sourcePath:referenceFile,sourceSha256:referenceSha,reference:{path:referenceFile,sha256:referenceSha},generatedSha256:stamp,generatedSize:Buffer.byteLength(bytes),counts:{accepted:bank.qs.length,byType:result.stats.byType,byCategory:result.stats.byCategory},rejectedCount:0};
+  save('data/bank.lock.json',JSON.stringify(lock,null,2)+'\n');
+  const categories=bank.cats.map(c=>({id:c.id,group:c.group,count:bank.qs.filter(q=>q.cat===c.id).length}));
+  const reference={path:referenceFile,sha256:referenceSha,extractSha256:referenceSha,records:bank.qs.length,categories,recordHashes:bank.qs.map(q=>[q.id,sha(JSON.stringify([q.cat,q.prompt,q.options,q.answer,q.why||'',q.src||''])).slice(0,16)])};
+  const classes={'broken':0,'in-game':bank.qs.length,'excluded':0,'removed':0,'superseded':0,'duplicate':0,'not-in-reference':0};
+  const inventory={schema:'hl-bank-inventory/1',reference,stores:[{name:'versioned-shared-live-source',path:referenceFile,format:snapshot.schema,records:bank.qs.length,sha256:referenceSha,categories:categories.map(c=>({id:c.id,count:c.count})),classes,byCategory:Object.fromEntries(categories.map(c=>[c.id,{'in-game':c.count}])),notInReferenceIds:[]}],otherKinds:[]};
+  save('data/bank-inventory.json',JSON.stringify(inventory,null,2)+'\n');
+  const fixtures=[];
+  for(const cats of [[0,1,2],[53,54,55],[0,53,69],source.cats.slice().sort((a,b)=>a.count-b.count).slice(0,3).map(c=>c.index)])for(const seenMode of [0,1,2])for(const difficulty of ['points','mixed']){
+    const seed=123+fixtures.length;let state=seed;const rnd=()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296;};
+    const pool=source.model.pool(cats,{has:i=>seenMode===2||(seenMode===1&&i%2===0),last:i=>i+1},rnd);
+    if(difficulty==='mixed')for(const cat of cats){const slots=pool.slots.filter(s=>s.cat===cat),indices=source.model.shuffle(slots.map(s=>s.index),rnd);slots.forEach((s,i)=>{s.index=indices[i];});}
+    fixtures.push({cats,seed,seenMode,difficulty,slots:pool.slots.map(({index,cat,pts,desired})=>({index,cat,pts,desired})),restartCats:pool.restarts});
+  }
+  save('apps/worker/test-core/fixtures/points-board-parity.json',JSON.stringify({source:'20261113-kfx-1',fixtures},null,2)+'\n');
+  const record = { sourceSha256: sha(fs.readFileSync(path.join(ROOT,BANK))), referenceSha256: referenceSha, heldRows:held.length, held, version: '20261113-kfx-1', source: 'tools/kunuz-bank.cjs (base + live manifest)', categories: bank.cats.length, liveRows: bank.qs.length, bankSha256: stamp };
   save('data/room-bank-sync.json', JSON.stringify(record, null, 2) + '\n');
   console.log(JSON.stringify(record));
   return record;
