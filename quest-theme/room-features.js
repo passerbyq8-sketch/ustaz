@@ -86,6 +86,6 @@
     }
   }
   global.WebSocket = RoomSocket;
-  function observe() { new MutationObserver(paintVisual).observe(document.body, { childList: true, subtree: true }); }
+  function observe() { new MutationObserver(() => { paintVisual(); if (features?.host && !controls?.isConnected) paintControls(); }).observe(document.body, { childList: true, subtree: true }); }
   if (document.body) observe(); else document.addEventListener('DOMContentLoaded', observe, { once: true });
 })(window);
