@@ -1460,5 +1460,10 @@
     "name": "kfx-difficulty",
     "script": "guards/kfx-difficulty-guard.cjs",
     "args": []
+  },
+  {
+    "name": "kfx-moderation",
+    "script": "guards/kfx-moderation-guard.cjs",
+    "args": ""
   }
 ]

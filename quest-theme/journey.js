@@ -305,7 +305,7 @@
       }).join('') + '</div>';
     }
     return '<h1 class="j-heading">اختاروا فئات مغامرتكم</h1>' +
-      (roomBank ? '<p class="j-note">بعض الفئات تُلعب على جهاز واحد فقط، فلا تظهر في الغرف.</p>' : '') + '<p class="j-lead">اختاروا من ثلاث إلى ست فئات. كل فئة بطاقتها الخاصة.</p>' +
+      '<p class="j-lead">اختاروا من ثلاث إلى ست فئات. كل فئة بطاقتها الخاصة.</p>' +
       (M.error ? '<div class="j-error" role="alert">' + esc(M.error) + '</div>' : '') +
       section(all.filter(c => c.index < 53), 'من كنوز المعرفة') + section(all.filter(c => c.index >= 53), 'فئات إضافية') +
       '<p class="j-note" role="status">' + (M.cats.length >= 6 ? 'وصلتم للحد الأعلى؛ أزيلوا اختيارًا لتختاروا فئة أخرى.' : M.cats.length < 3 ? 'اختاروا ثلاث فئات على الأقل للمتابعة.' : 'فئاتكم جاهزة؛ تقدرون تتابعون.') + '</p>' +
@@ -1680,6 +1680,10 @@
     document.querySelectorAll('#qvis').forEach(el => { el.id = 'legacy-qvis'; });
     if (game === 'hub') {
       render();
+      try {
+        const notice = sessionStorage.getItem('kunuz_kicked_notice');
+        if (notice) { sessionStorage.removeItem('kunuz_kicked_notice'); const p = document.createElement('p'); p.className = 'j-note'; p.setAttribute('role', 'status'); p.textContent = notice; app.querySelector('main')?.prepend(p); }
+      } catch (_) {}
       if (typeof global.ezikIapEnterHome === 'function') global.ezikIapEnterHome(setHomeNotice).catch(() => {});
       await prepareOffline();
       M.ready = true; return;
