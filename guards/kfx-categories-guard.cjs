@@ -1,0 +1,10 @@
+'use strict';
+const assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path');
+const root = process.env.KFX_BASE || path.join(__dirname, '..');
+const read = f => fs.readFileSync(path.join(root, f), 'utf8');
+const journey = read('quest-theme/journey.js');
+assert.ok(!journey.includes("roomBank && game !== 'board' ? ''"), 'room expansion categories must not be suppressed');
+assert.ok(!journey.includes('c.count >= Model.PER_CATEGORY'), 'every nonempty category must be offered');
+assert.ok(!read('quest-theme/model.js').includes('const FALLBACK_CATEGORIES = Object.freeze(['), 'no duplicate hardcoded catalog');
+assert.ok(read('tools/hanna-room-bank-sync.cjs').includes('loadKunuzBank'), 'room sync must consume all manifest packs');
+console.log('PASS KFX category causes');

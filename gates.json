@@ -1450,5 +1450,10 @@
     "name": "trialfixmerges",
     "script": "tests/trialfix-merges.test.js",
     "args": ""
+  },
+  {
+    "name": "kfx-categories",
+    "script": "guards/kfx-categories-guard.cjs",
+    "args": []
   }
 ]

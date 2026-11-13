@@ -53,7 +53,7 @@ function recoverHeld(data, ref) {
   assert.equal(missing.size, 0, 'Could not recover original held rows from git history');
   return data.qs.filter(isHeld).map(r => found.get(r[8]));
 }
-function sync(hanna, ref = 'origin/main') {
+function syncBaseReference(hanna, ref = 'origin/main') {
   const bytes = git('show', ref + ':' + BANK), data = parseBank(bytes), live = liveBank(data), held = recoverHeld(data, ref);
   // The category list and its order remain exactly the 53 base categories, with no expansion packs.
   assert.equal(live.cats.length, 53, 'Review a changed base category set before syncing');
@@ -91,8 +91,32 @@ function sync(hanna, ref = 'origin/main') {
   console.log(JSON.stringify({sourceSha256: record.sourceSha256, liveSourceSha256: record.liveSourceSha256, bankSha256: record.bankSha256, categories: record.categories, liveRows: record.liveRows, heldRows: record.heldRows}));
   return record;
 }
+async function sync(hanna) {
+  const { loadKunuzBank } = require('./kunuz-bank.cjs');
+  const source = await loadKunuzBank(ROOT);
+  const save = (file, value) => fs.writeFileSync(path.join(hanna, file), value);
+  // Preserve the established IDs for base rows so previous account/device history still applies.
+  const bank = { v: 1, cats: source.cats.map(c => ({ id: c.slug, name: c.name, group: 'general' })), qs: source.questions.map(q => ({
+    id: q.row.kzPack ? q.id : roomId(source.cats.find(c => c.index === q.cat).slug, q.row[3]),
+    cat: source.cats.find(c => c.index === q.cat).slug, type: 'mcq', prompt: q.row[3], options: q.row[4], answer: q.row[5], why: q.row[6], src: q.row[7], level: q.level,
+    ...(q.visual ? { visual: q.visual } : {})
+  })) };
+  const bytes = JSON.stringify(bank), stamp = sha(bytes);
+  save('apps/worker/src/generated/bank.txt', bytes);
+  save('apps/worker/src/generated/bank-meta.ts', '// Generated from the shared Kunuz bank.\nexport const BANK_SHA256 = ' + JSON.stringify(stamp) + ';\nexport const BANK_SHA8 = ' + JSON.stringify(stamp.slice(0, 8)) + ';\n');
+  save('apps/worker/src/generated/categories.ts', '// Generated from the shared Kunuz bank.\nexport const CATEGORIES = ' + JSON.stringify(bank.cats) + ' as const;\n');
+  const boardFile = 'apps/worker/src/generated/points-board-bank.json';
+  const previous = JSON.parse(fs.readFileSync(path.join(hanna, boardFile), 'utf8'));
+  // Publish a fresh stamp: the current live website already has corrected rows.
+  const board = { stamp: '20261113-kfx-1:' + stamp.slice(0, 16), version: '20261113-kfx-1', cats: source.cats.map(c => ({ index: c.index, slug: c.slug, name: c.name })), qs: source.questions.map(q => [q.index, q.id, q.cat, q.level, q.row[4].length, q.row[5]]) };
+  save(boardFile, JSON.stringify(board, null, 2) + '\n');
+  const record = { version: '20261113-kfx-1', source: 'tools/kunuz-bank.cjs (base + live manifest)', categories: bank.cats.length, liveRows: bank.qs.length, bankSha256: stamp };
+  save('data/room-bank-sync.json', JSON.stringify(record, null, 2) + '\n');
+  console.log(JSON.stringify(record));
+  return record;
+}
 module.exports = {parseBank, isHeld, roomId, liveBank, recoverHeld, sync};
 if (require.main === module) {
   const arg = (flag, fallback) => {const i = process.argv.indexOf(flag); return i < 0 ? fallback : process.argv[i + 1];};
-  sync(path.resolve(arg('--hanna-root', path.join(ROOT, '../hanna-laha'))), arg('--ref', 'origin/main'));
+  sync(path.resolve(arg('--hanna-root', path.join(ROOT, '../hanna-laha')))).catch(error => { console.error(error.message); process.exitCode = 1; });
 }

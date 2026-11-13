@@ -232,10 +232,10 @@ var KZV=(function(){
     var count=seen.length||Object.keys(seen).length;
     return count;
   }
-  function show(q,onPaint,onError){
-    var host=document.getElementById("qvis");if(!host)return;
+  function show(q,onPaint,onError,target){
+    var host=target||document.getElementById("qvis");if(!host)return;
     if(photoObserver){photoObserver.disconnect();photoObserver=null}
-    if(typeof RM!=="undefined"&&RM.on||typeof G!=="undefined"&&G&&G.roomCfg)q=null;
+    if(!target&&(typeof RM!=="undefined"&&RM.on||typeof G!=="undefined"&&G&&G.roomCfg))q=null;
     var render=++renderSerial;active=q;host.textContent="";host.hidden=true;host.className="kzv";
     document.body.classList.remove("kzv-question");
     var v=q&&q.kzPack&&q.kzPack.vis;if(!v)return;

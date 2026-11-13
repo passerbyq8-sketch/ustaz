@@ -16,7 +16,15 @@
   const path = location.pathname;
   const game = path.includes('quest-ghaws') ? 'ghaws' : path.includes('quest-harb') ? 'harb' : path.includes('quest-test') ? 'test' : path.includes('quest-board') ? 'board' : path.includes('hanna-laha') ? 'hanna' : 'hub';
   const hasRooms = game === 'hanna' || game === 'harb' || game === 'board';
-  const roomCategoryIds = new Set(global.KunuzRoomCategoryIds || []);
+  const roomCategoryIds = new Set();
+  async function loadRoomCategories() {
+    const origin = global.KUNUZ_ROOM_API_ORIGIN || "https://hanna-laha.hl-worker.workers.dev";
+    const response = await fetch(origin + "/api/categories", { cache: "no-store" });
+    if (!response.ok) throw new Error("room-catalog-unavailable");
+    const catalog = await response.json();
+    roomCategoryIds.clear();
+    for (const category of catalog.categories || []) roomCategoryIds.add(category.id);
+  }
   const usesRoomBank = () => (game === 'hanna' || game === 'harb' || game === 'board') && M.settings.room;
   global.KunuzUsesRoomBank = usesRoomBank;
   const roomCategorySupported = c => game === 'board' ? !!boardRooms?.supportsCategory(c) : roomCategoryIds.has(global.DATA.cats[c]?.[0]);
@@ -289,7 +297,7 @@
   }
   function categories() {
     const roomBank = usesRoomBank();
-    const all = Model.categories().filter(c => (c.count === null || c.count >= Model.PER_CATEGORY) && (!roomBank || roomCategorySupported(c.index)));
+    const all = Model.categories().filter(c => (c.count === null || c.count > 0) && (!roomBank || roomCategorySupported(c.index)));
     function section(list, title) {
       return '<h2 class="j-divider">' + title + '</h2><div class="j-category-picker">' + list.map(c => {
         const selected = M.cats.includes(c.index), disabled = !selected && M.cats.length >= 6;
@@ -299,7 +307,7 @@
     return '<h1 class="j-heading">اختاروا فئات مغامرتكم</h1>' +
       (roomBank ? '<p class="j-note">بعض الفئات تُلعب على جهاز واحد فقط، فلا تظهر في الغرف.</p>' : '') + '<p class="j-lead">اختاروا من ثلاث إلى ست فئات. كل فئة بطاقتها الخاصة.</p>' +
       (M.error ? '<div class="j-error" role="alert">' + esc(M.error) + '</div>' : '') +
-      section(all.filter(c => c.index < 53), 'من كنوز المعرفة') + (roomBank && game !== 'board' ? '' : section(all.filter(c => c.index >= 53), 'فئات إضافية')) +
+      section(all.filter(c => c.index < 53), 'من كنوز المعرفة') + section(all.filter(c => c.index >= 53), 'فئات إضافية') +
       '<p class="j-note" role="status">' + (M.cats.length >= 6 ? 'وصلتم للحد الأعلى؛ أزيلوا اختيارًا لتختاروا فئة أخرى.' : M.cats.length < 3 ? 'اختاروا ثلاث فئات على الأقل للمتابعة.' : 'فئاتكم جاهزة؛ تقدرون تتابعون.') + '</p>' +
       '<div class="j-actions">' + button('التالي', 'next-setup', 'j-btn', M.cats.length < 3 ? 'disabled' : '') + '</div>';
   }
@@ -937,7 +945,7 @@
     const all = Model.categories();
     const pool = game === 'test' ? reserveQuiz() : Model.reserve(M.cats, M.history);
     if (pool.shortage.length) { M.error = 'فئة «' + catName(pool.shortage[0]) + '» غير متاحة حاليًا؛ ارجعوا واختاروا فئة أخرى.'; render(); return false; }
-    M.error = ''; M.pool = pool.indices; M.slots = pool.slots; M.fallback = pool.fallback; M.excluded = all.filter(c => c.count < Model.PER_CATEGORY);
+    M.error = ''; M.pool = pool.indices; M.slots = pool.slots; M.fallback = pool.fallback; M.excluded = all.filter(c => c.count === 0);
     if (game === 'hanna') M.slots = M.cats.flatMap(cat => M.slots.filter(slot => slot.cat === cat).sort((a, b) => a.pts - b.pts));
     if (game === 'hanna' || game === 'test') {
       const slots = fourChoiceSlots(M.slots);
@@ -1705,11 +1713,12 @@
       else await loadKunuzLocal();
       if (!global.DATA || !global.KZV) throw new Error('ملفات المغامرة غير متاحة. افتحوا الصفحة متصلين مرة لتكتمل الملفات المحلية.');
       await global.KZV.ready;
+      if (game === 'hanna' || game === 'harb') await loadRoomCategories().catch(() => {});
       warmLocalAssets().catch(() => {});
       if (global.LEVELS_EXPERIMENT !== false) await new Promise(resolve => { let tries = 0; const timer = setInterval(() => { if (global.KUNUZ_LEVELS || ++tries >= 80) { clearInterval(timer); resolve(); } }, 25); });
       const availableCategories = Model.categories();
-      M.excluded = availableCategories.filter(c => c.count < Model.PER_CATEGORY);
-      const usableCategories = new Set((game === 'test' ? quizCatalog() : availableCategories.filter(c => c.count >= Model.PER_CATEGORY)).map(c => c.index));
+      M.excluded = availableCategories.filter(c => c.count === 0);
+      const usableCategories = new Set((game === 'test' ? quizCatalog() : availableCategories.filter(c => c.count > 0)).map(c => c.index));
       M.cats = M.cats.filter(index => usableCategories.has(index));
       if (game === 'test' && !M.quizCustomCount && !quizCounts().includes(M.quizCount) && quizCounts().length) M.quizCount = quizCounts()[0];
       if (M.stage === 'settings' && M.cats.length < (game === 'test' ? 1 : 3)) { M.stage = 'categories'; M.step = 1; }
