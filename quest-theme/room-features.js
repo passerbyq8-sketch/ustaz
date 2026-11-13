@@ -14,10 +14,22 @@
     }
     return nativeFetch(input, init);
   };
-  let current = null, visualKey = '', visualNode = null, loading = null, controls = null, activeSocket = null, features = null;
+  let current = null, visualKey = '', visualNode = null, loading = null, controls = null, scores = null, activeSocket = null, features = null;
+  function mount(node) {
+    const journey = document.querySelector('.journey-app');
+    (document.body.classList.contains('journey-room') ? journey || document.body : journey?.querySelector('main') || document.getElementById('root')?.parentNode || document.body).append(node);
+  }
   function paintControls() {
     if (controls) controls.remove(); controls = null;
-    if (!features?.host || activeSocket?.readyState !== 1) return;
+    if (scores) scores.remove(); scores = null;
+    if (!features || activeSocket?.readyState !== 1) return;
+    if (current?.teams?.some(team => typeof team.score === 'number')) {
+      scores = document.createElement('section'); scores.className = 'j-form-card'; scores.dataset.kfxScores = 'true';
+      scores.setAttribute('aria-label', 'النقاط'); scores.setAttribute('aria-live', 'polite');
+      for (const team of current.teams) { const row = document.createElement('p'); row.textContent = (team.name || team.n || '') + ' · ' + Number(team.score || 0).toLocaleString('ar-KW'); scores.append(row); }
+      mount(scores);
+    }
+    if (!features.host) return;
     controls = document.createElement('section'); controls.className = 'j-form-card'; controls.dataset.kfxControls = 'true';
     controls.setAttribute('aria-label', 'إدارة الغرفة');
     const title = document.createElement('h2'); title.textContent = 'إدارة الغرفة'; controls.append(title);
@@ -30,9 +42,8 @@
       const amount = Number(input.replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))));
       if (Number.isSafeInteger(amount) && amount > 0 && amount <= 1000000) activeSocket.send(JSON.stringify({ t: 'kfxDeduct', slot, amount }));
     });
-    const journey = document.querySelector('.journey-app');
     // Native Hanna/Harb hide Journey's main area while keeping its header visible.
-    (document.body.classList.contains('journey-room') ? journey || document.body : journey?.querySelector('main') || document.getElementById('root')?.parentNode || document.body).append(controls);
+    mount(controls);
   }
   function kicked() {
     try { sessionStorage.setItem('kunuz_kicked_notice', 'أخرجك صاحب الغرفة'); } catch (_) {}
@@ -56,7 +67,7 @@
     const anchor = document.querySelector('[data-testid="question-prompt"]') || document.getElementById('qtext');
     if (!q?.visual || !anchor || anchor.closest('[hidden],.hidden')) { if (visualNode) visualNode.remove(); visualNode = null; visualKey = ''; return; }
     const key = JSON.stringify(q.visual);
-    const revealed = ['reveal', 'result', 'end'].includes(current?.phase) || ['revealed', 'closed'].includes(q.stage);
+    const revealed = ['beat2', 'reveal', 'result', 'end'].includes(current?.phase) || ['revealed', 'closed'].includes(q.stage);
     if (visualNode) visualNode.classList.toggle('kzv-revealed', revealed);
     if (visualKey === key && visualNode?.isConnected) return;
     visualKey = key;
@@ -86,6 +97,6 @@
     }
   }
   global.WebSocket = RoomSocket;
-  function observe() { new MutationObserver(() => { paintVisual(); if (features?.host && !controls?.isConnected) paintControls(); }).observe(document.body, { childList: true, subtree: true }); }
+  function observe() { new MutationObserver(() => { paintVisual(); if (features?.host && !controls?.isConnected || scores && !scores.isConnected) paintControls(); }).observe(document.body, { childList: true, subtree: true }); }
   if (document.body) observe(); else document.addEventListener('DOMContentLoaded', observe, { once: true });
 })(window);

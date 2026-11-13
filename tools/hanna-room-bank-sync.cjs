@@ -35,7 +35,7 @@ function liveBank(data) {
   return {cats: data.cats, qs: data.qs.filter(row => !isHeld(row))};
 }
 function git(...args) {
-  return cp.execFileSync('git', args, {cwd: ROOT, maxBuffer: 1 << 28, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true});
+  return cp.execFileSync('git', ['--no-pager', ...args], {cwd: ROOT, maxBuffer: 1 << 28, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true});
 }
 function recoverHeld(data, ref) {
   const missing = new Set(data.qs.filter(isHeld).map(r => r[8]));

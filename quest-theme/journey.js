@@ -420,7 +420,7 @@
     }).join('') + '</div><div class="j-actions">' + button('الفرق والإعدادات', 'leave', 'j-secondary') + '</div>';
   }
   function hannaCategories() {
-    return '<section class="j-hanna-list"><h2>اختاروا الفئة</h2><div class="j-category-picker">' + M.cats.map(c => button(catIcon(c) + '<b>' + esc(catName(c)) + '</b>', 'hanna-category', 'j-cat-pick', 'data-cat="' + c + '"')).join('') + '</div>' + teamBar() + '<div class="j-actions">' + button('إنهاء الجولة', 'hanna-finish', 'j-secondary') + '</div></section>';
+    return '<section class="j-hanna-list">' + (M.error ? '<p class="j-error" role="alert">' + esc(M.error) + '</p>' : '') + '<h2>اختاروا الفئة</h2><div class="j-category-picker">' + M.cats.map(c => button(catIcon(c) + '<b>' + esc(catName(c)) + '</b>', 'hanna-category', 'j-cat-pick', 'data-cat="' + c + '"')).join('') + '</div>' + teamBar() + '<div class="j-actions">' + button('إنهاء الجولة', 'hanna-finish', 'j-secondary') + '</div></section>';
   }
   function openHannaCategory(cat) {
     let index = M.slots.findIndex(slot => slot.cat === cat && !slot.used);

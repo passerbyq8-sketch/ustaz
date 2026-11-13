@@ -20,7 +20,7 @@ function references() {
   }
   return refs;
 }
-function verify() {
+async function verify() {
   const registry = JSON.parse(fs.readFileSync(path.join(root, 'guards/asset-versions.json'), 'utf8'));
   assert.equal(registry.schema, 1);
   const refs = references();
@@ -30,8 +30,8 @@ function verify() {
     const sha = crypto.createHash('sha256').update(content).digest('hex');
     assert.equal(sha, registry.assets[key], key + ': content changed without a version bump');
   }
-  assert.equal(fs.readFileSync(path.join(root, 'quest-theme/room-categories.js'), 'utf8'), require('../tools/hanna-room-categories.cjs').generate(), 'Room IDs must match the room sync source');
+  assert.equal(fs.readFileSync(path.join(root, 'quest-theme/room-categories.js'), 'utf8'), await require('../tools/hanna-room-categories.cjs').generate(), 'Room IDs must match the room sync source');
   console.log('PASS asset versions: ' + refs.size + ' URL versions across ' + pages.length + ' pages; room category projection matches.');
 }
 module.exports = { references, verify };
-if (require.main === module) verify();
+if (require.main === module) verify().catch(error => { console.error(error); process.exitCode = 1; });

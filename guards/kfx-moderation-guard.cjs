@@ -16,8 +16,11 @@ const win = { document, WebSocket:Socket, fetch:async(u,i)=>{posted=JSON.parse(i
 win.window=win; vm.runInNewContext(fs.readFileSync(path.join(root,'quest-theme/room-features.js'),'utf8'),win);
 const ws=new win.WebSocket('ws://localhost/ws/rooms/1234'); ws.send(JSON.stringify({t:'hello'})); assert.equal(ws.sent[0].kfx,1);
 assert.equal(document.querySelector('[data-kfx-controls]'),null,'old servers expose no new controls');
-ws.receive({t:'snapshot',snapshot:{teams:[{name:'First'}]}});
+ws.receive({t:'snapshot',snapshot:{teams:[{name:'First',score:0}]}});
 ws.receive({t:'kfxState',host:false,members:[],deduct:false}); assert.equal(document.querySelector('[data-kfx-controls]'),null);
+ws.receive({t:'snapshot',snapshot:{teams:[{name:'First',score:-50}]}});
+assert.ok(document.querySelector('[data-kfx-scores]').textContent.includes('٥٠'),'guests immediately see deducted lobby scores');
+assert.equal(document.querySelectorAll('[data-kfx-scores] button').length,0,'guest scores grant no controls');
 const journey=document.createElement('div');journey.className='journey-app';journey.innerHTML='<main class="j-content"></main>';document.body.append(journey);document.body.classList.add('journey-room');
 ws.receive({t:'kfxState',host:true,members:[{id:'opaque',name:'Guest'}],deduct:true});
 assert.equal(document.querySelector('[data-kfx-controls]').parentNode,journey,'native room controls must sit outside hidden Journey main');

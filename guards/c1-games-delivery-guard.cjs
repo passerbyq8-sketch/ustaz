@@ -6,18 +6,20 @@ const hash = body => crypto.createHash('sha256').update(body).digest('hex');
 const documents = Object.fromEntries(fixture.files.map(file => [file, read(file)]));
 const worker = read('quest-sw.js'), registry = JSON.parse(read('guards/asset-versions.json')).assets;
 const pattern = /[^"'\s`<>]+\.(?:js|css)\?v=[a-zA-Z0-9_-]+/g;
+const versionFor = asset => fixture.versions?.[asset] || fixture.version;
+const shellVersion = fixture.shellVersion || fixture.version;
 function target(file, url) {
   const base = file.startsWith('hanna-laha/assets/') && url.startsWith('assets/') ? 'https://fixture.invalid/hanna-laha/' : 'https://fixture.invalid/' + file;
   return new URL(url, base).pathname.slice(1);
 }
 async function verify(docs, source, entries = registry) {
-  assert.equal(source.match(/const VERSION = '([^']+)';/)[1], fixture.version, 'reserved precache version');
+  assert.equal(source.match(/const VERSION = '([^']+)';/)[1], shellVersion, 'reserved precache version');
   for (const [key, value] of Object.entries(fixture.previousRegistry)) assert.equal(entries[key], value, 'old registry entry retained: ' + key);
   const refs = new Map(fixture.assets.map(asset => [asset, []]));
   for (const [file, text] of Object.entries(docs)) for (const match of text.matchAll(pattern)) {
     const asset = target(file, match[0]);
     if (!refs.has(asset)) continue;
-    assert.equal(match[0].split('?v=')[1], fixture.version, file + ': fresh dependency URL for ' + asset);
+    assert.equal(match[0].split('?v=')[1], versionFor(asset), file + ': fresh dependency URL for ' + asset);
     refs.get(asset).push({ file, url: match[0] });
   }
   const handlers = {}, disk = new Map(), requests = [];
@@ -32,11 +34,11 @@ async function verify(docs, source, entries = registry) {
   const context = vm.createContext(scope);
   // Execute the real cache-first worker with the preceding database version.
   // Only the disk boundary is replaced; URL routing and cache keys are real.
-  vm.runInContext(source.replace("const VERSION = '" + fixture.version + "';", "const VERSION = '" + fixture.previousVersion + "';") + '\nreadAsset=readFixture;writeAsset=writeFixture;', context);
+  vm.runInContext(source.replace("const VERSION = '" + shellVersion + "';", "const VERSION = '" + fixture.previousVersion + "';") + '\nreadAsset=readFixture;writeAsset=writeFixture;', context);
   for (const asset of fixture.assets) {
     assert(refs.get(asset).length, 'reachable immutable asset: ' + asset);
-    const current = read(asset), key = '/' + asset + '?v=' + fixture.version;
-    assert.equal(entries[asset + '?v=' + fixture.version], hash(Buffer.from(current)), 'new immutable digest: ' + asset);
+    const current = read(asset), key = '/' + asset + '?v=' + versionFor(asset);
+    assert.equal(entries[asset + '?v=' + versionFor(asset)], hash(Buffer.from(current)), 'new immutable digest: ' + asset);
     assert(vm.runInContext('SHELL.includes(' + JSON.stringify('/' + asset) + ')', context), 'precache includes ' + asset);
     const count = requests.length;
     let reply;
@@ -51,12 +53,12 @@ async function verify(docs, source, entries = registry) {
 (async () => {
   const refs = await verify(documents, worker); let mutations = 0;
   for (const asset of fixture.assets) {
-    const ref = refs.get(asset)[0], stale = ref.url.replace(fixture.version, fixture.oldURLs[asset][0]);
+    const ref = refs.get(asset)[0], stale = ref.url.replace(versionFor(asset), fixture.oldURLs[asset][0]);
     await assert.rejects(() => verify({ ...documents, [ref.file]: documents[ref.file].replace(ref.url, stale) }, worker)); mutations++;
     await assert.rejects(() => verify(documents, worker.replace("'/" + asset + "',", ''))); mutations++;
-    await assert.rejects(() => verify(documents, worker, { ...registry, [asset + '?v=' + fixture.version]: '0'.repeat(64) })); mutations++;
+    await assert.rejects(() => verify(documents, worker, { ...registry, [asset + '?v=' + versionFor(asset)]: '0'.repeat(64) })); mutations++;
   }
-  await assert.rejects(() => verify(documents, worker.replace(fixture.version, fixture.previousVersion))); mutations++;
+  await assert.rejects(() => verify(documents, worker.replace(shellVersion, fixture.previousVersion))); mutations++;
   const previousKey = Object.keys(fixture.previousRegistry)[0];
   await assert.rejects(() => verify(documents, worker, { ...registry, [previousKey]: '0'.repeat(64) })); mutations++;
   await assert.rejects(() => verify(documents, worker.replace("url.searchParams.get('v') || VERSION", 'VERSION'))); mutations++;
