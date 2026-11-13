@@ -127,6 +127,22 @@
     if (!result.shortage.length) for (const cat of result.restarts) seen.restart(cat, result.indices.filter(i => global.DATA.qs[i][0] === cat));
     return result;
   }
+  function difficultyPool(cats, seen, difficulty, count = PER_CATEGORY, random = Math.random, excluded = new Set()) {
+    const desired = { easy: 1, medium: 2, hard: 3 }[difficulty] || 0;
+    const slots = [], fallback = [], restarts = [], shortage = [];
+    for (const cat of new Set(cats)) {
+      const { unseen, oldest } = candidates(cat, seen, random, excluded);
+      const distance = i => desired ? Math.abs((level(i) || desired) - desired) : 0;
+      unseen.sort((a, b) => distance(a) - distance(b));
+      oldest.sort((a, b) => distance(a) - distance(b) || seen.last(a) - seen.last(b));
+      const indices = unseen.concat(oldest).slice(0, count);
+      if (!indices.length) shortage.push(cat);
+      if (indices.some(i => seen.has(i))) restarts.push(cat);
+      fallback.push({ cat, missing: desired ? indices.filter(i => level(i) !== desired).length : 0 });
+      for (const index of indices) slots.push({ cat, index, pts: 200, desired, actual: level(index), used: false, by: -1 });
+    }
+    return { slots, indices: slots.map(s => s.index), fallback, restarts, shortage };
+  }
   function rank(teams, score = t => t.score) {
     const order = teams.map((t, i) => i).sort((a, b) => score(teams[b]) - score(teams[a]) || a - b);
     const top = score(teams[order[0]]);
@@ -141,5 +157,5 @@
     if (!game) return null;
     game.cats = cats.slice(); game.slots = slots; return game;
   }
-  global.KunuzModel = Object.freeze({ PER_CATEGORY, LEVELS, POINTS, HANNA_POINTS, shuffle, level, live, catalog, categories, history, candidates, pool, reserve, rank, hannaDelta, board });
+  global.KunuzModel = Object.freeze({ PER_CATEGORY, LEVELS, POINTS, HANNA_POINTS, shuffle, level, live, catalog, categories, history, candidates, pool, reserve, difficultyPool, rank, hannaDelta, board });
 })(window);

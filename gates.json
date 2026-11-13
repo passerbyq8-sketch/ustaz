@@ -1455,5 +1455,10 @@
     "name": "kfx-categories",
     "script": "guards/kfx-categories-guard.cjs",
     "args": []
+  },
+  {
+    "name": "kfx-difficulty",
+    "script": "guards/kfx-difficulty-guard.cjs",
+    "args": []
   }
 ]

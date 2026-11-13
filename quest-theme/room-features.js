@@ -2,6 +2,18 @@
 (function (global) {
   'use strict';
   const NativeSocket = global.WebSocket;
+  const nativeFetch = global.fetch.bind(global);
+  global.fetch = function (input, init) {
+    const url = typeof input === 'string' ? input : input?.url;
+    if (init?.method?.toUpperCase() === 'POST' && /\/api\/(?:rooms|war\/rooms)$/.test(String(url))) {
+      try {
+        const body = JSON.parse(init.body);
+        const difficulty = global.KunuzJourney?.state.settings.difficulty;
+        if (body.config && ['easy', 'medium', 'hard', 'mixed'].includes(difficulty)) init = { ...init, body: JSON.stringify({ ...body, config: { ...body.config, difficulty } }) };
+      } catch (_) {}
+    }
+    return nativeFetch(input, init);
+  };
   let current = null, visualKey = '', visualNode = null, loading = null;
   function script(src) { return new Promise((resolve, reject) => { const el = document.createElement('script'); el.src = src; el.onload = resolve; el.onerror = reject; document.head.append(el); }); }
   async function renderer() {
