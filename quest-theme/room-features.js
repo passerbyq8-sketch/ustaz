@@ -30,7 +30,9 @@
       const amount = Number(input.replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))));
       if (Number.isSafeInteger(amount) && amount > 0 && amount <= 1000000) activeSocket.send(JSON.stringify({ t: 'kfxDeduct', slot, amount }));
     });
-    (document.querySelector('.journey-app main') || document.getElementById('root')?.parentNode || document.body).append(controls);
+    const journey = document.querySelector('.journey-app');
+    // Native Hanna/Harb hide Journey's main area while keeping its header visible.
+    (document.body.classList.contains('journey-room') ? journey || document.body : journey?.querySelector('main') || document.getElementById('root')?.parentNode || document.body).append(controls);
   }
   function kicked() {
     try { sessionStorage.setItem('kunuz_kicked_notice', 'أخرجك صاحب الغرفة'); } catch (_) {}

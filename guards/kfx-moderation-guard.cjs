@@ -18,7 +18,9 @@ const ws=new win.WebSocket('ws://localhost/ws/rooms/1234'); ws.send(JSON.stringi
 assert.equal(document.querySelector('[data-kfx-controls]'),null,'old servers expose no new controls');
 ws.receive({t:'snapshot',snapshot:{teams:[{name:'First'}]}});
 ws.receive({t:'kfxState',host:false,members:[],deduct:false}); assert.equal(document.querySelector('[data-kfx-controls]'),null);
+const journey=document.createElement('div');journey.className='journey-app';journey.innerHTML='<main class="j-content"></main>';document.body.append(journey);document.body.classList.add('journey-room');
 ws.receive({t:'kfxState',host:true,members:[{id:'opaque',name:'Guest'}],deduct:true});
+assert.equal(document.querySelector('[data-kfx-controls]').parentNode,journey,'native room controls must sit outside hidden Journey main');
 const buttons=[...document.querySelectorAll('[data-kfx-controls] button')]; assert.equal(buttons.length,2);
 buttons[0].onclick();assert.equal(confirmed,'تطرد هذا اللاعب؟');assert.deepEqual(ws.sent.at(-1),{t:'kfxKick',target:'opaque'});
 buttons[1].onclick();assert.deepEqual(ws.sent.at(-1),{t:'kfxDeduct',slot:0,amount:50});
