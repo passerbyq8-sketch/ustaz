@@ -660,8 +660,9 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     const stationRows = [fatwaRow('منازل القمر في القرآن', STATIONS, 9)];
     const mixed = makeDeps({ rows: stationRows, writerText: STATIONS.replace(/\.$/u, '') + ' [[1]].', worldlyText: MOON });
     const p9 = await turn({ question: byId.P9.q, reading: rP9, deps: mixed.deps, continueWhenNotCovered: true });
-    const WORLD = '### ' + rP9.parts[0].title + '\n' + MOON + '\n\n';
-    ok('H4a P9: the worldly half goes out first under its name, from one small call under the general frame, with no source card and no citation mark',
+    // (ORDER A-TAKHRIJ section 4 item 1: a worldly part has no title of the server's own, and the model's name for it is not printed)
+    const WORLD = MOON + '\n\n';
+    ok('H4a P9: the worldly half goes out first, with no heading (the model\'s name for the part is not printed), from one small call under the general frame, with no source card and no citation mark',
       p9.pieces[0] === WORLD && mixed.calls.worldly.length === 1 && mixed.calls.worldly[0].system === 'GENERAL-FRAME' && mixed.calls.worldly[0].user.includes(rP9.parts[0].text)
       && mixed.calls.worldly[0].user.startsWith(BW.BW2_WORLDLY_RULE) && !WORLD.includes('<source') && !WORLD.includes('[[') && p9.out.telemetry.servedWorldly === 1, p9.pieces[0]);
     ok('H4b ...then the religious half from the sources under today\'s rules, with its card; the sources were never asked the worldly words',
@@ -787,6 +788,38 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     const both = await turn({ question: 'ما صفة الوضوء؟ وما صفة التيمم؟', reading: twoCards, deps: cardsOnly.deps });
     ok('H7 a question whose every part is a card gets the cards and nothing else: no source is asked and no writer is called',
       both.text === '### صفة الوضوء\n<worship id="wudu"></worship>\n\n### صفة التيمم\n<worship id="tayammum"></worship>\n\n' && cardsOnly.calls.tools.length === 0 && cardsOnly.calls.writer === 0, both.text);
+
+    // H7b -- ORDER A-TAKHRIJ section 4 item 1 (2026-11-13): THE HEADING ABOVE A PART THE SERVER ANSWERS IS THE SERVER'S OWN. A card's
+    // heading is the card's own title, whatever the reading model named the part; a worldly part has no heading. (Inputs written for
+    // this guard: none is a question of a capture, of the battery or of a box.)
+    {
+      const GH_Q = 'كيف أغتسل؟ وما موجبات الغسل؟';
+      const ghPlan = scripted(planWith([partOf('كيف أغتسل؟', 'manner', { name: 'أغتسل', act: 'ghusl' }), partOf('ما موجبات الغسل؟', 'ruling', { name: 'موجبات الغسل' })]), GH_Q);
+      const GH_TEXT = 'يجب الغسل بخروج المني وبالتقاء الختانين.';
+      const ghDeps = makeDeps({ rows: [fatwaRow('موجبات الغسل', GH_TEXT, 31)], writerText: GH_TEXT.replace(/\.$/u, '') + ' [[1]].' });
+      const gh = ghPlan.reading ? await turn({ question: GH_Q, reading: ghPlan.reading, deps: ghDeps.deps }) : { text: '', pieces: [] };
+      ok('HD1 [A-TAKHRIJ 4.1] a card beside a written part, the reading model having named the card\'s part with the reader\'s own verb: the heading above the card is the CARD\'S OWN TITLE, and the model\'s name is printed nowhere',
+        !!ghPlan.reading && same(ghPlan.reading.parts.map((p) => p.served), ['worship', '']) && ghPlan.reading.parts[0].title === 'أغتسل'
+        && gh.text.startsWith('### ' + BW.BW2_WORSHIP_CARD_TITLE.ghusl + '\n<worship id="ghusl"></worship>\n\n') && !/^#+\s*أغتسل\s*$/mu.test(gh.text) && gh.text.includes('يجب الغسل'),
+        { served: ghPlan.reading && ghPlan.reading.parts.map((p) => p.served), head: gh.text.slice(0, 60) });
+      ok('HD2 [A-TAKHRIJ 4.1] every card the server can serve has a title of its own: the four acts of the plan, each a non-empty title, no other key',
+        same(Object.keys(BW.BW2_WORSHIP_CARD_TITLE).sort(), [...RP.PLAN_ACTS].sort()) && Object.values(BW.BW2_WORSHIP_CARD_TITLE).every((t) => typeof t === 'string' && t.trim().length > 3)
+        && new Set(Object.values(BW.BW2_WORSHIP_CARD_TITLE)).size === RP.PLAN_ACTS.length, Object.keys(BW.BW2_WORSHIP_CARD_TITLE));
+      const WL_Q = 'ما عاصمة اليابان؟ وما حكم صلاة المسافر؟';
+      const wlPlan = scripted(planWith([partOf('ما عاصمة اليابان؟', 'worldly', { name: 'عاصمتا اليابان' }), partOf('ما حكم صلاة المسافر؟', 'ruling', { name: 'صلاة المسافر' })]), WL_Q);
+      const WL_TEXT = 'يقصر المسافر الصلاة الرباعية ركعتين.';
+      const WL_WORLD = 'عاصمة اليابان هي طوكيو.';
+      const wlDeps = makeDeps({ rows: [fatwaRow('صلاة المسافر', WL_TEXT, 32)], writerText: WL_TEXT.replace(/\.$/u, '') + ' [[1]].', worldlyText: WL_WORLD });
+      const wl = wlPlan.reading ? await turn({ question: WL_Q, reading: { ...wlPlan.reading, worldlySystem: 'GENERAL-FRAME' }, deps: wlDeps.deps }) : { text: '', pieces: [] };
+      ok('HD3 [A-TAKHRIJ 4.1] a worldly part beside a written part: the worldly sentence goes out with NO heading, and the model\'s name for it (here in a wrong number) is printed nowhere; the religious part follows from the sources',
+        !!wlPlan.reading && same(wlPlan.reading.parts.map((p) => p.served), ['worldly', '']) && wl.pieces[0] === WL_WORLD + '\n\n' && !wl.text.includes('عاصمتا') && wl.text.includes('يقصر المسافر') && wl.text.includes('<source'),
+        { served: wlPlan.reading && wlPlan.reading.parts.map((p) => p.served), first: String(wl.pieces[0] || '').slice(0, 50) });
+      // the writer writes the served part's name again as a heading, then its own part: that repeat is dropped, as before the change
+      const ghRepeat = makeDeps({ rows: [fatwaRow('موجبات الغسل', GH_TEXT, 31)], writerText: '### أغتسل\n\n### موجبات الغسل\n\n' + GH_TEXT.replace(/\.$/u, '') + ' [[1]].' });
+      const ghR = ghPlan.reading ? await turn({ question: GH_Q, reading: ghPlan.reading, deps: ghRepeat.deps }) : { text: '' };
+      ok('HD4 [A-TAKHRIJ 4.1] the writer repeats the served part\'s name as a heading: it is dropped as it was (the name is the server\'s part), the card\'s own title stands once, and the written part\'s text goes out',
+        (ghR.text.match(new RegExp('^### ' + BW.BW2_WORSHIP_CARD_TITLE.ghusl + '$', 'gmu')) || []).length === 1 && !/^#+\s*أغتسل\s*$/mu.test(ghR.text) && ghR.text.includes('يجب الغسل'), ghR.text.slice(0, 120));
+    }
 
     // H8 -- ORDER A-TAKHRIJ (2026-11-13): THE TAKHRIJ LOOKUP STARTED BESIDE THE READING IS THE TURN'S OWN WHENEVER THE TURN TAKES IT,
     // WHATEVER BECOMES OF THE GATHER. The takhrij is WIRED here (no earlier row of this guard drives it wired). The library ladder is a
