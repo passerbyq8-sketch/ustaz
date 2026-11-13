@@ -787,6 +787,124 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     const both = await turn({ question: 'ما صفة الوضوء؟ وما صفة التيمم؟', reading: twoCards, deps: cardsOnly.deps });
     ok('H7 a question whose every part is a card gets the cards and nothing else: no source is asked and no writer is called',
       both.text === '### صفة الوضوء\n<worship id="wudu"></worship>\n\n### صفة التيمم\n<worship id="tayammum"></worship>\n\n' && cardsOnly.calls.tools.length === 0 && cardsOnly.calls.writer === 0, both.text);
+
+    // H8 -- ORDER A-TAKHRIJ (2026-11-13): THE TAKHRIJ LOOKUP STARTED BESIDE THE READING IS THE TURN'S OWN WHENEVER THE TURN TAKES IT,
+    // WHATEVER BECOMES OF THE GATHER. The takhrij is WIRED here (no earlier row of this guard drives it wired). The library ladder is a
+    // stand-in that answers after `delay` ms, or rejects when the signal it was handed is aborted, as a fetch does; the head is written
+    // when the lookup answers. The clock: the gather beside the reading starts at once, the reading takes READ8 ms, then the turn.
+    // Rule: the turn with a reading writes the grade head wherever the turn with none writes it -- the library answering LATER than the
+    // reading included -- and asks the library no more often. (The inputs are written for this guard: none is a question of a capture,
+    // of the battery or of a box.)
+    {
+      const HEAD8 = 'الحكم عليه في السلسلة الصحيحة: صحيح.';
+      const MATN8 = 'الدين النصيحة';
+      const ONE8 = 'من روى حديث «' + MATN8 + '»؟';
+      const INSTR8 = ONE8 + ' اذكرهم مع الدليل.';
+      const SHORT8 = 'ومن رواه؟';
+      const FIRST8 = 'ما معنى حديث «' + MATN8 + '»؟';
+      const WRITER8 = 'قال رسول الله صلى الله عليه وسلم: «' + MATN8 + '» [[1]].';
+      const ROW8 = 'قال رسول الله صلى الله عليه وسلم: «' + MATN8 + '» رواه مسلم.';
+      const READ8 = 120; const LATE8 = 320; const BUDGET8 = 1200;
+      const env8 = { BW2_RETRIEVAL_MS: String(BUDGET8), BW2_JUDGE_MS: '600' };
+      const plan8 = (q, { message, previous = [], followup = false, full = '' } = {}) => {
+        const checked = RP.validatePlan(RP.parsePlan(JSON.stringify({ followup, full, parts: [{ name: 'الحديث', q, kind: 'hadith', needs: [], source: [], act: '', chapter: '' }],
+          c: { sahih: false, all: false, coll: [], schools: [], scholar: '', book: '', count: 0, form: [] } })), { question: message, previous });
+        return checked.ok && !RP.planNotApplied(checked.plan, { question: message }) ? RP.readingOf(checked.plan, { question: message, previous }) : null;
+      };
+      const deps8 = (delay) => {
+        const log = { lookups: [], headAsked: [] };
+        const deps = {
+          runTool: (name, input, ctx) => Promise.resolve({ text: '', calls: 1, added: name === 'search_fatawa' ? [ctx.table.add({ kind: 'fatwa', title: 'صف من الفتاوى', url: 'https://binbaz.org.sa/fatwas/9001', publisher: 'ابن باز', scholar: 'ابن باز', text: ROW8, passage: ROW8 })] : [] }),
+          searchStoredCorpus: () => Promise.resolve({ records: [] }), warmEncyclopedia: () => Promise.resolve(true), encyclopediaReady: () => true, encyclopediaRow: TOOLS.encyclopediaRow,
+          ask: async (call) => { const n = (String(call.user || '').match(/^\[\d+\] /gmu) || []).length; return JSON.stringify({ d: Object.fromEntries(Array.from({ length: n }, (_, i) => [String(i + 1), 1])) }); },
+          callWriter: async ({ onText }) => { onText(WRITER8); return { usage: { input_tokens: 10, output_tokens: 10 }, stop_reason: 'end_turn', content: [] }; },
+          runnerLookup: (runTool, ctx) => async (matns) => {
+            const entry = { outcome: 'pending' }; log.lookups.push(entry);
+            const sig = ctx && ctx.signal;
+            try {
+              await new Promise((resolve, reject) => {
+                if (sig && sig.aborted) { reject(new Error('aborted')); return; }
+                const timer = setTimeout(resolve, delay);
+                if (sig) sig.addEventListener('abort', () => { clearTimeout(timer); reject(new Error('aborted')); }, { once: true });
+              });
+            } catch (error) { entry.outcome = 'aborted'; throw error; }
+            entry.outcome = 'answered';
+            return [{ matn: matns[0] }];
+          },
+          gradingHeadForQuestion: async ({ question, lookup }) => { log.headAsked.push(String(question)); const got = await lookup([MATN8]); return got && got.length ? { head: HEAD8 } : null; },
+          applyTakhrij: async (text) => ({ text, entries: [] }),
+        };
+        return { log, deps };
+      };
+      const wired8 = { libFlagValue: 'on', libToken: 'tk-guard-1', lessonsToken: '', takhrijWired: true };
+      const turn8 = async ({ message, previous = [], reading = undefined, pregather = undefined, deps, runtime = 'HADITH' }) => {
+        const { target, wire } = makeWire();
+        const messages = [...previous.flatMap((p) => [{ role: 'user', content: p }, { role: 'assistant', content: 'جواب سابق.' }]), { role: 'user', content: message }];
+        const out = await BW.runBw2Turn({
+          question: reading ? reading.question : message, messages, mode: 'brief', band: 'adult', system: 'SYSTEM', model: 'writer-model', maxTokens: 4096,
+          providerUrl: 'https://api.anthropic.invalid/v1/messages', headers: {}, ...wired8, cards, wire, requestStartedAt: Date.now(), env: env8, runtime,
+          deps, ...(reading ? { reading } : {}), ...(pregather ? { pregather } : {}),
+        });
+        return { out, text: finalText(framesOf(target)) };
+      };
+      // the turn as the handler runs it with the reading: the gather beside the reading, the reading's wait, the turn
+      const withReading8 = async ({ message, planQ, previous = [], followup = false, full = '', delay, runtime = 'HADITH' }) => {
+        const made = deps8(delay);
+        const pregather = BW.startBw2Pregather({ question: message, runtime, band: 'adult', ...wired8, env: env8, deps: made.deps });
+        await new Promise((resolve) => setTimeout(resolve, READ8));
+        const reading = plan8(planQ, { message, previous, followup, full });
+        const got = reading ? await turn8({ message, previous, reading, pregather, deps: made.deps, runtime }) : null;
+        await new Promise((resolve) => setTimeout(resolve, 20));
+        return { reading, pregather, log: made.log, ...(got || { out: null, text: '' }) };
+      };
+      const without8 = async ({ message, previous = [], delay, runtime = 'HADITH' }) => {
+        const made = deps8(delay);
+        const got = await turn8({ message, previous, deps: made.deps, runtime });
+        return { log: made.log, ...got };
+      };
+      const headFirst = (r) => String(r.text || '').trimStart().startsWith(HEAD8);
+
+      // T1: the plan leaves a form instruction out, so the sources are asked the part's sentence and the gather is DISCARDED; the
+      // library answers LATER than the reading. The head is the turn's first line, as it is with no reading.
+      const offLate = await without8({ message: INSTR8, delay: LATE8 });
+      const onLate = await withReading8({ message: INSTR8, planQ: ONE8, delay: LATE8 });
+      ok('T1 [A-TAKHRIJ] THE GATHER DISCARDED, THE LIBRARY LATER THAN THE READING: the plan keeps the reader\'s first sentence and leaves the instruction out (the sources are asked that sentence; the gather beside the reading is discarded), the ladder answers after ' + LATE8 + ' ms and the reading took ' + READ8 + ': the lookup started beside the reading is NOT aborted, it is asked once, and the grade head is the first line -- as in the turn with no reading',
+        !!onLate.reading && String(onLate.reading.retrieval) !== INSTR8 && onLate.reading.question === INSTR8 && onLate.out && onLate.out.telemetry.pregather === BW.BW2_PREGATHER.discarded
+        && headFirst(offLate) && headFirst(onLate) && onLate.log.headAsked.length === 1 && onLate.log.lookups.length >= 1 && onLate.log.lookups[0].outcome === 'answered' && !onLate.log.lookups.some((l) => l.outcome === 'aborted'),
+        { off: headFirst(offLate), on: headFirst(onLate), pregather: onLate.out && onLate.out.telemetry.pregather, asked: onLate.log.headAsked.length, lookups: onLate.log.lookups.map((l) => l.outcome) });
+      // T2: the same with the library answering at once
+      const onSoon = await withReading8({ message: INSTR8, planQ: ONE8, delay: 0 });
+      ok('T2 [A-TAKHRIJ] the same with the library answering at once: the head is the first line and the head is asked once',
+        headFirst(onSoon) && onSoon.log.headAsked.length === 1 && onSoon.out.telemetry.pregather === BW.BW2_PREGATHER.discarded, { head: headFirst(onSoon), asked: onSoon.log.headAsked.length });
+      // T3: the gather REUSED (one sentence, the reader's own words), the library later than the reading: unchanged
+      const offOne = await without8({ message: ONE8, delay: LATE8 });
+      const onOne = await withReading8({ message: ONE8, planQ: ONE8, delay: LATE8 });
+      ok('T3 [A-TAKHRIJ] the gather reused (one sentence), the library later than the reading: the head is the first line in both turns, the head is asked once and nothing is aborted',
+        headFirst(offOne) && headFirst(onOne) && onOne.out.telemetry.pregather === BW.BW2_PREGATHER.reused && onOne.log.headAsked.length === 1 && !onOne.log.lookups.some((l) => l.outcome === 'aborted'),
+        { off: headFirst(offOne), on: headFirst(onOne), pregather: onOne.out.telemetry.pregather, lookups: onOne.log.lookups.map((l) => l.outcome) });
+      // T4: a follow-up -- the turn's question is the full question, NOT the message the gather beside the reading asked: that lookup is
+      // not this turn's, it is cancelled with the gather, and the turn asks its own on the full question
+      const onFollow = await withReading8({ message: SHORT8, planQ: ONE8, previous: [FIRST8], followup: true, full: ONE8, delay: LATE8 });
+      ok('T4 [A-TAKHRIJ] a follow-up whose full question is another text: the lookup started beside the reading on the short message is NOT taken (it is aborted with the gather), the turn asks the head of the FULL question, once, and writes it first',
+        !!onFollow.reading && onFollow.reading.question === ONE8 && headFirst(onFollow) && onFollow.log.headAsked.filter((q) => q === ONE8).length === 1
+        && onFollow.log.lookups.some((l) => l.outcome === 'aborted') && onFollow.log.lookups.some((l) => l.outcome === 'answered'),
+        { head: headFirst(onFollow), asked: onFollow.log.headAsked.map((q) => q === ONE8 ? 'full' : 'short'), lookups: onFollow.log.lookups.map((l) => l.outcome) });
+      // T5: the two cancels. `cancel` (the exits where no path reads anything) aborts the lookup; `cancelGather` leaves it running.
+      const madeA = deps8(LATE8); const preA = BW.startBw2Pregather({ question: ONE8, runtime: 'HADITH', band: 'adult', ...wired8, env: env8, deps: madeA.deps });
+      await new Promise((resolve) => setTimeout(resolve, 30)); preA.cancel(); const resA = await preA.preTakhrij;
+      const madeB = deps8(LATE8); const preB = BW.startBw2Pregather({ question: ONE8, runtime: 'HADITH', band: 'adult', ...wired8, env: env8, deps: madeB.deps });
+      await new Promise((resolve) => setTimeout(resolve, 30)); preB.cancelGather(); const resB = await preB.preTakhrij;
+      ok('T5 [A-TAKHRIJ] `cancel()` on the gather beside the reading aborts its takhrij lookup too (a fixed reply, a turn that leaves this path: nothing is asked for nobody); `cancelGather()` drops the four sources and lets the lookup answer',
+        madeA.log.lookups.length >= 1 && madeA.log.lookups.every((l) => l.outcome === 'aborted') && !(resA && resA.gradeHead)
+        && madeB.log.lookups.length >= 1 && madeB.log.lookups[0].outcome === 'answered' && !!(resB && resB.gradeHead && resB.gradeHead.head === HEAD8),
+        { cancel: madeA.log.lookups.map((l) => l.outcome), cancelGather: madeB.log.lookups.map((l) => l.outcome), headB: !!(resB && resB.gradeHead) });
+      // T6: the library slower than the lookup's own budget: neither turn writes a head, and the budget is counted from the lookup's
+      // own start in both (the reading's time is not taken from it)
+      const offSlow = await without8({ message: ONE8, delay: BUDGET8 + 400 });
+      const onSlow = await withReading8({ message: ONE8, planQ: ONE8, delay: BUDGET8 + 400 });
+      ok('T6 [A-TAKHRIJ] the library slower than the lookup\'s own budget: no head in either turn (nothing is written for a lookup that did not answer), with and without the reading alike',
+        !String(offSlow.text).includes(HEAD8) && !String(onSlow.text).includes(HEAD8) && String(offSlow.text).length > 0 && String(onSlow.text).length > 0, { off: String(offSlow.text).includes(HEAD8), on: String(onSlow.text).includes(HEAD8) });
+    }
   }
 
   // ------------------------------------------------------------------------------------------------ I
