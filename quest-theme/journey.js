@@ -28,6 +28,7 @@
   const usesRoomBank = () => (game === 'hanna' || game === 'harb' || game === 'board') && M.settings.room;
   global.KunuzUsesRoomBank = usesRoomBank;
   const roomCategorySupported = c => game === 'board' ? !!boardRooms?.supportsCategory(c) : roomCategoryIds.has(global.DATA.cats[c]?.[0]);
+  global.KunuzRoomCategorySupported = roomCategorySupported;
   const entryHistory = hasRooms ? history.state : null;
   const names = { hub: 'كنوز المعرفة', ghaws: 'الغوص', harb: 'حرب الجزر', test: 'اختبر معلوماتك', board: 'تحدّي الفئات', hanna: 'حنّا لها' };
   const limits = { ghaws: [1, 6], harb: [2, 4], test: [1, 4], board: [2, 4], hanna: [2, 10] };

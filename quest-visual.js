@@ -108,15 +108,16 @@ var KZV=(function(){
     if(installed)return;installed=true;
     var oldStamp=seenStamp,oldRead=seenRead,oldHas=seenHas,oldMark=seenMark,oldReset=seenReset,oldLive=kzLive,oldGroups=kzcGroups;
     function roomOn(){return typeof RM!=="undefined"&&RM.on||typeof G!=="undefined"&&G&&G.roomCfg}
+    function roomCat(i){return typeof window.KunuzRoomCategorySupported==="function"?window.KunuzRoomCategorySupported(i):i<baseC}
     seenStamp=function(n){return oldStamp(n||baseN)};
     seenEmpty=function(){return Array(Math.ceil(baseN/8)).fill(0)};
     seenRead=function(){oldRead();readHistory()};
     seenHas=function(i){return pack(i)?has(i):oldHas(i)};
     seenMark=function(i){if(pack(i))mark(i);else oldMark(i)};
     seenReset=function(){historyIds=Object.create(null);if(!volatile)try{window.localStorage.removeItem(HISTORY)}catch(e){volatile=true}oldReset()};
-    kzLive=function(i){return pack(i)?!roomOn():DATA.qs[i]&&DATA.qs[i].kzHide&&!roomOn()?false:oldLive(i)};
-    kzcGroups=function(){var groups=oldGroups();if(typeof G!=="undefined"&&G&&G.roomCfg)return groups.map(function(g){return {n:g.n,r:g.r,c:g.c.filter(function(i){return i<baseC})}});return groups};
-    var oldDraw=drawCats;drawCats=function(){if(typeof G!=="undefined"&&G&&G.roomCfg)for(var i=G.cats.length-1;i>=0;i--)if(G.cats[i]>=baseC)G.cats.splice(i,1);return oldDraw.apply(this,arguments)};
+    kzLive=function(i){return pack(i)?!roomOn()||roomCat(DATA.qs[i][0]):DATA.qs[i]&&DATA.qs[i].kzHide&&!roomOn()?false:oldLive(i)};
+    kzcGroups=function(){var groups=oldGroups();if(typeof G!=="undefined"&&G&&G.roomCfg)return groups.map(function(g){return {n:g.n,r:g.r,c:g.c.filter(roomCat)}});return groups};
+    var oldDraw=drawCats;drawCats=function(){if(typeof G!=="undefined"&&G&&G.roomCfg)for(var i=G.cats.length-1;i>=0;i--)if(!roomCat(G.cats[i]))G.cats.splice(i,1);return oldDraw.apply(this,arguments)};
     // Room payloads belong to their unchanged server bank. Clear a previous local drawing.
     if(typeof roomQuestion==="function"){var room=roomQuestion;roomQuestion=function(){show(null);return room.apply(this,arguments)}}
     readHistory();
