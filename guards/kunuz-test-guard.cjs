@@ -559,6 +559,24 @@ run('T11', 'gameplay stays local; approved anonymous usage helper; Arabic; the w
   report('T12', 'the gate bites: nine mutants of the page are each caught', missed.map((m) => 'MUTANT SURVIVED: ' + m), 'mutants=9 missed=' + missed.length);
 }
 
+// KFX cause guards belong to this existing gate; the top-level roster stays unchanged.
+function runKfxCauseGuards() {
+  const { spawnSync } = require('node:child_process');
+  const guards = ['categories', 'difficulty', 'moderation', 'choice-coverage'];
+  for (const [index, name] of guards.entries()) {
+    run('KFX' + (index + 1), 'KFX ' + name, () => {
+      const child = spawnSync(process.execPath, [path.join(__dirname, 'kfx-' + name + '-guard.cjs')], {
+        cwd: REPO, stdio: 'inherit', timeout: 120000,
+      });
+      return {
+        f: child.status === 0 ? [] : ['child failed: ' + (child.error?.message || child.signal || child.status)],
+        info: 'exit=' + child.status,
+      };
+    });
+  }
+}
+runKfxCauseGuards();
+
 const bad = results.filter((r) => !r.ok);
 console.log('SUMMARY ' + (results.length - bad.length) + '/' + results.length + ' pass' + (bad.length ? ' FAILED: ' + bad.map((r) => r.id).join(',') : ''));
 process.exit(bad.length ? 1 : 0);

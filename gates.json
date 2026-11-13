@@ -1450,25 +1450,5 @@
     "name": "trialfixmerges",
     "script": "tests/trialfix-merges.test.js",
     "args": ""
-  },
-  {
-    "name": "kfx-categories",
-    "script": "guards/kfx-categories-guard.cjs",
-    "args": []
-  },
-  {
-    "name": "kfx-difficulty",
-    "script": "guards/kfx-difficulty-guard.cjs",
-    "args": []
-  },
-  {
-    "name": "kfx-moderation",
-    "script": "guards/kfx-moderation-guard.cjs",
-    "args": ""
-  },
-  {
-    "name": "kfx-choice-coverage",
-    "script": "guards/kfx-choice-coverage-guard.cjs",
-    "args": ""
   }
 ]

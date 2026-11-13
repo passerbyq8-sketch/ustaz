@@ -357,7 +357,7 @@ BRAIN35 SHIP 2026-11-10 (merge of production 24992d44 into item 35): the seven i
 
 Expected signature for the current integrated roster. INTEG7 includes the independent usage gate. CURRENT_RECON records measured 375/0/0 pre-self-check counts from the clean-tree Order T1B focused audit. The audit adds its own pass after this record matches. This expected signature is not a full-run success claim.
 
-All 293 gates in the current roster run sequentially through tools/run-gates.cjs. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
+All 289 gates in the current roster run sequentially through tools/run-gates.cjs. 2026-10-29 (side/prayer-20261029, the prayer section rebuilt): four gates joined -- compassmath (the compass engine), locationauto (automatic location, DOM), hijrievents (the Hijri occasions), prayerlog (your prayers today, DOM) -- 216 -> 220 (merged on main 34b6278e, which had carried 209 -> 216 with POSTSHIP3). The IAP launch account-scoped purchase-entry decision is gate 221. Historical totals are retained below; the final rebuilt-head run is recorded after the ordered gate sequence.
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -488,12 +488,8 @@ trialfixcontent 0
 trialfixui 0
 trialfixsync 0
 trialfixmerges 0
-kfx-categories     0
-kfx-difficulty     0
-kfx-moderation     0
-kfx-choice-coverage 0
-TOTAL_GATES        293/293 PASS
-CURRENT_RECON PASS=385 WARN=0 FAIL=0
+TOTAL_GATES        289/289 PASS
+CURRENT_RECON PASS=382 WARN=0 FAIL=0
 PRE_REBASE_UPSTREAM_TOTAL_GATES 206/206 PASS
 PRE_REBASE_UPSTREAM_RECON PASS=299 WARN=0 FAIL=0
 PRE_REBASE_BRANCH_TOTAL_GATES 208/208 PASS
