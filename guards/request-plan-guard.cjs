@@ -2194,6 +2194,9 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
           && notAppliedFn === "export function planNotApplied(plan, { question = '' } = {}) {\n  if (!plan || !Array.isArray(plan.parts) || !plan.parts.length) return '';\n  const earlier = earlierReason(plan, { question });\n  if (earlier) return earlier;\n  return plan.parts.some((p) => worshipCardAct(p) !== '') ? 'card_on_label' : '';\n}\n"
           && earlierFn.startsWith("function earlierReason(plan, { question = '' } = {}) {\n  const served = servedKindsRead(plan, { question }, true);\n")
           && (source.match(/servedKindsRead\(/g) || []).length === 3 && (source.match(/servedKindsRead\([^)]*, true\)/g) || []).length === 1 && (source.match(/earlierReason\(/g) || []).length === 2
+          // (the helper's mutant S12: the reading asks the rule about the READER'S OWN message, never the plan's wording of it. The closed
+          // word of this round reads the plan's parts alone, so the mutant moves no card; the reasons of the earlier rounds read the message)
+          && source.includes("            const notApplied = checked.ok ? planNotApplied(checked.plan, { question: ctx.latest }) : '';") && (source.match(/planNotApplied\(/g) || []).length === 3
           && !/from '\.\/stored-deen\.js'/.test(source) && !/from '\.\/closed-deen\.js'/.test(source) && typeof RP.cardReaderAgrees === 'undefined'
           && same([...RP.PLAN_NOT_APPLIED], ['quran_beside_served', 'written_parts', 'followup_written_parts', 'worldly_beside_other', 'card_on_label']),
           [servedFn.length, servedReadFn.length, notAppliedFn.length, earlierFn.length, (source.match(/servedKindsRead\(/g) || []).length]);
