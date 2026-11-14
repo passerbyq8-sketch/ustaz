@@ -2177,10 +2177,13 @@ export default async function handler(req, res) {
     }
 
     // BRAIN-A: A MANNER REQUEST THE READING NAMED, AND NOTHING ELSE IN THE QUESTION. The frozen dispatcher above takes the bare
-    // request by a whole-sentence grammar («ما صفة التيمم؟»); every other wording of the same request («ما صفة غسل الجنابة؟»,
-    // «اذكر لي خطوات الوضوء مرقمة») went to a writer, and on the older path lost its card. When the plan has ONE part, the general
-    // manner of prayer, wudu, ghusl or tayammum, and the part holds nothing but that act (lib/request-plan.js worshipCardAct),
-    // the answer is the same closed one: the card alone, no retrieval and no writer.
+    // request by a whole-sentence grammar («ما صفة التيمم؟»). When the plan has ONE part, the general manner of prayer, wudu,
+    // ghusl or tayammum, and the part holds nothing but that act (lib/request-plan.js worshipCardAct), the answer is the same
+    // closed one: the card alone, no retrieval and no writer.
+    // ORDER CARD (2026-11-14): ...AND ONLY WHERE THAT SAME GRAMMAR TAKES THE READER'S OWN SENTENCE FOR THE PART (servedKinds,
+    // cardReaderAgrees): a how-to sentence the dispatcher would answer had it stood alone, beside a sentence of manner words. Until
+    // this round the plan's label was enough, and a question that asked the act's ruling, its time or its reason, called a how-to
+    // by the plan, was sent the card alone. Another wording of the request («ما صفة غسل الجنابة؟») is production's turn again.
     if (reading && reading.parts.length === 1 && reading.parts[0].served === 'worship') {
       const cardOut = closedWorshipCard(reading.parts[0].act);
       if (cardOut) {

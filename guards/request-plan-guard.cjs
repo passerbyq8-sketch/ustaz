@@ -100,9 +100,12 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     const imports = (source.match(/^import .* from '([^']+)';/gm) || []).map((line) => /from '([^']+)'/.exec(line)[1]).sort();
     // (ORDER A-TAKHRIJ, 2026-11-13: a fifth import, the takhrij's own reader of a question -- a sentence the takhrij answers is never the
     // server's to answer as worldly, rows TW1 to TW4. It is still driven without the handler: lib/takhrij.js imports nothing of api/.)
-    ok('A8 it imports four leaves and the takhrij\'s question reader, and nothing else (a guard drives it without the handler)',
-      same(imports, ['./bw2-scope.js', './front-sorter.js', './question-terms.js', './route-classify.js', './takhrij.js'])
-      && !/from '\.\.\/api\//.test(fs.readFileSync(path.join(REPO, 'lib', 'takhrij.js'), 'utf8')), imports);
+    // (ORDER CARD, 2026-11-14: two more, the two readers production's own closed worship road is made of -- lib/stored-deen.js
+    // isPureMannerRequest and lib/closed-deen.js runClosedDeenTurn -- called as they stand, so that the fixed card is served on a plan
+    // only where that road would serve it for the reader's own sentence, rows CL1 to CL5. Neither imports anything of api/.)
+    ok('A8 it imports four leaves, the takhrij\'s question reader and (ORDER CARD) the two readers of production\'s closed worship road, and nothing else (a guard drives it without the handler)',
+      same(imports, ['./bw2-scope.js', './closed-deen.js', './front-sorter.js', './question-terms.js', './route-classify.js', './stored-deen.js', './takhrij.js'])
+      && ['takhrij.js', 'stored-deen.js', 'closed-deen.js'].every((file) => !/from '\.\.\/api\//.test(fs.readFileSync(path.join(REPO, 'lib', file), 'utf8'))), imports);
   }
 
   // ------------------------------------------------------------------------------------------------ B
@@ -311,8 +314,12 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       && excl('canonical_store', null, byId.M2.q) === 'canonical_store' && excl('', null, '') === '');
 
     // G4 -- the manner of an act of worship is a part of its own, served by the fixed card
-    ok('G4a the three two-part manner questions that lost the manner on production: the first part is the card\'s, the second the writer\'s',
-      [['B19', 'tayammum'], ['B19b', 'tayammum'], ['B19w', 'wudu']].every(([id, act]) => { const r = readingFor(id); return r.parts.length === 2 && r.parts[0].served === 'worship' && r.parts[0].act === act && r.parts[1].served === '' && r.compound === true; }));
+    // (ORDER CARD, 2026-11-14: B19b is the same request in a wording production's own how-to grammar does not take. Its card stood on
+    // the plan's label alone; the plan is no longer applied -- `card_on_label` -- and its turn is production's. Rows CL1 to CL5.)
+    ok('G4a the two-part manner questions that lost the manner on production, where the how-to is a sentence production\'s own grammar takes (B19, B19w): the first part is the card\'s, the second the writer\'s; [ORDER CARD] B19b, the same request in a wording that grammar does not take, is not applied (card_on_label) and serves nothing',
+      [['B19', 'tayammum'], ['B19w', 'wudu']].every(([id, act]) => { const r = readingFor(id); return r.parts.length === 2 && r.parts[0].served === 'worship' && r.parts[0].act === act && r.parts[1].served === '' && r.compound === true && RP.planNotApplied(planOf(id), { question: byId[id].q }) === ''; })
+      && RP.planNotApplied(planOf('B19b'), { question: byId.B19b.q }) === 'card_on_label' && RP.worshipCardAct(planOf('B19b').parts[0]) === 'tayammum'
+      && RP.cardReaderAgrees(planOf('B19b').parts[0], { question: byId.B19b.q }) === false && same(RP.servedKinds(planOf('B19b'), { question: byId.B19b.q }), ['', '']));
     ok('G4b ...and the sources are asked the OTHER part alone, with its own subject',
       readingFor('B19').retrieval === planOf('B19').parts[1].q && fold(readingFor('B19w').retrieval).includes(fold('الوضوء')) && !fold(readingFor('B19').retrieval).includes(fold('صفة')));
     const manner = (q, act, kind = 'manner') => RP.worshipCardAct({ kind, q, act });
@@ -333,10 +340,19 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       same(serves([partOf('كيف أصلي؟', 'manner', { act: 'salah' })], sick), ['']) && same(serves([partOf('كيف أصلي الصلاة؟', 'manner', { act: 'salah' })], 'كيف أصلي صلاة الجنازة؟'), [''])
       && same(RP.servedKinds(planWith([partOf('ما صفة التيمم؟', 'manner', { act: 'tayammum' })]), { question: 'وكيف تكون صفته بالتفصيل؟' }), ['']),
       [serves([partOf('كيف أصلي؟', 'manner', { act: 'salah' })], sick), serves([partOf('كيف أصلي الصلاة؟', 'manner', { act: 'salah' })], 'كيف أصلي صلاة الجنازة؟')]);
-    ok('G4h ...it IS served when the rest of the reader\'s words stand in a part the writer answers (the case goes to the sources, the card beside it), and for the bare request',
-      same(serves([partOf('كيف أصلي؟', 'manner', { act: 'salah' }), partOf('ما حكم صلاة المريض الذي لا يستطيع الوقوف؟', 'ruling')], sick), ['worship', ''])
-      && same(serves([partOf('ما صفة غسل الجنابة؟', 'manner', { act: 'ghusl' })], 'ما صفة غسل الجنابة؟'), ['worship'])
-      && same(serves([partOf('ما صفة التيمم؟', 'manner', { act: '' }), partOf('متى يشرع التيمم؟', 'ruling')], byId.B19.q), ['worship', '']));
+    // (ORDER CARD, 2026-11-14: the first two cases of this row were the card ON THE PLAN'S LABEL ALONE and the row held them as wanted.
+    // The sick person's «كيف أصلي؟» is a piece the plan cut out of the reader's one sentence, and «ما صفة غسل الجنابة؟» is a wording
+    // production's own how-to grammar does not take: no reader of the tree agrees, the card is not served, and the plan is not
+    // applied. The third, a how-to sentence of the reader's that grammar takes, is served as before.)
+    const notAppliedWhy = (parts, question) => { const c = RP.validatePlan(RP.parsePlan(JSON.stringify(planWith(parts))), { question, previous: [] }); return c.ok ? RP.planNotApplied(c.plan, { question }) : 'invalid:' + c.reason; };
+    ok('G4h [re-cut by ORDER CARD] the card IS served when the how-to is a sentence of the reader\'s own that production\'s own grammar takes and the rest of the reader\'s words stand in a part the writer answers (B19); it is NOT served on the label alone -- a how-to the plan cut out of the reader\'s sentence (the sick person), a wording that grammar does not take («ما صفة غسل الجنابة؟») -- and such a plan is not applied: card_on_label',
+      same(serves([partOf('ما صفة التيمم؟', 'manner', { act: '' }), partOf('متى يشرع التيمم؟', 'ruling')], byId.B19.q), ['worship', ''])
+      && notAppliedWhy([partOf('ما صفة التيمم؟', 'manner', { act: '' }), partOf('متى يشرع التيمم؟', 'ruling')], byId.B19.q) === ''
+      && same(serves([partOf('كيف أصلي؟', 'manner', { act: 'salah' }), partOf('ما حكم صلاة المريض الذي لا يستطيع الوقوف؟', 'ruling')], sick), ['', ''])
+      && notAppliedWhy([partOf('كيف أصلي؟', 'manner', { act: 'salah' }), partOf('ما حكم صلاة المريض الذي لا يستطيع الوقوف؟', 'ruling')], sick) === 'card_on_label'
+      && same(serves([partOf('ما صفة غسل الجنابة؟', 'manner', { act: 'ghusl' })], 'ما صفة غسل الجنابة؟'), [''])
+      && notAppliedWhy([partOf('ما صفة غسل الجنابة؟', 'manner', { act: 'ghusl' })], 'ما صفة غسل الجنابة؟') === 'card_on_label',
+      [serves([partOf('ما صفة التيمم؟', 'manner', { act: '' }), partOf('متى يشرع التيمم؟', 'ruling')], byId.B19.q), notAppliedWhy([partOf('كيف أصلي؟', 'manner', { act: 'salah' }), partOf('ما حكم صلاة المريض الذي لا يستطيع الوقوف؟', 'ruling')], sick)]);
     ok('G4i the server answers nothing itself on a follow-up (what it continues stands in turns these tests do not read whole)',
       same(RP.servedKinds(planWith([partOf('ما صفة التيمم؟', 'manner', { act: 'tayammum' })], { followup: true, full: 'ما صفة التيمم؟' }), { question: 'ما صفة التيمم؟' }), [''])
       && same(RP.servedKinds(planWith([partOf('كم يبعد القمر عن الأرض؟', 'worldly')], { followup: true, full: 'كم يبعد القمر عن الأرض؟' }), { question: 'كم يبعد القمر عن الأرض؟' }), ['']));
@@ -1983,6 +1999,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
           && (askSource.match(/startSorter\(/g) || []).length === 2);
       }
 
+
       // I6 the fixed sentence for a follow-up
       const b15 = byId.B15;
       const b15Convo = [{ role: 'user', content: b15.prev[0] }, { role: 'assistant', content: INSTR.BANNED_SCHOOL_DENY_TEXT }, { role: 'user', content: b15.q }];
@@ -1998,9 +2015,15 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const ghusl = 'ما صفة غسل الجنابة؟';
       const cardPlan = JSON.stringify({ followup: false, full: '', parts: [{ name: 'صفة غسل الجنابة', q: ghusl, kind: 'manner', needs: ['steps'], source: ['card'], act: 'ghusl' }], c: {} });
       const card = await drive(user(ghusl), { plan: cardPlan });
-      ok('I7a a manner request the frozen dispatcher\'s grammar does not take, and nothing else in the question: the card alone -- no source asked beyond the gather that was dropped, no judge, no writer',
-        !card.crashed && card.text === '<worship id="ghusl"></worship>' && card.counts.judge === 0 && card.counts.writer === 0 && card.counts.other === 0 && card.counts.sorter === 0, [card.text, card.counts]);
       const cardOff = await drive(user(ghusl), { env: { REQUEST_PLAN_V1: 'off' } });
+      // ORDER CARD (2026-11-14): this row held the card on the plan's label alone as the wanted behaviour ("the card alone -- no source
+      // asked, no judge, no writer"). The frozen dispatcher's grammar does not take this wording, so no reader of the tree agrees
+      // with the plan: the plan is not applied and the turn is the switch-off turn.
+      ok('I7a [re-cut by ORDER CARD] a manner request the frozen dispatcher\'s grammar does not take, and nothing else in the question, called a how-to by the plan: NOT the card alone -- the plan is not applied (card_on_label) and the turn is the turn of the switch-off configuration: its text, its frames, its route, every call to a model',
+        !card.crashed && !cardOff.crashed && !card.text.includes('<worship id=') === !cardOff.text.includes('<worship id=') && card.text === cardOff.text && same(asSets(strip(card.frames)), asSets(cardOff.frames))
+        && (card.logOf('[reading]') || {}).outcome === 'invalid' && (card.logOf('[reading]') || {}).reason === 'card_on_label' && card.counts.reading === 1
+        && same(routeOf(card), routeOf(cardOff)) && card.counts.sorter === cardOff.counts.sorter && card.counts.judge === cardOff.counts.judge && card.counts.writer === cardOff.counts.writer && card.counts.other === cardOff.counts.other,
+        [card.text.slice(0, 40), card.counts, cardOff.counts, card.logOf('[reading]')]);
       ok('I7b control, the switch off: the same question goes to the older path\'s writer, as it did', cardOff.counts.reading === 0 && (cardOff.counts.writer + cardOff.counts.other) >= 1);
       const bare = await drive(user(byId.B19p.q), { plan: idealOf('B19p') });
       ok('I7c B19p (the bare request) is answered by the frozen dispatcher as it was: the card alone and no model call at all, the reading included',
@@ -2498,8 +2521,12 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     }
     {
       const partsFor = (tag) => { const c = CAP[tag]; const checked = RP.validatePlan(RP.parsePlan(JSON.stringify(c.plan)), { question: c.q, previous: c.prev }); return BW.bw2PlanParts(RP.readingOf(checked.plan, { question: c.q, previous: c.prev })); };
-      ok('L8 [item 1] the lines this batch removed have no part to stand for: the recorded plans of B21\'s wording, B22 and P10 give the writer no part at all, and B19b one part beside the card (a dependent phrase, a form instruction: still no part)',
-        ['F-B22', 'F-P10', 'S-B21'].every((tag) => partsFor(tag).parts.length === 0 && partsFor(tag).single === null) && partsFor('F-B19b').parts.length === 0, ['F-B22', 'F-P10', 'S-B21', 'F-B19b'].map((tag) => partsFor(tag).parts.length));
+      // (ORDER CARD, 2026-11-14: the row read B19b's recorded plan, one part beside the card. That card stood on the label alone and the
+      // plan is no longer applied; B19's recorded plan is the same shape with a how-to production's own grammar takes, and stands here.)
+      ok('L8 [item 1; ORDER CARD] the lines this batch removed have no part to stand for: the recorded plans of B21\'s wording, B22 and P10 give the writer no part at all, and B19 one part beside the card (a dependent phrase, a form instruction: still no part); B19b\'s recorded plan is not applied at all (card_on_label)',
+        ['F-B22', 'F-P10', 'S-B21'].every((tag) => partsFor(tag).parts.length === 0 && partsFor(tag).single === null) && partsFor('F-B19').parts.length === 0
+        && RP.planNotApplied(RP.validatePlan(RP.parsePlan(JSON.stringify(CAP['F-B19b'].plan)), { question: CAP['F-B19b'].q, previous: CAP['F-B19b'].prev }).plan, { question: CAP['F-B19b'].q }) === 'card_on_label',
+        ['F-B22', 'F-P10', 'S-B21', 'F-B19'].map((tag) => partsFor(tag).parts.length));
     }
 
     // -- item 5
@@ -2824,21 +2851,25 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const everyPlan = [...Object.keys(CAP).map((tag) => ({ id: tag, q: CAP[tag].q, prev: CAP[tag].prev, raw: CAP[tag].plan })), ...FIX.items.map((item) => ({ id: item.id, q: item.q, prev: item.prev, raw: item.ideal }))]
         .map((x) => ({ ...x, plan: (RP.validatePlan(RP.parsePlan(JSON.stringify(x.raw)), { question: x.q, previous: x.prev }) || {}).plan || null })).filter((x) => x.plan);
       const writtenOf = (x) => RP.servedKinds(x.plan, { question: x.q }).filter((kind) => !kind).length;
-      const several = everyPlan.filter((x) => x.plan.followup !== true && writtenOf(x) >= 2);
+      // (ORDER CARD, 2026-11-14: a plan whose card stood on the label alone -- B19b, recorded and in the fixture -- now has two parts
+      // nobody serves. It is not applied under ITS OWN word, card_on_label, and is no plan of this shape's rows.)
+      const onLabel = everyPlan.filter((x) => notApplied(x.plan, x.q) === 'card_on_label');
+      const several = everyPlan.filter((x) => x.plan.followup !== true && writtenOf(x) >= 2 && !onLabel.includes(x));
       // ORDER A3-CAPTURE (2026-11-12, section 4): a follow-up of that shape is not applied either, for a closed reason of its own
       const followSeveral = everyPlan.filter((x) => x.plan.followup === true && writtenOf(x) >= 2);
       const rest = everyPlan.filter((x) => !several.includes(x) && !followSeveral.includes(x));
       const planById = (id) => everyPlan.find((x) => x.id === id);
-      ok('N1 [A3 item 1; A3-CAPTURE section 4] a plan with two or more parts for the writer is a good plan the server does NOT apply, for a closed reason of its own: written_parts where it is not a follow-up (the capture\'s recorded P1, P1s, P3, P7 and P8 and the fixture\'s plans of that shape: P1, P3, P6, P7, P8, B4, B9), followup_written_parts where it is one (M2 and P5b, recorded and in the fixture) -- and no other plan of the capture or the fixture. One part, and one written part beside a part the server serves (B19, B19b, B19w), are applied as they were; P9 keeps the reason it had',
+      ok('N1 [A3 item 1; A3-CAPTURE section 4; ORDER CARD] a plan with two or more parts for the writer is a good plan the server does NOT apply, for a closed reason of its own: written_parts where it is not a follow-up (the capture\'s recorded P1, P1s, P3, P7 and P8 and the fixture\'s plans of that shape: P1, P3, P6, P7, P8, B4, B9), followup_written_parts where it is one (M2 and P5b, recorded and in the fixture) -- and no other plan of the capture or the fixture. One part, and one written part beside a part the server serves (B19, B19w), are applied as they were; B19b, recorded and in the fixture, is not applied under its own word (card_on_label) and no other plan is; P9 keeps the reason it had',
         everyPlan.length === Object.keys(CAP).length + FIX.items.length
         && same(several.map((x) => x.id).sort(), ['B4', 'B9', 'F-P1', 'F-P1s', 'F-P3', 'F-P7', 'F-P8', 'P1', 'P3', 'P6', 'P7', 'P8'])
         && several.every((x) => notApplied(x.plan, x.q) === 'written_parts' && applies(x.plan, x.q) === false)
         && same(followSeveral.map((x) => x.id).sort(), ['F-M2', 'F-P5b', 'M2', 'P5b'])
         && followSeveral.every((x) => x.plan.parts.length === 2 && notApplied(x.plan, x.q) === 'followup_written_parts' && applies(x.plan, x.q) === false)
         && rest.every((x) => !['written_parts', 'followup_written_parts'].includes(notApplied(x.plan, x.q)))
-        && ['F-B19', 'F-B19b', 'F-B19w', 'B19', 'B19b', 'B19w'].every((id) => { const x = planById(id); return !!x && x.plan.parts.length === 2 && notApplied(x.plan, x.q) === '' && applies(x.plan, x.q) === true; })
+        && ['F-B19', 'F-B19w', 'B19', 'B19w'].every((id) => { const x = planById(id); return !!x && x.plan.parts.length === 2 && notApplied(x.plan, x.q) === '' && applies(x.plan, x.q) === true; })
+        && same(onLabel.map((x) => x.id).sort(), ['B19b', 'F-B19b']) && onLabel.every((x) => x.plan.parts.length === 2 && applies(x.plan, x.q) === false)
         && ['F-P9', 'P9'].every((id) => notApplied(planById(id).plan, planById(id).q) === 'quran_beside_served')
-        && same([...(RP.PLAN_NOT_APPLIED || [])], ['quran_beside_served', 'written_parts', 'followup_written_parts', 'worldly_beside_other']),
+        && same([...(RP.PLAN_NOT_APPLIED || [])], ['quran_beside_served', 'written_parts', 'followup_written_parts', 'worldly_beside_other', 'card_on_label']),
         [several.map((x) => x.id).sort().join(' '), followSeveral.map((x) => x.id).sort().join(' '), followSeveral.map((x) => notApplied(x.plan, x.q)), everyPlan.length]);
       const readOf = (x) => RP.startReading({ messages: [...x.prev.flatMap((p) => [{ role: 'user', content: p }, { role: 'assistant', content: 'PREVIOUS-ANSWER.' }]), { role: 'user', content: x.q }], ask: async () => JSON.stringify(x.raw), env: {}, timeoutMs: 300 }).promise;
       const severalRead = [];
@@ -2913,8 +2944,8 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const takenBack = { ...mixedReading, parts: mixedReading.parts.map((p) => ({ ...p, served: '' })) };
       const turnSource = fs.readFileSync(path.join(REPO, 'lib', 'before-writing-v2.js'), 'utf8');
       const givenLines = turnSource.split('\n').map((line) => line.trim()).filter((line) => line.includes('readingGiven') && !line.startsWith('//') && !line.startsWith('*'));
-      ok('N7 [A3 item 3] NO PLAN WITH TWO OR MORE WRITTEN PARTS REACHES THE TURN\'S PART LOGIC. The reading whose parts the turn takes (bw2PartsReading) is null for every such plan of the capture and the fixture, the follow-ups among them (16), and for a reading the handler handed on with its worldly part taken back (two written parts then); it is the reading itself for every other plan. And the turn reads the reading it was GIVEN in three places only -- the narrowing, the reader\'s own message (for the care readers and, order A-TAKHRIJ, for the takhrij\'s lookup), the gather beside the reading -- so the searches, the judge, the writer\'s rule and the releaser read the narrowed one',
-        manyWritten.length === 16 && manyWritten.every((x) => taken(readingOfX(x)) === null)
+      ok('N7 [A3 item 3; ORDER CARD] NO PLAN WITH TWO OR MORE WRITTEN PARTS REACHES THE TURN\'S PART LOGIC. The reading whose parts the turn takes (bw2PartsReading) is null for every such plan of the capture and the fixture, the follow-ups among them (18: the 16, and since ORDER CARD the two plans of B19b, whose card is no longer served on the label), and for a reading the handler handed on with its worldly part taken back (two written parts then); it is the reading itself for every other plan. And the turn reads the reading it was GIVEN in three places only -- the narrowing, the reader\'s own message (for the care readers and, order A-TAKHRIJ, for the takhrij\'s lookup), the gather beside the reading -- so the searches, the judge, the writer\'s rule and the releaser read the narrowed one',
+        manyWritten.length === 18 && manyWritten.filter((x) => onLabel.includes(x)).length === 2 && manyWritten.every((x) => taken(readingOfX(x)) === null)
         && everyPlan.filter((x) => !manyWritten.includes(x)).every((x) => { const r = readingOfX(x); return taken(r) === r; })
         && mixedReading.parts[0].served === 'worldly' && taken(mixedReading) === mixedReading && taken(takenBack) === null && taken(null) === null
         && givenLines.length === 4 && givenLines.some((line) => line.startsWith('reading: readingGiven = null')) && givenLines.includes('const reading = bw2PartsReading(readingGiven);')
