@@ -503,7 +503,7 @@ function checkT11(pageText) {
   // KUNUZ-LEVELS-POETRY (2026-10-19, C): the deferred shared loader requests the optional levels file after setup mounts;
   // kunuzlevels L4/L5 check its switch and single source entry.
   // Visual engine: four fixed same-origin assets; kunuzvisual checks their loaders and switch.
-  if (srcs.join(',') !== '/quest-theme/motion-kit.js?v=20261022-roomsfix2,/quest-theme/icons.js?v=20261026-kfix6,/quest-theme/model.js?v=20261102-tr4,/iap-pending.js?v=20261023-iapf,/hanna-laha/assets/iap-bridge-v1.js?v=20261108-trialfix-1,/quest-theme/journey.js?v=20261108-trialfix-1,/usage.js') f.push('scripts loaded: ' + srcs.join(','));
+  if (srcs.join(',') !== '/quest-theme/motion-kit.js?v=20261022-roomsfix2,/quest-theme/icons.js?v=20261026-kfix6,/quest-theme/model.js?v=20261113-kfx-1,/iap-pending.js?v=20261023-iapf,/hanna-laha/assets/iap-bridge-v1.js?v=20261108-trialfix-1,/quest-theme/journey.js?v=20261113-kfx-1,/usage.js') f.push('scripts loaded: ' + srcs.join(','));
   { const mod = fs.readFileSync(path.join(REPO, 'quest-levels.js'), 'utf8'); bad.forEach((re) => { if (re.test(mod.replace('s.src="/quest-data/kunuz-levels-3147.js";', ''))) f.push('the levels module reaches out: ' + re); });
     if ((mod.match(/\.src="([^"]*)"/g) || []).join() !== '.src="/quest-data/kunuz-levels-3147.js"') f.push('the levels module loads something else than its file'); }
   if (!/<html lang="ar" dir="rtl">/.test(pageText)) f.push('not declared Arabic right to left');
@@ -558,6 +558,24 @@ run('T11', 'gameplay stays local; approved anonymous usage helper; Arabic; the w
   ].filter(Boolean);
   report('T12', 'the gate bites: nine mutants of the page are each caught', missed.map((m) => 'MUTANT SURVIVED: ' + m), 'mutants=9 missed=' + missed.length);
 }
+
+// KFX cause guards belong to this existing gate; the top-level roster stays unchanged.
+function runKfxCauseGuards() {
+  const { spawnSync } = require('node:child_process');
+  const guards = ['categories', 'difficulty', 'moderation', 'choice-coverage'];
+  for (const [index, name] of guards.entries()) {
+    run('KFX' + (index + 1), 'KFX ' + name, () => {
+      const child = spawnSync(process.execPath, [path.join(__dirname, 'kfx-' + name + '-guard.cjs')], {
+        cwd: REPO, stdio: 'inherit', timeout: 120000,
+      });
+      return {
+        f: child.status === 0 ? [] : ['child failed: ' + (child.error?.message || child.signal || child.status)],
+        info: 'exit=' + child.status,
+      };
+    });
+  }
+}
+runKfxCauseGuards();
 
 const bad = results.filter((r) => !r.ok);
 console.log('SUMMARY ' + (results.length - bad.length) + '/' + results.length + ' pass' + (bad.length ? ' FAILED: ' + bad.map((r) => r.id).join(',') : ''));

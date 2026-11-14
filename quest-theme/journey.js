@@ -16,10 +16,19 @@
   const path = location.pathname;
   const game = path.includes('quest-ghaws') ? 'ghaws' : path.includes('quest-harb') ? 'harb' : path.includes('quest-test') ? 'test' : path.includes('quest-board') ? 'board' : path.includes('hanna-laha') ? 'hanna' : 'hub';
   const hasRooms = game === 'hanna' || game === 'harb' || game === 'board';
-  const roomCategoryIds = new Set(global.KunuzRoomCategoryIds || []);
+  const roomCategoryIds = new Set();
+  async function loadRoomCategories() {
+    const origin = global.KUNUZ_ROOM_API_ORIGIN || "https://hanna-laha.hl-worker.workers.dev";
+    const response = await fetch(origin + "/api/categories", { cache: "no-store", signal: AbortSignal.timeout(10000) });
+    if (!response.ok) throw new Error("room-catalog-unavailable");
+    const catalog = await response.json();
+    roomCategoryIds.clear();
+    for (const category of catalog.categories || []) roomCategoryIds.add(category.id);
+  }
   const usesRoomBank = () => (game === 'hanna' || game === 'harb' || game === 'board') && M.settings.room;
   global.KunuzUsesRoomBank = usesRoomBank;
   const roomCategorySupported = c => game === 'board' ? !!boardRooms?.supportsCategory(c) : roomCategoryIds.has(global.DATA.cats[c]?.[0]);
+  global.KunuzRoomCategorySupported = roomCategorySupported;
   const entryHistory = hasRooms ? history.state : null;
   const names = { hub: 'كنوز المعرفة', ghaws: 'الغوص', harb: 'حرب الجزر', test: 'اختبر معلوماتك', board: 'تحدّي الفئات', hanna: 'حنّا لها' };
   const limits = { ghaws: [1, 6], harb: [2, 4], test: [1, 4], board: [2, 4], hanna: [2, 10] };
@@ -75,7 +84,7 @@
   const teamNew = i => ({ n: defaults[i], c: colors[i], symbol: i, score: 0, shows: 2 });
   const M = {
     game, ready: false, step: game === 'hub' ? 0 : 1, stage: game === 'hub' ? 'hub' : 'loading', cats: [], teams: [],
-    settings: { options: 'shown', reveals: 2, time: 30, customTime: 25, custom: false, difficulty: game === 'board' || game === 'hanna' ? 'points' : 'mixed', cap: 10, shots: 1, flags: 2, customFlags: false, customFlagsValue: 12, win: 2, room: false, roomCode: '' },
+    settings: { options: 'shown', reveals: 2, time: 30, customTime: 25, custom: false, difficulty: game === 'board' ? 'points' : 'mixed', cap: 10, shots: 1, flags: 2, customFlags: false, customFlagsValue: 12, win: 2, room: false, roomCode: '' },
     slots: [], pool: [], used: new Set(), question: null, g: null, error: '', dialog: null, running: false,
     fallback: [], excluded: [], questionHistory: false, skipPop: false, lastStage: '', warMessage: '', warEvent: null, diveNative: null,
     result: null, audioUnlocked: false, muted: false, timer: null, lastAction: -Infinity, offlineReady: false,
@@ -90,7 +99,7 @@
   const app = document.createElement('div'); app.className = 'journey-app'; app.dataset.game = game;
   document.body.classList.add('ezik-treasure-theme'); document.body.append(app);
   const themeMeta = document.querySelector('meta[name="theme-color"]'); if (themeMeta) themeMeta.content = '#082c38';
-  const OFFLINE_VERSION = '20261102-tr4';
+  const OFFLINE_VERSION = '20261113-kfx-1';
   const THEME_VERSION = OFFLINE_VERSION;
   const IAP_HOST_RESUME_KEY = 'kunuz_iap_host_resume_v1';
   const IAP_EXPIRED_NOTICE_KEY = 'kunuz_iap_expired_notice_v1';
@@ -143,7 +152,7 @@
       if ((hasRooms || game === 'test') && M.offlineReady) {
         // These two entry pages version their new screens independently. Cache
         // them after the first worker takes control, including a first visit.
-        const screenAssets = ['theme.css?v=20261108-trialfix-1', 'journey.js?v=20261108-trialfix-1', 'room-categories.js?v=20261022-roomsfix2', 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
+        const screenAssets = ['theme.css?v=20261108-trialfix-1', 'journey.js?v=20261113-kfx-1', 'model.js?v=20261113-kfx-1', 'room-features.js?v=20261113-kfx-1', 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
         if (game === 'board') screenAssets.push('board-rooms.js?v=20261108-trialfix-1');
         if (navigator.serviceWorker.controller) await Promise.all(screenAssets.map(async file => {
           const response = await fetch('/quest-theme/' + file);
@@ -289,7 +298,7 @@
   }
   function categories() {
     const roomBank = usesRoomBank();
-    const all = Model.categories().filter(c => (c.count === null || c.count >= Model.PER_CATEGORY) && (!roomBank || roomCategorySupported(c.index)));
+    const all = Model.categories().filter(c => (c.count === null || c.count > 0) && (!roomBank || roomCategorySupported(c.index)));
     function section(list, title) {
       return '<h2 class="j-divider">' + title + '</h2><div class="j-category-picker">' + list.map(c => {
         const selected = M.cats.includes(c.index), disabled = !selected && M.cats.length >= 6;
@@ -297,9 +306,9 @@
       }).join('') + '</div>';
     }
     return '<h1 class="j-heading">اختاروا فئات مغامرتكم</h1>' +
-      (roomBank ? '<p class="j-note">بعض الفئات تُلعب على جهاز واحد فقط، فلا تظهر في الغرف.</p>' : '') + '<p class="j-lead">اختاروا من ثلاث إلى ست فئات. كل فئة بطاقتها الخاصة.</p>' +
+      '<p class="j-lead">اختاروا من ثلاث إلى ست فئات. كل فئة بطاقتها الخاصة.</p>' +
       (M.error ? '<div class="j-error" role="alert">' + esc(M.error) + '</div>' : '') +
-      section(all.filter(c => c.index < 53), 'من كنوز المعرفة') + (roomBank && game !== 'board' ? '' : section(all.filter(c => c.index >= 53), 'فئات إضافية')) +
+      section(all.filter(c => c.index < 53), 'من كنوز المعرفة') + section(all.filter(c => c.index >= 53), 'فئات إضافية') +
       '<p class="j-note" role="status">' + (M.cats.length >= 6 ? 'وصلتم للحد الأعلى؛ أزيلوا اختيارًا لتختاروا فئة أخرى.' : M.cats.length < 3 ? 'اختاروا ثلاث فئات على الأقل للمتابعة.' : 'فئاتكم جاهزة؛ تقدرون تتابعون.') + '</p>' +
       '<div class="j-actions">' + button('التالي', 'next-setup', 'j-btn', M.cats.length < 3 ? 'disabled' : '') + '</div>';
   }
@@ -352,7 +361,7 @@
   function settings() {
     const s = M.settings, min = limits[game][0], max = limits[game][1];
     const roomMode = hasRooms && s.room;
-    const difficulty = game === 'ghaws' ? [['easy', 'سهل'], ['medium', 'متوسط'], ['hard', 'صعب'], ['mixed', 'مختلط']] : game === 'harb' ? [['mixed', 'مختلطة'], ['easy', 'سهلة'], ['medium', 'متوسطة'], ['hard', 'صعبة']] : [['points', 'حسب النقاط'], ['mixed', 'مختلطة']];
+    const difficulty = game === 'board' ? [['points', 'حسب النقاط'], ['mixed', 'مختلطة']] : [['easy', 'سهل'], ['medium', 'متوسط'], ['hard', 'صعب'], ['mixed', 'مختلط']];
     return '<h1 class="j-heading">جهّزوا فريقكم</h1><p class="j-lead">الأسماء والألوان والرموز لكم… وبعدها تبدأ المغامرة.</p>' +
       (hasRooms && (game !== 'board' || s.room) ? '<div class="j-room-entry-change">' + button('تغيير طريقة اللعب', 'change-play-mode', 'j-secondary') + '</div>' : '') +
       (roomMode ? game === 'board' ? boardRooms.card() : roomCard() : '') +
@@ -362,7 +371,7 @@
       (s.options === 'hidden' ? '<label class="j-field" for="j-reveals">كم مرة تقدر كل فرقة تظهر الخيارات</label><input id="j-reveals" class="j-input" type="number" min="0" step="1" data-input="reveals" value="' + (Number.isFinite(s.reveals) ? s.reveals : '') + '">' : '') +
       '<label class="j-field">الوقت</label>' + chips([[15, ar(15)], [30, ar(30)], [45, ar(45)], [60, ar(60)], ['custom', 'مخصص'], [0, 'بلا وقت']], s.custom ? 'custom' : s.time, 'time') +
       (s.custom ? '<label class="j-field" for="j-time">الوقت بالثواني</label><input id="j-time" class="j-input" type="number" min="0" step="any" data-input="customTime" value="' + (Number.isFinite(s.customTime) ? s.customTime : '') + '">' : '') +
-      '<label class="j-field">الصعوبة <span class="j-tag j-gold">تجريبي</span></label>' + chips(difficulty, s.difficulty, 'difficulty') + (game === 'board' || game === 'hanna' ? '<p class="j-note">حسب النقاط: ٢٠٠ سهل · ٤٠٠ متوسط · ٦٠٠ صعب</p>' : '') +
+      '<label class="j-field">الصعوبة <span class="j-tag j-gold">تجريبي</span></label>' + chips(difficulty, s.difficulty, 'difficulty') + (game === 'board' ? '<p class="j-note">حسب النقاط: ٢٠٠ سهل · ٤٠٠ متوسط · ٦٠٠ صعب</p>' : '') +
       (game === 'ghaws' ? '<label class="j-field">حد العمق</label>' + chips([5, 7, 10, 15, 20, 30].map(n => [n, ar(n)]), s.cap, 'cap') : '') +
       (game === 'harb' ? '<label class="j-field">رصيد توزيع الرايات بحسب جزر الفريق</label>' + chips([[1, ar(1)], [2, ar(2)], [3, ar(3)], ['custom', 'مخصص']], s.customFlags ? 'custom' : s.flags, 'flags') + (s.customFlags ? '<label class="j-field" for="j-flags">رصيد الرايات لكل فريق</label><input id="j-flags" class="j-input" data-input="customFlagsValue" type="number" min="2" max="60" value="' + (Number.isFinite(s.customFlagsValue) ? s.customFlagsValue : '') + '">' : '') + '<p class="j-note">لكل جزيرة راية حارس، وتوزعون رصيدكم كيف ما تبون.</p><label class="j-field" for="j-shots">أسئلة الهجوم</label><input id="j-shots" class="j-input" data-input="shots" type="number" min="1" max="10" value="' + (Number.isFinite(s.shots) ? s.shots : '') + '"><label class="j-field">شرط الفوز</label>' + chips([[2, 'بحران'], [9, 'الأرخبيل كله']], s.win, 'win') : '') +
       '</section>' +
@@ -411,18 +420,18 @@
     }).join('') + '</div><div class="j-actions">' + button('الفرق والإعدادات', 'leave', 'j-secondary') + '</div>';
   }
   function hannaCategories() {
-    const pointOrder = [600, 600, 400, 400, 200, 200];
-    return '<section class="j-hanna-list"><div class="j-board-title j-hanna-board-heading"><h2>لوحة حنّا لها</h2><p class="j-hanna-turn-badge" role="status">دور ' + esc(M.teams[actor()].n) + '</p></div><div class="j-hanna-board-scroll" role="region" aria-label="لوحة فئات حنّا لها" tabindex="0"><div class="j-hanna-board-grid">' + M.cats.map((c, p) => {
-      const slots = M.slots.map((slot, i) => ({ slot, i })).filter(entry => entry.slot.cat === c);
-      const ordered = [600, 400, 200].flatMap(points => slots.filter(entry => entry.slot.pts === points));
-      const cells = pointOrder.map((points, i) => {
-        const entry = ordered[i], slot = entry?.slot, slotIndex = entry?.i;
-        if (!slot) return '';
-        const label = esc(catName(c)) + ' ، ' + ar(points) + ' نقطة' + (slot.used ? ' ، مستخدم' : '');
-        return button(slot.used ? '✓' : ar(points), 'tile', 'j-hanna-cell' + (slot.used ? ' j-used' : ''), 'data-slot="' + slotIndex + '" aria-label="' + label + '"' + (slot.used ? ' disabled' : ''));
-      }).join('');
-      return '<section class="j-hanna-column" data-cat="' + c + '" data-category-color="' + p + '"><header class="j-hanna-column-head">' + catIcon(c) + '<h3>' + esc(catName(c)) + '</h3></header><div class="j-hanna-column-cells">' + cells + '</div></section>';
-    }).join('') + '</div></div>' + teamBar() + '<div class="j-actions">' + button('إنهاء الجولة', 'leave', 'j-secondary') + '</div></section>';
+    return '<section class="j-hanna-list">' + (M.error ? '<p class="j-error" role="alert">' + esc(M.error) + '</p>' : '') + '<h2>اختاروا الفئة</h2><div class="j-category-picker">' + M.cats.map(c => button(catIcon(c) + '<b>' + esc(catName(c)) + '</b>', 'hanna-category', 'j-cat-pick', 'data-cat="' + c + '"')).join('') + '</div>' + teamBar() + '<div class="j-actions">' + button('إنهاء الجولة', 'hanna-finish', 'j-secondary') + '</div></section>';
+  }
+  function openHannaCategory(cat) {
+    let index = M.slots.findIndex(slot => slot.cat === cat && !slot.used);
+    if (index < 0) {
+      M.history.read();
+      const pool = Model.difficultyPool([cat], M.history, M.settings.difficulty, 6, Math.random, M.used);
+      for (const c of pool.restarts) M.history.restart(c, pool.indices);
+      if (!pool.indices.length) { M.error = 'انتهت الجولة في هذه الفئة؛ ابدأوا جولة جديدة.'; render(); return; }
+      index = M.slots.length; M.slots.push(...pool.slots); M.pool.push(...pool.indices); M.fallback.push(...pool.fallback);
+    }
+    openTile(index);
   }
 
   function shownOptions(q) { return M.settings.options === 'shown' || q.showTeams.has(q.activeTeam ?? q.actor) || q.answerRevealed; }
@@ -464,7 +473,7 @@
   function quizCatalog() {
     if (!Array.isArray(global.DATA?.qs)) return Model.categories().map(c => ({ ...c, count: null }));
     const counts = global.DATA.cats.map(() => 0);
-    global.DATA.qs.forEach((q, i) => { if (Model.live(i) && q[4].length === 4) counts[q[0]]++; });
+    global.DATA.qs.forEach((q, i) => { if (Model.live(i)) counts[q[0]]++; });
     return Model.categories().map(c => ({ ...c, count: counts[c.index] })).filter(c => c.count > 0);
   }
   function quizAvailable() { return quizCatalog().filter(c => M.cats.includes(c.index)).reduce((n, c) => n + c.count, 0); }
@@ -892,8 +901,8 @@
     const unseen = [], oldest = [];
     for (const cat of M.cats) {
       const candidates = Model.candidates(cat, M.history);
-      unseen.push(...candidates.unseen.filter(i => global.DATA.qs[i][4].length === 4));
-      oldest.push(...candidates.oldest.filter(i => global.DATA.qs[i][4].length === 4));
+      unseen.push(...candidates.unseen);
+      oldest.push(...candidates.oldest);
     }
     oldest.sort((a, b) => M.history.last(a) - M.history.last(b) || a - b);
     const target = { easy: 1, medium: 2, hard: 3 }[M.settings.difficulty];
@@ -911,18 +920,6 @@
     const slots = indices.map(index => { const actual = Model.level(index) || 1, desired = target || actual; return { index, cat: global.DATA.qs[index][0], pts: Model.POINTS[desired - 1], desired, actual, used: false, by: -1 }; });
     return { indices, slots, shortage: [], fallback: [] };
   }
-  function fourChoiceSlots(slots) {
-    const reserved = new Set(slots.filter(slot => global.DATA.qs[slot.index][4].length === 4).map(slot => slot.index));
-    return slots.map(slot => {
-      if (global.DATA.qs[slot.index][4].length === 4) return slot;
-      const candidates = Model.candidates(slot.cat, M.history, Math.random, reserved);
-      const unseen = candidates.unseen.filter(i => global.DATA.qs[i][4].length === 4);
-      unseen.sort((a, b) => Math.abs((Model.level(a) || slot.desired) - slot.desired) - Math.abs((Model.level(b) || slot.desired) - slot.desired));
-      const index = unseen[0] ?? candidates.oldest.find(i => global.DATA.qs[i][4].length === 4);
-      if (index === undefined) return null;
-      reserved.add(index); return { ...slot, index, actual: Model.level(index) };
-    });
-  }
   function begin() {
     const s = M.settings;
     if (game === 'hanna' && s.room && !s.roomCode) { M.error = ''; M.roomStartError = 'أنشئ الغرفة أولًا'; render(); return false; }
@@ -935,15 +932,12 @@
     if (s.room) { enterRoom(false); return; }
     M.history ||= Model.history();
     const all = Model.categories();
-    const pool = game === 'test' ? reserveQuiz() : Model.reserve(M.cats, M.history);
+    M.history.read();
+    const pool = game === 'test' ? reserveQuiz() : game === 'board' ? Model.reserve(M.cats, M.history) : Model.difficultyPool(M.cats, M.history, s.difficulty, game === 'hanna' ? 6 : Infinity);
+    if (game !== 'board' && game !== 'test') for (const cat of pool.restarts) M.history.restart(cat, pool.indices.filter(i => global.DATA.qs[i][0] === cat));
     if (pool.shortage.length) { M.error = 'فئة «' + catName(pool.shortage[0]) + '» غير متاحة حاليًا؛ ارجعوا واختاروا فئة أخرى.'; render(); return false; }
-    M.error = ''; M.pool = pool.indices; M.slots = pool.slots; M.fallback = pool.fallback; M.excluded = all.filter(c => c.count < Model.PER_CATEGORY);
+    M.error = ''; M.pool = pool.indices; M.slots = pool.slots; M.fallback = pool.fallback; M.excluded = all.filter(c => c.count === 0);
     if (game === 'hanna') M.slots = M.cats.flatMap(cat => M.slots.filter(slot => slot.cat === cat).sort((a, b) => a.pts - b.pts));
-    if (game === 'hanna' || game === 'test') {
-      const slots = fourChoiceSlots(M.slots);
-      if (slots.some(slot => !slot)) { M.error = 'إحدى الفئات لا تحتوي أسئلة بأربعة خيارات؛ اختاروا فئة أخرى.'; render(); return false; }
-      M.slots = slots; M.pool = M.slots.map(slot => slot.index);
-    }
     if ((game === 'hanna' || game === 'test') && !M.slots.length) { M.error = 'لا توجد أسئلة متاحة حاليًا.'; render(); return false; }
     M.used = new Set(); M.question = null; M.questionHistory = false; M.result = null;
     M.teams.forEach((t, i) => { t.n = t.n.trim() || defaults[i]; t.shows = s.reveals; t.score = 0; t.p = 0; t.d = 0; });
@@ -981,7 +975,6 @@
       // Another Kunuz tab may have consumed this reservation since setup.
       const excluded = new Set([...M.used, ...M.slots.filter(other => other !== slot && !other.used).map(other => other.index)]);
       let { unseen, oldest } = Model.candidates(slot.cat, M.history, Math.random, excluded);
-      if (game === 'hanna' || game === 'test') { unseen = unseen.filter(i => global.DATA.qs[i][4].length === 4); oldest = oldest.filter(i => global.DATA.qs[i][4].length === 4); }
       unseen.sort((a, b) => Math.abs((Model.level(a) || slot.desired) - slot.desired) - Math.abs((Model.level(b) || slot.desired) - slot.desired));
       oldest.sort((a, b) => Math.abs((Model.level(a) || slot.desired) - slot.desired) - Math.abs((Model.level(b) || slot.desired) - slot.desired) || M.history.last(a) - M.history.last(b) || a - b);
       slot.index = unseen[0] ?? oldest[0];
@@ -1049,7 +1042,7 @@
     if (game === 'hanna') { M.g.cur = null; M.g.turn = (M.g.turn + 1) % M.teams.length; }
     M.question = null;
     if (M.questionHistory) { M.skipPop = true; M.questionHistory = false; history.back(); }
-    if (M.slots.every(slot => slot.used)) finishBoard();
+    if (game !== 'hanna' && M.slots.every(slot => slot.used)) finishBoard();
     else if (game === 'test') openTile(M.slots.findIndex(slot => !slot.used));
     else setStage('board', 3);
   }
@@ -1321,7 +1314,7 @@
       try { localStorage.setItem('hl-ezik.sound', 'false'); } catch (_) {}
       if (!join) {
         const roomColors = ['blue','orange','purple','green','gold','pink','teal','brown','navy','olive','red','maroon'];
-        const setup = { teams: M.teams.map((t, i) => ({ name: t.n.trim() || defaults[i], color: roomColors[colors.indexOf(t.c)] || roomColors[i] })), perCat: 6, timeSec: time(), categories: M.cats.map(c => global.DATA.cats[c][0]), mode: M.settings.options === 'hidden' ? 'free' : 'options', reveals: M.settings.reveals, roomCode: M.settings.roomCode };
+        const setup = { teams: M.teams.map((t, i) => ({ name: t.n.trim() || defaults[i], color: roomColors[colors.indexOf(t.c)] || roomColors[i] })), perCat: 6, timeSec: time(), categories: M.cats.map(c => global.DATA.cats[c][0]), mode: M.settings.options === 'hidden' ? 'free' : 'options', reveals: M.settings.reveals, difficulty: M.settings.difficulty, roomCode: M.settings.roomCode };
         // These are the existing room UI's own setup preferences, not account data.
         try { localStorage.setItem('hl-ezik.setup', JSON.stringify(setup)); localStorage.setItem('hl-ezik.sound', 'false'); } catch (_) {}
       }
@@ -1389,6 +1382,8 @@
     else if (action === 'room-code-save' && M.stage === 'room-code') saveRoomCode();
     else if (action === 'quiz-count' && game === 'test' && M.stage === 'settings' && quizCounts().includes(+el.dataset.count)) { M.quizCustomCount = false; M.quizCount = +el.dataset.count; render(); }
     else if (action === 'quiz-options' && game === 'test' && M.stage === 'settings') { M.settings.options = M.settings.options === 'shown' ? 'hidden' : 'shown'; render(); }
+    else if (action === 'hanna-category' && game === 'hanna') openHannaCategory(+el.dataset.cat);
+    else if (action === 'hanna-finish' && game === 'hanna' && M.running && !M.question) askDialog('تنهون الجولة وتعرضون النتائج؟', finishBoard);
     else if (action === 'quiz-all' && game === 'test' && M.stage === 'categories') { M.cats = quizCatalog().map(c => c.index); render(); }
     else if (action === 'quiz-clear' && game === 'test' && M.stage === 'categories') { M.cats = []; render(); }
     else if (action === 'quiz-start' && game === 'test') { if (M.ready) beginQuiz(); else M.pendingStartupAction = 'quiz-start'; }
@@ -1668,6 +1663,10 @@
     const resumeWarOnReload = game === 'harb' && entryHistory?.kunuzWarRoom === String(savedWarRoom()?.code) && global.performance.getEntriesByType('navigation')[0]?.type === 'reload';
     document.querySelectorAll('#qvis').forEach(el => { el.id = 'legacy-qvis'; });
     if (game === 'hub') {
+      try {
+        const notice = sessionStorage.getItem('kunuz_kicked_notice');
+        if (notice) { sessionStorage.removeItem('kunuz_kicked_notice'); M.roomClosedNotice = notice; }
+      } catch (_) {}
       render();
       if (typeof global.ezikIapEnterHome === 'function') global.ezikIapEnterHome(setHomeNotice).catch(() => {});
       await prepareOffline();
@@ -1705,11 +1704,12 @@
       else await loadKunuzLocal();
       if (!global.DATA || !global.KZV) throw new Error('ملفات المغامرة غير متاحة. افتحوا الصفحة متصلين مرة لتكتمل الملفات المحلية.');
       await global.KZV.ready;
+      if (game === 'hanna' || game === 'harb') await loadRoomCategories().catch(() => {});
       warmLocalAssets().catch(() => {});
       if (global.LEVELS_EXPERIMENT !== false) await new Promise(resolve => { let tries = 0; const timer = setInterval(() => { if (global.KUNUZ_LEVELS || ++tries >= 80) { clearInterval(timer); resolve(); } }, 25); });
       const availableCategories = Model.categories();
-      M.excluded = availableCategories.filter(c => c.count < Model.PER_CATEGORY);
-      const usableCategories = new Set((game === 'test' ? quizCatalog() : availableCategories.filter(c => c.count >= Model.PER_CATEGORY)).map(c => c.index));
+      M.excluded = availableCategories.filter(c => c.count === 0);
+      const usableCategories = new Set((game === 'test' ? quizCatalog() : availableCategories.filter(c => c.count > 0)).map(c => c.index));
       M.cats = M.cats.filter(index => usableCategories.has(index));
       if (game === 'test' && !M.quizCustomCount && !quizCounts().includes(M.quizCount) && quizCounts().length) M.quizCount = quizCounts()[0];
       if (M.stage === 'settings' && M.cats.length < (game === 'test' ? 1 : 3)) { M.stage = 'categories'; M.step = 1; }

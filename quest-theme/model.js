@@ -15,7 +15,7 @@
   })();
   const PER_CATEGORY = 6;
   // Compact labels let setup screens render before the full question bank loads.
-  const FALLBACK_CATEGORIES = Object.freeze([{"slug":"deen","name":"الدين"},{"slug":"prayer","name":"الصلاة"},{"slug":"quran","name":"القرآن الكريم"},{"slug":"juz-amma","name":"جزء عمّ"},{"slug":"juz-tabarak","name":"جزء تبارك"},{"slug":"adhkar","name":"أذكار اليوم"},{"slug":"prophets","name":"قصص الأنبياء"},{"slug":"seerah","name":"السيرة النبوية"},{"slug":"manners","name":"الآداب والأخلاق"},{"slug":"islamic-history","name":"التاريخ الإسلامي"},{"slug":"geography","name":"الجغرافيا"},{"slug":"world-history","name":"تاريخ العالم"},{"slug":"animals","name":"عالم الحيوان"},{"slug":"physics","name":"الفيزياء"},{"slug":"biology","name":"الأحياء"},{"slug":"chemistry","name":"الكيمياء"},{"slug":"math","name":"الرياضيات"},{"slug":"hadith","name":"الأحاديث النبوية"},{"slug":"rashidun","name":"الخلفاء الراشدون"},{"slug":"umayyad","name":"الدولة الأموية"},{"slug":"abbasid","name":"الدولة العباسية"},{"slug":"ayyubid","name":"الدولة الأيوبية"},{"slug":"mamluk","name":"دولة المماليك"},{"slug":"ottoman","name":"الدولة العثمانية"},{"slug":"arab-world","name":"العالم العربي"},{"slug":"kuwait-history","name":"تاريخ الكويت"},{"slug":"cuisine","name":"المطبخ"},{"slug":"poetry-fusha","name":"الشعر الفصيح"},{"slug":"poetry-nabati","name":"الشعر النبطي"},{"slug":"fitness-health","name":"الصحة واللياقة"},{"slug":"arabic-language","name":"اللغة العربية"},{"slug":"proverbs","name":"الأمثال"},{"slug":"kuwait-sea-heritage","name":"التراث البحري"},{"slug":"kuwait-old-life","name":"الحياة الكويتية القديمة"},{"slug":"marine-life","name":"الأحياء البحرية"},{"slug":"astronomy","name":"الفلك والفضاء"},{"slug":"earth-weather","name":"علوم الأرض والطقس"},{"slug":"human-body","name":"جسم الإنسان"},{"slug":"muslim-scientists","name":"علماء المسلمين"},{"slug":"inventions","name":"الاختراعات"},{"slug":"palm-plants","name":"النخلة والنبات"},{"slug":"horses-camels-falcons","name":"الخيل والإبل والصقور"},{"slug":"first-aid","name":"الإسعافات الأولية"},{"slug":"money-economy","name":"المال والاقتصاد"},{"slug":"riddles-logic","name":"الألغاز والذكاء"},{"slug":"tech-computing","name":"التقنية والحاسوب"},{"slug":"islamic-architecture","name":"العمارة الإسلامية"},{"slug":"sahaba","name":"الصحابة والصحابيات"},{"slug":"mothers-ahlulbayt","name":"أمهات المؤمنين وآل البيت"},{"slug":"ghazawat","name":"الغزوات والسرايا"},{"slug":"tajweed","name":"التجويد"},{"slug":"asmaa-husna","name":"أسماء الله الحسنى"},{"slug":"easy-fiqh","name":"فقه العبادات"}]);
+  // Wait for the manifest-backed bank instead of showing a second, stale catalog.
   const LEVELS = Object.freeze([1, 2, 3, 1, 2, 3]);
   const POINTS = Object.freeze([200, 400, 600]);
   const HANNA_POINTS = Object.freeze({
@@ -38,7 +38,7 @@
   function live(index) { const q = global.DATA.qs[index]; return q?.[2] !== 0 && !(q?.kzHide && !global.KunuzUsesRoomBank?.()); }
   function catalog() {
     if (Array.isArray(global.DATA?.cats)) return global.DATA.cats.map((row, index) => ({ index, slug: row[0], name: row[1] }));
-    return FALLBACK_CATEGORIES.map((row, index) => ({ index, ...row }));
+    return [];
   }
   function categories() {
     const rows = catalog();
@@ -98,11 +98,11 @@
     const reserved = new Set(), indices = [], slots = [], shortage = [], fallback = [], restarts = [];
     for (const cat of new Set(cats)) {
       const { unseen, oldest } = candidates(cat, hasSeen, random, reserved);
-      if (unseen.length + oldest.length < PER_CATEGORY) { shortage.push(cat); continue; }
+      if (!unseen.length && !oldest.length) { shortage.push(cat); continue; }
       const choices = unseen.length < PER_CATEGORY ? unseen.concat(oldest.slice(0, PER_CATEGORY - unseen.length)) : unseen;
       if (unseen.length < PER_CATEGORY) restarts.push(cat);
       let missing = 0;
-      const categorySlots = LEVELS.map(desired => ({ cat, pts: POINTS[desired - 1], desired, actual: 0, index: null, used: false, by: -1 }));
+      const categorySlots = LEVELS.slice(0, choices.length).map(desired => ({ cat, pts: POINTS[desired - 1], desired, actual: 0, index: null, used: false, by: -1 }));
       // First protect both questions of every available exact level. A missing hard
       // slot must not consume the second medium slot before that slot is assigned.
       for (const slot of categorySlots) {
@@ -127,6 +127,24 @@
     if (!result.shortage.length) for (const cat of result.restarts) seen.restart(cat, result.indices.filter(i => global.DATA.qs[i][0] === cat));
     return result;
   }
+  function difficultyPool(cats, seen, difficulty, count = PER_CATEGORY, random = Math.random, excluded = new Set()) {
+    const desired = { easy: 1, medium: 2, hard: 3 }[difficulty] || 0;
+    const slots = [], fallback = [], restarts = [], shortage = [];
+    for (const cat of new Set(cats)) {
+      const { unseen, oldest } = candidates(cat, seen, random, excluded);
+      const distance = i => desired ? Math.abs((level(i) || desired) - desired) : 0;
+      unseen.sort((a, b) => distance(a) - distance(b));
+      oldest.sort((a, b) => distance(a) - distance(b) || seen.last(a) - seen.last(b));
+      // Open-ended games draw from the remaining cycle; reserving the whole bank must
+      // not reset history merely because some old questions exist.
+      const indices = (count === Infinity && unseen.length ? unseen : unseen.concat(oldest)).slice(0, count);
+      if (!indices.length) shortage.push(cat);
+      if (indices.some(i => seen.has(i))) restarts.push(cat);
+      fallback.push({ cat, missing: desired ? indices.filter(i => level(i) !== desired).length : 0 });
+      for (const index of indices) slots.push({ cat, index, pts: 200, desired, actual: level(index), used: false, by: -1 });
+    }
+    return { slots, indices: slots.map(s => s.index), fallback, restarts, shortage };
+  }
   function rank(teams, score = t => t.score) {
     const order = teams.map((t, i) => i).sort((a, b) => score(teams[b]) - score(teams[a]) || a - b);
     const top = score(teams[order[0]]);
@@ -141,5 +159,5 @@
     if (!game) return null;
     game.cats = cats.slice(); game.slots = slots; return game;
   }
-  global.KunuzModel = Object.freeze({ PER_CATEGORY, LEVELS, POINTS, HANNA_POINTS, shuffle, level, live, catalog, categories, history, candidates, pool, reserve, rank, hannaDelta, board });
+  global.KunuzModel = Object.freeze({ PER_CATEGORY, LEVELS, POINTS, HANNA_POINTS, shuffle, level, live, catalog, categories, history, candidates, pool, reserve, difficultyPool, rank, hannaDelta, board });
 })(window);

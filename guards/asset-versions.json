@@ -141,6 +141,10 @@
     "hanna-laha/assets/TopBar-Bx25xykk.js?v=20261108-trialfix-1": "8961a4d2da1727aea6b415e9f26c286883f5381000820dc6b7b5eb5b894a3f66",
     "hanna-laha/assets/iap-bridge-v1.js?v=20261108-trialfix-1": "c48badf2582733fa1006169d075a97315c87c4c15ace828e0e540d388d24d78d",
     "hanna-laha/assets/index-iap-v1.js?v=20261108-trialfix-1": "592a51a2454056836e36ee7291f2d89c2f766a6bbfb19be88c9ac98bc56a3f22",
-    "quest-theme/board-rooms.js?v=20261108-trialfix-1": "ba84f7e789cd0115d29fc3c145f914e8b5e1fa8ac26013278a5702def0f33d30"
+    "quest-theme/board-rooms.js?v=20261108-trialfix-1": "ba84f7e789cd0115d29fc3c145f914e8b5e1fa8ac26013278a5702def0f33d30",
+    "quest-theme/model.js?v=20261113-kfx-1": "46f696282d80fae32432ebb70e0c77a422497361797e322f8e6594df5306e785",
+    "quest-theme/journey.js?v=20261113-kfx-1": "660012f79e9ba5d009796626f09d22d63e49f717399372c10eeade9f4e2a1b67",
+    "quest-theme/room-features.js?v=20261113-kfx-1": "a7813a29d98e9d64fba9074afd55116eb303141c46c30d39e4313f59793e6eba",
+    "quest-theme/room-categories.js?v=20261113-kfx-1": "1ec6f7b7e69f101dfd9e8e6b6ed7b77b25b4b97bd835803b1f855317c3b63547"
   }
 }

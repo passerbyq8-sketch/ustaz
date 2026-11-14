@@ -42,7 +42,10 @@
     "hanna-laha/assets/index-iap-v1.js",
     "quest-theme/board-rooms.js",
     "quest-theme/journey.js",
-    "quest-theme/theme.css"
+    "quest-theme/theme.css",
+    "quest-theme/model.js",
+    "quest-theme/room-categories.js",
+    "quest-theme/room-features.js"
   ],
   "previousRegistry": {
     "hanna-laha/assets/HostRoomScreen-iap-v1.js?v=20261025-kfix4": "58e79e9f7c528019c7aa7614e98590ba6ec71a98a346ec6af4d4a8aa0cdbb23f",
@@ -213,6 +216,22 @@
     ],
     "quest-theme/board-rooms.js": [
       "20261107-c1item33-1"
+    ],
+    "quest-theme/model.js": [
+      "20261022-roomsfix2"
+    ],
+    "quest-theme/room-categories.js": [
+      "20261022-roomsfix2"
+    ],
+    "quest-theme/room-features.js": [
+      "20261022-roomsfix2"
     ]
+  },
+  "shellVersion": "20261113-kfx-1",
+  "versions": {
+    "quest-theme/journey.js": "20261113-kfx-1",
+    "quest-theme/model.js": "20261113-kfx-1",
+    "quest-theme/room-categories.js": "20261113-kfx-1",
+    "quest-theme/room-features.js": "20261113-kfx-1"
   }
 }
