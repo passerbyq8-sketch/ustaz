@@ -1995,9 +1995,10 @@ export default async function handler(req, res) {
     // finds the values AFTER the sorter: the two names are declared again here, in this block, so the lexical
     // pair at the top of the handler (read by the two early exits above) is untouched and no consumer below is.
     //
-    // BRAIN-A: THE READING'S OUTCOME COMES FIRST. A plan gives the sorter's word (worldly only when every part of it may be
-    // answered as worldly, and only where the sorter itself would have been asked; a message with a ruling word, or one the
-    // canonical-store rule holds, keeps the state it had). A FAILED READING COSTS NOTHING: on a timeout, an error, a reply that
+    // BRAIN-A: THE READING'S OUTCOME COMES FIRST. A plan that does not call every part worldly makes the turn religious with no
+    // sorter call; a plan that calls every part worldly is not taken at its word -- the sorter is asked, as on production, and
+    // the general frame is reached on ITS word alone (a message with a ruling word, or one the canonical-store rule holds,
+    // keeps the state it had). A FAILED READING COSTS NOTHING: on a timeout, an error, a reply that
     // does not parse or a plan that does not hold together, the sorter is asked now, as it would have been, and everything
     // below runs as before; the reason is printed and kept in the answer log.
     const readingOutcome = readingRun ? await readingRun.promise : null;
@@ -2011,20 +2012,20 @@ export default async function handler(req, res) {
       });
       answerLog.note({ flags: planLogFlags(readingOutcome) });
     }
-    // The plan's word for the whole question. 'clear': every part is worldly and the patterns find nothing religious in it -- the
-    // plan's word stands. 'contested': the plan calls it worldly and the patterns find a religious word in it -- the plan's word is
-    // not taken, and the sorter is asked now, as it is asked today (MEASURED: ten of the twelve worldly questions of the sorter's
-    // own fixture carry such a word). Anything else is a religious turn.
-    // (decided on the reader's own latest message and earlier turns as well as on the plan: a plan that left the reader's religious
-    // words out of its parts is contested, never clear)
+    // The plan's word for the whole question. 'contested': the plan calls every part worldly -- its word is not taken, and the
+    // sorter is asked now, as it is asked on production. Anything else is a religious turn.
+    // ORDER SHIPPREP (2026-11-14, part two): NO PLAN SENDS A TURN TO THE GENERAL FRAME ON ITS OWN WORD. Until this round a plan in
+    // which the patterns found nothing religious did (`clear`: the general frame with no sorter call), and the patterns read one
+    // vocabulary of the many the tree holds (MEASURED through this handler, BRAIN-A-SHIPPREP-evidence: lib/request-plan.js
+    // planWorldlyClaim). Below, `worldly` is a word only the sorter gives.
     const readerPrevious = readingPlanned ? planContext(body.messages).previous : [];
-    const worldlyClaim = readingPlanned && sorterPlan.ask ? planWorldlyClaim(readingPlanOf, { question: questionText, previous: readerPrevious }) : 'none';
+    const worldlyClaim = readingPlanned && sorterPlan.ask ? planWorldlyClaim(readingPlanOf, { question: questionText }) : 'none';
     if (worldlyClaim === 'contested') answerLog.note({ flags: ['plan_worldly_contested'] });
     const sorterLate = readingOutcome && sorterPlan.ask && (!readingPlanned || worldlyClaim === 'contested')
       ? startSorter({ messages: body.messages, providerUrl: ANTHROPIC_URL, headers, provider: PROVIDER_CALLS }) : null;
     const sorted = sorterRun ? await sorterRun.promise : (sorterLate ? await sorterLate.promise : null);
     const sorterState = readingPlanned
-      ? (sorterPlan.ask ? (worldlyClaim === 'clear' ? 'worldly' : (worldlyClaim === 'contested' && sorted ? sorted.sorter : 'religious')) : sorterPlan.sorter)
+      ? (sorterPlan.ask ? (worldlyClaim === 'contested' && sorted ? sorted.sorter : 'religious') : sorterPlan.sorter)
       : (sorted ? sorted.sorter : sorterPlan.sorter);
     const currentRuntime = runtimeAfterSorter(lexicalRuntimeOfRequest, sorterState);
     const effectiveRoute = currentRuntime === 'GENERAL' ? 'GEN' : 'DEEN';
