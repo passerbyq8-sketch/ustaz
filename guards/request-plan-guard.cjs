@@ -1224,8 +1224,9 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     });
     const WRITER_TEXT = 'هذا جواب اختبار.';
     let seq = 0;
-    // scenario: plan = the reply to the reading ('' = junk), sorter = the sorter's word
-    async function drive(messages, { plan = '', sorter = 'RELIGIOUS', env = {}, headers = {}, band = 'adult', age = 35 } = {}) {
+    // scenario: plan = the reply to the reading ('' = junk), sorter = the sorter's word -- or how its call ends: '@500' (the provider
+    // refuses it), '@never' (it does not answer; the sorter's own budget ends it); body = extra fields of the request body
+    async function drive(messages, { plan = '', sorter = 'RELIGIOUS', env = {}, headers = {}, band = 'adult', age = 35, body = {} } = {}) {
       for (const k of ENV_KEYS) delete process.env[k];
       process.env.ANTHROPIC_API_KEY = 'guard-not-a-real-key';
       process.env.BRAVE_API_KEY = 'guard-not-a-real-key';
@@ -1239,6 +1240,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const counts = { reading: 0, sorter: 0, fatwa: 0, judge: 0, writer: 0, other: 0 };
       const order = [];
       const calls = [];
+      const sorterAsked = [];
       const sha = (text) => crypto.createHash('sha256').update(String(text || '')).digest('hex').slice(0, 16);
       let readingModel = '';
       let readingBody = null;
@@ -1261,6 +1263,12 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
           }
           if (b.system === FS.FRONT_SORTER_SYSTEM) {
             counts.sorter += 1; order.push('sorter');
+            sorterAsked.push(sha(init.body)); // WHAT the sorter was shown, by hash: two turns that ask it the same thing have the same list
+            if (sorter === '@500') return jsonResponse(u, { type: 'error', error: { type: 'api_error', message: 'stand-in' } }, 500);
+            if (sorter === '@never') {
+              await new Promise((resolve) => { const t = setTimeout(resolve, 4000); if (init && init.signal) init.signal.addEventListener('abort', () => { clearTimeout(t); resolve(); }, { once: true }); });
+              const gone = new Error('aborted'); gone.name = 'AbortError'; throw gone;
+            }
             return jsonResponse(u, { content: [{ type: 'text', text: sorter }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
           }
           // (a worldly part's general-knowledge call opens on its fixed rule: counted apart, so a row can say none was made)
@@ -1292,7 +1300,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         method: 'POST',
         headers: { 'x-murabbi-device': 'request-plan-guard-' + String(seq).padStart(4, '0'), 'x-real-ip': '10.47.0.' + seq,
           [CONSENT.AI_CONSENT_HEADER]: CONSENT.AI_CONSENT_VERSION, ...headers },
-        body: { messages, band, age },
+        body: { messages, band, age, ...body },
       };
       const logs = [];
       const keep = { log: console.log, warn: console.warn, error: console.error, info: console.info };
@@ -1306,7 +1314,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       for (const f of frames) { if (f.type === 'content_block_delta') text += f.delta.text; if (f.type === 'ezik_replace') text = String(f.text || ''); }
       const logOf = (tag) => (logs.find((a) => a[0] === tag) || [])[1] || null;
       const reads = frames.filter((f) => f.type === 'ezik_status' && f.stage === 'read');
-      return { res, counts, order, calls, logs, logOf, crashed, frames, text, reads, readingModel, readingBody };
+      return { res, counts, order, calls, logs, logOf, crashed, frames, text, reads, readingModel, readingBody, sorterAsked };
     }
     const user = (q) => [{ role: 'user', content: q }];
     const idealOf = (id) => JSON.stringify(byId[id].ideal);
@@ -1906,6 +1914,73 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         }
         ok('V3 [SHIPPREP part two] ...and on a word each of the tree\'s other readers of a question recognises while the patterns find nothing in it -- a man of the roster of scholars, a school of fiqh, a hadith collection -- called worldly by the plan: the sorter is asked, and when it says RELIGIOUS the turn is on the sources, as with the switch off',
           readerSeen.length === 3 && readerSeen.every((row) => row.slice(1).every(Boolean)), readerSeen);
+
+        // (4) AFTER THE REFUTING HELPER (HELPER-REFUTATION-SHIPPREP, claim 4: ten of ten changes to the handler re-opened a road to the
+        // general frame and left every row above green). What the rows above did not drive: a sorter that FAILS after such a plan
+        // (they only ever heard RELIGIOUS or WORLDLY); WHAT the sorter is shown (a pinned line held the text up to its call, not its
+        // argument); the older path, where the frame is derived; and six conditions each one step outside their drives -- the
+        // standard model's plan, three parts, a message the lexicon calls a hadith question, a production deployment, a deep tier,
+        // two earlier turns. Each is driven here, the turn with a plan of worldly parts alone against the turn with the switch off.
+        const modelTurn = (d) => { const o = JSON.parse(digest(d)); return JSON.stringify({ ...o, calls: o.calls.filter((c) => c.includes('api.anthropic.com')) }); };
+        const mountain = 'ما أعلى جبل في آسيا؟';
+        const rainbow = 'كم لونا في قوس قزح؟';
+        const wPart = (q) => ({ name: 'سؤال', q, kind: 'worldly', needs: ['fact'], source: ['general'], act: '', chapter: '' });
+        const planOfParts = (...qs) => JSON.stringify({ followup: false, full: '', parts: qs.map(wPart), c: {} });
+        const threeParts = capital + ' و' + mountain + ' و' + rainbow;
+        const tarawihOwn = 'كم عدد ركعات صلاة التراويح؟';
+        const tarawihCut = 'كم عدد التراويح؟';
+        const signalShort = 'طيب وإشارة المرور؟'; // opens on a word of route-classify's own list of follow-up openers: the row checks isShortFollowUp says so
+        const signalFull = 'كم لونا في إشارة المرور؟';
+        const afterTwo = [{ role: 'user', content: mountain }, { role: 'assistant', content: 'جواب سابق.' }, { role: 'user', content: rainbow }, { role: 'assistant', content: 'جواب سابق.' }, { role: 'user', content: capital }];
+        // a how-to on a word of the lexicon that makes the message a HADITH question by the handler's own lexical runtime, with no ruling
+        // word in it (so the sorter is asked): found by driving the switch-off turn, never typed
+        let hadithQ = '';
+        for (const word of vocab[0].words) {
+          const q = howTo(word);
+          if (!checkedVocab(q).ok || FS.hasRulingCue(q)) continue;
+          const probe = await drive(user(q), { env: { REQUEST_PLAN_V1: 'off' }, sorter: 'RELIGIOUS' });
+          if (!probe.crashed && probe.counts.sorter === 1 && (probe.logOf('[route]') || {}).runtime === 'HADITH') { hadithQ = q; break; }
+        }
+        const conditions = [
+          { id: 'base', env: {}, body: {} },
+          { id: 'production', env: { VERCEL_ENV: 'production' }, body: {} },
+          { id: 'the-standard-model-plans', env: { REQUEST_PLAN_MODEL: 'standard', MODEL_STANDARD: 'guard-standard-model' }, body: {} },
+          { id: 'deep-tier', env: { DEPTH_FREE_TRIAL: 'on' }, body: { depth: 'deep' } },
+          { id: 'the-older-path', env: { BEFORE_WRITING_V2: 'off' }, body: {} },
+        ];
+        const shapes = [
+          { id: 'one-sentence', convo: user(capital), plan: planOfParts(capital), whole: true },
+          { id: 'three-parts', convo: user(threeParts), plan: planOfParts(capital, 'و' + mountain, 'و' + rainbow), whole: false },
+          { id: 'after-two-turns', convo: afterTwo, plan: planOfParts(capital), whole: true },
+          { id: 'hadith-question', convo: user(hadithQ), plan: planOfParts(hadithQ), whole: true },
+          // (what the sorter is SHOWN must be the reader's, not the plan's: a plan whose one part left a word of the reader's out; and
+          // a short follow-up, where the sorter's input holds the reader's previous message too -- lib/front-sorter.js sorterInput)
+          { id: 'the-plan-left-a-word-out', convo: user(tarawihOwn), plan: planOfParts(tarawihCut), whole: false },
+          { id: 'a-short-follow-up', convo: [{ role: 'user', content: rainbow }, { role: 'assistant', content: 'جواب سابق.' }, { role: 'user', content: signalShort }],
+            plan: JSON.stringify({ followup: true, full: signalFull, parts: [wPart(signalFull)], c: {} }), whole: false },
+        ];
+        const cases = [];
+        for (const c of conditions) for (const end of ['RELIGIOUS', 'WORLDLY']) cases.push({ c, s: shapes[0], end });
+        for (const s of shapes.slice(1)) for (const end of ['RELIGIOUS', 'WORLDLY']) cases.push({ c: conditions[0], s, end });
+        for (const end of ['@500', '@never', 'MAYBE']) cases.push({ c: conditions[0], s: shapes[0], end });
+        for (const end of ['@500', 'MAYBE']) cases.push({ c: conditions[4], s: shapes[0], end });
+        const reachSeen = [];
+        for (const { c, s, end } of cases) {
+          const offTurn = await drive(s.convo, { env: { ...c.env, REQUEST_PLAN_V1: 'off' }, body: c.body, sorter: end });
+          const onTurn = await drive(s.convo, { plan: s.plan, env: c.env, body: c.body, sorter: end });
+          const route = onTurn.logOf('[route]') || {};
+          const general = route.runtime === 'GENERAL' || route.frame === 'general';
+          reachSeen.push([c.id + '/' + s.id + '/' + end, !onTurn.crashed && !offTurn.crashed, (onTurn.logOf('[reading]') || {}).outcome === 'plan' && onTurn.counts.reading === 1 && offTurn.counts.reading === 0,
+            offTurn.sorterAsked.length >= 1 && same(onTurn.sorterAsked, offTurn.sorterAsked), same(routeOf(onTurn), routeOf(offTurn)), general === (end === 'WORLDLY'),
+            (onTurn.counts.worldly || 0) === 0, !s.whole || modelTurn(onTurn) === modelTurn(offTurn)]);
+        }
+        ok('V4 [SHIPPREP part two, after the helper] THE SAME RULE WHERE NO ROW REACHED: a plan of worldly parts alone -- on a production deployment, written by the standard model, on a deep tier, on the older path, with three parts, after two earlier turns, on a message the lexicon calls a hadith question -- and with the sorter answering RELIGIOUS, WORLDLY, an unreadable word, refused by the provider, or not at all: the plan is applied; THE SORTER IS SHOWN EXACTLY WHAT THE SWITCH-OFF TURN SHOWS IT (the same requests, byte for byte, as many); the turn has that turn\'s sorter word, runtime and frame; it is general only when the sorter says WORLDLY -- a sorter that fails sends it to the sources; no part is answered by a general-knowledge call; and on a message of one sentence every call to a model, the reader\'s frames and the text are the switch-off turn\'s',
+          hadithQ !== '' && RC.isShortFollowUp(signalShort) === true && tarawihCut !== tarawihOwn && reachSeen.length === 25 && reachSeen.every((row) => row.slice(1).every(Boolean)),
+          [hadithQ.length, RC.isShortFollowUp(signalShort), reachSeen.length, reachSeen.filter((row) => !row.slice(1).every(Boolean))]);
+        ok('V5 [SHIPPREP part two, after the helper] the line that asks the sorter after a reading hands it the reader\'s own messages, whole, and the handler has no other call of the sorter but the one of the turn with no reading',
+          askSource.includes("    const sorterLate = readingOutcome && sorterPlan.ask && (!readingPlanned || worldlyClaim === 'contested')\n      ? startSorter({ messages: body.messages, providerUrl: ANTHROPIC_URL, headers, provider: PROVIDER_CALLS }) : null;")
+          && askSource.includes("const sorterRun = sorterPlan.ask && !readingRun ? startSorter({ messages: body.messages, providerUrl: ANTHROPIC_URL, headers, provider: PROVIDER_CALLS }) : null;")
+          && (askSource.match(/startSorter\(/g) || []).length === 2);
       }
 
       // I6 the fixed sentence for a follow-up
