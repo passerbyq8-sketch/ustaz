@@ -1,5 +1,5 @@
 {
- "note": "BRAIN-A (2026-11-11). The plan a strong reader would write for the 48 witness questions of the BRAIN-XRAY inspection and the four further questions of the 26 recorded on production, written BEFORE the reading's prompt and reviewed by a fresh-context helper. `ideal` is the plan; `must` is what any acceptable plan must satisfy (tools/request-plan-score.mjs). Built by BRAIN-A-evidence/build-expected-plans.mjs: the questions are copied by code from the inspection's witnesses.json and live-plan.json. ORDER A2 (2026-11-11): the model is asked for `followup`, `q`, `kind`, `name`, `act`, `chapter` only (lib/request-plan.js PLAN_ASKED); the scorer scores those; the expectations on `needs`, `source` and `c` stay here for the batch that reads them. A follow-up's full question is built by the server from the parts' questions, so the ideal of Z6 states the reader's condition in its part's question (it stood in `full` alone). No `must` was changed. ORDER CARD (2026-11-14): the row B19b no longer expects the card. Its first part is still the manner of tayammum, but production's own how-to grammar does not take its wording, so the server does not serve the card on the plan (lib/request-plan.js cardReaderAgrees) and does not apply the plan (card_on_label). The row's `ideal` and `must` name the written sources for that part in place of `card`, and its `why` says so; no other row changed.",
+ "note": "BRAIN-A (2026-11-11). The plan a strong reader would write for the 48 witness questions of the BRAIN-XRAY inspection and the four further questions of the 26 recorded on production, written BEFORE the reading's prompt and reviewed by a fresh-context helper. `ideal` is the plan; `must` is what any acceptable plan must satisfy (tools/request-plan-score.mjs). Built by BRAIN-A-evidence/build-expected-plans.mjs: the questions are copied by code from the inspection's witnesses.json and live-plan.json. ORDER A2 (2026-11-11): the model is asked for `followup`, `q`, `kind`, `name`, `act`, `chapter` only (lib/request-plan.js PLAN_ASKED); the scorer scores those; the expectations on `needs`, `source` and `c` stay here for the batch that reads them. A follow-up's full question is built by the server from the parts' questions, so the ideal of Z6 states the reader's condition in its part's question (it stood in `full` alone). No `must` was changed. ORDER CARD (2026-11-14): the rows B19, B19b and B19w no longer expect the card. Their first part is still the manner of the act, but the fixed card is withdrawn from the plan: the server serves no part of a plan as the card (lib/request-plan.js servedKinds) and does not apply a plan whose side claims it (planNotApplied, card_on_label), so the turn is production's, which writes the manner from the sources. Each row's `ideal` and `must` name the written sources for that part in place of `card`, and its `why` says so. B19p, the bare request, is left: production's frozen dispatcher answers it with the card ahead of every reading. No other row changed.",
  "schema": "request-plan/1",
  "aliases": {
   "B22r": "B22",
@@ -2745,7 +2745,8 @@
        "steps"
       ],
       "source": [
-       "card"
+       "school",
+       "fatwa"
       ],
       "act": "tayammum",
       "chapter": ""
@@ -2783,7 +2784,9 @@
        "تيمم"
       ],
       "sourceAny": [
-       "card"
+       "school",
+       "fatwa",
+       "hadith"
       ],
       "act": "tayammum"
      },
@@ -2809,7 +2812,7 @@
     ],
     "worldly": 0
    },
-   "why": "the manner is a part of its own, served by the fixed card; «ومتى يُشرع؟» carries «التيمم»"
+   "why": "the manner is a part of its own; «ومتى يُشرع؟» carries «التيمم». ORDER CARD (2026-11-14): the fixed card is withdrawn from the plan -- a strong reader still calls the first part the manner of the act, but no plan gives the reader the card; a plan whose side claims it is not applied (card_on_label) and the turn is production's, which writes the manner from the sources; the row names the written sources for that part in place of `card`"
   },
   {
    "id": "B20",
@@ -3603,7 +3606,7 @@
     ],
     "worldly": 0
    },
-   "why": "the same request as B19 in another wording, one that production's own how-to grammar does not take: a strong reader still calls the first part the manner of tayammum, but the fixed card is not served on the plan's label alone (ORDER CARD, 2026-11-14), the plan is not applied (card_on_label) and the turn is production's, which writes the manner from the sources, and no part named «يكون التيمم» or «يشرع»"
+   "why": "the same request as B19 in another wording: a strong reader still calls the first part the manner of tayammum, but no plan gives the reader the fixed card (ORDER CARD, 2026-11-14: the card is withdrawn from the plan), the plan is not applied (card_on_label) and the turn is production's, which writes the manner from the sources, and no part named «يكون التيمم» or «يشرع»"
   },
   {
    "id": "B19p",
@@ -3673,7 +3676,8 @@
        "steps"
       ],
       "source": [
-       "card"
+       "school",
+       "fatwa"
       ],
       "act": "wudu",
       "chapter": ""
@@ -3711,7 +3715,9 @@
        "وضوء"
       ],
       "sourceAny": [
-       "card"
+       "school",
+       "fatwa",
+       "hadith"
       ],
       "act": "wudu"
      },
@@ -3742,7 +3748,7 @@
     ],
     "worldly": 0
    },
-   "why": "the manner of wudu by the card; «وما نواقضه؟» carries «الوضوء»"
+   "why": "the manner of wudu; «وما نواقضه؟» carries «الوضوء». ORDER CARD (2026-11-14): the fixed card is withdrawn from the plan -- a strong reader still calls the first part the manner of the act, but no plan gives the reader the card; a plan whose side claims it is not applied (card_on_label) and the turn is production's, which writes the manner from the sources; the row names the written sources for that part in place of `card`"
   },
   {
    "id": "B22x",
