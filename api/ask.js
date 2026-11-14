@@ -2180,10 +2180,13 @@ export default async function handler(req, res) {
     // request by a whole-sentence grammar («ما صفة التيمم؟»). When the plan has ONE part, the general manner of prayer, wudu,
     // ghusl or tayammum, and the part holds nothing but that act (lib/request-plan.js worshipCardAct), the answer is the same
     // closed one: the card alone, no retrieval and no writer.
-    // ORDER CARD (2026-11-14): ...AND ONLY WHERE THAT SAME GRAMMAR TAKES THE READER'S OWN SENTENCE FOR THE PART (servedKinds,
-    // cardReaderAgrees): a how-to sentence the dispatcher would answer had it stood alone, beside a sentence of manner words. Until
-    // this round the plan's label was enough, and a question that asked the act's ruling, its time or its reason, called a how-to
-    // by the plan, was sent the card alone. Another wording of the request («ما صفة غسل الجنابة؟») is production's turn again.
+    // ORDER CARD (2026-11-14): NO PLAN REACHES THIS BRANCH ANY MORE. The card stood on the plan's label: the server's tests beside
+    // it read subject words, and a question that asked the act's ruling, its time or its reason, called a how-to by the plan,
+    // was sent the card alone (MEASURED through this handler, BRAIN-A-CARD-evidence). The card is withdrawn from the plan:
+    // lib/request-plan.js servedKinds never calls a part the card's, and a plan whose side claims the card is not applied
+    // (planNotApplied, `card_on_label`), so the turn is production's. The frozen dispatcher above still answers the bare request.
+    // The branch is left as it stands (the order: no other line of the app); guards/request-plan-guard.cjs holds that no plan
+    // the handler applies carries a served part.
     if (reading && reading.parts.length === 1 && reading.parts[0].served === 'worship') {
       const cardOut = closedWorshipCard(reading.parts[0].act);
       if (cardOut) {
