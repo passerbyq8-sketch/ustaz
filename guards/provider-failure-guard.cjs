@@ -380,18 +380,13 @@ const sha = (text) => crypto.createHash('sha256').update(String(text || '')).dig
     ok('H2a hand-over off, 400: the before-writing path itself ends on the apology, with no not-found sentence and no offer',
       turn.crashed === '' && turn.text === LOST_TEXT && !turn.offer && !(turn.asked.round || turn.asked.write), [turn.text, turn.asked]);
     ok('H2b hand-over off, 400: the flag, and the judge\'s failed call logged', turn.flags.includes(LOST_FLAG) && allTokens(turn).includes('judge:400:invalid_request_error'), [turn.flags, allTokens(turn)]);
-    // (ORDER CARD, 2026-11-14: THE FIXED CARD IS WITHDRAWN FROM THE PLAN. This row held "a part the server served (the fixed card) stays;
-    // the apology stands where the absence of the writer's part would", through the handler, on B19's plan. No plan gives the reader
-    // the card any more and a plan whose side claims it is not applied (lib/request-plan.js, card_on_label): the turn is production's.
-    // The row holds what the reader of that question gets now when the provider refuses every call but the reading: the turn of the
-    // switch off under the same refusals -- the apology and nothing else. The path's own lines for a card already out
-    // (lib/before-writing-v2.js) are left as they stand and no plan the handler applies reaches them.)
+    // a part the server served (the fixed card) stays; the apology stands where the absence of the writer's part would
     const b19 = byId.B19;
     const served = await drive(user(b19.q), { plan: JSON.stringify(b19.ideal), provider: (kind) => (kind === 'reading' ? 'ok' : 400) });
-    const servedOff = await drive(user(b19.q), { provider: () => 400, env: { REQUEST_PLAN_V1: 'off' } });
-    ok('H3 [re-cut by ORDER CARD] a question whose plan claims the fixed card for a part, the provider refusing the rest: no card on a plan -- the turn is the switch-off turn under the same refusals: the apology and nothing else; no card, no absence line, no offer',
-      served.crashed === '' && servedOff.crashed === '' && served.text === servedOff.text && served.text === LOST_TEXT && !served.text.includes('<worship') && !served.text.includes('لم أقف') && !served.text.includes(NOT_FOUND) && !served.offer
-      && served.flags.includes(LOST_FLAG) && (served.asked.reading || 0) === 1 && !(servedOff.asked.reading || 0), [served.text, servedOff.text, served.asked]);
+    const card = '<worship id="tayammum"></worship>';
+    ok('H3 a question with a served part, the provider refusing the rest: the card stays, then the apology; no absence line, no offer',
+      served.crashed === '' && served.text.includes(card) && served.text.trim().endsWith(LOST_TEXT) && !served.text.includes('لم أقف') && !served.text.includes(NOT_FOUND) && !served.offer
+      && served.flags.includes(LOST_FLAG), served.text);
   }
 
   console.log('\n=== R. REFUSED ONCE, ANSWERED ON THE SECOND TRY ===');
@@ -424,31 +419,22 @@ const sha = (text) => crypto.createHash('sha256').update(String(text || '')).dig
     const alone = await drive(user(q), { provider: (kind) => (kind === 'stream' ? 'drop' : 'ok'), env: { BW2_CONTINUE: 'off', REQUEST_PLAN_V1: 'off' } });
     ok('D2 the writer\'s stream drops while it is read (hand-over off): the apology, not the sentence that no text was found, and no offer',
       alone.crashed === '' && alone.text === LOST_TEXT && !alone.text.includes(NOT_FOUND) && !alone.offer && alone.flags.includes(LOST_FLAG) && allTokens(alone).includes('writer:0:connection'), [alone.text, allTokens(alone)]);
-    // (ORDER CARD, 2026-11-14: rows D3 and D5 held the turn with a card of the server's already on the reader's page -- the card stays,
-    // then the apology; nothing is tried again -- through the handler, on B19's plan. No plan gives the reader the card any more and a
-    // plan whose side claims it is not applied (lib/request-plan.js, card_on_label): the turn is production's, which for that question
-    // is the older path and its one model call. The rows hold what the reader of that question gets now: the switch-off turn under the
-    // same provider, with no card; and, nothing being on the reader's page, a refused call is tried again as in rows R. The path's own
-    // lines for a card already out (lib/before-writing-v2.js) are left as they stand; no plan the handler applies reaches them.)
-    const ownFlags = (t) => t.flags.filter((flag) => !/^plan/.test(flag));
-    const served = await drive(user(b19.q), { plan: JSON.stringify(b19.ideal), provider: (kind) => (kind === 'reading' ? 'ok' : 'drop') });
-    const servedOff = await drive(user(b19.q), { provider: () => 'drop', env: { REQUEST_PLAN_V1: 'off' } });
-    ok('D3 [re-cut by ORDER CARD] the same on a question whose plan claims the fixed card for a part, every call but the reading losing its body: no card on a plan -- the turn is the switch-off turn under the same loss: the apology and nothing else, the same flags, no card, no line that no text was found, no offer',
-      served.crashed === '' && servedOff.crashed === '' && served.text === servedOff.text && served.text === LOST_TEXT && !served.text.includes(card) && !served.text.includes('<worship') && !served.text.includes(NOT_FOUND)
-      && !served.offer && served.flags.includes(LOST_FLAG) && same(ownFlags(served), ownFlags(servedOff)) && (served.asked.reading || 0) === 1 && !(servedOff.asked.reading || 0), [served.text === servedOff.text, served.flags, servedOff.flags, served.asked, servedOff.asked]);
+    const served = await drive(user(b19.q), { plan: JSON.stringify(b19.ideal), provider: (kind) => (kind === 'stream' ? 'drop' : 'ok') });
+    ok('D3 the same beside a card the server served: the card stays, then the apology; no line that no text was found, no offer',
+      served.crashed === '' && served.text.includes(card) && served.text.trim().endsWith(LOST_TEXT) && !served.text.includes('لم أقف') && !served.text.includes(NOT_FOUND) && !served.offer
+      && served.flags.includes(LOST_FLAG) && allTokens(served).includes('writer:0:connection'), [served.text, allTokens(served)]);
     // the writer releases a sentence with no source, then the provider's stream ends on its error event
     const cutShort = await drive(user(q), { provider: (kind) => (kind === 'stream' ? 'stream_error' : 'ok'), env: { BW2_CONTINUE: 'off', REQUEST_PLAN_V1: 'off' } });
     ok('D4 the writer wrote a sentence with no source and its stream then ended on the provider\'s error: the sentence is withdrawn and the reader gets the apology -- lost to the provider, not unsourced; no offer; the provider\'s own word is logged, never its message',
       cutShort.crashed === '' && cutShort.text === LOST_TEXT && !cutShort.offer && cutShort.flags.includes(LOST_FLAG) && !cutShort.flags.includes('unsourced_withheld')
       && allTokens(cutShort).includes('writer:0:overloaded_error') && !leak(cutShort, q), [cutShort.text, cutShort.flags, allTokens(cutShort)]);
-    // (ORDER CARD: see above) a refused call is tried again where nothing is on the reader's page -- and no card is, on a plan
-    const onceOut = await drive(user(b19.q), { plan: JSON.stringify(b19.ideal), provider: (kind, nth) => (kind !== 'reading' && nth === 1 ? 429 : 'ok') });
-    const onceOff = await drive(user(b19.q), { provider: (kind, nth) => (nth === 1 ? 429 : 'ok'), env: { REQUEST_PLAN_V1: 'off' } });
-    const callsOf = (t) => Object.fromEntries(Object.entries(t.asked).filter(([kind]) => kind !== 'reading'));
-    ok('D5 [re-cut by ORDER CARD] a question whose plan claims the fixed card for a part, every call but the reading refused once with 429: no card is on the reader\'s page (no card on a plan), so each refused call IS tried again as in rows R, and the turn is the switch-off turn under the same refusals -- the same text, the same calls each asked twice, no card, no apology, no flag',
-      onceOut.crashed === '' && onceOff.crashed === '' && !onceOut.text.includes('<worship') && onceOut.text === onceOff.text && onceOut.text !== LOST_TEXT && !onceOut.flags.includes(LOST_FLAG) && !lostSaid(onceOut)
-      && same(callsOf(onceOut), callsOf(onceOff)) && Object.keys(callsOf(onceOut)).length >= 1 && Object.values(callsOf(onceOut)).every((n) => n === 2) && (onceOut.asked.reading || 0) === 1,
-      [onceOut.asked, onceOff.asked, onceOut.text === onceOff.text, onceOut.flags]);
+    // nothing is tried again once something is on the reader's page
+    const judgeOut = await drive(user(b19.q), { plan: JSON.stringify(b19.ideal), provider: (kind, nth) => (kind === 'judge' && nth === 1 ? 429 : 'ok') });
+    const writerOut = await drive(user(b19.q), { plan: JSON.stringify(b19.ideal), provider: (kind, nth) => (kind === 'stream' && nth === 1 ? 429 : 'ok') });
+    ok('D5 a card of the server\'s is already on the reader\'s page: the judge, refused with 429, is NOT tried again, and neither is the writer (with nothing out they are: rows R); the card stays and the apology follows it',
+      judgeOut.crashed === '' && judgeOut.text.includes(card) && judgeOut.asked.judge === 1 && judgeOut.text.trim().endsWith(LOST_TEXT) && allTokens(judgeOut).includes('judge:429:rate_limit_error')
+      && writerOut.crashed === '' && writerOut.text.includes(card) && writerOut.asked.judge === 1 && writerOut.asked.stream === 1 && writerOut.text.trim().endsWith(LOST_TEXT)
+      && allTokens(writerOut).includes('writer:429:rate_limit_error'), [judgeOut.asked, writerOut.asked, allTokens(writerOut)]);
     // a continuation the provider refuses
     const more = await drive(user(q), { provider: (kind, nth) => (kind === 'stream' && nth === 2 ? 529 : 'ok'), streamStop: (nth) => (nth === 1 ? 'max_tokens' : 'end_turn'), env: { BW2_CONTINUE: 'off', REQUEST_PLAN_V1: 'off' } });
     ok('D6 [after the second helper] the writer stopped on its budget with nothing sourced released, and the call that continues it was refused (529): that call is logged, and the turn is lost to the provider -- the apology, not the sentence that no text was found, and no offer (where sourced text is already out the answer stands, cut: requestplan L23)',
