@@ -1999,6 +1999,154 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
           && (askSource.match(/startSorter\(/g) || []).length === 2);
       }
 
+      // ORDER CARD (2026-11-14): THE FIXED WORSHIP CARD IS NEVER SERVED ON THE PLAN'S LABEL ALONE. TWO READERS AGREE -- the plan's, and the
+      // tree's own reader of a how-to (production's closed worship road, as it stands, given the reader's own sentence) -- or the card
+      // is not served on the plan and the plan is not applied (`card_on_label`): the turn is production's.
+      // WHAT WAS MEASURED before the cure (BRAIN-A-CARD-evidence, card-root at ce57abda): the plan's side reads the part's SUBJECT words,
+      // and the words that say what is asked of the act are none; every word lib/question-terms.js drops, before every head word of
+      // the four acts, called a how-to by the plan: the card was served for 3,874 of 3,926 such sentences, and through the real
+      // handler the reader was sent the card alone where the turn with the switch off writes from the sources.
+      // The inputs below are no asked question: those same sentences, built at run time from the tree's own two lists.
+      {
+        const STORED = await esm('lib/stored-deen.js');
+        const arabicIn = /[؀-ۿ]/u;
+        const quotedOf = (text) => [...text.matchAll(/'([^'\n]*)'/gu)].map((m) => m[1]).filter((s) => arabicIn.test(s));
+        const blockOf = (text, from, to) => { const a = text.indexOf(from); const b = a < 0 ? -1 : text.indexOf(to, a + from.length); return a < 0 || b < 0 ? '' : text.slice(a, b); };
+        const frameWords = [...new Set(quotedOf(blockOf(fs.readFileSync(path.join(REPO, 'lib', 'question-terms.js'), 'utf8'), 'const FRAME_WORDS = new Set([', '\n]);')))];
+        const headsBlock = blockOf(source, 'const ACT_HEADS = Object.freeze({', '});');
+        const wordsBlock = blockOf(source, 'const ACT_WORDS = Object.freeze({', 'const ACT_HEADS = Object.freeze({');
+        const listOf = (block, act) => { const m = block.match(new RegExp('^\\s*' + act + ': fold\\(\\[([^\\]]*)\\]\\)', 'mu')); return m ? quotedOf(m[1]) : null; };
+        const headsOf = (act) => listOf(headsBlock, act) || listOf(wordsBlock, act) || [];
+        const mannerWords = quotedOf(blockOf(source, 'const MANNER_WORDS = fold([', ']);'));
+        const goldQ = 'ما حكم بيع الذهب بالتقسيط؟';
+        const cPart = (q, kind, act = '') => ({ name: 'جزء', q, kind, needs: [], source: [], act, chapter: '' });
+        const cPlan = (parts, extra = {}) => ({ followup: false, full: '', parts, c: {}, ...extra });
+        const cChecked = (plan, question) => { try { return RP.validatePlan(RP.parsePlan(JSON.stringify(plan)), { question, previous: [] }); } catch { return { ok: false }; } };
+        // production's own road, as it stands: its condition, and its own choice of the card
+        const roadAct = (sentence) => {
+          if (!STORED.isPureMannerRequest(sentence)) return '';
+          const out = CD.runClosedDeenTurn({ runtime: 'LOCAL_WORSHIP', currentQuestion: sentence });
+          const id = out && Array.isArray(out.sourceIds) ? String(out.sourceIds[0] || '') : '';
+          return id.startsWith('local:worship:') ? id.slice('local:worship:'.length) : '';
+        };
+        // (1) by the module, on every such sentence
+        const labelOnly = {}; const agreed = {};
+        const moduleRows = RP.PLAN_ACTS.map((act) => {
+          const t = { act, sentences: 0, held: 0, claims: 0, claimsAlone: 0, road: 0, served: 0, servedBeside: 0, servedWithoutRoad: 0, roadNotServed: 0, agreesDiffers: 0, onLabelWord: 0, otherWord: 0 };
+          for (const head of headsOf(act)) for (const frame of frameWords) {
+            const s = frame + ' ' + head + '؟';
+            t.sentences += 1;
+            const c = cChecked(cPlan([cPart(s, 'manner', act)]), s);
+            if (!c.ok) continue;
+            t.held += 1;
+            const road = roadAct(s) === act;
+            const served = RP.servedKinds(c.plan, { question: s })[0] === 'worship';
+            const two = goldQ + ' ' + s;
+            const c2 = cChecked(cPlan([cPart(goldQ, 'ruling'), cPart(s, 'manner', act)]), two);
+            const servedBeside = c2.ok && RP.servedKinds(c2.plan, { question: two })[1] === 'worship';
+            const why = RP.planNotApplied(c.plan, { question: s });
+            if (road) t.road += 1;
+            if (served) t.served += 1;
+            if (servedBeside) t.servedBeside += 1;
+            if ((served || servedBeside) && !road) t.servedWithoutRoad += 1;
+            if (road && !(served && servedBeside)) t.roadNotServed += 1;
+            // (the plan's side claims the card for the part: the label and the part's subject words; a sentence whose first word is no
+            // frame word after all keeps another subject word, claims nothing, and is not this rule's)
+            const claims = RP.worshipCardAct(c.plan.parts[0]) === act;
+            if (claims) t.claims += 1;
+            if (RP.cardReaderAgrees(c.plan.parts[0], { question: s }) !== (claims && road)) t.agreesDiffers += 1;
+            if (claims && !road) { t.claimsAlone += 1; if (why === 'card_on_label') t.onLabelWord += 1; else t.otherWord += 1; if (!labelOnly[act]) labelOnly[act] = s; }
+            if (!claims && (served || servedBeside || why === 'card_on_label')) t.otherWord += 1;
+            if (road) { if (why !== '' || !claims) t.otherWord += 1; if (!agreed[act]) agreed[act] = s; }
+          }
+          return t;
+        });
+        ok('CL1 [ORDER CARD] BY THE MODULE, on every word the subject test drops before every head word of each of the four acts, called a how-to of the act by the plan (' + moduleRows.reduce((a, t) => a + t.sentences, 0) + ' sentences, read from the tree at run time): the card is served on the plan EXACTLY where production\'s own closed worship road takes the same sentence as a how-to of that act, alone and beside a ruling; nowhere on the label alone; cardReaderAgrees IS that road\'s word; and a plan the road does not agree with is not applied, under the closed word card_on_label',
+          moduleRows.length === 4 && frameWords.length >= 100 && moduleRows.every((t) => t.sentences >= 500 && t.held >= 500 && t.road >= 1 && t.served === t.road && t.servedBeside === t.road && t.servedWithoutRoad === 0
+            && t.roadNotServed === 0 && t.agreesDiffers === 0 && t.claims >= 500 && t.claimsAlone === t.claims - t.road && t.claimsAlone >= 500 && t.onLabelWord === t.claimsAlone && t.otherWord === 0), moduleRows);
+        // (2) through the real handler, for each act: a sentence the road does not take, called a how-to by the plan, at each condition
+        // the handler branches on, against the turn with the switch off
+        const turnOf = (d) => { const o = JSON.parse(digest(d)); return JSON.stringify({ ...o, calls: o.calls.filter((c) => c.includes('api.anthropic.com')) }); };
+        const capitalQ = 'ما عاصمة اليابان؟';
+        const mountainQ = 'ما أعلى جبل في آسيا؟';
+        const cardConditions = [
+          { id: 'base', env: {}, body: {} },
+          { id: 'production', env: { VERCEL_ENV: 'production' }, body: {} },
+          { id: 'the-standard-model-plans', env: { REQUEST_PLAN_MODEL: 'standard', MODEL_STANDARD: 'guard-standard-model' }, body: {} },
+          { id: 'deep-tier', env: { DEPTH_FREE_TRIAL: 'on' }, body: { depth: 'deep' } },
+          { id: 'the-older-path', env: { BEFORE_WRITING_V2: 'off' }, body: {} },
+        ];
+        const labelSeen = [];
+        for (const act of RP.PLAN_ACTS) {
+          const s = labelOnly[act] || '';
+          const shapes = [
+            { id: 'alone', convo: user(s), plan: cPlan([cPart(s, 'manner', act)]) },
+            { id: 'alone-act-left-empty', convo: user(s), plan: cPlan([cPart(s, 'manner', '')]) },
+            { id: 'before-a-ruling', convo: user(s + ' و' + goldQ), plan: cPlan([cPart(s, 'manner', act), cPart('و' + goldQ, 'ruling')]) },
+            { id: 'after-a-ruling', convo: user(goldQ + ' و' + s), plan: cPlan([cPart(goldQ, 'ruling'), cPart('و' + s, 'manner', act)]) },
+            { id: 'after-two-turns', convo: [{ role: 'user', content: capitalQ }, { role: 'assistant', content: 'جواب سابق.' }, { role: 'user', content: mountainQ }, { role: 'assistant', content: 'جواب سابق.' }, { role: 'user', content: s }], plan: cPlan([cPart(s, 'manner', act)]) },
+          ];
+          const cases = [...cardConditions.map((c) => ({ c, shape: shapes[0] })), ...shapes.slice(1).map((shape) => ({ c: cardConditions[0], shape }))];
+          for (const { c, shape } of cases) {
+            for (const word of (shape.id === 'alone' && c.id === 'base' ? ['RELIGIOUS', 'WORLDLY'] : ['RELIGIOUS'])) {
+              const offTurn = await drive(shape.convo, { env: { ...c.env, REQUEST_PLAN_V1: 'off' }, body: c.body, sorter: word });
+              const onTurn = await drive(shape.convo, { plan: JSON.stringify(shape.plan), env: c.env, body: c.body, sorter: word });
+              const line = onTurn.logOf('[reading]') || {};
+              labelSeen.push([act + '/' + c.id + '/' + shape.id + '/' + word, s !== '' && !onTurn.crashed && !offTurn.crashed, onTurn.counts.reading === 1 && offTurn.counts.reading === 0,
+                line.outcome === 'invalid' && line.reason === 'card_on_label' && line.count === 0, turnOf(onTurn) === turnOf(offTurn), same(onTurn.sorterAsked, offTurn.sorterAsked),
+                onTurn.text === offTurn.text && onTurn.text.trim() !== '<worship id="' + act + '"></worship>']);
+            }
+          }
+        }
+        ok('CL2 [ORDER CARD] THROUGH THE REAL HANDLER, for each of the four acts, a sentence production\'s own road does not take, called a how-to of the act by the plan -- alone (the act named or left empty), before a ruling, after a ruling, after two earlier turns; on a production deployment, with the standard model\'s plan, on a deep tier, on the older path; the sorter saying RELIGIOUS and WORLDLY: the reading is asked once, its plan is NOT applied (invalid, card_on_label, no part), and the turn is the switch-off turn -- the reader\'s frames, the text, the route, every call to a model, what the sorter is shown; the reader is never sent the card alone',
+          labelSeen.length === 40 && labelSeen.every((row) => row.slice(1).every(Boolean)), labelSeen.filter((row) => !row.slice(1).every(Boolean)));
+        // (3) through the real handler, for each act: a how-to sentence production's own road DOES take -- the card is served on the plan as
+        // before: as one part beside a ruling (either order), and as the one part of a message that adds a word of manner
+        const servedSeen = [];
+        for (const act of RP.PLAN_ACTS) {
+          const s = agreed[act] || '';
+          const tag = '<worship id="' + act + '"></worship>';
+          const count = (text) => text.split(tag).length - 1;
+          const first = await drive(user(s + ' و' + goldQ), { plan: JSON.stringify(cPlan([cPart(s, 'manner', act), cPart('و' + goldQ, 'ruling')])) });
+          const second = await drive(user(goldQ + ' و' + s), { plan: JSON.stringify(cPlan([cPart(goldQ, 'ruling'), cPart('و' + s, 'manner', act)])) });
+          // one part: the how-to sentence and, as a second sentence, the first word of the card's own manner words that keeps the WHOLE
+          // message off production's road (so the frozen dispatcher does not answer it ahead of the reading)
+          const extra = mannerWords.find((w) => !STORED.isPureMannerRequest(s + ' ' + w) && cChecked(cPlan([cPart(s, 'manner', act)]), s + ' ' + w).ok
+            && RP.servedKinds(cChecked(cPlan([cPart(s, 'manner', act)]), s + ' ' + w).plan, { question: s + ' ' + w })[0] === 'worship') || '';
+          const alone = extra ? await drive(user(s + ' ' + extra), { plan: JSON.stringify(cPlan([cPart(s, 'manner', act)])) }) : null;
+          servedSeen.push([act, s !== '' && !first.crashed && !second.crashed, (first.logOf('[reading]') || {}).outcome === 'plan' && (second.logOf('[reading]') || {}).outcome === 'plan',
+            count(first.text) === 1 && count(second.text) === 1, first.counts.judge + first.counts.writer + first.counts.other >= 1 && second.counts.judge + second.counts.writer + second.counts.other >= 1,
+            !!alone && !alone.crashed && alone.text === tag && alone.counts.reading === 1 && alone.counts.judge === 0 && alone.counts.writer === 0 && (alone.logOf('[reading]') || {}).outcome === 'plan']);
+        }
+        ok('CL3 [ORDER CARD] ...and where the tree\'s reader agrees the card is served on the plan as before, for each of the four acts: a how-to sentence production\'s own road takes, standing before a ruling sentence and after one (a conjunction welded to it), is answered by that act\'s card once, the ruling by the path; and as the one part of a message that adds a word of manner it is answered by the card alone, with no judge and no writer',
+          servedSeen.length === 4 && servedSeen.every((row) => row.slice(1).every(Boolean)), servedSeen);
+        // (4) the reading's own end, and what a preview shows of it
+        const endOf = (plan, question) => RP.startReading({ messages: user(question), ask: async () => JSON.stringify(plan), env: {}, timeoutMs: 300 }).promise;
+        const ends = [];
+        for (const act of RP.PLAN_ACTS) { const s = labelOnly[act] || ''; const o = await endOf(cPlan([cPart(s, 'manner', act)]), s); ends.push([act, o.state, o.reason, o.plan === null, o.full, RP.planLogFlags(o).join(',')]); }
+        const shownTurn = await drive(user(labelOnly.wudu || ''), { plan: JSON.stringify(cPlan([cPart(labelOnly.wudu || '', 'manner', 'wudu')])), env: PREVIEW, headers: { 'x-ezik-diag': '1' } });
+        const plainTurn = await drive(user(labelOnly.wudu || ''), { plan: JSON.stringify(cPlan([cPart(labelOnly.wudu || '', 'manner', 'wudu')])), env: PREVIEW });
+        ok('CL4 [ORDER CARD] the reading of such a plan ends as every plan the server does not apply ends -- state invalid, the reason card_on_label, no plan, no question of its own -- and the log keeps it in closed words; on a preview deployment under the diagnostic header the end frame says so (the fallback ran, invalid, card_on_label, no plan), and without the header: the fallback ran, and no more',
+          ends.length === 4 && ends.every((row) => row[1] === 'invalid' && row[2] === 'card_on_label' && row[3] === true && row[4] === '' && /^plan:invalid,plan_model:[a-z]+$/.test(row[5]))
+          && !shownTurn.crashed && shownTurn.reads.length === 2 && shownTurn.reads[1].outcome === 'fallback' && shownTurn.reads[1].state === 'invalid' && shownTurn.reads[1].reason === 'card_on_label' && shownTurn.reads[1].plan === null
+          && plainTurn.reads.length === 2 && plainTurn.reads[1].outcome === 'fallback' && !('reason' in plainTurn.reads[1]) && !('plan' in plainTurn.reads[1]), [ends, shownTurn.reads[1], plainTurn.reads[1]]);
+        // (5) it is the READER's sentence the road is asked about, never the plan's wording of it; and the lines that hold the rule
+        const taken = agreed.tayammum || '';
+        const bareTaken = taken.replace(/؟$/u, '');
+        const reworded = { kind: 'manner', q: taken, act: 'tayammum' };
+        ok('CL5 [ORDER CARD] the road is asked about the READER\'S OWN SENTENCE: a how-to the plan wrote that is no sentence of the reader\'s -- reworded out of other words, or cut out of a longer sentence of his -- has no reader of the tree behind it, whatever the road would say of the plan\'s words; a conjunction welded to the reader\'s sentence is still his sentence; and the lines that hold the rule stand as they are',
+          taken !== '' && roadAct(taken) === 'tayammum' && RP.cardReaderAgrees(reworded, { question: taken }) === true && RP.cardReaderAgrees(reworded, { question: goldQ + ' و' + taken }) === true
+          && RP.cardReaderAgrees(reworded, { question: goldQ }) === false && RP.cardReaderAgrees(reworded, { question: bareTaken + ' ' + capitalQ }) === false
+          && RP.cardReaderAgrees({ kind: 'ruling', q: taken, act: 'tayammum' }, { question: taken }) === false
+          && source.includes("    if (act) return ownTerms.some((t) => ACT_HEADS[act].has(t)) && cardAgreed(p) ? 'worship' : '';")
+          && source.includes('  return servedKindsWhere(plan, { question }, (p) => cardReaderAgrees(p, { question }));')
+          && source.includes("  if (!isPureMannerRequest(sentence)) return '';") && source.includes("  const out = runClosedDeenTurn({ runtime: 'LOCAL_WORSHIP', currentQuestion: sentence });")
+          && source.includes('  return readersSentenceForms(part.q, question).some((form) => treeCardAct(form) === act);')
+          && source.includes("  return plan.parts.some((p) => worshipCardAct(p) !== '' && !cardReaderAgrees(p, { question })) ? 'card_on_label' : '';")
+          && source.includes("import { isPureMannerRequest } from './stored-deen.js';") && source.includes("import { runClosedDeenTurn } from './closed-deen.js';")
+          && (source.match(/cardAgreed\(p\)/g) || []).length === 1 && (source.match(/servedKindsWhere\(/g) || []).length === 3,
+          [taken.length, roadAct(taken), RP.cardReaderAgrees(reworded, { question: goldQ }), RP.cardReaderAgrees(reworded, { question: bareTaken + ' ' + capitalQ })]);
+      }
 
       // I6 the fixed sentence for a follow-up
       const b15 = byId.B15;
