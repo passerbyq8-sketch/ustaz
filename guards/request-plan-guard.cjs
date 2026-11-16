@@ -2171,6 +2171,20 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
           && RP.PLAN_ASPECTS.every((aspect) => RP.REQUEST_PLAN_SYSTEM.includes(aspect + ' ('))
           && ['"act"', '"aspect"', '"asked"', '"src"'].every((key) => RP.REQUEST_PLAN_SYSTEM.split('\n').some((line) => line.startsWith('- ' + key + ':'))));
         {
+          const lines = RP.REQUEST_PLAN_SYSTEM.split('\n');
+          const at = lines.findIndex((line) => /^Examples/.test(line));
+          const messages = lines.slice(at + 1).filter((line) => line.trim() && !line.startsWith('{'));
+          const plans = lines.slice(at + 1).filter((line) => line.startsWith('{'));
+          const hashOf = (text) => crypto.createHash('sha256').update(fold(text), 'utf8').digest('hex').slice(0, 16);
+          const OLD = new Set(["80175c9d3db8f924","920a4cc0d5291d1d","8e578748e4eba7ac","4fddda486775127e","28c42f9c18a42365","4e81f9d691cdb4df","da6106f99b8b5681","b0e08e2ac9c99feb","a12e3d03d8e45053","6d53b4c5b68c97fd","a2005dd09c7424ca","592a959c992a5395"]);
+          const aspectLine = lines.find((line) => line.startsWith('- "aspect":')) || '';
+          ok('R2b [part B, FOUND B-3] none of batch 1\'s twelve example messages stands in the reading\'s instructions (checked by hash: their text is not written here); the six aspects are described in words with no example message; every example is a plan the server reads',
+            messages.length === 12 && plans.length === 12 && messages.every((m) => !OLD.has(hashOf(m)))
+            && aspectLine.length > 0 && !/[«»]/u.test(aspectLine)
+            && plans.every((p) => RP.parsePlan(p) !== null),
+            [messages.length, plans.length, messages.filter((m) => OLD.has(hashOf(m))).length]);
+        }
+        {
           const oldShape = RP.parsePlan(JSON.stringify(C.F11.plan));
           const noun = (extra) => RP.parsePlan(JSON.stringify({ parts: [{ q: C.F3.q, kind: 'ruling', act: 'ghusl', ...extra }] })).parts[0];
           ok('R2c parsePlan keeps aspect, asked and src only when the reading wrote them: a plan of batch 1\'s shape parses to the keys it had; an unknown aspect is kept as unknown (the check refuses it); the act of a part that is not a manner part stands only beside an aspect',
