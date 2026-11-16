@@ -484,6 +484,23 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       && same(RP.planLogFlags({ state: 'invalid', plan: null, reason: 'x y', choice: 'fast' }), ['plan:invalid', 'plan_model:fast'])
       && same(RP.planLogFlags({ state: 'timeout', plan: null, reason: 'written_parts', choice: 'fast' }), ['plan:timeout', 'plan_model:fast']),
       RP.PLAN_INVALID_REASONS.map((r) => RP.planLogFlags({ state: 'invalid', plan: null, reason: r, choice: 'fast' }).join(' ')));
+    // (ORDER BRAIN-B-R2 part E item 4) a collection plan's chapter is given only when it is the reader's own words. Invented message.
+    {
+      const E4Q = 'أبحث عن الأحاديث الثابتة في كتاب الأطعمة لأحفظها';
+      const e4 = (chapter) => { const v = RP.validatePlan(RP.parsePlan(JSON.stringify(planWith([partOf(E4Q, 'collection', { name: 'أحاديث الأطعمة', chapter })]))), { question: E4Q });
+        if (!v.ok) return null; const reading = RP.readingOf(v.plan, { question: E4Q }); const pp = BW.bw2PlanParts(reading);
+        return { given: reading.chapter, served: pp.chapter ? pp.chapter.key : '', notApplied: RP.planNotApplied(v.plan, { question: E4Q }) }; };
+      const byPattern = BW.isChapterHadithRequest(E4Q);
+      const foreign = e4('اللباس'); const own = e4('الأطعمة'); const withBab = e4('كتاب الأطعمة');
+      ok('E4a [part E item 4] a collection plan that names a chapter the reader did not name is applied without it: the chapter served is the one the reader\'s own words name (the pattern\'s, as production serves it), not the plan\'s',
+        !!byPattern && !!BW.chapterRequestByName('اللباس') && BW.chapterRequestByName('اللباس').key !== byPattern.key
+        && !!foreign && foreign.notApplied === '' && foreign.given === '' && foreign.served === byPattern.key,
+        [foreign && foreign.given === '', foreign && foreign.served === (byPattern && byPattern.key)]);
+      ok('E4b [part E item 4] a chapter in the reader\'s own words is given as before, with or without the word for chapter before it, and the table serves it by that name',
+        !!own && own.given === 'الأطعمة' && own.served === BW.chapterRequestByName('الأطعمة').key
+        && !!withBab && withBab.given === 'كتاب الأطعمة' && withBab.served === BW.chapterRequestByName('كتاب الأطعمة').key,
+        [own && own.given === 'الأطعمة', withBab && withBab.given === 'كتاب الأطعمة']);
+    }
     ok('G8c a failed reading is kept by its reason', same(RP.planLogFlags({ state: 'timeout', plan: null, choice: 'fast' }), ['plan:timeout', 'plan_model:fast'])
       && same(RP.planLogFlags({ state: 'invalid', plan: null, choice: 'standard' }), ['plan:invalid', 'plan_model:standard']) && same(RP.planLogFlags(null), ['plan:not_asked']));
     ok('G8d the two timing events are status frames the client does not draw (it draws the stages it knows)',
@@ -1116,11 +1133,14 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
           // (every lookup started on the reader's message aborted -- on HADITH there are two, the head's and the passages' -- then the turn's own, answered)
           && outcomes8(r).length >= 2 && outcomes8(r).slice(0, -1).every((o) => o === 'aborted') && outcomes8(r)[outcomes8(r).length - 1] === 'answered'),
         [TK8.asksGradeOfQuotedText(TITLE_Q), TK8.asksGradeOfQuotedText(TITLE_FULL), ...titled.map((r) => ({ reading: !!r.reading, head: headFirst(r), asked: r.log.headAsked.map((q) => q === TITLE_Q ? 'own' : q === TITLE_FULL ? 'full' : 'other'), lookups: outcomes8(r) }))]);
-      // T11b: the turn's own gather throws where the gather beside the reading was KEPT and only the parts are asked anew (a collection
-      // request whose plan names another chapter than the reader's): the lookup is cancelled there too, not only after a discard
+      // T11b: the turn's own gather throws where the gather beside the reading was KEPT and only the parts are asked anew: the lookup
+      // is cancelled there too, not only after a discard. (ORDER BRAIN-B-R2 part E item 4: the row reached that path by a collection
+      // plan naming another chapter than the reader's, the defect item 4 cures -- such a chapter is no longer given, and the parts are
+      // the pattern's, as the gather's. It now reaches it by a reader who names two chapters together, which the pattern does not read
+      // as a chapter, and a plan that names one of them: the reader's words, the four sources the same, the parts not. Invented.)
       {
-        const CHQ = 'اجمع لي ما صح من الأحاديث في باب السواك';
-        const chPlan = scripted(planWith([partOf(CHQ, 'collection', { name: 'الأحاديث', chapter: 'اللباس' })]), CHQ);
+        const CHQ = 'أعطني ما ثبت من السنة في كتاب الطهارة والأطعمة';
+        const chPlan = scripted(planWith([partOf(CHQ, 'collection', { name: 'الأحاديث', chapter: 'الطهارة' })]), CHQ);
         const made = deps8(LATE8);
         const pre = BW.startBw2Pregather({ question: CHQ, runtime: 'HADITH', band: 'adult', ...wired8, env: env8, deps: made.deps });
         await sleep8(READ8);
