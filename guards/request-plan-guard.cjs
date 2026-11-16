@@ -1715,7 +1715,10 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
           const allWorldly = others.slice(0, 2).map((x) => RP.exclusionAfterPlan('canonical_store', checkedOf(x).plan, { question: x.q }));
           ok('W8 [BATTERY2 section 5] a worldly part no longer lifts the canonical-store route (it did while the server answered such a part): a plan of worldly parts keeps the route its words had; the card still lifts it beside a ruling',
             same(allWorldly, ['canonical_store', 'canonical_store']) && RP.exclusionAfterPlan('canonical_store', checkedOf(others[2]).plan, { question: others[2].q }) === ''
-            && source.includes("return plan.parts.every((p, i) => served[i] === 'worship' || PLAN_PATH_KINDS.includes(p.kind)) ? '' : 'canonical_store';"), allWorldly);
+            // (ORDER BRAIN-B-R2 part D: the line reads the card decision, and a verified part about a worship that has a card lifts the
+            // rule too -- rows R2m to R2o; a worldly part still never does)
+            && source.includes("return plan.parts.every((p, i) => decision.served[i] === 'worship' || PLAN_PATH_KINDS.includes(p.kind) || verifiedWorship(p)) ? '' : 'canonical_store';")
+            && !RP.PLAN_VERIFIED_LIFT_KINDS.includes('worldly'), allWorldly);
           ok('W9 [BATTERY2 section 5] the two lines that hold it: the plan\'s closed reason reads the served kinds and the parts\' kinds, and the handler hands no part on as worldly and derives no frame for one',
             source.includes("if (served.includes('worldly') && plan.parts.some((p) => p.kind !== 'worldly')) return 'worldly_beside_other';")
             && askSource.includes("parts: reading.parts.map((p) => (p.served === 'worldly' ? { ...p, served: '' } : p)),") && askSource.includes('worldlySystem: null,') && !askSource.includes('worldlyFrame'),
@@ -2258,6 +2261,44 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
             !fb.crashed && fb.logOf('[free-brain]').bw2 === true && fb.text.trim().startsWith('<worship id="tayammum"></worship>') && fb.flags.includes('card_check:asked_not_found')
             && !fb5.crashed && !fb5.closed && !/<worship /u.test(fb5.text) && fb5.flags.includes('card_check:asked_not_found'),
             [fb.text.slice(0, 40), fb.flags, fb5.closed, fb5.flags]);
+        }
+        // ---------------------------------------------------------------------------- R2, PART D (the correction after the capture)
+        // MEASURED on the capture BRAIN-B-R2-CAPTURE-20261116-0709Z (BRAIN-B-R2-evidence/capture-read.plans.console.txt): the reading gave
+        // the how-to part the whole message, or both parts the whole message (4 of 15 card questions refused as an overlap), and
+        // labelled a list part `other`, which kept the canonical-store rule and sent a verified card turn to the older path. The
+        // messages below are INVENTED for these rows and checked against the spent lists, the capture's questions included
+        // (BRAIN-B-R2-evidence/spent-scan.card-cases-r2d.console.txt).
+        {
+          const D_CASES = [
+            {"id":"F17","q":"أرشدني إلى طريقة الغسل كاملة، وهل يصح الغسل بماء المطر؟","plan":{"parts":[{"name":"طريقة الغسل","q":"ما طريقة الغسل كاملة؟","kind":"manner","act":"ghusl","aspect":"how_to","asked":"أرشدني إلى طريقة","src":"أرشدني إلى طريقة الغسل كاملة، وهل يصح الغسل بماء المطر؟"},{"name":"الغسل بماء المطر","q":"هل يصح الغسل بماء المطر؟","kind":"ruling","act":"ghusl","aspect":"ruling","asked":"وهل يصح","src":"وهل يصح الغسل بماء المطر؟"}]},"want":{"check":"verified","served":["worship",""],"notApplied":""}},
+            {"id":"F18","q":"أرني كيف تؤدى صلاة الفجر وما الذي يستحب أن يقرأ فيها","plan":{"parts":[{"name":"أداء صلاة الفجر","q":"كيف تؤدى صلاة الفجر؟","kind":"manner","act":"salah","aspect":"how_to","asked":"أرني كيف تؤدى","src":"أرني كيف تؤدى صلاة الفجر وما الذي يستحب أن يقرأ فيها"},{"name":"ما يستحب أن يقرأ في الفجر","q":"ما الذي يستحب أن يقرأ في صلاة الفجر؟","kind":"definition","act":"salah","aspect":"other","asked":"وما الذي يستحب","src":"أرني كيف تؤدى صلاة الفجر وما الذي يستحب أن يقرأ فيها"}]},"want":{"check":"verified","served":["worship",""],"notApplied":""}},
+            {"id":"F19","q":"كيف أغتسل يوم الجمعة ومتى يبدأ وقته","plan":{"parts":[{"name":"صفة غسل الجمعة","q":"كيف يغتسل يوم الجمعة؟","kind":"manner","act":"ghusl","aspect":"how_to","asked":"كيف أغتسل","src":"كيف أغتسل يوم الجمعة"},{"name":"وقت غسل الجمعة","q":"متى يبدأ وقت غسل الجمعة؟","kind":"manner","act":"ghusl","aspect":"time","asked":"كيف أغتسل","src":"كيف أغتسل يوم الجمعة ومتى يبدأ وقته"}]},"want":{"check":"src_overlap"}},
+            {"id":"F20","q":"بيّن صفة الوضوء بماء قليل في السفر، وما آدابه؟","plan":{"parts":[{"name":"صفة الوضوء بماء قليل","q":"ما صفة الوضوء بماء قليل في السفر؟","kind":"manner","act":"wudu","aspect":"how_to","asked":"بيّن صفة","src":"بيّن صفة الوضوء بماء قليل في السفر"},{"name":"آداب الوضوء","q":"ما آداب الوضوء؟","kind":"other","act":"wudu","aspect":"other","asked":"وما آدابه","src":"وما آدابه؟"}]},"want":{"check":"verified","served":["worship",""],"notApplied":"","excluded":""}},
+            {"id":"F21","q":"بيّن لي صفة صلاة المغرب، ثم اكتب لي التسبيح الذي يقال بعد انقضائها","plan":{"parts":[{"name":"صفة صلاة المغرب","q":"ما صفة صلاة المغرب؟","kind":"manner","act":"salah","aspect":"how_to","asked":"بيّن لي صفة","src":"بيّن لي صفة صلاة المغرب"},{"name":"التسبيح بعد المغرب","q":"ما التسبيح الذي يقال بعد صلاة المغرب؟","kind":"dhikr_text","act":"salah","aspect":"other","asked":"ثم اكتب لي التسبيح","src":"ثم اكتب لي التسبيح الذي يقال بعد انقضائها"}]},"want":{"check":"verified","excluded":"canonical_store"}}
+          ];
+          const D = Object.fromEntries(D_CASES.map((c) => [c.id, c]));
+          const checkedOf = (c) => RP.validatePlan(RP.parsePlan(JSON.stringify(c.plan)), { question: c.q, previous: [] });
+          const decided = (c) => { const v = checkedOf(c); if (!v.ok) return { ok: false, reason: v.reason };
+            const lexical = SC.bw2ScopeExclusion(c.q);
+            return { ok: true, d: RP.cardDecision(v.plan, { question: c.q }), base: RP.baseServedKinds(v.plan, { question: c.q }), notApplied: RP.planNotApplied(v.plan, { question: c.q }),
+              lexical, excluded: RP.exclusionAfterPlan(lexical, v.plan, { question: c.q }) }; };
+          const shownD = (ids) => ids.map((id) => { const r = decided(D[id]); return r.ok ? [id, r.d.check, r.d.served, r.notApplied, r.lexical, r.excluded] : [id, 'refused', r.reason]; });
+          ok('R2m [part D] parts whose words overlap are shared out by where each part\'s question starts: the how-to part given the whole message beside a clause of its own, and two parts both given the whole message, are verified and the how-to gets the card; two parts pointing to the same words are still an overlap, with production\'s decision',
+            ['F17', 'F18'].every((id) => { const r = decided(D[id]); return r.ok && r.d.check === 'verified' && same(r.d.served, ['worship', '']) && r.notApplied === ''; })
+            && (() => { const r = decided(D.F19); return r.ok && r.d.check === 'src_overlap' && same(r.d.served, r.base); })(),
+            shownD(['F17', 'F18', 'F19']));
+          ok('R2n [part D] a verified part about a worship that has a card lifts the canonical-store rule though the reading labels it other; a part labelled a frozen text keeps the rule; the kinds that lift it are a closed list of two',
+            same([...RP.PLAN_VERIFIED_LIFT_KINDS], ['other', 'manner'])
+            && (() => { const r = decided(D.F20); return r.ok && r.d.check === 'verified' && r.lexical === 'canonical_store' && r.excluded === '' && r.notApplied === ''; })()
+            && (() => { const r = decided(D.F21); return r.ok && r.d.check === 'verified' && r.lexical === 'canonical_store' && r.excluded === 'canonical_store'; })(),
+            shownD(['F20', 'F21']));
+          const flagsOfD = (r) => (r.req && r.req.__answerLog && typeof r.req.__answerLog.record === 'function' ? (r.req.__answerLog.record().flags || []) : []);
+          const k1a = await drive(user(D.F20.q), { plan: JSON.stringify(D.F20.plan) });
+          const k4b = await drive(user(D.F17.q), { plan: JSON.stringify(D.F17.plan) });
+          ok('R2o [part D; handler] the capture\'s two failed shapes, driven: a how-to beside a list part labelled other, on a message the canonical-store rule holds, and a how-to given the whole message beside a ruling clause -- the plan is applied, the before-writing path takes the turn, the text opens on the card, and the answer log says the reading was verified',
+            [[k1a, 'wudu'], [k4b, 'ghusl']].every(([r, act]) => !r.crashed && (r.logOf('[reading]') || {}).outcome === 'plan' && r.logOf('[free-brain]').bw2 === true
+              && r.text.trim().startsWith('<worship id="' + act + '"></worship>') && flagsOfD(r).includes('card_check:verified')),
+            [[k1a, k4b].map((r) => [r.crashed && String(r.crashed.message || r.crashed).slice(0, 80), r.logOf('[reading]'), r.logOf('[free-brain]') && r.logOf('[free-brain]').bw2, r.text.slice(0, 40), flagsOfD(r)])]);
         }
       }
 
