@@ -1314,7 +1314,8 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       for (const f of frames) { if (f.type === 'content_block_delta') text += f.delta.text; if (f.type === 'ezik_replace') text = String(f.text || ''); }
       const logOf = (tag) => (logs.find((a) => a[0] === tag) || [])[1] || null;
       const reads = frames.filter((f) => f.type === 'ezik_status' && f.stage === 'read');
-      return { res, counts, order, calls, logs, logOf, crashed, frames, text, reads, readingModel, readingBody, sorterAsked };
+      // (ORDER BRAIN-B-R2: and the request, whose answer log the handler's own wrapper attached -- rows R2j to R2l read its flags)
+      return { res, req, counts, order, calls, logs, logOf, crashed, frames, text, reads, readingModel, readingBody, sorterAsked };
     }
     const user = (q) => [{ role: 'user', content: q }];
     const idealOf = (id) => JSON.stringify(byId[id].ideal);
@@ -2120,6 +2121,132 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         !m2On.crashed && !m2OneOn.crashed && m2Off.logOf('[free-brain]').bw2 === false && m2On.logOf('[free-brain]').bw2 === false && (m2On.logOf('[reading]') || {}).reason === 'followup_written_parts'
         && m2OneOn.logOf('[free-brain]').bw2 === true && m2OneOn.counts.fatwa > 0 && (m2OneOn.logOf('[reading]') || {}).outcome === 'plan',
         [m2Off.logOf('[free-brain]'), m2On.logOf('[free-brain]'), m2OneOn.logOf('[free-brain]'), (m2On.logOf('[reading]') || {}).reason]);
+      // ------------------------------------------------------------------------------------------ R2 (ORDER BRAIN-B-R2, part B)
+      // THE CARD DECISION, BOTH DIRECTIONS (lib/request-plan.js cardDecision). The reading says what each part asks of a worship that
+      // has a card (aspect), points to the reader's words that ask it (asked) and gives every part's own words (src); the server
+      // verifies them, and the card goes only to a verified how-to. Every message below is INVENTED for these rows and was checked
+      // against the spent lists (session evidence BRAIN-B-R2-evidence/spent-scan.card-cases.console.txt): none is a battery or a
+      // capture question and none is a near copy of one.
+      console.log('\n=== R2. ORDER BRAIN-B-R2: THE CARD DECISION, BOTH DIRECTIONS ===');
+      {
+        const CASES = [
+          {"id":"F1","q":"بيّن لي صفة الوضوء من غسل الكفين إلى غسل الرجلين، وما الأمور التي تنقضه؟","plan":{"parts":[{"name":"صفة الوضوء","q":"ما صفة الوضوء من غسل الكفين إلى غسل الرجلين؟","kind":"manner","act":"wudu","aspect":"how_to","asked":"بيّن لي صفة","src":"بيّن لي صفة الوضوء من غسل الكفين إلى غسل الرجلين"},{"name":"نواقض الوضوء","q":"ما الأمور التي تنقض الوضوء؟","kind":"definition","act":"wudu","aspect":"other","asked":"وما الأمور التي تنقضه","src":"وما الأمور التي تنقضه؟"}]},"want":{"check":"verified","served":["worship",""],"notApplied":"","excluded":""}},
+          {"id":"F2","q":"اشرح لي طريقة التيمم خطوة خطوة، وهل يصح قبل دخول وقت الصلاة؟","plan":{"parts":[{"name":"طريقة التيمم","q":"ما طريقة التيمم خطوة خطوة؟","kind":"manner","act":"tayammum","aspect":"how_to","asked":"اشرح لي طريقة","src":"اشرح لي طريقة التيمم خطوة خطوة"},{"name":"التيمم قبل دخول الوقت","q":"هل يصح التيمم قبل دخول وقت الصلاة؟","kind":"ruling","act":"tayammum","aspect":"ruling","asked":"وهل يصح","src":"وهل يصح قبل دخول وقت الصلاة؟"}]},"want":{"check":"verified","served":["worship",""],"notApplied":"","excluded":""}},
+          {"id":"F3","q":"هل يبطل الغسل إذا تكلم المغتسل في أثنائه؟","plan":{"parts":[{"q":"هل يبطل الغسل إذا تكلم المغتسل في أثنائه؟","kind":"manner","act":"ghusl","aspect":"ruling","asked":"هل يبطل","src":"هل يبطل الغسل إذا تكلم المغتسل في أثنائه؟"}]},"want":{"check":"verified","served":[""]}},
+          {"id":"F4","q":"متى يصلي المسافر صلاة الظهر إذا جمعها مع العصر؟","plan":{"parts":[{"q":"متى يصلي المسافر صلاة الظهر إذا جمعها مع العصر؟","kind":"manner","act":"salah","aspect":"time","asked":"متى يصلي","src":"متى يصلي المسافر صلاة الظهر إذا جمعها مع العصر؟"}]},"want":{"check":"verified","served":[""]}},
+          {"id":"F5","q":"لماذا جعل التيمم بالصعيد دون غيره؟","plan":{"parts":[{"q":"لماذا جعل التيمم بالصعيد دون غيره؟","kind":"manner","act":"tayammum","aspect":"reason","asked":"لماذا جعل","src":"لماذا جعل التيمم بالصعيد دون غيره؟"}]},"want":{"check":"verified","served":[""]}},
+          {"id":"F6","q":"كم مرة يمسح المتوضئ رأسه؟","plan":{"parts":[{"q":"كم مرة يمسح المتوضئ رأسه؟","kind":"manner","act":"wudu","aspect":"count","asked":"كم مرة","src":"كم مرة يمسح المتوضئ رأسه؟"}]},"want":{"check":"verified","served":[""]}},
+          {"id":"F7","q":"صف لي الغسل الكامل، وما سننه؟","plan":{"parts":[{"name":"صفة الغسل","q":"ما صفة الغسل الكامل؟","kind":"manner","act":"ghusl","aspect":"how_to","asked":"كيف أغتسل","src":"صف لي الغسل الكامل"},{"name":"سنن الغسل","q":"ما سنن الغسل؟","kind":"definition","act":"ghusl","aspect":"other","asked":"وما سننه","src":"وما سننه؟"}]},"want":{"check":"asked_not_found"}},
+          {"id":"F8","q":"عندي كسر في ساقي ولا أقدر أن أسجد، كيف أصلي الصلاة كلها؟","plan":{"parts":[{"q":"كيف أصلي الصلاة كلها؟","kind":"manner","act":"salah","aspect":"how_to","asked":"كيف أصلي","src":"كيف أصلي الصلاة كلها؟"}]},"want":{"check":"not_covered","served":[""]}},
+          {"id":"F9","q":"علمني الوضوء كاملا","plan":{"parts":[{"name":"الوضوء","q":"ما صفة الوضوء كاملا؟","kind":"manner","act":"wudu","aspect":"how_to","asked":"علمني","src":"علمني الوضوء كاملا"},{"name":"الوضوء الكامل","q":"ما الوضوء الكامل؟","kind":"definition","act":"wudu","aspect":"other","asked":"علمني","src":"علمني الوضوء كاملا"}]},"want":{"check":"src_overlap"}},
+          {"id":"F10","q":"علمني الغسل من أوله إلى آخره","plan":{"parts":[{"q":"كيف أغتسل من أول الغسل إلى آخره؟","kind":"manner","act":"ghusl","aspect":"how_to","asked":"علمني","src":"علمني الغسل من أوله إلى آخره"}]},"want":{"check":"verified","served":["worship"]}},
+          {"id":"F11","q":"أريد خطوات الوضوء بالترتيب","plan":{"parts":[{"q":"ما خطوات الوضوء بالترتيب؟","kind":"manner","act":"wudu"}]},"want":{"check":"no_aspect","served":["worship"]}},
+          {"id":"F12","q":"متى أتيمم؟","plan":{"parts":[{"q":"متى أتيمم؟","kind":"manner","act":"tayammum","aspect":"time","asked":"متى","src":"متى أتيمم؟"}]},"want":{"check":"verified","served":[""]}},
+          {"id":"F13","q":"لماذا نصلي؟","plan":{"parts":[{"q":"لماذا نصلي؟","kind":"manner","act":"salah","aspect":"reason","asked":"لماذا","src":"لماذا نصلي؟"}]},"want":{"check":"verified","served":[""]}},
+          {"id":"F14","q":"كم أصلي؟","plan":{"parts":[{"q":"كم أصلي؟","kind":"manner","act":"salah","aspect":"count","asked":"كم","src":"كم أصلي؟"}]},"want":{"check":"verified","served":[""]}},
+          {"id":"F15","q":"هل يجوز أن أتوضأ؟","plan":{"parts":[{"q":"هل يجوز أن أتوضأ؟","kind":"manner","act":"wudu","aspect":"ruling","asked":"هل يجوز","src":"هل يجوز أن أتوضأ؟"}]},"want":{"check":"verified","served":[""]}},
+          {"id":"F16","q":"متى أغتسل؟","plan":{"parts":[{"q":"متى أغتسل؟","kind":"manner","act":"ghusl","aspect":"time","asked":"في أي وقت","src":"متى أغتسل؟"}]},"want":{"check":"asked_not_found","served":[""]}}
+        ];
+        const C = Object.fromEntries(CASES.map((c) => [c.id, c]));
+        const decide = (c) => {
+          const parsed = RP.parsePlan(JSON.stringify(c.plan));
+          const checked = RP.validatePlan(parsed, { question: c.q, previous: [] });
+          if (!checked.ok) return { ok: false, reason: checked.reason };
+          const d = RP.cardDecision(checked.plan, { question: c.q });
+          const notApplied = RP.planNotApplied(checked.plan, { question: c.q });
+          const lexical = SC.bw2ScopeExclusion(c.q);
+          const excluded = notApplied ? lexical : RP.exclusionAfterPlan(lexical, checked.plan, { question: c.q });
+          return { ok: true, plan: checked.plan, d, base: RP.baseServedKinds(checked.plan, { question: c.q }), notApplied, excluded,
+            reading: RP.readingOf(checked.plan, { question: c.q, previous: [] }) };
+        };
+        const meets = (c) => { const r = decide(c); const w = c.want || {};
+          return r.ok && (!w.check || r.d.check === w.check) && (!w.served || same(r.d.served, w.served))
+            && (!('notApplied' in w) || r.notApplied === w.notApplied) && (!('excluded' in w) || r.excluded === w.excluded); };
+        const shown = (ids) => ids.map((id) => { const r = decide(C[id]); return r.ok ? [id, r.d.check, r.d.served, r.notApplied, r.excluded] : [id, 'refused', r.reason]; });
+
+        ok('R2a [part B] the reading is asked, of a part about a worship that has a card, the aspect it asks, the reader\'s words that ask it, and every part\'s own words; six aspects; the catalogue is the four cards the client holds',
+          same([...RP.PLAN_ASKED], ['followup', 'q', 'kind', 'name', 'act', 'aspect', 'asked', 'src', 'chapter'])
+          && same([...RP.PLAN_ASPECTS], ['how_to', 'ruling', 'time', 'reason', 'count', 'other'])
+          && same([...RP.PLAN_ACTS], ['salah', 'wudu', 'ghusl', 'tayammum']) && RP.PLAN_ACTS.every((act) => CD.closedWorshipCard(act) !== null)
+          && RP.PLAN_ASPECTS.every((aspect) => RP.REQUEST_PLAN_SYSTEM.includes(aspect + ' ('))
+          && ['"act"', '"aspect"', '"asked"', '"src"'].every((key) => RP.REQUEST_PLAN_SYSTEM.split('\n').some((line) => line.startsWith('- ' + key + ':'))));
+        {
+          const oldShape = RP.parsePlan(JSON.stringify(C.F11.plan));
+          const noun = (extra) => RP.parsePlan(JSON.stringify({ parts: [{ q: C.F3.q, kind: 'ruling', act: 'ghusl', ...extra }] })).parts[0];
+          ok('R2c parsePlan keeps aspect, asked and src only when the reading wrote them: a plan of batch 1\'s shape parses to the keys it had; an unknown aspect is kept as unknown (the check refuses it); the act of a part that is not a manner part stands only beside an aspect',
+            same(Object.keys(oldShape.parts[0]).sort(), ['act', 'chapter', 'kind', 'name', 'needs', 'q', 'source'])
+            && noun({ aspect: 'x-word', asked: 'a', src: 'b' }).aspect === 'unknown' && noun({}).act === '' && !('aspect' in noun({}))
+            && noun({ aspect: 'ruling', asked: 'a', src: 'b' }).act === 'ghusl'
+            && same(RP.parsePlan(JSON.stringify(C.F1.plan)).parts[0].src, [C.F1.plan.parts[0].src]),
+            [Object.keys(oldShape.parts[0]).sort()]);
+        }
+        {
+          const w = RP.checkWords;
+          const aWord = String.fromCharCode(0x0635, 0x0644, 0x0627, 0x0629); const hWord = String.fromCharCode(0x0635, 0x0644, 0x0627, 0x0647);
+          const marked = String.fromCharCode(0x0623, 0x064E, 0x0645, 0x0652, 0x0640, 0x0631, 0x060C) + ' ' + String.fromCharCode(0x0645, 0x0624, 0x0645, 0x0646, 0x061F);
+          ok('R2d the check folds only hamza and alef forms, tashkeel and tatweel, and splits at the marks between words: a ta marbuta stays apart from a ha',
+            same(w(marked), [String.fromCharCode(0x0627, 0x0645, 0x0631), String.fromCharCode(0x0645, 0x0648, 0x0645, 0x0646)]) && !same(w(aWord), w(hWord)) && same(w(''), []),
+            [w(marked)]);
+        }
+        ok('R2e [the card direction] a how-to worded with step words outside batch 1\'s lists, beside a list part and beside a ruling part, is verified and gets the card, and its plan is applied with the canonical-store rule lifted; a one-part how-to in step words gets the card as the bare request does',
+          ['F1', 'F2', 'F10'].every((id) => meets(C[id])) && decide(C.F1).reading.parts[0].served === 'worship' && decide(C.F1).reading.parts[0].act === 'wudu'
+          && decide(C.F1).reading.retrieval === decide(C.F1).plan.parts[1].q,
+          shown(['F1', 'F2', 'F10']));
+        ok('R2f [the FOUND 1 direction] a part that asks only the ruling, the time, the reason or the count of a worship with a card gets no card, whatever kind the reading wrote (each of these is labelled a manner part here); where batch 1\'s lists served the card alone, the reading\'s aspect now gives a written part',
+          ['F3', 'F4', 'F5', 'F6', 'F12', 'F13', 'F14', 'F15'].every((id) => meets(C[id]) && decide(C[id]).plan.parts[0].kind === 'manner')
+          && ['F12', 'F13', 'F14', 'F15'].every((id) => decide(C[id]).base[0] === 'worship' && decide(C[id]).d.served[0] === ''),
+          shown(['F3', 'F4', 'F5', 'F6', 'F12', 'F13', 'F14', 'F15']));
+        ok('R2g [a failed check] a reading the server cannot verify (an aspect asked by words that are not in its part, a case the parts leave out, two parts on the same words, no aspect at all) gives production\'s decision, with the reason word; except that a part the reading says asks something other than how-to never gets the card',
+          ['F7', 'F8', 'F9', 'F11', 'F16'].every((id) => meets(C[id]))
+          && ['F7', 'F8', 'F9', 'F11'].every((id) => same(decide(C[id]).d.served, decide(C[id]).base))
+          && decide(C.F16).base[0] === 'worship' && decide(C.F16).d.served[0] === '' && RP.CARD_CHECKS.includes(decide(C.F16).d.check),
+          shown(['F7', 'F8', 'F9', 'F11', 'F16']));
+        {
+          const CAPTURED = JSON.parse(fs.readFileSync(path.join(REPO, 'fixtures', 'request-plan-capture.json'), 'utf8')).cases;
+          const shapes = [...FIX.items.map((item) => ({ id: item.id, plan: planOf(item.id), q: item.q })),
+            ...Object.entries(CAPTURED).map(([id, c]) => { const v = RP.validatePlan(RP.parsePlan(JSON.stringify(c.plan)), { question: c.q, previous: c.prev }); return { id, plan: v.ok ? v.plan : null, q: c.q }; })]
+            .filter((x) => x.plan);
+          const differ = shapes.filter((x) => !same(RP.servedKinds(x.plan, { question: x.q }), RP.baseServedKinds(x.plan, { question: x.q })));
+          ok('R2h every plan of batch 1\'s shape the tree holds (the fixture\'s plans and the captures\' recorded plans) is served exactly as batch 1 served it: production\'s decision is unchanged where the reading gives no aspect',
+            shapes.length >= 75 && differ.length === 0, [shapes.length, differ.map((x) => x.id)]);
+        }
+        {
+          const run = async (c) => (await RP.startReading({ messages: user(c.q), ask: async () => JSON.stringify(c.plan), env: {} }).promise);
+          const verified = await run(C.F1);
+          const wrongAsked = { ...C.F2, plan: { parts: [{ ...C.F2.plan.parts[0], asked: C.F7.plan.parts[0].asked }, C.F2.plan.parts[1]] } };
+          const failed = await run(wrongAsked);
+          const plain = await run({ ...C.F1, plan: { parts: [{ q: C.F1.plan.parts[0].q, kind: 'definition' }] } });
+          ok('R2i [part B] the card check\'s reason word goes to the answer log (planLogFlags, card_check:<word>), applied or not, and the plan_card flags are the cards the decision serves; a plan with no worship that has a card logs no such word',
+            verified.state === 'plan' && failed.state === 'plan'
+            && verified.card === 'verified' && same(verified.cardActs, ['wudu']) && RP.planLogFlags(verified).includes('card_check:verified') && RP.planLogFlags(verified).includes('plan_card:wudu')
+            && failed.card === 'asked_not_found' && RP.planLogFlags(failed).includes('card_check:asked_not_found') && RP.planLogFlags(failed).includes('plan_card:tayammum')
+            && plain.card === 'none' && !RP.planLogFlags(plain).some((f) => f.startsWith('card_check:'))
+            && askSource.includes('answerLog.note({ flags: planLogFlags(readingOutcome) });')
+            && askSource.includes("plan: readingPlanOf, card: readingOutcome.card || '' }"),
+            [verified.state, verified.card, verified.cardActs, failed.card, plain.card, RP.planLogFlags(failed)]);
+        }
+        {
+          const flagsOf = (r) => (r.req && r.req.__answerLog && typeof r.req.__answerLog.record === 'function' ? (r.req.__answerLog.record().flags || []) : []);
+          const turn = async (c, plan) => { const r = await drive(user(c.q), { plan: JSON.stringify(plan) }); return { ...r, flags: flagsOf(r), closed: r.logs.some((a) => a[0] === '[closed-deen]') }; };
+          const k1 = await turn(C.F1, C.F1.plan);
+          ok('R2j [handler; the card direction] a how-to in step words beside a list part: the plan is applied, the before-writing path takes the turn, the text opens on the card of the act the reading named, and the answer log says the reading was verified',
+            !k1.crashed && (k1.logOf('[reading]') || {}).outcome === 'plan' && k1.logOf('[free-brain]').bw2 === true && k1.text.trim().startsWith('<worship id="wudu"></worship>')
+            && k1.flags.includes('card_check:verified') && k1.flags.includes('plan_card:wudu'),
+            [k1.crashed && String(k1.crashed.message || k1.crashed).slice(0, 80), k1.logOf('[reading]'), k1.logOf('[free-brain]') && k1.logOf('[free-brain]').bw2, k1.text.slice(0, 40), k1.flags]);
+          const k5 = await turn(C.F12, C.F12.plan);
+          ok('R2k [handler; the FOUND 1 direction] a part that asks only the time of a worship, labelled a manner part with its act: no closed card, no card in the text, a written turn, and the answer log says the reading was verified',
+            !k5.crashed && !k5.closed && !/<worship /u.test(k5.text) && k5.counts.writer + (k5.counts.judge || 0) > 0
+            && k5.flags.includes('card_check:verified') && !k5.flags.some((f) => f.startsWith('plan_card:')),
+            [k5.closed, k5.text.slice(0, 40), k5.counts, k5.flags]);
+          const fb = await turn(C.F2, { parts: [{ ...C.F2.plan.parts[0], asked: C.F7.plan.parts[0].asked }, C.F2.plan.parts[1]] });
+          const fb5 = await turn(C.F16, C.F16.plan);
+          ok('R2l [handler; a failed check] production\'s decision with the reason word: a how-to production answers with the card first still opens on the card; an unverified time part still gets no card',
+            !fb.crashed && fb.logOf('[free-brain]').bw2 === true && fb.text.trim().startsWith('<worship id="tayammum"></worship>') && fb.flags.includes('card_check:asked_not_found')
+            && !fb5.crashed && !fb5.closed && !/<worship /u.test(fb5.text) && fb5.flags.includes('card_check:asked_not_found'),
+            [fb.text.slice(0, 40), fb.flags, fb5.closed, fb5.flags]);
+        }
+      }
+
       // (ORDER A3-CAPTURE, after its second helper) every drive of this section is over: whatever a drive left running has had its time
       await new Promise((r) => setTimeout(r, 120));
       ok('I10 [A3-CAPTURE, after its second helper] no call was attempted on a live signal after a drive had ended: nothing the handler starts beside a turn is left running when the turn returns (between drives the stand-in is a fetch that refuses, so nothing can reach the network either way)',
@@ -2282,10 +2409,13 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
     // -- item 6: the model writes only what this batch's server reads
     const exampleLines = RP.REQUEST_PLAN_SYSTEM.split('\n').filter((line) => line.startsWith('{"'));
-    const examples = exampleLines.slice(1).map((line) => JSON.parse(line));
+    // (ORDER BRAIN-B-R2: the shape line of a two-part worship message, written with ... in place of words, is a shape and not an example)
+    const examples = exampleLines.slice(1).filter((line) => !line.includes('"..."')).map((line) => JSON.parse(line));
     const keysOf = (plan) => [...new Set([...Object.keys(plan).filter((k) => k !== 'parts'), ...plan.parts.flatMap((p) => Object.keys(p))])];
-    ok('K12 [item 6] the model is asked for six fields: the follow-up flag, and of a part its question, its kind, its name, the act of a card, the chapter of a collection',
-      same(asked, ['followup', 'q', 'kind', 'name', 'act', 'chapter']) && exampleLines[0] === '{"parts":[{"q":"","kind":""}]}'
+    // (ORDER BRAIN-B-R2, part B: three more fields, the aspect asked of a worship that has a card, the reader's words that ask it and
+    // every part's own words -- the server checks the aspect against them, lib/request-plan.js cardDecision; rows R2a to R2l)
+    ok('K12 [item 6; BRAIN-B-R2] the model is asked for nine fields: the follow-up flag, and of a part its question, its kind, its name, the act of a worship, the aspect it asks, the words that ask it, its own words, the chapter of a collection',
+      same(asked, ['followup', 'q', 'kind', 'name', 'act', 'aspect', 'asked', 'src', 'chapter']) && exampleLines[0] === '{"parts":[{"q":"","kind":""}]}'
       && examples.length >= 12 && examples.every((plan) => keysOf(plan).every((k) => asked.includes(k)) && RP.parsePlan(JSON.stringify(plan)) !== null)
       && !/"needs"|"source"|"c":|"full"|c\.form/.test(RP.REQUEST_PLAN_SYSTEM)
       && RP.REQUEST_PLAN_SYSTEM.split('\n').includes('Write a key only when it applies. Never write an empty key, and no key that is not named here.'),

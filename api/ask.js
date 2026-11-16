@@ -2045,7 +2045,8 @@ export default async function handler(req, res) {
     // duration is in the [reading] line above.
     if (readingOutcome && readingFramesEnabled(process.env)) {
       const readingDiag = bw2DiagnosticEnabled(req)
-        ? { model: readingOutcome.model, choice: readingOutcome.choice, state: readingOutcome.state, reason: readingOutcome.reason || '', plan: readingPlanOf }
+        // (ORDER BRAIN-B-R2) and the card check's closed word (lib/request-plan.js cardDecision), for the capture's reader
+        ? { model: readingOutcome.model, choice: readingOutcome.choice, state: readingOutcome.state, reason: readingOutcome.reason || '', plan: readingPlanOf, card: readingOutcome.card || '' }
         : {};
       res.write(`data: ${JSON.stringify(readingStatusEvent('end', { ms: readingOutcome.ms, outcome: readingPlanned ? 'plan' : 'fallback', ...readingDiag }))}\n\n`);
     }
