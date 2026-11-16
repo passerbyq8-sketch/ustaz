@@ -2046,7 +2046,9 @@ export default async function handler(req, res) {
     if (readingOutcome && readingFramesEnabled(process.env)) {
       const readingDiag = bw2DiagnosticEnabled(req)
         // (ORDER BRAIN-B-R2) and the card check's closed word (lib/request-plan.js cardDecision), for the capture's reader
-        ? { model: readingOutcome.model, choice: readingOutcome.choice, state: readingOutcome.state, reason: readingOutcome.reason || '', plan: readingPlanOf, card: readingOutcome.card || '' }
+        // (ORDER BRAIN-B-R2 part D) and a valid plan the server did not apply, as `refused` beside `plan: null`
+        ? { model: readingOutcome.model, choice: readingOutcome.choice, state: readingOutcome.state, reason: readingOutcome.reason || '', plan: readingPlanOf, card: readingOutcome.card || '',
+          ...(readingOutcome.refused ? { refused: readingOutcome.refused } : {}) }
         : {};
       res.write(`data: ${JSON.stringify(readingStatusEvent('end', { ms: readingOutcome.ms, outcome: readingPlanned ? 'plan' : 'fallback', ...readingDiag }))}\n\n`);
     }

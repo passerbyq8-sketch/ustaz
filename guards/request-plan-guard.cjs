@@ -2239,7 +2239,8 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
             && failed.card === 'asked_not_found' && RP.planLogFlags(failed).includes('card_check:asked_not_found') && RP.planLogFlags(failed).includes('plan_card:tayammum')
             && plain.card === 'none' && !RP.planLogFlags(plain).some((f) => f.startsWith('card_check:'))
             && askSource.includes('answerLog.note({ flags: planLogFlags(readingOutcome) });')
-            && askSource.includes("plan: readingPlanOf, card: readingOutcome.card || '' }"),
+            // (part D: the frame carries a refused plan too, row R2p)
+            && askSource.includes("plan: readingPlanOf, card: readingOutcome.card || '',"),
             [verified.state, verified.card, verified.cardActs, failed.card, plain.card, RP.planLogFlags(failed)]);
         }
         {
@@ -2299,6 +2300,19 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
             [[k1a, 'wudu'], [k4b, 'ghusl']].every(([r, act]) => !r.crashed && (r.logOf('[reading]') || {}).outcome === 'plan' && r.logOf('[free-brain]').bw2 === true
               && r.text.trim().startsWith('<worship id="' + act + '"></worship>') && flagsOfD(r).includes('card_check:verified')),
             [[k1a, k4b].map((r) => [r.crashed && String(r.crashed.message || r.crashed).slice(0, 80), r.logOf('[reading]'), r.logOf('[free-brain]') && r.logOf('[free-brain]').bw2, r.text.slice(0, 40), flagsOfD(r)])]);
+          // (part D, the second commit) a plan the server does not apply is shown in the reading's end frame as `refused`, under the
+          // diagnostic header on a preview only (the capture box reads it): the first capture could not read back the two refused readings
+          const PREVIEW_D = { VERCEL_ENV: 'preview', VERCEL_URL: 'x.vercel.app' };
+          const refusedShown = await drive(user(D.F19.q), { plan: JSON.stringify(D.F19.plan), env: PREVIEW_D, headers: { 'x-ezik-diag': '1' } });
+          const refusedPlain = await drive(user(D.F19.q), { plan: JSON.stringify(D.F19.plan), env: PREVIEW_D });
+          const refusedProd = await drive(user(D.F19.q), { plan: JSON.stringify(D.F19.plan), env: { VERCEL_ENV: 'production', VERCEL_URL: 'x.vercel.app' }, headers: { 'x-ezik-diag': '1' } });
+          const endOf = (r) => r.reads[r.reads.length - 1] || {};
+          ok('R2p [part D] a plan the server does not apply stands in the reading\'s end frame as refused (its parts with the aspect, the asked words and the words of each part), beside plan null, under the diagnostic header on a preview only; without the header, and on production, it is not there',
+            !refusedShown.crashed && endOf(refusedShown).state === 'invalid' && endOf(refusedShown).reason === 'written_parts' && endOf(refusedShown).plan === null
+            && !!endOf(refusedShown).refused && endOf(refusedShown).refused.parts.length === 2 && endOf(refusedShown).refused.parts.every((p) => 'aspect' in p && 'asked' in p && Array.isArray(p.src))
+            && endOf(refusedShown).card === 'src_overlap'
+            && !('refused' in endOf(refusedPlain)) && refusedProd.reads.length === 0 && !JSON.stringify(refusedProd.frames).includes('"refused"'),
+            [endOf(refusedShown).state, endOf(refusedShown).reason, endOf(refusedShown).card, !!endOf(refusedShown).refused, Object.keys(endOf(refusedPlain)), refusedProd.reads.length]);
         }
       }
 
