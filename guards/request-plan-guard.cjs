@@ -477,6 +477,13 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       && RP.planLogFlags({ state: 'plan', plan: planOf('P9'), choice: 'fast' }).includes('plan_worldly_part') && RP.planLogFlags({ state: 'plan', plan: planOf('M2'), choice: 'fast' }).includes('plan_followup')
       && ['plan_c:sahih', 'plan_c:all'].every((flag) => RP.planLogFlags({ state: 'plan', plan: planOf('Z1o'), choice: 'fast' }).includes(flag))
       && RP.planLogFlags({ state: 'plan', plan: planOf('P10'), choice: 'fast' }).includes('plan_c:coll2'));
+    // (ORDER BRAIN-B-R2 part E item 3) an invalid reading's reason word goes to the answer log as its own closed flag
+    ok('E3a [part E item 3] a reading that gives no applied plan carries its reason word to the answer log (plan_reason:<word>), for every word of the closed list; a word outside it, and a reading that did not end invalid, carry none',
+      same([...RP.PLAN_INVALID_REASONS], ['no_plan', 'no_subject', 'ungrounded', 'quran_beside_served', 'written_parts', 'followup_written_parts', 'worldly_beside_other'])
+      && RP.PLAN_INVALID_REASONS.every((r) => same(RP.planLogFlags({ state: 'invalid', plan: null, reason: r, choice: 'fast' }), ['plan:invalid', 'plan_reason:' + r, 'plan_model:fast']) && ('plan_reason:' + r).length <= 40 && /^[A-Za-z0-9_:.-]+$/.test('plan_reason:' + r))
+      && same(RP.planLogFlags({ state: 'invalid', plan: null, reason: 'x y', choice: 'fast' }), ['plan:invalid', 'plan_model:fast'])
+      && same(RP.planLogFlags({ state: 'timeout', plan: null, reason: 'written_parts', choice: 'fast' }), ['plan:timeout', 'plan_model:fast']),
+      RP.PLAN_INVALID_REASONS.map((r) => RP.planLogFlags({ state: 'invalid', plan: null, reason: r, choice: 'fast' }).join(' ')));
     ok('G8c a failed reading is kept by its reason', same(RP.planLogFlags({ state: 'timeout', plan: null, choice: 'fast' }), ['plan:timeout', 'plan_model:fast'])
       && same(RP.planLogFlags({ state: 'invalid', plan: null, choice: 'standard' }), ['plan:invalid', 'plan_model:standard']) && same(RP.planLogFlags(null), ['plan:not_asked']));
     ok('G8d the two timing events are status frames the client does not draw (it draws the stages it knows)',
@@ -2325,6 +2332,9 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
             && endOf(refusedShown).card === 'src_overlap'
             && !('refused' in endOf(refusedPlain)) && refusedProd.reads.length === 0 && !JSON.stringify(refusedProd.frames).includes('"refused"'),
             [endOf(refusedShown).state, endOf(refusedShown).reason, endOf(refusedShown).card, !!endOf(refusedShown).refused, Object.keys(endOf(refusedPlain)), refusedProd.reads.length]);
+          ok('E3b [part E item 3; handler] a turn whose plan the server refused writes the reason word to its answer log beside plan:invalid, on a preview and on production alike',
+            [refusedPlain, refusedProd].every((r) => !r.crashed && flagsOfD(r).includes('plan:invalid') && flagsOfD(r).includes('plan_reason:written_parts')),
+            [refusedPlain, refusedProd].map((r) => flagsOfD(r).filter((x) => x.startsWith('plan'))));
         }
       }
 
@@ -3057,9 +3067,9 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const followRead = [];
       for (const id of ['F-M2', 'F-P5b', 'M2', 'P5b']) followRead.push(await readOf(planById(id)));
       const SAFE_FLAG = /^[A-Za-z0-9_:.-]{1,40}$/;
-      ok('N2 [A3 item 1; A3-CAPTURE section 4] the reading of such a plan ends as the mixed Qur\'an case ends -- not applied: state invalid, no plan, the reason written_parts -- and the answer log keeps it as a failed reading, in closed words; a follow-up with two parts ends the same way, with its own reason (followup_written_parts)',
-        severalRead.length === 12 && severalRead.every((o) => o.state === 'invalid' && o.plan === null && o.reason === 'written_parts' && same(RP.planLogFlags(o), ['plan:invalid', 'plan_model:' + o.choice]) && RP.planLogFlags(o).every((flag) => SAFE_FLAG.test(flag)))
-        && followRead.length === 4 && followRead.every((o) => o.state === 'invalid' && o.plan === null && o.reason === 'followup_written_parts' && same(RP.planLogFlags(o), ['plan:invalid', 'plan_model:' + o.choice]) && RP.planLogFlags(o).every((flag) => SAFE_FLAG.test(flag))),
+      ok('N2 [A3 item 1; A3-CAPTURE section 4] the reading of such a plan ends as the mixed Qur\'an case ends -- not applied: state invalid, no plan, the reason written_parts -- and the answer log keeps it as a failed reading, in closed words, with its reason word (part E item 3); a follow-up with two parts ends the same way, with its own reason (followup_written_parts)',
+        severalRead.length === 12 && severalRead.every((o) => o.state === 'invalid' && o.plan === null && o.reason === 'written_parts' && same(RP.planLogFlags(o), ['plan:invalid', 'plan_reason:written_parts', 'plan_model:' + o.choice]) && RP.planLogFlags(o).every((flag) => SAFE_FLAG.test(flag)))
+        && followRead.length === 4 && followRead.every((o) => o.state === 'invalid' && o.plan === null && o.reason === 'followup_written_parts' && same(RP.planLogFlags(o), ['plan:invalid', 'plan_reason:followup_written_parts', 'plan_model:' + o.choice]) && RP.planLogFlags(o).every((flag) => SAFE_FLAG.test(flag))),
         [severalRead.map((o) => o.state + ':' + o.reason), followRead.map((o) => o.state + ':' + o.reason)]);
       // ...and the rule on follow-ups that are NOT the capture's questions: by the count of the parts alone, whatever their kinds
       {
