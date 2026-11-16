@@ -193,6 +193,18 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       alone.ok && alone.plan.followup === false && alone.plan.full === '' && after.ok && after.plan.followup === true && after.plan.full === b21.q);
     ok('D7 a part with no name is named by the head of its own question (never left without a heading)', alone.plan.parts[0].name.length > 0 && b21.q.includes(alone.plan.parts[0].name.split(' ')[0]));
     ok('D8 no plan at all is refused as no plan', same(RP.validatePlan(null, { question: b21.q }), { ok: false, plan: null, reason: 'no_plan' }));
+    // (ORDER BRAIN-B-R2 part E item 2) a name rebuilt from the part's question keeps the reader's own small words between the
+    // reader's subject words (it dropped every word with no subject stem: round 1's B6 heading); a small word that is not the
+    // reader's is still not kept. Invented sentences, in no spent list.
+    {
+      const e2 = (msg, q) => { const v = RP.validatePlan(RP.parsePlan(JSON.stringify({ followup: false, full: '', c: {},
+        parts: [{ name: 'مسألة فقهية', q, kind: 'ruling', needs: [], source: [], act: '', chapter: '' }] })), { question: msg }); return v.ok ? v.plan.parts[0].name : null; };
+      const e2q = 'هل يجوز الأكل في الطريق قبل صلاة العيد؟';
+      ok('E2a [part E item 2] a part name the model wrote with no word of the reader\'s is rebuilt from the part\'s question with the reader\'s small words between the subject words, in their place',
+        e2(e2q, e2q) === 'الأكل في الطريق قبل صلاة العيد', [e2(e2q, e2q) && e2(e2q, e2q).split(' ').length]);
+      ok('E2b [part E item 2] a small word of the part\'s question that the reader did not write is still left out of the rebuilt name',
+        e2('هل يجوز الأكل بالطريق قبل صلاة العيد؟', e2q) === 'الأكل الطريق قبل صلاة العيد', [e2('هل يجوز الأكل بالطريق قبل صلاة العيد؟', e2q) && e2('هل يجوز الأكل بالطريق قبل صلاة العيد؟', e2q).split(' ').length]);
+    }
   }
 
   // ------------------------------------------------------------------------------------------------ E
