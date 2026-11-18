@@ -180,6 +180,44 @@ function libraryPlain(markup) {
       && LATE.length === 3 && LATE.every((id) => lib.some((s) => s.books === id))
       && fat.length === 1 && fat[0].query === KHAWF_AS_WRITTEN, ascii(JSON.stringify(seen)));
     {
+      // (ORDER BRAIN-B-R3 item 14) A TAFSIR QUESTION ASKS THE APPROVED TAFSIR BOOKS. With `tafsir` (the reading wrote a part of kind
+      // tafsir) the four books are asked the question in a member of their own; without it they are not; a gather that reuses the one
+      // beside the reading asks them alone (no other source asked twice), and their rows go after the library's. A turn passes the
+      // flag from its reading's part kind, never from words.
+      const seenT = []; const TAF = BW2.TAFSIR_BOOK_IDS.join(',');
+      const runToolT = async (name, input, ctx) => {
+        seenT.push({ name, query: input.query, books: Array.isArray(ctx.bookIds) ? ctx.bookIds.join(',') : '' });
+        if (name === 'search_library' && Array.isArray(ctx.bookIds) && ctx.bookIds.join(',') === TAF) ctx.table.add({ kind: 'lib_book', recordId: 'lib:FC-000063:0001:001', title: 'T', bookTitle: 'T', text: 'نص تفسير تجريبي للاختبار وحده.', subjectId: 'FC-000063' });
+        return { text: '', added: [], calls: 1 };
+      };
+      const depsT = { runTool: runToolT, searchStoredCorpus: async () => ({ records: [] }), encyclopediaReady: () => true, scholarBooksOf: () => null };
+      const gOn = await BW2.gatherBw2({ question: Q1, libFlagValue: 'on', libToken: 't', budgetMs: 800, tafsir: true, deps: depsT });
+      const onAsked = seenT.filter((s) => s.books === TAF); seenT.length = 0;
+      await BW2.gatherBw2({ question: Q1, libFlagValue: 'on', libToken: 't', budgetMs: 800, deps: depsT });
+      const offAsked = seenT.filter((s) => s.books === TAF); seenT.length = 0;
+      const gRe = await BW2.gatherBw2({ question: Q1, libFlagValue: 'on', libToken: 't', budgetMs: 800, tafsir: true, reuse: gOn, plan: { parts: [], chapter: null, single: null }, deps: depsT });
+      const reAsked = seenT.slice();
+      ok('R3-14 [round 3 item 14] with the reading\'s tafsir part the four approved tafsir books are asked the question, once, in a member of their own, and their row reaches the library\'s rows; without it they are not asked; a reused gather asks them alone',
+        BW2.TAFSIR_BOOK_IDS.length === 4 && onAsked.length === 1 && onAsked[0].query === BW2.libraryQuery(Q1) && gOn.results.library.some((r) => r.subjectId === 'FC-000063')
+        && offAsked.length === 0 && reAsked.length === 1 && reAsked[0].books === TAF && gRe.results.library.some((r) => r.subjectId === 'FC-000063') && gRe.report.library.hits === gRe.results.library.length,
+        ascii(JSON.stringify({ on: onAsked.length, off: offAsked.length, re: reAsked.map((s) => s.name + ':' + (s.books === TAF)), reHits: gRe.report.library.hits })));
+      // the turn takes the flag from its reading's part kind: tafsir asks the books, another kind does not
+      const SSET = await esm('lib/finalized-sse-writer.js');
+      const targetT = () => ({ writes: [], ended: 0, headers: {}, statusCode: 200, status(c) { this.statusCode = c; return this; }, setHeader(k, v) { this.headers[k] = v; },
+        write(c) { this.writes.push(String(c)); return true; }, end() { this.ended += 1; }, flushHeaders() {} });
+      const turnT = async (kind) => {
+        seenT.length = 0;
+        const t = targetT(); const facade = SSET.createFinalizedSseResponse(t, { finalize: (input) => ({ ok: true, text: String(input.text || ''), problems: [] }) });
+        const reading = { question: Q1, retrieval: Q1, own: Q1, reader: Q1, compound: false, chapter: '', chapterNamed: false, collection: false, c: {},
+          parts: [{ text: Q1, title: '', kind, needs: [], source: [], served: '', act: '' }] };
+        await BW2.runBw2Turn({ question: Q1, messages: [{ role: 'user', content: Q1 }], wire: BW2.createBw2Wire(facade), band: 'adult', libFlagValue: 'on', libToken: 't', reading,
+          deps: { ...depsT, warmEncyclopedia: () => true, ask: async () => '{"d":{}}', callWriter: async ({ onText }) => { onText('x'); return { stop_reason: 'end_turn', usage: {} }; } } });
+        return seenT.filter((s) => s.books === TAF).length;
+      };
+      const asTafsir = await turnT('tafsir'); const asRuling = await turnT('ruling');
+      ok('R3-14b [round 3 item 14] a turn whose reading wrote a tafsir part asks the approved tafsir books; a reading of another kind does not', asTafsir === 1 && asRuling === 0, [asTafsir, asRuling]);
+    }
+    {
       // (ORDER BRAIN-B-R3 item 15) a row of a late school book is its school's row (the school test reads «عندنا» in it as the school's own)
       const MB = await esm('lib/madhhab-books.js');
       ok('R3-15 [round 3 item 15] the owner\'s three late school books are their schools\' (رد المحتار Hanafi, تحفة المحتاج Shafi\'i, كشاف القناع Hanbali); the Maliki keeps its one book; the first four are unchanged',
