@@ -494,8 +494,20 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       const foreign = e4('اللباس'); const own = e4('الأطعمة'); const withBab = e4('كتاب الأطعمة');
       ok('E4a [part E item 4] a collection plan that names a chapter the reader did not name is applied without it: the chapter served is the one the reader\'s own words name (the pattern\'s, as production serves it), not the plan\'s',
         !!byPattern && !!BW.chapterRequestByName('اللباس') && BW.chapterRequestByName('اللباس').key !== byPattern.key
-        && !!foreign && foreign.notApplied === '' && foreign.given === '' && foreign.served === byPattern.key,
-        [foreign && foreign.given === '', foreign && foreign.served === (byPattern && byPattern.key)]);
+        && !!foreign && foreign.notApplied === '' && foreign.given === '' && foreign.served === byPattern.key
+        // (ORDER BRAIN-B-R3 part A) and the pattern's chapter IS the reader's: the word after «كتاب», not the table's article «كتاب»
+        && byPattern.key === BW.chapterRequestByName('الأطعمة').key,
+        [foreign && foreign.given === '', foreign && foreign.served === (byPattern && byPattern.key), !!byPattern && byPattern.key === (BW.chapterRequestByName('الأطعمة') || {}).key]);
+      // (ORDER BRAIN-B-R3 part A) «كتاب» before the chapter is read as «باب» is, with no plan at all (production's reading of the
+      // message): the senses asked are the reader's chapter's, never the article the table keeps under the word «كتاب». A word
+      // «كتاب» with nothing after it is still read as it was. Invented messages.
+      const kitab = BW.isChapterHadithRequest('أريد الأحاديث الصحيحة في كتاب الأطعمة');
+      const bab = BW.isChapterHadithRequest('أريد الأحاديث الصحيحة في باب الأطعمة');
+      const lone = BW.isChapterHadithRequest('أريد الأحاديث الصحيحة في كتاب');
+      ok('E4c [round 3 part A] a collection request «… في كتاب X» unfolds X, as «… في باب X» does, and not the table\'s article «كتاب»',
+        !!kitab && !!bab && kitab.key === bab.key && kitab.key === BW.chapterRequestByName('الأطعمة').key && kitab.key !== 'كتاب'
+        && !!lone && lone.key === 'كتاب',
+        [kitab && kitab.key === (bab && bab.key), kitab && kitab.key !== 'كتاب', lone && lone.key === 'كتاب']);
       ok('E4b [part E item 4] a chapter in the reader\'s own words is given as before, with or without the word for chapter before it, and the table serves it by that name',
         !!own && own.given === 'الأطعمة' && own.served === BW.chapterRequestByName('الأطعمة').key
         && !!withBab && withBab.given === 'كتاب الأطعمة' && withBab.served === BW.chapterRequestByName('كتاب الأطعمة').key,
