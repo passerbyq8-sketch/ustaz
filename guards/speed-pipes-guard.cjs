@@ -365,6 +365,12 @@ function libraryPlain(markup) {
       ok('W3b judge R3-7 [round 3 item 7] the judge names the case asked and drops a neighbouring case; no example message',
         /neighbouring case: write 0/u.test(caseLine) && !/[؀-ۿ«»]/u.test(caseLine) && jl.indexOf(caseLine) > 0 && jl.indexOf(caseLine) < jl.findIndex((l) => l.startsWith('Decide EVERY candidate')),
         [caseLine.length]);
+      // (ORDER BRAIN-B-R3 item 6) for a ruling asked, a text that STATES the ruling is kept, and neither a text that only praises the
+      // act nor an empty passage takes its place. Its effect is the capture's (class J).
+      const rulingLine = jl.find((l) => l.startsWith('When the reader asks a ruling, a candidate')) || '';
+      ok('W3b judge R3-6 [round 3 item 6] a candidate that states the asked ruling is kept and is not replaced by a text of merit or an empty one; no example message',
+        /STATES that ruling/u.test(rulingLine) && /empty, never take its place/u.test(rulingLine) && !/[؀-ۿ«»]/u.test(rulingLine)
+        && jl.indexOf(rulingLine) > 0 && jl.indexOf(rulingLine) < jl.findIndex((l) => l.startsWith('Decide EVERY candidate')), [rulingLine.length]);
     }
   }
 
