@@ -2237,6 +2237,17 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
             && aspectLine.length > 0 && !/[«»]/u.test(aspectLine)
             && plans.every((p) => RP.parsePlan(p) !== null),
             [messages.length, plans.length, messages.filter((m) => OLD.has(hashOf(m))).length]);
+          // (ORDER BRAIN-B-R3 item 8, FOUND B-10) the reading wrote a how-to part of one of the five daily prayers with no act
+          // (round 2's K1f: kind manner, src written, no act, aspect or asked), since «a particular prayer» had no act. The cure is
+          // in the instructions alone, in words with no example message: a daily prayer named by its time IS salah, and a manner
+          // part of the four worships never goes without its act, aspect and asked. The server decides nothing new.
+          const actLine = lines.find((line) => line.startsWith('- "act":')) || '';
+          const mannerLine = lines.find((line) => line.startsWith('- A part of kind manner')) || '';
+          ok('R2b2 [round 3 item 8, FOUND B-10] the reading is told that the five daily prayers named by their times are salah, that the prayers of another kind have no act, and that a manner part of the four worships always carries its act, aspect and asked; no example message is added',
+            /five daily obligatory prayers named by its time/u.test(actLine) && /Never for a prayer of another kind/u.test(actLine) && !/[«»]/u.test(actLine)
+            && /ALWAYS has "act", "aspect" and "asked"/u.test(mannerLine) && !/[«»]/u.test(mannerLine)
+            && lines.indexOf(mannerLine) === lines.indexOf(actLine) + 1 && lines.indexOf(actLine) < at,
+            [actLine.length, mannerLine.length, lines.indexOf(mannerLine) - lines.indexOf(actLine)]);
         }
         {
           const oldShape = RP.parsePlan(JSON.stringify(C.F11.plan));
