@@ -173,9 +173,21 @@ function libraryPlain(markup) {
     });
     const lib = seen.filter((s) => s.name === 'search_library');
     const fat = seen.filter((s) => s.name === 'search_fatawa');
-    ok('P1d question 1 end to end: the general, the two comparative and the four madhhab members all ask the issue, and so does the fatwa store',
-      lib.length >= 6 && lib.every((s) => s.query === KHAWF) && lib.filter((s) => s.books).length === 5
+    // (ORDER BRAIN-B-R3 item 15) and, for each school asked that has one, its late relied-upon book in a member of its own
+    const LATE = BW2.MADHHAB_BOOKS_PRIMARY.filter((m) => m.lateBookId).map((m) => m.lateBookId);
+    ok('P1d question 1 end to end: the general, the two comparative and the four madhhab members all ask the issue, and so does the fatwa store; and the three late school books (round 3 item 15), each alone',
+      lib.length >= 9 && lib.every((s) => s.query === KHAWF) && lib.filter((s) => s.books).length === 5 + LATE.length
+      && LATE.length === 3 && LATE.every((id) => lib.some((s) => s.books === id))
       && fat.length === 1 && fat[0].query === KHAWF_AS_WRITTEN, ascii(JSON.stringify(seen)));
+    {
+      // (ORDER BRAIN-B-R3 item 15) a row of a late school book is its school's row (the school test reads «عندنا» in it as the school's own)
+      const MB = await esm('lib/madhhab-books.js');
+      ok('R3-15 [round 3 item 15] the owner\'s three late school books are their schools\' (رد المحتار Hanafi, تحفة المحتاج Shafi\'i, كشاف القناع Hanbali); the Maliki keeps its one book; the first four are unchanged',
+        MB.schoolOfRow({ recordId: 'lib:FC-003559:0001:001' }) === 'hanafi' && MB.schoolOfRow({ recordId: 'lib:FC-003687:0001:001' }) === 'shafii'
+        && MB.schoolOfRow({ recordId: 'lib:FC-003770:0001:001' }) === 'hanbali' && !MB.MADHHAB_BOOKS_PRIMARY.find((m) => m.key === 'maliki').lateBookId
+        && ['FC-003532', 'FC-003623', 'FC-003660', 'FC-003727'].every((id, i) => MB.MADHHAB_BOOKS_PRIMARY[i].bookId === id && MB.schoolOfRow({ recordId: 'lib:' + id + ':0001:001' }) === MB.MADHHAB_BOOKS_PRIMARY[i].key),
+        JSON.stringify(MB.MADHHAB_BOOKS_PRIMARY.map((m) => [m.key, m.bookId, m.lateBookId || ''])));
+    }
   }
 
   // ---------------------------------------------------------------- W3a (WASL) the fatwa's own words
