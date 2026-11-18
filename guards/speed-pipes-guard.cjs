@@ -290,6 +290,35 @@ function libraryPlain(markup) {
     }
     const one = await turn(WQ.w1.question, null);
     ok('W3b control 2: the judge marks no direct match -> no block, the answer is the writer\'s as before', !one.text.includes('نص الفتوى') && one.text.includes('تبيّن الفتوى'));
+    // (ORDER BRAIN-B-R3 item 5, defect 7) A TURN OF PARTS IS NOT OPENED BY ONE STORED FATWA: with a reading whose card part the
+    // server serves beside the written ruling part, the same judge mark 2 and the same stored record give no block between the
+    // card and the written part; the fatwa is kept evidence the writer answers from. The same question with no
+    // reading is still opened by the block (row W3b owner above). The card part's sentence is invented.
+    {
+      const QR = WQ.w1.question; const HOWTO = 'كيف أتوضأ الوضوء الكامل خطوة بخطوة؟';
+      const FULLQ = HOWTO + ' ' + QR;
+      const partedReading = { question: FULLQ, retrieval: QR, own: FULLQ, reader: FULLQ, compound: true, chapter: '', chapterNamed: false, collection: false, c: {},
+        parts: [{ text: HOWTO, title: 'صفة الوضوء', kind: 'manner', needs: [], source: [], served: 'worship', act: 'wudu' },
+          { text: QR, title: 'إخراج الزكاة من الأقمشة', kind: 'ruling', needs: [], source: [], served: '', act: '' }] };
+      const t5 = target();
+      const facade5 = SSE.createFinalizedSseResponse(t5, { finalize: (input) => ({ ok: true, text: String(input.text || ''), problems: [] }) });
+      const out5 = await BW2.runBw2Turn({
+        question: FULLQ, messages: [{ role: 'user', content: FULLQ }], wire: BW2.createBw2Wire(facade5), band: 'adult', reading: partedReading,
+        cards: { buildSourceTag: ASKM.buildSourceTag, buildBookTag: ASKM.buildBookTag, encyclopediaCards: false, max: 3 },
+        deps: {
+          runTool: (name, input, ctx) => (name === 'search_fatawa' ? TOOLS.runTool(name, input, { ...ctx, fetchImpl: replay }) : Promise.resolve({ text: '', added: [], calls: 0 })),
+          searchStoredCorpus: async () => ({ records: [] }), encyclopediaReady: () => true, warmEncyclopedia: () => true,
+          ask: async ({ user }) => { const d = {}; for (const m of user.matchAll(/^\[(\d+)\] fatwa: (.*)$/gmu)) d[m[1]] = m[2].trim() === 'حكم إخراج الزكاة من الأقمشة' ? 2 : 1; return JSON.stringify({ d }); },
+          callWriter: async ({ onText, body }) => { onText('### إخراج الزكاة من الأقمشة\n\nتبيّن الفتوى الحكم [[1]].'); return { stop_reason: 'end_turn', usage: {}, body }; },
+        },
+      });
+      const text5 = textOf(t5);
+      ok('W3b parts [round 3 item 5, defect 7] a turn with a served card beside its written part is not opened by the stored fatwa: no «نص الفتوى», no «الجواب (مختصرًا):», no «النص الكامل»; the card first, then the part\'s heading and the writer\'s text citing the fatwa, with its page card',
+        text5.startsWith('<worship id="wudu"></worship>') && !text5.includes('نص الفتوى') && !text5.includes('الجواب (مختصرًا)') && !text5.includes('النص الكامل')
+        && out5.telemetry.directFatwa !== true && text5.indexOf('### إخراج الزكاة من الأقمشة') > 0 && text5.indexOf('تبيّن الفتوى') > text5.indexOf('### ')
+        && out5.telemetry.fatwaHits > 0 && out5.telemetry.judgeKept > 0 && out5.telemetry.unitsReleased > 0,
+        ascii(JSON.stringify({ head: text5.slice(0, 60), direct: out5.telemetry.directFatwa, sources: (text5.match(/<source\b/gu) || []).length, urls: (text5.match(/https:\/\/[^\s"<>]+/gu) || []).map((u) => u.slice(0, 40)), marks: (text5.match(/\[\[\d+\]\]/gu) || []).length, len: text5.length, held: out5.telemetry.unitsHeld, rel: out5.telemetry.unitsReleased, kept: out5.telemetry.judgeKept, fatwaHits: out5.telemetry.fatwaHits })));
+    }
     // ORDER 51 item 3 (the owner's decision 3): A READER WHO NAMES AN ISSUER IS NOT ANSWERED WITH ANOTHER'S STORED FATWA. MEASURED (the 3 Oct preview, answer 10, «ما فتوى اللجنة الدائمة في الاحتفال بالمولد النبوي؟»): the
     // answer opened with the stored fatwa «المفتي: سليمان الماجد»; none of the 19 stores (74,769 fatwas) is the committee's (17 mention it, none on the mawlid). The stored fatwa that opens the answer is the named issuer's, or
     // none opens it and the writer answers from the rows. The issuer is named when lib/bw2-scholar.js resolves the name to books or a fatwa publisher this turn gathered is named; the publisher is named by his last name-word.
