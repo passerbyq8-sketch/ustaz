@@ -2421,6 +2421,8 @@ export default async function handler(req, res) {
           libraryMs: t.libraryMs, libraryHits: t.libraryHits, libraryTimedOut: t.libraryTimedOut,
           encyclopediaMs: t.encyclopediaMs, encyclopediaHits: t.encyclopediaHits, encyclopediaTimedOut: t.encyclopediaTimedOut,
           lessonsMs: t.lessonsMs, lessonsHits: t.lessonsHits, lessonsTimedOut: t.lessonsTimedOut,
+          // (ORDER BRAIN-B-R3 item 1) a source whose call failed and that brought no row: never read as an empty one
+          fatwaFailed: t.fatwaFailed === true, libraryFailed: t.libraryFailed === true, lessonsFailed: t.lessonsFailed === true,
           judgeMs: t.judgeMs, judgeKept: t.judgeKept, judgeComplete: t.judgeComplete,
           unjudgedKept: t.unjudgedKept, judgeOutcome: t.judgeOutcome,
           schools: t.schools,

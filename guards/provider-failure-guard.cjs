@@ -335,13 +335,34 @@ const sha = (text) => crypto.createHash('sha256').update(String(text || '')).dig
   console.log('\n=== T. WITH A HEALTHY PROVIDER THE TURN IS THE TURN OF BEFORE (commit 06ee8909, recorded) ===');
   {
     const fixture = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+    // (ORDER BRAIN-B-R3 item 1) this stub answers every service but the fatwa store and the model with a 404: the library and the
+    // lessons FAIL here. Since item 1 a failed source is not an empty one: the [bw2] log names it (fatwaFailed / libraryFailed /
+    // lessonsFailed) and the turn's not-found line carries the server's one sentence that it could not be reached. Those two
+    // additions are item 1's and are taken out before the comparison; everything else must still equal the recorded turn, and
+    // row T1 holds that the additions are exactly these.
+    const UNREACHED_RE = /\n\nوتعذّر الوصولُ الآن إلى [^\n]*?، فلم يُبحث فيها هذه المرة\./gu;
+    const ITEM1_KEYS = ['fatwaFailed', 'libraryFailed', 'lessonsFailed'];
+    const lessItem1 = (turn) => ({ ...turn,
+      text: String(turn.text).replace(UNREACHED_RE, ''),
+      // (a delta that is the sentence alone goes; a replace frame or a delta that carries it keeps the rest of its text)
+      frames: turn.frames.filter((f) => !(f && f.type === 'content_block_delta' && f.delta && String(f.delta.text || '') !== '' && String(f.delta.text || '').replace(UNREACHED_RE, '') === ''))
+        .map((f) => (f && f.type === 'ezik_replace' ? { ...f, text: String(f.text || '').replace(UNREACHED_RE, '') }
+          : (f && f.type === 'content_block_delta' && f.delta ? { ...f, delta: { ...f.delta, text: String(f.delta.text || '').replace(UNREACHED_RE, '') } } : f))),
+      logs: turn.logs.map((entry) => entry.map((v) => (v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).filter(([k]) => !ITEM1_KEYS.includes(k))) : v))) });
+    const added = [];
     for (const pair of HEALTHY) {
       const name = pair.join('/');
       const now = await healthyTurn(pair);
       const then = fixture.turns[name];
-      const diff = !then ? ['no recorded turn'] : ['crashed', 'status', 'frames', 'text', 'calls', 'logs'].filter((k) => JSON.stringify(now[k]) !== JSON.stringify(then[k]));
-      ok('T ' + name + ': frames, text, calls and console lines equal the recorded turn', diff.length === 0 && now.crashed === '', diff.join(','));
+      const less = lessItem1(now);
+      if (less.text !== now.text) added.push(name);
+      const diff = !then ? ['no recorded turn'] : ['crashed', 'status', 'frames', 'text', 'calls', 'logs'].filter((k) => JSON.stringify(less[k]) !== JSON.stringify(then[k]));
+      const logDiff = then && diff.includes('logs') ? less.logs.map((entry, i) => [i, entry, then.logs[i]]).filter(([, a, b]) => JSON.stringify(a) !== JSON.stringify(b))
+        .map(([i, a, b]) => i + ':' + String(a && a[0]) + ':' + String(a && a[1]).slice(0, 30) + ':' + JSON.stringify(a && a[2] && typeof a[2] === 'object' ? a[2] : '').replace(/[^ -~]/g, '~').slice(0, 120) + ':' + (a || []).map((v, k) => (v && typeof v === 'object' ? Object.keys(v).filter((key) => JSON.stringify(v[key]) !== JSON.stringify(b && b[k] && b[k][key])).join('+') : (JSON.stringify(v) === JSON.stringify(b && b[k]) ? '' : 'v' + k))).filter(Boolean).join('/')) : [];
+      ok('T ' + name + ': frames, text, calls and console lines equal the recorded turn (item 1\'s sentence and log fields aside)', diff.length === 0 && now.crashed === '', diff.join(',') + (logDiff.length ? ' ' + logDiff.join(' ; ') : ''));
     }
+    ok('T1 [round 3 item 1] the turns whose not-found line now names the unreached library and lessons are the religious ones of this 404 stub, each once',
+      added.length > 0 && added.every((n) => n.endsWith('/RELIGIOUS')), added.join(','));
     ok('T0 the recorded turns are not empty shells (each has frames, a text and at least one model call)',
       Object.values(fixture.turns).every((t) => t.frames.length > 3 && t.text.length > 0 && t.calls.some((c) => c.startsWith('model '))));
   }

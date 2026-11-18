@@ -239,6 +239,8 @@ const BW2_FIELDS = [
   'libraryMs', 'libraryHits', 'libraryTimedOut',
   'encyclopediaMs', 'encyclopediaHits', 'encyclopediaTimedOut',
   'lessonsMs', 'lessonsHits', 'lessonsTimedOut',
+  // (ORDER BRAIN-B-R3 item 1) booleans -- a source whose call failed and that brought no row (never read as an empty one).
+  'fatwaFailed', 'libraryFailed', 'lessonsFailed',
   // the judge: duration, rows it kept, whether its decision set covered every candidate, rows kept
   // by the lexical fallback, and the closed enum none|complete|incomplete|failed.
   'judgeMs', 'judgeKept', 'judgeComplete', 'unjudgedKept', 'judgeOutcome',

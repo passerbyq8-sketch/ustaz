@@ -151,6 +151,43 @@ const Q = {
         /LESSON-NO-TEXT/.test(judge2) && out2.telemetry.judgeKept >= 2 && out2.telemetry.emptyParts === 1 && text2.split(SENTENCE).length === 2 && !text2.includes('lessons.invalid/z1-empty'),
         ascii(JSON.stringify({ kept: out2.telemetry.judgeKept, empty: out2.telemetry.emptyParts, sentences: text2.split(SENTENCE).length - 1, seen: /LESSON-NO-TEXT/.test(judge2) })));
     }
+    // (ORDER BRAIN-B-R3 item 1; register item 40, XRAY row 16 first half) A FAILED SOURCE IS NOT AN EMPTY ONE. The runners fail by
+    // return: a degraded entry and no row (lib/free-brain/tools.js runLibrary / runLessons / runFatawa). The XRAY's own check: a
+    // failing stub sets `failed`, an empty stub does not; then the turn's not-found line carries the server's one sentence that
+    // the source could not be reached, and a hand-over does not pass it on as asked.
+    {
+      const failingLibrary = async (name, input, own) => { if (name === 'search_library') own.degraded.push('library:lib_unreachable'); return { text: '', calls: 1 }; };
+      const throwingLessons = async (name) => { if (name === 'search_lessons') throw new Error('lessons_down'); return { text: '', calls: 1 }; };
+      const emptyAll = async () => ({ text: '', calls: 1 });
+      const gdeps = (runTool) => ({ runTool, searchStoredCorpus: async () => ({ records: [] }), encyclopediaReady: () => true, warmEncyclopedia: () => true });
+      const gFail = await BW2.gatherBw2({ question: Qb, budgetMs: 2000, libFlagValue: 'on', libToken: 't', lessonsToken: 't', deps: gdeps(failingLibrary) });
+      const gThrow = await BW2.gatherBw2({ question: Qb, budgetMs: 2000, libFlagValue: 'on', libToken: 't', lessonsToken: 't', deps: gdeps(throwingLessons) });
+      const gEmpty = await BW2.gatherBw2({ question: Qb, budgetMs: 2000, libFlagValue: 'on', libToken: 't', lessonsToken: 't', deps: gdeps(emptyAll) });
+      ok('R3-1a [round 3 item 1] a source whose call fails by return (a degraded entry, no row) or by a throw is `failed` in the gather\'s report; the same source answering with no row is not; the others are not',
+        gFail.report.library.failed === true && gFail.report.library.hits === 0 && gFail.report.lessons.failed !== true && gFail.report.fatwa.failed !== true
+        && gThrow.report.lessons.failed === true && gThrow.report.library.failed !== true
+        && gEmpty.report.library.failed !== true && gEmpty.report.lessons.failed !== true && gEmpty.report.fatwa.failed !== true,
+        ascii(JSON.stringify({ fail: gFail.report.library, thr: gThrow.report.lessons, empty: gEmpty.report.library })));
+      ok('R3-1b [round 3 item 1] a hand-over does not pass a failed source on as asked (the next path asks it again); an empty one is passed on as asked, as before',
+        BW2.handOverOf(gFail).asked.library === false && BW2.handOverOf(gFail).asked.lessons === true
+        && BW2.handOverOf(gEmpty).asked.library === true && BW2.handOverOf(gEmpty).asked.lessons === true,
+        ascii(JSON.stringify([BW2.handOverOf(gFail).asked, BW2.handOverOf(gEmpty).asked])));
+      const turnWith = async (runTool) => {
+        const tt = target();
+        const fac = SSE.createFinalizedSseResponse(tt, { finalize: (input) => ({ ok: true, text: String(input.text || ''), problems: [] }) });
+        const o = await BW2.runBw2Turn({
+          question: Qb, messages: [{ role: 'user', content: Qb }], wire: BW2.createBw2Wire(fac), libFlagValue: 'on', libToken: 't', lessonsToken: 't',
+          deps: { ...gdeps(runTool), ask: async () => '{"d":{}}', callWriter: async ({ onText }) => { onText('x'); return { stop_reason: 'end_turn', usage: {} }; } },
+        });
+        return { out: o, text: framesOf(tt.writes).filter((f) => f.type === 'content_block_delta').map((f) => f.delta.text).join('') };
+      };
+      const tFail = await turnWith(failingLibrary); const tEmpty = await turnWith(emptyAll);
+      const UNREACHED = BW2.sourcesUnreachedSentence({ library: { failed: true } });
+      ok('R3-1c [round 3 item 1] a turn that found nothing while the library failed says so under its not-found line, once, and logs it (libraryFailed); a turn whose library answered with no row writes the not-found line alone',
+        UNREACHED.includes('المكتبة') && tFail.text.includes(BW2.BW2_NOT_COVERED) && tFail.text.split(UNREACHED).length === 2 && tFail.text.indexOf(UNREACHED) > tFail.text.indexOf(BW2.BW2_NOT_COVERED)
+        && tFail.out.telemetry.libraryFailed === true && tEmpty.text.includes(BW2.BW2_NOT_COVERED) && !tEmpty.text.includes('تعذّر الوصولُ') && tEmpty.out.telemetry.libraryFailed === false,
+        ascii(JSON.stringify({ fail: tFail.text.slice(0, 160), empty: tEmpty.text.slice(0, 80), lf: tFail.out.telemetry.libraryFailed })));
+    }
   }
   console.log('');
   console.log((failures ? 'FAIL' : 'PASS') + ' brain-line-z1: ' + (checks - failures) + '/' + checks);
