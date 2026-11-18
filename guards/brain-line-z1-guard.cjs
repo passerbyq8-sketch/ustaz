@@ -125,6 +125,32 @@ const Q = {
     ok('...and the covered part is answered under its heading', text.includes('### حكم قطرة الأذن للصائم') && text.includes('قطرة الأذن لا تفطر'), ascii(text));
     ok('...the whole-answer not-covered sentence is not written (one part was covered)', !text.includes(BW2.BW2_NOT_COVERED));
     ok('...telemetry counts the parts and the empty ones', out && out.telemetry && out.telemetry.parts === 2 && out.telemetry.emptyParts === 1, ascii(JSON.stringify(out && out.telemetry && { p: out.telemetry.parts, e: out.telemetry.emptyParts })));
+    // (ORDER BRAIN-B-R3 item 2) the same turn, where the lessons answer the second part with a row that has NO TEXT (the
+    // service's usual hit: 232 of 238 lesson candidates in five captures) and the judge keeps it: the part is still an empty
+    // part (no row the writer may use), the server still writes its sentence, once, and the lesson is not made a source.
+    {
+      const runTool2 = async (name, input, own) => {
+        const q = String(input && input.query || '');
+        if (name === 'search_fatawa' && /الاذن|الأذن/.test(q)) own.table.add({ kind: 'fatwa', url: 'https://binbaz.org.sa/fatwas/1', title: 'حكم قطرة الأذن للصائم', publisher: 'ابن باز', passage: EAR, text: EAR });
+        if (name === 'search_lessons' && /الحجامه|الحجامة/.test(q)) own.table.add({ kind: 'lesson', url: 'https://lessons.invalid/z1-empty', title: 'LESSON-NO-TEXT', publisher: 'LECTURER-NO-TEXT', text: '', recordId: 'z1-empty' });
+        return { text: '', calls: 1 };
+      };
+      let judge2 = '';
+      const t2 = target();
+      const facade2 = SSE.createFinalizedSseResponse(t2, { finalize: (input) => ({ ok: true, text: String(input.text || ''), problems: [] }) });
+      const out2 = await BW2.runBw2Turn({
+        question: Qb, messages: [{ role: 'user', content: Qb }], wire: BW2.createBw2Wire(facade2), libFlagValue: 'on', libToken: 't', lessonsToken: 't',
+        deps: {
+          runTool: runTool2, searchStoredCorpus: async () => ({ records: [] }), encyclopediaReady: () => true, warmEncyclopedia: () => true,
+          ask: async (o) => { judge2 = String(o && (o.user || o.prompt) || ''); const d = {}; for (const m of judge2.matchAll(/^\[(\d+)\]/gmu)) d[m[1]] = 1; return JSON.stringify({ d }); },
+          callWriter: async ({ onText }) => { onText(WRITER); return { stop_reason: 'end_turn', usage: {} }; },
+        },
+      });
+      const text2 = framesOf(t2.writes).filter((f) => f.type === 'content_block_delta').map((f) => f.delta.text).join('');
+      ok('R3-2 [round 3 item 2] a part whose only kept row is a lesson with no text is an empty part: the judge saw the lesson and kept it, the server writes the part\'s sentence once, and the lesson is not a source',
+        /LESSON-NO-TEXT/.test(judge2) && out2.telemetry.judgeKept >= 2 && out2.telemetry.emptyParts === 1 && text2.split(SENTENCE).length === 2 && !text2.includes('lessons.invalid/z1-empty'),
+        ascii(JSON.stringify({ kept: out2.telemetry.judgeKept, empty: out2.telemetry.emptyParts, sentences: text2.split(SENTENCE).length - 1, seen: /LESSON-NO-TEXT/.test(judge2) })));
+    }
   }
   console.log('');
   console.log((failures ? 'FAIL' : 'PASS') + ' brain-line-z1: ' + (checks - failures) + '/' + checks);
