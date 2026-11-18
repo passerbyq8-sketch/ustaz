@@ -357,6 +357,15 @@ function libraryPlain(markup) {
       } finally { try { require('fs').rmSync(tmp51, { force: true }); } catch { /* nothing to clean */ } }
     }
     ok('W3b judge: the system asks for 2 only for a fatwa whose own question or title asks the reader\'s question', /\b2\b/.test(BW2.BW2_JUDGE_SYSTEM) && /own question or title/i.test(BW2.BW2_JUDGE_SYSTEM));
+    // (ORDER BRAIN-B-R3 item 7) the judge is told, in words with no example message: name the case asked, and a text on another
+    // condition or kind of the same act is a neighbouring case (0). Its effect is the capture's (class J).
+    {
+      const jl = BW2.BW2_JUDGE_SYSTEM.split('\n');
+      const caseLine = jl.find((l) => l.startsWith('First name to yourself the case')) || '';
+      ok('W3b judge R3-7 [round 3 item 7] the judge names the case asked and drops a neighbouring case; no example message',
+        /neighbouring case: write 0/u.test(caseLine) && !/[؀-ۿ«»]/u.test(caseLine) && jl.indexOf(caseLine) > 0 && jl.indexOf(caseLine) < jl.findIndex((l) => l.startsWith('Decide EVERY candidate')),
+        [caseLine.length]);
+    }
   }
 
   // ---------------------------------------------------------------- W5 (WASL) «افتح في المكتبة» under every book card

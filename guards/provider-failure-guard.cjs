@@ -174,6 +174,8 @@ const sha = (text) => crypto.createHash('sha256').update(String(text || '')).dig
   const WRITER_TEXT = byId.B21.ideal.parts[0].name + '.'; // a short Arabic sentence with no citation (the fixture's own words)
   const ERR = { 400: 'invalid_request_error', 429: 'rate_limit_error', 500: 'api_error', 529: 'overloaded_error' };
   const KEY = 'guard-not-a-real-key';
+  // (ORDER BRAIN-B-R3 item 7) the judge's instructions without the line that item added
+  const JUDGE_SYSTEM_BEFORE = BW.BW2_JUDGE_SYSTEM.split('\n').filter((line) => !line.startsWith('First name to yourself the case')).join('\n');
   const kindOf = (b) => (b.system === RPMOD.REQUEST_PLAN_SYSTEM ? 'reading' : (b.system === FS.FRONT_SORTER_SYSTEM ? 'sorter' : (b.system === BW.BW2_JUDGE_SYSTEM ? 'judge' : (b.stream ? 'stream' : (b.tools ? 'round' : 'write')))));
   let seq = 0;
   /**
@@ -209,7 +211,9 @@ const sha = (text) => crypto.createHash('sha256').update(String(text || '')).dig
         const b = JSON.parse(init.body);
         const kind = kindOf(b);
         asked[kind] = (asked[kind] || 0) + 1;
-        calls.push('model ' + kind + ' ' + sha(init.body));
+        // (ORDER BRAIN-B-R3 item 7) the judge's instructions gained a line; a judge call is hashed with the instructions as they
+        // were without it (JUDGE_SYSTEM_BEFORE), so every other byte of the call is still held to the recorded turn
+        calls.push('model ' + kind + ' ' + sha(kind === 'judge' ? JSON.stringify({ ...b, system: JUDGE_SYSTEM_BEFORE }) : init.body));
         const does = provider(kind, asked[kind]);
         if (does === 'throw') throw new TypeError('fetch failed');
         if (does === 'drop') {
