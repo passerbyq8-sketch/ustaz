@@ -2248,6 +2248,15 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
             && /ALWAYS has "act", "aspect" and "asked"/u.test(mannerLine) && !/[«»]/u.test(mannerLine)
             && lines.indexOf(mannerLine) === lines.indexOf(actLine) + 1 && lines.indexOf(actLine) < at,
             [actLine.length, mannerLine.length, lines.indexOf(mannerLine) - lines.indexOf(actLine)]);
+          // (ORDER BRAIN-B-R3 part D, the correction after capture 1) MEASURED: with the act now written for a daily prayer and for
+          // ghusl, two of three how-to-beside-a-list plans were refused by the card check on the OTHER part's src (L3: the list part
+          // had no src; L2: the word joining the two clauses stood in neither src). The reading is told both, in words with no
+          // example message, on the line right under the src line; the server's check is unchanged.
+          const srcLine = lines.find((line) => line.startsWith('- "src":')) || '';
+          const srcMore = lines.find((line) => line.startsWith('- In such a plan the part without "act" has its "src" too')) || '';
+          ok('R2b3 [round 3 part D] the reading is told that, in a plan with an act, the part without one has its src too and the joining word goes into the src of the clause it opens; no example message',
+            srcMore.length > 0 && lines.indexOf(srcMore) === lines.indexOf(srcLine) + 1 && /no word of the latest message is left out of every "src"/u.test(srcMore)
+            && !/[«»؀-ۿ]/u.test(srcMore) && lines.indexOf(srcMore) < at, [srcMore.length, lines.indexOf(srcMore) - lines.indexOf(srcLine)]);
         }
         {
           const oldShape = RP.parsePlan(JSON.stringify(C.F11.plan));
