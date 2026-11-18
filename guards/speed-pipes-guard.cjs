@@ -448,10 +448,16 @@ function libraryPlain(markup) {
     // condition or kind of the same act is a neighbouring case (0). Its effect is the capture's (class J).
     {
       const jl = BW2.BW2_JUDGE_SYSTEM.split('\n');
-      const caseLine = jl.find((l) => l.startsWith('First name to yourself the case')) || '';
-      ok('W3b judge R3-7 [round 3 item 7] the judge names the case asked and drops a neighbouring case; no example message',
+      const caseLine = jl.find((l) => l.startsWith('Decide the case the reader asks')) || '';
+      ok('W3b judge R3-7 [round 3 item 7] the judge decides the case asked and drops a neighbouring case; no example message',
         /neighbouring case: write 0/u.test(caseLine) && !/[؀-ۿ«»]/u.test(caseLine) && jl.indexOf(caseLine) > 0 && jl.indexOf(caseLine) < jl.findIndex((l) => l.startsWith('Decide EVERY candidate')),
         [caseLine.length]);
+      // (ORDER BRAIN-B-R3 part D, the correction after capture 1) the case is decided with nothing written (the judge failed once in
+      // ten when told to "name it to yourself"), and a rule of a wider class that covers the case is the case's text, kept (D1: both
+      // rows of the asked school's own book dropped); the line asks for no output other than the JSON
+      ok('W3b judge R3-7c [round 3 part D] the case is decided without writing it (the output is the JSON alone), and a rule that covers the case is kept; the old "name to yourself" wording is gone',
+        /without writing it anywhere \(your output is the JSON alone\)/u.test(caseLine) && /a rule that covers it\) is about the case: keep it/u.test(caseLine)
+        && !jl.some((l) => /name to yourself/u.test(l)), [caseLine.length]);
       // (ORDER BRAIN-B-R3 item 6) for a ruling asked, a text that STATES the ruling is kept, and neither a text that only praises the
       // act nor an empty passage takes its place. Its effect is the capture's (class J).
       const rulingLine = jl.find((l) => l.startsWith('When the reader asks a ruling, a candidate')) || '';

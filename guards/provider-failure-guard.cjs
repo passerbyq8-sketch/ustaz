@@ -174,8 +174,8 @@ const sha = (text) => crypto.createHash('sha256').update(String(text || '')).dig
   const WRITER_TEXT = byId.B21.ideal.parts[0].name + '.'; // a short Arabic sentence with no citation (the fixture's own words)
   const ERR = { 400: 'invalid_request_error', 429: 'rate_limit_error', 500: 'api_error', 529: 'overloaded_error' };
   const KEY = 'guard-not-a-real-key';
-  // (ORDER BRAIN-B-R3 items 7 and 6) the judge's instructions without the line each of those items added
-  const JUDGE_SYSTEM_BEFORE = BW.BW2_JUDGE_SYSTEM.split('\n').filter((line) => !line.startsWith('First name to yourself the case') && !line.startsWith('When the reader asks a ruling, a candidate')).join('\n');
+  // (ORDER BRAIN-B-R3 items 7 and 6, and item 7's correction of part D) the judge's instructions without the line each of those items added
+  const JUDGE_SYSTEM_BEFORE = BW.BW2_JUDGE_SYSTEM.split('\n').filter((line) => !line.startsWith('Decide the case the reader asks') && !line.startsWith('When the reader asks a ruling, a candidate')).join('\n');
   const kindOf = (b) => (b.system === RPMOD.REQUEST_PLAN_SYSTEM ? 'reading' : (b.system === FS.FRONT_SORTER_SYSTEM ? 'sorter' : (b.system === BW.BW2_JUDGE_SYSTEM ? 'judge' : (b.stream ? 'stream' : (b.tools ? 'round' : 'write')))));
   let seq = 0;
   /**
