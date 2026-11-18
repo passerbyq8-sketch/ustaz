@@ -2308,6 +2308,18 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       ok('A-2 a one-school question -> at most that school', JSON.stringify(BW2.completionLedger({ question: Q1, released: THREE.replace('\u0648\u0630\u0647\u0628 \u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629 \u0625\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0632.', '') }).map(kind)) === JSON.stringify(['school:3'])
         && BW2.completionLedger({ question: Q1, released: THREE }).length === 0);
       ok('A-2 an absence sentence already covering the school is not written twice', BW2.completionLedger({ question: Q4, released: THREE + ' ' + BW2.ledgerSchoolSentence('\u0627\u0644\u062d\u0646\u0641\u064a\u0629') }).length === 0);
+      // (ORDER BRAIN-B-R3 item 3, defect 5) a grade question whose released text already carries the ladder's no-ruling bracket
+      // \u00ab(<book> \u00b7 \u0644\u0645 \u064a\u0648\u0642\u0641 \u0639\u0644\u0649 \u062d\u0643\u0645)\u00bb is answered on the grade: the grader sentence is not added to say it again. Without the
+      // bracket the sentence is still added. Invented, a synthetic text that says it is one.
+      {
+        const QG3 = '\u0645\u0627 \u062f\u0631\u062c\u0629 \u0627\u0644\u062d\u062f\u064a\u062b \u0627\u0644\u0630\u064a \u0644\u0641\u0638\u0647 \u00abنص تجريبي يكتب للاختبار وحده ولا أصل له\u00bb\u061f';
+        const withTag = '\u0631\u0648\u064a \u0628\u0644\u0641\u0638 \u00abنص تجريبي يكتب للاختبار وحده ولا أصل له\u00bb (\u0623\u0628\u0648 \u062f\u0627\u0648\u062f \u00b7 \u0644\u0645 \u064a\u0648\u0642\u0641 \u0639\u0644\u0649 \u062d\u0643\u0645).';
+        const noTag = '\u0631\u0648\u064a \u0628\u0644\u0641\u0638 \u00abنص تجريبي يكتب للاختبار وحده ولا أصل له\u00bb.';
+        const gotTag = BW2.completionLedger({ question: QG3, released: withTag }).map(kind);
+        const gotNo = BW2.completionLedger({ question: QG3, released: noTag }).map(kind);
+        ok('A-2 R3-3 [round 3 item 3] the ladder\'s no-ruling bracket counts as the grade told: no second "no ruling" sentence; with no bracket the grader sentence stays',
+          BW2.asksGradeWord(QG3) && !gotTag.includes('grader') && gotNo.includes('grader'), JSON.stringify([gotTag, gotNo]));
+      }
       // \u2500\u2500 brain35-5g K1 (2026-11-09; DIAG7 K1, from our batches a777687f A-2) \u00b7 THE LEDGER COUNTS A SCHOOL NAMED BY ITS IMAM OR HIS COMPANIONS \u2500\u2500
       // MEASURED (DIAG7 K1-ledger-schools, preview Q8): three absence sentences for the schools the page quotes. Q8's question and its six
       // released paragraphs are copied by code from DIAG7 pages/Q8.roles.txt (the EXT report's page); the one-line inputs are the order's.
