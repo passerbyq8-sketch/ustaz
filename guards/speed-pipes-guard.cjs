@@ -369,43 +369,6 @@ function libraryPlain(markup) {
         && out5.telemetry.fatwaHits > 0 && out5.telemetry.judgeKept > 0 && out5.telemetry.unitsReleased > 0,
         ascii(JSON.stringify({ head: text5.slice(0, 60), direct: out5.telemetry.directFatwa, sources: (text5.match(/<source\b/gu) || []).length, urls: (text5.match(/https:\/\/[^\s"<>]+/gu) || []).map((u) => u.slice(0, 40)), marks: (text5.match(/\[\[\d+\]\]/gu) || []).length, len: text5.length, held: out5.telemetry.unitsHeld, rel: out5.telemetry.unitsReleased, kept: out5.telemetry.judgeKept, fatwaHits: out5.telemetry.fatwaHits })));
     }
-    // (ORDER BRAIN-B-R3 item 13) A HADITH QUESTION THE READING READ AS ONE GETS ITS HEAD. A question that quotes a text and asks of
-    // it in words the takhrij gate does not hold: with the reading's `hadith` part (readingAsksHadith) the head is asked and opens
-    // the answer, once; without it nothing changes (no head asked). A question in the gate's own words is asked as before. The
-    // quoted text is synthetic and says so.
-    {
-      const TK = await esm('lib/takhrij.js');
-      const M13 = 'نص تجريبي يكتب للاختبار وحده ولا أصل له';
-      const Q13 = 'ما قيمة حديث «' + M13 + '» عند المحدثين؟';
-      const Q13w = 'هل حديث «' + M13 + '» صحيح؟';
-      let looked = 0; const stubLookup = async () => { looked += 1; return { rows: [], atoms: [], entries: [] }; };
-      const noHint = await TK.gradingHeadForQuestion({ question: Q13, env: { TAKHRIJ_V1: 'on' }, lookup: stubLookup }); const lookedNo = looked;
-      await TK.gradingHeadForQuestion({ question: Q13, env: { TAKHRIJ_V1: 'on' }, lookup: stubLookup, readingAsksHadith: true }); const lookedHint = looked - lookedNo;
-      ok('R3-13a [round 3 item 13] the head of a quoted text the gate\'s words miss: no lookup without the reading\'s hint, the lookup made with it; the gate\'s own words as before',
-        !TK.asksGradeOfQuotedText(Q13) && TK.quotesAskedText(Q13) && TK.asksGradeOfQuotedText(Q13w) && noHint === null && lookedNo === 0 && lookedHint > 0, [lookedNo, lookedHint]);
-      const turn13 = async (question, hint) => {
-        const t = target(); const seen = [];
-        const facade = SSE.createFinalizedSseResponse(t, { finalize: (input) => ({ ok: true, text: String(input.text || ''), problems: [] }) });
-        const out = await BW2.runBw2Turn({
-          question, messages: [{ role: 'user', content: question }], wire: BW2.createBw2Wire(facade), band: 'adult', takhrijWired: true, readingAsksHadith: hint,
-          cards: { buildSourceTag: ASKM.buildSourceTag, buildBookTag: ASKM.buildBookTag, encyclopediaCards: false, max: 3 },
-          deps: {
-            gradingHeadForQuestion: async (input) => { seen.push(input.readingAsksHadith === true ? 'hint' : 'words'); return { head: 'THE-HEAD-R3-13.', callFailures: [] }; },
-            // (a head goes out with the first released unit: the turn is given one kept row, a synthetic fatwa, to answer from)
-            runTool: async (name, input, own) => { if (name === 'search_fatawa' && own && own.table) own.table.add({ kind: 'fatwa', url: 'https://binbaz.org.sa/fatwas/1', title: 'SYNTHETIC-R3-13', publisher: 'ابن باز', passage: 'تبيّن الفتوى الحكم في المسألة.', text: 'تبيّن الفتوى الحكم في المسألة.' }); return { text: '', added: [], calls: 1 }; },
-            searchStoredCorpus: async () => ({ records: [] }), encyclopediaReady: () => true, warmEncyclopedia: () => true,
-            ask: async ({ user }) => { const d = {}; for (const m of user.matchAll(/^\[(\d+)\]/gmu)) d[m[1]] = 1; return JSON.stringify({ d }); },
-            callWriter: async ({ onText, body }) => { onText('تبيّن الفتوى الحكم [[1]].'); return { stop_reason: 'end_turn', usage: {}, body }; },
-          },
-        });
-        return { text: textOf(t), seen, out };
-      };
-      const withHint = await turn13(Q13, true); const withoutHint = await turn13(Q13, false); const words = await turn13(Q13w, false);
-      ok('R3-13b [round 3 item 13] a turn whose reading wrote a hadith part asks the head of the quoted text and opens on it once; without the hint none is asked; a question in the gate\'s words is asked as before',
-        JSON.stringify(withHint.seen) === '["hint"]' && withHint.text.split('THE-HEAD-R3-13.').length === 2 && withHint.text.indexOf('THE-HEAD-R3-13.') < withHint.text.indexOf('تبيّن')
-        && withoutHint.seen.length === 0 && !withoutHint.text.includes('THE-HEAD-R3-13.') && JSON.stringify(words.seen) === '["words"]',
-        ascii(JSON.stringify({ hint: withHint.seen, no: withoutHint.seen, words: words.seen, head: withHint.text.slice(0, 40) })));
-    }
     // ORDER 51 item 3 (the owner's decision 3): A READER WHO NAMES AN ISSUER IS NOT ANSWERED WITH ANOTHER'S STORED FATWA. MEASURED (the 3 Oct preview, answer 10, «ما فتوى اللجنة الدائمة في الاحتفال بالمولد النبوي؟»): the
     // answer opened with the stored fatwa «المفتي: سليمان الماجد»; none of the 19 stores (74,769 fatwas) is the committee's (17 mention it, none on the mawlid). The stored fatwa that opens the answer is the named issuer's, or
     // none opens it and the writer answers from the rows. The issuer is named when lib/bw2-scholar.js resolves the name to books or a fatwa publisher this turn gathered is named; the publisher is named by his last name-word.

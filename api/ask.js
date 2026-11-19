@@ -197,12 +197,6 @@ const FREE_BRAIN_EMPTY = 'تعذَّر توليدُ الجوابِ الآن. أ�
 // complete answer, whatever state that answer is in, and the half-written last word ships exactly
 // as the model left it.
 const TRUNCATED_MARK = '\n<incomplete/>';
-// (ORDER BRAIN-B-R3 item 13) did the reading step write a part of kind `hadith` for the reader's own message? The applied plan, or
-// the valid plan the server refused (lib/request-plan.js keeps it as `refused`, never a follow-up's). A closed kind word, no text read.
-export function readingAsksHadithOf(outcome) {
-  const plan = outcome && outcome.state === 'plan' && outcome.plan ? outcome.plan : (outcome && outcome.refused ? outcome.refused : null);
-  return !!plan && plan.followup !== true && Array.isArray(plan.parts) && plan.parts.some((p) => p && p.kind === 'hadith');
-}
 // ITEM O2 (32) -- 2026-10-15 brain-line: one continuation call of a legacy stream (lib/continuation.js): the same request,
 // its messages followed by `tail`, streamed by the free brain's own transport; its deltas go to `push`.
 async function continueLegacyStream(request, headers, signal, tail, push) {
@@ -2403,9 +2397,6 @@ export default async function handler(req, res) {
           // BRAIN-A: what the reading settled (null: none), and the gather that ran beside it
           reading: readingForPath,
           pregather: readingPregather,
-          // (ORDER BRAIN-B-R3 item 13) the reading, applied or refused (never a follow-up's), wrote a part of kind `hadith` for this
-          // message: a quoted text it asks about gets its takhrij head even where the grade words of lib/takhrij.js miss the wording
-          readingAsksHadith: readingAsksHadithOf(readingOutcome),
         });
       } finally {
         bw2Upstream.cleanup();
