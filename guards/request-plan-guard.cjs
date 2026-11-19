@@ -2193,7 +2193,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
           {"id":"F7","q":"صف لي الغسل الكامل، وما سننه؟","plan":{"parts":[{"name":"صفة الغسل","q":"ما صفة الغسل الكامل؟","kind":"manner","act":"ghusl","aspect":"how_to","asked":"كيف أغتسل","src":"صف لي الغسل الكامل"},{"name":"سنن الغسل","q":"ما سنن الغسل؟","kind":"definition","act":"ghusl","aspect":"other","asked":"وما سننه","src":"وما سننه؟"}]},"want":{"check":"asked_not_found"}},
           {"id":"F8","q":"عندي كسر في ساقي ولا أقدر أن أسجد، كيف أصلي الصلاة كلها؟","plan":{"parts":[{"q":"كيف أصلي الصلاة كلها؟","kind":"manner","act":"salah","aspect":"how_to","asked":"كيف أصلي","src":"كيف أصلي الصلاة كلها؟"}]},"want":{"check":"not_covered","served":[""]}},
           {"id":"F9","q":"علمني الوضوء كاملا","plan":{"parts":[{"name":"الوضوء","q":"ما صفة الوضوء كاملا؟","kind":"manner","act":"wudu","aspect":"how_to","asked":"علمني","src":"علمني الوضوء كاملا"},{"name":"الوضوء الكامل","q":"ما الوضوء الكامل؟","kind":"definition","act":"wudu","aspect":"other","asked":"علمني","src":"علمني الوضوء كاملا"}]},"want":{"check":"src_overlap"}},
-          {"id":"F10","q":"علمني الغسل من أوله إلى آخره","plan":{"parts":[{"q":"كيف أغتسل من أول الغسل إلى آخره؟","kind":"manner","act":"ghusl","aspect":"how_to","asked":"علمني","src":"علمني الغسل من أوله إلى آخره"}]},"want":{"check":"verified","served":["worship"]}},
+          {"id":"F10","q":"علمني الغسل من أوله إلى آخره","plan":{"parts":[{"q":"كيف أغتسل من أول الغسل إلى آخره؟","kind":"manner","act":"ghusl","aspect":"how_to","asked":"علمني","src":"علمني الغسل من أوله إلى آخره"}]},"want":{"check":"one_part","served":[""]}},
           {"id":"F11","q":"أريد خطوات الوضوء بالترتيب","plan":{"parts":[{"q":"ما خطوات الوضوء بالترتيب؟","kind":"manner","act":"wudu"}]},"want":{"check":"no_aspect","served":["worship"]}},
           {"id":"F12","q":"متى أتيمم؟","plan":{"parts":[{"q":"متى أتيمم؟","kind":"manner","act":"tayammum","aspect":"time","asked":"متى","src":"متى أتيمم؟"}]},"want":{"check":"verified","served":[""]}},
           {"id":"F13","q":"لماذا نصلي؟","plan":{"parts":[{"q":"لماذا نصلي؟","kind":"manner","act":"salah","aspect":"reason","asked":"لماذا","src":"لماذا نصلي؟"}]},"want":{"check":"verified","served":[""]}},
@@ -2276,10 +2276,12 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
             same(w(marked), [String.fromCharCode(0x0627, 0x0645, 0x0631), String.fromCharCode(0x0645, 0x0648, 0x0645, 0x0646)]) && !same(w(aWord), w(hWord)) && same(w(''), []),
             [w(marked)]);
         }
-        ok('R2e [the card direction] a how-to worded with step words outside batch 1\'s lists, beside a list part and beside a ruling part, is verified and gets the card, and its plan is applied with the canonical-store rule lifted; a one-part how-to in step words gets the card as the bare request does',
-          ['F1', 'F2', 'F10'].every((id) => meets(C[id])) && decide(C.F1).reading.parts[0].served === 'worship' && decide(C.F1).reading.parts[0].act === 'wudu'
+        // (ORDER BRAIN-B-R4 5.3: this row held F10 too, a one-part how-to in step words that got the card as the bare request does.
+        // A plan of ONE part is now served the card only where production's decision serves it; F10 stands in rows R4a to R4c.)
+        ok('R2e [the card direction] a how-to worded with step words outside batch 1\'s lists, beside a list part and beside a ruling part, is verified and gets the card, and its plan is applied with the canonical-store rule lifted',
+          ['F1', 'F2'].every((id) => meets(C[id])) && decide(C.F1).reading.parts[0].served === 'worship' && decide(C.F1).reading.parts[0].act === 'wudu'
           && decide(C.F1).reading.retrieval === decide(C.F1).plan.parts[1].q,
-          shown(['F1', 'F2', 'F10']));
+          shown(['F1', 'F2']));
         ok('R2f [the FOUND 1 direction] a part that asks only the ruling, the time, the reason or the count of a worship with a card gets no card, whatever kind the reading wrote (each of these is labelled a manner part here); where batch 1\'s lists served the card alone, the reading\'s aspect now gives a written part',
           ['F3', 'F4', 'F5', 'F6', 'F12', 'F13', 'F14', 'F15'].every((id) => meets(C[id]) && decide(C[id]).plan.parts[0].kind === 'manner')
           && ['F12', 'F13', 'F14', 'F15'].every((id) => decide(C[id]).base[0] === 'worship' && decide(C[id]).d.served[0] === ''),
@@ -2387,6 +2389,45 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
           ok('E3b [part E item 3; handler] a turn whose plan the server refused writes the reason word to its answer log beside plan:invalid, on a preview and on production alike',
             [refusedPlain, refusedProd].every((r) => !r.crashed && flagsOfD(r).includes('plan:invalid') && flagsOfD(r).includes('plan_reason:written_parts')),
             [refusedPlain, refusedProd].map((r) => flagsOfD(r).filter((x) => x.startsWith('plan'))));
+        }
+        // ---------------------------------------------------------------- R4 (ORDER BRAIN-B-R4 5.3; the review of batch 2, section 2.2)
+        // A PLAN OF ONE PART IS SERVED THE CARD ONLY WHERE PRODUCTION'S DECISION SERVES IT TOO (lib/request-plan.js, the end of
+        // cardDecision). MEASURED on the capture BRAIN-B-R4-CAPTURE-20261119-1415Z: 3 of 3 one-part how-tos with a personal case in
+        // the sentence were answered by the card alone on the preview, where production wrote an answer with its sources. No message
+        // is added for these rows: every case is one of the invented cases above, and the second shape of F8 (the part's words are
+        // the whole message, the case inside them) and the full reading of F11 are built from those cases' own words.
+        {
+          const one = (c, extra) => ({ ...c, plan: { parts: [{ ...c.plan.parts[0], ...extra }] } });
+          const F8_WHOLE = one(C.F8, { src: C.F8.q });
+          const F11_READ = one(C.F11, { aspect: 'how_to', asked: C.F11.q.split(' ').slice(0, 2).join(' '), src: C.F11.q });
+          const r8 = decide(C.F8); const r8w = decide(F8_WHOLE); const r10 = decide(C.F10); const r11 = decide(F11_READ);
+          const line = (r) => (r.ok ? [r.d.check, r.d.served, r.base, r.notApplied, r.excluded, r.reading.parts.map((p) => p.served)] : ['refused', r.reason]);
+          ok('R4a [round 4, 5.3] a plan of ONE part read as a how-to and verified is served the card only where production\'s decision serves it too: a how-to with a personal case in the sentence gets no card in both shapes of its words (the case left out of them: not_covered; the whole message: one_part), a one-part how-to in step words outside batch 1\'s lists gets production\'s decision, and the bare request production serves keeps the card, verified',
+            RP.CARD_CHECKS.includes('one_part') && [r8, r8w, r10, r11].every((r) => r.ok && r.plan.parts.length === 1 && r.plan.parts[0].aspect === 'how_to')
+            && r8.d.check === 'not_covered' && same(r8.d.served, ['']) && r8.reading.parts[0].served === ''
+            && r8w.d.check === 'one_part' && same(r8w.d.served, ['']) && same(r8w.d.served, r8w.base) && same(r8w.d.acts, ['']) && r8w.notApplied === '' && r8w.reading.parts[0].served === '' && r8w.reading.parts[0].act === ''
+            && r10.d.check === 'one_part' && same(r10.d.served, ['']) && same(r10.d.served, r10.base) && r10.notApplied === '' && r10.reading.parts[0].served === ''
+            && r11.d.check === 'verified' && same(r11.d.served, ['worship']) && same(r11.base, ['worship']) && same(r11.d.acts, ['wudu']) && r11.reading.parts[0].served === 'worship',
+            [line(r8), line(r8w), line(r10), line(r11)]);
+          ok('R4b [round 4, 5.3] the path of such a turn is production\'s too: the canonical-store rule the reader\'s own words set stands for a one-part how-to whose card is not served, in both shapes of F8, as with batch 1\'s decision; and a plan of two parts is not touched -- a how-to beside a list part and beside a ruling part is still verified, still gets the card and still lifts that rule',
+            SC.bw2ScopeExclusion(C.F8.q) === 'canonical_store' && r8.excluded === 'canonical_store' && r8w.excluded === 'canonical_store'
+            && ['F1', 'F2'].every((id) => { const r = decide(C[id]); return r.ok && r.d.check === 'verified' && same(r.d.served, ['worship', '']) && r.notApplied === '' && r.excluded === '' && SC.bw2ScopeExclusion(C[id].q) === 'canonical_store'; }),
+            [SC.bw2ScopeExclusion(C.F8.q), r8.excluded, r8w.excluded, shown(['F1', 'F2'])]);
+          const flagsOf4 = (r) => (r.req && r.req.__answerLog && typeof r.req.__answerLog.record === 'function' ? (r.req.__answerLog.record().flags || []) : []);
+          const turn4 = async (c) => { const r = await drive(user(c.q), { plan: JSON.stringify(c.plan) }); return { ...r, flags: flagsOf4(r), closed: r.logs.some((a) => a[0] === '[closed-deen]'), bw2: (r.logOf('[free-brain]') || {}).bw2 }; };
+          const t8 = await turn4(C.F8); const t8w = await turn4(F8_WHOLE); const t10 = await turn4(C.F10); const t11 = await turn4(F11_READ); const t1 = await turn4(C.F1);
+          const written = (t) => !t.crashed && !t.closed && !/<worship /u.test(t.text) && t.text.trim().length > 0 && t.counts.writer + t.counts.other >= 1 && (t.logOf('[reading]') || {}).outcome === 'plan';
+          const seen = (t) => [t.crashed && String(t.crashed.message || t.crashed).slice(0, 80), t.closed, t.bw2, /<worship /u.test(t.text), t.text.trim().length, t.counts, t.flags.filter((f) => f.startsWith('card_check:') || f.startsWith('plan_card:'))];
+          ok('R4c [round 4, 5.3; handler] F8, a how-to with a personal case in the sentence, driven in both shapes of its words: a written turn each time -- no closed card, no card in the text, a writer asked -- and the two shapes are one turn (the same path, the same calls); F10 is a written turn too; the answer log carries the check\'s word and no card flag',
+            written(t8) && written(t8w) && written(t10) && t8.bw2 === t8w.bw2 && t8.text === t8w.text
+            && ['reading', 'sorter', 'fatwa', 'judge', 'writer', 'other'].every((k) => t8.counts[k] === t8w.counts[k])
+            && t8.flags.includes('card_check:not_covered') && t8w.flags.includes('card_check:one_part') && t10.flags.includes('card_check:one_part')
+            && [t8, t8w, t10].every((t) => !t.flags.some((f) => f.startsWith('plan_card:'))),
+            [seen(t8), seen(t8w), seen(t10)]);
+          ok('R4d [round 4, 5.3; handler] what the cure leaves as it was, driven: the bare one-part request production\'s decision serves is still the card alone, verified, with no writer; a how-to beside a list part still opens on the card on the before-writing path',
+            !t11.crashed && t11.closed && t11.text === '<worship id="wudu"></worship>' && t11.counts.judge + t11.counts.writer + t11.counts.other === 0 && t11.flags.includes('card_check:verified') && t11.flags.includes('plan_card:wudu')
+            && !t1.crashed && t1.bw2 === true && t1.text.trim().startsWith('<worship id="wudu"></worship>') && t1.flags.includes('card_check:verified') && t1.flags.includes('plan_card:wudu'),
+            [seen(t11), seen(t1)]);
         }
       }
 
