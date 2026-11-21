@@ -173,11 +173,11 @@ function libraryPlain(markup) {
     });
     const lib = seen.filter((s) => s.name === 'search_library');
     const fat = seen.filter((s) => s.name === 'search_fatawa');
-    // (ORDER BRAIN-B-R3 item 15) and, for each school asked that has one, its late relied-upon book in a member of its own
+    // (BRAIN-B-R6) round 3 item 15's late school books are not asked until batch 3 measures them: no member names one of the three
     const LATE = BW2.MADHHAB_BOOKS_PRIMARY.filter((m) => m.lateBookId).map((m) => m.lateBookId);
-    ok('P1d question 1 end to end: the general, the two comparative and the four madhhab members all ask the issue, and so does the fatwa store; and the three late school books (round 3 item 15), each alone',
-      lib.length >= 9 && lib.every((s) => s.query === KHAWF) && lib.filter((s) => s.books).length === 5 + LATE.length
-      && LATE.length === 3 && LATE.every((id) => lib.some((s) => s.books === id))
+    ok('P1d question 1 end to end: the general, the two comparative and the four madhhab members all ask the issue, and so does the fatwa store; and no member asks one of the three late school books (round 6)',
+      lib.length >= 6 && lib.every((s) => s.query === KHAWF) && lib.filter((s) => s.books).length === 5
+      && LATE.length === 3 && !seen.some((s) => s.books.split(',').some((b) => LATE.includes(b)))
       && fat.length === 1 && fat[0].query === KHAWF_AS_WRITTEN, ascii(JSON.stringify(seen)));
     {
       // (ORDER BRAIN-B-R3 item 14) A TAFSIR QUESTION ASKS THE APPROVED TAFSIR BOOKS. With `tafsir` (the reading wrote a part of kind
