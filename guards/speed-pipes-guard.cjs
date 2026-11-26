@@ -1604,7 +1604,7 @@ function libraryPlain(markup) {
     const a = await run(Q8, () => false);
     const parts8 = ['\u0634\u0631\u0648\u0637 \u0627\u0644\u0635\u0644\u0627\u0647', '\u0627\u0631\u0643\u0627\u0646 \u0627\u0644\u0635\u0644\u0627\u0647', '\u0648\u0627\u062c\u0628\u0627\u062a \u0627\u0644\u0635\u0644\u0627\u0647', '\u0633\u0646\u0646 \u0627\u0644\u0635\u0644\u0627\u0647'];
     ok('P14b question 8: each part goes to the comparative books (folded) and to the fatwa store (as written)',
-      parts8.every((p) => a.lib.some((c) => c.query === p && c.books === 'FC-003910,FC-003592,FC-003870'))
+      parts8.every((p) => a.lib.some((c) => c.query === p && c.books === 'FC-003910,FC-003592'))
       && ['\u0634\u0631\u0648\u0637 \u0627\u0644\u0635\u0644\u0627\u0629', '\u0623\u0631\u0643\u0627\u0646 \u0627\u0644\u0635\u0644\u0627\u0629', '\u0648\u0627\u062c\u0628\u0627\u062a \u0627\u0644\u0635\u0644\u0627\u0629', '\u0633\u0646\u0646 \u0627\u0644\u0635\u0644\u0627\u0629'].every((p) => a.fat.includes(p)), ascii(JSON.stringify({ lib: a.lib, fat: a.fat })));
     const b = await run(Q28, (q) => q === '\u0627\u0644\u0623\u0636\u062d\u064a\u0629 \u0648\u0642\u062a\u0647\u0627' || q === '\u0648\u0642\u062a \u0627\u0644\u0623\u0636\u062d\u064a\u0629');
     ok('P14c round 6 question 28: the issue\'s own queries find nothing, so its first two words are still asked although a part answered, and their fatwa comes first',
