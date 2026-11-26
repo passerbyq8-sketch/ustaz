@@ -141,6 +141,7 @@ const sha = (text) => crypto.createHash('sha256').update(String(text || '')).dig
   const RPMOD = await esm('lib/request-plan.js');
   const FS = await esm('lib/front-sorter.js');
   const BW = await esm('lib/before-writing-v2.js');
+  const sourceReader = await esm('lib/unit-source-reader.js').catch(() => null);
   const ASKMOD = await esm('api/ask.js');
   const FC = await esm('lib/fatwa-contract.js');
   const LEDGER_REDIS = await esm('lib/ledger/redis.js');
@@ -176,7 +177,33 @@ const sha = (text) => crypto.createHash('sha256').update(String(text || '')).dig
   const KEY = 'guard-not-a-real-key';
   // (ORDER BRAIN-B-R3 items 7 and 6, and item 7's correction of part D) the judge's instructions without the line each of those items added
   const JUDGE_SYSTEM_BEFORE = BW.BW2_JUDGE_SYSTEM.split('\n').filter((line) => !line.startsWith('Decide the case the reader asks') && !line.startsWith('When the reader asks a ruling, a candidate')).join('\n');
-  const kindOf = (b) => (b.system === RPMOD.REQUEST_PLAN_SYSTEM ? 'reading' : (b.system === FS.FRONT_SORTER_SYSTEM ? 'sorter' : (b.system === BW.BW2_JUDGE_SYSTEM ? 'judge' : (b.stream ? 'stream' : (b.tools ? 'round' : 'write')))));
+  function kindOf(b) {
+    if (sourceReader && b.system === sourceReader.UNIT_SOURCE_READER_SYSTEM) return 'unit_reader';
+    if (b.system === RPMOD.REQUEST_PLAN_SYSTEM) return 'reading';
+    if (b.system === FS.FRONT_SORTER_SYSTEM) return 'sorter';
+    if (b.system === BW.BW2_JUDGE_SYSTEM) return 'judge';
+    return b.stream ? 'stream' : b.tools ? 'round' : 'write';
+  }
+  if (!RECORD) {
+    const realFetch = globalThis.fetch;
+    try {
+      const seen = [];
+      const replies = ['S', 'U', 'W', 'unparsed', null];
+      globalThis.fetch = async (url, init) => {
+        seen.push(kindOf(JSON.parse(init.body)));
+        const verdict = replies.shift();
+        return verdict === null ? jsonResponse(url, { error: { type: 'overloaded_error' } }, 529)
+          : jsonResponse(url, { content: [{ type: 'text', text: verdict }], stop_reason: 'end_turn' });
+      };
+      const readings = [];
+      while (replies.length) readings.push(await sourceReader.readUnitSource({
+        unit: 'fixture', rows: [], headers: {}, model: 'fixture', providerUrl: 'https://provider.invalid/v1/messages',
+      }));
+      ok('R1 the unit reader has its own call kind and forwards only closed decisions',
+        seen.length === 5 && seen.every(k => k === 'unit_reader') && same(readings.map(r => r.verdict), ['S','U','W',null,null]));
+      ok('R2 a refused unit reader is attempted once and keeps its provider status', readings[4].status === 529 && readings[4].type === 'overloaded_error');
+    } finally { globalThis.fetch = realFetch; }
+  }
   let seq = 0;
   /**
    * One turn through the real handler. `provider(kind, nthOfKind)` says what the provider does for that call:
@@ -230,6 +257,7 @@ const sha = (text) => crypto.createHash('sha256').update(String(text || '')).dig
         if (does !== 'ok' && does !== 'stream_error') return jsonResponse(u, { type: 'error', error: { type: ERR[does] || 'api_error', message: 'the request said: ' + String(init.body).slice(0, 200) } }, does);
         if (kind === 'reading') return jsonResponse(u, { content: [{ type: 'text', text: plan || 'I cannot.' }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
         if (kind === 'sorter') return jsonResponse(u, { content: [{ type: 'text', text: sorter }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
+        if (kind === 'unit_reader') return jsonResponse(u, { content: [{ type: 'text', text: 'S' }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
         if (b.stream) {
           let done = false;
           return { ok: true, status: 200, headers: { get: () => 'text/event-stream' }, text: async () => '',
