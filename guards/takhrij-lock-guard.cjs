@@ -4361,8 +4361,8 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       askE.includes("takhrijProvenRows.push({ title: '', passage: '', proseProof: { book, matn: String(entry.matn || '') } });")
         && askE.includes("takhrijProvenRows.push({ title: book, passage: book + ' ' + String(entry.matn || '') })"));
     const srcE = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
-    const seamE = '    const prune = prunedProseCredit(s, sen, body, unsupported, proseProofs);';
-    const mutatedE = srcE.split(seamE).join('    const prune = null; // mutant');
+    const seamE = '    let prune = prunedProseCredit(s, sen, body, unsupported, proseProofs);';
+    const mutatedE = srcE.split(seamE).join('    let prune = null; // mutant');
     ok('MUTANT e55 prune seam applied', mutatedE !== srcE);
     const tmpE = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-e55-mut-'));
     try {
