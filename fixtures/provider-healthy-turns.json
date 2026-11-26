@@ -98,7 +98,7 @@
     "fatwa GET /api/v1/fatwas/search?q=%D8%B9%D8%AF%D8%A9+%D8%A7%D9%84%D9%85%D8%B7%D9%84%D9%82%D8%A9+%D8%AA%D8%AD%D9%8A%D8%B6&scholar=all&page=1&limit=12&view=full e3b0c44298fc1c14",
     "model judge c1eb356948bdabef",
     "model sorter 791f5eeafaca6926",
-    "model stream 0353f61832e37d31"
+    "model stream a8b6386dc2bb43d7"
    ],
    "logs": [
     [
@@ -602,7 +602,7 @@
     "fatwa GET /api/v1/fatwas/search?q=%D9%8A%D8%A8%D8%B9%D8%AF+%D8%A7%D9%84%D9%82%D9%85%D8%B1+%D8%A7%D9%84%D8%A3%D8%B1%D8%B6&scholar=all&page=1&limit=12&view=full e3b0c44298fc1c14",
     "model judge b51e4907bc7bf868",
     "model sorter 45d86d03e01b7021",
-    "model stream 3b523dab7f4868f1"
+    "model stream de2861206a5b7dd9"
    ],
    "logs": [
     [
@@ -1107,7 +1107,7 @@
     "model judge a433241a941d0e90",
     "model round c7e377e932c07960",
     "model sorter 5b13a22a3d14be7d",
-    "model stream e5f3089672be8a0c"
+    "model stream bb312c91a86e29a6"
    ],
    "logs": [
     [
