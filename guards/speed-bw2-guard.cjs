@@ -778,7 +778,7 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       const tmp51 = path.join(REPO, 'lib', '.mut-order51-2.mjs');
       try {
         const src51 = fs.readFileSync(path.join(REPO, 'lib/bw2-units.js'), 'utf8').split('\r\n').join('\n');
-        const seamP = "    if (!leans && heldWordSets.length && pointsBackAtWords(current.body) && orphanWords(current.body, heldWordSets, foldedReleased).length) { hold('dependent_on_held', current); return; }\n";
+        const seamP = "    if (!suggestions && !leans && heldWordSets.length && pointsBackAtWords(current.body) && orphanWords(current.body, heldWordSets, foldedReleased).length) { hold('dependent_on_held', current); return; }";
         const seamO = 'orphanWords(current.body, heldWordSets, foldedReleased).length) {';
         const seamE = "'\\u0639\\u0646\\u062f\\u0647\\u0645', '\\u0639\\u0646\\u062f\\u0647', '\\u0639\\u0646\\u062f\\u0647\\u0627', '\\u0639\\u0646\\u062f\\u0647\\u0645\\u0627']);";
         ok('ORDER51-2 MUTANTS applied (the three seams found once)', src51.split(seamP).length === 2 && src51.split(seamO).length === 2 && src51.split(seamE).length === 2);
