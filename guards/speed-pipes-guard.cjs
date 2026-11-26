@@ -559,8 +559,9 @@ function libraryPlain(markup) {
     const TA = 'وعند الشافعية أن المؤخر مقصر بإضافته إلى من صلى في أول الوقت';
     const d = await rel([BAYAN], TA + ' [[1]].');
     const d2 = await rel([rowOf(XA.bayan_2_44, 1, 'FC-003660')], TA + ' [[1]].');
-    ok('W6A1f a book with no school tag (al-Bayan, FC-003653) licenses no school by «قال أصحابنا»; control: the same page as a row of the tagged Shafi\'i book is licensed',
-      !d.text.includes('الشافعية') && d.holds.unsupported_school === 1 && d2.text.includes('وعند الشافعية'), ascii(JSON.stringify([d, d2])));
+    const untagged = await rel([rowOf(XA.bayan_2_44, 1, 'FC-000000')], TA + ' [[1]].');
+    ok('W6A1f al-Bayan is catalogued as Shafii; its own-voice passage is licensed, while an untagged control is held',
+      !d.holds.unsupported_school && d.text.includes(TA.slice(0, 10)) && d2.text.includes(TA.slice(0, 10)) && untagged.holds.unsupported_school === 1, ascii(JSON.stringify([d, d2, untagged])));
     const e = await rel([rowOf(XA.badai_4_137, 1)], 'ومذهب الحنفية أن الخمر مال متقوم [[1]].');
     const e2 = await rel([rowOf(XA.badai_7_352, 1)], 'ومذهب الحنفية أن الكلب المعلم مال متقوم تجوز الوصية به [[1]].');
     ok('W6A1g a Hanafi row whose «عندهم» is about others (Bada\'i 4:137 «مال متقوم عندهم كالخل والشاة عندنا») licenses no Hanafi view; control: Bada\'i 7:352 «لأنه متقوم عندنا» does',
