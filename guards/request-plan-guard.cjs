@@ -2821,10 +2821,10 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     const card = '<worship id="wudu"></worship>';
     // (ORDER A-TAKHRIJ 4.1, 2026-11-13: a part the server answers has no heading. These four rows counted the served part's name ONCE,
     // the server's own line above its card; it is nowhere now.)
-    ok('L9 [item 5] B19w: the writer wrote the name and the card of the part the server had already answered -- the card stands ONCE in the answer and that name NOWHERE (the server prints no heading above its part; the writer\'s repeat is dropped), and the other part has its name; the units released are the capture\'s less those two',
+    ok('L9 [item 5] B19w: the writer wrote the name and the card of the part the server had already answered -- the card stands ONCE in the answer and that name NOWHERE (the server prints no heading above its part; the writer\'s repeat is dropped), and the other part has its name; the two repeats stay suppressed and the bound school unit is released',
       b19w.served.length === 1 && count(b19w.raw, '### ' + servedTitle) === 1 && count(b19w.raw, card) === 1
       && heads(b19w, servedTitle) === 0 && count(b19w.text, '<worship') === 1 && b19w.parts.length === 1 && heads(b19w, b19w.parts[0].title) === 1
-      && b19w.text.indexOf(card) < b19w.text.indexOf('### ' + b19w.parts[0].title) && b19w.out.telemetry.unitsReleased === b19w.recorded.released - 2, [heads(b19w, servedTitle), count(b19w.text, '<worship'), b19w.out.telemetry.unitsReleased]);
+      && b19w.text.indexOf(card) < b19w.text.indexOf('### ' + b19w.parts[0].title) && b19w.out.telemetry.unitsReleased === b19w.recorded.released - 1, [heads(b19w, servedTitle), count(b19w.text, '<worship'), b19w.out.telemetry.unitsReleased]);
     {
       const own = '### ' + b19w.parts[0].title;
       const spell = async (tagText) => replay('F-B19w', { writer: b19w.raw.split(card).join(tagText) });
