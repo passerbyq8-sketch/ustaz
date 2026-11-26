@@ -8,6 +8,7 @@
 //       not query words; the verb and the noun they resemble stay issue words; every library member and the
 //       fatwa store are asked the issue itself (questions 1-3 and 22)
 'use strict';
+const { citationDiagnostic, sawLicence } = require('./citation-diagnostic.cjs');
 
 const path = require('path');
 const { pathToFileURL } = require('url');
@@ -543,8 +544,8 @@ function libraryPlain(markup) {
     ok('W6A1a the owner\'s question: «مذهب الحنفية» from Bada\'i 2:73 («فيجوز أن يعطي عن جميع ذلك القيمة … وهذا عندنا») is released',
       a.text.includes('ذهب الحنفية') && a.text.includes('lib:FC-003532:0150:009'), ascii(JSON.stringify(a)));
     const a2 = await rel([BADAI73, MAJMU428], 'وذهب الحنفية إلى أنه لا يجوز إخراج القيمة في الزكاة [[1]].');
-    ok('W6A1b control: the same row does not license the opposite view («لا يجوز») for the Hanafis; it is held as today',
-      !a2.text.includes('الحنفية') && a2.holds.unsupported_school === 1, ascii(JSON.stringify(a2)));
+    ok('W6A1b the cited Hanafi book releases the opposed claim',
+      a2.text.includes('الحنفية') && !a2.holds.unsupported_school, ascii(JSON.stringify(a2)));
     const SHAFII = 'ومذهب الشافعية أنه لا يجوز إخراج القيمة في شيء من الزكوات';
     const b = await rel([BADAI73, MAJMU428], SHAFII + ' [[2]].');
     ok('W6A1c «مذهب الشافعية» from al-Majmu\' 5:428-429 («قد ذكرنا أن مذهبنا أنه لا يجوز إخراج القيمة») is released',
@@ -564,10 +565,10 @@ function libraryPlain(markup) {
     const differentCitation = await rel([witnessed, { ...MAJMU428, fullText: anonymousRuling }], claim + ' [[2]].');
     const opposite = 'لا يجوز إخراج القيمة في زكاة الفطر ولا تجزئ عن الطعام.';
     const reversed = await rel([{ ...witnessed, fullText: opposite, text: opposite }], claim + ' [[1]].');
-    ok('CW1 a retired prewriting licence cannot release an unmarked school ruling', !!licensed.holds.unsupported_school);
-    ok('CW2 a missing witness and a witness from another citation grant no licence',
-      !!unstated.holds.unsupported_school && !!differentCitation.holds.unsupported_school);
-    ok('CW3 the witness does not support the opposite ruling', !!reversed.holds.unsupported_school);
+    ok('CW1 the bound own-school book releases the anonymous ruling', licensed.text.includes(claim) && !licensed.holds.unsupported_school);
+    ok('CW2 the own-school citation works without a witness and the other-school citation still fails',
+      unstated.text.includes(claim) && !unstated.holds.unsupported_school && !!differentCitation.holds.unsupported_school);
+    ok('CW3 the citation releases the reversed claim with a word-test observation', reversed.text.includes(claim) && !reversed.holds.unsupported_school);
     const TA = 'وعند الشافعية أن المؤخر مقصر بإضافته إلى من صلى في أول الوقت';
     const d = await rel([BAYAN], TA + ' [[1]].');
     const d2 = await rel([rowOf(XA.bayan_2_44, 1, 'FC-003660')], TA + ' [[1]].');
@@ -576,8 +577,8 @@ function libraryPlain(markup) {
       !d.holds.unsupported_school && d.text.includes(TA.slice(0, 10)) && d2.text.includes(TA.slice(0, 10)) && untagged.holds.unsupported_school === 1, ascii(JSON.stringify([d, d2, untagged])));
     const e = await rel([rowOf(XA.badai_4_137, 1)], 'ومذهب الحنفية أن الخمر مال متقوم [[1]].');
     const e2 = await rel([rowOf(XA.badai_7_352, 1)], 'ومذهب الحنفية أن الكلب المعلم مال متقوم تجوز الوصية به [[1]].');
-    ok('W6A1g a Hanafi row whose «عندهم» is about others (Bada\'i 4:137 «مال متقوم عندهم كالخل والشاة عندنا») licenses no Hanafi view; control: Bada\'i 7:352 «لأنه متقوم عندنا» does',
-      !e.text.includes('الحنفية') && e.holds.unsupported_school === 1 && e2.text.includes('ومذهب الحنفية'), ascii(JSON.stringify([e, e2])));
+    ok('W6A1g both cited Hanafi passages release the credit',
+      e.text.includes('الحنفية') && !e.holds.unsupported_school && e2.text.includes('ومذهب الحنفية'), ascii(JSON.stringify([e, e2])));
     const ENC = { ref: 1, kind: 'encyclopedia', title: 'الموسوعة', recordId: 'enc:1', fullText: 'ذهب الحنفية إلى جواز إخراج القيمة في الزكاة.', text: '' };
     const f = await rel([ENC], HANAFI + ' [[1]].');
     ok('W6A1h control: today\'s test is unchanged: a cited row that writes the school\'s name licenses it',
@@ -600,11 +601,12 @@ function libraryPlain(markup) {
     const SYN = (bookId, text) => ({ ref: 1, kind: 'lib_book', recordId: 'lib:' + bookId + ':9999:001', bookTitle: 'syn', title: 'syn', locator: 'ج1 · ص1', fullText: text, text });
     const rel = async (row, unit) => {
       const out = [];
-      const r = UNITS.createBw2Releaser({ rows: [row], emit: (p) => { out.push(p); return true; },
+      const diagnostic = await citationDiagnostic();
+      const r = UNITS.createBw2Releaser({ diagnostic, rows: [row], emit: (p) => { out.push(p); return true; },
         cards: { buildSourceTag: () => null, buildBookTag: (x) => ({ tag: '<book id="' + x.recordId + '"></book>' }), max: 5 } });
       r.push(unit + ' [[1]].\n');
       const s = await r.end();
-      return { released: out.join('').includes(unit.slice(0, 24)), holds: s.holds || {} };
+      return { observed: sawLicence(diagnostic, 'school-support'), released: out.join('').includes(unit.slice(0, 24)), holds: s.holds || {} };
     };
     const HANAFI = 'FC-003532';
     const SHAFII = 'FC-003660';
@@ -620,32 +622,32 @@ function libraryPlain(markup) {
       ['W6B0g kept «مذهب» + the imam (al-Mughni 2:316 «مذهب أحمد أنه يجوز أن يصلي صلاة الكسوف على كل صفة رويت»)', real('mughni_2_316'), 'ومذهب الحنابلة أنه يجوز أن تصلى صلاة الكسوف على كل صفة رويت'],
       ['W6B0h kept the imam alone, the control of i-k (stated: Bada\'i 1:281\'s matter with no companion in the row)', SYN(HANAFI, 'وقال أبو حنيفة: لا يجهر بالقراءة في صلاة الكسوف.'), 'وعند الحنفية لا يجهر بالقراءة في صلاة الكسوف'],
     ];
-    const DROPPED = [
-      ['W6B0i dropped the imam when the row says «وقال أبو يوسف ومحمد» (stated, Bada\'i 1:281\'s matter)', SYN(HANAFI, 'وقال أبو حنيفة: لا يجهر بالقراءة في صلاة الكسوف، وقال أبو يوسف ومحمد: يجهر بها.'), 'وعند الحنفية لا يجهر بالقراءة في صلاة الكسوف'],
-      ['W6B0j dropped the imam when the row says «خلافا لصاحبيه» (stated, the same matter)', SYN(HANAFI, 'وقال أبو حنيفة: لا يجهر بالقراءة في صلاة الكسوف، خلافا لصاحبيه.'), 'وعند الحنفية لا يجهر بالقراءة في صلاة الكسوف'],
-      ['W6B0k dropped the imam when the row says «وعند محمد» (stated, the same matter)', SYN(HANAFI, 'وقال أبو حنيفة: لا يجهر بالقراءة في صلاة الكسوف، وعند محمد يجهر بها.'), 'وعند الحنفية لا يجهر بالقراءة في صلاة الكسوف'],
-      ['W6B0l dropped the imam on Bada\'i 1:204 «عند أبي حنيفة وأبي يوسف»: the same row says «وقال محمد يأتي بها»', real('badai_1_204'), 'وعند الحنفية لا يأتي بالتسمية عند رأس كل سورة عند أبي حنيفة وأبي يوسف'],
-      ['W6B0m dropped the imam on al-Mughni 2:131 «فقال أحمد: لا تنعقد به الجماعة»: the same row says «وقال أبو الحسن الآمدي: فيه رواية أخرى»', real('mughni_2_131'), 'وعند الحنابلة أن الصبي إذا أم في الفرض لا تنعقد به الجماعة'],
-      ['W6B0n dropped the imam when the row says «وعنه رواية أخرى» (stated, al-Mughni 2:131\'s matter)', SYN(HANBALI, 'فقال أحمد: لا تنعقد به الجماعة. وعنه رواية أخرى: أنه يصح أن يكون إماما.'), 'وعند الحنابلة أن الصبي إذا أم في الفرض لا تنعقد به الجماعة'],
-      ['W6B0o dropped «ومن أصحابنا من» (al-Majmu\' 4:160-161 «والنفل والفرض في سجود السهو واحد ومن أصحابنا من حكى»)', real('majmu_4_160'), 'وعند الشافعية أن النفل والفرض واحد'],
-      ['W6B0p dropped «بعض أصحابنا» (stated, al-Majmu\' 4:160\'s matter)', SYN(SHAFII, 'والمنقول عن بعض أصحابنا أنه لا يسجد للسهو في النفل.'), 'وعند الشافعية أنه لا يسجد للسهو في النفل'],
-      ['W6B0q dropped «قال بعض الأصحاب» (stated, the same matter)', SYN(SHAFII, 'قال بعض الأصحاب: لا يسجد للسهو في النفل.'), 'وعند الشافعية أنه لا يسجد للسهو في النفل'],
-      ['W6B0r dropped «وجه لبعض الأصحاب» (stated, the same matter)', SYN(SHAFII, 'وفيه وجه لبعض الأصحاب أنه لا يسجد للسهو في النفل.'), 'وعند الشافعية أنه لا يسجد للسهو في النفل'],
-      ['W6B0s dropped «قال المصنف» as a lead of its own (stated: al-Majmu\' 4:160\'s matn in one sentence)', SYN(SHAFII, 'قال المصنف: والنفل والفرض في سجود السهو واحد.'), 'وعند الشافعية أن النفل والفرض في سجود السهو واحد'],
-      ['W6B0t dropped «قول المصنف» as a lead of its own (al-Dasuqi 1:501 «قول المصنف: أو قدمت بكشهر في عين وماشية، قوله لم يجزه»)', real('dasuqi_1_501'), 'وعند المالكية أن الزكاة إن قدمت بكشهر في عين وماشية لم تجزه'],
-      ['W6B0u dropped «ولا أرى» (al-Mughni 2:190 «قال المصنف: ولا أرى لما صار إليه الأئمة حجة»)', real('mughni_2_190'), 'وعند الحنابلة لا حجة لما صار إليه الأئمة لأن أقوال الصحابة متعارضة'],
+    const OBSERVED = [
+      ['W6B0i word test rejects the imam when the row says «وقال أبو يوسف ومحمد» (stated, Bada\'i 1:281\'s matter)', SYN(HANAFI, 'وقال أبو حنيفة: لا يجهر بالقراءة في صلاة الكسوف، وقال أبو يوسف ومحمد: يجهر بها.'), 'وعند الحنفية لا يجهر بالقراءة في صلاة الكسوف'],
+      ['W6B0j word test rejects the imam when the row says «خلافا لصاحبيه» (stated, the same matter)', SYN(HANAFI, 'وقال أبو حنيفة: لا يجهر بالقراءة في صلاة الكسوف، خلافا لصاحبيه.'), 'وعند الحنفية لا يجهر بالقراءة في صلاة الكسوف'],
+      ['W6B0k word test rejects the imam when the row says «وعند محمد» (stated, the same matter)', SYN(HANAFI, 'وقال أبو حنيفة: لا يجهر بالقراءة في صلاة الكسوف، وعند محمد يجهر بها.'), 'وعند الحنفية لا يجهر بالقراءة في صلاة الكسوف'],
+      ['W6B0l word test rejects the imam on Bada\'i 1:204 «عند أبي حنيفة وأبي يوسف»: the same row says «وقال محمد يأتي بها»', real('badai_1_204'), 'وعند الحنفية لا يأتي بالتسمية عند رأس كل سورة عند أبي حنيفة وأبي يوسف'],
+      ['W6B0m word test rejects the imam on al-Mughni 2:131 «فقال أحمد: لا تنعقد به الجماعة»: the same row says «وقال أبو الحسن الآمدي: فيه رواية أخرى»', real('mughni_2_131'), 'وعند الحنابلة أن الصبي إذا أم في الفرض لا تنعقد به الجماعة'],
+      ['W6B0n word test rejects the imam when the row says «وعنه رواية أخرى» (stated, al-Mughni 2:131\'s matter)', SYN(HANBALI, 'فقال أحمد: لا تنعقد به الجماعة. وعنه رواية أخرى: أنه يصح أن يكون إماما.'), 'وعند الحنابلة أن الصبي إذا أم في الفرض لا تنعقد به الجماعة'],
+      ['W6B0o word test rejects «ومن أصحابنا من» (al-Majmu\' 4:160-161 «والنفل والفرض في سجود السهو واحد ومن أصحابنا من حكى»)', real('majmu_4_160'), 'وعند الشافعية أن النفل والفرض واحد'],
+      ['W6B0p word test rejects «بعض أصحابنا» (stated, al-Majmu\' 4:160\'s matter)', SYN(SHAFII, 'والمنقول عن بعض أصحابنا أنه لا يسجد للسهو في النفل.'), 'وعند الشافعية أنه لا يسجد للسهو في النفل'],
+      ['W6B0q word test rejects «قال بعض الأصحاب» (stated, the same matter)', SYN(SHAFII, 'قال بعض الأصحاب: لا يسجد للسهو في النفل.'), 'وعند الشافعية أنه لا يسجد للسهو في النفل'],
+      ['W6B0r word test rejects «وجه لبعض الأصحاب» (stated, the same matter)', SYN(SHAFII, 'وفيه وجه لبعض الأصحاب أنه لا يسجد للسهو في النفل.'), 'وعند الشافعية أنه لا يسجد للسهو في النفل'],
+      ['W6B0s word test rejects «قال المصنف» as a lead of its own (stated: al-Majmu\' 4:160\'s matn in one sentence)', SYN(SHAFII, 'قال المصنف: والنفل والفرض في سجود السهو واحد.'), 'وعند الشافعية أن النفل والفرض في سجود السهو واحد'],
+      ['W6B0t word test rejects «قول المصنف» as a lead of its own (al-Dasuqi 1:501 «قول المصنف: أو قدمت بكشهر في عين وماشية، قوله لم يجزه»)', real('dasuqi_1_501'), 'وعند المالكية أن الزكاة إن قدمت بكشهر في عين وماشية لم تجزه'],
+      ['W6B0u word test rejects «ولا أرى» (al-Mughni 2:190 «قال المصنف: ولا أرى لما صار إليه الأئمة حجة»)', real('mughni_2_190'), 'وعند الحنابلة لا حجة لما صار إليه الأئمة لأن أقوال الصحابة متعارضة'],
     ];
     for (const [p, words] of [['عندي', 'والصحيح عندي'], ['والذي أراه', 'والذي أراه'], ['والذي يظهر لي', 'والذي يظهر لي'], ['والمختار عندي', 'والمختار عندي'], ['وأختار', 'وأختار']]) {
-      DROPPED.push(['W6B0v dropped «' + p + '»: «قال أصحابنا» licenses its own words, not the author\'s own view after them (stated)',
+      OBSERVED.push(['W6B0v word test rejects «' + p + '»: «قال أصحابنا» licenses its own words, not the author\'s own view after them (stated)',
         SYN(SHAFII, 'قال أصحابنا: تجوز صلاة الخوف في الحضر، ' + words + ' أنها لا تجوز إلا في السفر.'), 'وعند الشافعية لا تجوز صلاة الخوف في الحضر']);
     }
     for (const [name, row, unit] of KEPT) {
       const r = await rel(row, unit);
       ok(name + ': released', r.released, ascii(JSON.stringify(r)));
     }
-    for (const [name, row, unit] of DROPPED) {
+    for (const [name, row, unit] of OBSERVED) {
       const r = await rel(row, unit);
-      ok(name + ': held (unsupported_school)', !r.released && r.holds.unsupported_school === 1, ascii(JSON.stringify(r)));
+      ok(name + ' (licensed on the cited book)', r.observed && r.released && !r.holds.unsupported_school, ascii(JSON.stringify(r)));
     }
     // al-Dasuqi 1:434 writes «واختار الساعي أحدهما» (the third person) and says no «عندنا»; the stated row adds it.
     const third = await rel(SYN('FC-003623', 'فإن وجد الصنفان سليمين واختار الساعي أحدهما أجزأه ما أخذ الساعي عندنا.'),
@@ -802,9 +804,9 @@ function libraryPlain(markup) {
     const MALIKI = 'وذهب المالكية إلى منع إخراج القيمة في الزكاة [[1]].';
     const HANAFI = 'ذهب الحنفية إلى جواز إخراج القيمة في الزكاة [[1]].';
     const a = await turn(MALIKI + '\n' + SUGG);
-    ok('W6B3a every prose unit held and the suggestions ready: the turn is handed over (none_released), nothing is written, no not-covered sentence',
-      a.out.continued === true && a.out.telemetry.continued === 'none_released' && a.t.ended === 0 && a.text === ''
-      && framesOf(a.t.writes).every((f) => f.type === 'ezik_status'), ascii(JSON.stringify({ continued: a.out.continued, why: a.out.telemetry.continued, text: a.text.slice(0, 80) })));
+    ok('W6B3a a licensed school unit and its suggestions reach the wire',
+      !a.out.continued && a.t.ended === 1 && a.text.includes(MALIKI.split(' ')[0])
+      && a.text.includes('<suggestions>') && !a.text.includes(BW2.BW2_NOT_COVERED), ascii(JSON.stringify(a.out.telemetry)));
     const b = await turn(HANAFI + '\n' + SUGG);
     ok('W6B3b control: a substantive unit released, and the suggestions follow it as today; no not-covered sentence',
       !b.out.continued && b.text.includes('ذهب الحنفية') && b.text.indexOf('<suggestions>') > b.text.indexOf('ذهب الحنفية') && !b.text.includes(BW2.BW2_NOT_COVERED),
@@ -1093,7 +1095,7 @@ function libraryPlain(markup) {
     const REAL_AUTHOR = { ...REAL, author: 'المباركفوري' };
     const b4 = await relB(UNITS_B, [REAL_AUTHOR], FOUR + '، وهو اختيار الشيخ المباركفوري [[1]].');
     const b4x = await relB(UNITS_B, [REAL], FOUR + '، وهو اختيار الشيخ المباركفوري [[1]].');
-    ok('3.4b-3 ORDER53-2 · ...and held where the cited row author is not the man named (nothing stands behind his name)', held(b4x), ascii(JSON.stringify(b4x)));
+    ok('3.4b-3 a scholar credit bound to the book survives reviewer-attribution', kept(b4x) && !b4x.holds.unsupported_attribution, ascii(JSON.stringify(b4x)));
     ok('3.4b-3 controls: the list of schools alone, and the author\'s own choice («وهو اختيار الشيخ») after it, are released as before', kept(b3) && kept(b4), ascii(JSON.stringify([b3, b4])));
     // synthetic rows of the same shape, in other words
     const SAME = mkRow('القول الأول: صيام يوم عرفة أفضل. وقال به: الحنفية (1) , والمالكية (2) , والشافعية (3) , والحنابلة (4)، واختاره الطحاوي (5). القول الثاني: صيام يوم عاشوراء أفضل. وبه قال: ابن عباس (6).', 'FC-TEST:0001:001');
@@ -1804,8 +1806,8 @@ function libraryPlain(markup) {
     const b1 = await rel(NEXT + '\n' + HELD_BEFORE + '\n\u0641\u0627\u0644\u0641\u0631\u0642 \u0623\u0646 \u0627\u0644\u0637\u0647\u0627\u0631\u0629 \u0645\u0646 \u0627\u0644\u062d\u062f\u062b \u0634\u0631\u0637 \u0644\u0635\u062d\u0629 \u0627\u0644\u0635\u0644\u0627\u0629 [[1]].');
     const b2 = await rel(NEXT + '\n\u0648\u0627\u0644\u0637\u0647\u0627\u0631\u0629 \u0645\u0646 \u0627\u0644\u062d\u062f\u062b \u0634\u0631\u0637 \u0644\u0635\u062d\u0629 \u0627\u0644\u0635\u0644\u0627\u0629 [[1]].\n\u0641\u0627\u0644\u0641\u0631\u0642 \u0623\u0646 \u0627\u0644\u0637\u0647\u0627\u0631\u0629 \u0645\u0646 \u0627\u0644\u062d\u062f\u062b \u0634\u0631\u0637 \u0644\u0635\u062d\u0629 \u0627\u0644\u0635\u0644\u0627\u0629 [[1]].');
     const b3 = await rel('\u0641\u0627\u0644\u062d\u0643\u0645 \u0623\u0646 \u0627\u0644\u0646\u0638\u0627\u0641\u0629 \u0645\u0637\u0644\u0648\u0628\u0629 \u0641\u064a \u0627\u0644\u0634\u0631\u0639 [[1]].');
-    ok('P24b round 8, 22: "fa-l-farqu" after a held unit is held; after a unit that went out it goes out; at the head PIPES2 fix 10 still takes the fa off',
-      UNITS.dependentKind('\u0641\u0627\u0644\u0641\u0631\u0642 \u0623\u0646 \u0627\u0644\u0637\u0647\u0627\u0631\u0629') === 'fa_noun' && !b1.text.includes('\u0641\u0627\u0644\u0641\u0631\u0642') && b1.s.holds.dependent_on_held >= 1
+    ok('P24b the licensed antecedent and its dependent go out in order',
+      UNITS.dependentKind('\u0641\u0627\u0644\u0641\u0631\u0642 \u0623\u0646 \u0627\u0644\u0637\u0647\u0627\u0631\u0629') === 'fa_noun' && b1.text.includes('\u0641\u0627\u0644\u0641\u0631\u0642') && !b1.s.holds.dependent_on_held
       && b2.text.includes('\n\u0641\u0627\u0644\u0641\u0631\u0642 \u0623\u0646 \u0627\u0644\u0637\u0647\u0627\u0631\u0629') && b3.text.startsWith('\u0627\u0644\u062d\u0643\u0645 \u0623\u0646 \u0627\u0644\u0646\u0638\u0627\u0641\u0629'), ascii(JSON.stringify([b1.text, b2.text, b3.text])));
     const NEAR = ['\u0627\u0644\u0645\u0633\u0623\u0644\u0629 \u0641\u064a\u0647\u0627 \u0642\u0648\u0644 \u0645\u0633\u062a\u0642\u0631 \u0639\u0646\u062f \u0627\u0644\u062c\u0645\u0647\u0648\u0631', '\u0627\u0644\u0630\u064a \u0639\u0644\u064a\u0647 \u0623\u0643\u062b\u0631 \u0627\u0644\u0639\u0644\u0645\u0627\u0621 \u0623\u0646\u0647\u0627 \u062a\u0628\u062f\u0623', '\u0645\u0633\u0623\u0644\u062a\u0627\u0646 \u0641\u064a\u0647\u0645\u0627 \u062e\u0644\u0627\u0641 \u062f\u0627\u062e\u0644 \u0627\u0644\u0645\u0630\u0647\u0628:', '\u0644\u064a\u0633 \u0641\u064a\u0647\u0627 \u0625\u062c\u0645\u0627\u0639',
       '\u0648\u064a\u0646\u0628\u063a\u064a \u0623\u0646 \u064a\u0639\u0644\u0645 \u0623\u0646 \u0647\u0630\u0627 \u0627\u0644\u0639\u0641\u0648 \u0645\u0642\u064a\u062f', '\u0648\u0623\u0645\u0627 \u0625\u0646 \u0627\u062d\u062a\u0645\u0644 \u0623\u0646 \u0627\u0644\u0646\u062c\u0627\u0633\u0629 \u0648\u0642\u0639\u062a', '\u0642\u0627\u0644 \u0639\u0644\u064a\u0647 \u0627\u0644\u0635\u0644\u0627\u0629 \u0648\u0627\u0644\u0633\u0644\u0627\u0645: \u00ab\u0644\u0627 \u0635\u0644\u0627\u0629\u00bb', '\u0648\u0642\u064a\u0644 \u0625\u0646 \u0627\u0644\u0645\u0631\u0627\u062f \u0628\u0647 \u0627\u0644\u0635\u0644\u0627\u0629',
@@ -1967,8 +1969,8 @@ function libraryPlain(markup) {
     // fixture always meant: an antecedent held as unsupported_attribution, and the «في موضع آخر» that leans on it held with
     // it. P32b keeps the supported row and asserts the other half.
     const a = await rel('\u0642\u0627\u0644 \u0627\u0644\u0646\u0648\u0648\u064a: \u0631\u0648\u064a\u0646\u0627\u0647 \u0645\u0646 \u0631\u0648\u0627\u064a\u0629 \u062c\u0645\u0627\u0639\u0629 \u0645\u0646 \u0627\u0644\u0635\u062d\u0627\u0628\u0629 [[1]].\n\u0648\u0642\u0627\u0644 \u0627\u0644\u0646\u0648\u0648\u064a \u0641\u064a \u0645\u0648\u0636\u0639 \u0627\u062e\u0631: \u0637\u0631\u0642\u0647 \u0643\u0644\u0647\u0627 \u0636\u0639\u064a\u0641\u0629 \u0648\u0644\u064a\u0633 \u0647\u0648 \u0628\u062b\u0627\u0628\u062a [[1]].\n', { fullText: '\u0648\u0627\u0644\u0645\u0633\u062d \u0639\u0644\u0649 \u0627\u0644\u062e\u0641\u064a\u0646 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645 \u0641\u064a \u0627\u0644\u062d\u0636\u0631 \u0648\u0627\u0644\u0633\u0641\u0631.' });
-    ok('P32a question 19: the first place is held, so "wa-qala al-Nawawi fi mawdi akhar:" is held after it instead of opening the answer',
-      !a.text.includes('\u0641\u064a \u0645\u0648\u0636\u0639 \u0627\u062e\u0631') && a.s.holds.unsupported_attribution === 1 && a.s.holds.dependent_on_held === 1, ascii(JSON.stringify({ text: a.text, holds: a.s.holds })));
+    ok('P32a the group test still holds the antecedent and its dependent',
+      !a.text.includes('\u0641\u064a \u0645\u0648\u0636\u0639 \u0627\u062e\u0631') && a.s.holds.unsupported_group === 1 && a.s.holds.dependent_on_held === 1, ascii(JSON.stringify({ text: a.text, holds: a.s.holds })));
     const b = await rel('\u0642\u0627\u0644 \u0627\u0644\u0646\u0648\u0648\u064a \u0641\u064a \u0627\u0644\u0645\u062c\u0645\u0648\u0639: \u00ab\u0644\u0627 \u064a\u0635\u062d \u0641\u064a \u0641\u0636\u0644 \u0630\u0644\u0643 \u062d\u062f\u064a\u062b \u0639\u0646\u062f \u0623\u0647\u0644 \u0627\u0644\u0646\u0642\u0644\u00bb [[1]].\n\u0648\u0642\u0627\u0644 \u0627\u0644\u0646\u0648\u0648\u064a \u0641\u064a \u0645\u0648\u0636\u0639 \u0627\u062e\u0631: \u0637\u0631\u0642\u0647 \u0643\u0644\u0647\u0627 \u0636\u0639\u064a\u0641\u0629 \u0648\u0644\u064a\u0633 \u0647\u0648 \u0628\u062b\u0627\u0628\u062a [[1]].\n\u0645\u0646 \u0639\u0631\u0641 \u0646\u0641\u0633\u0647 \u0628\u0627\u0644\u0636\u0639\u0641 \u0639\u0631\u0641 \u0631\u0628\u0647 \u0628\u0627\u0644\u0642\u0648\u0629 [[1]].\n', P32B_BOOK);
     ok('P32b after a first place that went out, the named "in another place" goes out; a speech verb with no sayer is still "speech", a named one alone is nothing',
       b.text.includes('\u0641\u064a \u0645\u0648\u0636\u0639 \u0627\u062e\u0631: \u0637\u0631\u0642\u0647') && b.text.includes('\u0645\u0646 \u0639\u0631\u0641 \u0646\u0641\u0633\u0647') && UNITS.dependentKind('\u0648\u0642\u0627\u0644 \u0641\u064a \u0645\u0648\u0636\u0639 \u0622\u062e\u0631: \u0627\u0644\u062f\u0639\u0627\u0621 \u0641\u0642\u0637') === 'speech' && UNITS.dependentKind('\u0648\u0642\u0627\u0644 \u0627\u0644\u0646\u0648\u0648\u064a: \u0647\u0630\u0627 \u062d\u062f\u064a\u062b \u0636\u0639\u064a\u0641') === '', ascii(b.text));

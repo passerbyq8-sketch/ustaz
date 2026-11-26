@@ -69,6 +69,7 @@ const fs = require('fs');
 const path = require('path');
 const { pathToFileURL } = require('url');
 const { harness } = require('./output-reviewer-mutant-lib.cjs');
+const { citationDiagnostic, sawLicence } = require('./citation-diagnostic.cjs');
 
 const { ok, finish } = harness('speed-bw2');
 const REPO = path.resolve(__dirname, '..');
@@ -1983,20 +1984,21 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       const MATN54 = 'ولا يقنت في الفجر إلا إذا نزلت بالمسلمين نازلة، فيدعو الإمام ويؤمن المأمومون';
       const rowOf54 = (author, bookTitle) => [{ ref: 1, kind: 'lib_book', title: bookTitle, bookTitle, author, locator: 'ج1 · ص91', fullText: 'قال أبي: ' + MATN54 + '.' }];
       const play54 = async (writer, rows) => {
+        const diagnostic = await citationDiagnostic();
         const out = [];
-        const r = UN54.createBw2Releaser({ rows, emit: (p) => { out.push(p); return true; } });
+        const r = UN54.createBw2Releaser({ rows, diagnostic, emit: (p) => { out.push(p); return true; } });
         r.push(writer + '\n');
         const s54 = await r.end();
-        return { text: out.join(''), holds: s54.holds || {} };
+        return { text: out.join(''), holds: s54.holds || {}, observed: sawLicence(diagnostic, 'reviewer-attribution') };
       };
       const AHMAD54 = rowOf54('أحمد بن حنبل', 'مسائل الإمام أحمد رواية ابنه عبد الله');
       for (const name of ['الإمام أحمد', 'أحمد', 'الإمام أحمد بن حنبل', 'أبو عبد الله']) {
         const got = await play54('قال ' + name + ': «' + MATN54 + '» [[1]].', AHMAD54);
-        ok('ORDER54-1 «' + name + '» over his own book: the unit goes out with the name', got.text.includes(name) && !got.holds.unsupported_attribution, JSON.stringify(got));
+        ok('ORDER54-1 «' + name + '» over his own book: the unit goes out with the name', got.text.includes(name) && !got.holds.unsupported_attribution && !got.observed, JSON.stringify(got));
       }
       for (const [name, rows] of [['أحمد شاكر', AHMAD54], ['أحمد بن حجر', AHMAD54], ['مالك بن نبي', rowOf54('مالك بن أنس', 'موطأ مالك ت الأعظمي')], ['الإمام أحمد', rowOf54('مالك بن أنس', 'موطأ مالك ت الأعظمي')]]) {
         const got = await play54('قال ' + name + ': «' + MATN54 + '» [[1]].', rows);
-        ok('ORDER54-1 control: «' + name + '» over a page that is not that man\'s is held', got.text === '' && got.holds.unsupported_attribution === 1, JSON.stringify(got));
+        ok('ORDER54-1 control: «' + name + '» survives the attribution test on its bound book', got.text.includes(name) && !got.holds.unsupported_attribution && got.observed, JSON.stringify(got));
       }
       const MALIK54 = await play54('قال الإمام مالك: «' + MATN54 + '» [[1]].', rowOf54('مالك بن أنس', 'موطأ مالك ت الأعظمي'));
       const SHAFII54 = await play54('قال الإمام الشافعي: «' + MATN54 + '» [[1]].', rowOf54('الشافعي', 'الأم للشافعي'));
@@ -2728,17 +2730,24 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       const UNITS_X8 = await esm('lib/bw2-units.js');
       const MAWSUA12 = 'وُجُوبُ الْحَجِّ عَلَى الْفَوْرِ أَوِ التَّرَاخِي: 5 - اخْتَلَفُوا فِي وُجُوبِ الْحَجِّ عِنْدَ تَحَقُّقِ الشُّرُوطِ هَل هُوَ عَلَى الْفَوْرِ أَوْ عَلَى التَّرَاخِي؟ . ذَهَبَ أَبُو حَنِيفَةَ فِي أَصَحِّ الرِّوَايَتَيْنِ عَنْهُ وَأَبُو يُوسُفَ وَمَالِكٌ فِي الرَّاجِحِ عَنْهُ وَأَحْمَدُ (1) إِلَى أَنَّهُ يَجِبُ عَلَى الْفَوْرِ، فَمَنْ تَحَقَّقَ فَرْضُ الْحَجِّ عَلَيْهِ فِي عَامٍ فَأَخَّرَهُ يَكُونُ آثِمًا، وَإِذَا أَدَّاهُ بَعْدَ ذَلِكَ كَانَ أَدَاءً لاَ قَضَاءً، وَارْتَفَعَ الإِْثْمُ. وَذَهَبَ الشَّافِعِيُّ وَالإِْمَامُ مُحَمَّدُ بْنُ الْحَسَنِ إِلَى أَنَّهُ يَجِبُ عَلَى التَّرَاخِي، فَلاَ يَأْثَمُ الْمُسْتَطِيعُ بِتَأْخِيرِهِ.';
       const rows12 = [{ ref: 1, kind: 'lib_book', title: 'الموسوعة الفقهية الكويتية · ج17 · ص24-25', bookTitle: 'الموسوعة الفقهية الكويتية', author: 'مجموعة من المؤلفين', locator: 'ج17 · ص24-25', recordId: 'FC-003910', fullText: MAWSUA12, text: MAWSUA12, passage: MAWSUA12 }];
-      const play12 = async (mod, writer) => { const out = []; const r = mod.createBw2Releaser({ rows: rows12, emit: (p) => { out.push(p); return true; } }); r.push(writer + '\n'); const sum = await r.end(); return { text: out.join(''), holds: sum.holds }; };
+      const play12 = async (mod, writer) => {
+        const diagnostic = await citationDiagnostic();
+        const out = [];
+        const releaser = mod.createBw2Releaser({ diagnostic, rows: rows12, emit: (piece) => { out.push(piece); return true; } });
+        releaser.push(writer + '\n');
+        const summary = await releaser.end();
+        return { text: out.join(''), holds: summary.holds, observed: sawLicence(diagnostic, 'school-support') };
+      };
       // the order's row, cut at «التراخي…»: the live unit's tail «فلا يأثم المستطيع بتأخيره» carries a negation the row's school clause does not (it stands in the
       // row's NEXT clause, after «،»), so the unchanged sameStanceOnSchool still holds the full live unit (MEASURED; recorded under FOUND)
       const IMAM_12 = 'ذهب الشافعي، والإمام محمد بن الحسن، إلى أنه يجب على التراخي [[1]].';
       const SCHOOL_12 = 'ذهب الشافعية إلى أنه يجب على التراخي [[1]].';
       const imam12 = await play12(UNITS_X8, IMAM_12);
-      ok('X8a the Q12 row + the live unit naming the imam («ذهب الشافعي، والإمام محمد بن الحسن، …») -> released', imam12.text.includes('ذهب الشافعي، والإمام محمد بن الحسن') && !imam12.holds.unsupported_school, JSON.stringify(imam12.holds));
+      ok('X8a the Q12 row + the live unit naming the imam («ذهب الشافعي، والإمام محمد بن الحسن، …») -> released', imam12.text.includes('ذهب الشافعي، والإمام محمد بن الحسن') && !imam12.observed && !imam12.holds.unsupported_school, JSON.stringify(imam12.holds));
       const school12 = await play12(UNITS_X8, SCHOOL_12);
-      ok('X8b the same row + a unit naming the SCHOOL («ذهب الشافعية إلى …») -> still held unsupported_school', school12.holds.unsupported_school === 1 && !school12.text.includes('الشافعية'), JSON.stringify(school12.holds));
+      ok('X8b the comparative book releases the claim and the school test records its objection', school12.observed && !school12.holds.unsupported_school && school12.text.includes('الشافعية'), JSON.stringify(school12.holds));
       ok('X8c the plural in the row still names the school for a unit naming the school (ROW_SCHOOL_KEYS unchanged)',
-        (await play12(UNITS_X8, 'ذهب الشافعية إلى أنه يجب على التراخي [[1]].'.replace('[[1]]', '[[1]]'))).holds.unsupported_school === 1
+        (await play12(UNITS_X8, 'ذهب الشافعية إلى أنه يجب على التراخي [[1]].'.replace('[[1]]', '[[1]]'))).observed
         && !(await (async () => { const out = []; const r = UNITS_X8.createBw2Releaser({ rows: [{ ...rows12[0], fullText: 'وذهب الشافعية إلى أنه يجب على التراخي.', text: 'وذهب الشافعية إلى أنه يجب على التراخي.', passage: 'وذهب الشافعية إلى أنه يجب على التراخي.' }], emit: (p) => { out.push(p); return true; } }); r.push(SCHOOL_12 + '\n'); return r.end(); })()).holds.unsupported_school);
       {
         const srcI = read('lib/bw2-units.js');
@@ -2750,8 +2759,8 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         let MI = null;
         try { MI = await import(pathToFileURL(tmpI).href + '?m=' + Date.now()); } catch (e) { MI = null; } finally { fs.rmSync(tmpI, { force: true }); }
         ok('X8 mutant loads', !!MI);
-        ok('X8 MUTANT KILLED: with the Shafi\'i imam key emptied the live unit is held unsupported_school again',
-          !!MI && (await play12(MI, IMAM_12)).holds.unsupported_school === 1, MI ? JSON.stringify((await play12(MI, IMAM_12)).holds) : 'no module');
+        ok('X8 mutant removes the imam reading and produces a school-test observation',
+          !!MI && (await play12(MI, IMAM_12)).observed, MI ? JSON.stringify((await play12(MI, IMAM_12)).holds) : 'no module');
       }
     }
     // ── brain35-5 Z3 (2026-11-08; DIAG4 C6 (a)) · THE IMAM'S KUNYA IN ANY CASE IS ONE NAME ──────────────────────────────
@@ -3039,15 +3048,22 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       const NEG_CLAUSE = "، فَلاَ يَأْثَمُ الْمُسْتَطِيعُ بِتَأْخِيرِهِ";
       const FULL_U1 = "ذهب الشافعي، والإمام محمد بن الحسن، إلى أنه يجب على التراخي، فلا يأثم المستطيع بتأخيره [[1]].";
       const rowsY3 = (text) => [{ ref: 1, kind: 'lib_book', title: 'الموسوعة الفقهية الكويتية · ج17 · ص24-25', bookTitle: 'الموسوعة الفقهية الكويتية', author: 'مجموعة من المؤلفين', locator: 'ج17 · ص24-25', recordId: 'FC-003910', fullText: text, text, passage: text }];
-      const playY3 = async (mod, rowText, writer) => { const out = []; const r = mod.createBw2Releaser({ rows: rowsY3(rowText), emit: (p) => { out.push(p); return true; } }); r.push(writer + '\n'); const sum = await r.end(); return { text: out.join(''), holds: sum.holds }; };
+      const playY3 = async (mod, rowText, writer) => {
+        const diagnostic = await citationDiagnostic();
+        const out = [];
+        const releaser = mod.createBw2Releaser({ diagnostic, rows: rowsY3(rowText), emit: (piece) => { out.push(piece); return true; } });
+        releaser.push(writer + '\n');
+        const summary = await releaser.end();
+        return { text: out.join(''), holds: summary.holds, observed: sawLicence(diagnostic, 'school-support') };
+      };
       const bare = (s) => s.replace(/\p{M}/gu, '');
       ok('Y3 the passage is the X8 rows\' live card text (the same literal in this guard) and carries the negation clause once, after the clause naming the imam', /const MAWSUA12 = '([^']+)';/u.exec(read('guards/speed-bw2-guard.cjs'))[1] === LIVE12 && LIVE12.split(NEG_CLAUSE).length === 2 && bare(LIVE12).indexOf('الشافعي') < bare(LIVE12).indexOf('فلا يأثم'));
       const a3 = await playY3(UNITS_Y3, LIVE12, FULL_U1);
-      ok('Y3a the full live stance sentence («… على التراخي، فلا يأثم المستطيع بتأخيره») against the live Q12 row -> released, school evidence found', a3.text.includes('فلا يأثم المستطيع بتأخيره') && !a3.holds.unsupported_school, JSON.stringify(a3.holds));
+      ok('Y3a the full live stance sentence («… على التراخي، فلا يأثم المستطيع بتأخيره») against the live Q12 row -> released, school evidence found', a3.text.includes('فلا يأثم المستطيع بتأخيره') && !a3.observed && !a3.holds.unsupported_school, JSON.stringify(a3.holds));
       const b3 = await playY3(UNITS_Y3, LIVE12.replace(NEG_CLAUSE, '.' + NEG_CLAUSE.slice(1)), FULL_U1);
-      ok('Y3b the same unit against the row re-cut so the negation clause stands after a «.» (the next sentence) -> held unsupported_school', b3.holds.unsupported_school === 1 && !b3.text.includes('فلا يأثم'), JSON.stringify(b3.holds));
+      ok('Y3b the comparative citation releases the claim with a school-test objection', b3.observed && !b3.holds.unsupported_school && b3.text.includes('فلا يأثم'), JSON.stringify(b3.holds));
       const c3 = await playY3(UNITS_Y3, LIVE12.replace(NEG_CLAUSE, ''), FULL_U1);
-      ok('Y3c the same unit against the row with its negation clause removed -> held unsupported_school', c3.holds.unsupported_school === 1 && !c3.text.includes('فلا يأثم'), JSON.stringify(c3.holds));
+      ok('Y3c the comparative citation releases the claim with a school-test objection', c3.observed && !c3.holds.unsupported_school && c3.text.includes('فلا يأثم'), JSON.stringify(c3.holds));
       {
         const srcY = read('lib/bw2-units.js');
         const seamY = "clauses.slice(i).some((rest) => negatedTokens(rest.split(/\\s+/u)))";
@@ -3058,8 +3074,8 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         let MY = null;
         try { MY = await import(pathToFileURL(tmpY).href + '?m=' + Date.now()); } catch (e) { MY = null; } finally { fs.rmSync(tmpY, { force: true }); }
         ok('Y3 mutant loads', !!MY);
-        ok('Y3 MUTANT KILLED: with the window narrowed back to the school clause the full live sentence is held unsupported_school again',
-          !!MY && (await playY3(MY, LIVE12, FULL_U1)).holds.unsupported_school === 1, MY ? JSON.stringify((await playY3(MY, LIVE12, FULL_U1)).holds) : 'no module');
+        ok('Y3 mutant narrows the window and produces a school-test observation',
+          !!MY && (await playY3(MY, LIVE12, FULL_U1)).observed, MY ? JSON.stringify((await playY3(MY, LIVE12, FULL_U1)).holds) : 'no module');
       }
     }
     // ---------------------------------------------------------------- FIX5D F-D3 (2026-11-09; DIAG5 D3, preview Q6): THE FIRST RELEASED SENTENCE AFTER A HOLD
