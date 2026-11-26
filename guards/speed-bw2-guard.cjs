@@ -1979,6 +1979,19 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         && FLAGS.beforeWritingV2Takes({ enabled: true, band: 'adult', runtime: 'HADITH', excluded: 'estate_division' }).reason === 'estate_division'
         && take({ excluded: 'typo' }) && take({ excluded: '' }));
     }
+    {
+      const { createUnitCutter } = await esm('lib/bw2-units.js');
+      const cutSuggestions = (items) => {
+        const cutter = createUnitCutter();
+        const block = '<suggestions>\n' + items.join('\n') + '\n</suggestions>';
+        return [...cutter.push(block), ...cutter.end()].some((unit) => unit.body === block);
+      };
+      const five = Array(5).fill('- ' + 'x'.repeat(90));
+      ok('R7 suggestions: five single-line uncited items of ninety characters retain their block', cutSuggestions(five));
+      ok('R7 suggestions: extra, long, wrapped and cited items take the prose path',
+        [[...five, '- extra'], ['- ' + 'x'.repeat(91)], ['- first', 'continued'], ['- mark [[2]]'], ['- mark [2]']]
+          .every((items) => !cutSuggestions(items)));
+    }
     // ORDER 54 item 1 (row 68): «الإمام أحمد» is the man whose book the card is. Measured on preview 53 (question 8): every unit that named him was held (unsupported_attribution) because the author is filed «أحمد بن حنبل». The short form of one of the three imams, over HIS OWN book, goes out with the name; any other man's name over the same page is still held.
     {
       const UN54 = await esm('lib/bw2-units.js');
@@ -1997,9 +2010,15 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         const got = await play54('قال ' + name + ': «' + MATN54 + '» [[1]].', AHMAD54);
         ok('ORDER54-1 «' + name + '» over his own book: the unit goes out with the name', got.text.includes(name) && !got.holds.unsupported_attribution && !got.observed, JSON.stringify(got));
       }
-      for (const [name, rows] of [['أحمد شاكر', AHMAD54], ['أحمد بن حجر', AHMAD54], ['مالك بن نبي', rowOf54('مالك بن أنس', 'موطأ مالك ت الأعظمي')], ['الإمام أحمد', rowOf54('مالك بن أنس', 'موطأ مالك ت الأعظمي')]]) {
+      for (const [name, rows, shouldHold] of [['أحمد شاكر', AHMAD54, true], ['أحمد بن حجر', AHMAD54, false], ['مالك بن نبي', rowOf54('مالك بن أنس', 'موطأ مالك ت الأعظمي'), true], ['الإمام أحمد', rowOf54('مالك بن أنس', 'موطأ مالك ت الأعظمي'), false]]) {
         const got = await play54('قال ' + name + ': «' + MATN54 + '» [[1]].', rows);
-        ok('ORDER54-1 control: «' + name + '» survives the attribution test on its bound book', got.text.includes(name) && !got.holds.unsupported_attribution && got.observed, JSON.stringify(got));
+        if (shouldHold) {
+          ok('ORDER54-1 control: a catalogued author credited on an unrelated book is held',
+            !got.text.includes(name) && got.holds.unsupported_attribution === 1 && !got.observed);
+        } else {
+          ok('ORDER54-1 control: the other unsupported name retains the bound-book licence',
+            got.text.includes(name) && !got.holds.unsupported_attribution && got.observed);
+        }
       }
       const MALIK54 = await play54('قال الإمام مالك: «' + MATN54 + '» [[1]].', rowOf54('مالك بن أنس', 'موطأ مالك ت الأعظمي'));
       const SHAFII54 = await play54('قال الإمام الشافعي: «' + MATN54 + '» [[1]].', rowOf54('الشافعي', 'الأم للشافعي'));
