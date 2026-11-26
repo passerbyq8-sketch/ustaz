@@ -198,10 +198,11 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       warmEncyclopedia: () => { calls.warm += 1; return warm ? warm() : Promise.resolve(true); },
       encyclopediaReady,
       encyclopediaRow: TOOLS.encyclopediaRow,
-      ask: async ({ user, maxTokens }) => {
+      ask: async ({ user, maxTokens, temperature }) => {
         calls.ask += 1;
         calls.askUser = user;
         calls.askMaxTokens = maxTokens;
+        calls.askTemperature = temperature;
         const count = (user.match(/^\[\d+\] /gmu) || []).length;
         if (typeof judge === 'function') return judge(count, user);
         if (judge === 'none') return JSON.stringify({ d: Object.fromEntries(Array.from({ length: count }, (_, i) => [String(i + 1), 0])) });
@@ -499,8 +500,8 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       ok('T8a the decisive passage starts after character 360 of its source', at > 360 && !long.slice(0, 360).includes(decisive), String(at));
       ok('T8b ...and the judge was shown it (the issue-aligned window, not the first 360 characters)',
         r.calls.askUser.includes(decisive), ascii(r.calls.askUser.slice(0, 200)));
-      ok('T8c the judge output budget covers every candidate: 64 + 12 per candidate',
-        r.calls.askMaxTokens === BW2.judgeMaxTokens(1) && BW2.judgeMaxTokens(20) === 304);
+      ok('T8c the judge uses zero temperature and budgets 64 + 12 tokens per candidate',
+        r.calls.askTemperature === 0 && r.calls.askMaxTokens === BW2.judgeMaxTokens(1) && BW2.judgeMaxTokens(20) === 304);
       const three = [ROW_F1, ROW_F2, { ...ROW_F1, url: 'https://binbaz.org.sa/fatwas/42', recordId: '42', title: 'ZZ-THIRD' }];
       const miss = await run({ fatwa: three, judge: () => '{"d":{"1":1,"3":1}}', writerText: MASAH_RULING + ' [[1]].' });
       const pinnedBlock = JSON.stringify(miss.calls.writerBody.messages);
