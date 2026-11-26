@@ -74,7 +74,7 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e]/g, (c) => '\\u' + c.charCod
   for (const mode of ['عادي', 'deep']) {
     const on = await turn({ libOn: true, mode });
     ok(mode + ': the library is asked inside FC-003910 alone, with the term and the issue', on.asked.some((a) => a.ids.length === 1 && a.ids[0] === 'FC-003910' && a.query.includes('مسافه') && a.query.includes('القصر')), ascii(JSON.stringify(on.asked)));
-    ok(mode + ': the writer is given the atom with 14 hits, not the opening with 4', inPinned(on.pinned, atom4) && !inPinned(on.pinned, opening), ascii(on.pinned.slice(-500)));
+    ok(mode + ': the writer receives the complete selected atom and the original article excerpt', inPinned(on.pinned, FX.atoms[0].text) && inPinned(on.pinned, record.snippet), ascii(on.pinned.slice(-500)));
   }
   const off = await turn({ libOn: false, mode: 'عادي' });
   ok('library closed: the opening, as today', inPinned(off.pinned, opening) && !inPinned(off.pinned, atom4), ascii(off.pinned.slice(-400)));
