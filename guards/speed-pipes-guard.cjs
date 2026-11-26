@@ -556,6 +556,18 @@ function libraryPlain(markup) {
     ok('W6A1e ...and with Bada\'i alone: held (a row never licenses a school but its own tag)',
       !c.text.includes('الشافعية') && c.holds.unsupported_school === 1, ascii(JSON.stringify(c)));
     const BAYAN = rowOf(XA.bayan_2_44, 1);
+    const anonymousRuling = 'يجوز إخراج القيمة في زكاة الفطر وتجزئ عن الطعام.';
+    const witnessed = { ...BADAI73, text: anonymousRuling, fullText: anonymousRuling, schoolWitness: ['hanafi'] };
+    const claim = 'يجوز عند الحنفية إخراج القيمة في زكاة الفطر وتجزئ عن الطعام';
+    const licensed = await rel([witnessed], claim + ' [[1]].');
+    const unstated = await rel([{ ...witnessed, schoolWitness: [] }], claim + ' [[1]].');
+    const differentCitation = await rel([witnessed, { ...MAJMU428, fullText: anonymousRuling }], claim + ' [[2]].');
+    const opposite = 'لا يجوز إخراج القيمة في زكاة الفطر ولا تجزئ عن الطعام.';
+    const reversed = await rel([{ ...witnessed, fullText: opposite, text: opposite }], claim + ' [[1]].');
+    ok('CW1 a prewriting witness supports an unmarked ruling of the cited book', licensed.text.includes(claim));
+    ok('CW2 a missing witness and a witness from another citation grant no licence',
+      !!unstated.holds.unsupported_school && !!differentCitation.holds.unsupported_school);
+    ok('CW3 the witness does not support the opposite ruling', !!reversed.holds.unsupported_school);
     const TA = 'وعند الشافعية أن المؤخر مقصر بإضافته إلى من صلى في أول الوقت';
     const d = await rel([BAYAN], TA + ' [[1]].');
     const d2 = await rel([rowOf(XA.bayan_2_44, 1, 'FC-003660')], TA + ' [[1]].');
@@ -2335,6 +2347,7 @@ function libraryPlain(markup) {
           // ITEM C1 -- 2026-10-15 brain-line (the owner's word in the session: fix the fake sorter, keep every
           // assertion): a case may state the sorter's verdict (opts.sorter); unstated, it is RELIGIOUS as before.
           if (b.system === FSORT.FRONT_SORTER_SYSTEM) return jsonResponse(u, { content: [{ type: 'text', text: opts.sorter || 'RELIGIOUS' }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
+          if (b.system === BW2.BW2_WITNESS_SYSTEM) return jsonResponse(u, { content: [{ type: 'text', text: '{"w":{}}' }] });
           model.push(b);
           if (b.system === BW2.BW2_JUDGE_SYSTEM) return jsonResponse(u, { content: [{ type: 'text', text: '{"d":{}}' }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
           // SPEED W6B B5: `opts.answer(body)` states the fake writer's text when a case needs it to cite a row.
