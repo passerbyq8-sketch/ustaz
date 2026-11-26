@@ -2,7 +2,7 @@
   "version": 2,
   "name": "ustaz-app",
   "functions": {
-    "api/ask.js": { "maxDuration": 300, "includeFiles": "lib/data/fiqh-search.json.gz" },
+    "api/ask.js": { "maxDuration": 300, "includeFiles": "lib/data/{fiqh-search.json.gz,fiqh-articles.bin,school-navigation.bin}" },
     "api/chat.js": { "maxDuration": 300 },
     "api/chat-fast.js": { "maxDuration": 300 },
     "api/fatwa-proxy.js": { "maxDuration": 30 },
