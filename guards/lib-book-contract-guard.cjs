@@ -682,8 +682,8 @@ async function main() {
   // E5's mutant: the second half of the locator gate goes, so an automatically numbered atom
   // gets a printed page again -- and the panel would head a passage with a page nobody can open.
   const toolsAutoPage = await mutantModule(temp, 'lib/free-brain/tools.js', 'auto-gets-a-page', (src) => src.replace(
-    "    const citable = prov.page_citable === true && prov.numbering !== 'auto';",
-    "    const citable = prov.page_citable === true;  // mutant-auto-page",
+    "  const citable = prov.page_citable === true && prov.numbering !== 'auto';",
+    "  const citable = prov.page_citable === true;  // mutant-auto-page",
   ), 'mutant-auto-page').then((mod) => ({ mod }), (error) => ({ error }));
 
   const mutantsBuilt = [askNoMatn, askEmptyMatn, askNoCeiling, toolsAutoPage];
