@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "postinstall": "node tools/preview-offline-replay.mjs",
     "test": "echo \"Error: no test specified\" && exit 1",
     "gates": "node tools/run-gates.cjs",
     "build:app": "node tools/build-app.cjs && node tools/build-usage.cjs",
