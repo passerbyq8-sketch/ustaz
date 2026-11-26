@@ -578,14 +578,14 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
     {
       const sha8 = (x) => require('crypto').createHash('sha256').update(String(x), 'utf8').digest('hex');
       const RULE9_SHA = '87234515e9481a28c033aa9f0b734cbb2a4d5a3f1c00d3b31f18da827ebf1415';
-      const DIRECT7_SHA = 'af9538bcbdac8b0b84495be80bc372483e82d245f8e4c1053e3eb4de06bcd2d7';
+      const DIRECT7_SHA = '03887cea7ba74d420a91364bed3d5743e4af62f9c1c066be8b9b0de61dd08eeb';
       const lines8 = BW2.BW2_WRITE_RULES.split(String.fromCharCode(10));
       const rule9 = lines8[4]; // ORDER 50 item 2: a tenth rule follows the ninth
       ok('FIX48-8a the writer\'s rules end with a ninth: the views of the scholars, from the rows, each with its own speaker, before the explanation (pinned by sha256)',
         lines8.length === 6 && rule9.startsWith('\u0669. ') && sha8(rule9) === RULE9_SHA, sha8(rule9));
       const direct7 = BW2.bw2DirectRule(7);
-      ok('FIX48-8b the direct-fatwa rule is the order\'s sentence (pinned by sha256), names the fatwa [7] and cites it [[7]], and carries no phrase for the writer to repeat',
-        sha8(direct7) === DIRECT7_SHA && direct7.includes('[7]') && direct7.includes('[[7]]') && !direct7.includes('[[1]]'), sha8(direct7));
+      ok('FIX48-8b the direct-fatwa rule is the order\'s sentence (pinned by sha256), names and cites the fatwa using [[7]] twice, and carries no phrase for the writer to repeat',
+        sha8(direct7) === DIRECT7_SHA && (direct7.match(/\[\[7\]\]/gu) || []).length === 2 && !/(?<!\[)\[\d+\](?!\])/u.test(direct7) && !direct7.includes('[[1]]'), sha8(direct7));
       // not one trace of the old phrase in the module, in the rules, or in the direct rule the writer receives: the comparison is on the letters (marks removed)
       const strip8 = (t) => String(t).replace(/[\u064b-\u0652\u0670\u0640]/g, '');
       const OLD_PHRASE = /\u0641\u0648\u0642\s*\u062c\u0648\u0627\u0628/u;
