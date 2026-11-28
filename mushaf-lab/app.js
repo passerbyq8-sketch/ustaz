@@ -165,13 +165,20 @@
     } catch (e) {}
     document.documentElement.style.setProperty('--sat', t + 'px'); document.documentElement.style.setProperty('--sab', b + 'px');
   }
+  // ITEM 38 B -- BALANCED ON EVERY SCREEN, for the cropped pages. Held upright, at any width, the page fills the
+  // reading area exactly as a phone's always has. Held sideways with one page, it takes the full width at its own
+  // proportions and pans up and down inside its slot (the view below), opening at its top. Two pages side by side
+  // fill the height. Pages 1 and 2 and the vector pages keep the rule they had (FILL_Q).
   function sizeStages() {
     const box = $('main'); const W = (box && box.clientWidth) || window.innerWidth, H = (box && box.clientHeight) || window.innerHeight;
     const groups = slots ? slots.map((sl) => Array.from(sl.querySelectorAll('.stage'))) : [Array.from(document.querySelectorAll('.stage'))];
     for (const stages of groups) {
       if (!stages.length) continue;
       let fill = false; try { fill = stages.length === 1 && window.matchMedia(FILL_Q).matches; } catch (e) {}
-      if (fill) stages.forEach((st) => { st.style.width = W + 'px'; st.style.height = H + 'px'; });
+      const one = stages.length === 1 && isCropped(stages[0]);
+      if (one && H >= W) fill = true;
+      if (one && W > H) stages.forEach((st) => { st.style.width = W + 'px'; st.style.height = Math.round(W / pageAspect(st)) + 'px'; });
+      else if (fill) stages.forEach((st) => { st.style.width = W + 'px'; st.style.height = H + 'px'; });
       else {
         const gap = stages.length > 1 ? 10 : 0; const sumA = stages.reduce((t, st) => t + pageAspect(st), 0);
         const h = Math.max(1, Math.floor(Math.min(H, (W - gap) / sumA)));
@@ -179,6 +186,37 @@
       }
       stages.forEach(fitStage);
     }
+    syncViews(false);
+  }
+  // ITEM 38 B/D -- THE VIEW of the current slot: a zoom k (item 38 D) and a pan tx/ty, one transform on the slot's
+  // wrapper (.zw), so the slot still clips the page. The pan is clamped so that no gap opens at an edge: the page
+  // moves only as far as it overflows its slot (the old reader's mushafClampPan, Session 75/E). At k = 1 only a page
+  // taller than its slot moves (sideways, one page), and every page opens at its top; the neighbours wait at theirs.
+  let view = { k: 1, tx: 0, ty: 0 };
+  function clampView(sl, v) {
+    const z = sl && sl.firstElementChild; if (!z) return { k: 1, tx: 0, ty: 0 };
+    const mx = Math.max(0, ((z.offsetWidth || 0) * v.k - (sl.clientWidth || 0)) / 2), my = Math.max(0, ((z.offsetHeight || 0) * v.k - (sl.clientHeight || 0)) / 2);
+    return { k: v.k, tx: Math.min(mx, Math.max(-mx, v.tx)), ty: Math.min(my, Math.max(-my, v.ty)) };
+  }
+  function applyView(sl, v) { const z = sl && sl.firstElementChild; if (z) z.style.transform = (v.k === 1 && !v.tx && !v.ty) ? '' : 'translate(' + v.tx + 'px, ' + v.ty + 'px) scale(' + v.k + ')'; }
+  const TOP = { k: 1, tx: 0, ty: Infinity };
+  function setView(v) { if (!slots) return; view = clampView(slots[1], v); applyView(slots[1], view); }
+  function syncViews(reset) { if (!slots) return; if (reset) stopGlide(); slots.forEach((sl, i) => { if (i !== 1) applyView(sl, clampView(sl, TOP)); }); setView(reset ? TOP : view); }
+  // the page has room to move: it is zoomed, or it is taller than its slot
+  const canPan = () => !!slots && (view.k > 1 || clampView(slots[1], TOP).ty > 0);
+  // a pan let go while moving glides on a little, slowing, and stops at an edge
+  let glide = 0;
+  function stopGlide() { if (glide) { cancelAnimationFrame(glide); glide = 0; } }
+  function glideFrom(vx, vy) {
+    stopGlide(); if (Math.abs(vx) + Math.abs(vy) < 0.1) return;
+    let last = 0;
+    const step = (t) => {
+      const dt = last ? Math.min(32, t - last) : 16; last = t;
+      const before = view; setView({ k: view.k, tx: view.tx + vx * dt, ty: view.ty + vy * dt });
+      const f = Math.pow(0.94, dt / 16); vx *= f; vy *= f;
+      glide = (Math.abs(vx) + Math.abs(vy) < 0.02 || (before.tx === view.tx && before.ty === view.ty)) ? 0 : requestAnimationFrame(step);
+    };
+    glide = requestAnimationFrame(step);
   }
   // the bars float over the page; one short tap hides or shows all of them
   let chromeAuto = false;
@@ -217,7 +255,11 @@
       if (p >= 3) loadGeo(p).then((g) => { if (g && st.isConnected) { buildTextLayer(st, g); drawMarks(st); } });
     return st;
   }
-  function fillSlot(sl, anchor) { sl.textContent = ''; sl.dataset.anchor = anchor || ''; if (anchor) visiblePages(anchor).forEach((p) => sl.appendChild(makeStage(p))); }
+  function fillSlot(sl, anchor) {
+    sl.textContent = ''; sl.dataset.anchor = anchor || ''; if (!anchor) return;
+    const z = document.createElement('div'); z.className = 'zw'; sl.appendChild(z);   // item 38: the view moves this wrapper
+    visiblePages(anchor).forEach((p) => z.appendChild(makeStage(p)));
+  }
   function setTrack(dx, animate) {
     const sp = $('spread');
     sp.style.transition = animate ? 'transform .28s cubic-bezier(.2,.7,.2,1)' : 'none';
@@ -227,7 +269,7 @@
     const sp = $('spread'); sp.textContent = '';
     slots = [0, 1, 2].map(() => { const d = document.createElement('div'); d.className = 'slot'; sp.appendChild(d); return d; });
     fillSlot(slots[1], cur); fillSlot(slots[0], neighborAnchor(cur, 1)); fillSlot(slots[2], neighborAnchor(cur, -1));
-    setTrack(0, false); sizeStages(); updateHeader();
+    setTrack(0, false); sizeStages(); syncViews(true); updateHeader();
   }
   function updateHeader() {
     $('navPage').textContent = ar(cur);
@@ -267,7 +309,7 @@
     cur = target; notePage(); const sp = $('spread');
     if (dir > 0) { const r = slots[2]; sp.insertBefore(r, slots[0]); slots = [r, slots[0], slots[1]]; fillSlot(r, neighborAnchor(cur, 1)); }
     else { const r = slots[0]; sp.appendChild(r); slots = [slots[1], slots[2], r]; fillSlot(r, neighborAnchor(cur, -1)); }
-    setTrack(0, false); sizeStages(); updateHeader(); redrawMarks(); prefetchAround();
+    setTrack(0, false); sizeStages(); syncViews(true); updateHeader(); redrawMarks(); prefetchAround();
   }
   function itemBox(g, it, ln) {
     if (S.mode !== 'vector') return { l: it.l, w: it.w, t: ln.top, h: ln.h };
@@ -1310,27 +1352,32 @@
       if (document.body.classList.contains('selmode') || settling) return;
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       if (window.visualViewport && window.visualViewport.scale > 1.05) return;
-      cancelPress();
+      cancelPress(); stopGlide();
       const st = e.target.closest('.stage');
-      const pr = { x: e.clientX, y: e.clientY, st, fired: false, drag: false, moved: false, lx: e.clientX, lt: Date.now(), vx: 0, id: e.pointerId };
+      const pr = { x: e.clientX, y: e.clientY, st, fired: false, drag: false, moved: false, pan: false, lx: e.clientX, ly: e.clientY, lt: Date.now(), vx: 0, vy: 0, id: e.pointerId, v0: view };
       pr.timer = setTimeout(() => { if (press === pr && !pr.drag && !pr.moved && st) { pr.fired = true; holdNoSelect(); openFromPress(st, pr.x, pr.y); } }, 450);
       press = pr;
     });
     sp.addEventListener('pointermove', (e) => {
-      const pr = press; if (!pr || pr.fired) return;
+      const pr = press; if (!pr || pr.fired || e.pointerId !== pr.id) return;
       const dx = e.clientX - pr.x, dy = e.clientY - pr.y;
-      if (!pr.drag) {
+      if (!pr.drag && !pr.pan) {
         if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) { pr.drag = true; clearTimeout(pr.timer); try { sp.setPointerCapture(pr.id); } catch (err) {} }
-        else if (Math.hypot(dx, dy) > 12) { pr.moved = true; clearTimeout(pr.timer); }
+        else if (Math.hypot(dx, dy) > 12) {
+          pr.moved = true; clearTimeout(pr.timer);
+          if (canPan()) { pr.pan = true; try { sp.setPointerCapture(pr.id); } catch (err) {} }   // item 38: a page with room moves with the finger
+        }
       }
+      const now = Date.now(); if (now > pr.lt) { pr.vx = (e.clientX - pr.lx) / (now - pr.lt); pr.vy = (e.clientY - pr.ly) / (now - pr.lt); pr.lx = e.clientX; pr.ly = e.clientY; pr.lt = now; }
+      if (pr.pan) { setView({ k: view.k, tx: pr.v0.tx + dx, ty: pr.v0.ty + dy }); return; }
       if (pr.drag) {
-        const now = Date.now(); if (now > pr.lt) { pr.vx = (e.clientX - pr.lx) / (now - pr.lt); pr.lx = e.clientX; pr.lt = now; }
         let d = dx; if ((d > 0 && !neighborAnchor(cur, 1)) || (d < 0 && !neighborAnchor(cur, -1))) d *= 0.25;
         setTrack(d, false);
       }
     });
     const endPress = (e, cancelled) => {
-      const pr = press; if (!pr) return; press = null; clearTimeout(pr.timer);
+      const pr = press; if (!pr || (e && e.pointerId !== undefined && e.pointerId !== pr.id)) return; press = null; clearTimeout(pr.timer);
+      if (pr.pan) { if (!cancelled && Date.now() - pr.lt < 80) glideFrom(pr.vx, pr.vy); return; }   // a pan never taps and never turns
       if (pr.drag) {
         const dx = cancelled ? 0 : e.clientX - pr.x; const W = ($('main') && $('main').clientWidth) || window.innerWidth;
         const dir = (dx > W * 0.2 || (pr.vx > 0.45 && dx > 20)) ? 1 : ((dx < -W * 0.2 || (pr.vx < -0.45 && dx < -20)) ? -1 : 0);
@@ -1351,7 +1398,10 @@
       if (!a || !a.closest || !a.closest('.tl')) return;
       const t = String(s1).replace(/\s+/g, ' ').trim(); if (t && e.clipboardData) { e.clipboardData.setData('text/plain', t); e.preventDefault(); }
     });
-    let rt = 0; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { const n = slots && slots[1] ? slots[1].querySelectorAll('.stage').length : 0; syncInsets(); if (n !== visiblePages(cur).length) render(); else sizeStages(); }, 150); });
+    // item 38: a wheel (or a trackpad's two fingers) moves a page that has room, as a finger does
+    $('main').addEventListener('wheel', (e) => { if (!canPan()) return; e.preventDefault(); stopGlide(); setView({ k: view.k, tx: view.tx - e.deltaX, ty: view.ty - e.deltaY }); }, { passive: false });
+    let rt = 0, wasLand = window.innerWidth > window.innerHeight;
+    window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { const n = slots && slots[1] ? slots[1].querySelectorAll('.stage').length : 0; syncInsets(); const land = window.innerWidth > window.innerHeight; if (n !== visiblePages(cur).length) render(); else { sizeStages(); if (land !== wasLand) syncViews(true); } wasLand = land; }, 150); });
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(sizeStages);
     window.addEventListener('hashchange', () => route(false));
   }

@@ -70,9 +70,12 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
 main { position: fixed; left: 0; right: 0; top: var(--sat); bottom: var(--sab); overflow: hidden; }
 /* the page track: three slots [next | current | previous] (the next page lies to the left); the script moves it with the finger */
 .spread { position: absolute; left: 0; top: 0; bottom: 0; width: 300%; display: flex; flex-direction: row; direction: ltr;
-  transform: translate3d(calc(-100% / 3), 0, 0); will-change: transform; touch-action: pan-y pinch-zoom; }
+  transform: translate3d(calc(-100% / 3), 0, 0); will-change: transform; touch-action: none; }
 .slot { flex: 0 0 calc(100% / 3); height: 100%; display: flex; direction: rtl; gap: 10px; align-items: center; justify-content: center; overflow: hidden; }
-.stage { position: relative; flex: none; background: var(--surface); touch-action: pan-y pinch-zoom; -webkit-tap-highlight-color: transparent; }
+/* item 38: the slot's pages sit in one wrapper, which the reader's own pan and zoom move (app.js, the view); the
+   browser pans and zooms nothing here (touch-action: none), so a pinch cannot zoom the whole app */
+.zw { flex: none; display: flex; direction: rtl; gap: 10px; align-items: center; justify-content: center; transform-origin: 50% 50%; }
+.stage { position: relative; flex: none; background: var(--surface); touch-action: none; -webkit-tap-highlight-color: transparent; }
 .stage img { display: block; width: 100%; height: 100%; object-fit: fill; filter: var(--page-filter); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; pointer-events: none; }
 .stage.vector img { background: #FFFFFF; }
 .stage .ph { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 14px; }
