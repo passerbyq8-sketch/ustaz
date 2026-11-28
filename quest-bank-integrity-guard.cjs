@@ -2102,7 +2102,8 @@ const SEALED = {
   // 2026-11-04 QAF-GAP-N2: ezik-v136; rebuild and CORE measurement, then LF worker seal.
   // 2026-11-04 INTEG1 preview: reserved ezik-v137; rebuilt app.js, measured CORE, LF worker seal.
   // 2026-11-06 BRAIN36 ship: reserved ezik-v139; app.js rebuilt at the same byte length; CORE unchanged; LF worker seal remeasured from the guard's printed digest.
-  'sw.js': 'e01cbe2f7bda3ccee431bcbb3fb5214a1b70dcae77b31a5e14a0a54a47b4a510',
+  // 2026-11-28 ITEM 38 (side/mushaf38, the mushaf frame and zoom): only the mushaf-lab ?v= pair moved, 7 -> 8; CACHE stays ezik-v150 (the session sets it at ship); CORE unchanged; LF worker seal remeasured (sw.js 65569 bytes, CR 0).
+  'sw.js': '6c8e55bbdfe7aacf14f3f3285742835cdc73f825ea2fe0b4ae7ab5c43a4d2abe',
 };
 
 // ---------------------------------------------------------------------------
@@ -2439,7 +2440,11 @@ async function assertMushafTopbar(html, source, css) {
     const bars = document.querySelectorAll('header.top');
     check(bars.length === 1, 'one shared lab header');
     const top = bars[0], buttons = [...top.querySelectorAll('button')];
-    check(top.textContent.trim() === '', 'no visible text among the six removed header elements');
+    // ITEM 38 (2026-11-28): the bar carries two labels, the juz and the surah, filled while the bars show; the
+    // removed header elements still carry nothing, and no other text stands in the bar.
+    const labels = [...top.querySelectorAll('.lbl')];
+    check(labels.map(l => l.id).join(',') === 'barJuz,barSura', 'item 38: two labels, the juz then the surah');
+    check(labels.reduce((t, l) => t.split(l.textContent).join(''), top.textContent).trim() === '', 'no visible text among the six removed header elements');
     check(buttons.map(b => b.id).join(',') === 'exitBtn,pageBookmarkBtn', 'one bookmark toggle and KEEP_BACK_ARROW=yes');
     check(removed.every(id => !document.getElementById(id)), 'removed nodes absent in every mode');
     check(buttons.every(b => b.getAttribute('aria-label') && b.querySelector('svg[aria-hidden="true"]')), 'icons have accessible names');
@@ -2512,6 +2517,18 @@ async function assertMushafTopbar(html, source, css) {
   const saved = () => JSON.parse(h.storage.get('lab.bm'));
   const pressed = () => h.button.getAttribute('aria-pressed');
   check(h.document.getElementById('loading').hidden && !h.button.disabled, 'cached offline boot enables toggle');
+  // ITEM 38: the juz (an ordinal), the surah of the page's first ayah and the page number, read off the reader's data.
+  const bar = () => ['barJuz', 'barSura', 'pageNum'].map(id => h.document.getElementById(id).textContent).join('|');
+  check(bar() === '\u0627\u0644\u062c\u0632\u0621 \u0627\u0644\u0623\u0648\u0644|\u0633\u0648\u0631\u0629 \u0627\u0644\u0628\u0642\u0631\u0629|\u0663', 'item 38: page 3 shows the first juz, Al-Baqara and its number');
+  h.lab.goPage(50);
+  check(bar() === '\u0627\u0644\u062c\u0632\u0621 \u0627\u0644\u062b\u0627\u0644\u062b|\u0633\u0648\u0631\u0629 \u0622\u0644 \u0639\u0645\u0631\u0627\u0646|\u0665\u0660', 'item 38: page 50 shows the third juz and Al Imran');
+  h.lab.goPage(201);
+  check(bar().split('|')[0] === '\u0627\u0644\u062c\u0632\u0621 \u0627\u0644\u062d\u0627\u062f\u064a \u0639\u0634\u0631', 'item 38: the eleventh juz');
+  h.lab.goPage(422);
+  check(bar().split('|')[0] === '\u0627\u0644\u062c\u0632\u0621 \u0627\u0644\u062b\u0627\u0646\u064a \u0648\u0627\u0644\u0639\u0634\u0631\u0648\u0646', 'item 38: the twenty-second juz');
+  h.lab.goPage(604);
+  check(bar().split('|')[0] === '\u0627\u0644\u062c\u0632\u0621 \u0627\u0644\u062b\u0644\u0627\u062b\u0648\u0646', 'item 38: the thirtieth juz');
+  h.lab.goPage(3);
   check(pressed() === 'false' && h.button.querySelector('svg').getAttribute('fill') === 'none', 'unsaved page opens with outline');
   h.lab.savedSheet('bm');
   let bubbled = 0;
@@ -2547,6 +2564,7 @@ async function assertMushafTopbar(html, source, css) {
   h.window.innerWidth = 1200; h.lab.goPage(4); h.click(h.button);
   check(h.lab.visiblePages(4).join(',') === '3,4' && saved().some(b => b.t === 'p' && b.k === 4)
     && h.document.getElementById('navPage').textContent === '\u0664', 'spread bookmark uses the bottom-bar anchor');
+  check(h.document.getElementById('pageNum').textContent === '\u0663 - \u0664', 'item 38: a spread shows both page numbers');
   h.click(h.document.getElementById('exitBtn'));
   check(h.messages.some(x => x.message.type === 'mushaf-lab:exit'), 'back retains the parent exit message');
   check([...h.storage.keys()].every(k => ['lab.settings', 'lab.bm', 'lab.hintSeen', 'lab.last', 'lab.recent'].includes(k)), 'no new storage key');

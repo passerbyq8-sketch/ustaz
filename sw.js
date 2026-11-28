@@ -315,8 +315,8 @@ const IDLE = [
   // NOT here: it arrives with the page downloads the reader chooses (see DOWNLOADS_CACHE below). quest-bank-integrity-guard.cjs B17 parses index.html and app.js in
   // mushaf-lab/ and fails when this list stops covering them.
   '/mushaf-lab/index.html',
-  '/mushaf-lab/app.js?v=7',
-  '/mushaf-lab/style.css?v=7',
+  '/mushaf-lab/app.js?v=8',
+  '/mushaf-lab/style.css?v=8',
   '/mushaf-lab/lab-i18n.js?v=1',
   '/mushaf-lab/manifest.webmanifest',
   '/mushaf-lab/icon-192.png',

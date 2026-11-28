@@ -1340,7 +1340,7 @@ function libraryPlain(markup) {
       ok('8Wm the picker is wrapped by the tracker and the JSX handler name is unchanged', /const onPickImage = \(e\) => ezikTrackAttach\(pickImageNow\(e\)\);/.test(appSrcU) && /onChange=\{onPickImage\}/.test(appSrcU));
       ok('8Wn the busy mirror reads the answer in flight, the composer text and the pending file',
         /EZIK_UPDATE_BUSY\.loading = !!isLoading \|\| streamingText !== null;\n\s+EZIK_UPDATE_BUSY\.draft = input\.trim\(\) !== '' \|\| !!pendingImage;/.test(appSrcU));
-      ok('8Wo sw.js is untouched by this item: its two lines stay (CACHE name, the ?v=7 pair, skipWaiting and claim)', /'\/mushaf-lab\/app\.js\?v=7',\n\s+'\/mushaf-lab\/style\.css\?v=7',/.test(swSrcU)
+      ok('8Wo sw.js is untouched by this item: its two lines stay (CACHE name, the ?v= pair -- 7, moved to 8 by item 38 -- skipWaiting and claim)', /'\/mushaf-lab\/app\.js\?v=8',\n\s+'\/mushaf-lab\/style\.css\?v=8',/.test(swSrcU)
         && swSrcU.includes('self.skipWaiting();') && swSrcU.includes('self.clients.claim()') && /^const IDLE = \[/m.test(swSrcU));
       // ---- 3.4i a message sent while its file is still being read goes WITH the file (the owner's answer 10)
       // MEASURED by reading sendMessage and by the owner's own sequence: it read pendingImage from its render closure and cleared it at the press; the file's

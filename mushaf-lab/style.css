@@ -62,6 +62,10 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
 .top svg { width: 24px; height: 24px; }
 #pageBookmarkBtn { margin-inline-start: auto; }
 #pageBookmarkBtn[aria-pressed="true"] svg { fill: currentColor; }
+/* item 38: the juz after the back button, the surah before the bookmark; both go with the bars */
+.top .lbl { align-self: center; min-width: 0; padding: 0 8px; font-size: 14px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.top .lbl:empty { display: none; }
+.top .lbl.s { flex: 1 1 auto; text-align: end; }
 
 main { position: fixed; left: 0; right: 0; top: var(--sat); bottom: var(--sab); overflow: hidden; }
 /* the page track: three slots [next | current | previous] (the next page lies to the left); the script moves it with the finger */
@@ -79,6 +83,12 @@ main { position: fixed; left: 0; right: 0; top: var(--sat); bottom: var(--sab); 
 .layer .pl { background: var(--play); }
 .layer .rg { background: var(--hl); outline: 1px dashed var(--accent); }
 .tl { position: absolute; inset: 0; -webkit-touch-callout: none; }
+/* item 38: the frame is off. The stage is the window inside the printed frame; the image, the mark layer and the
+   text layer are enlarged and shifted together (--cl/--ct/--cw/--ch, set per page by app.js), so every mark and
+   every selectable word stays over its word. */
+.stage.crop { overflow: hidden; }
+.stage.crop > img, .stage.crop > .layer, .stage.crop > .tl { position: absolute; right: auto; bottom: auto;
+  width: calc(100% / var(--cw)); height: calc(100% / var(--ch)); left: calc(-100% * var(--cl) / var(--cw)); top: calc(-100% * var(--ct) / var(--ch)); }
 .tafsir .editnote { font-size: .78em; color: var(--muted); margin-inline: .25em; }
 body.pressopen * { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 body.selmode .tl { -webkit-touch-callout: default; }
@@ -95,6 +105,11 @@ body.selmode .tl span { pointer-events: auto; cursor: text; user-select: text; -
 .nav button { min-height: 48px; border: 0; background: transparent; border-radius: 10px; font-size: 13px; color: var(--muted); display: grid; place-items: center; gap: 2px; }
 .nav button b { font-size: 15px; color: var(--ink); font-weight: 600; }
 .nav button:active { background: var(--raise); }
+/* item 38: the page number, bottom-centre above the bar; shown and hidden with the bars */
+.pgnum { position: fixed; left: 50%; bottom: calc(72px + var(--sab)); transform: translateX(-50%); z-index: 6; direction: rtl; white-space: nowrap;
+  min-width: 44px; text-align: center; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 999px;
+  padding: 3px 14px; font-size: 15px; font-weight: 600; pointer-events: none; transition: opacity .2s ease; }
+.pgnum:empty { display: none; }
 
 .player { position: fixed; left: 8px; right: 8px; bottom: calc(66px + var(--sab)); z-index: 7; max-width: 640px; margin: 0 auto;
   background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 8px 10px; box-shadow: 0 6px 24px rgba(0,0,0,.12); }
@@ -165,3 +180,4 @@ body.immersive .top { transform: translateY(-110%); opacity: 0; pointer-events: 
 body.immersive .nav { transform: translateY(110%); opacity: 0; pointer-events: none; }
 body.immersive .player { transform: translateY(180%); opacity: 0; pointer-events: none; }
 body.immersive .hint { display: none; }
+body.immersive .pgnum { opacity: 0; }

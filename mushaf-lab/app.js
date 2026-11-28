@@ -136,7 +136,21 @@
   // ------------------------------------------------------------------ pages
   const isSpread = () => S.spread && window.innerWidth >= 900 && window.innerWidth > window.innerHeight;
   const FILL_Q = '(orientation: portrait) and (max-width: 700px)';   // same rule as Ezik's reader: a phone held upright fills the screen
-  const pageAspect = (st) => st._aspect || (S.mode === 'vector' ? 382.68 / 547.09 : (+st.dataset.p < 3 ? 851 / 1368 : 747 / 1229));
+  // ITEM 38 -- THE FRAME IS OFF (the printed pages 3..604). The page shows only the inside of the printed frame.
+  // Measured on all 602 framed images: the frame's inner edge is at x 54/693, y 107/1135 on the 747-wide pages and
+  // one pixel further left on the 746-wide ones, so this window, one pixel inside both, holds no pixel of the frame on
+  // any page; the page's own white band inside the frame is the margin that keeps every letter off the screen edge.
+  // Pages 1 and 2 keep their pages as they are, and the vector pages carry no frame (only the outer labels): neither
+  // is cropped. The window is in the image's own pixels; style.css (.stage.crop) moves the image, the mark layer
+  // and the text layer by the same amounts, so a mark or a selected word stays over its word.
+  const CROP = { l: 55, t: 108, r: 691, b: 1134 };
+  const isCropped = (st) => S.mode !== 'vector' && +st.dataset.p >= 3;
+  function setCrop(st, nw, nh) {
+    const W = nw || 747, H = nh || 1229, v = st.style;
+    v.setProperty('--cl', String(CROP.l / W)); v.setProperty('--ct', String(CROP.t / H));
+    v.setProperty('--cw', String((CROP.r - CROP.l) / W)); v.setProperty('--ch', String((CROP.b - CROP.t) / H));
+  }
+  const pageAspect = (st) => (isCropped(st) ? (CROP.r - CROP.l) / (CROP.b - CROP.t) : st._aspect || (S.mode === 'vector' ? 382.68 / 547.09 : (+st.dataset.p < 3 ? 851 / 1368 : 747 / 1229)));
   // Inside Ezik's frame this page is an iframe, where env(safe-area-inset-*) is always 0, so the bars sat
   // under Android's three navigation buttons. Ezik's own document (same origin) sees the real insets:
   // measure them there and hand them to the bars and the page area as --sat / --sab.
@@ -193,9 +207,10 @@
   function makeStage(p) {
     const st = document.createElement('div');
       st.className = 'stage' + (S.mode === 'vector' ? ' vector' : '') + (p < 3 ? ' list-only' : ''); st.dataset.p = p;
+      if (isCropped(st)) { st.classList.add('crop'); setCrop(st); }
       const im = document.createElement('img'); im.alt = 'صفحة ' + ar(p); im.decoding = 'async'; im.draggable = false;
       im.src = S.mode === 'vector' ? SVG(p) : IMG(p);
-      im.addEventListener('load', () => { if (im.naturalWidth && im.naturalHeight) st._aspect = im.naturalWidth / im.naturalHeight; sizeStages(); }); im.addEventListener('error', () => { im.alt = ''; im.style.visibility = 'hidden'; if (st.querySelector('.ph')) return; const ph = document.createElement('div'); ph.className = 'ph'; ph.textContent = 'تعذّر تحميل صورة الصفحة'; st.appendChild(ph); });
+      im.addEventListener('load', () => { if (im.naturalWidth && im.naturalHeight) { st._aspect = im.naturalWidth / im.naturalHeight; if (isCropped(st)) setCrop(st, im.naturalWidth, im.naturalHeight); } sizeStages(); }); im.addEventListener('error', () => { im.alt = ''; im.style.visibility = 'hidden'; if (st.querySelector('.ph')) return; const ph = document.createElement('div'); ph.className = 'ph'; ph.textContent = 'تعذّر تحميل صورة الصفحة'; st.appendChild(ph); });
       const layer = document.createElement('div'); layer.className = 'layer';
       const tl = document.createElement('div'); tl.className = 'tl';
       st.append(im, layer, tl);
@@ -217,6 +232,22 @@
   function updateHeader() {
     $('navPage').textContent = ar(cur);
     updatePageBookmark();
+    updateBarLabels();
+  }
+  // ITEM 38 -- WHAT THE FRAME CARRIED, NOW ON THE BARS. The juz, the surah and the page number are shown only while
+  // the bars are (one tap), never over the reading: the juz after the back button, the surah (of the page's first
+  // ayah) before the bookmark, the page number in a pill above the bottom bar. A spread names its right-hand page's
+  // juz and surah and both page numbers. A non-Arabic interface gets the index sheet's own forms («الجزء ٣»,
+  // «٣. سورة …»), which lab-i18n.js already renders in that language; in Arabic the juz is an ordinal.
+  const JUZ_ORD = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس', 'السابع', 'الثامن', 'التاسع', 'العاشر'];
+  const juzOrdinal = (j) => (j <= 10 ? JUZ_ORD[j - 1] : j < 20 ? (j === 11 ? 'الحادي' : JUZ_ORD[j - 11]) + ' عشر'
+    : j === 20 ? 'العشرون' : j < 30 ? (j === 21 ? 'الحادي' : JUZ_ORD[j - 21]) + ' والعشرون' : 'الثلاثون');
+  function updateBarLabels() {
+    const pages = visiblePages(cur), p = pages[0], j = juzOf(p), s = surahOfPage(p);
+    const arUi = !document.documentElement.hasAttribute('data-ez-lab-lang');   // lab-i18n.js marks a translated frame
+    $('barJuz').textContent = 'الجزء ' + (arUi ? juzOrdinal(j) : ar(j));
+    $('barSura').textContent = (arUi ? '' : ar(s) + '. ') + 'سورة ' + surahName(s);
+    $('pageNum').textContent = pages.map(ar).join(' - ');
   }
   let settling = false;
   function turn(dir, byHand) {
@@ -259,7 +290,8 @@
     tl.appendChild(frag); fitStage(st);
   }
   function fitStage(st) {
-    const W = st.clientWidth, H = st.clientHeight; if (!W || !H) return;
+    const box = st.querySelector('.tl') || st;   // item 38: the text layer is the whole page, larger than a cropped stage
+    const W = box.clientWidth, H = box.clientHeight; if (!W || !H) return;
     const spans = st.querySelectorAll('.tl span'); const n = spans.length; const nat = new Array(n);
     for (let i = 0; i < n; i++) { const s = spans[i]; const h = H * parseFloat(s.dataset.h) / 100; s.style.transform = 'none'; s.style.fontSize = (h * 0.62) + 'px'; s.style.lineHeight = h + 'px'; s.style.height = h + 'px'; }
     for (let i = 0; i < n; i++) nat[i] = spans[i].getBoundingClientRect().width || 1;
@@ -295,7 +327,7 @@
     const hit = document.elementFromPoint(cx, cy);
     if (hit && hit.dataset && hit.dataset.a && st.contains(hit)) return hit.dataset.a;
     const g = st._g; if (!g) return null;
-    const r = st.getBoundingClientRect(); if (!r.width || !r.height) return null;
+    const r = (st.querySelector('.tl') || st).getBoundingClientRect(); if (!r.width || !r.height) return null;   // item 38: the whole page's box
     const px = (cx - r.left) / r.width * 100, py = (cy - r.top) / r.height * 100;
     let best = null, bd = Infinity;
     for (const ln of g.lines) for (const it of ln.items) {
