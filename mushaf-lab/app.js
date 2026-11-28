@@ -198,12 +198,24 @@
     const mx = Math.max(0, ((z.offsetWidth || 0) * v.k - (sl.clientWidth || 0)) / 2), my = Math.max(0, ((z.offsetHeight || 0) * v.k - (sl.clientHeight || 0)) / 2);
     return { k: v.k, tx: Math.min(mx, Math.max(-mx, v.tx)), ty: Math.min(my, Math.max(-my, v.ty)) };
   }
-  function applyView(sl, v) { const z = sl && sl.firstElementChild; if (z) z.style.transform = (v.k === 1 && !v.tx && !v.ty) ? '' : 'translate(' + v.tx + 'px, ' + v.ty + 'px) scale(' + v.k + ')'; }
+  function applyView(sl, v) { const z = sl && sl.firstElementChild; if (z) z.style.transform = (v.k === 1 && !v.tx && !v.ty) ? '' : 'translate(' + Math.round(v.tx * 100) / 100 + 'px, ' + Math.round(v.ty * 100) / 100 + 'px) scale(' + Math.round(v.k * 1000) / 1000 + ')'; }
   const TOP = { k: 1, tx: 0, ty: Infinity };
   function setView(v) { if (!slots) return; view = clampView(slots[1], v); applyView(slots[1], view); }
   function syncViews(reset) { if (!slots) return; if (reset) stopGlide(); slots.forEach((sl, i) => { if (i !== 1) applyView(sl, clampView(sl, TOP)); }); setView(reset ? TOP : view); }
   // the page has room to move: it is zoomed, or it is taller than its slot
   const canPan = () => !!slots && (view.k > 1 || clampView(slots[1], TOP).ty > 0);
+  // ITEM 38 D -- THE ZOOM, 1x to 3x, local to the reader (the app's viewport lock is not touched). The point at
+  // (x, y) on the screen stays under the fingers (or the cursor) while the page grows or shrinks around it. Close
+  // enough to 1x is 1x, and at 1x the page turns again.
+  const ZOOM_MAX = 3;
+  function zoomAt(k, x, y, base) {
+    if (!slots) return;
+    const b = base || { k: view.k, tx: view.tx, ty: view.ty, x, y };
+    const r = slots[1].getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    let nk = Math.min(ZOOM_MAX, Math.max(1, k)); if (nk < 1.02) nk = 1;
+    const px = (b.x - cx - b.tx) / b.k, py = (b.y - cy - b.ty) / b.k;   // the page point under the fingers when it began
+    setView({ k: nk, tx: x - cx - nk * px, ty: y - cy - nk * py });
+  }
   // a pan let go while moving glides on a little, slowing, and stops at an edge
   let glide = 0;
   function stopGlide() { if (glide) { cancelAnimationFrame(glide); glide = 0; } }
@@ -1352,6 +1364,10 @@
       if (document.body.classList.contains('selmode') || settling) return;
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       if (window.visualViewport && window.visualViewport.scale > 1.05) return;
+      if (e.pointerType !== 'mouse') {   // item 38 D: every finger is counted; the second one starts a pinch
+        fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (fingers.size >= 2) { startPinch(); return; }
+      }
       cancelPress(); stopGlide();
       const st = e.target.closest('.stage');
       const pr = { x: e.clientX, y: e.clientY, st, fired: false, drag: false, moved: false, pan: false, lx: e.clientX, ly: e.clientY, lt: Date.now(), vx: 0, vy: 0, id: e.pointerId, v0: view };
@@ -1359,10 +1375,13 @@
       press = pr;
     });
     sp.addEventListener('pointermove', (e) => {
+      if (fingers.has(e.pointerId)) fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pinch) { movePinch(); return; }
       const pr = press; if (!pr || pr.fired || e.pointerId !== pr.id) return;
       const dx = e.clientX - pr.x, dy = e.clientY - pr.y;
       if (!pr.drag && !pr.pan) {
-        if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) { pr.drag = true; clearTimeout(pr.timer); try { sp.setPointerCapture(pr.id); } catch (err) {} }
+        if (view.k > 1 && Math.hypot(dx, dy) > 8) { pr.pan = true; pr.moved = true; clearTimeout(pr.timer); try { sp.setPointerCapture(pr.id); } catch (err) {} }   // item 38 D: zoomed, one finger pans
+        else if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) { pr.drag = true; clearTimeout(pr.timer); try { sp.setPointerCapture(pr.id); } catch (err) {} }
         else if (Math.hypot(dx, dy) > 12) {
           pr.moved = true; clearTimeout(pr.timer);
           if (canPan()) { pr.pan = true; try { sp.setPointerCapture(pr.id); } catch (err) {} }   // item 38: a page with room moves with the finger
@@ -1388,8 +1407,28 @@
       if (rangeStart && pr.st) { openFromPress(pr.st, e.clientX, e.clientY); return; }
       toggleChrome();
     };
-    sp.addEventListener('pointerup', (e) => endPress(e, false));
-    sp.addEventListener('pointercancel', (e) => endPress(e, true));
+    const lift = (e, cancelled) => {
+      fingers.delete(e.pointerId);
+      if (pinch) { if (fingers.size < 2) pinch = null; return; }
+      endPress(e, cancelled);
+    };
+    sp.addEventListener('pointerup', (e) => lift(e, false));
+    sp.addEventListener('pointercancel', (e) => lift(e, true));
+    // ITEM 38 D -- THE PINCH. Two fingers zoom the page between 1x and 3x around the point between them, and move it
+    // as they move. A press, a long press or a page drag under way is dropped (a drag springs back at once), so a
+    // pinch never turns a page, opens a menu or hides the bars.
+    const fingers = new Map(); let pinch = null;
+    const two = () => { const v = Array.from(fingers.values()); return { x: (v[0].x + v[1].x) / 2, y: (v[0].y + v[1].y) / 2, d: Math.hypot(v[0].x - v[1].x, v[0].y - v[1].y) || 1 }; };
+    function startPinch() {
+      const pr = press; if (pr) { clearTimeout(pr.timer); press = null; if (pr.drag) setTrack(0, false); }
+      stopGlide(); if (settling) return;
+      const m = two(); pinch = { d0: m.d, base: { k: view.k, tx: view.tx, ty: view.ty, x: m.x, y: m.y } };
+      fingers.forEach((v, id) => { try { sp.setPointerCapture(id); } catch (err) {} });
+    }
+    function movePinch() { if (fingers.size < 2) return; const m = two(); zoomAt(pinch.base.k * m.d / pinch.d0, m.x, m.y, pinch.base); }
+    // iOS ignores the app's viewport lock: its own pinch is cancelled here, inside the reader's document only
+    ['gesturestart', 'gesturechange'].forEach((n) => document.addEventListener(n, (e) => { if (e.cancelable) e.preventDefault(); }, { passive: false }));
+    sp.addEventListener('touchmove', (e) => { if (e.touches && e.touches.length > 1 && e.cancelable) e.preventDefault(); }, { passive: false });
     sp.addEventListener('contextmenu', (e) => { if (!document.body.classList.contains('selmode')) e.preventDefault(); });
     $('selDone').onclick = endSelMode;
     document.addEventListener('copy', (e) => {
@@ -1399,7 +1438,9 @@
       const t = String(s1).replace(/\s+/g, ' ').trim(); if (t && e.clipboardData) { e.clipboardData.setData('text/plain', t); e.preventDefault(); }
     });
     // item 38: a wheel (or a trackpad's two fingers) moves a page that has room, as a finger does
-    $('main').addEventListener('wheel', (e) => { if (!canPan()) return; e.preventDefault(); stopGlide(); setView({ k: view.k, tx: view.tx - e.deltaX, ty: view.ty - e.deltaY }); }, { passive: false });
+    $('main').addEventListener('wheel', (e) => {
+      if (e.ctrlKey) { e.preventDefault(); stopGlide(); zoomAt(view.k * Math.exp(-e.deltaY / 200), e.clientX, e.clientY); return; }   // item 38 D
+      if (!canPan()) return; e.preventDefault(); stopGlide(); setView({ k: view.k, tx: view.tx - e.deltaX, ty: view.ty - e.deltaY }); }, { passive: false });
     let rt = 0, wasLand = window.innerWidth > window.innerHeight;
     window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { const n = slots && slots[1] ? slots[1].querySelectorAll('.stage').length : 0; syncInsets(); const land = window.innerWidth > window.innerHeight; if (n !== visiblePages(cur).length) render(); else { sizeStages(); if (land !== wasLand) syncViews(true); } wasLand = land; }, 150); });
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(sizeStages);
