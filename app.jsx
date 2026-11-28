@@ -20526,8 +20526,93 @@ function IstanaArbaeenBrowse({ onBack, doc, failed, onOpen, place }) {
   );
 }
 
+// ITEM 38 C (2026-11-28) -- THE READER'S TEXT ZOOMS, AND NOTHING ELSE DOES. Two fingers on the reader make the
+// hadith and its explanation bigger or smaller, 80% to 200%, and the text reflows; one finger still scrolls. The
+// size is kept on this device: a display preference like the theme, so delete-truth-measure lists it as one that
+// stays. The app-wide viewport lock (index.html line 5) is not touched; iOS ignores it, so the reader cancels the
+// browser's own pinch itself -- touch-action pan-y on its boxes, its two-finger touch moves and iOS's gesture
+// events -- and only inside the reader.
+const ARB_TEXT_SCALE_KEY = 'ezik_arbaeen_text_scale_v1';
+const arbClampScale = (v) => Math.min(2, Math.max(0.8, v));
+function readArbTextScale() {
+  try { const v = parseFloat(localStorage.getItem(ARB_TEXT_SCALE_KEY)); return Number.isFinite(v) ? arbClampScale(v) : 1; } catch (e) { return 1; }
+}
+function writeArbTextScale(v) {
+  try { localStorage.setItem(ARB_TEXT_SCALE_KEY, String(Math.round(v * 100) / 100)); } catch (e) {}
+}
+
 // THE READER. ONE entry, its text as a text child, and the attribution under it.
 function IstanaArbaeenReader({ doc, h, i, total, withSharh, sharh, sharhFailed, onPrev, onNext, onBack }) {
+  // ITEM 38 C -- the pinch. Native listeners, because React's touch listeners are passive and cannot cancel the
+  // browser's pinch. The point between the fingers stays where it is while the text grows or shrinks around it.
+  const [textScale, setTextScale] = useState(readArbTextScale);
+  const scaleRef = useRef(textScale);
+  const readRootRef = useRef(null);
+  const readScrollRef = useRef(null);
+  const anchorRef = useRef(null);
+  useEffect(() => {
+    const root = readRootRef.current, box = readScrollRef.current;
+    if (!root || !box) return undefined;
+    let pinch = null, saveTimer = null;
+    const gap = (t) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY) || 1;
+    const scaleTo = (next, clientY) => {
+      const s = arbClampScale(next);
+      if (s === scaleRef.current) return;
+      const r = box.getBoundingClientRect();
+      const y = Math.min(Math.max(clientY - r.top, 0), box.clientHeight);
+      anchorRef.current = { y, at: (box.scrollTop + y) / (box.scrollHeight || 1) };
+      scaleRef.current = s;
+      setTextScale(s);
+    };
+    const onStart = (e) => {
+      if (e.touches.length !== 2) return;
+      pinch = { d0: gap(e.touches), s0: scaleRef.current };
+      if (e.cancelable) e.preventDefault();
+    };
+    const onMove = (e) => {
+      if (!pinch || e.touches.length !== 2) return;
+      if (e.cancelable) e.preventDefault();
+      scaleTo(pinch.s0 * gap(e.touches) / pinch.d0, (e.touches[0].clientY + e.touches[1].clientY) / 2);
+    };
+    const onEnd = (e) => {
+      if (!pinch || e.touches.length >= 2) return;
+      pinch = null;
+      writeArbTextScale(scaleRef.current);
+    };
+    const onWheel = (e) => {   // a trackpad's pinch on a computer arrives as a wheel with ctrl held
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+      scaleTo(scaleRef.current * Math.exp(-e.deltaY / 200), e.clientY);
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => writeArbTextScale(scaleRef.current), 400);
+    };
+    const onGesture = (e) => { if (e.cancelable) e.preventDefault(); };   // iOS Safari's own pinch
+    root.addEventListener('touchstart', onStart, { passive: false });
+    root.addEventListener('touchmove', onMove, { passive: false });
+    root.addEventListener('touchend', onEnd);
+    root.addEventListener('touchcancel', onEnd);
+    root.addEventListener('wheel', onWheel, { passive: false });
+    root.addEventListener('gesturestart', onGesture, { passive: false });
+    root.addEventListener('gesturechange', onGesture, { passive: false });
+    return () => {
+      clearTimeout(saveTimer);
+      root.removeEventListener('touchstart', onStart);
+      root.removeEventListener('touchmove', onMove);
+      root.removeEventListener('touchend', onEnd);
+      root.removeEventListener('touchcancel', onEnd);
+      root.removeEventListener('wheel', onWheel);
+      root.removeEventListener('gesturestart', onGesture);
+      root.removeEventListener('gesturechange', onGesture);
+    };
+  }, []);
+  // After the text reflows, the content that was under the fingers is put back under them.
+  React.useLayoutEffect(() => {
+    const a = anchorRef.current, box = readScrollRef.current;
+    anchorRef.current = null;
+    if (a && box) box.scrollTop = a.at * box.scrollHeight - a.y;
+  }, [textScale]);
+  const arbTextSt = { ...s.eziaArbText, fontSize: s.eziaArbText.fontSize * textScale };
+  const arbParaSt = { ...s.eziaSharhPara, fontSize: s.eziaSharhPara.fontSize * textScale };
   // THE ATTRIBUTION, AND WHAT IT MAY SAY. The book's title and the entry's own heading, both
   // copied from the corpus. The page is appended ONLY when the corpus marked this entry citable;
   // it never has, so no page is drawn, and nothing stands in for one.
@@ -20557,7 +20642,7 @@ function IstanaArbaeenReader({ doc, h, i, total, withSharh, sharh, sharhFailed, 
   const rawiParas = (item && Array.isArray(item.rawi)) ? item.rawi : [];
   const sharhOpen = withSharh && (!!item || !sharh);
   return (
-    <div className="theme-dark adhkar3" style={s.eziaReadContainer}>
+    <div ref={readRootRef} className="theme-dark adhkar3" style={{ ...s.eziaReadContainer, touchAction: 'pan-y' }}>
       <div className="ezia-nav">
         <div className="ezia-nav-inner">
           <button type="button" className="adhkar2-focus" onClick={onBack} style={s.eziaNavBtn} aria-label={A2_BACK}>{A2_ICON_BACK}</button>
@@ -20569,14 +20654,14 @@ function IstanaArbaeenReader({ doc, h, i, total, withSharh, sharh, sharhFailed, 
         </div>
       </div>
       <div style={s.eziaReadOuter}>
-        <div style={s.eziaReadScroll}>
+        <div ref={readScrollRef} style={{ ...s.eziaReadScroll, touchAction: 'pan-y', overflowAnchor: 'none' }}>
           <div className="ezia-read-wrap">
             <div className="ezia-read-panel">
               <span style={s.eziaReadHead}>
                 <span style={s.eziaReadPos}>{toArabicDigits(h.n)} / {toArabicDigits((doc && doc.count) || 0)}</span>
               </span>
               {/* the store's own text, as a text child: the site's paragraphs, one per line */}
-              <div style={s.eziaArbText} data-ez-keep="1">{h.text}</div>
+              <div style={arbTextSt} data-ez-keep="1">{h.text}</div>
               <div style={s.eziaReadSource}>{book}{book && h.title ? ' \u2014 ' : ''}{h.title}{page ? ' \u2014 ' + page : ''}</div>
               {/* ITEM 89 (2026-10-13). Under the attribution, in this order: the explanation's heading,
                   its paragraphs, the audio under them with its credit, the narrator, and the source.
@@ -20588,7 +20673,7 @@ function IstanaArbaeenReader({ doc, h, i, total, withSharh, sharh, sharhFailed, 
                     ? ezT('arbaeen.sharhBy', { name: item.sharh_by })
                     : ezT('arbaeen.sharh')}</h2>
                   {item
-                    ? sharhParas.map((p, k) => <p key={k} style={s.eziaSharhPara} data-ez-keep="1">{p}</p>)
+                    ? sharhParas.map((p, k) => <p key={k} style={arbParaSt} data-ez-keep="1">{p}</p>)
                     : <p style={s.eziaSharhWait}>{sharhFailed ? ezT('arbaeen.sharhOffline') : '...'}</p>}
                   {audioUrl ? (
                     <audio key={h.n} controls preload="none" src={audioUrl}
@@ -20602,7 +20687,7 @@ function IstanaArbaeenReader({ doc, h, i, total, withSharh, sharh, sharhFailed, 
                   {rawiParas.length ? (
                     <React.Fragment>
                       <h2 style={s.eziaSharhHead}>{ezT('arbaeen.rawi')}</h2>
-                      {rawiParas.map((p, k) => <p key={k} style={s.eziaSharhPara} data-ez-keep="1">{p}</p>)}
+                      {rawiParas.map((p, k) => <p key={k} style={arbParaSt} data-ez-keep="1">{p}</p>)}
                     </React.Fragment>
                   ) : null}
                 </section>

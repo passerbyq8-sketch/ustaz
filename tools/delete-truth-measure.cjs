@@ -647,6 +647,10 @@ const MUST_STAY = [
   // together so that each feature is erased whole rather than half. They are in MUST_GO_NEW
   // above now, and resetAll removes all four by their named constants.
   { lit: 'tashkeel_v1', why: 'not promised' },
+  // ITEM 38 C (2026-11-28) -- the Forty reader's text size, set by a pinch: a display preference of exactly the
+  // kind of THEME_KEY and tashkeel_v1 above, holding no reading and no content. Erasing it would need resetAll,
+  // which that order did not open; if the owner wants it erased, it moves to MUST_GO_NEW with one line in resetAll.
+  { c: 'ARB_TEXT_SCALE_KEY', why: 'not promised -- the Forty reader\u2019s text size, a display preference' },
 ];
 
 // Resolved once, here, so every case below compares real keys and a rename fails loudly above.
