@@ -2103,7 +2103,8 @@ const SEALED = {
   // 2026-11-04 INTEG1 preview: reserved ezik-v137; rebuilt app.js, measured CORE, LF worker seal.
   // 2026-11-06 BRAIN36 ship: reserved ezik-v139; app.js rebuilt at the same byte length; CORE unchanged; LF worker seal remeasured from the guard's printed digest.
   // 2026-11-28 ITEM 38 (side/mushaf38, the mushaf frame and zoom): only the mushaf-lab ?v= pair moved, 7 -> 8; CACHE stays ezik-v150 (the session sets it at ship); CORE unchanged; LF worker seal remeasured (sw.js 65569 bytes, CR 0).
-  'sw.js': '6c8e55bbdfe7aacf14f3f3285742835cdc73f825ea2fe0b4ae7ab5c43a4d2abe',
+  // 2026-11-28 ITEM 38 ADDENDUM 1 (side/mushaf38): the Part C rebuild moved app.js 2715707 -> 2719641 bytes; node tools/core-bytes.cjs --write: CORE_BYTES 3936697 -> 3940631; the prose number and the SW_PROSE mirror follow. NO FILE JOINED OR LEFT CORE; CACHE stays ezik-v150. THIS digest is re-cut LAST, at CR = 0 (sw.js 65569 bytes).
+  'sw.js': '56b903433c489ad0b3e6a040aa45c401d448e0c6b1c7c25bb90315eb00bee70a',
 };
 
 // ---------------------------------------------------------------------------
@@ -3309,7 +3310,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2715707, of: 'app.js' },
+      { n: 2719641, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
